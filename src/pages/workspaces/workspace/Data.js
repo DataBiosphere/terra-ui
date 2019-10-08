@@ -60,6 +60,7 @@ const styles = {
 
 export const ModalToolButton = ({ children, disabled, ...props }) => {
   return h(Clickable, _.merge({
+    disabled,
     style: {
       color: disabled ? colors.secondary() : colors.dark(),
       border: '1px solid transparent',
@@ -364,12 +365,9 @@ const ToolDrawer = withModalDrawer()(({
 }) => {
   const [toolMode, setToolMode] = useState()
   const entitiesCount = _.size(selectedEntities)
-  const entitiesType = !!entitiesCount && selectedEntities[_.keys(selectedEntities)[0]].entityType
-  const dataExplorerUrl =
-       entityKey === 'cohort' && _.size(selectedEntities) === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url ?
-         _.values(selectedEntities)[0].attributes.data_explorer_url + '&wid=' + workspaceId :
-         ''
-  const dataExplorerButtonEnabled = dataExplorerUrl !== ''
+  const isCohort = entityKey === 'cohort'
+  const dataExplorerButtonEnabled = isCohort && entitiesCount === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url
+  const dataExplorerUrl = dataExplorerButtonEnabled ? `${_.values(selectedEntities)[0].attributes.data_explorer_url}&wid=${workspaceId}` : undefined
 
   const { title, drawerContent } = Utils.switchCase(toolMode, [
     'IGV', () => ({
@@ -391,9 +389,9 @@ const ToolDrawer = withModalDrawer()(({
         div({ style: Style.modalDrawer.content }, [
           div({ style: { margin: '1rem 0' } }, [
             h(ModalToolButton, {
-              onClick: () => entityKey !== 'cohort' && setToolMode('IGV'),
-              disabled: entityKey === 'cohort',
-              tooltip: entityKey === 'cohort' ? 'IGV cannot be opened with cohorts' : 'Open with Integrative Genomics Viewer'
+              onClick: () => setToolMode('IGV'),
+              disabled: isCohort,
+              tooltip: isCohort ? 'IGV cannot be opened with cohorts' : 'Open with Integrative Genomics Viewer'
             }, [
               div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
                 img({ src: igvLogo, style: { width: 40 } })
@@ -401,9 +399,9 @@ const ToolDrawer = withModalDrawer()(({
               'IGV'
             ]),
             h(ModalToolButton, {
-              onClick: () => entityKey !== 'cohort' && setToolMode('Workflow'),
-              disabled: entityKey === 'cohort',
-              tooltip: entityKey === 'cohort' ? 'Workflow cannot be opened with cohorts' : 'Open with Workflow',
+              onClick: () => setToolMode('Workflow'),
+              disabled: isCohort,
+              tooltip: isCohort ? 'Workflow cannot be opened with cohorts' : 'Open with Workflow',
               style: { marginTop: '0.5rem' }
             }, [
               div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
@@ -412,13 +410,13 @@ const ToolDrawer = withModalDrawer()(({
               'Workflow'
             ]),
             h(ModalToolButton, {
-              onClick: () => dataExplorerButtonEnabled && window.open(dataExplorerUrl + '&wid=' + workspaceId),
+              onClick: () => dataExplorerButtonEnabled && window.open(dataExplorerUrl),
               disabled: !dataExplorerButtonEnabled,
               tooltip: Utils.cond(
-                [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Finding data, analysis tools, and template workspaces in the Library" help article.'],
-                [entityKey === 'cohort' && entitiesCount > 1, () => 'Select exactly one cohort to open in Data Explorer'],
-                [entityKey === 'cohort' && !dataExplorerUrl, () => 'Cohort is too old, please recreate in Data Explorer and save to Terra again'],
-                [entityKey !== 'cohort', () => 'Only cohorts can be opened with Data Explorer'],
+                [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
+                [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in Data Explorer'],
+                [isCohort && !dataExplorerUrl, () => 'Cohort is too old, please recreate in Data Explorer and save to Terra again'],
+                [!isCohort, () => 'Only cohorts can be opened with Data Explorer'],
                 () => undefined
               ),
               style: { marginTop: '0.5rem' }
@@ -450,7 +448,7 @@ const ToolDrawer = withModalDrawer()(({
         fontSize: 12
       }
     }, [
-      `${entitiesCount} ${entitiesType + (entitiesCount > 1 ? 's' : '')} selected`
+      `${entitiesCount} ${entityKey + (entitiesCount > 1 ? 's' : '')} selected`
     ]),
     drawerContent
   ])
