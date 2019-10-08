@@ -107,12 +107,9 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
     const isSaved = Utils.atom(true)
     const onMessage = e => {
       switch (e.data) {
-        case 'close':
-          return onClose()
-        case 'saved':
-          return isSaved.set(true)
-        case 'dirty':
-          return isSaved.set(false)
+        case 'close': return onClose()
+        case 'saved': return isSaved.set(true)
+        case 'dirty': return isSaved.set(false)
         default:
       }
     }
