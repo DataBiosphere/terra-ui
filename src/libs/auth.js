@@ -156,6 +156,7 @@ authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldSt
 authStore.subscribe((state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     window.newrelic.setCustomAttribute('userGoogleId', state.user.id)
+    window.Appcues && window.Appcues.identify(state.user.id)
   }
 })
 
