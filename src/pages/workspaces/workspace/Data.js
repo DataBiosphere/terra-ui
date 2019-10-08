@@ -20,6 +20,7 @@ import { IGVFileSelector } from 'src/components/IGVFileSelector'
 import { DelayedSearchInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { withModalDrawer } from 'src/components/ModalDrawer'
+import { NotebookCreator } from 'src/components/notebook-utils'
 import { notify } from 'src/components/Notifications'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TitleBar from 'src/components/TitleBar'
@@ -28,8 +29,9 @@ import WorkflowSelector from 'src/components/WorkflowSelector'
 import datasets from 'src/data/datasets'
 import dataExplorerLogo from 'src/images/data-explorer-logo.svg'
 import igvLogo from 'src/images/igv-logo.png'
+import jupyterLogo from 'src/images/jupyter-logo.svg'
 import wdlLogo from 'src/images/wdl-logo.png'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -40,6 +42,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import cohortNotebookTemplate from 'src/templates/cohort-notebook.ipynb'
 
 
 const localVariables = 'localVariables'
@@ -378,13 +381,36 @@ const getDataset = dataExplorerUrl => {
 
 const ToolDrawer = _.flow(
   Utils.withDisplayName('ToolDrawer'),
+  requesterPaysWrapper({
+    onDismiss: ({ onDismiss }) => onDismiss()
+  }),
   withModalDrawer()
 )(({
-  workspace, workspace: { workspace: { workspaceId } }, onDismiss, onIgvSuccess, entityMetadata, entityKey, selectedEntities
+  workspace, workspace: { workspace: { bucketName, name: wsName, namespace, workspaceId } },
+  onDismiss, onIgvSuccess, onRequesterPaysError, entityMetadata, entityKey, selectedEntities
 }) => {
   const [toolMode, setToolMode] = useState()
+  const [notebookNames, setNotebookNames] = useState()
+  const signal = useCancellation()
+
+  const { Buckets } = Ajax(signal)
+
+  Utils.useOnMount(() => {
+    const loadNotebookNames = _.flow(
+      withRequesterPaysHandler(onRequesterPaysError),
+      withErrorReporting('Error loading notebooks')
+    )(async () => {
+      const notebooks = await Buckets.listNotebooks(namespace, bucketName)
+      // slice removes 'notebooks/' and the .ipynb suffix
+      setNotebookNames(notebooks.map(notebook => notebook.name.slice(10, -6)))
+    })
+
+    loadNotebookNames()
+  })
+
   const entitiesCount = _.size(selectedEntities)
   const isCohort = entityKey === 'cohort'
+<<<<<<< HEAD
 
   const dataExplorerButtonEnabled = isCohort && entitiesCount === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url !== undefined
   const origDataExplorerUrl = dataExplorerButtonEnabled ? _.values(selectedEntities)[0].attributes.data_explorer_url : undefined
@@ -395,6 +421,11 @@ const ToolDrawer = _.flow(
   const dataExplorerPath = openDataExplorerInSameTab && Nav.getLink(dataset.authDomain ?
     'data-explorer-private' :
     'data-explorer-public', { dataset: dataset.name }) + '?' + dataExplorerUrl.split('?')[1]
+=======
+  const dataExplorerButtonEnabled = isCohort && entitiesCount === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url !== undefined
+  const dataExplorerUrl = dataExplorerButtonEnabled ? `${_.values(selectedEntities)[0].attributes.data_explorer_url}&wid=${workspaceId}` : undefined
+  const notebookButtonEnabled = isCohort && entitiesCount === 1
+>>>>>>> Add "open cohort in notebook" tool
 
   const { title, drawerContent } = Utils.switchCase(toolMode, [
     'IGV', () => ({
@@ -408,6 +439,21 @@ const ToolDrawer = _.flow(
     'Workflow', () => ({
       title: 'YOUR WORKFLOWS',
       drawerContent: h(WorkflowSelector, { workspace, selectedEntities })
+    })
+  ], [
+    'Notebook', () => ({
+      drawerContent: h(NotebookCreator, {
+        bucketName, namespace,
+        existingNames: notebookNames,
+        onSuccess: async notebookName => {
+          const cohortName = _.values(selectedEntities)[0].name
+          const contents = cohortNotebookTemplate.replace('MY_COHORT', cohortName)
+          await Buckets.notebook(namespace, bucketName, notebookName).create(JSON.parse(contents))
+          Nav.goToPath('workspace-notebook-launch', { namespace, name: wsName, notebookName: `${notebookName}.ipynb` })
+        },
+        onDismiss: setToolMode,
+        reloadList: _.noop
+      })
     })
   ], [
     Utils.DEFAULT, () => ({
@@ -454,6 +500,22 @@ const ToolDrawer = _.flow(
                 img({ src: dataExplorerLogo, style: { opacity: !dataExplorerButtonEnabled ? .25 : undefined, width: 40 } })
               ]),
               'Data Explorer'
+            ]),
+            h(ModalToolButton, {
+              onClick: () => setToolMode('Notebook'),
+              disabled: !notebookButtonEnabled,
+              tooltip: Utils.cond(
+                [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
+                [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in notebook'],
+                [!isCohort, () => 'Only cohorts can be opened with notebooks'],
+                [notebookButtonEnabled, () => 'Create a Python 2 or 3 notebook with this cohort']
+              ),
+              style: { marginTop: '0.5rem' }
+            }, [
+              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
+                img({ src: jupyterLogo, style: { opacity: !notebookButtonEnabled ? .25 : undefined, width: 40 } })
+              ]),
+              'Notebook'
             ])
           ])
         ])

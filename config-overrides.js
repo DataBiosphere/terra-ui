@@ -23,6 +23,10 @@ module.exports = {
         include: [path.resolve(__dirname, 'src/icons')],
         loader: 'svg-react-loader'
       }),
+      addWebpackModuleRule({
+        include: [path.resolve(__dirname, 'src/templates')],
+        loader: 'raw-loader'
+      }),
       addWebpackPlugin(new webpack.DefinePlugin({
         SATURN_VERSION: JSON.stringify(execSync('git rev-parse HEAD').toString().trim()),
         SATURN_BUILD_TIMESTAMP: JSON.stringify(Date.now())

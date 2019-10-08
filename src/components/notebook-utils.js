@@ -92,6 +92,7 @@ export const NotebookCreator = class NotebookCreator extends Component {
   static propTypes = {
     reloadList: PropTypes.func.isRequired,
     onDismiss: PropTypes.func.isRequired,
+    onSuccess: PropTypes.func.isRequired,
     namespace: PropTypes.string.isRequired,
     bucketName: PropTypes.string.isRequired,
     existingNames: PropTypes.arrayOf(PropTypes.string).isRequired
@@ -104,7 +105,7 @@ export const NotebookCreator = class NotebookCreator extends Component {
 
   render() {
     const { notebookName, notebookKernel, creating, nameTouched } = this.state
-    const { reloadList, onDismiss, namespace, bucketName, existingNames } = this.props
+    const { reloadList, onSuccess, onDismiss, namespace, bucketName, existingNames } = this.props
 
     const errors = validate(
       { notebookName, notebookKernel },
@@ -126,7 +127,7 @@ export const NotebookCreator = class NotebookCreator extends Component {
           try {
             await Ajax().Buckets.notebook(namespace, bucketName, notebookName).create(notebookData[notebookKernel])
             reloadList()
-            onDismiss()
+            onSuccess(notebookName)
           } catch (error) {
             await reportError('Error creating notebook', error)
             onDismiss()
