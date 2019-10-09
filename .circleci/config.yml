@@ -93,7 +93,6 @@ jobs:
             - app.yaml
             - build
             - config
-            - src/_tests/get_bearer_token.py
   deploy-pr:
     executor: gcloud
     steps:
@@ -137,6 +136,7 @@ jobs:
   integration-test-setup:
     executor: dsp-toolbox
     steps:
+      - checkout
       - attach_workspace:
           at: .
       - run: python src/_tests/get_bearer_token.py "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}" > testtoken
@@ -147,6 +147,7 @@ jobs:
   integration-tests: 
     executor: puppeteer
     steps:
+      - checkout
       - attach_workspace:
           at: .
       - restore_cache:
