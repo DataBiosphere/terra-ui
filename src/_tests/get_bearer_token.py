@@ -20,3 +20,4 @@ def getUserToken(argv):
 
 if __name__ == "__main__":
   getUserToken(sys.argv[1:])
+  

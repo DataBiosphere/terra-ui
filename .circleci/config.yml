@@ -55,7 +55,7 @@ commands:
             - deploy:
                 name: Deploy << parameters.env >>
                 command: gcloud app deploy --project=bvdp-saturn-<< parameters.env >> --promote --quiet
-                
+
 jobs:
   test:
     executor: node
@@ -137,8 +137,6 @@ jobs:
     executor: dsp-toolbox
     steps:
       - checkout
-      - attach_workspace:
-          at: .
       - run: python src/_tests/get_bearer_token.py "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}" > testtoken
       - persist_to_workspace:
           root: .
