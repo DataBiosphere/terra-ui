@@ -164,7 +164,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           p(['On Sunday Oct 20th at 10am, we are introducing important updates to Terra, which are not compatible with the older notebook runtime in this workspace. After this date, you will no longer be able to save new changes to notebooks in one of these older runtimes.']),
           h(Link, {
             variant: 'light',
-            href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+            href: 'https://support.terra.bio/hc/en-us/articles/360034505132--Lock-and-Playground-Notebook-Modes',
             ...Utils.newTabLinkProps
           }, ['Read here for more details.'])
         ])
