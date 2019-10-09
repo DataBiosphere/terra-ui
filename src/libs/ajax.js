@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { useEffect, useRef } from 'react'
-import { h } from 'react-hyperscript-helpers'
+import { h, pre } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
@@ -614,13 +614,17 @@ const Workspaces = signal => ({
       },
 
       renameEntity: (type, name, newName) => {
-        return fetchRawls(`${root}/entities/${type}/${name}/rename`, _.mergeAll([authOpts(), jsonBody({ name: newName }),
-          { signal, method: 'POST' }]))
+        return fetchRawls(`${root}/entities/${type}/${name}/rename`, _.mergeAll([
+          authOpts(), jsonBody({ name: newName }),
+          { signal, method: 'POST' }
+        ]))
       },
 
       deleteEntityAttribute: (type, name, attributeName) => {
-        return fetchRawls(`${root}/entities/${type}/${name}`, _.mergeAll([authOpts(), jsonBody([{ op: 'RemoveAttribute', attributeName }]),
-          { signal, method: 'PATCH' }]))
+        return fetchRawls(`${root}/entities/${type}/${name}`, _.mergeAll([
+          authOpts(), jsonBody([{ op: 'RemoveAttribute', attributeName }]),
+          { signal, method: 'PATCH' }
+        ]))
       },
 
       upsertEntities,
@@ -646,8 +650,10 @@ const Workspaces = signal => ({
           entityType,
           entityNames: entities
         }
-        const res = await fetchRawls(`workspaces/entities/copy?linkExistingEntities=${link}`, _.mergeAll([authOpts(), jsonBody(payload),
-          { signal, method: 'POST' }]))
+        const res = await fetchRawls(`workspaces/entities/copy?linkExistingEntities=${link}`, _.mergeAll([
+          authOpts(), jsonBody(payload),
+          { signal, method: 'POST' }
+        ]))
         return res.json()
       },
 
@@ -746,12 +752,16 @@ const Buckets = signal => ({
     )
   },
 
-  getObjectPreview: async (bucket, object, namespace, previewFull = false) => {
+  getObjectPreview: async (bucket, object, namespace, previewMode = 'head') => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}?alt=media`,
       _.mergeAll([
         authOpts(await saToken(namespace)),
         { signal },
-        previewFull ? {} : { headers: { Range: 'bytes=0-20000' } }
+        Utils.switchCase(previewMode,
+          ['head', () => ({ headers: { Range: 'bytes=0-20000' } })],
+          ['full', () => undefined],
+          ['tail', () => ({ headers: { Range: 'bytes=-10' } })]
+        )
       ])
     )
   },
@@ -910,21 +920,23 @@ const Methods = signal => ({
 
       toWorkspace: async (workspace, config = {}) => {
         const res = await fetchRawls(`workspaces/${workspace.namespace}/${workspace.name}/methodconfigs`,
-          _.mergeAll([authOpts(), jsonBody(_.merge({
-            methodRepoMethod: {
-              methodUri: `agora://${namespace}/${name}/${snapshotId}`
+          _.mergeAll([
+            authOpts(), jsonBody(_.merge({
+              methodRepoMethod: {
+                methodUri: `agora://${namespace}/${name}/${snapshotId}`
+              },
+              name,
+              namespace,
+              rootEntityType: '',
+              prerequisites: {},
+              inputs: {},
+              outputs: {},
+              methodConfigVersion: 1,
+              deleted: false
             },
-            name,
-            namespace,
-            rootEntityType: '',
-            prerequisites: {},
-            inputs: {},
-            outputs: {},
-            methodConfigVersion: 1,
-            deleted: false
-          },
-          config.payloadObject
-          )), { signal, method: 'POST' }]))
+            config.payloadObject
+            )), { signal, method: 'POST' }
+          ]))
         return res.json()
       }
     }
@@ -973,8 +985,10 @@ const Jupyter = signal => ({
             serverExtensions: {},
             combinedExtensions: {}
           },
-          scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email',
-            'https://www.googleapis.com/auth/userinfo.profile']
+          scopes: [
+            'https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile'
+          ]
         })
         return fetchLeo(`api/cluster/v2/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
       },

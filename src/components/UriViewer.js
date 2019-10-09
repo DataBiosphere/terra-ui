@@ -62,12 +62,12 @@ const getMaxDownloadCostNA = bytes => {
   return downloadPrice < 0.01 ? '< $0.01' : Utils.formatUSD(downloadPrice)
 }
 
-const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProject }) => {
+const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProject, previewMode }) => {
   const signal = useCancellation()
   const [preview, setPreview] = useState()
   const loadPreview = async () => {
     try {
-      const res = await Ajax(signal).Buckets.getObjectPreview(bucket, name, googleProject, isImage(metadata))
+      const res = await Ajax(signal).Buckets.getObjectPreview(bucket, name, googleProject, isImage(metadata)? 'full' : previewMode)
       if (isImage(metadata)) {
         setPreview(URL.createObjectURL(await res.blob()))
       } else {
@@ -135,7 +135,7 @@ const DownloadButton = ({ uri, metadata: { bucket, name, size } }) => {
 
 const UriViewer = requesterPaysWrapper({
   onDismiss: ({ onDismiss }) => onDismiss()
-})(({ googleProject, uri, onDismiss, onRequesterPaysError }) => {
+})(({ googleProject, uri, onDismiss, onRequesterPaysError, previewMode = 'head' }) => {
   const signal = useCancellation()
   const [metadata, setMetadata] = useState()
   const [copied, setCopied] = useState()
@@ -189,7 +189,7 @@ const UriViewer = requesterPaysWrapper({
           els.label('Filename'),
           els.data(_.last(name.split('/')).split('.').join('.\u200B')) // allow line break on periods
         ]),
-        h(PreviewContent, { uri, metadata, googleProject }),
+        h(PreviewContent, { uri, metadata, googleProject, previewMode }),
         els.cell([els.label('File size'), els.data(filesize(parseInt(size, 10)))]),
         els.cell([
           h(Link, {

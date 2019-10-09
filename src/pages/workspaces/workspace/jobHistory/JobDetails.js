@@ -4,10 +4,11 @@ import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer, CellMeasurer, CellMeasurerCache } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Link } from 'src/components/common'
-import Modal from 'src/components/Modal'
 import { centeredSpinner, icon } from 'src/components/icons'
+import Modal from 'src/components/Modal'
 import StepButtons from 'src/components/StepButtons'
 import { FlexTable } from 'src/components/table'
+import UriViewer from 'src/components/UriViewer'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import * as Nav from 'src/libs/nav'
@@ -29,7 +30,7 @@ const extractFailures = ({ calls } = {}) => {
   }, _.toPairs(calls))
 }
 
-const LogModal = ({logGsUri}) => {
+const LogModal = ({ logGsUri }) => {
   return h(Modal, {}, [
     logGsUri
   ])
@@ -69,7 +70,8 @@ const JobDetails = wrapWorkspace({
       href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId }),
       style: { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', padding: '0.5rem 0' }
     }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to submission']),
-    !!workflowData ? h(Fragment, [div(['Name: ', workflowName]),
+    !!workflowData ? h(Fragment, [
+      div(['Name: ', workflowName]),
       div({ style: { display: 'flex' } }, [
         div({ style: Style.elements.card.container }, ['Status:', status]),
         div({ style: Style.elements.card.container }, ['Failures:', JSON.stringify(failures)])
@@ -88,114 +90,118 @@ const JobDetails = wrapWorkspace({
           onChangeTab: setActiveTab
         }),
         Utils.switchCase(activeTab,
-          ['list', () => {
-            return div({ style: { height: 500 } }, [
-              h(AutoSizer, [
-                ({ width, height }) => h(FlexTable, {
-                  width, height,
-                  rowCount: calls.length,
-                  columns: [
-                    {
-                      size: { grow: 5 },
-                      headerRenderer: () => 'Name',
-                      cellRenderer: ({ rowIndex }) => h(Link, { onClick: () => setSelectedCall(rowIndex) }, [calls[rowIndex].name])
-                    },
-                    {
-                      headerRenderer: () => 'Status',
-                      cellRenderer: () => 'x'
-                    },
-                    {
-                      headerRenderer: () => 'Start',
-                      cellRenderer: () => 'x'
-                    },
-                    {
-                      headerRenderer: () => 'Duration',
-                      cellRenderer: () => 'x'
-                    },
-                    {
-                      headerRenderer: () => 'Inputs',
-                      cellRenderer: () => 'x'
-                    },
-                    {
-                      headerRenderer: () => 'Outputs',
-                      cellRenderer: () => 'x'
-                    },
-                    {
-                      headerRenderer: () => 'Links',
-                      cellRenderer: () => 'x'
-                    },
-                    {
-                      headerRenderer: () => 'Attempts',
-                      cellRenderer: () => 'x'
-                    }
-                  ]
-                })
+          [
+            'list', () => {
+              return div({ style: { height: 500 } }, [
+                h(AutoSizer, [
+                  ({ width, height }) => h(FlexTable, {
+                    width, height,
+                    rowCount: calls.length,
+                    columns: [
+                      {
+                        size: { grow: 5 },
+                        headerRenderer: () => 'Name',
+                        cellRenderer: ({ rowIndex }) => h(Link, { onClick: () => setSelectedCall(rowIndex) }, [calls[rowIndex].name])
+                      },
+                      {
+                        headerRenderer: () => 'Status',
+                        cellRenderer: () => 'x'
+                      },
+                      {
+                        headerRenderer: () => 'Start',
+                        cellRenderer: () => 'x'
+                      },
+                      {
+                        headerRenderer: () => 'Duration',
+                        cellRenderer: () => 'x'
+                      },
+                      {
+                        headerRenderer: () => 'Inputs',
+                        cellRenderer: () => 'x'
+                      },
+                      {
+                        headerRenderer: () => 'Outputs',
+                        cellRenderer: () => 'x'
+                      },
+                      {
+                        headerRenderer: () => 'Links',
+                        cellRenderer: () => 'x'
+                      },
+                      {
+                        headerRenderer: () => 'Attempts',
+                        cellRenderer: () => 'x'
+                      }
+                    ]
+                  })
+                ])
               ])
-            ])
-          }],
-          ['errors', () => {
-            return div({ style: { height: 500 } }, [
-              h(AutoSizer, { onResize: () => cache.clearAll() }, [
-                ({ width, height }) => h(FlexTable, {
-                  width, height,
-                  deferredMeasurementCache: cache,
-                  rowCount: callFailures.length,
-                  rowHeight: cache.rowHeight,
-                  columns: [
-                    {
-                      headerRenderer: () => 'Task Name',
-                      cellRenderer: ({ rowIndex }) => callFailures[rowIndex].taskName.split('.')[1]
-                    },
-                    {
-                      headerRenderer: () => 'Shard Index',
-                      cellRenderer: ({ rowIndex }) => {
-                        const { shardIndex } = callFailures[rowIndex].attempt
-                        return shardIndex !== -1 ? shardIndex : null
+            }
+          ],
+          [
+            'errors', () => {
+              return div({ style: { height: 500 } }, [
+                h(AutoSizer, { onResize: () => cache.clearAll() }, [
+                  ({ width, height }) => h(FlexTable, {
+                    width, height,
+                    deferredMeasurementCache: cache,
+                    rowCount: callFailures.length,
+                    rowHeight: cache.rowHeight,
+                    columns: [
+                      {
+                        headerRenderer: () => 'Task Name',
+                        cellRenderer: ({ rowIndex }) => callFailures[rowIndex].taskName.split('.')[1]
+                      },
+                      {
+                        headerRenderer: () => 'Shard Index',
+                        cellRenderer: ({ rowIndex }) => {
+                          const { shardIndex } = callFailures[rowIndex].attempt
+                          return shardIndex !== -1 ? shardIndex : null
+                        }
+                      },
+                      {
+                        size: { grow: 2 },
+                        headerRenderer: () => 'Message',
+                        cellRenderer: ({ rowIndex, parent }) => {
+                          const { failures } = callFailures[rowIndex].attempt
+                          return h(CellMeasurer, { cache, columnIndex: 0, parent, rowIndex }, [
+                            div({ style: { padding: '0.5rem 0' } }, [_.map('message', failures).join(' ')])
+                          ])
+                        }
+                      },
+                      {
+                        size: { basis: 100, grow: 0 },
+                        headerRenderer: () => 'Information',
+                        cellRenderer: ({ rowIndex }) => {
+                          const { callRoot, backendLogs: { log } } = callFailures[rowIndex].attempt
+                          return div([
+                            h(Link, {
+                              tooltip: 'View the contents of the log file',
+                              'aria-label': 'View the contents of the log file',
+                              onClick: () => setShowErrorUrl(log)
+                            }, [icon('file-alt')]),
+                            h(Link, {
+                              tooltip: 'Open execution directory in cloud console',
+                              'aria-label': 'Open execution directory in cloud console',
+                              ...Utils.newTabLinkProps,
+                              href: bucketBrowserUrl(callRoot.match(/gs:\/\/(.+)/)[1])
+                            }, [icon('folder')])
+                          ])
+                        }
                       }
-                    },
-                    {
-                      size: { grow: 2 },
-                      headerRenderer: () => 'Message',
-                      cellRenderer: ({ rowIndex, parent }) => {
-                        const { failures } = callFailures[rowIndex].attempt
-                        return h(CellMeasurer, { cache, columnIndex: 0, parent, rowIndex }, [
-                          div({ style: { padding: '0.5rem 0' } }, [_.map('message', failures).join(' ')])
-                        ])
-                      }
-                    },
-                    {
-                      size: { basis: 100, grow: 0 },
-                      headerRenderer: () => 'Information',
-                      cellRenderer: ({rowIndex}) => {
-                        const {callRoot, backendLogs: {log}} = callFailures[rowIndex].attempt
-                        return div([
-                          h(Link, {
-                            tooltip: 'View the contents of the log file',
-                            'aria-label': 'View the contents of the log file',
-                            onClick: () => setShowErrorUrl(log)
-                          }, [icon('file-alt')]),
-                          h(Link, {
-                            tooltip: 'Open execution directory in cloud console',
-                            'aria-label': 'Open execution directory in cloud console',
-                            ...Utils.newTabLinkProps,
-                            href: bucketBrowserUrl(callRoot.match(/gs:\/\/(.+)/)[1])
-                          }, [icon('folder')])
-                        ])
-                      }
-                    }
-                  ]
-                })
-              ]),
-              showErrorUrl && h(LogModal, {logGsUri: showErrorUrl})
-            ])
-
-          }]
+                    ]
+                  })
+                ]),
+                showErrorUrl && h(UriViewer, { uri: showErrorUrl, googleProject: namespace, onDismiss: () => { setShowErrorUrl() }, previewMode: 'tail' })
+              ])
+            }
+          ]
         )
       ]) :
         h(Fragment, [
           div([h(Link, { onClick: () => setSelectedCall(undefined) }, [workflowName]), '/', calls[selectedCall].name]),
           JSON.stringify(calls[selectedCall])
-        ])]) :
+        ])
+    ]) :
       centeredSpinner()
   ])
 })
