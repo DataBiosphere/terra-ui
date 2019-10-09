@@ -137,12 +137,6 @@ jobs:
   integration-test-setup:
     executor: dsp-toolbox
     steps:
-      - attach_workspace:
-          at: .
-      - run: 
-          command: npx http-server . -l 3000
-          background: true
-      - run: timeout 120 bash -c "until nc -z localhost 3000; do sleep 3; done"
       - run: python src/_tests/get_bearer_token.py "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}" > testtoken
       - persist_to_workspace:
           root: .
@@ -161,7 +155,7 @@ jobs:
       - run: npx npm@6.11 ci
       - run: cp config/alpha.json build/config.json
       - run: 
-          command: npx serve build/ -l 3000
+          command: npx serve build -l 3000
           background: true
       - run: timeout 120 bash -c "until nc -z localhost 3000; do sleep 3; done"
       - run: TERRA_TOKEN=$(cat /tmp/workspace/testtoken) npm run test:integration
@@ -217,13 +211,18 @@ workflows:
   run-integration-tests: 
     jobs:
       - build
-      - integration-test-setup
-      - integration-tests:
+      - integration-test-setup:
           filters: 
             branches:
               ignore:
                 - dev
           requires:
             - build
+      - integration-tests:
+          filters: 
+            branches:
+              ignore:
+                - dev
+          requires:
             - integration-test-setup
             
