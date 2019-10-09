@@ -93,6 +93,7 @@ jobs:
             - app.yaml
             - build
             - config
+            - src/_tests/get_bearer_token.py
   deploy-pr:
     executor: gcloud
     steps:
@@ -136,9 +137,10 @@ jobs:
   integration-test-setup:
     executor: dsp-toolbox
     steps:
-      - checkout
+      - attach_workspace:
+          at: .
       - run: 
-          command: npx serve . -l 3000
+          command: npx http-server . -l 3000
           background: true
       - run: timeout 120 bash -c "until nc -z localhost 3000; do sleep 3; done"
       - run: python src/_tests/get_bearer_token.py "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}" > testtoken
