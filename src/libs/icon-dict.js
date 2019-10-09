@@ -1,5 +1,5 @@
 import {
-  faClipboard, faClock, faClone, faEye, faFolder, faFolderOpen, faListAlt, faSquare as faSquareRegular, faTimesCircle
+  faClipboard, faClock, faClone, faEye, faFileAlt, faFolder, faFolderOpen, faListAlt, faSquare as faSquareRegular, faTimesCircle
 } from '@fortawesome/free-regular-svg-icons'
 import {
   faArrowLeft, faArrowRight, faBan, faCaretDown, faCheck, faCheckCircle, faCheckSquare, faCloud, faCog, faCreditCard, faDownload, faExclamationCircle,
@@ -51,6 +51,7 @@ const iconDict = {
   'error-standard': fa(faExclamationCircle),
   export: custom(fileExport),
   eye: fa(faEye),
+  'file-alt': fa(faFileAlt),
   folder: fa(faFolder),
   'folder-open': fa(faFolderOpen),
   help: fa(faQuestionCircle),

@@ -4,6 +4,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer, CellMeasurer, CellMeasurerCache } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Link } from 'src/components/common'
+import Modal from 'src/components/Modal'
 import { centeredSpinner, icon } from 'src/components/icons'
 import StepButtons from 'src/components/StepButtons'
 import { FlexTable } from 'src/components/table'
@@ -166,13 +167,13 @@ const JobDetails = wrapWorkspace({
                       size: { basis: 100, grow: 0 },
                       headerRenderer: () => 'Information',
                       cellRenderer: ({rowIndex}) => {
-                        const {callRoot, backendLog} = callFailures[rowIndex].attempt
+                        const {callRoot, backendLogs: {log}} = callFailures[rowIndex].attempt
                         return div([
                           h(Link, {
                             tooltip: 'View the contents of the log file',
                             'aria-label': 'View the contents of the log file',
-                            onClick: () => setShowErrorUrl(backendLog)
-                          }, [icon('folder')]),
+                            onClick: () => setShowErrorUrl(log)
+                          }, [icon('file-alt')]),
                           h(Link, {
                             tooltip: 'Open execution directory in cloud console',
                             'aria-label': 'Open execution directory in cloud console',
