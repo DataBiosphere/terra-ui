@@ -760,7 +760,7 @@ const Buckets = signal => ({
         Utils.switchCase(previewMode,
           ['head', () => ({ headers: { Range: 'bytes=0-20000' } })],
           ['full', () => undefined],
-          ['tail', () => ({ headers: { Range: 'bytes=-10' } })]
+          ['tail', () => ({ headers: { Range: 'bytes=-20000' } })]
         )
       ])
     )
