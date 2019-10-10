@@ -1061,7 +1061,7 @@ export const useCancellation = () => {
 }
 
 export const ajaxCaller = WrappedComponent => {
-  return Utils.withDisplayName('ajaxCaller()', props => {
+  return Utils.withDisplayName('ajaxCaller', props => {
     const signal = useCancellation()
     return h(WrappedComponent, { ...props, ajax: Ajax(signal) })
   })

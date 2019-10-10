@@ -86,7 +86,7 @@ const sortOptions = [
   { label: 'Reverse Alphabetical', value: { field: 'lowerCaseName', direction: 'desc' } }
 ]
 
-const WorkflowCard = ({ listView, name, namespace, config, onExport, onCopy, onDelete, workspace }) => {
+const WorkflowCard = Utils.memoWithName('WorkflowCard', ({ listView, name, namespace, config, onExport, onCopy, onDelete, workspace }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
   const workflowCardMenu = h(PopupTrigger, {
     closeOnClick: true,
@@ -153,7 +153,7 @@ const WorkflowCard = ({ listView, name, namespace, config, onExport, onCopy, onD
         ])
       ])
     ])
-}
+})
 
 const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
   constructor(props) {

@@ -1,7 +1,7 @@
 import { isAfter, parseISO } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, memo, useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import removeMd from 'remove-markdown'
 import { useViewToggle, ViewToggleButtons } from 'src/components/CardsListToggle'
@@ -135,10 +135,7 @@ const SubmissionIndicator = ({ shape, color }) => {
   ])
 }
 
-const WorkspaceCard = _.flow(
-  Utils.withDisplayName('WorkspaceCard'),
-  memo
-)(({
+const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({
   listView, onClone, onDelete, onShare, onRequestAccess,
   workspace, workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
 }) => {

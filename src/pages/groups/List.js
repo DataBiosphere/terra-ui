@@ -94,7 +94,7 @@ const DeleteGroupModal = ({ groupName, onDismiss, onSubmit }) => {
   ])
 }
 
-const GroupCard = ({ group: { groupName, groupEmail, role }, onDelete }) => {
+const GroupCard = Utils.memoWithName('GroupCard', ({ group: { groupName, groupEmail, role }, onDelete }) => {
   const isAdmin = !!_.includes('admin', role)
 
   return div({ style: Style.cardList.longCard }, [
@@ -118,7 +118,7 @@ const GroupCard = ({ group: { groupName, groupEmail, role }, onDelete }) => {
       ])
     ])
   ])
-}
+})
 
 const NewGroupCard = ({ onClick }) => {
   return h(Clickable, {

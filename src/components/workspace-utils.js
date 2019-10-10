@@ -28,7 +28,7 @@ export const useWorkspaces = () => {
 }
 
 export const withWorkspaces = WrappedComponent => {
-  return Utils.withDisplayName('withWorkspaces()', props => {
+  return Utils.withDisplayName('withWorkspaces', props => {
     const { workspaces, refresh, loading } = useWorkspaces()
     return h(WrappedComponent, {
       ...props,

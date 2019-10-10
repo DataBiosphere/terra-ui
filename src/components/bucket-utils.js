@@ -20,7 +20,7 @@ export const withRequesterPaysHandler = _.curry((handler, fn) => async (...args)
 })
 
 export const requesterPaysWrapper = ({ onDismiss }) => WrappedComponent => {
-  return Utils.forwardRefWithName('RequesterPaysWrapper', (props, ref) => {
+  return Utils.forwardRefWithName('requesterPaysWrapper', (props, ref) => {
     const [showModal, setShowModal] = useState(false)
 
     return Utils.cond(

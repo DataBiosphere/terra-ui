@@ -34,7 +34,7 @@ export const NewUserCard = ({ onClick }) => {
   ])
 }
 
-export const MemberCard = ({ member: { email, roles }, adminCanEdit, onEdit, onDelete, adminLabel, userLabel }) => {
+export const MemberCard = Utils.memoWithName('MemberCard', ({ member: { email, roles }, adminCanEdit, onEdit, onDelete, adminLabel, userLabel }) => {
   const canEdit = adminCanEdit || !_.includes(adminLabel, roles)
   const tooltip = !canEdit && `This user is the only ${adminLabel}`
 
@@ -59,7 +59,7 @@ export const MemberCard = ({ member: { email, roles }, adminCanEdit, onEdit, onD
       ])
     ])
   ])
-}
+})
 
 export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
   static propTypes = {

@@ -250,5 +250,5 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       ])
     }
   }
-  return Utils.withDisplayName('wrapWorkspace()', Wrapper)
+  return Utils.withDisplayName('wrapWorkspace', Wrapper)
 }
