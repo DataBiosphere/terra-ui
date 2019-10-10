@@ -28,7 +28,7 @@ export const useWorkspaces = () => {
 }
 
 export const withWorkspaces = WrappedComponent => {
-  const Wrapper = props => {
+  return Utils.withDisplayName('withWorkspaces', props => {
     const { workspaces, refresh, loading } = useWorkspaces()
     return h(WrappedComponent, {
       ...props,
@@ -36,9 +36,7 @@ export const withWorkspaces = WrappedComponent => {
       loadingWorkspaces: loading,
       refreshWorkspaces: refresh
     })
-  }
-  Wrapper.displayName = 'withWorkspaces()'
-  return Wrapper
+  })
 }
 
 export const WorkspaceSelector = ({ workspaces, value, onChange, ...props }) => {
@@ -56,45 +54,46 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, ...props }) => 
   })
 }
 
-export const WorkspaceImporter = withWorkspaces(
-  ({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs }) => {
-    const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(initialWs)
-    const [creatingWorkspace, setCreatingWorkspace] = useState(false)
+export const WorkspaceImporter = _.flow(
+  Utils.withDisplayName('WorkspaceImporter'),
+  withWorkspaces
+)(({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs }) => {
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(initialWs)
+  const [creatingWorkspace, setCreatingWorkspace] = useState(false)
 
-    const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
+  const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
 
-    return h(Fragment, [
-      h(WorkspaceSelector, {
-        workspaces: _.filter(ws => {
-          return Utils.canWrite(ws.accessLevel) &&
+  return h(Fragment, [
+    h(WorkspaceSelector, {
+      workspaces: _.filter(ws => {
+        return Utils.canWrite(ws.accessLevel) &&
             (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
-        }, workspaces),
-        value: selectedWorkspaceId,
-        onChange: setSelectedWorkspaceId
-      }),
-      div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
-        h(ButtonPrimary, {
-          disabled: !selectedWorkspace,
-          onClick: () => onImport(selectedWorkspace.workspace)
-        }, ['Import']),
-        div({ style: { marginLeft: '1rem', whiteSpace: 'pre' } }, ['Or ']),
-        h(Link, {
-          onClick: () => setCreatingWorkspace(true)
-        }, ['create a new workspace'])
-      ]),
-      creatingWorkspace && h(NewWorkspaceModal, {
-        requiredAuthDomain: ad,
-        onDismiss: () => setCreatingWorkspace(false),
-        onSuccess: w => {
-          setCreatingWorkspace(false)
-          setSelectedWorkspaceId(w.workspaceId)
-          refreshWorkspaces()
-          onImport(w)
-        }
-      })
-    ])
-  }
-)
+      }, workspaces),
+      value: selectedWorkspaceId,
+      onChange: setSelectedWorkspaceId
+    }),
+    div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
+      h(ButtonPrimary, {
+        disabled: !selectedWorkspace,
+        onClick: () => onImport(selectedWorkspace.workspace)
+      }, ['Import']),
+      div({ style: { marginLeft: '1rem', whiteSpace: 'pre' } }, ['Or ']),
+      h(Link, {
+        onClick: () => setCreatingWorkspace(true)
+      }, ['create a new workspace'])
+    ]),
+    creatingWorkspace && h(NewWorkspaceModal, {
+      requiredAuthDomain: ad,
+      onDismiss: () => setCreatingWorkspace(false),
+      onSuccess: w => {
+        setCreatingWorkspace(false)
+        setSelectedWorkspaceId(w.workspaceId)
+        refreshWorkspaces()
+        onImport(w)
+      }
+    })
+  ])
+})
 
 export const WorkspaceTagSelect = props => {
   const signal = useCancellation()

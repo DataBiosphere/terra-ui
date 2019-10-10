@@ -360,7 +360,10 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
-const ToolDrawer = withModalDrawer()(({
+const ToolDrawer = _.flow(
+  Utils.withDisplayName('ToolDrawer'),
+  withModalDrawer()
+)(({
   workspace, workspace: { workspace: { workspaceId } }, onDismiss, onIgvSuccess, entityMetadata, entityKey, selectedEntities
 }) => {
   const [toolMode, setToolMode] = useState()

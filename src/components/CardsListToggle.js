@@ -43,10 +43,8 @@ export const useViewToggle = key => {
 }
 
 export const withViewToggle = key => WrappedComponent => {
-  const Wrapper = props => {
+  return Utils.withDisplayName('withViewToggle', props => {
     const [listView, setListView] = useViewToggle(key)
     return h(WrappedComponent, { ...props, listView, setListView })
-  }
-  Wrapper.displayName = 'withViewToggle()'
-  return Wrapper
+  })
 }

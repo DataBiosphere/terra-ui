@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { forwardRef, Fragment, useRef, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
@@ -23,7 +23,7 @@ const StatusMessage = ({ showSpinner, children }) => {
 }
 
 const NotebookLauncher = _.flow(
-  forwardRef,
+  Utils.forwardRefWithName('NotebookLauncher'),
   requesterPaysWrapper({
     onDismiss: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
   }),
