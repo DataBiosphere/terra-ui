@@ -22,16 +22,5 @@ export const leoImages = [
   }
 ]
 
-// from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
-
-const digestRegexp = '[A-Za-z][A-Za-z0-9]*(?:[-_+.][A-Za-z][A-Za-z0-9]*)*[:][A-Fa-f0-9]{32,}'
-const tagRegexp = '[\\w][\\w.-]{0,127}'
-const nameComponentRegexp = '[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*' // official version which was slow: '[a-z0-9]+(?:(?:[._]|__|[-]*)[a-z0-9]+)*'
-const domainComponentRegexp = '(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])'
-const domainRegexp = `${domainComponentRegexp}(\\.${domainComponentRegexp})*(?::[0-9]+)?`
-const nameRegexp = `(?:${domainRegexp}\\/)?${nameComponentRegexp}(?:\\/${nameComponentRegexp})*`
-const referenceRegexp = `^(${nameRegexp})(?::(${tagRegexp}))?(?:@(${digestRegexp}))?$`
-
-// see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp#Description
-// for why it's preferable to create a regex from a regexp here, rather than from a string
-export const imageValidationRegexp = new RegExp(new RegExp(referenceRegexp))
+// distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
+export const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
