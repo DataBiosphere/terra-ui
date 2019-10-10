@@ -26,7 +26,7 @@ export const leoImages = [
 
 const digestRegexp = '[A-Za-z][A-Za-z0-9]*(?:[-_+.][A-Za-z][A-Za-z0-9]*)*[:][A-Fa-f0-9]{32,}'
 const tagRegexp = '[\\w][\\w.-]{0,127}'
-const nameComponentRegexp = '[a-z0-9]+(?:(?:[._]|__|[-]*)[a-z0-9]+)*'
+const nameComponentRegexp = '[a-z0-9]+(?:(?:[._]|__|[-]+)[a-z0-9]+)*'
 const domainComponentRegexp = '(?:[a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9])'
 const domainRegexp = `${domainComponentRegexp}(\\.${domainComponentRegexp})*(?::[0-9]+)?`
 const nameRegexp = `(?:${domainRegexp}\\/)?${nameComponentRegexp}(?:\\/${nameComponentRegexp})*`
