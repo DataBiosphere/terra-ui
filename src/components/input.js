@@ -213,7 +213,7 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, isVisible, 
   ])
 }
 
-export const AutocompleteTextInput = ({ value, onChange, suggestions: rawSuggestions, style, id, renderSuggestion = _.identity, ...props }) => {
+export const AutocompleteTextInput = ({ value, onChange, suggestions: rawSuggestions, style, id, renderSuggestion = _.identity, openOnFocus = true, ...props }) => {
   const noSuggestions = _.isEmpty(rawSuggestions)
   const suggestions = noSuggestions ? [] : _.flow(
     _.filter(Utils.textMatch(value)),
@@ -225,20 +225,20 @@ export const AutocompleteTextInput = ({ value, onChange, suggestions: rawSuggest
     onInputValueChange: onChange,
     inputId: id
   }, [
-    ({ getInputProps, getMenuProps, getItemProps, isOpen, openMenu, closeMenu, highlightedIndex }) => {
+    ({ getInputProps, getMenuProps, getItemProps, isOpen, openMenu, toggleMenu, highlightedIndex }) => {
       return div({ style: { width: '100%' } }, [
         h(TextInput, getInputProps({
           style,
           type: 'search',
-          onFocus: openMenu,
+          onFocus: openOnFocus ? openMenu : undefined,
           onKeyDown: e => {
             if (e.key === 'Escape') {
-              (value || isOpen) && e.stopPropagation()
-              if (!value || isOpen) {
+              (value || isOpen) && e.stopPropagation() // prevent e.g. closing a modal
+              if (!value || isOpen) { // don't clear if blank (prevent e.g. undefined -> '') or if menu is shown
                 e.nativeEvent.preventDownshiftDefault = true
                 e.preventDefault()
               }
-              isOpen ? closeMenu() : openMenu()
+              toggleMenu()
             }
           },
           nativeOnChange: true,

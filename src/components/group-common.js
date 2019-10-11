@@ -135,6 +135,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
           h(AutocompleteTextInput, {
             id,
             autoFocus: true,
+            openOnFocus: false,
             value: userEmail,
             onChange: v => this.setState({ userEmail: v }),
             renderSuggestion: suggestion => div({ style: styles.suggestionContainer }, [
