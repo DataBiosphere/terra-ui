@@ -26,7 +26,7 @@ import validate from 'validate.js'
 const warningBoxStyle = {
   backgroundColor: colors.warning(1),
   padding: '1rem 1.25rem',
-  color: colors.warning(), fontWeight: 'bold', fontSize: 12
+  color: colors.light(1), fontWeight: 'bold', fontSize: 12
 }
 
 export const renderDataCell = (data, namespace) => {
@@ -122,7 +122,6 @@ export const ReferenceDataDeleter = class ReferenceDataDeleter extends Component
     super(props)
     this.state = { deleting: false }
   }
-
 
   render() {
     const { onDismiss, onSuccess, namespace, name, referenceDataType } = this.props
@@ -266,7 +265,7 @@ export const EntityUploader = class EntityUploader extends Component {
     }
   }
 
-  async parseFile(file, mode) {
+  async parseFile(file, isFileMode) {
     const checkUpload = text => /(?:membership|entity):([^\s]+)_id/.exec(text)
     const firstBytes = await Utils.readFileAsText(file.slice(0, 1000))
     const definedTypeMatch = checkUpload(firstBytes)
@@ -275,18 +274,23 @@ export const EntityUploader = class EntityUploader extends Component {
       const parsedEntityType = definedTypeMatch[1]
       this.setState(
         { file, isInvalid: false, newEntityType: parsedEntityType, useFireCloudDataModel: false })
-      if (mode === true) {
+      if (isFileMode === true) {
         this.setState({ pastedText: '' })
       }
     } else {
       this.setState({ file: undefined, isInvalid: true })
     }
-    this.setState({ isFileImportLastUsedMode: mode })
+    this.setState({ isFileImportLastUsedMode: isFileMode })
   }
 
-  hasFileAndLastUsedModeAndCurrModeAreFileMode() {
+  hasFileAndLastUsedModeAndCurrModeAreEqual() {
     const { file, isFileImportCurrMode, isFileImportLastUsedMode } = this.state
     return (file && (isFileImportCurrMode === isFileImportLastUsedMode))
+  }
+
+  isShowingClearButton(){
+    const { file, isFileImportCurrMode, isFileImportLastUsedMode, pastedText } = this.state
+    return !(((!file && isFileImportCurrMode) || (isFileImportCurrMode !== isFileImportLastUsedMode)) || (!pastedText && !isFileImportCurrMode))
   }
 
   render() {
@@ -322,14 +326,14 @@ export const EntityUploader = class EntityUploader extends Component {
           span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['entity:participant_id']),
           div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, ['All of the values in the ID column must be unique.']),
           div({ style: { borderTop: Style.standardLine, paddingTop: '1rem', fontWeight: 'bold', marginTop: '1rem' } }, ['Choose an import type:']),
-          (this.hasFileAndLastUsedModeAndCurrModeAreFileMode()) && _.includes(_.toLower(newEntityType), entityTypes) && div({
+          (this.hasFileAndLastUsedModeAndCurrModeAreEqual()) && _.includes(_.toLower(newEntityType), entityTypes) && div({
             style: { ...warningBoxStyle, marginTop: '0.5rem', color: colors.light(.1), display: 'flex', alignItems: 'center' }
           }, [
             icon('warning-standard', { size: 19, style: { color: colors.light(.1), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
             `Data with the type '${newEntityType}' already exists in this workspace. `,
             'Uploading more data for the same type may overwrite some entries.'
           ]),
-          (this.hasFileAndLastUsedModeAndCurrModeAreFileMode()) && supportsFireCloudDataModel(newEntityType) && div([
+          (this.hasFileAndLastUsedModeAndCurrModeAreEqual()) && supportsFireCloudDataModel(newEntityType) && div([
             h(LabeledCheckbox, {
               checked: useFireCloudDataModel,
               onChange: checked => this.setState({ useFireCloudDataModel: checked }),
@@ -342,6 +346,7 @@ export const EntityUploader = class EntityUploader extends Component {
             }, ['Learn more ', icon('pop-out', { size: 12 })])
           ]),
           h(SimpleTabBar, {
+            style: { paddingTop: '0.5rem' },
             tabs: [{ title: 'File Import', key: true }, { title: 'Text Import', key: false }],
             value: isFileImportCurrMode,
             onChange: value => {
@@ -349,13 +354,29 @@ export const EntityUploader = class EntityUploader extends Component {
               isInvalid && this.setState({ isInvalid: false, pastedText: '' })
             }
           }),
-          isFileImportCurrMode ? div({ style: { margin: '0.5rem 0' } }, [
-            div([
+          div({
+            style: {
+              padding: '0.5rem 0 0',
+              marginBottom: this.isShowingClearButton() ? 0 : '1rem'
+            }
+          }, [
+            isFileImportCurrMode ? div([
               'Select the ',
               h(TooltipTrigger, { content: 'Tab Separated Values', side: 'bottom' },
                 [span({ style: { textDecoration: 'underline dashed' } }, 'TSV')]),
               ' file containing your data: '
-            ]),
+            ]) : div(['Paste the data directly below:']),
+            (isFileImportLastUsedMode === isFileImportCurrMode && (file || pastedText)) && span([
+              h(ButtonSecondary,
+                {
+                  style: { display: 'flex', justifyContent: 'flex-end', fontSize: 13, height: '1rem' },
+                  onClick: () => {
+                    this.setState({ pastedText: '', isInvalid: false, file: undefined })
+                  }
+                }, ['Clear'])
+            ])
+          ]),
+          isFileImportCurrMode ? div([
             h(Clickable, {
               style: {
                 ...Style.elements.card.container, flex: 1, backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1),
@@ -363,25 +384,26 @@ export const EntityUploader = class EntityUploader extends Component {
               },
               onClick: openUploader
             }, [div(['Drag or ', h(Link, ['Click']), ' to select a .tsv file'])]),
-            div([
+            div({ style: { paddingTop: '0.5rem' } }, [
               'Selected File: ',
-              span({ style: { color: colors.dark(0.7) } }, (this.hasFileAndLastUsedModeAndCurrModeAreFileMode() && file.name) ? file.name : 'None')
+              span({ style: { color: colors.dark(1), fontWeight: 550 } },
+                (this.hasFileAndLastUsedModeAndCurrModeAreEqual() && file.name) ? file.name : 'None')
             ])
-          ]) : div({ style: { margin: '0.5rem 0' } }, [
-            'Paste the data directly below:',
+          ]) : div([
             h(PasteOnlyInput, {
               'aria-label': 'Paste text data here',
-              placeholder: 'Paste text data here',
+              placeholder: 'entity:participant_id(tab)column1(tab)column2...',
               onPaste: pastedText => {
                 this.parseFile(new File([pastedText], 'upload.tsv'), false)
                 this.setState({ pastedText })
               },
+              readOnly: !!pastedText,
               value: pastedText,
               wrap: 'off',
               style: {
-                ...Style.elements.card.container, flex: 1, fontFamily: 'monospace', resize: 'vertical',
-                maxHeight: 300, minHeight: 60,
-                backgroundColor: isInvalid ? colors.danger(.1) : (pastedText ? colors.light(0.1) : colors.dark(0.1)),
+                flex: 1, fontFamily: 'monospace', resize: 'vertical',
+                height: 100,
+                backgroundColor: isInvalid ? colors.danger(.1) : colors.light(0.1),
                 border: isInvalid ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`,
                 boxShadow: 'none'
               }

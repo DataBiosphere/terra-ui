@@ -33,6 +33,14 @@ const styles = {
     padding: '0.5rem 1rem',
     cursor: 'text'
   },
+  textareaResizable: {
+    width: '100%', resize: 'vertical', display: 'flex',
+    justifyContent: 'flex-start',
+    border: `1px solid ${colors.light()}`, borderRadius: 4,
+    fontSize: 14, fontWeight: 400,
+    padding: '0.5rem 1rem',
+    cursor: 'text'
+  },
   validationError: {
     color: colors.danger(),
     fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
@@ -321,14 +329,16 @@ export const TextArea = ({ onChange, ...props }) => {
   }, props))
 }
 
-export const PasteOnlyInput = ({ onPaste, ...props }) => {
-  Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, PasteOnlyTextArea needs a label')
+export const PasteOnlyInput = ({ onPaste, readOnly, ...props }) => {
+  Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, PasteOnlyInput needs a label')
 
-  return input(_.merge({
+  return textarea(_.merge({
     className: 'focus-style',
-    style: styles.textarea,
+    style: styles.textareaResizable,
     onPaste: e => {
       onPaste(e.clipboardData.getData('Text'))
-    }
+    },
+    onChange: undefined,
+    readOnly: readOnly ? readOnly : false
   }, props))
 }
