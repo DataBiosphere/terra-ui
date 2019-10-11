@@ -2,6 +2,23 @@ const findClickable = (page, text) => {
   return page.waitForXPath(`(//a | //*[@role="button"])[contains(normalize-space(.),"${text}") or contains(@aria-label,"${text}")]`)
 }
 
+const findIframe = (page, text) => {
+  return page.frames().find(frame => {
+    // console.log('FRAME:', frame.url())
+    // console.log('FRAME:', frame.executionContext())
+    return frame.url().includes(text)
+  })
+  // return page.waitForXPath(`//iframe[contains(normalize-space(@title),"${text}")]`)
+}
+
+const findSVG = (frame, text) => {
+  return frame.$x(`${text}`)
+}
+
+const clickImage = async (page, text) => {
+  return (await findClickableImage(page, text).click())
+}
+
 const click = async (page, text) => {
   return (await findClickable(page, text)).click()
 }
@@ -29,7 +46,11 @@ const waitForNoSpinners = page => {
 
 module.exports = {
   findClickable,
+  findIframe,
+  findSVG,
+  // findClickableImage,
   click,
+  clickImage,
   findText,
   findInput,
   fillIn,
