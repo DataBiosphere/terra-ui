@@ -221,7 +221,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ' to select another image.'
           ]),
           div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
-            h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: 'undefined' }) }, ['Back']),
+            h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Back']),
             h(ButtonPrimary, { onClick: () => this.createCluster() }, ['Create'])
           ])
         ])
