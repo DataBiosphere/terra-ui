@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment, useState } from 'react'
-import { UnmountClosed as RCollapse } from 'react-collapse'
+import { Collapse as RCollapse } from 'react-collapse'
 import { a, b, div, h, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
 import { ButtonPrimary, Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
@@ -98,7 +98,7 @@ const DropDownSection = ({ titleIcon, title, isOpened, onClick, children }) => {
       div({ style: { flexGrow: 1 } }),
       icon(isOpened ? 'angle-up' : 'angle-down', { size: 18, style: { flex: 'none' } })
     ]),
-    h(RCollapse, { isOpened, style: { flex: 'none' } }, [children])
+    h(RCollapse, { isOpened }, [children])
   ])
 }
 

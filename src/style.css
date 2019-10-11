@@ -85,6 +85,11 @@ a {
   outline: none !important;
 }
 
+/* See https://github.com/nkbt/react-collapse#1-change-in-behaviour */
+.ReactCollapse--collapse {
+  transition: height 500ms;
+}
+
 /* Overrides for toast notifications library (react-notifications-component) */
 .notification-default {
   background-color: #525c6C;
