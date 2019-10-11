@@ -148,7 +148,7 @@ export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity,
     type: 'number',
     className: 'focus-style',
     min, max,
-    value: internalValue !== undefined ? internalValue : _.toString(value), // eslint-disable-line lodash-fp/preferred-alias
+    value: internalValue !== undefined ? internalValue : _.toString(value),
     onChange: ({ target: { value: newValue } }) => {
       setInternalValue(newValue)
       // note: floor and clamp implicitly convert the value to a number

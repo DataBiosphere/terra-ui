@@ -438,10 +438,10 @@ const Profile = _.flow(
   )(async () => {
     const { profileInfo } = this.state
 
-    const [prefsData, profileData] = _.over([_.pickBy, _.omitBy])((v, k) => _.startsWith('notifications/', k), profileInfo)
+    const { true: prefsData, false: profileData } = _.groupBy(([k]) => _.startsWith('notifications/', k), _.toPairs(profileInfo))
     await Promise.all([
-      Ajax().User.profile.set(_.pickBy(_.identity, profileData)),
-      Ajax().User.profile.setPreferences(prefsData)
+      Ajax().User.profile.set(_.pickBy(_.identity, _.fromPairs(profileData))),
+      Ajax().User.profile.setPreferences(_.fromPairs(prefsData))
     ])
     await refreshTerraProfile()
   })

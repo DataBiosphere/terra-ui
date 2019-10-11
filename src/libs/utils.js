@@ -278,8 +278,6 @@ export const cantBeNumber = _.flow(_.toNumber, _.isNaN)
 export const convertValue = _.curry((type, value) => {
   switch (type) {
     case 'string':
-      // known issue where toString is incorrectly flagged:
-      // eslint-disable-next-line lodash-fp/preferred-alias
       return _.toString(value)
     case 'number':
       return _.toNumber(value)
