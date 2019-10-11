@@ -20,11 +20,12 @@ const styles = {
     backgroundColor: 'white',
     border: `1px solid ${colors.light()}`
   },
-  suggestion: {
+  suggestion: isSelected => ({
     display: 'block', lineHeight: '2.25rem',
     paddingLeft: '1rem', paddingRight: '1rem',
-    cursor: 'pointer'
-  },
+    cursor: 'pointer',
+    backgroundColor: isSelected ? colors.light(0.4) : undefined
+  }),
   textarea: {
     width: '100%', resize: 'none',
     border: `1px solid ${colors.light()}`, borderRadius: 4,
@@ -212,11 +213,7 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, isVisible, 
   ])
 }
 
-export const AutocompleteTextInput = ({
-  value, onChange, suggestions: rawSuggestions, style, id,
-  renderSuggestion = _.identity,
-  ...props
-}) => {
+export const AutocompleteTextInput = ({ value, onChange, suggestions: rawSuggestions, style, id, renderSuggestion = _.identity, ...props }) => {
   const noSuggestions = _.isEmpty(rawSuggestions)
   const suggestions = noSuggestions ? [] : _.flow(
     _.filter(Utils.textMatch(value)),
@@ -254,7 +251,7 @@ export const AutocompleteTextInput = ({
         }, _.map(([index, item]) => {
           return div(getItemProps({
             item, key: item,
-            style: { ...styles.suggestion, backgroundColor: highlightedIndex === index ? colors.light(0.4) : undefined }
+            style: styles.suggestion(highlightedIndex === index)
           }), [renderSuggestion(item)])
         }, suggestions))
       ])
