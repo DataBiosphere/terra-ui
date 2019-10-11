@@ -288,7 +288,7 @@ export const EntityUploader = class EntityUploader extends Component {
     return (file && (isFileImportCurrMode === isFileImportLastUsedMode))
   }
 
-  isShowingClearButton(){
+  isShowingClearButton() {
     const { file, isFileImportCurrMode, isFileImportLastUsedMode, pastedText } = this.state
     return !(((!file && isFileImportCurrMode) || (isFileImportCurrMode !== isFileImportLastUsedMode)) || (!pastedText && !isFileImportCurrMode))
   }
