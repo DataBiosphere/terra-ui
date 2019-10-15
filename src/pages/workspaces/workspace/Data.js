@@ -388,12 +388,14 @@ const ToolDrawer = _.flow(
   const dataExplorerButtonEnabled = isCohort && entitiesCount === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url !== undefined
   let dataExplorerUrl = dataExplorerButtonEnabled ? _.values(selectedEntities)[0].attributes.data_explorer_url : undefined
   if (dataExplorerUrl) {
+    // Can't use qs.stringify() because it doesn't support fragment params
     dataExplorerUrl = dataExplorerUrl.includes('?') ? `${dataExplorerUrl}&wid=${workspaceId}` : `${dataExplorerUrl}?wid=${workspaceId}`
   }
   const openDataExplorerInSameTab = dataExplorerUrl && (dataExplorerUrl.includes('terra.bio') || _.some({ origin: new URL(dataExplorerUrl).origin }, datasets))
   const dataset = openDataExplorerInSameTab && getDataset(dataExplorerUrl)
   const dataExplorerPath = openDataExplorerInSameTab && Nav.getLink(dataset.authDomain ?
     'data-explorer-private' :
+    // Can't use qs.stringify() because it doesn't support fragment params
     'data-explorer-public', { dataset: dataset.name }) + '?' + dataExplorerUrl.split('?')[1]
 
   const { title, drawerContent } = Utils.switchCase(toolMode, [
@@ -437,9 +439,9 @@ const ToolDrawer = _.flow(
               'Workflow'
             ]),
             h(ModalToolButton, {
-              onClick: dataExplorerButtonEnabled && !openDataExplorerInSameTab && onDismiss,
-              href: dataExplorerButtonEnabled && openDataExplorerInSameTab ? dataExplorerPath : dataExplorerUrl,
-              ...(dataExplorerButtonEnabled && !openDataExplorerInSameTab ? Utils.newTabLinkProps : []),
+              onClick: !openDataExplorerInSameTab ? onDismiss : undefined,
+              href: openDataExplorerInSameTab ? dataExplorerPath : dataExplorerUrl,
+              ...(!openDataExplorerInSameTab ? Utils.newTabLinkProps : {}),
               disabled: !dataExplorerButtonEnabled,
               tooltip: Utils.cond(
                 [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
