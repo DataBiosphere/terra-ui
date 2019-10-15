@@ -456,21 +456,19 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
       tooltip: entityName === newName ? 'No change to save' : Utils.summarizeErrors(errors)
     }, ['Rename'])
   }, [
-    h(IdContainer, [
-      id => h(Fragment, [
-        h(FormLabel, { htmlFor: id }, ['New entity name']),
-        h(ValidatedInput, {
-          inputProps: {
-            id,
-            autoFocus: true,
-            placeholder: 'Enter a name',
-            value: newName,
-            onChange: setNewName
-          },
-          error: Utils.summarizeErrors(errors)
-        })
-      ])
-    ]),
+    h(IdContainer, [id => h(Fragment, [
+      h(FormLabel, { htmlFor: id }, ['New entity name']),
+      h(ValidatedInput, {
+        inputProps: {
+          id,
+          autoFocus: true,
+          placeholder: 'Enter a name',
+          value: newName,
+          onChange: setNewName
+        },
+        error: Utils.summarizeErrors(errors)
+      })
+    ])]),
     isBusy && spinnerOverlay
   ])
 }
@@ -588,26 +586,24 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
             h(Fragment, _.map(({ type, tooltip }) => h(TooltipTrigger, {
               content: tooltip
             }, [
-              span({ style: { marginRight: '1.2rem' } }, [
-                h(RadioButton, {
-                  text: _.startCase(type),
-                  name: 'edit-type',
-                  checked: editType === type,
-                  onChange: () => {
-                    const convertFn = type === 'number' ?
-                      v => {
-                        const numberVal = _.toNumber(v)
-                        return _.isNaN(numberVal) ? 0 : numberVal
-                      } :
-                      Utils.convertValue(type === 'reference' ? 'string' : type)
-                    const convertedValue = isList ? _.map(convertFn, newValue) : convertFn(newValue)
+              span({ style: { marginRight: '1.2rem' } }, [h(RadioButton, {
+                text: _.startCase(type),
+                name: 'edit-type',
+                checked: editType === type,
+                onChange: () => {
+                  const convertFn = type === 'number' ?
+                    v => {
+                      const numberVal = _.toNumber(v)
+                      return _.isNaN(numberVal) ? 0 : numberVal
+                    } :
+                    Utils.convertValue(type === 'reference' ? 'string' : type)
+                  const convertedValue = isList ? _.map(convertFn, newValue) : convertFn(newValue)
 
-                    setNewValue(convertedValue)
-                    setEditType(type)
-                  },
-                  labelStyle: { paddingLeft: '0.5rem' }
-                })
-              ])
+                  setNewValue(convertedValue)
+                  setEditType(type)
+                },
+                labelStyle: { paddingLeft: '0.5rem' }
+              })])
             ]), [
               { type: 'string' },
               { type: 'reference', tooltip: 'A link to another entity' },
