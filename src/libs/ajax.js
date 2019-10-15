@@ -444,8 +444,8 @@ const attributesUpdateOps = _.flow(
 )
 
 const Workspaces = signal => ({
-  list: async () => {
-    const res = await fetchRawls('workspaces', _.merge(authOpts(), { signal }))
+  list: async fields => {
+    const res = await fetchRawls(`workspaces?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
