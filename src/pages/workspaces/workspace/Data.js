@@ -387,11 +387,9 @@ const ToolDrawer = _.flow(
   const isCohort = entityKey === 'cohort'
 
   const dataExplorerButtonEnabled = isCohort && entitiesCount === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url !== undefined
-  let dataExplorerUrl = dataExplorerButtonEnabled ? _.values(selectedEntities)[0].attributes.data_explorer_url : undefined
-  if (dataExplorerUrl) {
-    const [baseURL, urlSearch] = dataExplorerUrl.split('?')
-    dataExplorerUrl = `${baseURL}?${qs.stringify({ ...qs.parse(urlSearch), wid: workspaceId })}`
-  }
+  const origDataExplorerUrl = dataExplorerButtonEnabled ? _.values(selectedEntities)[0].attributes.data_explorer_url : undefined
+  const [baseURL, urlSearch] = origDataExplorerUrl ? origDataExplorerUrl.split('?') : []
+  const dataExplorerUrl = origDataExplorerUrl && `${baseURL}?${qs.stringify({ ...qs.parse(urlSearch), wid: workspaceId })}`
   const openDataExplorerInSameTab = dataExplorerUrl && (dataExplorerUrl.includes('terra.bio') || _.some({ origin: new URL(dataExplorerUrl).origin }, datasets))
   const dataset = openDataExplorerInSameTab && getDataset(dataExplorerUrl)
   const dataExplorerPath = openDataExplorerInSameTab && Nav.getLink(dataset.authDomain ?
