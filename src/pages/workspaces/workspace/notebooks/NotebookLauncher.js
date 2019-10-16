@@ -315,7 +315,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
         ])
       ],
       [
-        clusterStatus === 'Creating', () => h(StatusMessage, { showSpinner: true, style: { paddingTop: '2rem' } }, [
+        clusterStatus === 'Creating', () => h(StatusMessage, { showSpinner: true }, [
           'Creating notebook runtime environment, this will take 5-10 minutes. You can navigate away and return when it’s ready.'
         ])
       ],
