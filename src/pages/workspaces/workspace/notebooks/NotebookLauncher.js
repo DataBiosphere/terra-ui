@@ -101,10 +101,7 @@ const NotebookLauncher = _.flow(
 
     return h(Fragment, [
       (Utils.canWrite(accessLevel) && canCompute && !!mode && clusterStatus === 'Running') ?
-        h(Fragment, [
-          cluster.labels.welderInstallFailed ? h(PlaygroundHeader, {}) : null,
-          h(NotebookEditorFrame, { key: cluster.clusterName, workspace, cluster, notebookName, mode })
-        ]) :
+        h(cluster.labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : NotebookEditorFrame, { key: cluster.clusterName, workspace, cluster, notebookName, mode }) :
         h(Fragment, [
           h(PreviewHeader, { queryParams, cluster, refreshClusters, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateCluster: () => setCreateOpen(true) }),
           h(NotebookPreviewFrame, { notebookName, workspace })
@@ -249,6 +246,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
   const welderEnabled = cluster && !cluster.labels.welderInstallFailed
   const mode = queryParams['mode']
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
+  const buttonStyle = { paddingRight: '1rem', paddingLeft: '1rem', paddingTop: '1rem', paddingBottom: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: '2px' }
 
   const checkIfLocked = withErrorReporting('Error checking notebook lock status', async () => {
     const { metadata } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
@@ -270,12 +268,24 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
     !readOnlyAccess && Utils.cond(
       [
         !mode || clusterStatus === null || clusterStatus === 'Stopped', () => h(Fragment, [
+          Utils.cond(
+            [cluster && !welderEnabled, () => h(ButtonSecondary, {
+              style: buttonStyle,
+              onClick: () => setEditModeDisabledOpen(true)
+            }, [icon('warning-standard', { style: { paddingRight: '3px' } }), 'EDIT (DISABLED)'])],
+            [
+              locked, () => h(ButtonSecondary, {
+                style: buttonStyle,
+                onClick: () => setFileInUseOpen(true)
+              }, [icon('lock', { style: { paddingRight: '3px' } }), 'EDIT (IN USE)'])
+            ],
+            () => h(ButtonSecondary, {
+              style: buttonStyle,
+              onClick: () => chooseMode('edit')
+            }, [icon('edit', { style: { paddingRight: '3px' } }), 'EDIT'])
+          ),
           h(ButtonSecondary, {
-            style: { paddingRight: '1rem', paddingLeft: '1rem', paddingTop: '1rem', paddingBottom: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: '2px' },
-            onClick: () => welderEnabled ? (locked ? setFileInUseOpen(true) : chooseMode('edit')) : setEditModeDisabledOpen(true)
-          }, [icon(welderEnabled ? (locked ? 'lock': 'edit') : 'warning-standard', { style: { paddingRight: '3px' } }), welderEnabled ? (locked ? 'EDIT (IN USE)' : 'EDIT') : 'EDIT (DISABLED)']),
-          h(ButtonSecondary, {
-            style: { paddingRight: '1rem', paddingLeft: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: '2px' },
+            style: buttonStyle,
             onClick: () => {
               BrowserStorage.getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
             }
@@ -299,13 +309,13 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
             side: 'bottom'
           }, [
             h(ButtonSecondary, {
-              style: { paddingRight: '1rem', paddingLeft: '1rem', backgroundColor: colors.dark(0.1), height: '100%' }
-            }, [icon('ellipsis-v', {})])
+              style: buttonStyle
+            }, [icon('ellipsis-v')])
           ])
         ])
       ],
       [
-        clusterStatus === 'Creating', () => h(StatusMessage, { showSpinner: true }, [
+        clusterStatus === 'Creating', () => h(StatusMessage, { showSpinner: true, style: { paddingTop: '2rem' } }, [
           'Creating notebook runtime environment, this will take 5-10 minutes. You can navigate away and return when it’s ready.'
         ])
       ],
@@ -449,42 +459,14 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
 
 const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
   console.assert(status === 'Running', 'Expected notebook runtime to be running')
+  console.assert(!labels.welderInstallFailed, 'Expected cluster to have Welder')
   const frameRef = useRef()
-  const signal = useCancellation()
   const [busy, setBusy] = useState(false)
-  const [localized, setLocalized] = useState(false)
   const [notebookSetUp, setNotebookSetUp] = useState(false)
 
   const localBaseDirectory = `${name}/edit`
   const localSafeModeBaseDirectory = `${name}/safe`
   const cloudStorageDirectory = `gs://${bucketName}/notebooks`
-
-  const localizeNotebook = _.flow(
-    Utils.withBusyState(setBusy),
-    withErrorReporting('Error copying notebook')
-  )(async () => {
-    if (mode === 'edit') {
-      notify('error', 'Cannot Edit Notebook', {
-        message: h(Fragment, [
-          p(['Recent updates to Terra are not compatible with the older notebook runtime in this workspace. Please recreate your runtime in order to access Edit Mode for this notebook.']),
-          h(Link, {
-            variant: 'light',
-            href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-            ...Utils.newTabLinkProps
-          }, ['Read here for more details.'])
-        ])
-      })
-      chooseMode(undefined)
-      return
-    }
-    await Promise.all([
-      Ajax(signal).Jupyter.notebooks(namespace, clusterName).oldLocalize({
-        [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
-      }),
-      Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()
-    ])
-    setLocalized(true)
-  })
 
   const setUpNotebook = _.flow(
     Utils.withBusyState(setBusy),
@@ -515,17 +497,13 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   })
 
   Utils.useOnMount(() => {
-    if (labels.welderInstallFailed) {
-      localizeNotebook()
-    } else {
-      setUpNotebook()
-    }
+    setUpNotebook()
   })
 
   return h(Fragment, [
-    localized && h(Fragment, [
+    notebookSetUp && h(Fragment, [
       iframe({
-        src: `${clusterUrl}/notebooks/${name}/${notebookName}`,
+        src: mode === 'edit' ? `${clusterUrl}/notebooks/${localBaseDirectory}/${notebookName}`: `${clusterUrl}/notebooks/${localSafeModeBaseDirectory}/${notebookName}`,
         style: { border: 'none', flex: 1 },
         ref: frameRef
       }),
@@ -534,9 +512,54 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
         onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name })
       })
     ]),
-    notebookSetUp && h(Fragment, [
+    busy && h(StatusMessage, { showSpinner: true }, ['Copying notebook to runtime environment, almost ready...'])
+  ])
+}
+
+const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
+  console.assert(status === 'Running', 'Expected notebook runtime to be running')
+  console.assert(!!labels.welderInstallFailed, 'Expected cluster to not have Welder')
+  const frameRef = useRef()
+  const signal = useCancellation()
+  const [busy, setBusy] = useState(false)
+  const [localized, setLocalized] = useState(false)
+
+  const localizeNotebook = _.flow(
+    Utils.withBusyState(setBusy),
+    withErrorReporting('Error copying notebook')
+  )(async () => {
+    if (mode === 'edit') {
+      notify('error', 'Cannot Edit Notebook', {
+        message: h(Fragment, [
+          p(['Recent updates to Terra are not compatible with the older notebook runtime in this workspace. Please recreate your runtime in order to access Edit Mode for this notebook.']),
+          h(Link, {
+            variant: 'light',
+            href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+            ...Utils.newTabLinkProps
+          }, ['Read here for more details.'])
+        ])
+      })
+      chooseMode(undefined)
+      return
+    }
+    await Promise.all([
+      Ajax(signal).Jupyter.notebooks(namespace, clusterName).oldLocalize({
+        [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
+      }),
+      Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()
+    ])
+    setLocalized(true)
+  })
+
+  Utils.useOnMount(() => {
+    localizeNotebook()
+  })
+
+  return h(Fragment, [
+    h(PlaygroundHeader),
+    localized && h(Fragment, [
       iframe({
-        src: mode === 'edit' ? `${clusterUrl}/notebooks/${localBaseDirectory}/${notebookName}`: `${clusterUrl}/notebooks/${localSafeModeBaseDirectory}/${notebookName}`,
+        src: `${clusterUrl}/notebooks/${name}/${notebookName}`,
         style: { border: 'none', flex: 1 },
         ref: frameRef
       }),
