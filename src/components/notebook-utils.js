@@ -21,7 +21,7 @@ export const notebookLockHash = async (bucketName, email) => {
   return hashArray.map(b => `00${b.toString(16)}`).join('')
 }
 
-export const findPotentialNotebookLockers = async (canShare, namespace, wsName, bucketName) => {
+export const findPotentialNotebookLockers = async ({ canShare, namespace, wsName, bucketName }) => {
   if (canShare) {
     const { acl } = await Ajax().Workspaces.workspace(namespace, wsName).getAcl()
     const potentialLockers = _.flow(
@@ -31,8 +31,9 @@ export const findPotentialNotebookLockers = async (canShare, namespace, wsName, 
     )(acl)
     const lockHolderPromises = _.map(async ({ email }) => ({ [await notebookLockHash(bucketName, email)]: email }), potentialLockers)
     return _.mergeAll(await Promise.all(lockHolderPromises))
+  } else {
+    return {}
   }
-  return {}
 }
 
 export const notebookNameValidator = existing => ({
@@ -160,10 +161,10 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
   static propTypes = {
     destroyOld: PropTypes.bool,
     fromLauncher: PropTypes.bool,
+    wsName: PropTypes.string,
     printName: PropTypes.string.isRequired,
     namespace: PropTypes.string.isRequired,
     bucketName: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired
   }
@@ -180,13 +181,13 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
 
   async componentDidMount() {
     const { ajax: { Buckets }, namespace, bucketName } = this.props
-    const selectedNotebooks = await Buckets.listNotebooks(namespace, bucketName)
-    const existingNames = _.map(({ name }) => name.slice(10, -6), selectedNotebooks)
+    const existingNotebooks = await Buckets.listNotebooks(namespace, bucketName)
+    const existingNames = _.map(({ name }) => name.slice(10, -6), existingNotebooks)
     this.setState({ existingNames })
   }
 
   render() {
-    const { destroyOld, fromLauncher, printName, name, namespace, bucketName, onDismiss, onSuccess } = this.props
+    const { destroyOld, fromLauncher, printName, wsName, namespace, bucketName, onDismiss, onSuccess } = this.props
     const { newName, processing, nameTouched, existingNames } = this.state
 
     const errors = validate(
@@ -210,7 +211,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
             onSuccess()
             if (fromLauncher) {
               Nav.goToPath('workspace-notebook-launch', {
-                namespace, name, notebookName: newName + '.ipynb'
+                namespace, name: wsName, notebookName: newName + '.ipynb'
               })
             }
           } catch (error) {

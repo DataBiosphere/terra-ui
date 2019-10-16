@@ -84,20 +84,17 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
-        as: 'a',
         href: notebookLink,
         tooltip: canWrite && 'Open without runtime',
         tooltipSide: 'left'
       }, [makeMenuIcon('eye'), 'Open preview']),
       h(MenuButton, {
-        as: 'a',
         href: notebookEditLink,
         disabled: locked || !canWrite,
         tooltip: !canWrite && noWrite,
         tooltipSide: 'left'
       }, locked ? [makeMenuIcon('lock'), 'Edit (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
       h(MenuButton, {
-        as: 'a',
         href: notebookPlaygroundLink,
         tooltip: canWrite && 'Open in playground mode',
         tooltipSide: 'left'
@@ -264,7 +261,7 @@ const Notebooks = _.flow(
 
   async componentDidMount() {
     const { name: wsName, namespace, workspace: { canShare, workspace: { bucketName } }, authState: { user: { email } } } = this.props
-    const [currentUserHash, potentialLockers] = await Promise.all([notebookLockHash(bucketName, email), findPotentialNotebookLockers(canShare, namespace, wsName, bucketName)])
+    const [currentUserHash, potentialLockers] = await Promise.all([notebookLockHash(bucketName, email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
     this.setState({ currentUserHash, potentialLockers })
     this.refresh()
   }

@@ -2,7 +2,7 @@ import * as clipboard from 'clipboard-polyfill'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useRef, useState } from 'react'
-import { div, h, iframe, p, span } from 'react-hyperscript-helpers'
+import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, MenuButton, spinnerOverlay } from 'src/components/common'
@@ -23,9 +23,9 @@ import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/Export
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const StatusMessage = ({ showSpinner, children }) => {
+const StatusMessage = ({ hideSpinner, children }) => {
   return div({ style: { padding: '1.5rem 2rem', display: 'flex' } }, [
-    showSpinner && spinner({ style: { marginRight: '0.5rem' } }),
+    !hideSpinner && spinner({ style: { marginRight: '0.5rem' } }),
     div([children])
   ])
 }
@@ -92,16 +92,16 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   })
 )(
-  ({ queryParams = {}, notebookName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, cluster, refreshClusters, onRequesterPaysError }, ref) => {
+  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace }, accessLevel, canCompute }, cluster, refreshClusters }, ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     // Status note: undefined means still loading, null means no cluster
-    const clusterStatus = cluster && cluster.status
+    const { clusterName, status, labels } = cluster || {}
     const [busy, setBusy] = useState()
     const { mode } = queryParams
 
     return h(Fragment, [
-      (Utils.canWrite(accessLevel) && canCompute && !!mode && clusterStatus === 'Running') ?
-        h(cluster.labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : NotebookEditorFrame, { key: cluster.clusterName, workspace, cluster, notebookName, mode }) :
+      (Utils.canWrite(accessLevel) && canCompute && !!mode && status === 'Running') ?
+        h(labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : NotebookEditorFrame, { key: clusterName, workspace, cluster, notebookName, mode }) :
         h(Fragment, [
           h(PreviewHeader, { queryParams, cluster, refreshClusters, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateCluster: () => setCreateOpen(true) }),
           h(NotebookPreviewFrame, { notebookName, workspace })
@@ -132,7 +132,7 @@ const FileInUseModal = ({ onDismiss, onCopy, onPlayground, namespace, name, buck
 
   Utils.useOnMount(() => {
     const findLockedByEmail = withErrorReporting('Error loading locker information', async () => {
-      const potentialLockers = await findPotentialNotebookLockers(canShare, namespace, name, bucketName)
+      const potentialLockers = await findPotentialNotebookLockers({ canShare, namespace, wsName: name, bucketName })
       const currentLocker = potentialLockers[lockedBy]
       setLockedByEmail(currentLocker)
     })
@@ -199,14 +199,13 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
     width: 530,
     title: 'Playground Mode',
     onDismiss,
-    okButton: h(ButtonPrimary,
-      {
-        onClick: () => {
-          BrowserStorage.setLocalPref('hidePlaygroundMessage', hidePlaygroundMessage)
-          onPlayground()
-        }
-      },
-      'Continue')
+    okButton: h(ButtonPrimary, {
+      onClick: () => {
+        BrowserStorage.setLocalPref('hidePlaygroundMessage', hidePlaygroundMessage)
+        onPlayground()
+      }
+    },
+    'Continue')
   }, [
     p(['Playground mode allows you to explore, change, and run the code, but your edits will not be saved.']),
     p(['To save your work, choose ', span({ style: { fontWeight: 600 } }, ['Download ']), 'from the ', span({ style: { fontWeight: 600 } }, ['File ']), 'menu.']),
@@ -221,13 +220,16 @@ const PlaygroundHeader = () => {
   return div({ style: { backgroundColor: colors.warning(0.7), display: 'flex', alignItems: 'center', borderBottom: `2px solid ${colors.dark(0.2)}`, height: '3.5rem', whiteSpace: 'pre' } }, [
     div({ style: { fontSize: 18, fontWeight: 'bold', backgroundColor: colors.warning(0.9), padding: '0 4rem', height: '100%', display: 'flex', alignItems: 'center' } },
       ['PLAYGROUND MODE']),
-    span({ style: { marginLeft: '2rem' } }, ['Edits to this notebook are ']),
-    span({ style: { fontWeight: 'bold' } }, ['NOT ']),
-    'being saved to the workspace. To save your changes, download the notebook using the file menu. ',
-    h(Link, {
-      href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-      ...Utils.newTabLinkProps
-    }, [' Read here for more details.'])
+    div({ style: { marginLeft: '2rem' } }, [
+      'Edits to this notebook are ',
+      b(['NOT ']),
+      'being saved to the workspace. To save your changes, download the notebook using the file menu.',
+      h(Link, {
+        style: { marginLeft: '0.5rem' },
+        href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+        ...Utils.newTabLinkProps
+      }, ['Read here for more details.'])
+    ])
   ])
 }
 
@@ -243,9 +245,9 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
   const [copyingNotebook, setCopyingNotebook] = useState(false)
   const clusterStatus = cluster && cluster.status
   const welderEnabled = cluster && !cluster.labels.welderInstallFailed
-  const mode = queryParams['mode']
+  const { mode } = queryParams
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
-  const buttonStyle = { paddingRight: '1rem', paddingLeft: '1rem', paddingTop: '1rem', paddingBottom: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: '2px' }
+  const buttonStyle = { padding: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: 2 }
 
   const checkIfLocked = withErrorReporting('Error checking notebook lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
@@ -284,9 +286,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
           ),
           h(ButtonSecondary, {
             style: buttonStyle,
-            onClick: () => {
-              BrowserStorage.getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
-            }
+            onClick: () => BrowserStorage.getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
           }, [icon('chalkboard', { style: { paddingRight: 3 } }), 'Playground mode']),
           h(PopupTrigger, {
             closeOnClick: true,
@@ -294,14 +294,10 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
               h(MenuButton, { onClick: () => setCopyingNotebook(true) }, ['Make a Copy']),
               h(MenuButton, { onClick: () => setExportingNotebook(true) }, ['Copy to another workspace']),
               h(MenuButton, {
-                onClick: async () => {
-                  try {
-                    await clipboard.writeText(`${window.location.host}/${notebookLink}`)
-                    notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 })
-                  } catch (error) {
-                    reportError('Error copying to clipboard', error)
-                  }
-                }
+                onClick: withErrorReporting('Error copying to clipboard', async () => {
+                  await clipboard.writeText(`${window.location.host}/${notebookLink}`)
+                  notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 })
+                })
               }, ['Copy URL to clipboard'])
             ]),
             side: 'bottom'
@@ -313,21 +309,21 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
         ])
       ],
       [
-        clusterStatus === 'Creating', () => h(StatusMessage, { showSpinner: true }, [
+        clusterStatus === 'Creating', () => h(StatusMessage, [
           'Creating notebook runtime environment, this will take 5-10 minutes. You can navigate away and return when it’s ready.'
         ])
       ],
       [
-        clusterStatus === 'Starting', () => h(StatusMessage, { showSpinner: true }, [
+        clusterStatus === 'Starting', () => h(StatusMessage, [
           'Starting notebook runtime environment, this may take up to 2 minutes.'
         ])
       ],
       [
-        clusterStatus === 'Stopping', () => h(StatusMessage, { showSpinner: true }, [
+        clusterStatus === 'Stopping', () => h(StatusMessage, [
           'Notebook runtime environment is stopping. You can restart it after it finishes.'
         ])
       ],
-      [clusterStatus === 'Error', () => h(StatusMessage, ['Notebook runtime error.'])]
+      [clusterStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Notebook runtime error.'])]
     ),
     div({ style: { flexGrow: 1 } }),
     div({ style: { position: 'relative' } }, [
@@ -363,7 +359,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
     }),
     copyingNotebook && h(NotebookDuplicator, {
       printName: notebookName.slice(0, -6), fromLauncher: true,
-      name, namespace, bucketName, destroyOld: false,
+      wsName: name, namespace, bucketName, destroyOld: false,
       onDismiss: () => setCopyingNotebook(false),
       onSuccess: () => setCopyingNotebook(false)
     }),
@@ -460,7 +456,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   console.assert(!labels.welderInstallFailed, 'Expected cluster to have Welder')
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)
-  const [notebookSetUp, setNotebookSetUp] = useState(false)
+  const [notebookSetupComplete, setNotebookSetupComplete] = useState(false)
 
   const localBaseDirectory = `${name}/edit`
   const localSafeModeBaseDirectory = `${name}/safe`
@@ -473,25 +469,22 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
     await Ajax()
       .Jupyter
       .notebooks(namespace, clusterName)
-      .storageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
-    if (mode === 'edit') {
-      const lockSuccessful = await Ajax().Jupyter.notebooks(namespace, clusterName).lock(`${localBaseDirectory}/${notebookName}`)
-      if (!lockSuccessful) {
-        notify('error', 'Unable to Edit Notebook', {
-          message: 'Another user is currently editing this notebook. You can run it in Playground Mode or make a copy.'
-        })
-        chooseMode(undefined)
-        return
-      }
+      .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
+    if (mode === 'edit' && !(await Ajax().Jupyter.notebooks(namespace, clusterName).lock(`${localBaseDirectory}/${notebookName}`))) {
+      notify('error', 'Unable to Edit Notebook', {
+        message: 'Another user is currently editing this notebook. You can run it in Playground Mode or make a copy.'
+      })
+      chooseMode(undefined)
+    } else {
+      await Promise.all([
+        Ajax().Jupyter.notebooks(namespace, clusterName).localize([{
+          sourceUri: `${cloudStorageDirectory}/${notebookName}`,
+          localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${notebookName}` : `${localSafeModeBaseDirectory}/${notebookName}`
+        }]),
+        Ajax().Jupyter.notebooks(namespace, clusterName).setCookie()
+      ])
+      setNotebookSetupComplete(true)
     }
-    await Promise.all([
-      Ajax().Jupyter.notebooks(namespace, clusterName).localize([{
-        sourceUri: `${cloudStorageDirectory}/${notebookName}`,
-        localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${notebookName}` : `${localSafeModeBaseDirectory}/${notebookName}`
-      }]),
-      Ajax().Jupyter.notebooks(namespace, clusterName).setCookie()
-    ])
-    setNotebookSetUp(true)
   })
 
   Utils.useOnMount(() => {
@@ -499,7 +492,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   })
 
   return h(Fragment, [
-    notebookSetUp && h(Fragment, [
+    notebookSetupComplete && h(Fragment, [
       iframe({
         src: `${clusterUrl}/notebooks/${mode === 'edit' ? localBaseDirectory : localSafeModeBaseDirectory}/${notebookName}`,
         style: { border: 'none', flex: 1 },
@@ -510,7 +503,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
         onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name })
       })
     ]),
-    busy && h(StatusMessage, { showSpinner: true }, ['Copying notebook to runtime environment, almost ready...'])
+    busy && h(StatusMessage, ['Copying notebook to runtime environment, almost ready...'])
   ])
 }
 
@@ -538,15 +531,15 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
         ])
       })
       chooseMode(undefined)
-      return
+    } else {
+      await Promise.all([
+        Ajax(signal).Jupyter.notebooks(namespace, clusterName).oldLocalize({
+          [`~/${ name }/${ notebookName }`]: `gs://${ bucketName }/notebooks/${ notebookName }`
+        }),
+        Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()
+      ])
+      setLocalized(true)
     }
-    await Promise.all([
-      Ajax(signal).Jupyter.notebooks(namespace, clusterName).oldLocalize({
-        [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
-      }),
-      Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()
-    ])
-    setLocalized(true)
   })
 
   Utils.useOnMount(() => {
@@ -566,7 +559,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
         onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name })
       })
     ]),
-    busy && h(StatusMessage, { showSpinner: true }, ['Copying notebook to runtime environment, almost ready...'])
+    busy && h(StatusMessage, ['Copying notebook to runtime environment, almost ready...'])
   ])
 }
 

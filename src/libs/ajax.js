@@ -984,7 +984,7 @@ const Jupyter = signal => ({
 
   notebooks: (project, name) => {
     const root = `proxy/${project}/${name}`
-    const oldRoot = `notebooks/${project}/${name}` // TODO: remove once Leo bug for setCookie is fixed
+    const oldRoot = `notebooks/${project}/${name}` // TODO: remove once Leo bug for setCookie is fixed: https://broadworkbench.atlassian.net/browse/IA-1269
 
     return {
       oldLocalize: files => {
@@ -993,10 +993,7 @@ const Jupyter = signal => ({
       },
 
       localize: entries => {
-        const body = {
-          action: 'localize',
-          entries
-        }
+        const body = { action: 'localize', entries }
         return fetchLeo(`${root}/welder/objects`,
           _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
       },
@@ -1006,7 +1003,7 @@ const Jupyter = signal => ({
           _.merge(authOpts(), { signal, credentials: 'include' }))
       },
 
-      storageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {
+      setStorageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {
         return fetchLeo(`${root}/welder/storageLinks`,
           _.mergeAll([authOpts(), jsonBody({
             localBaseDirectory,
@@ -1018,8 +1015,8 @@ const Jupyter = signal => ({
 
       lock: async localPath => {
         try {
-          await fetchLeo(`${root}/welder/objects/lock`,
-            _.mergeAll([authOpts(), jsonBody({ localPath }), { signal, method: 'POST' }]))
+          await fetchLeo(`${root}/welder/objects/lock`, _.mergeAll([authOpts(), jsonBody({ localPath }), { signal, method: 'POST' }]))
+          return true
         } catch (error) {
           if (error.status === 409) {
             return false
@@ -1027,7 +1024,6 @@ const Jupyter = signal => ({
             throw error
           }
         }
-        return true
       }
     }
   }
