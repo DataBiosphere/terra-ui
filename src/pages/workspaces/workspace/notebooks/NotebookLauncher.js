@@ -15,7 +15,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import * as BrowserStorage from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
-import { reportError, withErrorReporting } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -534,7 +534,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
     } else {
       await Promise.all([
         Ajax(signal).Jupyter.notebooks(namespace, clusterName).oldLocalize({
-          [`~/${ name }/${ notebookName }`]: `gs://${ bucketName }/notebooks/${ notebookName }`
+          [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
         }),
         Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()
       ])
