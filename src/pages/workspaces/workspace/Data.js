@@ -3,6 +3,7 @@ import FileSaver from 'file-saver'
 import filesize from 'filesize'
 import JSZip from 'jszip'
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { Component, createRef, Fragment, useState } from 'react'
 import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
@@ -388,14 +389,13 @@ const ToolDrawer = _.flow(
   const dataExplorerButtonEnabled = isCohort && entitiesCount === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url !== undefined
   let dataExplorerUrl = dataExplorerButtonEnabled ? _.values(selectedEntities)[0].attributes.data_explorer_url : undefined
   if (dataExplorerUrl) {
-    // Can't use qs.stringify() because it doesn't support fragment params
-    dataExplorerUrl = dataExplorerUrl.includes('?') ? `${dataExplorerUrl}&wid=${workspaceId}` : `${dataExplorerUrl}?wid=${workspaceId}`
+    const [baseURL, urlSearch] = dataExplorerUrl.split('?')
+    dataExplorerUrl = `${baseURL}?${qs.stringify({ ...qs.parse(urlSearch), wid: workspaceId })}`
   }
   const openDataExplorerInSameTab = dataExplorerUrl && (dataExplorerUrl.includes('terra.bio') || _.some({ origin: new URL(dataExplorerUrl).origin }, datasets))
   const dataset = openDataExplorerInSameTab && getDataset(dataExplorerUrl)
   const dataExplorerPath = openDataExplorerInSameTab && Nav.getLink(dataset.authDomain ?
     'data-explorer-private' :
-    // Can't use qs.stringify() because it doesn't support fragment params
     'data-explorer-public', { dataset: dataset.name }) + '?' + dataExplorerUrl.split('?')[1]
 
   const { title, drawerContent } = Utils.switchCase(toolMode, [
