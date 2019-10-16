@@ -20,6 +20,7 @@ import { clusterCost, currentCluster, machineConfigCost, normalizeMachineConfig,
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import * as StateHistory from 'src/libs/state-history'
 import { errorNotifiedClusters } from 'src/libs/state.js'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -167,10 +168,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ({ machineConfig }) => machineConfigsEqual(machineConfig, currentConfig),
       profiles
     )
+    const { selectedLeoImage } = StateHistory.get()
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
       jupyterUserScriptUri: '',
-      selectedLeoImage: leoImages[0].image,
+      selectedLeoImage: selectedLeoImage || leoImages[0].image,
       ...normalizeMachineConfig(currentConfig)
     }
   }
@@ -376,6 +378,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])
     ])
+  }
+
+  componentDidUpdate() {
+    StateHistory.update(_.pick(
+      ['selectedLeoImage'],
+      this.state)
+    )
   }
 })
 
