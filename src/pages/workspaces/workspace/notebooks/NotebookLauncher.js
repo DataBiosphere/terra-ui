@@ -35,7 +35,7 @@ const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
   const signal = useCancellation()
   const [busy, setBusy] = useState()
 
-  const startClusterOnce = withErrorReporting('Error starting notebook runtime')(async () => {
+  const startClusterOnce = withErrorReporting('Error starting notebook runtime', async () => {
     while (!signal.aborted) {
       const currentCluster = getCluster()
       const { status, googleProject, clusterName } = currentCluster || {}
@@ -97,7 +97,7 @@ const NotebookLauncher = _.flow(
     // Status note: undefined means still loading, null means no cluster
     const clusterStatus = cluster && cluster.status
     const [busy, setBusy] = useState()
-    const mode = queryParams['mode']
+    const { mode } = queryParams
 
     return h(Fragment, [
       (Utils.canWrite(accessLevel) && canCompute && !!mode && clusterStatus === 'Running') ?
@@ -106,8 +106,8 @@ const NotebookLauncher = _.flow(
           h(PreviewHeader, { queryParams, cluster, refreshClusters, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateCluster: () => setCreateOpen(true) }),
           h(NotebookPreviewFrame, { notebookName, workspace })
         ]),
-      mode && h(ClusterKicker, { cluster, refreshClusters, onNullCluster: () => { setCreateOpen(true) } }),
-      mode && h(ClusterStatusMonitor, { cluster, onClusterStoppedRunning: () => { chooseMode(undefined) } }),
+      mode && h(ClusterKicker, { cluster, refreshClusters, onNullCluster: () => setCreateOpen(true) }),
+      mode && h(ClusterStatusMonitor, { cluster, onClusterStoppedRunning: () => chooseMode(undefined) }),
       h(NewClusterModal, {
         isOpen: createOpen,
         namespace, currentCluster: cluster,
@@ -128,13 +128,13 @@ const NotebookLauncher = _.flow(
   })
 
 const FileInUseModal = ({ onDismiss, onCopy, onPlayground, namespace, name, bucketName, lockedBy, canShare }) => {
-  const [lockedByEmail, setLockedByEmail] = useState(null)
+  const [lockedByEmail, setLockedByEmail] = useState()
 
   Utils.useOnMount(() => {
     const findLockedByEmail = withErrorReporting('Error loading locker information', async () => {
       const potentialLockers = await findPotentialNotebookLockers(canShare, namespace, name, bucketName)
       const currentLocker = potentialLockers[lockedBy]
-      setLockedByEmail(currentLocker || null)
+      setLockedByEmail(currentLocker)
     })
     findLockedByEmail()
   })
@@ -149,16 +149,16 @@ const FileInUseModal = ({ onDismiss, onCopy, onPlayground, namespace, name, buck
     p('You can make a copy, or run it in Playground Mode to explore and execute its contents without saving any changes.'),
     div({ style: { marginTop: '2rem' } }, [
       h(ButtonSecondary, {
-        style: { paddingRight: '1rem', paddingLeft: '1rem' },
+        style: { padding: '0 1rem' },
         onClick: () => onDismiss()
-      }, ['CANCEL']),
+      }, ['Cancel']),
       h(ButtonSecondary, {
-        style: { paddingRight: '1rem', paddingLeft: '1rem' },
+        style: { padding: '0 1rem' },
         onClick: () => onCopy()
-      }, ['MAKE A COPY']),
+      }, ['Make a copy']),
       h(ButtonPrimary, {
         onClick: () => onPlayground()
-      }, ['RUN IN PLAYGROUND MODE'])
+      }, ['Run in playground mode'])
     ])
   ])
 }
@@ -178,17 +178,17 @@ const EditModeDisabledModal = ({ onDismiss, onRecreateCluster, onPlayground }) =
     }, ['Read here for more details.']),
     div({ style: { marginTop: '2rem' } }, [
       h(ButtonSecondary, {
-        style: { paddingRight: '1rem', paddingLeft: '1rem' },
+        style: { padding: '0 1rem' },
         onClick: () => onDismiss()
-      }, ['CANCEL']),
+      }, ['Cancel']),
       h(ButtonSecondary, {
-        style: { paddingRight: '1rem', paddingLeft: '1rem', marginLeft: '1rem' },
+        style: { padding: '0 1rem', marginLeft: '1rem' },
         onClick: () => onPlayground()
-      }, ['RUN IN PLAYGROUND MODE']),
+      }, ['Run in playground mode']),
       h(ButtonPrimary, {
-        style: { paddingRight: '1rem', paddingLeft: '1rem', marginLeft: '2rem' },
+        style: { padding: '0 1rem', marginLeft: '2rem' },
         onClick: () => onRecreateCluster()
-      }, ['RECREATE NOTEBOOK RUNTIME'])
+      }, ['Recreate notebook runtime'])
     ])
   ])
 }
@@ -212,14 +212,14 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
     p(['To save your work, choose ', span({ style: { fontWeight: 600 } }, ['Download ']), 'from the ', span({ style: { fontWeight: 600 } }, ['File ']), 'menu.']),
     h(LabeledCheckbox, {
       checked: hidePlaygroundMessage,
-      onChange: v => setHidePlaygroundMessage(v)
+      onChange: setHidePlaygroundMessage
     }, [span({ style: { marginLeft: '0.5rem' } }, ['Do not show again '])])
   ])
 }
 
 const PlaygroundHeader = () => {
   return div({ style: { backgroundColor: colors.warning(0.7), display: 'flex', alignItems: 'center', borderBottom: `2px solid ${colors.dark(0.2)}`, height: '3.5rem', whiteSpace: 'pre' } }, [
-    div({ style: { fontSize: 18, fontWeight: 'bold', backgroundColor: colors.warning(0.9), paddingRight: '4rem', paddingLeft: '4rem', height: '100%', display: 'flex', alignItems: 'center' } },
+    div({ style: { fontSize: 18, fontWeight: 'bold', backgroundColor: colors.warning(0.9), padding: '0 4rem', height: '100%', display: 'flex', alignItems: 'center' } },
       ['PLAYGROUND MODE']),
     span({ style: { marginLeft: '2rem' } }, ['Edits to this notebook are ']),
     span({ style: { fontWeight: 'bold' } }, ['NOT ']),
@@ -230,7 +230,6 @@ const PlaygroundHeader = () => {
     }, [' Read here for more details.'])
   ])
 }
-
 
 const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, refreshClusters, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
   const signal = useCancellation()
@@ -249,8 +248,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
   const buttonStyle = { paddingRight: '1rem', paddingLeft: '1rem', paddingTop: '1rem', paddingBottom: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: '2px' }
 
   const checkIfLocked = withErrorReporting('Error checking notebook lock status', async () => {
-    const { metadata } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
-    const { lastLockedBy, lockExpiresAt } = metadata || {}
+    const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
     const hashedUser = await notebookLockHash(bucketName, email)
     const lockExpirationDate = new Date(parseInt(lockExpiresAt))
 
@@ -263,7 +261,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
   Utils.useOnMount(() => { checkIfLocked() })
 
   return div({ style: { display: 'flex', alignItems: 'center', borderBottom: `2px solid ${colors.dark(0.2)}`, height: '3.5rem' } }, [
-    div({ style: { fontSize: 18, fontWeight: 'bold', backgroundColor: colors.dark(0.2), paddingRight: '4rem', paddingLeft: '4rem', height: '100%', display: 'flex', alignItems: 'center' } },
+    div({ style: { fontSize: 18, fontWeight: 'bold', backgroundColor: colors.dark(0.2), padding: '0 4rem', height: '100%', display: 'flex', alignItems: 'center' } },
       ['PREVIEW (READ-ONLY)']),
     !readOnlyAccess && Utils.cond(
       [
@@ -272,24 +270,24 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
             [cluster && !welderEnabled, () => h(ButtonSecondary, {
               style: buttonStyle,
               onClick: () => setEditModeDisabledOpen(true)
-            }, [icon('warning-standard', { style: { paddingRight: '3px' } }), 'EDIT (DISABLED)'])],
+            }, [icon('warning-standard', { style: { paddingRight: 3 } }), 'Edit (Disabled)'])],
             [
               locked, () => h(ButtonSecondary, {
                 style: buttonStyle,
                 onClick: () => setFileInUseOpen(true)
-              }, [icon('lock', { style: { paddingRight: '3px' } }), 'EDIT (IN USE)'])
+              }, [icon('lock', { style: { paddingRight: 3 } }), 'Edit (In use)'])
             ],
             () => h(ButtonSecondary, {
               style: buttonStyle,
               onClick: () => chooseMode('edit')
-            }, [icon('edit', { style: { paddingRight: '3px' } }), 'EDIT'])
+            }, [icon('edit', { style: { paddingRight: 3 } }), 'Edit'])
           ),
           h(ButtonSecondary, {
             style: buttonStyle,
             onClick: () => {
               BrowserStorage.getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
             }
-          }, [icon('chalkboard', { style: { paddingRight: '3px' } }), 'PLAYGROUND MODE']),
+          }, [icon('chalkboard', { style: { paddingRight: 3 } }), 'Playground mode']),
           h(PopupTrigger, {
             closeOnClick: true,
             content: h(Fragment, [
@@ -503,7 +501,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   return h(Fragment, [
     notebookSetUp && h(Fragment, [
       iframe({
-        src: mode === 'edit' ? `${clusterUrl}/notebooks/${localBaseDirectory}/${notebookName}`: `${clusterUrl}/notebooks/${localSafeModeBaseDirectory}/${notebookName}`,
+        src: `${clusterUrl}/notebooks/${mode === 'edit' ? localBaseDirectory : localSafeModeBaseDirectory}/${notebookName}`,
         style: { border: 'none', flex: 1 },
         ref: frameRef
       }),

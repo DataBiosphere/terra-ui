@@ -987,7 +987,6 @@ const Jupyter = signal => ({
     const oldRoot = `notebooks/${project}/${name}` // TODO: remove once Leo bug for setCookie is fixed
 
     return {
-
       oldLocalize: files => {
         return fetchLeo(`${oldRoot}/api/localize`,
           _.mergeAll([authOpts(), jsonBody(files), { signal, method: 'POST' }]))

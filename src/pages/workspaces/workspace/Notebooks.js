@@ -162,7 +162,7 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
     notebookMenu,
     title,
     div({ style: { flexGrow: 1 } }),
-    locked ? h(Clickable, { style: { display: 'flex', paddingRight: '1rem', color: colors.dark(0.75) }, tooltip: `This notebook is currently being edited by ${lockedBy || 'another user'}` }, [icon('lock')]) : undefined,
+    locked && h(Clickable, { style: { display: 'flex', paddingRight: '1rem', color: colors.dark(0.75) }, tooltip: `This notebook is currently being edited by ${lockedBy || 'another user'}` }, [icon('lock')]),
     h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
       div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
         `Last edited: ${Utils.makePrettyDate(updated)}`)
@@ -171,7 +171,7 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
     div({ style: { display: 'flex' } }, [
       title,
       div({ style: { flexGrow: 1 } }),
-      locked ? h(Clickable, { style: { display: 'flex', padding: '1rem', color: colors.dark(0.75) }, tooltip: `This notebook is currently being edited by ${lockedBy || 'another user'}` }, [icon('lock')]) : undefined
+      locked && h(Clickable, { style: { display: 'flex', padding: '1rem', color: colors.dark(0.75) }, tooltip: `This notebook is currently being edited by ${lockedBy || 'another user'}` }, [icon('lock')])
     ]),
     div({
       style: {
