@@ -2,7 +2,7 @@ import { isToday, isYesterday } from 'date-fns'
 import { differenceInCalendarMonths } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { useEffect, useRef, useState } from 'react'
+import { forwardRef, memo, useEffect, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import uuid from 'uuid/v4'
 
@@ -47,17 +47,28 @@ export const useAtom = theAtom => {
   return value
 }
 
+export const withDisplayName = _.curry((name, WrappedComponent) => {
+  WrappedComponent.displayName = name
+  return WrappedComponent
+})
+
+export const forwardRefWithName = _.curry((name, WrappedComponent) => {
+  return withDisplayName(name, forwardRef(WrappedComponent))
+})
+
+export const memoWithName = _.curry((name, WrappedComponent) => {
+  return withDisplayName(name, memo(WrappedComponent))
+})
+
 /**
  * HOC that injects the value of the given atom as a prop. When the atom changes, the wrapped
  * component will re-render
  */
 export const connectAtom = (theAtom, name) => WrappedComponent => {
-  const Wrapper = props => {
+  return withDisplayName('connectAtom', props => {
     const value = useAtom(theAtom)
     return h(WrappedComponent, { ...props, [name]: value })
-  }
-  Wrapper.displayName = 'connectAtom()'
-  return Wrapper
+  })
 }
 
 /**

@@ -444,8 +444,8 @@ const attributesUpdateOps = _.flow(
 )
 
 const Workspaces = signal => ({
-  list: async () => {
-    const res = await fetchRawls('workspaces', _.merge(authOpts(), { signal }))
+  list: async fields => {
+    const res = await fetchRawls(`workspaces?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
@@ -1061,10 +1061,8 @@ export const useCancellation = () => {
 }
 
 export const ajaxCaller = WrappedComponent => {
-  const Wrapper = props => {
+  return Utils.withDisplayName('ajaxCaller', props => {
     const signal = useCancellation()
     return h(WrappedComponent, { ...props, ajax: Ajax(signal) })
-  }
-  Wrapper.displayName = 'ajaxCaller()'
-  return Wrapper
+  })
 }

@@ -1,4 +1,4 @@
-const leoImages = [
+export const leoImages = [
   {
     label: 'Default (Python 3.6.8, R 3.5.2, Hail 0.2.11)',
     version: 'FINAL',
@@ -22,4 +22,5 @@ const leoImages = [
   }
 ]
 
-export default leoImages
+// distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
+export const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/

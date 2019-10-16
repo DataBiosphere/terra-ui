@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, forwardRef, Fragment, useRef, useState } from 'react'
+import { Component, Fragment, useRef, useState } from 'react'
 import Autosuggest from 'react-autosuggest'
 import { div, h, input, textarea } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
@@ -69,7 +69,7 @@ export const withDebouncedChange = WrappedComponent => {
   return Wrapper
 }
 
-export const TextInput = forwardRef(({ onChange, nativeOnChange = false, ...props }, ref) => {
+export const TextInput = Utils.forwardRefWithName('TextInput', ({ onChange, nativeOnChange = false, ...props }, ref) => {
   Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, TextInput needs a label')
 
   return input({

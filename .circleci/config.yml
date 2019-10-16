@@ -5,9 +5,16 @@ executors:
     docker:
       - image: node:10
         user: node
+  puppeteer: 
+    docker: 
+      - image: circleci/node:10-browsers
+        user: node
   gcloud:
     docker:
       - image: google/cloud-sdk:alpine
+  dsp-toolbox: 
+    docker: 
+      - image: broadinstitute/dsp-toolbox
   security-scanner:
     docker:
       - image: owasp/zap2docker-weekly
@@ -126,6 +133,33 @@ jobs:
               docker run -t owasp/zap2docker-weekly zap-baseline.py -t ${env};
               if [ $? -ne 1 ]; then exit 0; else exit 1; fi;
             )
+  integration-test-setup:
+    executor: dsp-toolbox
+    steps:
+      - checkout
+      - run: python src/_tests/get_bearer_token.py "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}" > testtoken
+      - persist_to_workspace:
+          root: .
+          paths:
+            - testtoken
+  integration-tests: 
+    executor: puppeteer
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+            - deps2-{{ checksum "package.json" }}-
+            - deps2-
+      - run: npx npm@6.11 ci
+      - run: cp config/dev.json build/config.json
+      - run: 
+          command: npx serve build -l 3000
+          background: true
+      - run: timeout 120 bash -c "until nc -z localhost 3000; do sleep 3; done"
+      - run: TERRA_TOKEN=$(cat testtoken) npm run test:integration
 
 workflows:
   version: 2
@@ -175,3 +209,16 @@ workflows:
           filters:
             branches:
               only: dev
+  run-integration-tests: 
+    jobs:
+      - build
+      - integration-test-setup
+      - integration-tests:
+          filters: 
+            branches:
+              ignore:
+                - dev
+          requires:
+            - build
+            - integration-test-setup
+            

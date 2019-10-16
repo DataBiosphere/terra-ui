@@ -1,4 +1,4 @@
-import { Children, cloneElement, forwardRef, Fragment, useImperativeHandle, useRef, useState } from 'react'
+import { Children, cloneElement, Fragment, useImperativeHandle, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import onClickOutside from 'react-onclickoutside'
 import { Clickable, FocusTrapper } from 'src/components/common'
@@ -6,7 +6,7 @@ import { icon } from 'src/components/icons'
 import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
-import { useUniqueId } from 'src/libs/utils'
+import * as Utils from 'src/libs/utils'
 
 
 const styles = {
@@ -36,9 +36,9 @@ export const Popup = onClickOutside(({ side = 'right', target: targetId, onClick
   ])
 })
 
-const PopupTrigger = forwardRef(({ content, children, closeOnClick, ...props }, ref) => {
+const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, children, closeOnClick, ...props }, ref) => {
   const [open, setOpen] = useState(false)
-  const id = useUniqueId()
+  const id = Utils.useUniqueId()
   useImperativeHandle(ref, () => ({
     close: () => setOpen(false)
   }))
