@@ -1,6 +1,5 @@
 import { Component, Fragment } from 'react'
 import { b, div, h, img, p, span } from 'react-hyperscript-helpers'
-import { pure } from 'recompose'
 import { ButtonPrimary, Link } from 'src/components/common'
 import { libraryTopMatter } from 'src/components/library-common'
 import Modal from 'src/components/Modal'
@@ -384,7 +383,7 @@ const ukb = () => h(Participant, {
 ])
 
 
-const Datasets = pure(() => {
+const Datasets = () => {
   return h(Fragment, [
     libraryTopMatter('datasets'),
     div({ role: 'main', style: styles.content }, [
@@ -394,7 +393,7 @@ const Datasets = pure(() => {
       target(), tcga(), topMed(), ukb()
     ])
   ])
-})
+}
 
 
 export const navPaths = [

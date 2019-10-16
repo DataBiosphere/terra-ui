@@ -1,14 +1,14 @@
 import _ from 'lodash/fp'
-import { forwardRef, useState } from 'react'
+import { useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import * as Utils from 'src/libs/utils'
 
 
-const allowedHoverVariables = ['backgroundColor', 'color', 'boxShadow', 'opacity', 'textDecoration']
+const allowedHoverVariables = ['backgroundColor', 'border', 'color', 'boxShadow', 'opacity', 'textDecoration']
 const pointerTags = ['button', 'area', 'a', 'select']
 const pointerTypes = ['radio', 'checkbox', 'submit', 'button']
 
-const Interactive = forwardRef(({
+const Interactive = Utils.forwardRefWithName('Interactive', ({
   className = '', as, type, role, onClick, onKeyDown, onMouseDown, onBlur, disabled, children, tabIndex, hover = {}, style = {}, ...props
 }, ref) => {
   const [outline, setOutline] = useState(undefined)

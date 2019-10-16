@@ -24,7 +24,7 @@ window.ajaxOverrideUtils = {
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
-const tosData = { appid: 'Saturn', tosversion: 4 }
+const tosData = { appid: 'Saturn', tosversion: 5 }
 
 const withInstrumentation = wrappedFetch => (...args) => {
   return _.flow(
@@ -444,8 +444,8 @@ const attributesUpdateOps = _.flow(
 )
 
 const Workspaces = signal => ({
-  list: async () => {
-    const res = await fetchRawls('workspaces', _.merge(authOpts(), { signal }))
+  list: async fields => {
+    const res = await fetchRawls(`workspaces?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
@@ -1099,10 +1099,8 @@ export const useCancellation = () => {
 }
 
 export const ajaxCaller = WrappedComponent => {
-  const Wrapper = props => {
+  return Utils.withDisplayName('ajaxCaller', props => {
     const signal = useCancellation()
     return h(WrappedComponent, { ...props, ajax: Ajax(signal) })
-  }
-  Wrapper.displayName = 'ajaxCaller()'
-  return Wrapper
+  })
 }

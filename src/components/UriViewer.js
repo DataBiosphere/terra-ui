@@ -133,9 +133,10 @@ const DownloadButton = ({ uri, metadata: { bucket, name, size } }) => {
   ])
 }
 
-const UriViewer = requesterPaysWrapper({
-  onDismiss: ({ onDismiss }) => onDismiss()
-})(({ googleProject, uri, onDismiss, onRequesterPaysError }) => {
+const UriViewer = _.flow(
+  Utils.withDisplayName('UriViewer'),
+  requesterPaysWrapper({ onDismiss: ({ onDismiss }) => onDismiss() })
+)(({ googleProject, uri, onDismiss, onRequesterPaysError }) => {
   const signal = useCancellation()
   const [metadata, setMetadata] = useState()
   const [copied, setCopied] = useState()
