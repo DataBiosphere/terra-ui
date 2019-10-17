@@ -301,10 +301,8 @@ export const EntityUploader = class EntityUploader extends Component {
           span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['participant']),
           ' table use ',
           span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['entity:participant_id']),
-          div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, ['All of the values in the ID column must be unique.']),
-          div({ style: { height: '0.5rem' } }),
+          div({ style: { margin: '0.5rem 0 1rem' } }, ['All of the values in the ID column must be unique.']),
           h(SimpleTabBar, {
-            style: { paddingTop: '0.5rem' },
             tabs: [{ title: 'File Import', key: true, width: 121 }, { title: 'Text Import', key: false, width: 127 }],
             value: isFileImportCurrMode,
             onChange: value => {
@@ -356,8 +354,7 @@ export const EntityUploader = class EntityUploader extends Component {
               value: !isFileImportLastUsedMode ? fileContents : '',
               wrap: 'off',
               style: {
-                flex: 1, fontFamily: 'monospace', resize: 'vertical',
-                height: 100,
+                fontFamily: 'monospace', height: 100,
                 backgroundColor: isInvalid ? colors.danger(.1) : colors.light(0.1),
                 border: isInvalid ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`,
                 boxShadow: 'none'
