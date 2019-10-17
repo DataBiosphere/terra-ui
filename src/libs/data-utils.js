@@ -3,7 +3,8 @@ import PropTypes from 'prop-types'
 import { Component, Fragment, useState } from 'react'
 import { div, fieldset, h, legend, span } from 'react-hyperscript-helpers'
 import {
-  ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, SimpleTabBar, spinnerOverlay, Switch
+  ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, SimpleTabBar, spinnerOverlay,
+  Switch
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
@@ -301,26 +302,7 @@ export const EntityUploader = class EntityUploader extends Component {
           ' table use ',
           span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['entity:participant_id']),
           div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, ['All of the values in the ID column must be unique.']),
-          div({ style: { borderTop: Style.standardLine, paddingTop: '1rem', fontWeight: 'bold', marginTop: '1rem' } }, ['Choose an import type:']),
-          currentFile && _.includes(_.toLower(newEntityType), entityTypes) && div({
-            style: { ...warningBoxStyle, marginTop: '0.5rem', color: colors.light(.1), display: 'flex', alignItems: 'center' }
-          }, [
-            icon('warning-standard', { size: 19, style: { color: colors.light(.1), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-            `Data with the type '${newEntityType}' already exists in this workspace. `,
-            'Uploading more data for the same type may overwrite some entries.'
-          ]),
-          currentFile && supportsFireCloudDataModel(newEntityType) && div([
-            h(LabeledCheckbox, {
-              checked: useFireCloudDataModel,
-              onChange: checked => this.setState({ useFireCloudDataModel: checked }),
-              style: { margin: '0.5rem' }
-            }, [' Create participant, sample, and pair associations']),
-            h(Link, {
-              style: { marginLeft: '1rem', verticalAlign: 'middle' },
-              href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=10738',
-              ...Utils.newTabLinkProps
-            }, ['Learn more ', icon('pop-out', { size: 12 })])
-          ]),
+          div({ style: { height: '0.5rem' } }),
           h(SimpleTabBar, {
             style: { paddingTop: '0.5rem' },
             tabs: [{ title: 'File Import', key: true, width: 121 }, { title: 'Text Import', key: false, width: 127 }],
@@ -331,8 +313,8 @@ export const EntityUploader = class EntityUploader extends Component {
           }),
           div({
             style: {
-              padding: '0.5rem 0 0',
-              height: '3rem'
+              padding: '1rem 0 0',
+              height: '3.25rem'
             }
           }, [
             isFileImportCurrMode ? div([
@@ -381,6 +363,25 @@ export const EntityUploader = class EntityUploader extends Component {
                 boxShadow: 'none'
               }
             })
+          ]),
+          currentFile && _.includes(_.toLower(newEntityType), entityTypes) && div({
+            style: { ...warningBoxStyle, margin: '1rem 0 0.5rem', color: colors.light(.1), display: 'flex', alignItems: 'center' }
+          }, [
+            icon('warning-standard', { size: 19, style: { color: colors.light(.1), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+            `Data with the type '${newEntityType}' already exists in this workspace. `,
+            'Uploading more data for the same type may overwrite some entries.'
+          ]),
+          currentFile && supportsFireCloudDataModel(newEntityType) && div([
+            h(LabeledCheckbox, {
+              checked: useFireCloudDataModel,
+              onChange: checked => this.setState({ useFireCloudDataModel: checked }),
+              style: { margin: '0.5rem' }
+            }, [' Create participant, sample, and pair associations']),
+            h(Link, {
+              style: { marginLeft: '1rem', verticalAlign: 'middle' },
+              href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=10738',
+              ...Utils.newTabLinkProps
+            }, ['Learn more ', icon('pop-out', { size: 12 })])
           ]),
           isInvalid && div({
             style: { color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
