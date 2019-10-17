@@ -58,11 +58,12 @@ const styles = {
   }
 }
 
-export const ModalToolButton = ({ children, disabled, ...props }) => {
+export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
   return h(Clickable, _.merge({
     disabled,
     style: {
-      color: disabled ? colors.secondary() : colors.dark(),
+      color: disabled ? colors.secondary() : colors.accent(),
+      opacity: disabled ? 0.5 : undefined,
       border: '1px solid transparent',
       padding: '0 0.875rem',
       backgroundColor: 'white',
@@ -76,7 +77,12 @@ export const ModalToolButton = ({ children, disabled, ...props }) => {
       border: `1px solid ${colors.accent(0.8)}`,
       boxShadow: Style.standardShadow
     }
-  }, props), [children])
+  }, props), [
+    div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
+      img({ src: icon, style: { opacity: disabled ? 0.5 : undefined, maxWidth: 45, maxHeight: 40 } })
+    ]),
+    text
+  ])
 }
 
 const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
@@ -394,24 +400,18 @@ const ToolDrawer = _.flow(
             h(ModalToolButton, {
               onClick: () => setToolMode('IGV'),
               disabled: isCohort,
-              tooltip: isCohort ? 'IGV cannot be opened with cohorts' : 'Open with Integrative Genomics Viewer'
-            }, [
-              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                img({ src: igvLogo, style: { width: 40 } })
-              ]),
-              'IGV'
-            ]),
+              tooltip: isCohort ? 'IGV cannot be opened with cohorts' : 'Open with Integrative Genomics Viewer',
+              icon: igvLogo,
+              text: 'IGV'
+            }),
             h(ModalToolButton, {
               onClick: () => setToolMode('Workflow'),
               disabled: isCohort,
               tooltip: isCohort ? 'Workflow cannot be opened with cohorts' : 'Open with Workflow',
-              style: { marginTop: '0.5rem' }
-            }, [
-              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                img({ src: wdlLogo, style: { height: '1rem' } })
-              ]),
-              'Workflow'
-            ]),
+              style: { marginTop: '0.5rem' },
+              icon: wdlLogo,
+              text: 'Workflow'
+            }),
             h(ModalToolButton, {
               onClick: () => dataExplorerButtonEnabled && window.open(dataExplorerUrl),
               disabled: !dataExplorerButtonEnabled,
@@ -422,13 +422,10 @@ const ToolDrawer = _.flow(
                 [!isCohort, () => 'Only cohorts can be opened with Data Explorer'],
                 () => undefined
               ),
-              style: { marginTop: '0.5rem' }
-            }, [
-              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                img({ src: dataExplorerLogo, style: { opacity: !dataExplorerButtonEnabled ? .25 : undefined, width: 40 } })
-              ]),
-              'Data Explorer'
-            ])
+              style: { marginTop: '0.5rem' },
+              icon: dataExplorerLogo,
+              text: 'Data Explorer'
+            })
           ])
         ])
       ])

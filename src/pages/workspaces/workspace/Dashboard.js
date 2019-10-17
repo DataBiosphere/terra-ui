@@ -267,7 +267,7 @@ export const WorkspaceDashboard = _.flow(
           h(InfoTile, { title: 'Submissions' }, [submissionsCount]),
           h(InfoTile, { title: 'Access level' }, [roleString[accessLevel]]),
           Utils.canWrite(accessLevel) && h(InfoTile, { title: 'Est. $/month' }, [
-            storageCostEstimate
+            storageCostEstimate || '$ ...'
           ])
         ]),
         div({ style: styles.header }, ['Owners']),
@@ -304,7 +304,7 @@ export const WorkspaceDashboard = _.flow(
               }, [icon('times', { size: 14 })])
             ])
           }, tagsList),
-          busy && spinner({ style: { marginTop: '0.5rem' } })
+          (busy || tagsList === undefined) && spinner({ style: { marginTop: '0.5rem' } })
         ]),
         !_.isEmpty(authorizationDomain) && h(Fragment, [
           div({ style: styles.header }, ['Authorization Domain']),
