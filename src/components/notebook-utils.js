@@ -17,8 +17,11 @@ import validate from 'validate.js'
 export const notebookLockHash = async (bucketName, email) => {
   const msgUint8 = new TextEncoder().encode(`${bucketName}:${email}`)
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map(b => `00${b.toString(16)}`).join('')
+  const hashArray = new Uint8Array(hashBuffer)
+  return _.flow(
+    _.map(v => v.toString(16).padStart(2, '0')),
+    _.join('')
+  )(hashArray)
 }
 
 export const findPotentialNotebookLockers = async ({ canShare, namespace, wsName, bucketName }) => {
