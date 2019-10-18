@@ -173,7 +173,7 @@ const EditModeDisabledModal = ({ onDismiss, onRecreateCluster, onPlayground }) =
     p('We’ve released important updates that are not compatible with the older runtime associated with this workspace. To enable Edit Mode, please delete your existing runtime and create a new runtime.'),
     p('If you have any files on your old runtime that you want to keep, you can access your old runtime using the Playground Mode option.'),
     h(Link, {
-      href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+      href: 'https://support.terra.bio/hc/en-us/articles/360034505132--Lock-and-Playground-Notebook-Modes',
       ...Utils.newTabLinkProps
     }, ['Read here for more details.']),
     div({ style: { marginTop: '2rem' } }, [
@@ -226,7 +226,7 @@ const PlaygroundHeader = () => {
       'being saved to the workspace. To save your changes, download the notebook using the file menu.',
       h(Link, {
         style: { marginLeft: '0.5rem' },
-        href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+        href: 'https://support.terra.bio/hc/en-us/articles/360034505132--Lock-and-Playground-Notebook-Modes',
         ...Utils.newTabLinkProps
       }, ['Read here for more details.'])
     ])
@@ -525,7 +525,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
           p(['Recent updates to Terra are not compatible with the older notebook runtime in this workspace. Please recreate your runtime in order to access Edit Mode for this notebook.']),
           h(Link, {
             variant: 'light',
-            href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+            href: 'https://support.terra.bio/hc/en-us/articles/360034505132--Lock-and-Playground-Notebook-Modes',
             ...Utils.newTabLinkProps
           }, ['Read here for more details.'])
         ])
