@@ -18,7 +18,10 @@ export const notebookLockHash = async (bucketName, email) => {
   const msgUint8 = new TextEncoder().encode(`${bucketName}:${email}`)
   const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
   const hashArray = new Uint8Array(hashBuffer)
-  return hashArray.reduce((acc, current) => acc + current.toString(16).padStart(2, '0'), '')
+  return _.flow(
+    _.map(v => v.toString(16).padStart(2, '0')),
+    _.join('')
+  )(hashArray)
 }
 
 export const findPotentialNotebookLockers = async ({ canShare, namespace, wsName, bucketName }) => {
