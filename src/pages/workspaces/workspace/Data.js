@@ -3,6 +3,7 @@ import FileSaver from 'file-saver'
 import filesize from 'filesize'
 import JSZip from 'jszip'
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { Component, createRef, Fragment, useState } from 'react'
 import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
@@ -24,6 +25,7 @@ import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/tab
 import TitleBar from 'src/components/TitleBar'
 import UriViewer from 'src/components/UriViewer'
 import WorkflowSelector from 'src/components/WorkflowSelector'
+import datasets from 'src/data/datasets'
 import dataExplorerLogo from 'src/images/data-explorer-logo.svg'
 import igvLogo from 'src/images/igv-logo.png'
 import wdlLogo from 'src/images/wdl-logo.png'
@@ -33,6 +35,7 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { withErrorReporting } from 'src/libs/error'
+import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -360,6 +363,19 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
+const getDataset = dataExplorerUrl => {
+  if (dataExplorerUrl.includes('appspot.com')) {
+    // Cohort was imported from standalone Data Explorer, eg
+    // https://test-data-explorer.appspot.com/
+    return _.find({ origin: new URL(dataExplorerUrl).origin }, datasets)
+  } else {
+    // Cohort was imported from embedded Data Explorer, eg
+    // https://app.terra.bio/#library/datasets/public/1000%20Genomes/data-explorer
+    const datasetName = unescape(dataExplorerUrl.split(/datasets\/(?:public\/)?([^/]+)\/data-explorer/)[1])
+    return _.find({ name: datasetName }, datasets)
+  }
+}
+
 const ToolDrawer = _.flow(
   Utils.withDisplayName('ToolDrawer'),
   withModalDrawer()
@@ -369,8 +385,16 @@ const ToolDrawer = _.flow(
   const [toolMode, setToolMode] = useState()
   const entitiesCount = _.size(selectedEntities)
   const isCohort = entityKey === 'cohort'
-  const dataExplorerButtonEnabled = isCohort && entitiesCount === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url
-  const dataExplorerUrl = dataExplorerButtonEnabled ? `${_.values(selectedEntities)[0].attributes.data_explorer_url}&wid=${workspaceId}` : undefined
+
+  const dataExplorerButtonEnabled = isCohort && entitiesCount === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url !== undefined
+  const origDataExplorerUrl = dataExplorerButtonEnabled ? _.values(selectedEntities)[0].attributes.data_explorer_url : undefined
+  const [baseURL, urlSearch] = origDataExplorerUrl ? origDataExplorerUrl.split('?') : []
+  const dataExplorerUrl = origDataExplorerUrl && `${baseURL}?${qs.stringify({ ...qs.parse(urlSearch), wid: workspaceId })}`
+  const openDataExplorerInSameTab = dataExplorerUrl && (dataExplorerUrl.includes('terra.bio') || _.some({ origin: new URL(dataExplorerUrl).origin }, datasets))
+  const dataset = openDataExplorerInSameTab && getDataset(dataExplorerUrl)
+  const dataExplorerPath = openDataExplorerInSameTab && Nav.getLink(dataset.authDomain ?
+    'data-explorer-private' :
+    'data-explorer-public', { dataset: dataset.name }) + '?' + dataExplorerUrl.split('?')[1]
 
   const { title, drawerContent } = Utils.switchCase(toolMode, [
     'IGV', () => ({
@@ -413,7 +437,9 @@ const ToolDrawer = _.flow(
               'Workflow'
             ]),
             h(ModalToolButton, {
-              onClick: () => dataExplorerButtonEnabled && window.open(dataExplorerUrl),
+              onClick: !openDataExplorerInSameTab ? onDismiss : undefined,
+              href: openDataExplorerInSameTab ? dataExplorerPath : dataExplorerUrl,
+              ...(!openDataExplorerInSameTab ? Utils.newTabLinkProps : {}),
               disabled: !dataExplorerButtonEnabled,
               tooltip: Utils.cond(
                 [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
