@@ -156,6 +156,13 @@ workflows:
     jobs:
       - test
       - build
+      - integration-tests:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore:
+                - dev
       - deploy-pr:
           requires:
             - test
@@ -198,13 +205,3 @@ workflows:
           filters:
             branches:
               only: dev
-  run-integration-tests:
-    jobs:
-      - build
-      - integration-tests:
-          filters:
-            branches:
-              ignore:
-                - dev
-          requires:
-            - build
