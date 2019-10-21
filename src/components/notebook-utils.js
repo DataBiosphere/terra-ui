@@ -6,12 +6,38 @@ import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/componen
 import { centeredSpinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { Ajax } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
+import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
+
+export const notebookLockHash = async (bucketName, email) => {
+  const msgUint8 = new TextEncoder().encode(`${bucketName}:${email}`)
+  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8)
+  const hashArray = new Uint8Array(hashBuffer)
+  return _.flow(
+    _.map(v => v.toString(16).padStart(2, '0')),
+    _.join('')
+  )(hashArray)
+}
+
+export const findPotentialNotebookLockers = async ({ canShare, namespace, wsName, bucketName }) => {
+  if (canShare) {
+    const { acl } = await Ajax().Workspaces.workspace(namespace, wsName).getAcl()
+    const potentialLockers = _.flow(
+      _.toPairs,
+      _.map(([email, data]) => ({ email, ...data })),
+      _.filter(({ accessLevel }) => Utils.hasAccessLevel('WRITER', accessLevel))
+    )(acl)
+    const lockHolderPromises = _.map(async ({ email }) => ({ [await notebookLockHash(bucketName, email)]: email }), potentialLockers)
+    return _.mergeAll(await Promise.all(lockHolderPromises))
+  } else {
+    return {}
+  }
+}
 
 export const notebookNameValidator = existing => ({
   presence: { allowEmpty: false },
@@ -134,29 +160,38 @@ export const NotebookCreator = class NotebookCreator extends Component {
   }
 }
 
-export const NotebookDuplicator = class NotebookDuplicator extends Component {
+export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Component {
   static propTypes = {
     destroyOld: PropTypes.bool,
+    fromLauncher: PropTypes.bool,
+    wsName: PropTypes.string,
     printName: PropTypes.string.isRequired,
     namespace: PropTypes.string.isRequired,
     bucketName: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
-    onSuccess: PropTypes.func.isRequired,
-    existingNames: PropTypes.arrayOf(PropTypes.string).isRequired
+    onSuccess: PropTypes.func.isRequired
   }
 
   static defaultProps = {
-    destroyOld: false
+    destroyOld: false,
+    fromLauncher: false
   }
 
   constructor(props) {
     super(props)
-    this.state = { newName: '' }
+    this.state = { newName: '', existingNames: [] }
+  }
+
+  async componentDidMount() {
+    const { ajax: { Buckets }, namespace, bucketName } = this.props
+    const existingNotebooks = await Buckets.listNotebooks(namespace, bucketName)
+    const existingNames = _.map(({ name }) => name.slice(10, -6), existingNotebooks)
+    this.setState({ existingNames })
   }
 
   render() {
-    const { destroyOld, printName, namespace, bucketName, onDismiss, onSuccess, existingNames } = this.props
-    const { newName, processing, nameTouched } = this.state
+    const { destroyOld, fromLauncher, printName, wsName, namespace, bucketName, onDismiss, onSuccess } = this.props
+    const { newName, processing, nameTouched, existingNames } = this.state
 
     const errors = validate(
       { newName },
@@ -166,7 +201,7 @@ export const NotebookDuplicator = class NotebookDuplicator extends Component {
 
     return h(Modal, {
       onDismiss,
-      title: `${destroyOld ? 'Rename' : 'Duplicate'} "${printName}"`,
+      title: `${destroyOld ? 'Rename' : 'Copy'} "${printName}"`,
       okButton: h(ButtonPrimary, {
         disabled: errors || processing,
         tooltip: Utils.summarizeErrors(errors),
@@ -175,13 +210,18 @@ export const NotebookDuplicator = class NotebookDuplicator extends Component {
             this.setState({ processing: true })
             await (destroyOld ?
               Ajax().Buckets.notebook(namespace, bucketName, printName).rename(newName) :
-              Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName))
+              Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld))
             onSuccess()
+            if (fromLauncher) {
+              Nav.goToPath('workspace-notebook-launch', {
+                namespace, name: wsName, notebookName: newName + '.ipynb'
+              })
+            }
           } catch (error) {
             reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
           }
         }
-      }, `${destroyOld ? 'Rename' : 'Duplicate'} Notebook`)
+      }, `${destroyOld ? 'Rename' : 'Copy'} Notebook`)
     },
     Utils.cond(
       [processing, () => [centeredSpinner()]],
@@ -199,7 +239,7 @@ export const NotebookDuplicator = class NotebookDuplicator extends Component {
       ]
     ))
   }
-}
+})
 
 export const NotebookDeleter = class NotebookDeleter extends Component {
   static propTypes = {

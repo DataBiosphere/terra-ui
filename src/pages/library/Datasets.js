@@ -189,13 +189,13 @@ const baseline = () => h(Participant, {
   logo: { src: baselineLogo, alt: `Project Baseline logo`, height: '55%' },
   title: `Baseline Health Study`,
   description: h(Fragment, [
-    h(Link, { href: 'https://www.projectbaseline.com/', ...Utils.newTabLinkProps }, 'Baseline Health Study'),
+    h(Link, { href: 'https://www.projectbaseline.com/study/project-baseline/', ...Utils.newTabLinkProps }, 'Baseline Health Study'),
     ` is a longitudinal study that will collect broad phenotypic health data
     from approximately 10,000 participants, who will each be followed over the
     course of at least four years. The study is part of a broader effort
     designed to develop a well-defined reference, or “baseline,” of health.`
   ]),
-  sizeText: 'Participants: > 1,500'
+  sizeText: 'Participants: > 2,500'
 }, [
   h(ButtonPrimary, {
     href: Nav.getLink('data-explorer-private', { dataset: 'Baseline Health Study' })
