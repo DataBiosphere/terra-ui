@@ -42,8 +42,9 @@ export const findPotentialNotebookLockers = async ({ canShare, namespace, wsName
 export const notebookNameValidator = existing => ({
   presence: { allowEmpty: false },
   format: {
-    pattern: /^[^#[\]*?:;@$%+=\\,/]*$/,
-    message: 'can\'t contain these characters: \r \r  @ # $ % * + = ? , [ ] : ; / \\ '
+    pattern: /^[^@#$%*+=?,[\]:;/\\]*$/,
+    message: 'can\'t contain these characters: @ # $ % * + = ? , [ ] : ; / \\ '
+
   },
   exclusion: {
     within: existing,
