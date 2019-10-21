@@ -34,7 +34,7 @@ const styles = {
       borderBottom: `1px solid ${terraSpecial()}`, flex: ''
     },
     tab: {
-      flex: 'none', outlineOffset: -4, marginRight: '1rem',
+      flex: 'none', outlineOffset: -4,
       alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center',
       borderBottomWidth: 8, borderBottomStyle: 'solid', borderBottomColor: 'transparent'
     },
@@ -152,15 +152,13 @@ export const TabBar = ({ activeTab, tabNames, refresh = _.noop, getHref, childre
 
 export const SimpleTabBar = ({ value, onChange, tabs }) => {
   return div({ style: styles.tabBar.container }, [
-    _.map(({ key, title }) => {
+    _.map(({ key, title, width }) => {
       const selected = value === key
       return h(Clickable, {
         key,
-        style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}) },
+        style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}), width },
         hover: selected ? {} : styles.tabBar.hover,
-        onClick: () => {
-          onChange(key)
-        }
+        onClick: () => onChange(key)
       }, [title])
     }, tabs)
   ])

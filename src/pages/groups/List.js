@@ -1,7 +1,6 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
-import { pure } from 'recompose'
 import { ButtonPrimary, Clickable, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
@@ -82,7 +81,7 @@ const NewGroupModal = class NewGroupModal extends Component {
   }
 }
 
-const DeleteGroupModal = pure(({ groupName, onDismiss, onSubmit }) => {
+const DeleteGroupModal = ({ groupName, onDismiss, onSubmit }) => {
   return h(Modal, {
     onDismiss,
     title: 'Confirm',
@@ -93,9 +92,9 @@ const DeleteGroupModal = pure(({ groupName, onDismiss, onSubmit }) => {
     'Are you sure you want to delete the group ',
     b([`${groupName}?`])
   ])
-})
+}
 
-const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) => {
+const GroupCard = Utils.memoWithName('GroupCard', ({ group: { groupName, groupEmail, role }, onDelete }) => {
   const isAdmin = !!_.includes('admin', role)
 
   return div({ style: Style.cardList.longCard }, [
@@ -121,7 +120,7 @@ const GroupCard = pure(({ group: { groupName, groupEmail, role }, onDelete }) =>
   ])
 })
 
-const NewGroupCard = pure(({ onClick }) => {
+const NewGroupCard = ({ onClick }) => {
   return h(Clickable, {
     style: Style.cardList.shortCreateCard,
     onClick
@@ -130,7 +129,7 @@ const NewGroupCard = pure(({ onClick }) => {
     div(['New Group']),
     icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
   ])
-})
+}
 
 const noGroupsMessage = div({ style: { fontSize: 20, margin: '0 1rem' } }, [
   div([

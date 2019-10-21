@@ -444,8 +444,8 @@ const attributesUpdateOps = _.flow(
 )
 
 const Workspaces = signal => ({
-  list: async () => {
-    const res = await fetchRawls('workspaces', _.merge(authOpts(), { signal }))
+  list: async fields => {
+    const res = await fetchRawls(`workspaces?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
@@ -784,10 +784,11 @@ const Buckets = signal => ({
   notebook: (namespace, bucket, name) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
-    const copy = async (newName, newBucket) => {
+    const copy = async (newName, newBucket, clearMetadata) => {
+      const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
       return fetchBuckets(
         `${bucketUrl}/${nbName(name)}/copyTo/b/${newBucket}/o/${nbName(newName)}`,
-        _.merge(authOpts(await saToken(namespace)), { signal, method: 'POST' })
+        _.mergeAll([authOpts(await saToken(namespace)), jsonBody(body), { signal, method: 'POST' }])
       )
     }
     const doDelete = async () => {
@@ -804,6 +805,7 @@ const Buckets = signal => ({
       )
       return await res.json()
     }
+
     return {
       preview: async () => {
         const nb = await fetchBuckets(
@@ -832,7 +834,7 @@ const Buckets = signal => ({
       getObject,
 
       rename: async newName => {
-        await copy(newName, bucket)
+        await copy(newName, bucket, false)
         return doDelete()
       }
     }
@@ -960,7 +962,8 @@ const Jupyter = signal => ({
             combinedExtensions: {}
           },
           scopes: ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/userinfo.email',
-            'https://www.googleapis.com/auth/userinfo.profile']
+            'https://www.googleapis.com/auth/userinfo.profile'],
+          enableWelder: true
         })
         return fetchLeo(`api/cluster/v2/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
       },
@@ -980,17 +983,47 @@ const Jupyter = signal => ({
   },
 
   notebooks: (project, name) => {
-    const root = `notebooks/${project}/${name}`
+    const root = `proxy/${project}/${name}`
+    const oldRoot = `notebooks/${project}/${name}` // TODO: remove once Leo bug for setCookie is fixed: https://broadworkbench.atlassian.net/browse/IA-1269
 
     return {
-      localize: files => {
-        return fetchLeo(`${root}/api/localize`,
+      oldLocalize: files => {
+        return fetchLeo(`${oldRoot}/api/localize`,
           _.mergeAll([authOpts(), jsonBody(files), { signal, method: 'POST' }]))
       },
 
+      localize: entries => {
+        const body = { action: 'localize', entries }
+        return fetchLeo(`${root}/welder/objects`,
+          _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+      },
+
       setCookie: () => {
-        return fetchLeo(`${root}/setCookie`,
+        return fetchLeo(`${oldRoot}/setCookie`,
           _.merge(authOpts(), { signal, credentials: 'include' }))
+      },
+
+      setStorageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {
+        return fetchLeo(`${root}/welder/storageLinks`,
+          _.mergeAll([authOpts(), jsonBody({
+            localBaseDirectory,
+            localSafeModeBaseDirectory,
+            cloudStorageDirectory,
+            pattern
+          }), { signal, method: 'POST' }]))
+      },
+
+      lock: async localPath => {
+        try {
+          await fetchLeo(`${root}/welder/objects/lock`, _.mergeAll([authOpts(), jsonBody({ localPath }), { signal, method: 'POST' }]))
+          return true
+        } catch (error) {
+          if (error.status === 409) {
+            return false
+          } else {
+            throw error
+          }
+        }
       }
     }
   }
@@ -1061,10 +1094,8 @@ export const useCancellation = () => {
 }
 
 export const ajaxCaller = WrappedComponent => {
-  const Wrapper = props => {
+  return Utils.withDisplayName('ajaxCaller', props => {
     const signal = useCancellation()
     return h(WrappedComponent, { ...props, ajax: Ajax(signal) })
-  }
-  Wrapper.displayName = 'ajaxCaller()'
-  return Wrapper
+  })
 }

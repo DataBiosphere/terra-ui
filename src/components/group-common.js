@@ -2,7 +2,6 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { b, div, h, label } from 'react-hyperscript-helpers'
-import { pure } from 'recompose'
 import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { AutocompleteSearch } from 'src/components/input'
@@ -25,7 +24,7 @@ const styles = {
   }
 }
 
-export const NewUserCard = pure(({ onClick }) => {
+export const NewUserCard = ({ onClick }) => {
   return h(Clickable, {
     style: Style.cardList.shortCreateCard,
     onClick
@@ -33,9 +32,9 @@ export const NewUserCard = pure(({ onClick }) => {
     div(['Add a User']),
     icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
   ])
-})
+}
 
-export const MemberCard = pure(({ member: { email, roles }, adminCanEdit, onEdit, onDelete, adminLabel, userLabel }) => {
+export const MemberCard = Utils.memoWithName('MemberCard', ({ member: { email, roles }, adminCanEdit, onEdit, onDelete, adminLabel, userLabel }) => {
   const canEdit = adminCanEdit || !_.includes(adminLabel, roles)
   const tooltip = !canEdit && `This user is the only ${adminLabel}`
 
@@ -277,7 +276,7 @@ export const EditUserModal = class EditUserModal extends Component {
   }
 }
 
-export const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
+export const DeleteUserModal = ({ onDismiss, onSubmit, userEmail }) => {
   return h(Modal, {
     onDismiss,
     title: 'Confirm',
@@ -288,4 +287,4 @@ export const DeleteUserModal = pure(({ onDismiss, onSubmit, userEmail }) => {
     div(['Are you sure you want to remove']),
     b(`${userEmail}?`)
   ])
-})
+}

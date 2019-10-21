@@ -1,7 +1,6 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { a, div, h, label, span } from 'react-hyperscript-helpers'
-import { pure } from 'recompose'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
 import {
@@ -87,7 +86,7 @@ const sortOptions = [
   { label: 'Reverse Alphabetical', value: { field: 'lowerCaseName', direction: 'desc' } }
 ]
 
-const WorkflowCard = pure(({ listView, name, namespace, config, onExport, onCopy, onDelete, workspace }) => {
+const WorkflowCard = Utils.memoWithName('WorkflowCard', ({ listView, name, namespace, config, onExport, onCopy, onDelete, workspace }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
   const workflowCardMenu = h(PopupTrigger, {
     closeOnClick: true,

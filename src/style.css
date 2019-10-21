@@ -6,6 +6,7 @@
 
 .hover-style:hover {
   --hover-backgroundColor: var(--app-hover-backgroundColor);
+  --hover-border: var(--app-hover-border);
   --hover-color: var(--app-hover-color);
   --hover-boxShadow: var(--app-hover-boxShadow);
   --hover-opacity: var(--app-hover-opacity);
@@ -14,6 +15,7 @@
 
 .hover-style:hover .hover-style:not(:hover) {
   --hover-backgroundColor: initial;
+  --hover-border: initial;
   --hover-color: initial;
   --hover-boxShadow: initial;
   --hover-opacity: initial;
@@ -81,6 +83,11 @@ a {
   /* Note: using CSS and !important here because react-interactive focus style wasn't applying on autofocus */
   border: 1px solid #4d72aa !important;
   outline: none !important;
+}
+
+/* See https://github.com/nkbt/react-collapse#1-change-in-behaviour */
+.ReactCollapse--collapse {
+  transition: height 500ms;
 }
 
 /* Overrides for toast notifications library (react-notifications-component) */
