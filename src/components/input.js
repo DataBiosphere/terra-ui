@@ -199,14 +199,14 @@ export const ValidatedInput = props => {
   ])
 }
 
-const AutocompleteSuggestions = ({ target: targetId, containerProps, isVisible, children }) => {
+const AutocompleteSuggestions = ({ target: targetId, containerProps, children }) => {
   const [target] = useDynamicPosition([{ id: targetId }])
   return h(PopupPortal, [
     div({
       ...containerProps,
       style: {
         transform: `translate(${target.left}px, ${target.bottom}px)`, width: target.width,
-        visibility: (!target.width || !isVisible) ? 'hidden' : undefined,
+        visibility: !target.width ? 'hidden' : undefined,
         ...styles.suggestionsContainer
       }
     }, [children])
@@ -214,11 +214,7 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, isVisible, 
 }
 
 export const AutocompleteTextInput = ({ value, onChange, suggestions: rawSuggestions, style, id, renderSuggestion = _.identity, openOnFocus = true, ...props }) => {
-  const noSuggestions = _.isEmpty(rawSuggestions)
-  const suggestions = noSuggestions ? [] : _.flow(
-    _.filter(Utils.textMatch(value)),
-    Utils.toIndexPairs
-  )(rawSuggestions)
+  const suggestions = _.filter(Utils.textMatch(value), rawSuggestions)
 
   return h(Downshift, {
     selectedItem: value,
@@ -244,16 +240,15 @@ export const AutocompleteTextInput = ({ value, onChange, suggestions: rawSuggest
           nativeOnChange: true,
           ...props
         })),
-        h(AutocompleteSuggestions, {
+        isOpen && !!suggestions.length && h(AutocompleteSuggestions, {
           target: getInputProps().id,
-          containerProps: getMenuProps(),
-          isVisible: isOpen && !noSuggestions
+          containerProps: getMenuProps()
         }, _.map(([index, item]) => {
           return div(getItemProps({
             item, key: item,
             style: styles.suggestion(highlightedIndex === index)
           }), [renderSuggestion(item)])
-        }, suggestions))
+        }, Utils.toIndexPairs(suggestions)))
       ])
     }
   ])
