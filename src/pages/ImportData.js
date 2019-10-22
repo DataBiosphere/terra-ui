@@ -26,7 +26,7 @@ const styles = {
   }
 }
 
-const Importer = class Importer extends Component {
+class Importer extends Component {
   constructor(props) {
     super(props)
     this.state = { isImporting: false }

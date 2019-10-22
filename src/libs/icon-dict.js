@@ -2,8 +2,9 @@ import {
   faClipboard, faClock, faClone, faEye, faFileAlt, faFolder, faFolderOpen, faListAlt, faSquare as faSquareRegular, faTimesCircle
 } from '@fortawesome/free-regular-svg-icons'
 import {
-  faArrowLeft, faArrowRight, faBan, faCaretDown, faCheck, faCheckCircle, faCheckSquare, faCloud, faCog, faCreditCard, faDownload, faExclamationCircle,
-  faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faPause, faPen,
+  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCheckSquare, faCloud, faCog, faCreditCard, faDownload, faEllipsisV,
+  faExclamationCircle,
+  faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faPause, faPen,
   faPlay, faPlus, faPlusCircle, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid, faTerminal, faTrashAlt
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -40,6 +41,7 @@ const iconDict = {
   'angle-double-right': rotate(90, custom(angleDoubleUp)),
   ban: fa(faBan),
   bars: custom(bars),
+  chalkboard: fa(faChalkboard),
   check: fa(faCheck),
   clock: fa(faClock),
   cloud: fa(faCloud),
@@ -57,6 +59,7 @@ const iconDict = {
   help: fa(faQuestionCircle),
   'info-circle': fa(faInfoCircle),
   library: custom(books),
+  lock: fa(faLock),
   'long-arrow-alt-down': fa(faLongArrowAltDown),
   'long-arrow-alt-up': fa(faLongArrowAltUp),
   'minus-circle': fa(faMinusCircle),
@@ -77,6 +80,7 @@ const iconDict = {
   'view-cards': fa(faGripHorizontal),
   'view-list': custom(list),
   'warning-standard': fa(faExclamationTriangle),
+  'ellipsis-v': fa(faEllipsisV),
   arrowLeft: fa(faArrowLeft),
   arrowRight: fa(faArrowRight),
   cardMenuIcon: custom(cardMenuIcon),

@@ -11,7 +11,7 @@ export const authStore = Utils.atom({
   profile: {}
 })
 
-export const toggleStateAtom = Utils.atom({})
+export const toggleStateAtom = Utils.atom({ notebooksTab: true })
 
 export const freeCreditsActive = Utils.atom(false)
 

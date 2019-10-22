@@ -1,6 +1,5 @@
 import { Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { pure } from 'recompose'
 import { Clickable, Link, makeIconButton } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
@@ -45,7 +44,7 @@ const makeCard = (link, title, body) => h(Clickable, {
   makeIconButton('arrowRight', { tabIndex: '-1', 'aria-hidden': true, size: 30, style: { alignSelf: 'flex-end' } })
 ])
 
-const LandingPage = pure(() => {
+const LandingPage = () => {
   return h(FooterWrapper, [
     h(TopBar),
     div({
@@ -60,18 +59,22 @@ const LandingPage = pure(() => {
     }, [
       div({ style: { fontSize: 54 } }, `Welcome to ${getAppName()}`),
       div({ style: { fontSize: 20, lineHeight: '28px', margin: '1rem 0', width: 575 } }, [
-        `${getAppName(true)} is a ${isTerra() ? 'cloud-native platform' : 'project powered by Terra'} for biomedical researchers to `,
+        `${getAppName(true)} is a ${Utils.cond(
+          [isTerra(), 'cloud-native platform'],
+          [isFirecloud(), 'NCI Cloud Resource project powered by Terra'],
+          'project powered by Terra'
+        )} for biomedical researchers to `,
         span({ style: { ...styles.heavy, ...styles.nowrap } }, 'access data'), ', ',
         span({ style: { ...styles.heavy, ...styles.nowrap } }, 'run analysis tools'), ', ',
         span({ style: styles.nowrap }, ['and', span({ style: styles.heavy }, ' collaborate'), '.'])
       ]),
       makeDocLink('https://support.terra.bio/hc/en-us', 'Find how-to\'s, documentation, video tutorials, and discussion forums'),
-      isTerra() && makeDocLink('https://broadinstitute.zendesk.com/knowledge/articles/360033416672',
+      isTerra() && makeDocLink('https://support.terra.bio/hc/en-us/articles/360033416672',
         'Learn more about the Terra platform and our co-branded sites'),
       isFirecloud() && h(Fragment, [
         makeDocLink('https://support.terra.bio/hc/en-us/articles/360022694271',
           'Already a FireCloud user? Learn what\'s new.'),
-        makeDocLink('https://broadinstitute.zendesk.com/knowledge/articles/360033416912',
+        makeDocLink('https://support.terra.bio/hc/en-us/articles/360033416912',
           'Learn more about the Cancer Research Data Commons and other NCI Cloud Resources')
       ]),
       div({
@@ -89,7 +92,7 @@ const LandingPage = pure(() => {
       ])
     ])
   ])
-})
+}
 
 
 export const navPaths = [

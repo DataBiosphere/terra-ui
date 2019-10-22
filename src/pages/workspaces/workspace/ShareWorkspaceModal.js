@@ -76,7 +76,8 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      shareSuggestions: undefined,
+      shareSuggestions: [],
+      groups: [],
       originalAcl: [],
       acl: [],
       loaded: false,
