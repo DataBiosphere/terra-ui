@@ -20,7 +20,7 @@ import { IGVFileSelector } from 'src/components/IGVFileSelector'
 import { DelayedSearchInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { NotebookCreator } from 'src/components/notebook-utils'
+import { cohortNotebook, NotebookCreator } from 'src/components/notebook-utils'
 import { notify } from 'src/components/Notifications'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TitleBar from 'src/components/TitleBar'
@@ -42,7 +42,6 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-import cohortNotebookTemplate from 'src/templates/cohort-notebook.ipynb'
 
 
 const localVariables = 'localVariables'
@@ -443,7 +442,7 @@ const ToolDrawer = _.flow(
         existingNames: notebookNames,
         onSuccess: async notebookName => {
           const cohortName = _.values(selectedEntities)[0].name
-          const contents = cohortNotebookTemplate.replace('MY_COHORT', cohortName)
+          const contents = cohortNotebook(cohortName)
           await Buckets.notebook(namespace, bucketName, notebookName).create(JSON.parse(contents))
           Nav.goToPath('workspace-notebook-launch', { namespace, name: wsName, notebookName: `${notebookName}.ipynb` })
         },
