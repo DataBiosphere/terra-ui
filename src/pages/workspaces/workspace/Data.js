@@ -410,7 +410,6 @@ const ToolDrawer = _.flow(
 
   const entitiesCount = _.size(selectedEntities)
   const isCohort = entityKey === 'cohort'
-<<<<<<< HEAD
 
   const dataExplorerButtonEnabled = isCohort && entitiesCount === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url !== undefined
   const origDataExplorerUrl = dataExplorerButtonEnabled ? _.values(selectedEntities)[0].attributes.data_explorer_url : undefined
@@ -421,11 +420,8 @@ const ToolDrawer = _.flow(
   const dataExplorerPath = openDataExplorerInSameTab && Nav.getLink(dataset.authDomain ?
     'data-explorer-private' :
     'data-explorer-public', { dataset: dataset.name }) + '?' + dataExplorerUrl.split('?')[1]
-=======
-  const dataExplorerButtonEnabled = isCohort && entitiesCount === 1 && _.values(selectedEntities)[0].attributes.data_explorer_url !== undefined
-  const dataExplorerUrl = dataExplorerButtonEnabled ? `${_.values(selectedEntities)[0].attributes.data_explorer_url}&wid=${workspaceId}` : undefined
+
   const notebookButtonEnabled = isCohort && entitiesCount === 1
->>>>>>> Add "open cohort in notebook" tool
 
   const { title, drawerContent } = Utils.switchCase(toolMode, [
     'IGV', () => ({
