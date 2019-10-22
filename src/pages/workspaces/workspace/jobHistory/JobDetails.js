@@ -152,6 +152,7 @@ const JobDetails = wrapWorkspace({
                         cellRenderer: ({ rowIndex }) => callFailures[rowIndex].taskName.split('.')[1]
                       },
                       {
+                        size: { basis: 120, grow: 0 },
                         headerRenderer: () => 'Shard Index',
                         cellRenderer: ({ rowIndex }) => {
                           const { shardIndex } = callFailures[rowIndex].attempt
@@ -170,28 +171,30 @@ const JobDetails = wrapWorkspace({
                       },
                       {
                         size: { basis: 100, grow: 0 },
-                        headerRenderer: () => 'Information',
+                        headerRenderer: () => 'Links',
                         cellRenderer: ({ rowIndex }) => {
                           const { callRoot, backendLogs: { log } } = callFailures[rowIndex].attempt
                           return div([
                             h(Link, {
                               tooltip: 'View the contents of the log file',
                               'aria-label': 'View the contents of the log file',
-                              onClick: () => setShowErrorUrl(log)
-                            }, [icon('file-alt')]),
+                              onClick: () => setShowErrorUrl(log),
+                              style: { marginRight: '0.5rem' }
+                            }, [icon('file-alt', { size: 18 })]),
                             h(Link, {
                               tooltip: 'Open execution directory in cloud console',
                               'aria-label': 'Open execution directory in cloud console',
                               ...Utils.newTabLinkProps,
                               href: bucketBrowserUrl(callRoot.match(/gs:\/\/(.+)/)[1])
-                            }, [icon('folder')])
+                            }, [icon('folder', { size: 18 })])
                           ])
                         }
                       }
                     ]
                   })
                 ]),
-                showErrorUrl && h(UriViewer, { uri: showErrorUrl, googleProject: namespace, onDismiss: () => { setShowErrorUrl() }, previewMode: 'tail' })
+                showErrorUrl &&
+                  h(UriViewer, { uri: showErrorUrl, googleProject: namespace, onDismiss: () => { setShowErrorUrl() }, previewMode: 'tail' })
               ])
             }
           ]
