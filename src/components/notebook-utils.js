@@ -414,7 +414,7 @@ export const cohortNotebook = cohortName => `
     "print('table has %d rows' % len(table.index))\\n",
     "\\n",
     "cohort = cohort_participant_ids.join(table, lsuffix='_L', rsuffix='_R')\\n",
-    "print('cohort has %d rows\\n' % len(cohort.index))\\n",
+    "print('cohort has %d rows' % len(cohort.index))\\n",
     "\\n",
     "cohort.head()"
    ]
