@@ -1,22 +1,42 @@
-const findClickable = (page, text) => {
-  return page.waitForXPath(`(//a | //*[@role="button"])[contains(normalize-space(.),"${text}") or contains(@aria-label,"${text}")]`)
-}
+const _ = require('lodash/fp')
 
-const findIframe = (page, text) => {
-  return page.frames().find(frame => {
-    // console.log('FRAME:', frame.url())
-    // console.log('FRAME:', frame.executionContext())
-    return frame.url().includes(text)
+
+const waitForFrame = async url => {
+  const frameLoaded = new Promise(resolve => {
+    const navHandler = async frame => {
+      await frame.url().includes(url) && resolve({ frame, navHandler })
+    }
+    page.on('framenavigated', navHandler)
   })
-  // return page.waitForXPath(`//iframe[contains(normalize-space(@title),"${text}")]`)
+
+  const { frame, navHandler } = await frameLoaded
+  page.removeListener('framenavigated', navHandler)
+  return frame
 }
 
-const findSVG = (frame, text) => {
-  return frame.$x(`${text}`)
+const findIframe = async page => {
+  const iframeNode = await page.waitForXPath('//*[@role="main"]/iframe')
+  const srcHandle = await iframeNode.getProperty('src')
+  const src = await srcHandle.jsonValue()
+  const frames = page.frames()
+
+  const loadedIndex = _.flow(
+    _.map(async f => await f.url()),
+    async urls => await Promise.all(urls),
+    _.findIndex(url => url.includes(src))
+  )(frames)
+
+  const loadedFrame = loadedIndex && frames[loadedIndex]
+  return await (loadedFrame ? Promise.resolve(loadedFrame) : waitForFrame(src))
 }
 
-const clickImage = async (page, text) => {
-  return (await findClickableImage(page, text).click())
+
+const findInGrid = async (page, text) => {
+  return await page.waitForXPath(`//*[@role="grid"][contains(normalize-space(.),"${text}")]`)
+}
+
+const findClickable = (page, text) => {
+  return page.waitForXPath(`(//a | //*[@role="button"] | //button)[contains(normalize-space(.),"${text}") or contains(@aria-label,"${text}")]`)
 }
 
 const click = async (page, text) => {
@@ -47,13 +67,11 @@ const waitForNoSpinners = page => {
 module.exports = {
   findClickable,
   findIframe,
-  findSVG,
-  // findClickableImage,
   click,
-  clickImage,
   findText,
   findInput,
   fillIn,
   select,
+  findInGrid,
   waitForNoSpinners
 }

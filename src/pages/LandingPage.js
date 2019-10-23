@@ -34,6 +34,7 @@ const makeDocLink = (href, title) => {
 }
 
 const makeCard = (link, title, body) => h(Clickable, {
+  'aria-label': title,
   href: Nav.getLink(link),
   style: { ...Style.elements.card.container, height: 245, width: 225, marginRight: '1rem', justifyContent: undefined },
   hover: { boxShadow: '0 3px 7px 0 rgba(0,0,0,0.5), 0 5px 3px 0 rgba(0,0,0,0.2)' }
