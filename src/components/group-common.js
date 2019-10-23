@@ -4,7 +4,7 @@ import { Component, Fragment } from 'react'
 import { b, div, h, label } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { AutocompleteSearch } from 'src/components/input'
+import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
@@ -20,6 +20,7 @@ const styles = {
   suggestionContainer: {
     display: 'flex', alignItems: 'center',
     padding: '0.5rem 1rem',
+    margin: '0 -1rem',
     borderBottom: `1px solid ${colors.dark(0.4)}`
   }
 }
@@ -76,6 +77,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
     super(props)
     this.state = {
       userEmail: '',
+      suggestions: [],
       confirmAddUser: false,
       roles: [props.userLabel],
       busy: false
@@ -130,9 +132,10 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
       }, [
         h(IdContainer, [id => h(Fragment, [
           h(FormLabel, { htmlFor: id, required: true }, ['User email']),
-          h(AutocompleteSearch, {
+          h(AutocompleteTextInput, {
             id,
             autoFocus: true,
+            openOnFocus: false,
             value: userEmail,
             onChange: v => this.setState({ userEmail: v }),
             renderSuggestion: suggestion => div({ style: styles.suggestionContainer }, [
@@ -145,19 +148,9 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
                 suggestion
               ])
             ]),
-            onSuggestionSelected: selection => {
-              this.setState({ userEmail: selection })
-            },
-            onKeyDown: e => {
-              // 27 = Escape
-              if (e.which === 27 && !!userEmail) {
-                this.setState({ userEmail: '' })
-                e.stopPropagation()
-              }
-            },
-            suggestions,
+            suggestions: [...(!!userEmail && !suggestions.includes(userEmail) ? [userEmail] : []), ...suggestions],
             style: { fontSize: 16 },
-            theme: { suggestion: { padding: 0 } }
+            type: undefined
           })
         ])]),
         h(FormLabel, ['Role']),

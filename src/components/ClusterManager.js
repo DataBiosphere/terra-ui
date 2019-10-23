@@ -10,6 +10,7 @@ import Modal from 'src/components/Modal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { notify } from 'src/components/Notifications.js'
 import { Popup } from 'src/components/PopupTrigger'
+import { dataSyncingDocUrl } from 'src/data/clusters'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
 import { clusterCost, currentCluster, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
@@ -164,7 +165,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           p(['On Sunday Oct 20th at 10am, we are introducing important updates to Terra, which are not compatible with the older notebook runtime in this workspace. After this date, you will no longer be able to save new changes to notebooks in one of these older runtimes.']),
           h(Link, {
             variant: 'light',
-            href: 'https://support.terra.bio/hc/en-us/articles/360034505132--Lock-and-Playground-Notebook-Modes',
+            href: dataSyncingDocUrl,
             ...Utils.newTabLinkProps
           }, ['Read here for more details.'])
         ])
