@@ -102,6 +102,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
       return h(FlexTable, {
         width, height,
         rowCount: sortedData.length,
+        noContentMessage: `No matching ${which}.`,
         columns: [
           {
             size: { basis: 350, grow: 0 },
@@ -862,25 +863,23 @@ const WorkflowView = _.flow(
           onChange: filter => this.setState({ filter })
         })
       ]),
-      filteredData.length === 0 ?
-        `No matching ${key}.` :
-        div({ style: { flex: '1 0 500px' } }, [
-          h(WorkflowIOTable, {
-            readOnly: !isEditable,
-            which: key,
-            inputsOutputs: filteredData,
-            config: modifiedConfig,
-            errors,
-            onBrowse: name => this.setState({ variableSelected: name }),
-            onChange: (name, v) => this.setState(_.set(['modifiedConfig', key, name], v)),
-            onSetDefaults: () => {
-              this.setState(_.set(['modifiedConfig', 'outputs'], _.fromPairs(_.map(({ name }) => {
-                return [name, `this.${_.last(name.split('.'))}`]
-              }, modifiedInputsOutputs.outputs))))
-            },
-            suggestions
-          })
-        ])
+      div({ style: { flex: '1 0 500px' } }, [
+        h(WorkflowIOTable, {
+          readOnly: !isEditable,
+          which: key,
+          inputsOutputs: filteredData,
+          config: modifiedConfig,
+          errors,
+          onBrowse: name => this.setState({ variableSelected: name }),
+          onChange: (name, v) => this.setState(_.set(['modifiedConfig', key, name], v)),
+          onSetDefaults: () => {
+            this.setState(_.set(['modifiedConfig', 'outputs'], _.fromPairs(_.map(({ name }) => {
+              return [name, `this.${_.last(name.split('.'))}`]
+            }, modifiedInputsOutputs.outputs))))
+          },
+          suggestions
+        })
+      ])
     ])])
   }
 
