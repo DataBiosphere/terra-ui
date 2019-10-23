@@ -18,7 +18,9 @@ export const useWorkspaces = () => {
     withErrorReporting('Error loading workspace list'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const ws = await Ajax(signal).Workspaces.list()
+    const ws = await Ajax(signal).Workspaces.list([
+      'accessLevel', 'public', 'workspace', 'workspaceSubmissionStats', 'workspace.attributes.description'
+    ])
     workspacesStore.set(ws)
   })
   Utils.useOnMount(() => {

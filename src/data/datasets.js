@@ -12,8 +12,8 @@ const datasets = [
   },
   {
     name: 'Baseline Health Study',
-    origin: 'https://baseline-baseline-explorer.appspot.com',
-    authDomain: 'baseline-researchers'
+    origin: 'https://baseline-explorer.appspot.com',
+    authDomain: 'baseline-researchers-v1'
   },
   {
     name: 'Framingham Heart Study Teaching Dataset',
