@@ -1,6 +1,3 @@
-const _ = require('lodash/fp')
-
-
 const waitForFrame = async url => {
   const frameLoaded = new Promise(resolve => {
     const navHandler = async frame => {
@@ -18,18 +15,9 @@ const findIframe = async page => {
   const iframeNode = await page.waitForXPath('//*[@role="main"]/iframe')
   const srcHandle = await iframeNode.getProperty('src')
   const src = await srcHandle.jsonValue()
-  const frames = page.frames()
 
-  const loadedIndex = _.flow(
-    _.map(async f => await f.url()),
-    async urls => await Promise.all(urls),
-    _.findIndex(url => url.includes(src))
-  )(frames)
-
-  const loadedFrame = loadedIndex && frames[loadedIndex]
-  return await (loadedFrame ? Promise.resolve(loadedFrame) : waitForFrame(src))
+  return await waitForFrame(src)
 }
-
 
 const findInGrid = async (page, text) => {
   return await page.waitForXPath(`//*[@role="grid"][contains(normalize-space(.),"${text}")]`)
