@@ -170,6 +170,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ]))
   }
 
+  async componentDidMount() {
+    const { currentCluster } = this.props
+    if (currentCluster) {
+      const { clusterImages } = await Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details()
+      const { dockerImage } = _.find({ tool: 'Jupyter' }, clusterImages)
+      this.setState({ selectedLeoImage: dockerImage })
+    }
+  }
+
   render() {
     const { currentCluster, onDismiss } = this.props
     const {
