@@ -11,6 +11,7 @@ import { imageValidationRegexp, leoImages } from 'src/data/leo-images'
 import { Ajax } from 'src/libs/ajax'
 import { machineConfigCost, normalizeMachineConfig } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
+import { withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -170,14 +171,19 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ]))
   }
 
-  async componentDidMount() {
+  componentDidMount = withErrorReporting('Error loading cluster', async () => {
     const { currentCluster } = this.props
     if (currentCluster) {
       const { clusterImages } = await Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details()
       const { dockerImage } = _.find({ tool: 'Jupyter' }, clusterImages)
-      this.setState({ selectedLeoImage: dockerImage })
+
+      if (_.find({ image: dockerImage }, leoImages)) {
+        this.setState({ selectedLeoImage: dockerImage })
+      } else {
+        this.setState({ isCustomEnv: true, customEnvImage: dockerImage })
+      }
     }
-  }
+  })
 
   render() {
     const { currentCluster, onDismiss } = this.props
