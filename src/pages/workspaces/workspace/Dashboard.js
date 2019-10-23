@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill'
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
@@ -281,7 +281,8 @@ export const WorkspaceDashboard = _.flow(
           h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
             `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
           social security number, or medical record number.`
-          ])
+          ]),
+          (busy || !tagsList) && spinner({ size: '1rem', style: { marginLeft: '0.5rem' } })
         ]),
         Utils.canWrite(accessLevel) && div({ style: { marginBottom: '0.5rem' } }, [
           h(WorkspaceTagSelect, {
@@ -291,7 +292,7 @@ export const WorkspaceDashboard = _.flow(
             onChange: ({ value }) => this.addTag(value)
           })
         ]),
-        div({ style: { display: 'flex', flexWrap: 'wrap', minHeight: '2rem' } }, [
+        div({ style: { display: 'flex', flexWrap: 'wrap', minHeight: '1.5rem' } }, [
           _.map(tag => {
             return span({ key: tag, style: styles.tag }, [
               tag,
@@ -304,7 +305,7 @@ export const WorkspaceDashboard = _.flow(
               }, [icon('times', { size: 14 })])
             ])
           }, tagsList),
-          (busy || tagsList === undefined) && spinner({ style: { marginTop: '0.5rem' } })
+          !!tagsList && tagsList.length === 0 && i(['No tags yet'])
         ]),
         !_.isEmpty(authorizationDomain) && h(Fragment, [
           div({ style: styles.header }, ['Authorization Domain']),
