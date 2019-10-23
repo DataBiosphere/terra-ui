@@ -27,6 +27,11 @@ const waitForNoSpinners = page => {
   return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
 }
 
+const signIntoTerra = async page => {
+  await findText(page, 'requires a Google Account')
+  await page.evaluate(token => window.forceSignIn(token), process.env.TERRA_TOKEN)
+}
+
 module.exports = {
   findClickable,
   click,
@@ -34,5 +39,6 @@ module.exports = {
   findInput,
   fillIn,
   select,
-  waitForNoSpinners
+  waitForNoSpinners,
+  signIntoTerra
 }
