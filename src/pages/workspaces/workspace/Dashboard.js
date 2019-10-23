@@ -291,7 +291,7 @@ export const WorkspaceDashboard = _.flow(
             onChange: ({ value }) => this.addTag(value)
           })
         ]),
-        div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
+        div({ style: { display: 'flex', flexWrap: 'wrap', minHeight: '2rem' } }, [
           _.map(tag => {
             return span({ key: tag, style: styles.tag }, [
               tag,
