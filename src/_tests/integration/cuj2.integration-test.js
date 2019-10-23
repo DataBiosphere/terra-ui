@@ -1,7 +1,12 @@
-const { click, findText, findClickable, fillIn, select, waitForNoSpinners, signIntoTerra } = require(
+const { click, findText, findClickable, fillIn, select, waitForNoSpinners, signIntoTerra, getWorkSpaceName, getWorkFlowName } = require(
   './integration-utils')
 const { fireCloud } = require('./fire-cloud-utils.js')
 
+
+const workSpaceName = getWorkSpaceName('terra-ui-system-test') // steal the randomized prefix logic from Pete's CUJ1 for this-- make more robust
+const workFlowName = 'haplotypecaller-gvcf-gatk4'
+const workFlowNameWithRand = getWorkFlowName() //Use the randomized thing to also use this to rename the workflow for robustness there too
+// will need to add some logic tho to write to this better
 
 const setUpWorkSpace = async workspaceName => {
   await page.goto('http://localhost:3000/#workspaces')
@@ -21,13 +26,11 @@ const setUpWorkSpace = async workspaceName => {
   }
 }
 
+// Make this more robust? or break down to one liner and put back in test
 const ensureExportPageIsGood = async () => {
   await findText(page, `${workFlowName}-configured`)
   await findText(page, 'inputs')
 }
-
-const workSpaceName = 'Workspace for CUJ2' // steal the randomized prefix logic from Pete's CUJ1 for this
-const workFlowName = 'haplotypecaller-gvcf-gatk4'
 
 test('integration', async () => {
   await setUpWorkSpace(workSpaceName)

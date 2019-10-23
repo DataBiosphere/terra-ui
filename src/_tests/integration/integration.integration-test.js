@@ -1,4 +1,4 @@
-const { click, findText, findClickable, fillIn, select, waitForNoSpinners, signIntoTerra } = require('./integration-utils')
+const { click, findClickable, fillIn, select, waitForNoSpinners, signIntoTerra } = require('./integration-utils')
 
 
 test('integration', async () => {

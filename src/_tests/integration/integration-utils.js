@@ -32,6 +32,15 @@ const signIntoTerra = async page => {
   await page.evaluate(token => window.forceSignIn(token), process.env.TERRA_TOKEN)
 }
 
+const getWorkSpaceName = (prefix) => {
+  return `${prefix}-workspace-${Math.floor(Math.random() * 100000)}`
+}
+
+const getWorkFlowName = (prefix) => {
+  return `${prefix}-workflow-${Math.floor(Math.random() * 100000)}`
+}
+
+
 module.exports = {
   findClickable,
   click,
@@ -40,5 +49,7 @@ module.exports = {
   fillIn,
   select,
   waitForNoSpinners,
-  signIntoTerra
+  signIntoTerra,
+  getWorkSpaceName,
+  getWorkFlowName
 }
