@@ -23,6 +23,14 @@ const findInGrid = async (page, text) => {
   return await page.waitForXPath(`//*[@role="grid"][contains(normalize-space(.),"${text}")]`)
 }
 
+const exactlyFindClickable = (page, text) => {
+  return page.waitForXPath(`(//a | //*[@role="button"] | //button)[text()="${text}"]`)
+}
+
+const exactClick = async (page, text) => {
+  return (await exactlyFindClickable(page, text)).click()
+}
+
 const findClickable = (page, text) => {
   return page.waitForXPath(`(//a | //*[@role="button"] | //button)[contains(normalize-space(.),"${text}") or contains(@aria-label,"${text}")]`)
 }
@@ -54,6 +62,8 @@ const waitForNoSpinners = page => {
 
 module.exports = {
   findClickable,
+  exactlyFindClickable,
+  exactClick,
   findIframe,
   click,
   findText,
