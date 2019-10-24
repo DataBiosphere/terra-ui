@@ -4,9 +4,10 @@ const { dataExplorer } = require('./data-explorer-utils')
 
 jest.setTimeout(10000)
 
-test('integration', async () => {
-  const prefix = 'terra-ui-system-test'
-  const cohortName = `${prefix}-cohort`
+const workspace = process.env.WORKSPACE
+
+test.skip('integration', async () => {
+  const cohortName = `terra-ui-test-cohort`
 
   await page.goto('http://localhost:3000')
   await click(page, 'Browse Data')
@@ -22,7 +23,7 @@ test('integration', async () => {
   await page.evaluate(token => window.forceSignIn(token), process.env.TERRA_TOKEN)
   await waitForNoSpinners(page)
 
-  await select(page, 'Select a workspace', process.env.WORKSPACE)
+  await select(page, 'Select a workspace', workspace)
   await exactClick(page, 'Import')
   await waitForNoSpinners(page)
   await click(page, 'cohort')
