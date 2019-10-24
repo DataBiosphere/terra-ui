@@ -61,15 +61,15 @@ const waitForNoSpinners = page => {
 }
 
 module.exports = {
-  findClickable,
-  exactlyFindClickable,
-  exactClick,
-  findIframe,
   click,
-  findText,
+  exactClick,
+  exactlyFindClickable,
+  findClickable,
+  findIframe,
+  findInGrid,
   findInput,
+  findText,
   fillIn,
   select,
-  findInGrid,
   waitForNoSpinners
 }
