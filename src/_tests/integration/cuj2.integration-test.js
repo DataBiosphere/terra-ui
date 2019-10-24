@@ -25,7 +25,7 @@ test('integration', async () => {
   await fireCloud.click(page, 'use-selected-configuration-button')
   await waitForNoSpinners(page)
   await findText(page, 'Select a workspace')
-  await fireCloud.selectWorkSpace(page, billingAccount, process.env.WORK_SPACE)
+  await fireCloud.selectWorkSpace(page, billingAccount, process.env.WORKSPACE)
   await fireCloud.click(page, 'import-export-confirm-button')
   await fireCloud.click(page, 'Yes')
 
