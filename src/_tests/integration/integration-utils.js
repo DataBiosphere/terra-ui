@@ -27,19 +27,14 @@ const waitForNoSpinners = page => {
   return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
 }
 
+const delay = ms => {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 const signIntoTerra = async page => {
   await findText(page, 'requires a Google Account')
-  await page.evaluate(token => window.forceSignIn(token), process.env.TERRA_TOKEN)
+  return (await page.evaluate(token => window.forceSignIn(token), process.env.TERRA_TOKEN))
 }
-
-const getWorkSpaceName = (prefix) => {
-  return `${prefix}-workspace-${Math.floor(Math.random() * 100000)}`
-}
-
-const getWorkFlowName = (prefix) => {
-  return `${prefix}-workflow-${Math.floor(Math.random() * 100000)}`
-}
-
 
 module.exports = {
   findClickable,
@@ -49,7 +44,6 @@ module.exports = {
   fillIn,
   select,
   waitForNoSpinners,
-  signIntoTerra,
-  getWorkSpaceName,
-  getWorkFlowName
+  delay,
+  signIntoTerra
 }
