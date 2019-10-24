@@ -11,7 +11,7 @@ import {
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { DelayedAutocompleteTextInput } from 'src/components/input'
+import { DelayedAutocompleteTextInput, DelayedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
@@ -102,6 +102,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
       return h(FlexTable, {
         width, height,
         rowCount: sortedData.length,
+        noContentMessage: `No matching ${which}.`,
         columns: [
           {
             size: { basis: 350, grow: 0 },
@@ -332,6 +333,7 @@ const WorkflowView = _.flow(
       entitySelectionModel: { selectedEntities: {} },
       useCallCache: true,
       includeOptionalInputs: true,
+      filter: '',
       errors: { inputs: {}, outputs: {} },
       ...StateHistory.get()
     }
@@ -699,7 +701,7 @@ const WorkflowView = _.flow(
               { key: 'outputs', title: 'Outputs', isValid: outputsValid }
             ],
             activeTab,
-            onChangeTab: v => this.setState({ activeTab: v }),
+            onChangeTab: v => this.setState({ activeTab: v, filter: '' }),
             finalStep: h(ButtonPrimary, {
               style: { marginLeft: '1rem' },
               disabled: !!Utils.computeWorkspaceError(ws) || !!noLaunchReason || currentSnapRedacted,
@@ -807,7 +809,7 @@ const WorkflowView = _.flow(
 
   renderIOTable(key) {
     const { workspace } = this.props
-    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted } = this.state
+    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, filter } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
     const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], entityMetadata) || []
     const suggestions = [
@@ -817,7 +819,10 @@ const WorkflowView = _.flow(
     const data = currentSnapRedacted ?
       _.map(k => ({ name: k, inputType: 'unknown' }), _.keys(modifiedConfig[key])) :
       modifiedInputsOutputs[key]
-    const filteredData = key === 'inputs' && !includeOptionalInputs ? _.reject('optional', data) : data
+    const filteredData = _.filter(({ name, optional }) => {
+      return !(key === 'inputs' && !includeOptionalInputs && optional) && Utils.textMatch(filter, name)
+    }, data)
+
     const isSingleAndOutputs = key === 'outputs' && this.isSingle()
     const isEditable = !currentSnapRedacted && !Utils.editWorkspaceError(workspace) && !isSingleAndOutputs
 
@@ -825,7 +830,7 @@ const WorkflowView = _.flow(
       key,
       accept: '.json',
       multiple: false,
-      disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace),
+      disabled: currentSnapRedacted || !!Utils.editWorkspaceError(workspace) || data.length === 0,
       style: {
         ...styles.tabContents,
         flex: 'auto', display: 'flex', flexDirection: 'column',
@@ -835,8 +840,8 @@ const WorkflowView = _.flow(
       onDropRejected: () => reportError('Not a valid inputs file',
         'The selected file is not a json file. To import inputs for this workflow, upload a file with a .json extension.'),
       onDropAccepted: files => this.uploadJson(key, files[0])
-    }, [({ openUploader }) => h(Fragment, [
-      div({ style: { flex: 'none', display: 'flex', marginBottom: '0.25rem' } }, [
+    }, [({ openUploader }) => data.length === 0 ? `No configurable ${key}.` : h(Fragment, [
+      div({ style: { flex: 'none', display: 'flex', alignItems: 'center', marginBottom: '0.25rem' } }, [
         isSingleAndOutputs && !currentSnapRedacted && div({ style: { margin: '0 1rem 0.5rem' } }, [
           b(['Outputs are not mapped to the data model when processing a single workflow from files.']),
           div(['To write to the data model, select "Process multiple workflows" above.'])
@@ -849,9 +854,15 @@ const WorkflowView = _.flow(
         isEditable && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
           h(Link, { onClick: openUploader }, ['upload json'])
-        ])
+        ]),
+        h(DelayedSearchInput, {
+          'aria-label': `Search ${key}`,
+          style: { marginLeft: '1rem', width: 200 },
+          placeholder: `SEARCH ${key.toUpperCase()}`,
+          value: filter,
+          onChange: filter => this.setState({ filter })
+        })
       ]),
-      filteredData.length !== 0 &&
       div({ style: { flex: '1 0 500px' } }, [
         h(WorkflowIOTable, {
           readOnly: !isEditable,

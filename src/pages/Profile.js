@@ -238,7 +238,7 @@ const FenceLink = ({ provider, displayName }) => {
    * Render
    */
   const isBusy = isLoadingStatus || isLoadingAuthUrl || isLinking
-  const expireTime = addDays(30, parseISO(issuedAt))
+  const expireTime = addDays(30, parseISO(issuedAt)) // can't use parseJSON because dates don't specify time offset
 
   return div({ style: { marginBottom: '1rem' } }, [
     div({ style: styles.form.title }, [displayName]),
