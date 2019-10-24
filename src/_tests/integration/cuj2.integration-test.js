@@ -4,9 +4,8 @@ const { fireCloud } = require('./fire-cloud-utils.js')
 
 
 const workFlowName = 'haplotypecaller-gvcf-gatk4'
-const billingAccount = 'general-dev-billing-account'
 
-test('integration', async () => {
+test.skip('integration', async () => {
   await page.goto('localhost:3000')
   await click(page, 'View Examples')
   await signIntoTerra(page)
@@ -25,7 +24,7 @@ test('integration', async () => {
   await fireCloud.click(page, 'use-selected-configuration-button')
   await waitForNoSpinners(page)
   await findText(page, 'Select a workspace')
-  await fireCloud.selectWorkSpace(page, billingAccount, process.env.WORKSPACE)
+  await fireCloud.selectWorkSpace(page, 'general-dev-billing-account', process.env.WORKSPACE)
   await fireCloud.click(page, 'import-export-confirm-button')
   await fireCloud.click(page, 'Yes')
 
