@@ -1,4 +1,4 @@
-const { findInGrid, exactClick, click, findIframe, findText, select, waitForNoSpinners } = require('./integration-utils')
+const { findInGrid, exactClick, click, findIframe, findText, select } = require('./integration-utils')
 const dataExplorer = require('./data-explorer-utils')
 
 
