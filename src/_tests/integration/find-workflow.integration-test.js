@@ -1,5 +1,5 @@
 const { click, findText, signIntoTerra } = require('./integration-utils')
-const { firecloud } = require('./fire-cloud-utils')
+const firecloud = require('./fire-cloud-utils')
 
 
 const workflowName = 'haplotypecaller-gvcf-gatk4'
@@ -13,13 +13,13 @@ test.skip('integration', async () => {
 
   await firecloud.signIntoFirecloud(page)
   await findText(page, workflowName)
-  await firecloud.click(page, 'Export to Workspace...')
-  await firecloud.click(page, `${workflowName}-configured`)
-  await firecloud.click(page, 'Use Selected Configuration')
+  await click(page, 'Export to Workspace...')
+  await click(page, `${workflowName}-configured`)
+  await click(page, 'Use Selected Configuration')
   await findText(page, 'Select a workspace')
   await firecloud.selectWorkspace(page, 'general-dev-billing-account', process.env.WORKSPACE)
   await firecloud.click(page, 'import-export-confirm-button')
-  await firecloud.click(page, 'Yes')
+  await click(page, 'Yes')
 
   await signIntoTerra(page)
   await findText(page, `${workflowName}-configured`)
