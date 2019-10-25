@@ -4,7 +4,7 @@ const { firecloud } = require('./fire-cloud-utils.js')
 
 const workflowName = 'haplotypecaller-gvcf-gatk4'
 
-test('integration', async () => {
+test.skip('integration', async () => {
   await page.goto('localhost:3000')
   await click(page, 'View Examples')
   await signIntoTerra(page)
