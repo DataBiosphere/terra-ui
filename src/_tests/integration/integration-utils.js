@@ -33,7 +33,7 @@ const delay = ms => {
 
 const signIntoTerra = async page => {
   await findText(page, 'requires a Google Account')
-  return (await page.evaluate(token => window.forceSignIn(token), process.env.TERRA_TOKEN))
+  return page.evaluate(token => window.forceSignIn(token), process.env.TERRA_TOKEN)
 }
 
 module.exports = {
