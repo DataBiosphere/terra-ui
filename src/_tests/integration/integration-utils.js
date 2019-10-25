@@ -1,4 +1,4 @@
-const waitForFrame = async url => {
+const waitForFrame = async (page, url) => {
   const frameLoaded = new Promise(resolve => {
     const navHandler = async frame => {
       await frame.url().includes(url) && resolve({ frame, navHandler })
@@ -16,7 +16,7 @@ const findIframe = async page => {
   const srcHandle = await iframeNode.getProperty('src')
   const src = await srcHandle.jsonValue()
 
-  return await waitForFrame(src)
+  return await waitForFrame(page, src)
 }
 
 const findInGrid = async (page, text) => {
@@ -24,7 +24,7 @@ const findInGrid = async (page, text) => {
 }
 
 const exactlyFindClickable = (page, text) => {
-  return page.waitForXPath(`(//a | //*[@role="button"] | //button)[text()="${text}"]`)
+  return page.waitForXPath(`(//a | //*[@role="button"] | //button)[normalize-space(.)="${text}"]`)
 }
 
 const exactClick = async (page, text) => {
