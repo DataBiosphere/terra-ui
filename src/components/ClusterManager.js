@@ -97,9 +97,9 @@ export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, on
     onDismiss,
     okButton: deleteCluster
   }, [
-    p(['Deleting the notebook runtime will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
+    p(['Deleting your notebook runtime will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
     span({ style: { fontWeight: 'bold' } }, 'NOTE: '),
-    'Deleting your runtime will also delete any installed packaged and files on the associated hard disk (e.g. input data or analysis outputs). To permanently save these files, ',
+    'Deleting your runtime will also delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
     h(Link, {
       href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
       ...Utils.newTabLinkProps
@@ -334,7 +334,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       h(ClusterIcon, {
         shape: 'trash',
         onClick: () => this.setState({ deleteModalOpen: true }),
-        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error']),
+        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error', 'Stopping', 'Starting']),
         tooltip: 'Delete notebook runtime',
         'aria-label': 'Delete notebook runtime',
         style: { marginLeft: '0.5rem' }
