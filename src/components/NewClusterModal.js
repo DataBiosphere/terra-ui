@@ -182,6 +182,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       } else {
         this.setState({ isCustomEnv: true, customEnvImage: dockerImage })
       }
+
+      const { jupyterUserScriptUri } = await Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details()
+      if (jupyterUserScriptUri) {
+        this.setState({ jupyterUserScriptUri, profile: 'custom' })
+      }
     }
   })
 
