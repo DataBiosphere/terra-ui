@@ -2,8 +2,6 @@ const { findInGrid, exactClick, click, findIframe, findText, select } = require(
 const dataExplorer = require('./data-explorer-utils')
 
 
-jest.setTimeout(10000)
-
 const workspace = process.env.WORKSPACE
 
 test.skip('integration', async () => {

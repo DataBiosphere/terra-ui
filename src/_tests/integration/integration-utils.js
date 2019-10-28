@@ -17,8 +17,9 @@ const findIframe = async page => {
   const iframeNode = await page.waitForXPath('//*[@role="main"]/iframe')
   const srcHandle = await iframeNode.getProperty('src')
   const src = await srcHandle.jsonValue()
+  const hasFrame = () => page.frames().find(frame => frame.url().includes(src+'x'))
 
-  return await waitForFn({ fn: () => page.frames().find(frame => frame.url().includes(src)) })
+  return hasFrame() || await waitForFn({ fn: hasFrame })
 }
 
 const findInGrid = async (page, text) => {
