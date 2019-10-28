@@ -1,10 +1,10 @@
 diff --git a/node_modules/eslint-plugin-lodash-fp/rules/preferred-alias.js b/node_modules/eslint-plugin-lodash-fp/rules/preferred-alias.js
-index 24b89f7..b2de3ec 100644
+index 8b9ed43..f1e61d6 100644
 --- a/node_modules/eslint-plugin-lodash-fp/rules/preferred-alias.js
 +++ b/node_modules/eslint-plugin-lodash-fp/rules/preferred-alias.js
 @@ -32,7 +32,7 @@ const create = function (context) {
    return info.merge({
-     CallExpression(node) {
+     CallExpression: function (node) {
        const method = info.helpers.isMethodCall(node);
 -      if (!method) {
 +      if (!method || !_.has(data.realToAlias, method.realName)) {
