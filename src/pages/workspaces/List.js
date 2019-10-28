@@ -1,4 +1,4 @@
-import { isAfter, parseISO } from 'date-fns/fp'
+import { isAfter, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
@@ -89,7 +89,7 @@ const styles = {
 const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissionsCount, lastSuccessDate, lastFailureDate } }) => {
   return Utils.cond(
     [runningSubmissionsCount, () => 'running'],
-    [lastSuccessDate && (!lastFailureDate || isAfter(parseISO(lastFailureDate), parseISO(lastSuccessDate))), () => 'success'],
+    [lastSuccessDate && (!lastFailureDate || isAfter(parseJSON(lastFailureDate), parseJSON(lastSuccessDate))), () => 'success'],
     [lastFailureDate, () => 'failure']
   )
 }
