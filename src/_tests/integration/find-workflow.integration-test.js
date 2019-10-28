@@ -1,5 +1,5 @@
 const { click, findText, signIntoTerra, findClickable } = require('./integration-utils')
-const firecloud = require('./fire-cloud-utils')
+const firecloud = require('./firecloud-utils')
 
 
 const workflowName = 'haplotypecaller-gvcf-gatk4'
