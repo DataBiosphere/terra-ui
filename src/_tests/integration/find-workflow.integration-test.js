@@ -7,7 +7,7 @@ const billingAccount = 'general-dev-billing-account'
 const workspace = process.env.WORKSPACE
 const url = 'http://localhost:3000'
 
-test('integration', async () => {
+test.skip('integration', async () => {
   await page.goto('http://localhost:3000')
   await click(page, 'View Examples')
   await signIntoTerra(page)
