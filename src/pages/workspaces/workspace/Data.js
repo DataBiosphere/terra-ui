@@ -63,13 +63,14 @@ const styles = {
   }
 }
 
-export const ModalToolButton = ({ children, disabled, ...props }) => {
+export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
   return h(Clickable, _.merge({
     disabled,
     style: {
-      color: disabled ? colors.secondary() : colors.dark(),
+      color: disabled ? colors.secondary() : colors.accent(),
+      opacity: disabled ? 0.5 : undefined,
       border: '1px solid transparent',
-      padding: '0 0.875rem',
+      padding: '0 0.875rem', marginBottom: '0.5rem',
       backgroundColor: 'white',
       display: 'flex',
       alignItems: 'center',
@@ -81,7 +82,12 @@ export const ModalToolButton = ({ children, disabled, ...props }) => {
       border: `1px solid ${colors.accent(0.8)}`,
       boxShadow: Style.standardShadow
     }
-  }, props), [children])
+  }, props), [
+    div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
+      img({ src: icon, style: { opacity: disabled ? 0.5 : undefined, maxWidth: 45, maxHeight: 40 } })
+    ]),
+    text
+  ])
 }
 
 const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
@@ -459,24 +465,17 @@ const ToolDrawer = _.flow(
             h(ModalToolButton, {
               onClick: () => setToolMode('IGV'),
               disabled: isCohort,
-              tooltip: isCohort ? 'IGV cannot be opened with cohorts' : 'Open with Integrative Genomics Viewer'
-            }, [
-              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                img({ src: igvLogo, style: { width: 40 } })
-              ]),
-              'IGV'
-            ]),
+              tooltip: isCohort ? 'IGV cannot be opened with cohorts' : 'Open with Integrative Genomics Viewer',
+              icon: igvLogo,
+              text: 'IGV'
+            }),
             h(ModalToolButton, {
               onClick: () => setToolMode('Workflow'),
               disabled: isCohort,
               tooltip: isCohort ? 'Workflow cannot be opened with cohorts' : 'Open with Workflow',
-              style: { marginTop: '0.5rem' }
-            }, [
-              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                img({ src: wdlLogo, style: { height: '1rem' } })
-              ]),
-              'Workflow'
-            ]),
+              icon: wdlLogo,
+              text: 'Workflow'
+            }),
             h(ModalToolButton, {
               onClick: !openDataExplorerInSameTab ? onDismiss : undefined,
               href: openDataExplorerInSameTab ? dataExplorerPath : dataExplorerUrl,
@@ -486,16 +485,11 @@ const ToolDrawer = _.flow(
                 [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
                 [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in Data Explorer'],
                 [isCohort && !dataExplorerUrl, () => 'Cohort is too old, please recreate in Data Explorer and save to Terra again'],
-                [!isCohort, () => 'Only cohorts can be opened with Data Explorer'],
-                () => undefined
+                [!isCohort, () => 'Only cohorts can be opened with Data Explorer']
               ),
-              style: { marginTop: '0.5rem' }
-            }, [
-              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                img({ src: dataExplorerLogo, style: { opacity: !dataExplorerButtonEnabled ? .25 : undefined, width: 40 } })
-              ]),
-              'Data Explorer'
-            ]),
+              icon: dataExplorerLogo,
+              text: 'Data Explorer'
+            }),
             h(ModalToolButton, {
               onClick: () => setToolMode('Notebook'),
               disabled: !notebookButtonEnabled,
@@ -505,13 +499,9 @@ const ToolDrawer = _.flow(
                 [!isCohort, () => 'Only cohorts can be opened with notebooks'],
                 [notebookButtonEnabled, () => 'Create a Python 2 or 3 notebook with this cohort']
               ),
-              style: { marginTop: '0.5rem' }
-            }, [
-              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                img({ src: jupyterLogo, style: { opacity: !notebookButtonEnabled ? .25 : undefined, width: 40 } })
-              ]),
-              'Notebook'
-            ])
+              icon: jupyterLogo,
+              text: 'Notebook'
+            })
           ])
         ])
       ])
