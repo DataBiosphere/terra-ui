@@ -486,8 +486,7 @@ const ToolDrawer = _.flow(
                 [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
                 [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in Data Explorer'],
                 [isCohort && !dataExplorerUrl, () => 'Cohort is too old, please recreate in Data Explorer and save to Terra again'],
-                [!isCohort, () => 'Only cohorts can be opened with Data Explorer'],
-                () => undefined
+                [!isCohort, () => 'Only cohorts can be opened with Data Explorer']
               ),
               style: { marginTop: '0.5rem' },
               icon: dataExplorerLogo,
@@ -502,13 +501,10 @@ const ToolDrawer = _.flow(
                 [!isCohort, () => 'Only cohorts can be opened with notebooks'],
                 [notebookButtonEnabled, () => 'Create a Python 2 or 3 notebook with this cohort']
               ),
-              style: { marginTop: '0.5rem' }
-            }, [
-              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                img({ src: jupyterLogo, style: { opacity: !notebookButtonEnabled ? .25 : undefined, width: 40 } })
-              ]),
-              'Notebook'
-            ])
+              style: { marginTop: '0.5rem' },
+              icon: jupyterLogo,
+              text: 'Notebook'
+            })
           ])
         ])
       ])
