@@ -5,16 +5,13 @@ executors:
     docker:
       - image: node:10
         user: node
-  puppeteer: 
-    docker: 
+  puppeteer:
+    docker:
       - image: circleci/node:10-browsers
         user: node
   gcloud:
     docker:
       - image: google/cloud-sdk:alpine
-  dsp-toolbox: 
-    docker: 
-      - image: broadinstitute/dsp-toolbox
   security-scanner:
     docker:
       - image: owasp/zap2docker-weekly
@@ -133,16 +130,7 @@ jobs:
               docker run -t owasp/zap2docker-weekly zap-baseline.py -t ${env};
               if [ $? -ne 1 ]; then exit 0; else exit 1; fi;
             )
-  integration-test-setup:
-    executor: dsp-toolbox
-    steps:
-      - checkout
-      - run: python src/_tests/get_bearer_token.py "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}" > testtoken
-      - persist_to_workspace:
-          root: .
-          paths:
-            - testtoken
-  integration-tests: 
+  integration-tests:
     executor: puppeteer
     steps:
       - checkout
@@ -154,8 +142,9 @@ jobs:
             - deps2-{{ checksum "package.json" }}-
             - deps2-
       - run: npx npm@6.11 ci
+      - run: node src/_tests/getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}" > testtoken
       - run: cp config/dev.json build/config.json
-      - run: 
+      - run:
           command: npx serve build -l 3000
           background: true
       - run: timeout 120 bash -c "until nc -z localhost 3000; do sleep 3; done"
@@ -167,6 +156,13 @@ workflows:
     jobs:
       - test
       - build
+      - integration-tests:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore:
+                - dev
       - deploy-pr:
           requires:
             - test
@@ -209,16 +205,3 @@ workflows:
           filters:
             branches:
               only: dev
-  run-integration-tests: 
-    jobs:
-      - build
-      - integration-test-setup
-      - integration-tests:
-          filters: 
-            branches:
-              ignore:
-                - dev
-          requires:
-            - build
-            - integration-test-setup
-            

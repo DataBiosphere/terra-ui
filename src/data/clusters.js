@@ -51,3 +51,5 @@ export const profiles = [
 ]
 
 export const version = '6' // updated jupyter-iframe-extension.js
+
+export const dataSyncingDocUrl = 'https://support.terra.bio/hc/en-us/articles/360034505132--Lock-and-Playground-Notebook-Modes'

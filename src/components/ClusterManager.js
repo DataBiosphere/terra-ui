@@ -10,6 +10,7 @@ import Modal from 'src/components/Modal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { notify } from 'src/components/Notifications.js'
 import { Popup } from 'src/components/PopupTrigger'
+import { dataSyncingDocUrl } from 'src/data/clusters'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
 import { clusterCost, currentCluster, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
@@ -96,9 +97,9 @@ export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, on
     onDismiss,
     okButton: deleteCluster
   }, [
-    p(['Deleting the notebook runtime will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
+    p(['Deleting your notebook runtime will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
     span({ style: { fontWeight: 'bold' } }, 'NOTE: '),
-    'Deleting your runtime will also delete any installed packaged and files on the associated hard disk (e.g. input data or analysis outputs). To permanently save these files, ',
+    'Deleting your runtime will also delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
     h(Link, {
       href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
       ...Utils.newTabLinkProps
@@ -164,7 +165,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           p(['On Sunday Oct 20th at 10am, we are introducing important updates to Terra, which are not compatible with the older notebook runtime in this workspace. After this date, you will no longer be able to save new changes to notebooks in one of these older runtimes.']),
           h(Link, {
             variant: 'light',
-            href: 'https://support.terra.bio/hc/en-us/articles/360034505132--Lock-and-Playground-Notebook-Modes',
+            href: dataSyncingDocUrl,
             ...Utils.newTabLinkProps
           }, ['Read here for more details.'])
         ])
@@ -333,7 +334,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       h(ClusterIcon, {
         shape: 'trash',
         onClick: () => this.setState({ deleteModalOpen: true }),
-        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error']),
+        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error', 'Stopping', 'Starting']),
         tooltip: 'Delete notebook runtime',
         'aria-label': 'Delete notebook runtime',
         style: { marginLeft: '0.5rem' }

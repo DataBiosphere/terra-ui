@@ -1,7 +1,6 @@
+import Downshift from 'downshift'
 import _ from 'lodash/fp'
-import PropTypes from 'prop-types'
-import { Component, Fragment, useRef, useState } from 'react'
-import Autosuggest from 'react-autosuggest'
+import { Fragment, useRef, useState } from 'react'
 import { div, h, input, textarea } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -21,11 +20,12 @@ const styles = {
     backgroundColor: 'white',
     border: `1px solid ${colors.light()}`
   },
-  suggestion: {
+  suggestion: isSelected => ({
     display: 'block', lineHeight: '2.25rem',
     paddingLeft: '1rem', paddingRight: '1rem',
-    cursor: 'pointer'
-  },
+    cursor: 'pointer',
+    backgroundColor: isSelected ? colors.light(0.4) : undefined
+  }),
   textarea: {
     width: '100%', resize: 'none',
     border: `1px solid ${colors.light()}`, borderRadius: 4,
@@ -199,7 +199,7 @@ export const ValidatedInput = props => {
   ])
 }
 
-const AutocompleteSuggestions = ({ target: targetId, containerProps = {}, children }) => {
+const AutocompleteSuggestions = ({ target: targetId, containerProps, children }) => {
   const [target] = useDynamicPosition([{ id: targetId }])
   return h(PopupPortal, [
     div({
@@ -213,100 +213,45 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps = {}, childr
   ])
 }
 
-/**
- * See {@link https://github.com/moroshko/react-autosuggest#props}
- */
-export class AutocompleteTextInput extends Component {
-  static propTypes = {
-    value: PropTypes.string.isRequired,
-    onChange: PropTypes.func.isRequired,
-    suggestions: PropTypes.arrayOf(PropTypes.string)
-  }
+export const AutocompleteTextInput = ({ value, onChange, suggestions: rawSuggestions, style, id, renderSuggestion = _.identity, openOnFocus = true, ...props }) => {
+  const suggestions = _.filter(Utils.textMatch(value), rawSuggestions)
 
-  static defaultProps = {
-    suggestions: []
-  }
-
-  constructor(props) {
-    super(props)
-    this.state = { show: false }
-    this.id = _.uniqueId('AutocompleteTextInput_')
-  }
-
-  render() {
-    const { value, onChange, suggestions, style, id = this.id, ...props } = this.props
-    const { show } = this.state
-    return h(Autosuggest, {
-      id,
-      inputProps: { id, value, onChange: onChange ? (e => onChange(e.target.value)) : undefined },
-      suggestions: show ? (value ? _.filter(Utils.textMatch(value), suggestions) : suggestions) : [],
-      onSuggestionsFetchRequested: () => this.setState({ show: true }),
-      onSuggestionsClearRequested: () => this.setState({ show: false }),
-      onSuggestionSelected: (e, { suggestionValue }) => onChange(suggestionValue),
-      getSuggestionValue: _.identity,
-      shouldRenderSuggestions: () => true,
-      focusInputOnSuggestionClick: false,
-      renderSuggestionsContainer: ({ containerProps, children }) => {
-        return children && h(AutocompleteSuggestions, { containerProps, children, target: id })
-      },
-      renderSuggestion: v => v,
-      renderInputComponent: inputProps => h(TextInput, { ...props, ...inputProps, style, type: 'search', nativeOnChange: true }),
-      theme: {
-        container: { width: '100%' },
-        suggestionsList: { margin: 0, padding: 0 },
-        suggestion: styles.suggestion,
-        suggestionHighlighted: { backgroundColor: colors.light(0.4) }
-      }
-    })
-  }
-}
-
-export class AutocompleteSearch extends Component {
-  static propTypes = {
-    value: PropTypes.string.isRequired,
-    onChange: PropTypes.func.isRequired,
-    onSuggestionSelected: PropTypes.func.isRequired,
-    suggestions: PropTypes.array,
-    renderSuggestion: PropTypes.func,
-    theme: PropTypes.object
-  }
-
-  static defaultProps = {
-    suggestions: [],
-    renderSuggestion: _.identity
-  }
-
-  constructor(props) {
-    super(props)
-    this.state = { show: false }
-    this.id = props.id || _.uniqueId('AutocompleteSearch_')
-  }
-
-  render() {
-    const { value, onChange, onSuggestionSelected, suggestions, renderSuggestion, theme, ...props } = this.props
-    const { show } = this.state
-    return h(Autosuggest, {
-      id: this.id,
-      inputProps: { id: this.id, value, onChange: onChange ? (e => onChange(e.target.value)) : undefined, ...props },
-      suggestions: show ? (value ? [value, ..._.filter(Utils.textMatch(value), suggestions)] : suggestions) : [],
-      onSuggestionsFetchRequested: () => this.setState({ show: true }),
-      onSuggestionsClearRequested: () => this.setState({ show: false }),
-      onSuggestionSelected: (e, { suggestionValue }) => onSuggestionSelected(suggestionValue),
-      getSuggestionValue: _.identity,
-      shouldRenderSuggestions: value => value.trim().length > 0,
-      renderSuggestionsContainer: ({ containerProps, children }) => {
-        return children && h(AutocompleteSuggestions, { containerProps, children, target: this.id })
-      },
-      renderSuggestion,
-      renderInputComponent: inputProps => h(TextInput, { nativeOnChange: true, ...inputProps }),
-      theme: _.merge({
-        container: { width: '100%' },
-        suggestionsList: { margin: 0, padding: 0 },
-        suggestion: styles.suggestion,
-        suggestionHighlighted: { backgroundColor: colors.light(0.4) }
-      }, theme)
-    })
-  }
+  return h(Downshift, {
+    selectedItem: value,
+    onInputValueChange: onChange,
+    inputId: id
+  }, [
+    ({ getInputProps, getMenuProps, getItemProps, isOpen, openMenu, toggleMenu, highlightedIndex }) => {
+      return div({ style: { width: '100%' } }, [
+        h(TextInput, getInputProps({
+          style,
+          type: 'search',
+          onFocus: openOnFocus ? openMenu : undefined,
+          onKeyDown: e => {
+            if (e.key === 'Escape') {
+              (value || isOpen) && e.stopPropagation() // prevent e.g. closing a modal
+              if (!value || isOpen) { // don't clear if blank (prevent e.g. undefined -> '') or if menu is shown
+                e.nativeEvent.preventDownshiftDefault = true
+                e.preventDefault()
+              }
+              toggleMenu()
+            }
+          },
+          nativeOnChange: true,
+          ...props
+        })),
+        isOpen && !!suggestions.length && h(AutocompleteSuggestions, {
+          target: getInputProps().id,
+          containerProps: getMenuProps()
+        }, _.map(([index, item]) => {
+          return div(getItemProps({
+            item, key: item,
+            style: styles.suggestion(highlightedIndex === index)
+          }), [renderSuggestion(item)])
+        }, Utils.toIndexPairs(suggestions)))
+      ])
+    }
+  ])
 }
 
 export const DelayedAutocompleteTextInput = withDebouncedChange(AutocompleteTextInput)
@@ -318,5 +263,19 @@ export const TextArea = ({ onChange, ...props }) => {
     className: 'focus-style',
     style: styles.textarea,
     onChange: onChange ? (e => onChange(e.target.value)) : undefined
+  }, props))
+}
+
+export const PasteOnlyInput = ({ onPaste, readOnly = false, ...props }) => {
+  Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, PasteOnlyInput needs a label')
+
+  return textarea(_.merge({
+    className: 'focus-style',
+    style: { ...styles.textarea, resize: 'vertical' },
+    onPaste: e => {
+      onPaste(e.clipboardData.getData('Text'))
+    },
+    onChange: undefined,
+    readOnly
   }, props))
 }
