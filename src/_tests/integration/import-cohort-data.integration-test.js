@@ -6,7 +6,7 @@ jest.setTimeout(10000)
 
 const workspace = process.env.WORKSPACE
 
-test('integration', async () => {
+test.skip('integration', async () => {
   const cohortName = `terra-ui-test-cohort`
 
   await page.goto('http://localhost:3000')
