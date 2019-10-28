@@ -92,6 +92,7 @@ export const NotebookCreator = class NotebookCreator extends Component {
   static propTypes = {
     reloadList: PropTypes.func.isRequired,
     onDismiss: PropTypes.func.isRequired,
+    onSuccess: PropTypes.func.isRequired,
     namespace: PropTypes.string.isRequired,
     bucketName: PropTypes.string.isRequired,
     existingNames: PropTypes.arrayOf(PropTypes.string).isRequired
@@ -104,7 +105,7 @@ export const NotebookCreator = class NotebookCreator extends Component {
 
   render() {
     const { notebookName, notebookKernel, creating, nameTouched } = this.state
-    const { reloadList, onDismiss, namespace, bucketName, existingNames } = this.props
+    const { reloadList, onSuccess, onDismiss, namespace, bucketName, existingNames } = this.props
 
     const errors = validate(
       { notebookName, notebookKernel },
@@ -126,7 +127,7 @@ export const NotebookCreator = class NotebookCreator extends Component {
           try {
             await Ajax().Buckets.notebook(namespace, bucketName, notebookName).create(notebookData[notebookKernel])
             reloadList()
-            onDismiss()
+            onSuccess(notebookName)
           } catch (error) {
             await reportError('Error creating notebook', error)
             onDismiss()
@@ -286,3 +287,219 @@ export const NotebookDeleter = class NotebookDeleter extends Component {
     ))
   }
 }
+
+// In Python notebook, use ' instead of " in code cells, to avoid formatting problems.
+// Changes from raw .ipynb:
+// - In notebook cells, change \n to \\n
+//   (This must be done manually because there is no way to distinguish
+//   between a line break and the "\n" character.)
+export const cohortNotebook = cohortName => `
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "COHORT = '${cohortName}'"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Setup - Run following cell, restart kernel, comment following cell"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# This only needs to be run once. Feel free to comment after first run\\n",
+    "# Delete this cell after https://broadworkbench.atlassian.net/browse/IA-1402 is fixed.\\n",
+    "!pip2.7 install --upgrade pandas-gbq\\n",
+    "!pip3 install --upgrade pandas-gbq"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import firecloud.api as fapi\\n",
+    "import matplotlib.pyplot as plt\\n",
+    "from pandas.api.types import is_numeric_dtype\\n",
+    "import pandas as pd\\n",
+    "import pandas_gbq\\n",
+    "\\n",
+    "import os\\n",
+    "WS_NAMESPACE = os.environ['WORKSPACE_NAMESPACE']\\n",
+    "WS_NAME = os.environ['WORKSPACE_NAME']"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Get cohort SQL query"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "cohort_query = fapi.get_entity(WS_NAMESPACE, WS_NAME, 'cohort', COHORT).json()['attributes']['query']\\n",
+    "cohort_query"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Create pandas dataframe of cohort participant ids"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "cohort_participant_ids = pd.read_gbq(cohort_query, dialect='standard')\\n",
+    "cohort_participant_ids.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# See what tables are available to join against"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "dataset_name = fapi.get_entity(WS_NAMESPACE, WS_NAME, 'cohort', COHORT).json()['attributes']['dataset_name']\\n",
+    "bigquery_table_entities_all_datasets = fapi.get_entities(WS_NAMESPACE, WS_NAME, 'BigQuery_table').json()\\n",
+    "bigquery_table_entities = list(filter(lambda entity: entity['attributes']['dataset_name'] == dataset_name, bigquery_table_entities_all_datasets))\\n",
+    "bigquery_tables = list(map(lambda entity: entity['attributes']['table_name'], bigquery_table_entities))\\n",
+    "bigquery_tables"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Join cohort participant ids against first table"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "table = pd.read_gbq('SELECT * FROM \`{}\`'.format(bigquery_tables[0]), dialect='standard')\\n",
+    "print('table has %d rows' % len(table.index))\\n",
+    "\\n",
+    "cohort = cohort_participant_ids.join(table, lsuffix='_L', rsuffix='_R')\\n",
+    "print('cohort has %d rows' % len(cohort.index))\\n",
+    "\\n",
+    "cohort.head()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Visualization of cohort first column"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "plt.rcParams.update({'font.size': 14})\\n",
+    "\\n",
+    "# Drop columns with 'ID' or 'id'\\n",
+    "cohort_to_plot = cohort[cohort.columns.drop(list(cohort.filter(regex='id|ID')))]\\n",
+    "cohort_first_column = cohort_to_plot[cohort_to_plot.columns[0]]\\n",
+    "\\n",
+    "title = '{} for cohort {}'.format(cohort_first_column.name, COHORT)\\n",
+    "if is_numeric_dtype(cohort_first_column):\\n",
+    "    cohort_first_column.plot(kind='hist', title=title)\\n",
+    "else:\\n",
+    "    cohort_first_column.value_counts().plot(kind='bar', title=title)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Provenance"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from datetime import datetime\\n",
+    "from pytz import timezone\\n",
+    "\\n",
+    "zone = timezone('US/Eastern')\\n",
+    "# zone = timezone('US/Pacific')\\n",
+    "print(datetime.now(zone).strftime('%Y-%m-%d %H:%M:%S'))"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 2",
+   "language": "python",
+   "name": "python2"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 2
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython2",
+   "version": "2.7.13"
+  },
+  "toc": {
+   "base_numbering": 1,
+   "nav_menu": {},
+   "number_sections": true,
+   "sideBar": true,
+   "skip_h1_title": false,
+   "title_cell": "Table of Contents",
+   "title_sidebar": "Contents",
+   "toc_cell": false,
+   "toc_position": {},
+   "toc_section_display": true,
+   "toc_window_display": false
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
+`
