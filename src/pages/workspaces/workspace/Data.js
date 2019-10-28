@@ -70,7 +70,7 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
       color: disabled ? colors.secondary() : colors.accent(),
       opacity: disabled ? 0.5 : undefined,
       border: '1px solid transparent',
-      padding: '0 0.875rem',
+      padding: '0 0.875rem', marginBottom: '0.5rem',
       backgroundColor: 'white',
       display: 'flex',
       alignItems: 'center',
@@ -473,7 +473,6 @@ const ToolDrawer = _.flow(
               onClick: () => setToolMode('Workflow'),
               disabled: isCohort,
               tooltip: isCohort ? 'Workflow cannot be opened with cohorts' : 'Open with Workflow',
-              style: { marginTop: '0.5rem' },
               icon: wdlLogo,
               text: 'Workflow'
             }),
@@ -488,7 +487,6 @@ const ToolDrawer = _.flow(
                 [isCohort && !dataExplorerUrl, () => 'Cohort is too old, please recreate in Data Explorer and save to Terra again'],
                 [!isCohort, () => 'Only cohorts can be opened with Data Explorer']
               ),
-              style: { marginTop: '0.5rem' },
               icon: dataExplorerLogo,
               text: 'Data Explorer'
             }),
@@ -501,7 +499,6 @@ const ToolDrawer = _.flow(
                 [!isCohort, () => 'Only cohorts can be opened with notebooks'],
                 [notebookButtonEnabled, () => 'Create a Python 2 or 3 notebook with this cohort']
               ),
-              style: { marginTop: '0.5rem' },
               icon: jupyterLogo,
               text: 'Notebook'
             })
