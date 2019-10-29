@@ -7,12 +7,12 @@ const datasets = [
   },
   {
     name: 'AMP PD - 2019_v1release_1015',
-    origin: 'https://amp-pd-data-explorers.appspot.com',
+    origin: 'https://data-explorer.amp-pd.org',
     authDomain: 'amp-pd-researchers'
   },
   {
     name: 'AMP PD Clinical - 2019_v1release_1015',
-    origin: 'https://amp-pd-clinical-data-explorers.appspot.com',
+    origin: 'https://clinical-data-explorer.amp-pd.org',
     authDomain: 'amp-pd-clinical-access'
   },
   {
