@@ -149,7 +149,8 @@ const thousandGenomesLowCoverage = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     href: Nav.getLink('data-explorer-public', { dataset: '1000 Genomes' }),
-    tooltip: browseTooltip
+    tooltip: browseTooltip,
+    'aria-label': 'Browse 1000 Genomes Low Coverage'
   }, ['Browse data'])
 ])
 
