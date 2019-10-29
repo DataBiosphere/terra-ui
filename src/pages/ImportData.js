@@ -68,7 +68,10 @@ class Importer extends Component {
         ['PFB', () => wsAjax.importPFB(url)],
         [Utils.DEFAULT, () => wsAjax.importBagit(url)]
       )
-      notify('success', 'Data imported successfully.', { timeout: 3000 })
+      Utils.cond(
+        [format === 'PFB', () => notify('info', 'Data import in progress.', { message: 'Data will show up incrementally as the job progresses.' })],
+        () => notify('success', 'Data imported successfully.', { timeout: 3000 })
+      )
       Nav.goToPath('workspace-data', { namespace, name })
     } catch (e) {
       reportError('Import Error', e)

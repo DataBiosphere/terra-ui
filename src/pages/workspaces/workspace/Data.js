@@ -926,6 +926,7 @@ const WorkspaceData = _.flow(
 
   refresh() {
     this.setState(({ refreshKey }) => ({ refreshKey: refreshKey + 1 }))
+    this.loadMetadata()
   }
 
   selectionType() {
