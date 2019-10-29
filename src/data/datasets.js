@@ -6,9 +6,14 @@ const datasets = [
     origin: 'https://test-data-explorer.appspot.com'
   },
   {
-    name: 'AMP PD - 2019_v1beta_0220',
-    origin: 'https://amp-pd-data-explorer.appspot.com',
+    name: 'AMP PD - 2019_v1release_1015',
+    origin: 'https://amp-pd-data-explorers.appspot.com',
     authDomain: 'amp-pd-researchers'
+  },
+  {
+    name: 'AMP PD Clinical - 2019_v1release_1015',
+    origin: 'https://amp-pd-clinical-data-explorers.appspot.com',
+    authDomain: 'amp-pd-clinical-access'
   },
   {
     name: 'Baseline Health Study',
