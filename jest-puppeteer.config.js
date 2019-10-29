@@ -1,14 +1,45 @@
+const printWarning = message => {
+  if (process.env.warningPrinted) {
+    return
+  }
+  console.warn('\n\x1b[1m' /* bold */ + '╔'.padEnd(80, '═') + '╗')
+  message.forEach(line => {
+    console.warn(`║ ${line}`.padEnd(80) + '║')
+  })
+  console.warn('╚'.padEnd(80, '═') + '╝')
+  console.warn('\x1b[0m' /* not-bold */)
+  process.env.warningPrinted = true
+}
+
 module.exports = {
   launch: {
-    devtools: (({ devtools, iframes }) => {
-      if (devtools) {
-        iframes && console.warn('You cannot enable devtools while testing a UI with iframes in headful mode')
-        return !iframes
-      }
-    })({ devtools: process.env.DEVTOOLS === 'true', iframes: process.env.IFRAMES === 'true' }),
+    devtools: process.env.DEVTOOLS === 'true',
     headless: process.env.HEADLESS !== 'false',
     // Workaround for issue when accessing cross domain iframes in puppeteer while not headless:
     // https://github.com/GoogleChrome/puppeteer/issues/4960
-    args: process.env.HEADLESS === 'false' && process.env.IFRAMES === 'true' ? ['--disable-features=site-per-process'] : []
+    args: (({ headfull, devtools }) => {
+      const flag = '--disable-features=site-per-process'
+
+      if (headfull && devtools) {
+        printWarning([
+          'iframes Issue'.padStart(40),
+          'Dev tools cannot be opened in headless mode with the',
+          `${flag} flag set. If you are running tests`,
+          'with iframes they will fail with dev tools turned on.'
+        ])
+        return []
+      } else if (headfull) {
+        printWarning([
+          'Chromium flag set'.padStart(40),
+          `Headfull mode also sets the ${flag} flag`,
+          'This allows iframe tests to work in Headfull mode.',
+          'If you notice unexpected side effects in your tests',
+          'you can disable this flag in src/jest-puppeteer.config.js'
+        ])
+        return [flag]
+      } else {
+        return []
+      }
+    })({ headfull: process.env.HEADLESS === 'false', devtools: process.env.DEVTOOLS === 'true' })
   }
 }
