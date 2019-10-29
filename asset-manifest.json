@@ -1,0 +1,26 @@
+{
+  "files": {
+    "main.css": "/main.css",
+    "main.js": "/main.ce2887b11c7d6c3d5bd8.bundle.js",
+    "main.css.map": "/main.css.map",
+    "main.js.map": "/main.ce2887b11c7d6c3d5bd8.bundle.js.map",
+    "runtime~main.js": "/runtime~main.ce2887b11c7d6c3d5bd8.bundle.js",
+    "runtime~main.js.map": "/runtime~main.ce2887b11c7d6c3d5bd8.bundle.js.map",
+    "vendors~main.css": "/vendors~main.css",
+    "vendors~main.js": "/vendors~main.ce2887b11c7d6c3d5bd8.bundle.js",
+    "vendors~main.css.map": "/vendors~main.css.map",
+    "vendors~main.js.map": "/vendors~main.ce2887b11c7d6c3d5bd8.bundle.js.map",
+    "iframe.html": "/iframe.html",
+    "precache-manifest.0a9fb8ec2b119340aea52fd68ff5fd33.js": "/precache-manifest.0a9fb8ec2b119340aea52fd68ff5fd33.js",
+    "service-worker.js": "/service-worker.js",
+    "static/media/style.css": "/static/media/MontserratAlternates-ThinItalic.fa2d062f.woff2",
+    "static/media/science-background.jpg": "/static/media/science-background.507ae9e4.jpg"
+  },
+  "entrypoints": [
+    "runtime~main.ce2887b11c7d6c3d5bd8.bundle.js",
+    "vendors~main.css",
+    "vendors~main.ce2887b11c7d6c3d5bd8.bundle.js",
+    "main.css",
+    "main.ce2887b11c7d6c3d5bd8.bundle.js"
+  ]
+}
