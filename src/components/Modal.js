@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { div, h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
-import { ButtonPrimary, ButtonSecondary, Clickable } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Clickable, FocusTrapper } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -28,37 +28,39 @@ const styles = {
 const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCancel = true, cancelText = 'Cancel', showX, showButtons = true, okButton, ...props }) => {
   const titleId = Utils.useUniqueId()
   // react-modal applies aria-hidden to the app root *and* takes care of limiting what can be tab-focused - see appLoader.js
-  return h(RModal, {
-    parentSelector: () => document.getElementById('modal-root'),
-    isOpen: true,
-    onRequestClose: onDismiss,
-    style: { overlay: styles.overlay, content: { ...styles.modal, width } },
-    aria: { labelledby: titleId },
-    ...props
-  }, [
-    title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
-      div({ id: titleId, style: { fontSize: 18, fontWeight: 600 } }, [title]),
-      titleExtras,
-      showX && h(Clickable, {
-        'aria-label': 'Close modal',
-        style: { alignSelf: 'flex-start', marginLeft: 'auto' },
-        onClick: onDismiss
-      }, [icon('times-circle')])
-    ]),
-    children,
-    showButtons && div({ style: styles.buttonRow }, [
-      showCancel ?
-        h(ButtonSecondary, {
-          style: { marginRight: '1rem' },
+  return h(FocusTrapper, [
+    h(RModal, {
+      parentSelector: () => document.getElementById('modal-root'),
+      isOpen: true,
+      onRequestClose: onDismiss,
+      style: { overlay: styles.overlay, content: { ...styles.modal, width } },
+      aria: { labelledby: titleId },
+      ...props
+    }, [
+      title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
+        div({ id: titleId, style: { fontSize: 18, fontWeight: 600 } }, [title]),
+        titleExtras,
+        showX && h(Clickable, {
+          'aria-label': 'Close modal',
+          style: { alignSelf: 'flex-start', marginLeft: 'auto' },
           onClick: onDismiss
-        }, [cancelText]) :
-        null,
-      Utils.cond(
-        [okButton === undefined, () => h(ButtonPrimary, { onClick: onDismiss }, 'OK')],
-        [_.isString(okButton), () => h(ButtonPrimary, { onClick: onDismiss }, okButton)],
-        [_.isFunction(okButton), () => h(ButtonPrimary, { onClick: okButton }, 'OK')],
-        () => okButton
-      )
+        }, [icon('times-circle')])
+      ]),
+      children,
+      showButtons && div({ style: styles.buttonRow }, [
+        showCancel ?
+          h(ButtonSecondary, {
+            style: { marginRight: '1rem' },
+            onClick: onDismiss
+          }, [cancelText]) :
+          null,
+        Utils.cond(
+          [okButton === undefined, () => h(ButtonPrimary, { onClick: onDismiss }, 'OK')],
+          [_.isString(okButton), () => h(ButtonPrimary, { onClick: onDismiss }, okButton)],
+          [_.isFunction(okButton), () => h(ButtonPrimary, { onClick: okButton }, 'OK')],
+          () => okButton
+        )
+      ])
     ])
   ])
 }
