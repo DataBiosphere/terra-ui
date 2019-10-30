@@ -174,13 +174,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
     const { currentCluster } = this.props
     if (currentCluster) {
-      const { clusterImages } = await Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details()
+      const { clusterImages, jupyterUserScriptUri } = await Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details()
       const { dockerImage } = _.find({ tool: 'Jupyter' }, clusterImages)
 
       if (_.find({ image: dockerImage }, leoImages)) {
         this.setState({ selectedLeoImage: dockerImage })
       } else {
         this.setState({ isCustomEnv: true, customEnvImage: dockerImage })
+      }
+
+      if (jupyterUserScriptUri) {
+        this.setState({ jupyterUserScriptUri, profile: 'custom' })
       }
     }
   })
