@@ -372,16 +372,16 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
 }
 
 const getDataset = dataExplorerUrl => {
-  if (dataExplorerUrl.includes('appspot.com')) {
-    // Cohort was imported from standalone Data Explorer, eg
-    // https://test-data-explorer.appspot.com/
-    return _.find({ origin: new URL(dataExplorerUrl).origin }, datasets)
-  } else {
-    // Cohort was imported from embedded Data Explorer, eg
+  // Either cohort was imported from standalone Data Explorer, eg
+  // https://test-data-explorer.appspot.com/
+  const dataset = _.find({ origin: new URL(dataExplorerUrl).origin }, datasets)
+  if (!dataset) {
+    // Or cohort was imported from embedded Data Explorer, eg
     // https://app.terra.bio/#library/datasets/public/1000%20Genomes/data-explorer
     const datasetName = unescape(dataExplorerUrl.split(/datasets\/(?:public\/)?([^/]+)\/data-explorer/)[1])
     return _.find({ name: datasetName }, datasets)
   }
+  return dataset
 }
 
 const ToolDrawer = _.flow(
