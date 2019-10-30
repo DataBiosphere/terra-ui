@@ -8,7 +8,7 @@ const workspace = process.env.WORKSPACE
 const url = 'http://localhost:3000'
 
 test.skip('integration', async () => {
-  await page.goto('http://localhost:3000')
+  await page.goto(url)
   await click(page, 'View Examples')
   await signIntoTerra(page)
   await click(page, 'code & workflows')
