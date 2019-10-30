@@ -20,6 +20,7 @@ import { IGVFileSelector } from 'src/components/IGVFileSelector'
 import { DelayedSearchInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { withModalDrawer } from 'src/components/ModalDrawer'
+import { cohortNotebook, NotebookCreator } from 'src/components/notebook-utils'
 import { notify } from 'src/components/Notifications'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TitleBar from 'src/components/TitleBar'
@@ -28,8 +29,9 @@ import WorkflowSelector from 'src/components/WorkflowSelector'
 import datasets from 'src/data/datasets'
 import dataExplorerLogo from 'src/images/data-explorer-logo.svg'
 import igvLogo from 'src/images/igv-logo.png'
+import jupyterLogo from 'src/images/jupyter-logo.svg'
 import wdlLogo from 'src/images/wdl-logo.png'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -61,13 +63,14 @@ const styles = {
   }
 }
 
-export const ModalToolButton = ({ children, disabled, ...props }) => {
+export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
   return h(Clickable, _.merge({
     disabled,
     style: {
-      color: disabled ? colors.secondary() : colors.dark(),
+      color: disabled ? colors.secondary() : colors.accent(),
+      opacity: disabled ? 0.5 : undefined,
       border: '1px solid transparent',
-      padding: '0 0.875rem',
+      padding: '0 0.875rem', marginBottom: '0.5rem',
       backgroundColor: 'white',
       display: 'flex',
       alignItems: 'center',
@@ -79,7 +82,12 @@ export const ModalToolButton = ({ children, disabled, ...props }) => {
       border: `1px solid ${colors.accent(0.8)}`,
       boxShadow: Style.standardShadow
     }
-  }, props), [children])
+  }, props), [
+    div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
+      img({ src: icon, style: { opacity: disabled ? 0.5 : undefined, maxWidth: 45, maxHeight: 40 } })
+    ]),
+    text
+  ])
 }
 
 const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
@@ -378,11 +386,33 @@ const getDataset = dataExplorerUrl => {
 
 const ToolDrawer = _.flow(
   Utils.withDisplayName('ToolDrawer'),
+  requesterPaysWrapper({
+    onDismiss: ({ onDismiss }) => onDismiss()
+  }),
   withModalDrawer()
 )(({
-  workspace, workspace: { workspace: { workspaceId } }, onDismiss, onIgvSuccess, entityMetadata, entityKey, selectedEntities
+  workspace, workspace: { workspace: { bucketName, name: wsName, namespace, workspaceId } },
+  onDismiss, onIgvSuccess, onRequesterPaysError, entityMetadata, entityKey, selectedEntities
 }) => {
   const [toolMode, setToolMode] = useState()
+  const [notebookNames, setNotebookNames] = useState()
+  const signal = useCancellation()
+
+  const { Buckets } = Ajax(signal)
+
+  Utils.useOnMount(() => {
+    const loadNotebookNames = _.flow(
+      withRequesterPaysHandler(onRequesterPaysError),
+      withErrorReporting('Error loading notebooks')
+    )(async () => {
+      const notebooks = await Buckets.listNotebooks(namespace, bucketName)
+      // slice removes 'notebooks/' and the .ipynb suffix
+      setNotebookNames(notebooks.map(notebook => notebook.name.slice(10, -6)))
+    })
+
+    loadNotebookNames()
+  })
+
   const entitiesCount = _.size(selectedEntities)
   const isCohort = entityKey === 'cohort'
 
@@ -395,6 +425,8 @@ const ToolDrawer = _.flow(
   const dataExplorerPath = openDataExplorerInSameTab && Nav.getLink(dataset.authDomain ?
     'data-explorer-private' :
     'data-explorer-public', { dataset: dataset.name }) + '?' + dataExplorerUrl.split('?')[1]
+
+  const notebookButtonEnabled = isCohort && entitiesCount === 1
 
   const { title, drawerContent } = Utils.switchCase(toolMode, [
     'IGV', () => ({
@@ -410,6 +442,21 @@ const ToolDrawer = _.flow(
       drawerContent: h(WorkflowSelector, { workspace, selectedEntities })
     })
   ], [
+    'Notebook', () => ({
+      drawerContent: h(NotebookCreator, {
+        bucketName, namespace,
+        existingNames: notebookNames,
+        onSuccess: async notebookName => {
+          const cohortName = _.values(selectedEntities)[0].name
+          const contents = cohortNotebook(cohortName)
+          await Buckets.notebook(namespace, bucketName, notebookName).create(JSON.parse(contents))
+          Nav.goToPath('workspace-notebook-launch', { namespace, name: wsName, notebookName: `${notebookName}.ipynb` })
+        },
+        onDismiss: setToolMode,
+        reloadList: _.noop
+      })
+    })
+  ], [
     Utils.DEFAULT, () => ({
       title: 'OPEN WITH...',
       drawerContent: h(Fragment, [
@@ -418,24 +465,17 @@ const ToolDrawer = _.flow(
             h(ModalToolButton, {
               onClick: () => setToolMode('IGV'),
               disabled: isCohort,
-              tooltip: isCohort ? 'IGV cannot be opened with cohorts' : 'Open with Integrative Genomics Viewer'
-            }, [
-              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                img({ src: igvLogo, style: { width: 40 } })
-              ]),
-              'IGV'
-            ]),
+              tooltip: isCohort ? 'IGV cannot be opened with cohorts' : 'Open with Integrative Genomics Viewer',
+              icon: igvLogo,
+              text: 'IGV'
+            }),
             h(ModalToolButton, {
               onClick: () => setToolMode('Workflow'),
               disabled: isCohort,
               tooltip: isCohort ? 'Workflow cannot be opened with cohorts' : 'Open with Workflow',
-              style: { marginTop: '0.5rem' }
-            }, [
-              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                img({ src: wdlLogo, style: { height: '1rem' } })
-              ]),
-              'Workflow'
-            ]),
+              icon: wdlLogo,
+              text: 'Workflow'
+            }),
             h(ModalToolButton, {
               onClick: !openDataExplorerInSameTab ? onDismiss : undefined,
               href: openDataExplorerInSameTab ? dataExplorerPath : dataExplorerUrl,
@@ -445,16 +485,23 @@ const ToolDrawer = _.flow(
                 [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
                 [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in Data Explorer'],
                 [isCohort && !dataExplorerUrl, () => 'Cohort is too old, please recreate in Data Explorer and save to Terra again'],
-                [!isCohort, () => 'Only cohorts can be opened with Data Explorer'],
-                () => undefined
+                [!isCohort, () => 'Only cohorts can be opened with Data Explorer']
               ),
-              style: { marginTop: '0.5rem' }
-            }, [
-              div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
-                img({ src: dataExplorerLogo, style: { opacity: !dataExplorerButtonEnabled ? .25 : undefined, width: 40 } })
-              ]),
-              'Data Explorer'
-            ])
+              icon: dataExplorerLogo,
+              text: 'Data Explorer'
+            }),
+            h(ModalToolButton, {
+              onClick: () => setToolMode('Notebook'),
+              disabled: !notebookButtonEnabled,
+              tooltip: Utils.cond(
+                [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
+                [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in notebook'],
+                [!isCohort, () => 'Only cohorts can be opened with notebooks'],
+                [notebookButtonEnabled, () => 'Create a Python 2 or 3 notebook with this cohort']
+              ),
+              icon: jupyterLogo,
+              text: 'Notebook'
+            })
           ])
         ])
       ])
