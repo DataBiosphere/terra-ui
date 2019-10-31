@@ -281,8 +281,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   ])
                 ]),
                 div({ style: { gridColumnStart: 2, gridColumnEnd: 'span 2', alignSelf: 'start' } }, [
-                  h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Learn how']),
-                  ' to create your own custom docker image from one of our ',
+                  h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom notebook environments']),
+                  span({ style: { fontWeight: 'bold' } }, [' must ']),
+                  ' be based off one of the ',
                   h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])
                 ])
               ]) :
