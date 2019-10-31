@@ -926,6 +926,7 @@ const WorkspaceData = _.flow(
 
   refresh() {
     this.setState(({ refreshKey }) => ({ refreshKey: refreshKey + 1 }))
+    this.loadMetadata()
   }
 
   selectionType() {
@@ -992,7 +993,6 @@ const WorkspaceData = _.flow(
           uploadingFile && h(EntityUploader, {
             onDismiss: () => this.setState({ uploadingFile: false }),
             onSuccess: () => this.setState({ uploadingFile: false }, () => {
-              this.loadMetadata()
               this.refresh()
             }),
             namespace, name,
