@@ -1,6 +1,7 @@
 const path = require('path')
 const { useEslintRc } = require('customize-cra')
 
+
 module.exports = ({ config }) => {
   // Needed for .stories/config.js
   config.resolve.modules.push(path.resolve(__dirname, '../'))
@@ -9,12 +10,11 @@ module.exports = ({ config }) => {
     return data
   })
 
+  // Replace storybook's default svg loader	
   config.module.rules.push({
     test: /\.svg$/,
     use: [{ loader: require.resolve('svg-react-loader') }]
   })
 
-  const newConfig = useEslintRc()(config)
-
-  return newConfig
+  return useEslintRc()(config)
 }
