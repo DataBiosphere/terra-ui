@@ -1,3 +1,6 @@
+const flow = require('lodash/flow') // eslint-disable-line lodash-fp/use-fp
+
+
 const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
   const readyState = new Promise(resolve => {
     const start = Date.now()
@@ -68,7 +71,8 @@ const delay = ms => {
 }
 
 const signIntoTerra = async page => {
-  await findText(page, 'requires a Google Account')
+  await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true })
+  await waitForNoSpinners(page)
   return page.evaluate(token => window.forceSignIn(token), process.env.TERRA_TOKEN)
 }
 
@@ -85,5 +89,6 @@ module.exports = {
   select,
   waitForNoSpinners,
   delay,
-  signIntoTerra
+  signIntoTerra,
+  flow
 }

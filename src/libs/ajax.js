@@ -1082,6 +1082,8 @@ export const Ajax = signal => {
   }
 }
 
+window.Ajax = Ajax
+
 export const useCancellation = () => {
   const controller = useRef()
   useEffect(() => {

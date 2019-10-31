@@ -4,7 +4,7 @@ const dataExplorer = require('./data-explorer-utils')
 
 const workspace = process.env.WORKSPACE
 
-test.skip('integration', async () => {
+const test = async ({ page = global.page }) => {
   const cohortName = `terra-ui-test-cohort`
 
   await page.goto('http://localhost:3000')
@@ -25,4 +25,10 @@ test.skip('integration', async () => {
   await click(page, 'cohort')
   await findInGrid(page, '1000 Genomes')
   await findInGrid(page, cohortName)
-}, 60 * 10000)
+}
+
+module.exports = {
+  name: 'import cohort data',
+  test,
+  timeout: 60 * 10000
+}
