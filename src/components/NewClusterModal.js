@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
-import { b, div, h, label, p, span} from 'react-hyperscript-helpers'
+import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, Link, Select, SimpleTabBar } from 'src/components/common'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
