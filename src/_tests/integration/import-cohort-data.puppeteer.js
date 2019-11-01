@@ -13,7 +13,7 @@ const test = withWorkspace(async ({ workspaceName }) => {
   await click(page, '1000 Genomes Low Coverage')
 
   const frame = await findIframe(page)
-  await dataExplorer.clickTextInAnyNS(frame, 'Has WGS Low Cov')
+  await dataExplorer.clickTextInAnyNS(frame, 'Has WGS Low')
   await click(frame, 'Save cohort')
   await dataExplorer.fillIn(frame, 'name', cohortName)
   await dataExplorer.click(frame, 'Save')
