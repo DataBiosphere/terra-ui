@@ -126,7 +126,7 @@ class ImageDepViewer extends Component {
         div({ style: { fontWeight: 'bold', marginRight: '1rem' } }, ['Installed packages']),
         pages.length === 1 ?
           `(${language})` :
-          div({ style: { width: 100, textTransform: 'capitalize' } }, [
+          div({ style: { width: 120, textTransform: 'capitalize' } }, [
             h(Select, {
               'aria-label': 'Select a language',
               value: language,
