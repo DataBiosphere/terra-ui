@@ -434,11 +434,16 @@ const Billing = signal => ({
 const attributesUpdateOps = _.flow(
   _.toPairs,
   _.flatMap(([k, v]) => {
-    return _.isArray(v) ? [
-      { op: 'RemoveAttribute', attributeName: k },
-      ...(_.isObject(v[0]) ? [{ op: 'CreateAttributeEntityReferenceList', attributeListName: k }] : [{ op: 'CreateAttributeValueList', attributeName: k }]),
-      ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)
-    ] : [{ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }]
+    return _.isArray(v) ?
+      [
+        { op: 'RemoveAttribute', attributeName: k },
+        ...(_.isObject(v[0]) ?
+          [{ op: 'CreateAttributeEntityReferenceList', attributeListName: k }] :
+          [{ op: 'CreateAttributeValueList', attributeName: k }]
+        ),
+        ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)
+      ] :
+      [{ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }]
   })
 )
 

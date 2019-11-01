@@ -5,6 +5,7 @@ import { b, div, h, label, p, span, table, tbody, td, thead, tr } from 'react-hy
 import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, Link, Select, SimpleTabBar } from 'src/components/common'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
+import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/clusters'
 import { imageValidationRegexp } from 'src/data/leo-images'
@@ -89,75 +90,6 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
       ])
     ])
   ])
-}
-
-class ImageDepViewer extends Component {
-  static propTypes = {
-    packageDoc: PropTypes.object
-  }
-
-  constructor(props) {
-    super(props)
-
-    const { packageDoc } = props
-    this.state = this.extractStateFrom(packageDoc)
-  }
-
-  extractStateFrom(packageDoc) {
-    const pages = _.keys(packageDoc)
-    return {
-      packageDoc,
-      language: pages[0]
-    }
-  }
-
-  render() {
-    const { packageDoc } = this.props
-
-    const pages = this.props.packageDoc ? _.keys(packageDoc) : []
-    let language = ''
-    if (this.props.packageDoc) {
-      language = this.state.language && pages.includes(this.state.language) ? this.state.language : pages[0]
-    }
-    const packages = this.props.packageDoc ? packageDoc[language] : {}
-
-    return h(Fragment, [
-      div({ style: { display: 'flex', alignItems: 'center' } }, [
-        div({ style: { fontWeight: 'bold', marginRight: '1rem' } }, ['Installed packages']),
-        pages.length === 1 ?
-          `(${language})` :
-          div({ style: { width: 120, textTransform: 'capitalize' } }, [
-            h(Select, {
-              'aria-label': 'Select a language',
-              value: language,
-              onChange: ({ value }) => {
-                this.setState({ language: value })
-              },
-              isSearchable: false,
-              isClearable: false,
-              options: pages
-            })
-          ])
-      ]),
-      div({ style: { display: 'block', alignItems: 'left', padding: '1rem', marginTop: '1rem', backgroundColor: 'white', border: 'none', borderRadius: 5, overflowY: 'auto', flexGrow: 1 } }, [
-        table(
-          [
-            thead([
-              tr([td({ style: { align: 'left', fontWeight: 'bold', paddingRight: '1rem' } }, 'Package'),
-                td({ style: { align: 'left', fontWeight: 'bold' } }, 'Version')])
-            ]),
-            tbody(
-              _.keys(packages).map((name, index) => {
-                return [
-                  tr({ key: index }, [td({ style: { paddingRight: '1rem', paddingTop: index === 0 ? '1rem' : '0rem' } }, name),
-                    td({ style: { paddingTop: index === 0 ? '1rem' : '0rem' } }, packages[name])])
-                ]
-              }))
-          ])
-
-      ])
-    ])
-  }
 }
 
 export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
@@ -384,11 +316,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   ])
                 ]),
                 div({ style: { gridColumnStart: 2, alignSelf: 'start' } }, [
-                  h(Link, {
-                    onClick: () => {
-                      this.setState({ viewMode: 'Packages' })
-                    }
-                  }, ['What’s installed on this environment?'])
+                  h(Link, { onClick: () => { this.setState({ viewMode: 'Packages' }) } },
+                    ['What’s installed on this environment?'])
                 ]),
                 makeImageInfo()
               ])
