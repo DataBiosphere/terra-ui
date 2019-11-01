@@ -11,23 +11,11 @@ const makeWorkspace = async () => {
     return window.Ajax().Workspaces.create({ namespace: 'general-dev-billing-account', name, attributes: {} })
   }, workspaceName)
 
-  console.info(`created ${workspaceName}`)
+  console.info(`created ${workspaceName}, waiting 60s to make sure all SAM instances know about it`)
 
-  while (true) {
-    const workspaces = await page.evaluate(() => {
-      return window.Ajax().Workspaces.list(['accessLevel', 'workspace'])
-    })
-    console.log(workspaces.filter(({ accessLevel, workspace: { name, namespace } }) => {
-      return name === workspaceName
-    }))
-    if (workspaces.some(({ accessLevel, workspace: { name, namespace } }) => {
-      return name === workspaceName && accessLevel === 'OWNER' && namespace === 'general-dev-billing-account'
-    })) {
-      return workspaceName
-    } else {
-      await new Promise(resolve => setTimeout(resolve, 5000))
-    }
-  }
+  await new Promise(resolve => setTimeout(resolve, 60 * 1000))
+
+  return workspaceName
 }
 
 const deleteWorkspace = async workspaceName => {
