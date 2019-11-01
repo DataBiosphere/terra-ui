@@ -17,10 +17,7 @@ const findIframe = async page => {
   const iframeNode = await page.waitForXPath('//*[@role="main"]/iframe')
   const srcHandle = await iframeNode.getProperty('src')
   const src = await srcHandle.jsonValue()
-  const hasFrame = () => page.frames().find(frame => {
-    console.log(frame.url())
-    return frame.url().includes(src)
-  })
+  const hasFrame = () => page.frames().find(frame => frame.url().includes(src))
 
   return hasFrame() || await waitForFn({ fn: hasFrame })
 }

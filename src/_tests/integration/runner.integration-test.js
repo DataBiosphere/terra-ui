@@ -7,4 +7,4 @@ jest.setTimeout(5 * 60 * 1000)
 
 test('basic', basic)
 test('find workflow', findWorkflow)
-test.only('import cohort data', importCohortData)
+test('import cohort data', importCohortData)
