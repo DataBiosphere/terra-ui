@@ -1,10 +1,11 @@
-const { findInGrid, exactClick, click, findIframe, findText, select } = require('./integration-utils')
+const { withWorkspace } = require('./integration-helpers')
+const { findInGrid, exactClick, click, findIframe, signIntoTerra, select } = require('./integration-utils')
 const dataExplorer = require('./data-explorer-utils')
 
 
-const workspace = process.env.WORKSPACE
+const test = withWorkspace(async ({ workspaceName }) => {
+  page.setDefaultTimeout(60 * 1000)
 
-const test = async ({ page = global.page }) => {
   const cohortName = `terra-ui-test-cohort`
 
   await page.goto('http://localhost:3000')
@@ -17,18 +18,13 @@ const test = async ({ page = global.page }) => {
   await dataExplorer.fillIn(frame, 'name', cohortName)
   await dataExplorer.click(frame, 'Save')
 
-  await findText(page, 'requires a Google Account')
-  await page.evaluate(token => window.forceSignIn(token), process.env.TERRA_TOKEN)
+  await signIntoTerra(page)
 
-  await select(page, 'Select a workspace', workspace)
+  await select(page, 'Select a workspace', workspaceName)
   await exactClick(page, 'Import')
   await click(page, 'cohort')
   await findInGrid(page, '1000 Genomes')
   await findInGrid(page, cohortName)
-}
+})
 
-module.exports = {
-  name: 'import cohort data',
-  test,
-  timeout: 60 * 10000
-}
+module.exports = test

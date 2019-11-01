@@ -1,6 +1,3 @@
-const flow = require('lodash/flow') // eslint-disable-line lodash-fp/use-fp
-
-
 const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
   const readyState = new Promise(resolve => {
     const start = Date.now()
@@ -89,6 +86,5 @@ module.exports = {
   select,
   waitForNoSpinners,
   delay,
-  signIntoTerra,
-  flow
+  signIntoTerra
 }
