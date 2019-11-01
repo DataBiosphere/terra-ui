@@ -434,16 +434,11 @@ const Billing = signal => ({
 const attributesUpdateOps = _.flow(
   _.toPairs,
   _.flatMap(([k, v]) => {
-    return _.isArray(v) ?
-      [
-        { op: 'RemoveAttribute', attributeName: k },
-        ...(_.isObject(v[0]) ?
-          [{ op: 'CreateAttributeEntityReferenceList', attributeListName: k }] :
-          [{ op: 'CreateAttributeValueList', attributeName: k }]
-        ),
-        ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)
-      ] :
-      [{ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }]
+    return _.isArray(v) ? [
+      { op: 'RemoveAttribute', attributeName: k },
+      ...(_.isObject(v[0]) ? [{ op: 'CreateAttributeEntityReferenceList', attributeListName: k }] : [{ op: 'CreateAttributeValueList', attributeName: k }]),
+      ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)
+    ] : [{ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }]
   })
 )
 
@@ -734,6 +729,17 @@ const Workspaces = signal => ({
 
 
 const Buckets = signal => ({
+
+  getFile: async (bucket, object) => {
+    const request = { mode: 'cors' }
+    const res = await withUrlPrefix('https://storage.googleapis.com/', fetchOk)(`${bucket}/${object}`,
+      _.merge(request, { signal })
+    )
+
+    const file = await res.json()
+    return file
+  },
+
   getObject: async (bucket, object, namespace) => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}`,
       _.merge(authOpts(await saToken(namespace)), { signal })
@@ -785,7 +791,9 @@ const Buckets = signal => ({
     return fetchBuckets(
       `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(prefix + file.name)}`,
       _.merge(authOpts(await saToken(namespace)), {
-        signal, method: 'POST', body: file,
+        signal,
+        method: 'POST',
+        body: file,
         headers: { 'Content-Type': file.type, 'Content-Length': file.size }
       })
     )

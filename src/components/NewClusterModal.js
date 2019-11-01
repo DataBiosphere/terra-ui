@@ -1,13 +1,13 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, Fragment, useState } from 'react'
-import { b, div, h, iframe, label, p, span } from 'react-hyperscript-helpers'
+import { Component, Fragment } from 'react'
+import { b, div, h, label, p, span, table, tbody, td, thead, tr } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, Link, Select, SimpleTabBar } from 'src/components/common'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/clusters'
-import { imageValidationRegexp, leoImages } from 'src/data/leo-images'
+import { imageValidationRegexp } from 'src/data/leo-images'
 import { Ajax } from 'src/libs/ajax'
 import { machineConfigCost, normalizeMachineConfig } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
@@ -91,36 +91,73 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
   ])
 }
 
-const ImageDepViewer = ({ packages }) => {
-  const pages = _.keys(packages)
-  const [language, setLanguage] = useState(pages[0])
-  const url = packages[language]
+class ImageDepViewer extends Component {
+  static propTypes = {
+    packageDoc: PropTypes.object
+  }
 
-  return h(Fragment, [
-    div({ style: { display: 'flex', alignItems: 'center' } }, [
-      div({ style: { fontWeight: 'bold', marginRight: '1rem' } }, ['Installed packages']),
-      pages.length === 1 ?
-        `(${language})` :
-        div({ style: { width: 100, textTransform: 'capitalize' } }, [
-          h(Select, {
-            'aria-label': 'Select a language',
-            value: language,
-            onChange: ({ value }) => setLanguage(value),
-            isSearchable: false,
-            isClearable: false,
-            options: pages
-          })
-        ])
-    ]),
-    iframe({
-      src: url,
-      style: {
-        padding: '1rem', marginTop: '1rem',
-        backgroundColor: 'white', borderRadius: 5, border: 'none',
-        overflowY: 'auto', flexGrow: 1
-      }
-    })
-  ])
+  constructor(props) {
+    super(props)
+
+    const { packageDoc } = props
+    this.state = this.extractStateFrom(packageDoc)
+  }
+
+  extractStateFrom(packageDoc) {
+    const pages = _.keys(packageDoc)
+    return {
+      packageDoc,
+      language: pages[0]
+    }
+  }
+
+  render() {
+    const { packageDoc } = this.props
+
+    const pages = this.props.packageDoc ? _.keys(packageDoc) : []
+    let language = ''
+    if (this.props.packageDoc) {
+      language = this.state.language && pages.includes(this.state.language) ? this.state.language : pages[0]
+    }
+    const packages = this.props.packageDoc ? packageDoc[language] : {}
+
+    return h(Fragment, [
+      div({ style: { display: 'flex', alignItems: 'center' } }, [
+        div({ style: { fontWeight: 'bold', marginRight: '1rem' } }, ['Installed packages']),
+        pages.length === 1 ?
+          `(${language})` :
+          div({ style: { width: 100, textTransform: 'capitalize' } }, [
+            h(Select, {
+              'aria-label': 'Select a language',
+              value: language,
+              onChange: ({ value }) => {
+                this.setState({ language: value })
+              },
+              isSearchable: false,
+              isClearable: false,
+              options: pages
+            })
+          ])
+      ]),
+      div({ style: { display: 'block', alignItems: 'left', padding: '1rem', marginTop: '1rem', backgroundColor: 'white', border: 'none', borderRadius: 5, overflowY: 'auto', flexGrow: 1 } }, [
+        table(
+          [
+            thead([
+              tr([td({ style: { align: 'left', fontWeight: 'bold', paddingRight: '1rem' } }, 'Package'),
+                td({ style: { align: 'left', fontWeight: 'bold' } }, 'Version')])
+            ]),
+            tbody(
+              _.keys(packages).map((name, index) => {
+                return [
+                  tr({ key: index }, [td({ style: { paddingRight: '1rem', paddingTop: index === 0 ? '1rem' : '0rem' } }, name),
+                    td({ style: { paddingTop: index === 0 ? '1rem' : '0rem' } }, packages[name])])
+                ]
+              }))
+          ])
+
+      ])
+    ])
+  }
 }
 
 export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
@@ -139,21 +176,48 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ({ machineConfig }) => machineConfigsEqual(machineConfig, currentConfig),
       profiles
     )
+
+    this.fetchMasterVersionFile()
+
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
       jupyterUserScriptUri: '',
-      selectedLeoImage: leoImages[0].image,
-      isCustomEnv: false, customEnvImage: '', viewMode: undefined,
+      isCustomEnv: false,
+      customEnvImage: '',
+      viewMode: undefined,
       ...normalizeMachineConfig(currentConfig)
     }
+  }
+
+  async fetchMasterVersionFile() {
+    const defaultImageId = 'leonardo-jupyter-dev'
+    const file = await Ajax().Buckets.getFile('terra-docker-image-documentation', 'terra-docker-versions.json')
+    this.setState({ leoImages: file, selectedLeoImage: file.filter(doc => doc.id === defaultImageId)[0].image })
+
+    const imageConfig = _.find({ id: defaultImageId }, file)
+    const { packages } = imageConfig
+
+    this.fetchImageDocumentation(packages)
+  }
+
+  async fetchImageDocumentation(packageLink) {
+    const splitPath = packageLink.split('/')
+    const object = splitPath[splitPath.length - 1]
+    const bucket = splitPath[splitPath.length - 2]
+
+    const file = await Ajax().Buckets.getFile(bucket, object)
+    this.setState({ packageDoc: file })
   }
 
   getMachineConfig() {
     const { numberOfWorkers, masterMachineType, masterDiskSize, workerMachineType, workerDiskSize, numberOfPreemptibleWorkers } = this.state
     return {
-      numberOfWorkers, masterMachineType,
-      masterDiskSize, workerMachineType,
-      workerDiskSize, numberOfWorkerLocalSSDs: 0,
+      numberOfWorkers,
+      masterMachineType,
+      masterDiskSize,
+      workerMachineType,
+      workerDiskSize,
+      numberOfWorkerLocalSSDs: 0,
       numberOfPreemptibleWorkers
     }
   }
@@ -173,6 +237,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
     const { currentCluster } = this.props
+    const { leoImages } = this.state
     if (currentCluster) {
       const { clusterImages, jupyterUserScriptUri } = await Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details()
       const { dockerImage } = _.find({ tool: 'Jupyter' }, clusterImages)
@@ -192,18 +257,35 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   render() {
     const { currentCluster, onDismiss } = this.props
     const {
-      profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, isCustomEnv, customEnvImage,
-      viewMode
+      profile,
+      masterMachineType,
+      masterDiskSize,
+      workerMachineType,
+      numberOfWorkers,
+      numberOfPreemptibleWorkers,
+      workerDiskSize,
+      jupyterUserScriptUri,
+      selectedLeoImage,
+      isCustomEnv,
+      customEnvImage,
+      viewMode,
+      leoImages,
+      packageDoc
     } = this.state
-    const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
+
+    const { version, updated } = _.find({ image: selectedLeoImage }, leoImages) || { version: '0.0.0', updated: Utils.makeStandardDate('1970-01-01') }
 
     const isCustomImageInvalid = !imageValidationRegexp.test(customEnvImage)
 
     const makeEnvSelect = id => h(Select, {
       id,
       value: selectedLeoImage,
-      onChange: ({ value }) => this.setState({ selectedLeoImage: value }),
+      onChange: ({ value }) => {
+        const imageConfig = _.find({ image: value }, leoImages)
+        const { packages } = imageConfig
+        this.fetchImageDocumentation(packages)
+        this.setState({ selectedLeoImage: value })
+      },
       isSearchable: false,
       isClearable: false,
       options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
@@ -220,7 +302,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         contents: h(Fragment, [
           makeEnvSelect(),
           makeImageInfo({ margin: '1rem 0 2rem' }),
-          h(ImageDepViewer, { packages })
+          h(ImageDepViewer, { packageDoc })
         ])
       })
     ], [
@@ -230,7 +312,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Warning!']),
           p([
             `You are about to create a virtual machine using an unverified Docker image. 
-             Please make sure that it was created by you or someone you trust, using one of our `,
+           Please make sure that it was created by you or someone you trust, using one of our `,
             h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
             ' Custom Docker images could potentially cause serious security issues.'
           ]),
@@ -259,7 +341,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           }),
           div({
             style: {
-              display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center', margin: '1.5rem 0 1rem', minHeight: 100
+              display: 'grid',
+              gridTemplateColumns: '7rem 2fr 1fr',
+              gridGap: '1rem',
+              alignItems: 'center',
+              margin: '1.5rem 0 1rem',
+              minHeight: 100
             }
           }, [
             isCustomEnv ?
@@ -297,16 +384,22 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   ])
                 ]),
                 div({ style: { gridColumnStart: 2, alignSelf: 'start' } }, [
-                  h(Link, { onClick: () => this.setState({ viewMode: 'Packages' }) }, ['What’s installed on this environment?'])
+                  h(Link, {
+                    onClick: () => {
+                      this.setState({ viewMode: 'Packages' })
+                    }
+                  }, ['What’s installed on this environment?'])
                 ]),
                 makeImageInfo()
               ])
           ]),
           div({
             style: {
-              padding: '1rem', marginTop: '1rem',
+              padding: '1rem',
+              marginTop: '1rem',
               backgroundColor: colors.dark(0.15),
-              border: `2px solid ${colors.dark(0.3)}`, borderRadius: '9px'
+              border: `2px solid ${colors.dark(0.3)}`,
+              borderRadius: '9px'
             }
           }, [
             div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
@@ -364,8 +457,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                       numberOfPreemptibleWorkers: 0
                     })
                   }, ' Configure as Spark cluster')
-                ]),
-                !!numberOfWorkers && h(Fragment, [
+                ]), !!numberOfWorkers && h(Fragment, [
                   h(IdContainer, [
                     id => h(Fragment, [
                       label({ htmlFor: id, style: styles.label }, 'Workers'),
@@ -413,8 +505,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['Cost:']),
               `${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
             ])
-          ]),
-          !!currentCluster && div({ style: styles.warningBox }, [
+          ]), !!currentCluster && div({ style: styles.warningBox }, [
             div({ style: styles.label }, ['Caution:']),
             'Replacing your runtime will stop all running notebooks, and delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
             h(Link, {
