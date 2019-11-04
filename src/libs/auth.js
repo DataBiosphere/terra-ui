@@ -15,6 +15,10 @@ const getAuthInstance = () => {
   return window.gapi.auth2.getAuthInstance()
 }
 
+const getDateJoined = async () => {
+  return parseJSON((await Ajax().User.firstTimestamp()).timestamp)
+}
+
 export const signOut = () => {
   sessionStorage.clear()
   getAuthInstance().signOut()
@@ -158,7 +162,7 @@ authStore.subscribe(async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     window.newrelic.setCustomAttribute('userGoogleId', state.user.id)
     window.Appcues && window.Appcues.identify(state.user.id, {
-      dateCreated: parseJSON((await Ajax().User.firstTimestamp()).timestamp)
+      dateJoined: await getDateJoined()
     })
   }
 })
