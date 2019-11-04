@@ -78,7 +78,6 @@
     "eslint-plugin-react": "^7.16.0",
     "eslint-plugin-react-hooks": "^2.2.0",
     "eslint-plugin-simple-import-sort": "^4.0.0",
-    "gtoken": "^4.1.0",
     "husky": "^3.0.9",
     "react-app-rewire-hot-loader": "^2.0.1",
     "react-app-rewired": "^2.1.4",
