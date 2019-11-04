@@ -141,18 +141,21 @@ jobs:
             - test-deps-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/package-lock.json" }}
             - test-deps-{{ checksum "integration-tests/package.json" }}-
             - test-deps-
+      - run:
+          working_directory: integration-tests
+          command: npx npm@6.12 ci
+      - save_cache:
+          key: test-deps-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/package-lock.json" }}
+          paths:
+            - ~/.npm
       - run: cp config/dev.json build/config.json
       - run:
           command: npx serve build -l 3000
           background: true
       - run: timeout 120 bash -c "until nc -z localhost 3000; do sleep 3; done"
-      - run: echo 'export TERRA_TOKEN=$(node integration-tests/getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}")' >> $BASH_ENV
-      - run: cd integration-tests; npx npm@6.12 ci
-      - save_cache:
-          key: test-deps-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/package-lock.json" }}
-          paths:
-            - ~/.npm
-      - run: cd integration-tests; npm run test
+      - run:
+          working_directory: integration-tests
+          command: TERRA_TOKEN=$(node getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}") npm run test
 
 workflows:
   version: 2
