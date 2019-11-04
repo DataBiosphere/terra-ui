@@ -8,8 +8,8 @@ const workflowName = 'haplotypecaller-gvcf-gatk4'
 
 test('find workflow', withWorkspace(async ({ workspaceName }) => {
   await page.goto(testUrl)
-  await click(page, 'View Examples')
   await signIntoTerra(page)
+  await click(page, 'View Examples')
   await click(page, 'code & workflows')
   await click(page, workflowName)
 
