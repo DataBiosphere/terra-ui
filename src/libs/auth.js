@@ -1,3 +1,4 @@
+import { parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import { ShibbolethLink } from 'src/components/common'
@@ -153,10 +154,12 @@ authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldSt
  * hashes to identify a user in our analytics data. We trust our developers to refrain from
  * doing this.
  */
-authStore.subscribe((state, oldState) => {
+authStore.subscribe(async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     window.newrelic.setCustomAttribute('userGoogleId', state.user.id)
-    window.Appcues && window.Appcues.identify(state.user.id)
+    window.Appcues && window.Appcues.identify(state.user.id, {
+      dateCreated: parseJSON((await Ajax().User.firstTimestamp()).timestamp)
+    })
   }
 })
 
