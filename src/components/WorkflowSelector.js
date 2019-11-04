@@ -34,8 +34,9 @@ const WorkflowSelector = ({ workspace: { workspace: { namespace, name } }, selec
 
   const makeWfCard = ({ namespace: workflowNamespace, name: workflowName }) => h(ModalToolButton, {
     href: `${Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName })}?selectionKey=${selectionKey}`,
-    style: { marginBottom: '1rem', height: 50, flex: 'none' }
-  }, [div({ style: Style.elements.card.title }, [workflowName])])
+    style: { marginBottom: '1rem', height: 50, flex: 'none' },
+    text: workflowName
+  })
 
   return div({ style: { ...Style.modalDrawer.content, overflowY: 'auto' } }, [
     loading ?
