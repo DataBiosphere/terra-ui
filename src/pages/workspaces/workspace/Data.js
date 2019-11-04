@@ -800,7 +800,7 @@ const BucketContent = _.flow(
     const prefixParts = _.dropRight(1, prefix.split('/'))
     const makeBucketLink = ({ label, target, onClick }) => h(Link, {
       style: { textDecoration: 'underline' },
-      href: `gs://${bucketName}/${target}`,
+      href: target,
       onClick: e => {
         e.preventDefault()
         onClick()
