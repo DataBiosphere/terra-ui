@@ -167,7 +167,7 @@ export const toIndexPairs = _.flow(_.toPairs, _.map(([k, v]) => [k * 1, v]))
  * Memoizes an async function for up to `expires` ms.
  * Rejected promises are immediately removed from the cache.
  */
-export const memoizeAsync = (asyncFn, { keyFn = _.identity, expires }) => {
+export const memoizeAsync = (asyncFn, { keyFn = _.identity, expires = Infinity }) => {
   const cache = {}
   return (...args) => {
     const now = Date.now()
