@@ -1,14 +1,14 @@
+const dataExplorer = require('./data-explorer-utils')
+const { testUrl } = require('./integration-config')
 const { withWorkspace } = require('./integration-helpers')
 const { findInGrid, exactClick, click, findIframe, signIntoTerra, select } = require('./integration-utils')
-const dataExplorer = require('./data-explorer-utils')
 
 
-const test = withWorkspace(async ({ workspaceName }) => {
-  page.setDefaultTimeout(60 * 1000)
-
+test('import cohort data', withWorkspace(async ({ workspaceName }) => {
   const cohortName = `terra-ui-test-cohort`
 
-  await page.goto('http://localhost:3000')
+  await page.goto(testUrl)
+  await signIntoTerra(page)
   await click(page, 'Browse Data')
   await click(page, '1000 Genomes Low Coverage')
 
@@ -25,6 +25,4 @@ const test = withWorkspace(async ({ workspaceName }) => {
   await click(page, 'cohort')
   await findInGrid(page, '1000 Genomes')
   await findInGrid(page, cohortName)
-})
-
-module.exports = test
+}), 5 * 60 * 1000)

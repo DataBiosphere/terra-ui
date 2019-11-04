@@ -1,17 +1,13 @@
-const { withWorkspace } = require('./integration-helpers')
-const { click, findText, signIntoTerra, findClickable } = require('./integration-utils')
 const firecloud = require('./firecloud-utils')
+const { billingProject, testUrl } = require('./integration-config')
+const { withWorkspace } = require('./integration-helpers')
+const { click, findClickable, findText, signIntoTerra } = require('./integration-utils')
 
 
 const workflowName = 'haplotypecaller-gvcf-gatk4'
-const billingAccount = 'general-dev-billing-account'
 
-const url = 'http://localhost:3000'
-
-const test = withWorkspace(async ({ workspaceName }) => {
-  page.setDefaultTimeout(60 * 1000)
-
-  await page.goto(url)
+test('find workflow', withWorkspace(async ({ workspaceName }) => {
+  await page.goto(testUrl)
   await click(page, 'View Examples')
   await signIntoTerra(page)
   await click(page, 'code & workflows')
@@ -23,17 +19,17 @@ const test = withWorkspace(async ({ workspaceName }) => {
   await click(page, `${workflowName}-configured`)
   await click(page, 'Use Selected Configuration')
   await findText(page, 'Select a workspace')
-  await firecloud.selectWorkspace(page, billingAccount, workspaceName)
+  await firecloud.selectWorkspace(page, billingProject, workspaceName)
   await firecloud.click(page, 'import-export-confirm-button')
 
   /* This else/if is necessary to "hack" going back to localhost:3000-Terra after going to Firecloud,
    without these lines it will redirect to dev-Terra even if started out at localhost:3000-Terra */
-  if (url === 'http://localhost:3000') {
+  if (testUrl === 'http://localhost:3000') {
     await findClickable(page, 'Yes')
     const yesButtonHrefDetails = (await page.$x('//a[contains(text(), "Yes")]/@href'))[0]
     const redirectURL = (await page.evaluate(yesButton => yesButton.textContent, yesButtonHrefDetails)).replace(
       'https://bvdp-saturn-dev.appspot.com',
-      url)
+      testUrl)
     await page.goto(redirectURL)
   } else {
     await click(page, 'Yes')
@@ -43,6 +39,4 @@ const test = withWorkspace(async ({ workspaceName }) => {
   await signIntoTerra(page)
   await findText(page, `${workflowName}-configured`)
   await findText(page, 'inputs')
-})
-
-module.exports = test
+}), 5 * 60 * 1000)

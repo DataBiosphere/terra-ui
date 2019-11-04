@@ -1,0 +1,11 @@
+const {
+  TEST_URL: testUrl = 'http://localhost:3000',
+  TERRA_TOKEN: bearerToken,
+  BILLING_PROJECT: billingProject = 'general-dev-billing-account'
+} = process.env
+
+module.exports = {
+  bearerToken,
+  billingProject,
+  testUrl
+}

@@ -1,3 +1,6 @@
+const { bearerToken } = require('./integration-config')
+
+
 const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
   const readyState = new Promise(resolve => {
     const start = Date.now()
@@ -70,7 +73,7 @@ const delay = ms => {
 const signIntoTerra = async page => {
   await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true })
   await waitForNoSpinners(page)
-  return page.evaluate(token => window.forceSignIn(token), process.env.TERRA_TOKEN)
+  return page.evaluate(token => window.forceSignIn(token), bearerToken)
 }
 
 module.exports = {
