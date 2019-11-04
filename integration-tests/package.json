@@ -1,0 +1,14 @@
+{
+  "name": "terra-integration-tests",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "preinstall": "node ../.hooks/check-engine-light.js",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^24.9.0",
+    "jest-puppeteer": "^4.3.0",
+    "puppeteer": "^2.0.0"
+  }
+}
