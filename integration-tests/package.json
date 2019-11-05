@@ -15,7 +15,7 @@
   },
   "jest-junit": {
     "suiteName": "Integration tests",
-    "titleTemplate": "{filename} {title}",
+    "suiteNameTemplate": "{filename}",
     "addFileAttribute": true,
     "includeConsoleOutput": true
   }
