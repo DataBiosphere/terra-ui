@@ -1,7 +1,7 @@
-const firecloud = require('./firecloud-utils')
-const { billingProject, testUrl } = require('./integration-config')
-const { withWorkspace } = require('./integration-helpers')
-const { click, findClickable, findText, signIntoTerra } = require('./integration-utils')
+const firecloud = require('../utils/firecloud-utils')
+const { billingProject, testUrl } = require('../utils/integration-config')
+const { withWorkspace } = require('../utils/integration-helpers')
+const { click, findClickable, findText, signIntoTerra } = require('../utils/integration-utils')
 
 
 const workflowName = 'haplotypecaller-gvcf-gatk4'

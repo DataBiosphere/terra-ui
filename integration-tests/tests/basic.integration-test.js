@@ -1,5 +1,5 @@
-const { testUrl } = require('./integration-config')
-const { click, findClickable, fillIn, select, waitForNoSpinners, signIntoTerra } = require('./integration-utils')
+const { testUrl } = require('../utils/integration-config')
+const { click, findClickable, fillIn, select, waitForNoSpinners, signIntoTerra } = require('../utils/integration-utils')
 
 
 test('basic', async () => {

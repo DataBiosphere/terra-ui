@@ -1,7 +1,7 @@
-const dataExplorer = require('./data-explorer-utils')
-const { testUrl } = require('./integration-config')
-const { withWorkspace } = require('./integration-helpers')
-const { findInGrid, exactClick, click, findIframe, signIntoTerra, select } = require('./integration-utils')
+const dataExplorer = require('../utils/data-explorer-utils')
+const { testUrl } = require('../utils/integration-config')
+const { withWorkspace } = require('../utils/integration-helpers')
+const { findInGrid, exactClick, click, findIframe, signIntoTerra, select } = require('../utils/integration-utils')
 
 
 test('import cohort data', withWorkspace(async ({ workspaceName }) => {
@@ -17,8 +17,6 @@ test('import cohort data', withWorkspace(async ({ workspaceName }) => {
   await click(frame, 'Save cohort')
   await dataExplorer.fillIn(frame, 'name', cohortName)
   await dataExplorer.click(frame, 'Save')
-
-  await signIntoTerra(page)
 
   await select(page, 'Select a workspace', workspaceName)
   await exactClick(page, 'Import')
