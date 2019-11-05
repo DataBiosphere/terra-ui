@@ -158,8 +158,8 @@ jobs:
           environment:
             JEST_JUNIT_OUTPUT_DIR: "/tmp/test-results/js-test-results.xml"
           command: |
-          TERRA_TOKEN=$(node getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}") \
-          npm run test -- --maxWorkers=2 --reporters=default --reporters=jest-junit
+            TERRA_TOKEN=$(node getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}") \
+            npm run test -- --maxWorkers=2 --reporters=default --reporters=jest-junit
       - store_test_results:
           path: /tmp/test-results
 
