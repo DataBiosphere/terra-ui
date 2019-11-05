@@ -1,5 +1,5 @@
 const { billingProject, testUrl } = require('./integration-config')
-const { signIntoTerra } = require('./integration-utils')
+const { delay, signIntoTerra } = require('./integration-utils')
 
 
 const makeWorkspace = async () => {
@@ -18,7 +18,7 @@ const makeWorkspace = async () => {
 
   await ajaxPage.close()
 
-  await new Promise(resolve => setTimeout(resolve, 60 * 1000))
+  await delay(60 * 1000)
 
   return workspaceName
 }

@@ -1,10 +1,8 @@
 const firecloud = require('../utils/firecloud-utils')
-const { billingProject, testUrl } = require('../utils/integration-config')
+const { billingProject, testUrl, workflowName } = require('../utils/integration-config')
 const { withWorkspace } = require('../utils/integration-helpers')
 const { click, findClickable, findText, signIntoTerra } = require('../utils/integration-utils')
 
-
-const workflowName = 'haplotypecaller-gvcf-gatk4'
 
 test('find workflow', withWorkspace(async ({ workspaceName }) => {
   await page.goto(testUrl)
@@ -35,7 +33,6 @@ test('find workflow', withWorkspace(async ({ workspaceName }) => {
     await click(page, 'Yes')
   }
 
-  await findText(page, 'requires a Google Account')
   await signIntoTerra(page)
   await findText(page, `${workflowName}-configured`)
   await findText(page, 'inputs')
