@@ -43,7 +43,10 @@ export const notebookNameValidator = existing => ({
   presence: { allowEmpty: false },
   format: {
     pattern: /^[^@#$%*+=?,[\]:;/\\]*$/,
-    message: 'can\'t contain these characters: @ # $ % * + = ? , [ ] : ; / \\ '
+    message: h(Fragment, [
+      div('Name can\'t contain these characters:'),
+      div({ style: { margin: '0.5rem 1rem' } }, '@ # $ % * + = ? , [ ] : ; / \\ ')
+    ])
   },
   exclusion: {
     within: existing,
