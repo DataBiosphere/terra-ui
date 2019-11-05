@@ -3,18 +3,18 @@ const { signIntoTerra } = require('./integration-utils')
 
 
 const makeWorkspace = async () => {
-  const page = await browser.newPage()
+  const ajaxPage = await browser.newPage()
 
-  await page.goto(testUrl)
-  await signIntoTerra(page)
+  await ajaxPage.goto(testUrl)
+  await signIntoTerra(ajaxPage)
 
   const workspaceName = `test-workspace-${Math.floor(Math.random() * 100000)}`
 
-  await page.evaluate((name, billingProject) => {
+  await ajaxPage.evaluate((name, billingProject) => {
     return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
   }, workspaceName, billingProject)
 
-  await page.close()
+  await ajaxPage.close()
 
   console.info(`created ${workspaceName}, waiting 60s to make sure all SAM instances know about it`)
 
@@ -24,22 +24,19 @@ const makeWorkspace = async () => {
 }
 
 const deleteWorkspace = async workspaceName => {
-  const page = await browser.newPage()
+  const ajaxPage = await browser.newPage()
 
-  await page.goto(testUrl)
-  await signIntoTerra(page)
+  await ajaxPage.goto(testUrl)
+  await signIntoTerra(ajaxPage)
 
-  await page.evaluate((name, billingProject) => {
+  await ajaxPage.evaluate((name, billingProject) => {
     return window.Ajax().Workspaces.workspace(billingProject, name).delete()
   }, workspaceName, billingProject)
 
-  await page.close()
+  await ajaxPage.close()
 }
 
 const withWorkspace = test => async () => {
-  await page.goto(testUrl)
-  await signIntoTerra(page)
-
   const workspaceName = await makeWorkspace()
 
   try {
