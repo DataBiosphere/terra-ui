@@ -11,6 +11,7 @@ import { imageValidationRegexp, leoImages } from 'src/data/leo-images'
 import { Ajax } from 'src/libs/ajax'
 import { machineConfigCost, normalizeMachineConfig } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
+import { withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -170,6 +171,24 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ]))
   }
 
+  componentDidMount = withErrorReporting('Error loading cluster', async () => {
+    const { currentCluster } = this.props
+    if (currentCluster) {
+      const { clusterImages, jupyterUserScriptUri } = await Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details()
+      const { dockerImage } = _.find({ tool: 'Jupyter' }, clusterImages)
+
+      if (_.find({ image: dockerImage }, leoImages)) {
+        this.setState({ selectedLeoImage: dockerImage })
+      } else {
+        this.setState({ isCustomEnv: true, customEnvImage: dockerImage })
+      }
+
+      if (jupyterUserScriptUri) {
+        this.setState({ jupyterUserScriptUri, profile: 'custom' })
+      }
+    }
+  })
+
   render() {
     const { currentCluster, onDismiss } = this.props
     const {
@@ -262,8 +281,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   ])
                 ]),
                 div({ style: { gridColumnStart: 2, gridColumnEnd: 'span 2', alignSelf: 'start' } }, [
-                  h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Learn how']),
-                  ' to create your own custom docker image from one of our ',
+                  h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom notebook environments']),
+                  span({ style: { fontWeight: 'bold' } }, [' must ']),
+                  ' be based off one of the ',
                   h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])
                 ])
               ]) :
