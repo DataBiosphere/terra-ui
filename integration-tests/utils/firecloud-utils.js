@@ -1,3 +1,4 @@
+const { bearerToken } = require('./integration-config')
 const { findText, waitForNoSpinners, delay } = require('./integration-utils')
 
 
@@ -22,7 +23,7 @@ const signIntoFirecloud = async page => {
   await waitForNoSpinners(page)
   await findText(page, 'content you are looking for is currently only accessible')
   await delay(500) // wait half a second for full load not accounted for by spinners
-  await page.evaluate(token => window.forceSignedIn(token), process.env.TERRA_TOKEN) // Note: function for Fire Cloud is forceSignedIn() while Terra is forceSignIn()
+  await page.evaluate(token => window.forceSignedIn(token), bearerToken) // Note: function for Fire Cloud is forceSignedIn() while Terra is forceSignIn()
 }
 
 module.exports = {

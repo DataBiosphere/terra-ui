@@ -58,7 +58,6 @@
     "build": "react-app-rewired build",
     "postbuild": "rm build/config.json",
     "test": "react-app-rewired test",
-    "test:integration": "jest -c src/_tests/integration/jest.config.js",
     "eject": "react-app-rewired eject",
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook"
@@ -79,10 +78,7 @@
     "eslint-plugin-react": "^7.16.0",
     "eslint-plugin-react-hooks": "^2.2.0",
     "eslint-plugin-simple-import-sort": "^4.0.0",
-    "gtoken": "^4.1.0",
     "husky": "^3.0.9",
-    "jest-puppeteer": "^4.3.0",
-    "puppeteer": "^1.20.0",
     "react-app-rewire-hot-loader": "^2.0.1",
     "react-app-rewired": "^2.1.4",
     "react-hot-loader": "^4.12.15",
