@@ -162,6 +162,8 @@ jobs:
             npx npm@6.12 run test -- --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
       - store_test_results:
           path: /tmp/test-results
+      - store_artifacts:
+          path: /tmp/failure-screenshots
 
 workflows:
   version: 2

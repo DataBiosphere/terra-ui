@@ -1082,6 +1082,7 @@ export const Ajax = signal => {
   }
 }
 
+// Exposing Ajax for use by integration tests (and debugging, or whatever)
 window.Ajax = Ajax
 
 export const useCancellation = () => {
