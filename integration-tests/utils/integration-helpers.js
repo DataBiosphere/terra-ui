@@ -1,4 +1,4 @@
-const { billingProject, testUrl } = require('./integration-config')
+const { billingProject, testUrl, screenshotDir } = require('./integration-config')
 const { delay, signIntoTerra } = require('./integration-utils')
 
 
@@ -44,7 +44,7 @@ const withWorkspace = test => async () => {
   try {
     await test({ workspaceName })
   } catch (e) {
-    await page.screenshot({ path: `/tmp/failure-screenshots/failure-${workspaceName}`, fullPage: true })
+    await page.screenshot({ path: `${screenshotDir}/failure-${workspaceName}`, fullPage: true })
     throw e
   } finally {
     await deleteWorkspace(workspaceName)
