@@ -12,5 +12,11 @@
     "jest-junit": "^9.0.0",
     "jest-puppeteer": "^4.3.0",
     "puppeteer": "^1.20.0"
+  },
+  "jest-junit": {
+    "suiteName": "Integration tests",
+    "titleTemplate": "{filename} {title}",
+    "addFileAttribute": true,
+    "includeConsoleOutput": true
   }
 }

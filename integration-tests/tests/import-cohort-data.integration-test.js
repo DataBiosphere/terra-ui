@@ -4,9 +4,9 @@ const { withWorkspace } = require('../utils/integration-helpers')
 const { findInGrid, exactClick, click, findIframe, signIntoTerra, select } = require('../utils/integration-utils')
 
 
-test('import cohort data', withWorkspace(async ({ workspaceName }) => {
-  const cohortName = `terra-ui-test-cohort`
+const cohortName = `terra-ui-test-cohort`
 
+test('import cohort data', withWorkspace(async ({ workspaceName }) => {
   await page.goto(testUrl)
   await signIntoTerra(page)
   await click(page, 'Browse Data')
