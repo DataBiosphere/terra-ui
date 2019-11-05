@@ -145,7 +145,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   //takes a packageDoc with n tools, and returns one with at most Python, R, and a generic 'tool' bucket
   packageDocAdaptor(packageDoc) {
     const tools = _.keys(packageDoc)
-    const nonGenericTools = ['python', 'r']
+    const nonGenericTools = ['r', 'python']
 
     const toolsLabel = 'tools'
 
@@ -168,7 +168,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     let finalDoc = genericDoc
     //if we found some tool docs
     if (!_.isEmpty(toolsDoc[toolsLabel])) {
-      finalDoc = _.merge(toolsDoc, genericDoc)
+      finalDoc = _.merge(genericDoc, toolsDoc)
     }
 
     return finalDoc

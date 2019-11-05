@@ -15,15 +15,7 @@ export class ImageDepViewer extends Component {
     super(props)
 
     const { packageDoc } = props
-    this.state = this.extractStateFrom(packageDoc)
-  }
-
-  extractStateFrom(packageDoc) {
-    const pages = _.keys(packageDoc)
-    return {
-      packageDoc,
-      language: pages[0]
-    }
+    this.state = { language: _.keys(packageDoc)[0] }
   }
 
   render() {
