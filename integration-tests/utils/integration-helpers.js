@@ -44,7 +44,9 @@ const withWorkspace = test => async () => {
   try {
     await test({ workspaceName })
   } catch (e) {
-    await page.screenshot({ path: `${screenshotDir}/failure-${workspaceName}`, fullPage: true })
+    if (screenshotDir) {
+      await page.screenshot({ path: `${screenshotDir}/failure-${workspaceName}.png`, fullPage: true })
+    }
     throw e
   } finally {
     await deleteWorkspace(workspaceName)
