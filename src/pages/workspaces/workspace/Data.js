@@ -83,7 +83,7 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
       boxShadow: Style.standardShadow
     }
   }, props), [
-    div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
+    !!icon && div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
       img({ src: icon, style: { opacity: disabled ? 0.5 : undefined, maxWidth: 45, maxHeight: 40 } })
     ]),
     text
