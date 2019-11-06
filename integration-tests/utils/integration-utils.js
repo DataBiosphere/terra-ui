@@ -29,37 +29,39 @@ const findInGrid = async (page, text) => {
   return await page.waitForXPath(`//*[@role="grid"][contains(normalize-space(.),"${text}")]`)
 }
 
-const exactlyFindClickable = (page, text) => {
-  return page.waitForXPath(`(//a | //*[@role="button"] | //button)[normalize-space(.)="${text}"]`)
+const clickable = ({ text, textContains }) => {
+  const base = '(//a | //*[@role="button"] | //button)'
+  if (text) {
+    return `${base}[normalize-space(.)="${text}" or @aria-label="${text}"]`
+  } else if (textContains) {
+    return `${base}[contains(normalize-space(.),"${textContains}") or contains(@aria-label,"${textContains}")]`
+  }
 }
 
-const exactClick = async (page, text) => {
-  return (await exactlyFindClickable(page, text)).click()
-}
-
-const findClickable = (page, text) => {
-  return page.waitForXPath(`(//a | //*[@role="button"] | //button)[contains(normalize-space(.),"${text}") or contains(@aria-label,"${text}")]`)
-}
-
-const click = async (page, text) => {
-  return (await findClickable(page, text)).click()
+const click = async (page, xpath) => {
+  return (await page.waitForXPath(xpath)).click()
 }
 
 const findText = (page, text) => {
   return page.waitForXPath(`//*[contains(normalize-space(.),"${text}")]`)
 }
 
-const findInput = (page, label) => {
-  return page.waitForXPath(`(//input | //textarea)[contains(@aria-label,"${label}") or @id=//label[contains(normalize-space(.),"${label}")]/@for]`)
+const input = ({ labelContains, placeholder }) => {
+  const base = '(//input | //textarea)'
+  if (labelContains) {
+    return `${base}[contains(@aria-label,"${labelContains}") or @id=//label[contains(normalize-space(.),"${labelContains}")]/@for]`
+  } else if (placeholder) {
+    return `${base}[@placeholder="${placeholder}"]`
+  }
 }
 
-const fillIn = async (page, label, text) => {
-  return (await findInput(page, label)).type(text, { delay: 20 })
+const fillIn = async (page, xpath, text) => {
+  return (await page.waitForXPath(xpath)).type(text, { delay: 20 })
 }
 
-const select = async (page, label, text) => {
-  (await findInput(page, label)).click()
-  return (await page.waitForXPath(`//div[starts-with(@id, "react-select-") and contains(normalize-space(.),"${text}")]`)).click()
+const select = async (page, labelContains, text) => {
+  await click(page, input({ labelContains }))
+  return click(page, `//div[starts-with(@id, "react-select-") and contains(normalize-space(.),"${text}")]`)
 }
 
 const waitForNoSpinners = page => {
@@ -76,17 +78,25 @@ const signIntoTerra = async page => {
   return page.evaluate(token => window.forceSignIn(token), bearerToken)
 }
 
+const waitForElement = (page, xpath) => {
+  return page.waitForXPath(xpath)
+}
+
+const svgText = ({ textContains }) => {
+  return `//*[name()="text" and contains(normalize-space(.),"${textContains}")]`
+}
+
 module.exports = {
   click,
-  exactClick,
-  exactlyFindClickable,
-  findClickable,
+  clickable,
   findIframe,
   findInGrid,
-  findInput,
   findText,
   fillIn,
+  input,
   select,
+  svgText,
+  waitForElement,
   waitForNoSpinners,
   delay,
   signIntoTerra
