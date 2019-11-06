@@ -8,6 +8,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { pfbImportJobStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -65,7 +66,10 @@ class Importer extends Component {
     try {
       await Utils.switchCase(format,
         ['entitiesJson', () => wsAjax.importJSON(url)],
-        ['PFB', () => wsAjax.importPFB(url)],
+        ['PFB', async () => {
+          const { jobId } = await wsAjax.importPFB(url)
+          pfbImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
+        }],
         [Utils.DEFAULT, () => wsAjax.importBagit(url)]
       )
       if (format === 'PFB') {

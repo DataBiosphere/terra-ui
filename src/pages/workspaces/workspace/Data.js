@@ -38,6 +38,7 @@ import { getConfig } from 'src/libs/config'
 import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { pfbImportJobStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -101,6 +102,19 @@ const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 1
     ]),
     div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
       children
+    ])
+  ])
+}
+
+const DataImportPlaceholder = () => {
+  return div({
+    style: { ...Style.navList.item(false), color: colors.dark(0.7) }
+  }, [
+    div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
+      icon('download', { size: 14 })
+    ]),
+    div({ style: { flex: 1 } }, [
+      'Data import in progress'
     ])
   ])
 }
@@ -894,7 +908,8 @@ const WorkspaceData = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
   }),
-  ajaxCaller
+  ajaxCaller,
+  Utils.connectAtom(pfbImportJobStore, 'pfbImportJobs')
 )(class WorkspaceData extends Component {
   constructor(props) {
     super(props)
@@ -943,7 +958,7 @@ const WorkspaceData = _.flow(
   }
 
   render() {
-    const { namespace, name, workspace, workspace: { workspace: { attributes } }, refreshWorkspace } = this.props
+    const { namespace, name, workspace, workspace: { workspace: { attributes } }, refreshWorkspace, pfbImportJobs } = this.props
     const { selectedDataType, entityMetadata, importingReference, deletingReference, firstRender, refreshKey, uploadingFile } = this.state
     const referenceData = getReferenceData(attributes)
 
@@ -959,6 +974,7 @@ const WorkspaceData = _.flow(
               onClick: () => this.setState({ uploadingFile: true })
             }, [icon('plus-circle', { size: 21 })])
           ]),
+          _.some({ targetWorkspace: { namespace, name } }, pfbImportJobs) && h(DataImportPlaceholder),
           _.map(([type, typeDetails]) => {
             return h(DataTypeButton, {
               key: type,

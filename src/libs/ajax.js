@@ -677,8 +677,14 @@ const Workspaces = signal => ({
         return fetchOrchestration(`api/${root}/flexibleImportEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
       },
 
-      importPFB: url => {
-        return fetchOrchestration(`api/${root}/importPFB`, _.mergeAll([authOpts(), jsonBody({ url }), { signal, method: 'POST' }]))
+      importPFB: async url => {
+        const res = await fetchOrchestration(`api/${root}/importPFB`, _.mergeAll([authOpts(), jsonBody({ url }), { signal, method: 'POST' }]))
+        return res.json()
+      },
+
+      importPFBStatus: async jobId => {
+        const res = await fetchOrchestration(`api/${root}/importPFB/${jobId}`, _.merge(authOpts(), { signal }))
+        return res.json()
       },
 
       importAttributes: file => {

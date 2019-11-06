@@ -37,6 +37,9 @@ export const workflowSelectionStore = Utils.atom({
   entities: undefined
 })
 
+export const pfbImportJobStore = Utils.atom([])
+window.pfbImportJobStore = pfbImportJobStore
+
 /*
  * Modifies ajax responses for testing purposes.
  * Can be set to an array of objects of the form { fn, filter }.
