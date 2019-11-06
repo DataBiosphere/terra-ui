@@ -25,8 +25,8 @@ const findIframe = async page => {
   return hasFrame() || await waitForFn({ fn: hasFrame })
 }
 
-const findInGrid = async (page, text) => {
-  return await page.waitForXPath(`//*[@role="grid"][contains(normalize-space(.),"${text}")]`)
+const findInGrid = async (page, textContains) => {
+  return await page.waitForXPath(`//*[@role="grid"][contains(normalize-space(.),"${textContains}")]`)
 }
 
 const clickable = ({ text, textContains }) => {
@@ -42,8 +42,8 @@ const click = async (page, xpath) => {
   return (await page.waitForXPath(xpath)).click()
 }
 
-const findText = (page, text) => {
-  return page.waitForXPath(`//*[contains(normalize-space(.),"${text}")]`)
+const findText = (page, textContains) => {
+  return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`)
 }
 
 const input = ({ labelContains, placeholder }) => {
@@ -78,7 +78,7 @@ const signIntoTerra = async page => {
   return page.evaluate(token => window.forceSignIn(token), bearerToken)
 }
 
-const waitForElement = (page, xpath) => {
+const findElement = (page, xpath) => {
   return page.waitForXPath(xpath)
 }
 
@@ -91,12 +91,12 @@ module.exports = {
   clickable,
   findIframe,
   findInGrid,
+  findElement,
   findText,
   fillIn,
   input,
   select,
   svgText,
-  waitForElement,
   waitForNoSpinners,
   delay,
   signIntoTerra

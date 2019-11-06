@@ -1,7 +1,7 @@
 const firecloud = require('../utils/firecloud-utils')
 const { billingProject, testUrl, workflowName } = require('../utils/integration-config')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, findText, signIntoTerra, waitForElement } = require('../utils/integration-utils')
+const { click, clickable, findElement, findText, signIntoTerra } = require('../utils/integration-utils')
 
 
 test('find workflow', withWorkspace(async ({ workspaceName }) => {
@@ -23,7 +23,7 @@ test('find workflow', withWorkspace(async ({ workspaceName }) => {
   /* This else/if is necessary to "hack" going back to localhost:3000-Terra after going to Firecloud,
    without these lines it will redirect to dev-Terra even if started out at localhost:3000-Terra */
   if (testUrl === 'http://localhost:3000') {
-    await waitForElement(page, clickable({ textContains: 'Yes' }))
+    await findElement(page, clickable({ textContains: 'Yes' }))
     const yesButtonHrefDetails = (await page.$x('//a[contains(text(), "Yes")]/@href'))[0]
     const redirectURL = (await page.evaluate(yesButton => yesButton.textContent, yesButtonHrefDetails)).replace(
       'https://bvdp-saturn-dev.appspot.com',
