@@ -131,6 +131,11 @@ const getServiceAccountToken = Utils.memoizeAsync(async (namespace, token) => {
 
 export const saToken = namespace => getServiceAccountToken(namespace, getUser().token)
 
+const getFirstTimeStamp = Utils.memoizeAsync(async token => {
+  const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(token), { method: 'POST' }]))
+  return res.json()
+}, { keyFn: (...args) => JSON.stringify(args) })
+
 const User = signal => ({
   getStatus: async () => {
     const res = await fetchOk(`${getConfig().samUrlRoot}/register/user/v2/self/info`, _.mergeAll([authOpts(), { signal }, appIdentifier]))
@@ -250,9 +255,8 @@ const User = signal => ({
     return (await res.json()).upload
   },
 
-  firstTimestamp: async () => {
-    const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(), { signal, method: 'POST' }]))
-    return res.json()
+  firstTimestamp: () => {
+    return getFirstTimeStamp(getUser().token)
   },
 
   lastNpsResponse: async () => {
@@ -1081,6 +1085,9 @@ export const Ajax = signal => {
     Duos: Duos(signal)
   }
 }
+
+// Exposing Ajax for use by integration tests (and debugging, or whatever)
+window.Ajax = Ajax
 
 export const useCancellation = () => {
   const controller = useRef()

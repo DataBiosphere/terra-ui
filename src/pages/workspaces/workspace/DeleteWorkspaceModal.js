@@ -39,8 +39,8 @@ export default class DeleteWorkspaceModal extends Component {
         onClick: () => this.deleteWorkspace()
       }, 'Delete workspace')
     }, [
-      div(['Are you sure you want to permanently delete ',
-        span({ style: { fontWeight: 600 } }, name),
+      div(['Are you sure you want to permanently delete the workspace ',
+        span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, name),
         '?']),
       div({ style: { marginTop: '1rem' } }, [
         'Deleting it will delete the associated ',

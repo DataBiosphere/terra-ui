@@ -386,7 +386,8 @@ const Notebooks = _.flow(
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
             reloadList: () => this.refresh(),
-            onDismiss: () => this.setState({ creating: false })
+            onDismiss: () => this.setState({ creating: false }),
+            onSuccess: () => this.setState({ creating: false })
           }),
           renamingNotebookName && h(NotebookDuplicator, {
             printName: printName(renamingNotebookName),

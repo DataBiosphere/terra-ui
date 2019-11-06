@@ -174,13 +174,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
     const { currentCluster } = this.props
     if (currentCluster) {
-      const { clusterImages } = await Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details()
+      const { clusterImages, jupyterUserScriptUri } = await Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details()
       const { dockerImage } = _.find({ tool: 'Jupyter' }, clusterImages)
 
       if (_.find({ image: dockerImage }, leoImages)) {
         this.setState({ selectedLeoImage: dockerImage })
       } else {
         this.setState({ isCustomEnv: true, customEnvImage: dockerImage })
+      }
+
+      if (jupyterUserScriptUri) {
+        this.setState({ jupyterUserScriptUri, profile: 'custom' })
       }
     }
   })
@@ -277,8 +281,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   ])
                 ]),
                 div({ style: { gridColumnStart: 2, gridColumnEnd: 'span 2', alignSelf: 'start' } }, [
-                  h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Learn how']),
-                  ' to create your own custom docker image from one of our ',
+                  h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom notebook environments']),
+                  span({ style: { fontWeight: 'bold' } }, [' must ']),
+                  ' be based off one of the ',
                   h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])
                 ])
               ]) :

@@ -37,7 +37,7 @@ export default {
   hg38: {
     axiomPoly_resource_vcf: 'gs://broad-references/hg38/v0/Axiom_Exome_Plus.genotypes.all_populations.poly.hg38.vcf.gz',
     ref_fasta: 'gs://broad-references/hg38/v0/Homo_sapiens_assembly38.fasta',
-    call_interval_list: 'gs://broad-references/hg38/v0/wgs_calling_regions.v1.interval_list',
+    call_interval_list: 'gs://broad-references/hg38/v0/wgs_calling_regions.hg38.interval_list',
     ref_dict: 'gs://broad-references/hg38/v0/Homo_sapiens_assembly38.dict',
     unpadded_intervals_file: 'gs://gatk-test-data/intervals/hg38.even.handcurated.20k.intervals',
     one_thousand_genomes_resource_vcf_index: 'gs://broad-references/hg38/v0/1000G_phase1.snps.high_confidence.hg38.vcf.gz.tbi',
