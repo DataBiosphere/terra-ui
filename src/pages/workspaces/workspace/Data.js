@@ -148,11 +148,11 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
       ...filteredAttributes, ...(creatingNewVariable ? [['', '']] : [])
     ]
 
-    const inputErrors = editIndex !== undefined && editIndex >= 0 && [
+    const inputErrors = editIndex !== undefined && [
       ...(_.keys(_.unset(amendedAttributes[editIndex][0], attributes)).includes(editKey) ? ['Key must be unique'] : []),
       ...(!/^[\w-]*$/.test(editKey) ? ['Key can only contain letters, numbers, underscores, and dashes'] : []),
-      ...(editKey === 'description' ? ['\`description\` is a reserved keyword'] : []),
-      ...(editKey.startsWith('referenceData_') ? ['\`referenceData_\` is a reserved keyword'] : []),
+      ...(editKey === 'description' ? ['Key cannot be \`description\`'] : []),
+      ...(editKey.startsWith('referenceData_') ? ['Key cannot start with \`referenceData_\`'] : []),
       ...(!editKey ? ['Key is required'] : []),
       ...(!editValue ? ['Value is required'] : []),
       ...(editValue && editType === 'number' && Utils.cantBeNumber(editValue) ? ['Value is not a number'] : []),
