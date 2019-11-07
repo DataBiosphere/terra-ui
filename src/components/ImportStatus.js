@@ -43,7 +43,9 @@ const ImportStatusItem = ({ job, onDone }) => {
           // SR;DN (still running; do nothing)
           break
         case 'SUCCESS':
-          notify('success', 'Data imported successfully.')
+          notify('success', 'Data imported successfully.', {
+            message: `Data import to workspace "${namespace} / ${name}" is complete. Please refresh the Data view.`
+          })
           onDone()
           break
         case 'ERROR':
