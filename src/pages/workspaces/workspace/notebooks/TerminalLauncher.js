@@ -127,5 +127,3 @@ export const navPaths = [
     title: ({ name }) => `${name} - Terminal`
   }
 ]
-
-console.log(navPaths)

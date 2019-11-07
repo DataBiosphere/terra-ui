@@ -20,13 +20,10 @@ export const commonPaths = {
 
   workspaceList: () => [breadcrumbElement('Workspaces', Nav.getLink('workspaces'))],
 
-  workspaceDashboard: ({ namespace, name }) => {
-    console.log(namespace + "\n"  + name)
-    return [
-      ...commonPaths.workspaceList(),
-      breadcrumbElement(`${namespace}/${name}`, Nav.getLink('workspace-dashboard', { namespace, name }))
-    ]
-  },
+  workspaceDashboard: ({ namespace, name }) => [
+    ...commonPaths.workspaceList(),
+    breadcrumbElement(`${namespace}/${name}`, Nav.getLink('workspace-dashboard', { namespace, name }))
+  ],
 
   workspaceTab: ({ namespace, name }, activeTab) => [
     ...commonPaths.workspaceDashboard({ namespace, name }),
