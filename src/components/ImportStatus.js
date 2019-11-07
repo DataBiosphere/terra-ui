@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { h } from 'react-hyperscript-helpers'
-import { notify } from 'src/components/Notifications'
+import { clearNotification, notify } from 'src/components/Notifications'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { pfbImportJobStore } from 'src/libs/state'
 import { delay, useAtom, useOnMount } from 'src/libs/utils'
@@ -43,16 +43,19 @@ const ImportStatusItem = ({ job, onDone }) => {
           // SR;DN (still running; do nothing)
           break
         case 'SUCCESS':
+          clearNotification(jobId)
           notify('success', 'Data imported successfully.', {
             message: `Data import to workspace "${namespace} / ${name}" is complete. Please refresh the Data view.`
           })
           onDone()
           break
         case 'ERROR':
+          clearNotification(jobId)
           notify('error', 'Error importing PFB data.', message)
           onDone()
           break
         default:
+          clearNotification(jobId)
           notify('error', 'Unexpected error importing PFB data', response)
           onDone()
       }

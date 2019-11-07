@@ -111,7 +111,7 @@ const DataImportPlaceholder = () => {
     style: { ...Style.navList.item(false), color: colors.dark(0.7) }
   }, [
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
-      icon('download', { size: 14 })
+      icon('downloadLight', { size: 14, style: { color: 'green' } })
     ]),
     div({ style: { flex: 1 } }, [
       'Data import in progress'

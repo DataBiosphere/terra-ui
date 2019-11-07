@@ -17,6 +17,7 @@ import books from 'src/icons/books-solid.svg'
 import cardMenuIcon from 'src/icons/card-menu-icon.svg'
 import cloudUpload from 'src/icons/cloud-upload-solid.svg'
 import columnGrabber from 'src/icons/column_grabber.svg'
+import downloadLight from 'src/icons/download-light.svg'
 import externalLinkAlt from 'src/icons/external-link-alt-regular.svg'
 import fileExport from 'src/icons/file-export-regular.svg'
 import list from 'src/icons/list-regular.svg'
@@ -49,6 +50,7 @@ const iconDict = {
   copy: fa(faClone),
   'copy-to-clipboard': fa(faClipboard),
   download: fa(faDownload),
+  downloadLight: custom(downloadLight),
   edit: fa(faPen),
   'error-standard': fa(faExclamationCircle),
   export: custom(fileExport),
