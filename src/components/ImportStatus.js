@@ -9,11 +9,9 @@ import { delay, useAtom, useOnMount } from 'src/libs/utils'
 
 const ImportStatus = () => {
   const jobs = useAtom(pfbImportJobStore)
-  console.log(jobs)
   return h(Fragment, _.map(job => h(ImportStatusItem, {
     job,
     onDone: () => {
-      console.log(`removing job ${(job.jobId)}`)
       pfbImportJobStore.update(_.reject({ jobId: job.jobId }))
     }
   }), jobs))
@@ -26,8 +24,8 @@ const ImportStatusItem = ({ job, onDone }) => {
   useOnMount(() => {
     const poll = async () => {
       while (true) {
-        await isComplete(targetWorkspace, jobId)
         await delay(5000)
+        await isComplete(targetWorkspace, jobId)
       }
     }
     poll()
@@ -36,7 +34,6 @@ const ImportStatusItem = ({ job, onDone }) => {
   const isComplete = async ({ namespace, name }, jobId) => {
     const { Workspaces } = Ajax(signal)
 
-    console.log(`checking status of ${jobId}`)
     try {
       const response = await Workspaces.workspace(namespace, name).importPFBStatus(jobId)
       const { message, status } = response
@@ -44,28 +41,22 @@ const ImportStatusItem = ({ job, onDone }) => {
       switch (status) {
         case 'RUNNING':
           // SR;DN (still running; do nothing)
-          // return false
           break
         case 'SUCCESS':
           notify('success', 'Data imported successfully.')
           onDone()
-          // return true
           break
         case 'ERROR':
           notify('error', 'Error importing PFB data.', message)
           onDone()
-          // return true
           break
         default:
           notify('error', 'Unexpected error importing PFB data', response)
           onDone()
-          // return true
       }
     } catch (error) {
-      if (error.status === 404) {
-        console.log(`job ${jobId} does not yet exist`)
-        // return false
-      } else {
+      // Ignore 404; We're probably asking for status before the status endpoint knows about the job
+      if (error.status !== 404) {
         throw error
       }
     }
