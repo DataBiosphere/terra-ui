@@ -159,8 +159,8 @@ jobs:
             JEST_JUNIT_OUTPUT_DIR: "/tmp/test-results/integration-test-results.xml"
             SCREENSHOT_DIR: "/tmp/failure-screenshots"
           command: |
-            TERRA_TOKEN=$(node getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}") \
-            npx npm@6.12 run test -- --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
+            TERRA_TOKEN=$(node scripts/getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}") \
+            npx npm@6.12 test -- --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
       - store_test_results:
           path: /tmp/test-results
       - store_artifacts:
