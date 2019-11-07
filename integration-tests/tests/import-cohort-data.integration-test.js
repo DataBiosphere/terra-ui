@@ -12,7 +12,7 @@ test('import cohort data', withWorkspace(async ({ workspaceName }) => {
   await click(page, clickable({ textContains: '1000 Genomes Low Coverage' }))
 
   const frame = await findIframe(page)
-  await click(frame, svgText({ textContains: 'Has WGS Low Cov' }))
+  await click(frame, svgText({ textContains: 'Has WGS Low' }))
   await click(frame, clickable({ textContains: 'Save cohort' }))
   await fillIn(frame, input({ placeholder: 'cohort name' }), cohortName)
   await click(frame, clickable({ text: 'Save' }))
