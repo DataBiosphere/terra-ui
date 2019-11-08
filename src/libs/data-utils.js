@@ -249,7 +249,7 @@ export const EntityUploader = class EntityUploader extends Component {
     super(props)
     this.state = {
       newEntityType: '', useFireCloudDataModel: false, isFileImportCurrMode: true, isFileImportLastUsedMode: undefined,
-      file: undefined, fileContents: '', attemptedToType: false
+      file: undefined, fileContents: '', showInvalidEntryMethodWarning: false
     }
   }
 
@@ -269,7 +269,7 @@ export const EntityUploader = class EntityUploader extends Component {
 
   render() {
     const { onDismiss, entityTypes } = this.props
-    const { uploading, file, useFireCloudDataModel, isFileImportCurrMode, fileContents, isFileImportLastUsedMode, attemptedToType } = this.state
+    const { uploading, file, useFireCloudDataModel, isFileImportCurrMode, fileContents, isFileImportLastUsedMode, showInvalidEntryMethodWarning } = this.state
     const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents)
     const isInvalid = isFileImportCurrMode === isFileImportLastUsedMode && file && !match
     const newEntityType = match && match[1]
@@ -309,7 +309,7 @@ export const EntityUploader = class EntityUploader extends Component {
             tabs: [{ title: 'File Import', key: true, width: 121 }, { title: 'Text Import', key: false, width: 127 }],
             value: isFileImportCurrMode,
             onChange: value => {
-              this.setState({ isFileImportCurrMode: value, attemptedToType: false })
+              this.setState({ isFileImportCurrMode: value, showInvalidEntryMethodWarning: false })
             }
           }),
           div({
@@ -353,9 +353,9 @@ export const EntityUploader = class EntityUploader extends Component {
               placeholder: 'entity:participant_id(tab)column1(tab)column2...',
               onPaste: pastedText => {
                 this.setState(
-                  { file: new File([pastedText], 'upload.tsv'), fileContents: pastedText, isFileImportLastUsedMode: false, attemptedToType: false })
+                  { file: new File([pastedText], 'upload.tsv'), fileContents: pastedText, isFileImportLastUsedMode: false, showInvalidEntryMethodWarning: false })
               },
-              onChange: () => this.setState({ attemptedToType: true }),
+              onChange: () => this.setState({ showInvalidEntryMethodWarning: true }),
               value: !isFileImportLastUsedMode ? fileContents : '',
               wrap: 'off',
               style: {
@@ -387,7 +387,7 @@ export const EntityUploader = class EntityUploader extends Component {
           ]),
           div({ style: errorTextStyle },
             [(isInvalid && 'Invalid format: Data does not start with entity or membership definition.') ||
-            (attemptedToType && 'Invalid Data Entry Method: Copy and paste only')])
+            (showInvalidEntryMethodWarning && 'Invalid Data Entry Method: Copy and paste only')])
         ]),
         uploading && spinnerOverlay
       ])
