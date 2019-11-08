@@ -13,8 +13,8 @@ const getToken = async () => {
       key
     })
 
-    const { access_token } = await gtoken.getToken()
-    console.log(access_token)
+    const { access_token: token } = await gtoken.getToken()
+    console.log(token)
     process.exit(0)
   } catch (err) {
     console.error(err)
