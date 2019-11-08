@@ -126,7 +126,7 @@ const setupMethod = async () => {
 
     const featuredMethodsUrl = `https://www.googleapis.com/storage/v1/b/firecloud-alerts-${env}/o/featured-methods.json`
 
-    const featuredMethods = await fetchOk(`${featuredMethodsUrl}?alt=media`, { headers: googleHeaders }).then(res => res.ok && res.json())
+    const featuredMethods = await fetch(`${featuredMethodsUrl}?alt=media`, { headers: googleHeaders }).then(res => res.ok && res.json())
 
     if (!featuredMethods || !featuredMethods.some(method => method.name === name && method.namespace === namespace)) {
       await fetchOk(
