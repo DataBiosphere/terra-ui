@@ -18,7 +18,6 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
-import { getAppName } from 'src/libs/logos'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -295,15 +294,17 @@ export const EntityUploader = class EntityUploader extends Component {
             onClick: () => this.doUpload()
           }, ['Upload'])
         }, [
-          'The first column header must be:',
-          div({ style: { fontFamily: 'monospace', margin: '0.5rem', fontWeight: '600' } }, ['entity:[type]_id']),
-          'where ',
-          span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['[type]']),
-          ` is the desired name of the data table in ${getAppName()}. For example, to create or update a `,
-          span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['participant']),
-          ' table use ',
-          span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['entity:participant_id']),
-          div({ style: { margin: '0.5rem 0 1rem' } }, ['All of the values in the ID column must be unique.']),
+          div({
+            style: { padding: '0 0 1rem' }
+          }, [
+            'Choose the data import option below. For more info on the table',
+            h(Link, {
+              'aria-label': 'Click for table info',
+              href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
+            }, [
+              ' click here.'
+            ])
+          ]),
           h(SimpleTabBar, {
             tabs: [{ title: 'File Import', key: true, width: 121 }, { title: 'Text Import', key: false, width: 127 }],
             value: isFileImportCurrMode,
@@ -322,7 +323,7 @@ export const EntityUploader = class EntityUploader extends Component {
               h(TooltipTrigger, { content: 'Tab Separated Values', side: 'bottom' },
                 [span({ style: { textDecoration: 'underline dashed' } }, 'TSV')]),
               ' file containing your data: '
-            ]) : div(['Paste the data directly below:']),
+            ]) : div(['Copy and paste tab separated data directly below:']),
             currentFile && div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
               h(Link,
                 {
@@ -386,7 +387,7 @@ export const EntityUploader = class EntityUploader extends Component {
           ]),
           div({ style: errorTextStyle },
             [(isInvalid && 'Invalid format: Data does not start with entity or membership definition.') ||
-            (attemptedToType && 'Invalid Data Entry Method: Paste only - no typing!')])
+            (attemptedToType && 'Invalid Data Entry Method: Copy and paste only')])
         ]),
         uploading && spinnerOverlay
       ])
