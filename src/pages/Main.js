@@ -7,6 +7,7 @@ import ConfigOverridesWarning from 'src/components/ConfigOverridesWarning'
 import ErrorWrapper from 'src/components/ErrorWrapper'
 import FirecloudNotification from 'src/components/FirecloudNotification'
 import FreeCreditsModal from 'src/components/FreeCreditsModal'
+import InactivityModal from 'src/components/InactivityModal'
 import Notifications from 'src/components/Notifications'
 import { NpsSurvey } from 'src/components/NpsSurvey'
 import ServiceAlerts from 'src/components/ServiceAlerts'
@@ -20,6 +21,7 @@ const Main = () => {
     h(Notifications),
     h(ServiceAlerts),
     h(FreeCreditsModal),
+    h(InactivityModal),
     h(ErrorWrapper, [
       h(TitleManager),
       h(FirecloudNotification),
