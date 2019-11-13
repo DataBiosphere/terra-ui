@@ -297,7 +297,6 @@ export const EntityUploader = class EntityUploader extends Component {
           div({ style: { padding: '0 0 1rem' } },
             ['Choose the data import option below. ',
               h(Link, {
-                'aria-label': 'Click here for more info on the table.',
                 ...Utils.newTabLinkProps,
                 href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
               }, ['Click here for more info on the table.'])]),
@@ -381,9 +380,12 @@ export const EntityUploader = class EntityUploader extends Component {
               ...Utils.newTabLinkProps
             }, ['Learn more ', icon('pop-out', { size: 12 })])
           ]),
-          div({ style: errorTextStyle },
-            [(isInvalid && 'Invalid format: Data does not start with entity or membership definition.') ||
-            (showInvalidEntryMethodWarning && 'Invalid Data Entry Method: Copy and paste only')])
+          div({ style: errorTextStyle }, [
+            Utils.cond(
+              [isInvalid, () => 'Invalid format: Data does not start with entity or membership definition.'],
+              [showInvalidEntryMethodWarning, () => 'Invalid Data Entry Method: Copy and paste only']
+            )
+          ])
         ]),
         uploading && spinnerOverlay
       ])
