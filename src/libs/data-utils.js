@@ -294,17 +294,13 @@ export const EntityUploader = class EntityUploader extends Component {
             onClick: () => this.doUpload()
           }, ['Upload'])
         }, [
-          div({
-            style: { padding: '0 0 1rem' }
-          }, [
-            'Choose the data import option below. For more info on the table',
-            h(Link, {
-              'aria-label': 'Click for table info',
-              href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
-            }, [
-              ' click here.'
-            ])
-          ]),
+          div({ style: { padding: '0 0 1rem' } },
+            ['Choose the data import option below. ',
+              h(Link, {
+                'aria-label': 'Click here for more info on the table.',
+                ...Utils.newTabLinkProps,
+                href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
+              }, ['Click here for more info on the table.'])]),
           h(SimpleTabBar, {
             tabs: [{ title: 'File Import', key: true, width: 121 }, { title: 'Text Import', key: false, width: 127 }],
             value: isFileImportCurrMode,
@@ -323,7 +319,7 @@ export const EntityUploader = class EntityUploader extends Component {
               h(TooltipTrigger, { content: 'Tab Separated Values', side: 'bottom' },
                 [span({ style: { textDecoration: 'underline dashed' } }, 'TSV')]),
               ' file containing your data: '
-            ]) : div(['Copy and paste tab separated data directly below:']),
+            ]) : div(['Copy and paste tab separated data here:']),
             currentFile && div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
               h(Link,
                 {
