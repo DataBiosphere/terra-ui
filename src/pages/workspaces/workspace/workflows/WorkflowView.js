@@ -554,7 +554,6 @@ const WorkflowView = _.flow(
     this.fetchInfo(config)
   })
 
-
   renderSummary() {
     const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
@@ -630,11 +629,18 @@ const WorkflowView = _.flow(
               })
             ])
           ])]),
+          // console.log('methodNamespace:', methodNamespace),
+          // console.log('methodName', methodName),
+          // console.log('methodVersion', methodVersion),
+          // console.log('currentSnapRedacted', currentSnapRedacted),
+          // console.log('methodLink', methodLink),
+          // console.log('methodLink(modifiedConfig)', methodLink(modifiedConfig)),
+          // console.log('methodPath', methodPath),
           div([
             'Source: ', currentSnapRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : h(Link, {
-              href: methodLink(modifiedConfig),
+              href: sourceRepo === 'agora' ? methodLink(modifiedConfig) : methodLink(modifiedConfig) + ':'+methodVersion,
               ...Utils.newTabLinkProps
-            }, methodPath ? methodPath : `${methodNamespace}/${methodName}/${methodVersion}`)
+            }, methodPath ? methodPath + ':' + methodVersion : `${methodNamespace}/${methodName}/${methodVersion}`)
           ]),
           div(`Synopsis: ${synopsis ? synopsis : ''}`),
           documentation ?
