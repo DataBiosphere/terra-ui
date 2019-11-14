@@ -1,4 +1,4 @@
-module.exports = {
+  module.exports = {
   'plugins': ['lodash-fp', 'react', 'react-hooks', 'simple-import-sort', 'import'],
   'extends': 'react-app',
   'globals': {
@@ -64,6 +64,7 @@ module.exports = {
     'object-shorthand': 'warn',
     'prefer-arrow-callback': 'warn',
     'prefer-const': 'warn',
+    'prefer-template': 'warn',
     'prefer-rest-params': 'warn',
     'prefer-spread': 'warn',
     'rest-spread-spacing': 'warn',
