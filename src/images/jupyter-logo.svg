@@ -1,0 +1,34 @@
+<svg width="44" height="51" version="2.0" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g style="mix-blend-mode:normal">
+        <g style="mix-blend-mode:normal" fill="#4E4E4E">
+            <use xlink:href="#jupyter-logo_svg__jupyter-logo_svg__path0_fill" transform="translate(.5 21.4)" style="mix-blend-mode:normal"/>
+            <use xlink:href="#jupyter-logo_svg__jupyter-logo_svg__path1_fill" transform="translate(5.7 21.4)" style="mix-blend-mode:normal"/>
+            <use xlink:href="#jupyter-logo_svg__jupyter-logo_svg__path2_fill" transform="translate(13.4 21.3)" style="mix-blend-mode:normal"/>
+            <use xlink:href="#jupyter-logo_svg__jupyter-logo_svg__path3_fill" transform="translate(20.4 21.4)" style="mix-blend-mode:normal"/>
+            <use xlink:href="#jupyter-logo_svg__jupyter-logo_svg__path4_fill" transform="translate(27.5 19.5)" style="mix-blend-mode:normal"/>
+            <use xlink:href="#jupyter-logo_svg__jupyter-logo_svg__path5_fill" transform="translate(32.5 21.3)" style="mix-blend-mode:normal"/>
+            <use xlink:href="#jupyter-logo_svg__jupyter-logo_svg__path6_fill" transform="translate(40 21.2)" style="mix-blend-mode:normal"/>
+        </g>
+        <g style="mix-blend-mode:normal">
+            <use xlink:href="#jupyter-logo_svg__jupyter-logo_svg__path7_fill" transform="translate(33.5 .7)" fill="#767677" style="mix-blend-mode:normal"/>
+            <use xlink:href="#jupyter-logo_svg__jupyter-logo_svg__path8_fill" transform="translate(3.2 31.3)" fill="#F37726" style="mix-blend-mode:normal"/>
+            <use xlink:href="#jupyter-logo_svg__jupyter-logo_svg__path9_fill" transform="translate(3.2 4.9)" fill="#F37726" style="mix-blend-mode:normal"/>
+            <use xlink:href="#jupyter-logo_svg__jupyter-logo_svg__path10_fill" transform="translate(3.3 43)" fill="#9E9E9E" style="mix-blend-mode:normal"/>
+            <use xlink:href="#jupyter-logo_svg__jupyter-logo_svg__path11_fill" transform="translate(1.9 5.4)" fill="#616262" style="mix-blend-mode:normal"/>
+        </g>
+    </g>
+    <defs>
+        <path id="jupyter-logo_svg__jupyter-logo_svg__path1_fill" d="M5.5 4.8v1.7h-1v-1a2.5 2.5 0 01-2.2 1.2c-1 0-2.3-.6-2.3-2.9V0h1.2v3.6c0 1.2.4 2 1.5 2A1.7 1.7 0 004.3 4V0h1.2v4.7z"/>
+        <path id="jupyter-logo_svg__jupyter-logo_svg__path6_fill" d="M0 2.2v-2h1v1.2h.1A2 2 0 013 0h.3v1.1h-.4a1.7 1.7 0 00-1.6 1.5v4.1H0V2.2z"/>
+        <path id="jupyter-logo_svg__jupyter-logo_svg__path2_fill" d="M0 2.3V.2h1l.1 1A2.6 2.6 0 013.5 0C5 0 6.2 1.3 6.2 3.3c0 2.3-1.4 3.5-3 3.5a2.3 2.3 0 01-2-1v3.5H.1v-7zM1.3 4v.5a1.8 1.8 0 001.9 1.4c1.2 0 2-1 2-2.5C5 2 4.4.9 3 .9a2 2 0 00-1.9 2V4z"/>
+        <path id="jupyter-logo_svg__jupyter-logo_svg__path3_fill" d="M1.3 0l1.5 4 .4 1.3c0-.4.2-1 .4-1.4L4.9 0H6L4.4 4.6C3.4 7 2.9 8 2 8.7c-.4.4-1 .7-1.5.8l-.2-1c.3-.1.7-.3 1-.6a3.6 3.6 0 001.1-1.6V6L0 0h1.3z"/>
+        <path id="jupyter-logo_svg__jupyter-logo_svg__path4_fill" d="M2.2 0v1.9h1.7v.9H2.2v3.5c0 .8.2 1.2.9 1.2h.7v.8a3 3 0 01-1 .2A1.7 1.7 0 011.5 8C1 7.5.9 7 1 6.3V2.8H0v-1h1V.4L2.2 0z"/>
+        <path id="jupyter-logo_svg__jupyter-logo_svg__path5_fill" d="M1.2 3.6a2 2 0 002.2 2.2c.6 0 1.2 0 1.8-.3l.2.9c-.7.3-1.4.4-2.2.4A3 3 0 010 3.5C0 1.5 1.2 0 3 0c2.2 0 2.8 1.9 2.8 3v.6H1.2zm3.5-1A1.7 1.7 0 003 .9a2 2 0 00-1.8 1.9h3.5z"/>
+        <path id="jupyter-logo_svg__jupyter-logo_svg__path0_fill" d="M1.7 5.5c0 1.5 0 2-.4 2.4a2 2 0 01-1.3.5l.1.9a3 3 0 002-.7A3.6 3.6 0 003 5.9V0H1.7v5.4z"/>
+        <path id="jupyter-logo_svg__jupyter-logo_svg__path7_fill" d="M6 2.8a3 3 0 11-6 .4 3 3 0 016-.4z"/>
+        <path id="jupyter-logo_svg__jupyter-logo_svg__path8_fill" d="M18.7 7.1c-8 0-15-2.9-18.7-7.1a20 20 0 0037.4 0c-3.6 4.2-10.7 7.1-18.7 7.1z"/>
+        <path id="jupyter-logo_svg__jupyter-logo_svg__path9_fill" d="M18.7 5.9c8 0 15 2.9 18.7 7.1A20 20 0 000 13c3.6-4.2 10.6-7 18.7-7z"/>
+        <path id="jupyter-logo_svg__jupyter-logo_svg__path10_fill" d="M7.6 3.6A3.8 3.8 0 110 4a3.8 3.8 0 017.6-.4z"/>
+        <path id="jupyter-logo_svg__jupyter-logo_svg__path11_fill" d="M2.3 4.4a2.2 2.2 0 112-2.3 2.2 2.2 0 01-2 2.3z"/>
+    </defs>
+</svg>

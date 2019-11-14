@@ -63,7 +63,7 @@ jobs:
             - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
             - deps2-{{ checksum "package.json" }}-
             - deps2-
-      - run: npx npm@6.11 ci
+      - run: npx npm@6.12 ci
       - save_cache:
           key: deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
           paths:
@@ -78,8 +78,8 @@ jobs:
             - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
             - deps2-{{ checksum "package.json" }}-
             - deps2-
-      - run: npx npm@6.11 ci
-      - run: npx npm@6.11 run build
+      - run: npx npm@6.12 ci
+      - run: npx npm@6.12 run build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz
@@ -138,17 +138,34 @@ jobs:
           at: .
       - restore_cache:
           keys:
-            - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
-            - deps2-{{ checksum "package.json" }}-
-            - deps2-
-      - run: npx npm@6.11 ci
-      - run: node src/_tests/getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}" > testtoken
+            - test-deps2-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/package-lock.json" }}
+            - test-deps2-{{ checksum "integration-tests/package.json" }}-
+            - test-deps2-
+      - run:
+          working_directory: integration-tests
+          command: npx npm@6.12 install
+      - save_cache:
+          key: test-deps2-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/package-lock.json" }}
+          paths:
+            - integration-tests/node_modules
       - run: cp config/dev.json build/config.json
       - run:
           command: npx serve build -l 3000
           background: true
       - run: timeout 120 bash -c "until nc -z localhost 3000; do sleep 3; done"
-      - run: TERRA_TOKEN=$(cat testtoken) npm run test:integration
+      - run:
+          working_directory: integration-tests
+          environment:
+            JEST_JUNIT_OUTPUT_DIR: "/tmp/test-results/integration-test-results.xml"
+            SCREENSHOT_DIR: "/tmp/failure-screenshots"
+          command: |
+            mkdir -p ${SCREENSHOT_DIR}
+            TERRA_TOKEN=$(node scripts/getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}") \
+            npx npm@6.12 test -- --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
+      - store_test_results:
+          path: /tmp/test-results
+      - store_artifacts:
+          path: /tmp/failure-screenshots
 
 workflows:
   version: 2

@@ -12,13 +12,13 @@ export const leoImages = [
   },
   {
     label: 'Bioconductor (R 3.6.1, Bioconductor 3.9, Tidyverse 1.2.1)',
-    version: '0.0.2',
-    updated: '2019-09-06',
+    version: '0.0.3',
+    updated: '2019-10-25',
     packages: {
-      python: 'https://storage.googleapis.com/terra-docker-image-documentation/terra-jupyter-bioconductor-0.0.2-python-packages.txt',
-      r: 'https://storage.googleapis.com/terra-docker-image-documentation/terra-jupyter-bioconductor-0.0.2-r-packages.txt'
+      python: 'https://storage.googleapis.com/terra-docker-image-documentation/terra-jupyter-bioconductor-0.0.3-python-packages.txt',
+      r: 'https://storage.googleapis.com/terra-docker-image-documentation/terra-jupyter-bioconductor-0.0.3-r-packages.txt'
     },
-    image: 'us.gcr.io/broad-dsp-gcr-public/terra-jupyter-bioconductor:0.0.2'
+    image: 'us.gcr.io/broad-dsp-gcr-public/terra-jupyter-bioconductor:0.0.3'
   }
 ]
 
