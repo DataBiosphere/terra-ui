@@ -634,7 +634,7 @@ const WorkflowView = _.flow(
             'Source: ', currentSnapRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : h(Link, {
               href: methodLink(modifiedConfig),
               ...Utils.newTabLinkProps
-            }, methodPath ? methodPath + ':' + methodVersion : `${methodNamespace}/${methodName}/${methodVersion}`)
+            }, sourceRepo === 'agora' ? `${methodNamespace}/${methodName}/${methodVersion}` : `${methodPath}:${methodVersion}`)
           ]),
           div(`Synopsis: ${synopsis ? synopsis : ''}`),
           documentation ?
