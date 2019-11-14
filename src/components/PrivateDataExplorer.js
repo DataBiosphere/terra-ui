@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { b, div, h, p } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import DataExplorerFrame from 'src/components/DataExplorerFrame'
 import { centeredSpinner } from 'src/components/icons'
@@ -66,38 +66,35 @@ export default _.flow(
   render() {
     const { dataset } = this.props
     const { completedDeOauth, groups } = this.state
-    const { authDomain, origin, isUKB } = _.find({ name: dataset }, datasets)
+    const { authDomain, origin, isAmpPd, isUKB } = _.find({ name: dataset }, datasets)
 
-    const paragraphStyle = { style: { margin: '2rem' } }
     const notInAuthDomainError = div({
-      style: {
-        fontSize: 18,
-        margin: '3rem',
-        width: 800
-      }
+      style: { fontSize: 18, margin: '3rem 5rem', width: 800 }
     }, [
-      div(paragraphStyle, ['This Data Explorer requires you to be in the ',
-        span({ style: { fontWeight: 'bold' } }, authDomain),
-        ' Terra group.']),
-      div(paragraphStyle, 'If you have a different Google account in that ' +
-        'group, please sign out of Terra and sign in with that account. To ' +
-        'sign out of Terra, click on the menu on the upper left, ' +
-        'click on your name, then click Sign Out'),
-      isUKB ?
-        h(Fragment, [
-          div(paragraphStyle, [
+      p(['This Data Explorer requires you to be in the ', b([authDomain]), ' Terra group.']),
+      p([
+        'If you have a different Google account in that group, please sign out of Terra and sign in ',
+        'with that account. To sign out of Terra, click on the menu on the upper left, click on your ',
+        'name, then click Sign Out.'
+      ]),
+      Utils.cond(
+        [isAmpPd, () => p([
+          'If you do not have a Google account in that group, please apply for access by emailing ',
+          h(Link, { href: 'mailto:admin@amp-pd.org' }, ['admin@amp-pd.org.'])
+        ])],
+        [isUKB, () => h(Fragment, [
+          p([
             'If you do not have a Google account in that group, you will not be able to browse UKB data at this time. ',
             'However, if you already have access to a copy of UKB data, you may upload it to a workspace, ',
             'provided you add appropriate permissions and/or Authorization Domains to keep the data protected.'
           ]),
-          div(paragraphStyle, [
-            'We are actively working with UK Biobank to improve the process of accessing and working with UKB data.'
-          ])
-        ]) :
-        div(paragraphStyle, [
-          'If you don\'t have a Google account in that group, please ',
-          h(Link, { onClick: () => { contactUsActive.set(true) } }, 'apply for access.')
+          p(['We are actively working with UK Biobank to improve the process of accessing and working with UKB data.'])
+        ])],
+        () => p([
+          'If you do not have a Google account in that group, please ',
+          h(Link, { onClick: () => { contactUsActive.set(true) } }, ['apply for access.'])
         ])
+      )
     ])
 
     return h(Fragment, [

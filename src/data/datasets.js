@@ -8,12 +8,14 @@ const datasets = [
   {
     name: 'AMP PD - 2019_v1release_1015',
     origin: 'https://data-explorer.amp-pd.org',
-    authDomain: 'amp-pd-researchers'
+    authDomain: 'amp-pd-researchers',
+    isAmpPd: true
   },
   {
     name: 'AMP PD Clinical - 2019_v1release_1015',
     origin: 'https://clinical-data-explorer.amp-pd.org',
-    authDomain: 'amp-pd-clinical-access'
+    authDomain: 'amp-pd-clinical-access',
+    isAmpPd: true
   },
   {
     name: 'Baseline Health Study',
