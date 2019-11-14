@@ -267,7 +267,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         contents: h(Fragment, [
           makeEnvSelect(),
           makeImageInfo({ margin: '1rem 0 2rem' }),
-          h(ImageDepViewer, { packageDoc })
+          packageDoc && !_.isEmpty(packageDoc) && h(ImageDepViewer, { packageDoc })
         ])
       })
     ], [
