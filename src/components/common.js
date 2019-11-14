@@ -329,7 +329,7 @@ export const methodLink = config => {
   const { methodRepoMethod: { sourceRepo, methodVersion, methodNamespace, methodName, methodPath } } = config
   return sourceRepo === 'agora' ?
     `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods/${methodNamespace}/${methodName}/${methodVersion}` :
-    `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}`
+    `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}:${methodVersion}`
 }
 
 export const ShibbolethLink = ({ children, ...props }) => {
