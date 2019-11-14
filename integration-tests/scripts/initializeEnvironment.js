@@ -26,7 +26,7 @@ const wdl = `task echo_to_file {
   }
 
   runtime {
-    docker: "alpine"
+    docker: "bashell/alpine-bash"
   }
 }
 
@@ -89,10 +89,10 @@ const setupMethod = async () => {
       namespace, name: `${name}-configured`,
       payload: JSON.stringify({
         ...configTemplate,
-        inputs: { 'echo_strings.echo_to_file.input1': 'foo' },
-        outputs: { 'echo_strings.echo_to_file.out': 'this.out' },
+        inputs: { 'echo_strings.echo_to_file.input1': 'this.input' },
+        outputs: { 'echo_strings.echo_to_file.out': 'this.output' },
         namespace, name: `${name}-configured`,
-        rootEntityType: 'participant'
+        rootEntityType: 'test_entity'
       }),
       entityType: 'Configuration'
     }
@@ -126,7 +126,7 @@ const setupMethod = async () => {
 
     const featuredMethodsUrl = `https://www.googleapis.com/storage/v1/b/firecloud-alerts-${env}/o/featured-methods.json`
 
-    const featuredMethods = await fetch(`${featuredMethodsUrl}?alt=media`, { headers: googleHeaders }).then(res => res.ok && res.json())
+    const featuredMethods = await fetch(`${featuredMethodsUrl}?alt=media`).then(res => res.ok && res.json())
 
     if (!featuredMethods || !featuredMethods.some(method => method.name === name && method.namespace === namespace)) {
       await fetchOk(
