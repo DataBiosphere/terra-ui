@@ -64,23 +64,24 @@ class Importer extends Component {
     const wsAjax = Ajax().Workspaces.workspace(namespace, name)
 
     try {
-      switch (format) {
-        case 'PFB':
+      await Utils.switchCase(format,
+        ['PFB', async () => {
           const { jobId } = await wsAjax.importPFB(url)
           pfbImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
           notify('info', 'Data import in progress.', {
             id: jobId,
             message: 'Data will show up incrementally as the job progresses.'
           })
-          break
-        case 'entitiesJson':
+        }],
+        ['entitiesJson', async () => {
           await wsAjax.importJSON(url)
           notify('success', 'Data imported successfully.', { timeout: 3000 })
-          break
-        default:
+        }],
+        [Utils.DEFAULT, async () => {
           await wsAjax.importBagit(url)
           notify('success', 'Data imported successfully.', { timeout: 3000 })
-      }
+        }]
+      )
       Nav.goToPath('workspace-data', { namespace, name })
     } catch (e) {
       reportError('Import Error', e)

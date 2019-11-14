@@ -4,7 +4,7 @@ import { h } from 'react-hyperscript-helpers'
 import { clearNotification, notify } from 'src/components/Notifications'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import { pfbImportJobStore } from 'src/libs/state'
-import { delay, useAtom, useOnMount } from 'src/libs/utils'
+import { DEFAULT, delay, switchCase, useAtom, useOnMount } from 'src/libs/utils'
 
 
 const ImportStatus = () => {
@@ -38,26 +38,16 @@ const ImportStatusItem = ({ job, onDone }) => {
       const response = await Workspaces.workspace(namespace, name).importPFBStatus(jobId)
       const { message, status } = response
 
-      switch (status) {
-        case 'RUNNING':
-          // SR;DN (still running; do nothing)
-          break
-        case 'SUCCESS':
-          clearNotification(jobId)
-          notify('success', 'Data imported successfully.', {
-            message: `Data import to workspace "${namespace} / ${name}" is complete. Please refresh the Data view.`
-          })
-          onDone()
-          break
-        case 'ERROR':
-          clearNotification(jobId)
-          notify('error', 'Error importing PFB data.', message)
-          onDone()
-          break
-        default:
-          clearNotification(jobId)
-          notify('error', 'Unexpected error importing PFB data', response)
-          onDone()
+      // SR;DN (still running; do nothing)
+      if (status !== 'RUNNING') {
+        switchCase(status,
+          ['SUCCESS', () => notify('success', 'Data imported successfully.',
+            { message: `Data import to workspace "${namespace} / ${name}" is complete. Please refresh the Data view.` })],
+          ['ERROR', () => notify('error', 'Error importing PFB data.', message)],
+          [DEFAULT, () => notify('error', 'Unexpected error importing PFB data', response)]
+        )
+        clearNotification(jobId)
+        onDone()
       }
     } catch (error) {
       // Ignore 404; We're probably asking for status before the status endpoint knows about the job
