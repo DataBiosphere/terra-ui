@@ -18,7 +18,6 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
-import { getAppName } from 'src/libs/logos'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -29,6 +28,8 @@ const warningBoxStyle = {
   padding: '1rem 1.25rem',
   color: colors.light(1), fontWeight: 'bold', fontSize: 12
 }
+
+const errorTextStyle = { color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
 
 export const renderDataCell = (data, namespace) => {
   const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
@@ -248,7 +249,7 @@ export const EntityUploader = class EntityUploader extends Component {
     super(props)
     this.state = {
       newEntityType: '', useFireCloudDataModel: false, isFileImportCurrMode: true, isFileImportLastUsedMode: undefined,
-      file: undefined, fileContents: ''
+      file: undefined, fileContents: '', showInvalidEntryMethodWarning: false
     }
   }
 
@@ -268,7 +269,7 @@ export const EntityUploader = class EntityUploader extends Component {
 
   render() {
     const { onDismiss, entityTypes } = this.props
-    const { uploading, file, useFireCloudDataModel, isFileImportCurrMode, fileContents, isFileImportLastUsedMode } = this.state
+    const { uploading, file, useFireCloudDataModel, isFileImportCurrMode, fileContents, isFileImportLastUsedMode, showInvalidEntryMethodWarning } = this.state
     const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents)
     const isInvalid = isFileImportCurrMode === isFileImportLastUsedMode && file && !match
     const newEntityType = match && match[1]
@@ -293,20 +294,17 @@ export const EntityUploader = class EntityUploader extends Component {
             onClick: () => this.doUpload()
           }, ['Upload'])
         }, [
-          'The first column header must be:',
-          div({ style: { fontFamily: 'monospace', margin: '0.5rem', fontWeight: '600' } }, ['entity:[type]_id']),
-          'where ',
-          span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['[type]']),
-          ` is the desired name of the data table in ${getAppName()}. For example, to create or update a `,
-          span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['participant']),
-          ' table use ',
-          span({ style: { fontFamily: 'monospace', fontWeight: '600' } }, ['entity:participant_id']),
-          div({ style: { margin: '0.5rem 0 1rem' } }, ['All of the values in the ID column must be unique.']),
+          div({ style: { padding: '0 0 1rem' } },
+            ['Choose the data import option below. ',
+              h(Link, {
+                ...Utils.newTabLinkProps,
+                href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
+              }, ['Click here for more info on the table.'])]),
           h(SimpleTabBar, {
             tabs: [{ title: 'File Import', key: true, width: 121 }, { title: 'Text Import', key: false, width: 127 }],
             value: isFileImportCurrMode,
             onChange: value => {
-              this.setState({ isFileImportCurrMode: value })
+              this.setState({ isFileImportCurrMode: value, showInvalidEntryMethodWarning: false })
             }
           }),
           div({
@@ -320,7 +318,7 @@ export const EntityUploader = class EntityUploader extends Component {
               h(TooltipTrigger, { content: 'Tab Separated Values', side: 'bottom' },
                 [span({ style: { textDecoration: 'underline dashed' } }, 'TSV')]),
               ' file containing your data: '
-            ]) : div(['Paste the data directly below:']),
+            ]) : div(['Copy and paste tab separated data here:']),
             currentFile && div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
               h(Link,
                 {
@@ -346,17 +344,19 @@ export const EntityUploader = class EntityUploader extends Component {
           ]) : div([
             h(PasteOnlyInput, {
               'aria-label': 'Paste text data here',
+              readOnly: !!fileContents,
               placeholder: 'entity:participant_id(tab)column1(tab)column2...',
               onPaste: pastedText => {
-                this.setState({ file: new File([pastedText], 'upload.tsv'), fileContents: pastedText, isFileImportLastUsedMode: false })
+                this.setState(
+                  { file: new File([pastedText], 'upload.tsv'), fileContents: pastedText, isFileImportLastUsedMode: false, showInvalidEntryMethodWarning: false })
               },
-              readOnly: !!fileContents,
+              onChange: () => this.setState({ showInvalidEntryMethodWarning: true }),
               value: !isFileImportLastUsedMode ? fileContents : '',
               wrap: 'off',
               style: {
                 fontFamily: 'monospace', height: 100,
                 backgroundColor: isInvalid ? colors.danger(.1) : colors.light(0.1),
-                border: isInvalid ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`,
+                border: isInvalid ? `1px solid ${colors.danger()}` : undefined,
                 boxShadow: 'none'
               }
             })
@@ -380,11 +380,12 @@ export const EntityUploader = class EntityUploader extends Component {
               ...Utils.newTabLinkProps
             }, ['Learn more ', icon('pop-out', { size: 12 })])
           ]),
-          isInvalid && div({
-            style: { color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
-          },
-          ['Invalid format: Data does not start with entity or membership definition.']
-          )
+          div({ style: errorTextStyle }, [
+            Utils.cond(
+              [isInvalid, () => 'Invalid format: Data does not start with entity or membership definition.'],
+              [showInvalidEntryMethodWarning, () => 'Invalid Data Entry Method: Copy and paste only']
+            )
+          ])
         ]),
         uploading && spinnerOverlay
       ])
