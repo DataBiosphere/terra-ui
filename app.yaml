@@ -15,3 +15,4 @@ handlers:
     Strict-Transport-Security: "max-age=2592000; includeSubdomains"
     X-Content-Type-Options: "nosniff"
     X-XSS-Protection: "1; mode=block"
+    
