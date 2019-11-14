@@ -5,7 +5,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, MenuButton, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
@@ -266,6 +266,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
   return div({ style: { display: 'flex', alignItems: 'center', borderBottom: `2px solid ${colors.dark(0.2)}`, height: '3.5rem' } }, [
     div({ style: { fontSize: 18, fontWeight: 'bold', backgroundColor: colors.dark(0.2), padding: '0 4rem', height: '100%', display: 'flex', alignItems: 'center' } },
       ['PREVIEW (READ-ONLY)']),
+    readOnlyAccess && h(ButtonSecondary, { style: buttonStyle, onClick: () => setExportingNotebook(true) }, [makeMenuIcon('export'), 'Copy to another workspace']),
     !readOnlyAccess && Utils.cond(
       [
         !mode || clusterStatus === null || clusterStatus === 'Stopped', () => h(Fragment, [
@@ -273,22 +274,22 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
             [cluster && !welderEnabled, () => h(ButtonSecondary, {
               style: buttonStyle,
               onClick: () => setEditModeDisabledOpen(true)
-            }, [icon('warning-standard', { style: { paddingRight: 3 } }), 'Edit (Disabled)'])],
+            }, [makeMenuIcon('warning-standard', { style: { paddingRight: 3 } }), 'Edit (Disabled)'])],
             [
               locked, () => h(ButtonSecondary, {
                 style: buttonStyle,
                 onClick: () => setFileInUseOpen(true)
-              }, [icon('lock', { style: { paddingRight: 3 } }), 'Edit (In use)'])
+              }, [makeMenuIcon('lock', { style: { paddingRight: 3 } }), 'Edit (In use)'])
             ],
             () => h(ButtonSecondary, {
               style: buttonStyle,
               onClick: () => chooseMode('edit')
-            }, [icon('edit', { style: { paddingRight: 3 } }), 'Edit'])
+            }, [makeMenuIcon('edit', { style: { paddingRight: 3 } }), 'Edit'])
           ),
           h(ButtonSecondary, {
             style: buttonStyle,
             onClick: () => BrowserStorage.getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
-          }, [icon('chalkboard', { style: { paddingRight: 3 } }), 'Playground mode']),
+          }, [makeMenuIcon('chalkboard', { style: { paddingRight: 3 } }), 'Playground mode']),
           h(PopupTrigger, {
             closeOnClick: true,
             content: h(Fragment, [
