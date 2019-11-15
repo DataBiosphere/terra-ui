@@ -66,7 +66,7 @@ export default _.flow(
   render() {
     const { dataset } = this.props
     const { completedDeOauth, groups } = this.state
-    const { authDomain, origin, isAmpPd, isUKB } = _.find({ name: dataset }, datasets)
+    const { authDomain, origin, partner } = _.find({ name: dataset }, datasets)
 
     const notInAuthDomainError = div({
       style: { fontSize: 18, margin: '3rem 5rem', width: 800 }
@@ -77,24 +77,26 @@ export default _.flow(
         'with that account. To sign out of Terra, click on the menu on the upper left, click on your ',
         'name, then click Sign Out.'
       ]),
-      Utils.cond(
-        [isAmpPd, () => p([
+      Utils.switchCase(partner, [
+        'AMP PD', () => p([
           'If you do not have a Google account in that group, please apply for access by emailing ',
           h(Link, { href: 'mailto:admin@amp-pd.org' }, ['admin@amp-pd.org.'])
-        ])],
-        [isUKB, () => h(Fragment, [
+        ])
+      ], [
+        'UKBB', () => h(Fragment, [
           p([
             'If you do not have a Google account in that group, you will not be able to browse UKB data at this time. ',
             'However, if you already have access to a copy of UKB data, you may upload it to a workspace, ',
             'provided you add appropriate permissions and/or Authorization Domains to keep the data protected.'
           ]),
           p(['We are actively working with UK Biobank to improve the process of accessing and working with UKB data.'])
-        ])],
-        () => p([
+        ])
+      ], [
+        Utils.DEFAULT, () => p([
           'If you do not have a Google account in that group, please ',
           h(Link, { onClick: () => { contactUsActive.set(true) } }, ['apply for access.'])
         ])
-      )
+      ])
     ])
 
     return h(Fragment, [

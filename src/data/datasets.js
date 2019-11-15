@@ -9,13 +9,13 @@ const datasets = [
     name: 'AMP PD - 2019_v1release_1015',
     origin: 'https://data-explorer.amp-pd.org',
     authDomain: 'amp-pd-researchers',
-    isAmpPd: true
+    partner: 'AMP PD'
   },
   {
     name: 'AMP PD Clinical - 2019_v1release_1015',
     origin: 'https://clinical-data-explorer.amp-pd.org',
     authDomain: 'amp-pd-clinical-access',
-    isAmpPd: true
+    partner: 'AMP PD'
   },
   {
     name: 'Baseline Health Study',
@@ -35,7 +35,7 @@ const datasets = [
     name: 'UK Biobank',
     origin: 'https://biobank-explorer.appspot.com',
     authDomain: 'Kathiresan_UKBB',
-    isUKB: true
+    partner: 'UKBB'
   }
 ]
 
