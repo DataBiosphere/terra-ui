@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
+import { useRef } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
 import { ButtonPrimary, ButtonSecondary, Clickable, FocusTrapper } from 'src/components/common'
@@ -27,40 +28,49 @@ const styles = {
 
 const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCancel = true, cancelText = 'Cancel', showX, showButtons = true, okButton, ...props }) => {
   const titleId = Utils.useUniqueId()
+  const modalNode = useRef()
+  const previouslyFocusedNode = useRef()
   // react-modal applies aria-hidden to the app root *and* takes care of limiting what can be tab-focused - see appLoader.js
-  return h(FocusTrapper, [
-    h(RModal, {
-      parentSelector: () => document.getElementById('modal-root'),
-      isOpen: true,
-      onRequestClose: onDismiss,
-      style: { overlay: styles.overlay, content: { ...styles.modal, width } },
-      aria: { labelledby: titleId },
-      ...props
-    }, [
-      title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
-        div({ id: titleId, style: { fontSize: 18, fontWeight: 600 } }, [title]),
-        titleExtras,
-        showX && h(Clickable, {
-          'aria-label': 'Close modal',
-          style: { alignSelf: 'flex-start', marginLeft: 'auto' },
+  return h(RModal, {
+    // tabIndex: 0,
+    contentRef: node => modalNode.current = node,
+    parentSelector: () => document.getElementById('modal-root'),
+    isOpen: true,
+    onRequestClose: () => {
+      onDismiss()
+      previouslyFocusedNode.current.focus()
+    },
+    onAfterOpen: () => setTimeout(() => {
+      previouslyFocusedNode.current = document.activeElement
+      modalNode.current.focus()
+    }, 0),
+    style: { overlay: styles.overlay, content: { ...styles.modal, width } },
+    aria: { labelledby: titleId },
+    ...props
+  }, [
+    title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
+      div({ id: titleId, style: { fontSize: 18, fontWeight: 600 } }, [title]),
+      titleExtras,
+      showX && h(Clickable, {
+        'aria-label': 'Close modal',
+        style: { alignSelf: 'flex-start', marginLeft: 'auto' },
+        onClick: onDismiss
+      }, [icon('times-circle')])
+    ]),
+    children,
+    showButtons && div({ style: styles.buttonRow }, [
+      showCancel ?
+        h(ButtonSecondary, {
+          style: { marginRight: '1rem' },
           onClick: onDismiss
-        }, [icon('times-circle')])
-      ]),
-      children,
-      showButtons && div({ style: styles.buttonRow }, [
-        showCancel ?
-          h(ButtonSecondary, {
-            style: { marginRight: '1rem' },
-            onClick: onDismiss
-          }, [cancelText]) :
-          null,
-        Utils.cond(
-          [okButton === undefined, () => h(ButtonPrimary, { onClick: onDismiss }, 'OK')],
-          [_.isString(okButton), () => h(ButtonPrimary, { onClick: onDismiss }, okButton)],
-          [_.isFunction(okButton), () => h(ButtonPrimary, { onClick: okButton }, 'OK')],
-          () => okButton
-        )
-      ])
+        }, [cancelText]) :
+        null,
+      Utils.cond(
+        [okButton === undefined, () => h(ButtonPrimary, { onClick: onDismiss }, 'OK')],
+        [_.isString(okButton), () => h(ButtonPrimary, { onClick: onDismiss }, okButton)],
+        [_.isFunction(okButton), () => h(ButtonPrimary, { onClick: okButton }, 'OK')],
+        () => okButton
+      )
     ])
   ])
 }
