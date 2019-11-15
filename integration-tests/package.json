@@ -7,10 +7,12 @@
     "test": "jest"
   },
   "devDependencies": {
-    "gtoken": "^4.1.0",
+    "gtoken": "^4.1.1",
     "jest": "^24.9.0",
     "jest-junit": "^9.0.0",
     "jest-puppeteer": "^4.3.0",
+    "node-fetch": "^2.6.0",
+    "prompts": "^2.2.1",
     "puppeteer": "^1.20.0"
   },
   "jest-junit": {

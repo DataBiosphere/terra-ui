@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import pathToRegexp from 'path-to-regexp'
+import { compile, pathToRegexp } from 'path-to-regexp'
 import { routeHandlersStore } from 'src/libs/state'
 import * as Projects from 'src/pages/billing/List'
 import * as Clusters from 'src/pages/Clusters'
@@ -66,7 +66,7 @@ const handlers = _.map(({ path, ...data }) => {
   return {
     regex,
     keys: _.map('name', keys),
-    makePath: pathToRegexp.compile(path),
+    makePath: compile(path, { encode: encodeURIComponent }),
     ...data
   }
 }, routes)
