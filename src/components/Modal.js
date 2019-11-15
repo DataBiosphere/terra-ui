@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { useRef } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
-import { ButtonPrimary, ButtonSecondary, Clickable, FocusTrapper } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -32,7 +32,6 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
   const previouslyFocusedNode = useRef()
   // react-modal applies aria-hidden to the app root *and* takes care of limiting what can be tab-focused - see appLoader.js
   return h(RModal, {
-    // tabIndex: 0,
     contentRef: node => modalNode.current = node,
     parentSelector: () => document.getElementById('modal-root'),
     isOpen: true,
@@ -40,10 +39,14 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
       onDismiss()
       previouslyFocusedNode.current.focus()
     },
-    onAfterOpen: () => setTimeout(() => {
+    onAfterOpen: async () => {
+      const nodeToFocus = modalNode.current.contains(document.activeElement) ? document.activeElement : modalNode.current
+      // Add the focus update to the end of the event queue
+      // Per react-focus-lock: https://github.com/theKashey/react-focus-lock#unmounting-and-focus-management
+      await Utils.delay(0)
       previouslyFocusedNode.current = document.activeElement
-      modalNode.current.focus()
-    }, 0),
+      nodeToFocus.focus()
+    },
     style: { overlay: styles.overlay, content: { ...styles.modal, width } },
     aria: { labelledby: titleId },
     ...props
