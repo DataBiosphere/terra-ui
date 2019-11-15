@@ -15,7 +15,8 @@ module.exports = {
   launch: {
     devtools: process.env.DEVTOOLS === 'true',
     headless: process.env.HEADLESS !== 'false',
-    slowMo: process.env.SLOW === 'true' ? 500 : undefined,
+    slowMo: process.env.SLOW === 'true' ? 250 : undefined,
+    defaultViewport: { width: 1200, height: 800 },
     // Workaround for issue when accessing cross domain iframes in puppeteer while not headless:
     // https://github.com/GoogleChrome/puppeteer/issues/4960
     args: (({ headfull, devtools }) => {
