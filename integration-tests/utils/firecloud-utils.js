@@ -1,22 +1,10 @@
 const { bearerToken } = require('./integration-config')
-const { findText, waitForNoSpinners, delay } = require('./integration-utils')
+const { click, findText, waitForNoSpinners, delay } = require('./integration-utils')
 
-
-const openFirecloudSelector = async page => {
-  return (await page.waitForXPath(`//*[@data-test-id="workspace-selector"]`)).click()
-}
 
 const selectWorkspace = async (page, billingAccount, workspace) => {
-  await openFirecloudSelector(page)
-  return (await page.waitForXPath(`//ul/li[contains(normalize-space(.),"${billingAccount}/${workspace}")]`)).click()
-}
-
-const findFirecloudClickable = (page, text) => {
-  return page.waitForXPath(`(//a | //*[@role="button"])[contains(normalize-space(.),"${text}") or contains(@data-test-id,"${text}")]`)
-}
-
-const click = async (page, text) => {
-  return (await findFirecloudClickable(page, text)).click()
+  await click(page, `//*[@data-test-id="workspace-selector"]`)
+  return click(page, `//ul/li[contains(normalize-space(.),"${billingAccount}/${workspace}")]`)
 }
 
 const signIntoFirecloud = async page => {
@@ -27,9 +15,6 @@ const signIntoFirecloud = async page => {
 }
 
 module.exports = {
-  openFirecloudSelector,
   selectWorkspace,
-  findFirecloudClickable,
-  click,
   signIntoFirecloud
 }

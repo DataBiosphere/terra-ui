@@ -266,7 +266,7 @@ export const TextArea = ({ onChange, ...props }) => {
   }, props))
 }
 
-export const PasteOnlyInput = ({ onPaste, readOnly = false, ...props }) => {
+export const PasteOnlyInput = ({ onPaste, ...props }) => {
   Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, PasteOnlyInput needs a label')
 
   return textarea(_.merge({
@@ -274,8 +274,6 @@ export const PasteOnlyInput = ({ onPaste, readOnly = false, ...props }) => {
     style: { ...styles.textarea, resize: 'vertical' },
     onPaste: e => {
       onPaste(e.clipboardData.getData('Text'))
-    },
-    onChange: undefined,
-    readOnly
+    }
   }, props))
 }

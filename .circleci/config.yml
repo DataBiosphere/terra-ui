@@ -138,16 +138,16 @@ jobs:
           at: .
       - restore_cache:
           keys:
-            - test-deps-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/package-lock.json" }}
-            - test-deps-{{ checksum "integration-tests/package.json" }}-
-            - test-deps-
+            - test-deps2-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/package-lock.json" }}
+            - test-deps2-{{ checksum "integration-tests/package.json" }}-
+            - test-deps2-
       - run:
           working_directory: integration-tests
-          command: npx npm@6.12 ci
+          command: npx npm@6.12 install
       - save_cache:
-          key: test-deps-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/package-lock.json" }}
+          key: test-deps2-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/package-lock.json" }}
           paths:
-            - ~/.npm
+            - integration-tests/node_modules
       - run: cp config/dev.json build/config.json
       - run:
           command: npx serve build -l 3000
@@ -159,8 +159,9 @@ jobs:
             JEST_JUNIT_OUTPUT_DIR: "/tmp/test-results/integration-test-results.xml"
             SCREENSHOT_DIR: "/tmp/failure-screenshots"
           command: |
-            TERRA_TOKEN=$(node getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}") \
-            npx npm@6.12 run test -- --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
+            mkdir -p ${SCREENSHOT_DIR}
+            TERRA_TOKEN=$(node scripts/getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}") \
+            npx npm@6.12 test -- --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
       - store_test_results:
           path: /tmp/test-results
       - store_artifacts:
