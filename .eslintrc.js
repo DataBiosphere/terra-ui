@@ -1,4 +1,4 @@
-  module.exports = {
+module.exports = {
   'plugins': ['lodash-fp', 'react', 'react-hooks', 'simple-import-sort', 'import'],
   'extends': 'react-app',
   'globals': {
