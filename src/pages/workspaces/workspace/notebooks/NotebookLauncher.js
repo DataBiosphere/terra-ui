@@ -452,6 +452,23 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
   return null
 }
 
+const PeriodicCookieSetter = ({ namespace, clusterName }) => {
+  const signal = useCancellation()
+
+  const periodicallySetCookie = withErrorReporting('Error setting cookie', async () => {
+    while (!signal.aborted) {
+      Ajax().Jupyter.notebooks(namespace, clusterName).setCookie()
+      await Utils.delay(300000)
+    }
+  })
+
+  Utils.useOnMount(() => {
+    periodicallySetCookie()
+  })
+
+  return null
+}
+
 const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
   console.assert(status === 'Running', 'Expected notebook runtime to be running')
   console.assert(!labels.welderInstallFailed, 'Expected cluster to have Welder')
@@ -494,6 +511,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
 
   return h(Fragment, [
     notebookSetupComplete && h(Fragment, [
+      h(PeriodicCookieSetter, { namespace, clusterName }),
       iframe({
         src: `${clusterUrl}/notebooks/${mode === 'edit' ? localBaseDirectory : localSafeModeBaseDirectory}/${notebookName}`,
         style: { border: 'none', flex: 1 },
