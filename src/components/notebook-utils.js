@@ -215,7 +215,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
             onSuccess()
             if (fromLauncher) {
               Nav.goToPath('workspace-notebook-launch', {
-                namespace, name: wsName, notebookName: newName + '.ipynb'
+                namespace, name: wsName, notebookName: `${newName}.ipynb`
               })
             }
           } catch (error) {
