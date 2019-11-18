@@ -266,67 +266,68 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
   return div({ style: { display: 'flex', alignItems: 'center', borderBottom: `2px solid ${colors.dark(0.2)}`, height: '3.5rem' } }, [
     div({ style: { fontSize: 18, fontWeight: 'bold', backgroundColor: colors.dark(0.2), padding: '0 4rem', height: '100%', display: 'flex', alignItems: 'center' } },
       ['PREVIEW (READ-ONLY)']),
-    readOnlyAccess && h(ButtonSecondary, { style: buttonStyle, onClick: () => setExportingNotebook(true) }, [makeMenuIcon('export'), 'Copy to another workspace']),
-    !readOnlyAccess && Utils.cond(
-      [
-        !mode || clusterStatus === null || clusterStatus === 'Stopped', () => h(Fragment, [
-          Utils.cond(
-            [cluster && !welderEnabled, () => h(ButtonSecondary, {
-              style: buttonStyle,
-              onClick: () => setEditModeDisabledOpen(true)
-            }, [makeMenuIcon('warning-standard', { style: { paddingRight: 3 } }), 'Edit (Disabled)'])],
-            [
-              locked, () => h(ButtonSecondary, {
+    readOnlyAccess ?
+      h(ButtonSecondary, { style: buttonStyle, onClick: () => setExportingNotebook(true) }, [makeMenuIcon('export'), 'Copy to another workspace']) :
+      Utils.cond(
+        [
+          !mode || clusterStatus === null || clusterStatus === 'Stopped', () => h(Fragment, [
+            Utils.cond(
+              [cluster && !welderEnabled, () => h(ButtonSecondary, {
                 style: buttonStyle,
-                onClick: () => setFileInUseOpen(true)
-              }, [makeMenuIcon('lock', { style: { paddingRight: 3 } }), 'Edit (In use)'])
-            ],
-            () => h(ButtonSecondary, {
-              style: buttonStyle,
-              onClick: () => chooseMode('edit')
-            }, [makeMenuIcon('edit', { style: { paddingRight: 3 } }), 'Edit'])
-          ),
-          h(ButtonSecondary, {
-            style: buttonStyle,
-            onClick: () => BrowserStorage.getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
-          }, [makeMenuIcon('chalkboard', { style: { paddingRight: 3 } }), 'Playground mode']),
-          h(PopupTrigger, {
-            closeOnClick: true,
-            content: h(Fragment, [
-              h(MenuButton, { onClick: () => setCopyingNotebook(true) }, ['Make a Copy']),
-              h(MenuButton, { onClick: () => setExportingNotebook(true) }, ['Copy to another workspace']),
-              h(MenuButton, {
-                onClick: withErrorReporting('Error copying to clipboard', async () => {
-                  await clipboard.writeText(`${window.location.host}/${notebookLink}`)
-                  notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 })
-                })
-              }, ['Copy URL to clipboard'])
-            ]),
-            side: 'bottom'
-          }, [
+                onClick: () => setEditModeDisabledOpen(true)
+              }, [makeMenuIcon('warning-standard'), 'Edit (Disabled)'])],
+              [
+                locked, () => h(ButtonSecondary, {
+                  style: buttonStyle,
+                  onClick: () => setFileInUseOpen(true)
+                }, [makeMenuIcon('lock'), 'Edit (In use)'])
+              ],
+              () => h(ButtonSecondary, {
+                style: buttonStyle,
+                onClick: () => chooseMode('edit')
+              }, [makeMenuIcon('edit'), 'Edit'])
+            ),
             h(ButtonSecondary, {
-              style: buttonStyle
-            }, [icon('ellipsis-v')])
+              style: buttonStyle,
+              onClick: () => BrowserStorage.getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
+            }, [makeMenuIcon('chalkboard'), 'Playground mode']),
+            h(PopupTrigger, {
+              closeOnClick: true,
+              content: h(Fragment, [
+                h(MenuButton, { onClick: () => setCopyingNotebook(true) }, ['Make a Copy']),
+                h(MenuButton, { onClick: () => setExportingNotebook(true) }, ['Copy to another workspace']),
+                h(MenuButton, {
+                  onClick: withErrorReporting('Error copying to clipboard', async () => {
+                    await clipboard.writeText(`${window.location.host}/${notebookLink}`)
+                    notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 })
+                  })
+                }, ['Copy URL to clipboard'])
+              ]),
+              side: 'bottom'
+            }, [
+              h(ButtonSecondary, {
+                style: buttonStyle
+              }, [icon('ellipsis-v')])
+            ])
           ])
-        ])
-      ],
-      [
-        clusterStatus === 'Creating', () => h(StatusMessage, [
-          'Creating notebook runtime environment, this will take 5-10 minutes. You can navigate away and return when it’s ready.'
-        ])
-      ],
-      [
-        clusterStatus === 'Starting', () => h(StatusMessage, [
-          'Starting notebook runtime environment, this may take up to 2 minutes.'
-        ])
-      ],
-      [
-        clusterStatus === 'Stopping', () => h(StatusMessage, [
-          'Notebook runtime environment is stopping. You can restart it after it finishes.'
-        ])
-      ],
-      [clusterStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Notebook runtime error.'])]
-    ),
+        ],
+        [
+          clusterStatus === 'Creating', () => h(StatusMessage, [
+            'Creating notebook runtime environment, this will take 5-10 minutes. You can navigate away and return when it’s ready.'
+          ])
+        ],
+        [
+          clusterStatus === 'Starting', () => h(StatusMessage, [
+            'Starting notebook runtime environment, this may take up to 2 minutes.'
+          ])
+        ],
+        [
+          clusterStatus === 'Stopping', () => h(StatusMessage, [
+            'Notebook runtime environment is stopping. You can restart it after it finishes.'
+          ])
+        ],
+        [clusterStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Notebook runtime error.'])]
+      ),
     div({ style: { flexGrow: 1 } }),
     div({ style: { position: 'relative' } }, [
       h(Clickable, {
