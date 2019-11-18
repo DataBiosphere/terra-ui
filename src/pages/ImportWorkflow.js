@@ -3,7 +3,6 @@ import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { ValidatedInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import { WorkspaceImporter } from 'src/components/workspace-utils'
@@ -35,7 +34,7 @@ const styles = {
 const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
   constructor(props) {
     super(props)
-    this.state = { isImporting: false, wdl: undefined, workflowName: '' }
+    this.state = { isImporting: false, wdl: undefined }
   }
 
   componentDidMount() {
@@ -46,7 +45,7 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
     try {
       const { path, version, ajax: { Dockstore } } = this.props
       const { descriptor } = await Dockstore.getWdl(path, version)
-      this.setState({ wdl: descriptor, workflowName: _.last(path.split('/')) })
+      this.setState({ wdl: descriptor })
     } catch (error) {
       reportError('Error loading WDL', error)
     }
@@ -54,7 +53,7 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
 
   render() {
     const { path, version } = this.props
-    const { isImporting, wdl, workflowName } = this.state
+    const { isImporting, wdl } = this.state
     return div({ style: styles.container }, [
       div({ style: { ...styles.card, maxWidth: 740 } }, [
         div({ style: styles.title }, ['Importing from Dockstore']),
@@ -73,16 +72,7 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
         wdl && h(WDLViewer, { wdl, style: { height: 500 } })
       ]),
       div({ style: { ...styles.card, margin: '0 2.5rem', maxWidth: 430 } }, [
-        div({ style: styles.title }, ['Workflow Name']),
-        h(ValidatedInput, {
-          inputProps: {
-            onChange: workflowName => { this.setState({ workflowName }) },
-            value: workflowName
-          }
-          //if theres already a workflow with that name error out
-         // error: workflowName !== 'hi'
-        }),
-        div({ style: { ...styles.title, paddingTop: '2rem' } }, ['Destination Workspace']),
+        div({ style: styles.title }, ['Destination Workspace']),
         h(WorkspaceImporter, { onImport: ws => this.import_(ws) }),
         isImporting && spinnerOverlay
       ])
@@ -94,7 +84,7 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
       this.setState({ isImporting: true })
 
       const { path, version } = this.props
-      const workflowName = this.state.workflowName
+      const workflowName = _.last(path.split('/'))
       const rawlsWorkspace = Ajax().Workspaces.workspace(namespace, name)
       const entityMetadata = await rawlsWorkspace.entityMetadata()
       await rawlsWorkspace.importMethodConfigFromDocker({
