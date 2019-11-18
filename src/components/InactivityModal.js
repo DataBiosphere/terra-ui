@@ -11,16 +11,19 @@ const displayRemainingTime = remainingSeconds => {
   return `${Math.floor(remainingSeconds / 60)}`.padStart(2, '0') + ':' + `${Math.floor(remainingSeconds % 60)}`.padStart(2, '0')
 }
 
-const useCurrentTime = () => {
+const timeout = 15 * 1000 * 60
+const countdownStart = 2 * 1000 * 60
+
+export const usePolling = (initialDelay = 250) => {
   const [currentTime, setCurrentTime] = useState(Date.now())
   const signal = useCancellation()
-  const delayRef = useRef(250)
+  const delayRef = useRef(initialDelay)
 
   Utils.useOnMount(() => {
     const poll = async () => {
       while (!signal.aborted) {
         await Utils.delay(delayRef.current)
-        setCurrentTime(Date.now())
+        !signal.aborted && setCurrentTime(Date.now())
       }
     }
     poll()
@@ -28,9 +31,6 @@ const useCurrentTime = () => {
 
   return [currentTime, delay => { delayRef.current = delay }]
 }
-
-const timeout = 15 * 1000 * 60
-const countdownStart = 3 * 1000 * 60
 
 const InactivityModal = () => {
   const { isSignedIn, profile: { email } } = Utils.useAtom(authStore)
@@ -40,7 +40,7 @@ const InactivityModal = () => {
 const InactivityTimer = ({ localStorageKey }) => {
   const [dismiss, setDismiss] = useState()
   const lastActiveTime = parseInt(localStorage.getItem(localStorageKey), 10) || Date.now()
-  const [currentTime, setDelay] = useCurrentTime()
+  const [currentTime, setDelay] = usePolling()
 
   const timeoutTime = lastActiveTime + timeout
   const timedOut = currentTime > timeoutTime
