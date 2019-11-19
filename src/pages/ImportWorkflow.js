@@ -3,7 +3,7 @@ import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { ValidatedInput } from 'src/components/input'
+import { TextInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import { WorkspaceImporter } from 'src/components/workspace-utils'
@@ -74,13 +74,10 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
       ]),
       div({ style: { ...styles.card, margin: '0 2.5rem', maxWidth: 430 } }, [
         div({ style: styles.title }, ['Workflow Name']),
-        h(ValidatedInput, {
-          inputProps: {
-            onChange: workflowName => { this.setState({ workflowName }) },
-            value: workflowName
-          }
-          //if theres already a workflow with that name error out
-         // error: workflowName !== 'hi'
+        h(TextInput, {
+          'aria-label': 'Workflow name',
+          onChange: workflowName => { this.setState({ workflowName }) },
+          value: workflowName
         }),
         div({ style: { ...styles.title, paddingTop: '2rem' } }, ['Destination Workspace']),
         h(WorkspaceImporter, { onImport: ws => this.import_(ws) }),
@@ -108,7 +105,11 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
       })
       Nav.goToPath('workflow', { namespace, name, workflowNamespace: namespace, workflowName })
     } catch (error) {
-      reportError('Error importing workflow', error)
+      if (error.status === 409) {
+        reportError('Error: Workflow already exists with that name in this workspace - rename workflow to import', error)
+      } else {
+        reportError('Error importing workflow', error)
+      }
     } finally {
       this.setState({ isImporting: false })
     }
