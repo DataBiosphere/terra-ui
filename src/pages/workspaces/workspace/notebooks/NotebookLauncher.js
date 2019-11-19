@@ -16,7 +16,7 @@ import { dataSyncingDocUrl } from 'src/data/clusters'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import * as BrowserStorage from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -455,12 +455,12 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
 const PeriodicCookieSetter = ({ namespace, clusterName }) => {
   const signal = useCancellation()
 
-  const periodicallySetCookie = withErrorReporting('Error setting cookie', async () => {
+  const periodicallySetCookie = async () => {
     while (!signal.aborted) {
-      Ajax().Jupyter.notebooks(namespace, clusterName).setCookie()
-      await Utils.delay(300000)
+      withErrorIgnoring(() => Ajax().Jupyter.notebooks(namespace, clusterName).setCookie())
+      await Utils.delay(900000)
     }
-  })
+  }
 
   Utils.useOnMount(() => {
     periodicallySetCookie()
