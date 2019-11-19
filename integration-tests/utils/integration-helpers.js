@@ -39,7 +39,7 @@ const deleteWorkspace = async workspaceName => {
 }
 
 const withWorkspace = test => async () => {
-  const workspaceName = 'test-workspace-51382' // await makeWorkspace()
+  const workspaceName = await makeWorkspace()
 
   try {
     await test({ workspaceName })
@@ -49,7 +49,7 @@ const withWorkspace = test => async () => {
     }
     throw e
   } finally {
-    // await deleteWorkspace(workspaceName)
+    await deleteWorkspace(workspaceName)
   }
 }
 

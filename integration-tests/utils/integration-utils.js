@@ -25,8 +25,8 @@ const findIframe = async page => {
   return hasFrame() || await waitForFn({ fn: hasFrame })
 }
 
-const findInGrid = async (page, textContains) => {
-  return await page.waitForXPath(`//*[@role="grid"][contains(normalize-space(.),"${textContains}")]`)
+const findInGrid = (page, textContains) => {
+  return page.waitForXPath(`//*[@role="grid"][contains(normalize-space(.),"${textContains}")]`)
 }
 
 const clickable = ({ text, textContains }) => {
@@ -86,6 +86,10 @@ const svgText = ({ textContains }) => {
   return `//*[name()="text" and contains(normalize-space(.),"${textContains}")]`
 }
 
+const workspaceTab = tabName => {
+  return `//*[@role="navigation"]/*[contains(normalize-space(.),"${tabName}")]`
+}
+
 module.exports = {
   click,
   clickable,
@@ -99,5 +103,6 @@ module.exports = {
   svgText,
   waitForNoSpinners,
   delay,
-  signIntoTerra
+  signIntoTerra,
+  workspaceTab
 }
