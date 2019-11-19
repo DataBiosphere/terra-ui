@@ -20,7 +20,6 @@ test('run workflow', withWorkspace(async ({ workspaceName }) => {
   await click(page, workspaceTab('workflows'))
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Find a Workflow' }))
-  await waitForNoSpinners(page)
   await click(page, clickable({ textContains: workflowName }))
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Add to Workspace' }))
@@ -39,7 +38,6 @@ test('run workflow', withWorkspace(async ({ workspaceName }) => {
 
   await pRetry(async () => {
     try {
-      await waitForNoSpinners(page)
       await findInGrid(page, 'Succeeded')
     } catch (e) {
       throw new Error(e)
@@ -53,6 +51,5 @@ test('run workflow', withWorkspace(async ({ workspaceName }) => {
 
   await click(page, workspaceTab('data'))
   await click(page, clickable({ textContains: 'test_entity' }))
-  await waitForNoSpinners(page)
   await findElement(page, `//*[@role="grid"]//*[contains(.,"${testEntity.name}")]/following-sibling::*[contains(.,"result: ${testEntity.attributes.input}")]`)
 }), 10 * 60 * 1000)
