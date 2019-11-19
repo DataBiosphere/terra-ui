@@ -735,16 +735,6 @@ const Workspaces = signal => ({
 
 const Buckets = signal => ({
 
-  getFile: async (bucket, object) => {
-    const request = { mode: 'cors' }
-    const res = await withUrlPrefix('https://storage.googleapis.com/', fetchOk)(`${bucket}/${object}`,
-      _.merge(request, { signal })
-    )
-
-    const file = await res.json()
-    return file
-  },
-
   getObject: async (bucket, object, namespace) => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}`,
       _.merge(authOpts(await saToken(namespace)), { signal })

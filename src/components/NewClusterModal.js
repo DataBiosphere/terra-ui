@@ -109,8 +109,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       profiles
     )
 
-    this.fetchMasterVersionFile()
-
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
       jupyterUserScriptUri: '',
@@ -123,8 +121,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   async fetchMasterVersionFile() {
     const defaultImageId = 'leonardo-jupyter-dev'
-    const file = await Ajax().Buckets.getFile('terra-docker-image-documentation', 'terra-docker-versions.json')
-    this.setState({ leoImages: file, selectedLeoImage: file.filter(doc => doc.id === defaultImageId)[0].image })
+    const file = await Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', this.props.namespace, true).then(res => res.json())
+
+    this.setState({ leoImages: file, selectedLeoImage: file.filter(doc => doc.id === defaultImageId)[0].image || {} })
 
     const imageConfig = _.find({ id: defaultImageId }, file)
     const { packages } = imageConfig
@@ -203,6 +202,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
     const { currentCluster } = this.props
     const { leoImages } = this.state
+
+    this.fetchMasterVersionFile()
+
     if (currentCluster) {
       const { clusterImages, jupyterUserScriptUri } = await Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details()
       const { dockerImage } = _.find({ tool: 'Jupyter' }, clusterImages)
