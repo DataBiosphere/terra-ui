@@ -259,7 +259,9 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
       await methodAjax.toWorkspace({ namespace, name }, config)
 
-      Nav.goToPath('workflow', { namespace, name, workflowNamespace: selectedWorkflow.namespace, workflowName: selectedWorkflow.name })
+      const { namespace: workflowNamespace, name: workflowName } = config || selectedWorkflow
+
+      Nav.goToPath('workflow', { namespace, name, workflowNamespace, workflowName })
     } catch (error) {
       reportError('Error importing workflow', error)
       this.setState({ exporting: false })
