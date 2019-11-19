@@ -60,13 +60,13 @@ const routes = _.flatten([
   NotFound.navPaths // must be last
 ])
 
-const handlers = _.map(({ path, ...data }) => {
+const handlers = _.map(({ path, encode = encodeURIComponent, ...data }) => {
   const keys = [] // mutated by pathToRegexp
   const regex = pathToRegexp(path, keys)
   return {
     regex,
     keys: _.map('name', keys),
-    makePath: compile(path, { encode: encodeURIComponent }),
+    makePath: compile(path, { encode }),
     ...data
   }
 }, routes)
