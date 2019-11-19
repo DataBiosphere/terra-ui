@@ -20,18 +20,25 @@ test('find workflow', withWorkspace(async ({ workspaceName }) => {
   await firecloud.selectWorkspace(page, billingProject, workspaceName)
   await click(page, clickable({ text: 'Export to Workspace' }))
 
-  /* This else/if is necessary to "hack" going back to localhost:3000-Terra after going to Firecloud,
-   without these lines it will redirect to dev-Terra even if started out at localhost:3000-Terra */
-  if (testUrl === 'http://localhost:3000') {
-    await findElement(page, clickable({ textContains: 'Yes' }))
-    const yesButtonHrefDetails = (await page.$x('//a[contains(text(), "Yes")]/@href'))[0]
-    const redirectURL = (await page.evaluate(yesButton => yesButton.textContent, yesButtonHrefDetails)).replace(
-      'https://bvdp-saturn-dev.appspot.com',
-      testUrl)
-    await page.goto(redirectURL)
-  } else {
-    await click(page, clickable({ textContains: 'Yes' }))
+  const backToTerra = async () => {
+    /* This else/if is necessary to "hack" going back to localhost:3000-Terra after going to Firecloud,
+     without these lines it will redirect to dev-Terra even if started out at localhost:3000-Terra */
+    if (testUrl === 'http://localhost:3000') {
+      await findElement(page, clickable({ textContains: 'Yes' }))
+      const yesButtonHrefDetails = (await page.$x('//a[contains(text(), "Yes")]/@href'))[0]
+      const redirectURL = (await page.evaluate(yesButton => yesButton.textContent, yesButtonHrefDetails)).replace(
+        'https://bvdp-saturn-dev.appspot.com',
+        testUrl)
+      await page.goto(redirectURL)
+    } else {
+      await click(page, clickable({ textContains: 'Yes' }))
+    }
   }
+
+  await Promise.all([
+    page.waitForNavigation(),
+    backToTerra()
+  ])
 
   await signIntoTerra(page)
   await findText(page, `${workflowName}-configured`)
