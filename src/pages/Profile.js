@@ -1,4 +1,4 @@
-import { addDays, parseISO } from 'date-fns/fp'
+import { addDays, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment, useState } from 'react'
@@ -238,7 +238,7 @@ const FenceLink = ({ provider, displayName }) => {
    * Render
    */
   const isBusy = isLoadingStatus || isLoadingAuthUrl || isLinking
-  const expireTime = addDays(30, parseISO(issuedAt)) // can't use parseJSON because dates don't specify time offset
+  const expireTime = addDays(30, parseJSON(issuedAt))
 
   return div({ style: { marginBottom: '1rem' } }, [
     div({ style: styles.form.title }, [displayName]),
