@@ -51,12 +51,14 @@ export const notebookNameValidator = existing => ({
   }
 })
 
-export const notebookNameInput = props => h(ValidatedInput, _.merge({
+export const notebookNameInput = ({ inputProps, ...props }) => h(ValidatedInput, {
+  ...props,
   inputProps: {
+    ...inputProps,
     autoFocus: true,
     placeholder: 'Enter a name'
   }
-}, props))
+})
 
 
 const baseNotebook = {
@@ -215,7 +217,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
             onSuccess()
             if (fromLauncher) {
               Nav.goToPath('workspace-notebook-launch', {
-                namespace, name: wsName, notebookName: newName + '.ipynb'
+                namespace, name: wsName, notebookName: `${newName}.ipynb`
               })
             }
           } catch (error) {

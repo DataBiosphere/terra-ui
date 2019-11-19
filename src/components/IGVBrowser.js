@@ -27,7 +27,7 @@ export const IGVBrowser = ({ selectedFiles, refGenome, namespace, onDismiss }) =
         name: filePath,
         url: filePath,
         // igv.js will automatically find the index file, but not for crams
-        indexURL: filePath.endsWith('cram') ? filePath + '.crai' : ''
+        indexURL: filePath.endsWith('cram') ? `${filePath}.crai` : ''
       }
     }
 

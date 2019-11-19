@@ -424,9 +424,8 @@ const ToolDrawer = _.flow(
   const dataExplorerUrl = origDataExplorerUrl && `${baseURL}?${qs.stringify({ ...qs.parse(urlSearch), wid: workspaceId })}`
   const openDataExplorerInSameTab = dataExplorerUrl && (dataExplorerUrl.includes('terra.bio') || _.some({ origin: new URL(dataExplorerUrl).origin }, datasets))
   const dataset = openDataExplorerInSameTab && getDataset(dataExplorerUrl)
-  const dataExplorerPath = openDataExplorerInSameTab && Nav.getLink(dataset.authDomain ?
-    'data-explorer-private' :
-    'data-explorer-public', { dataset: dataset.name }) + '?' + dataExplorerUrl.split('?')[1]
+  const linkBase = Nav.getLink(dataset.authDomain ? 'data-explorer-private' : 'data-explorer-public', { dataset: dataset.name })
+  const dataExplorerPath = openDataExplorerInSameTab && `${linkBase}?${dataExplorerUrl.split('?')[1]}`
 
   const notebookButtonEnabled = isCohort && entitiesCount === 1
 
@@ -640,7 +639,7 @@ class EntitiesContent extends Component {
 
     const header = _.join('\t', [`entity:${entityKey}_id`, ...attributeNames])
 
-    const entityTsv = _.join('\n', [header, ..._.map(entityToRow, sortedEntities)]) + '\n'
+    const entityTsv = `${_.join('\n', [header, ..._.map(entityToRow, sortedEntities)])}\n`
 
     if (isSet) {
       const entityToMembership = ({ attributes, name }) => _.map(
@@ -650,7 +649,7 @@ class EntitiesContent extends Component {
 
       const header = `membership:${entityKey}_id\t${setRoot}`
 
-      const membershipTsv = _.join('\n', [header, ..._.flatMap(entityToMembership, sortedEntities)]) + '\n'
+      const membershipTsv = `${_.join('\n', [header, ..._.flatMap(entityToMembership, sortedEntities)])}\n`
 
       const zipFile = new JSZip()
         .file(`${entityKey}_entity.tsv`, entityTsv)
