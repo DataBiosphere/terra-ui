@@ -23,6 +23,7 @@ test('run workflow', withWorkspace(async ({ workspaceName }) => {
   await click(page, clickable({ textContains: workflowName }))
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Add to Workspace' }))
+  // note that this automatically brings in the highest numbered config, which isn't what happens when going through the method repo in FC
 
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Select Data' }))
