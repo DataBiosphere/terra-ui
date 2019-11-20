@@ -1,32 +1,38 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useState, useEffect } from 'react'
 import { div, h, table, tbody, td, thead, tr } from 'react-hyperscript-helpers'
 
 import { Select } from './common'
 
 export const ImageDepViewer = ({ packageDoc }) => {
-  const languages = _.keys(packageDoc)
-  const [language, setLanguage] = useState(languages[0])
+  const tools = _.uniq(_.map(doc => doc["tool"], packageDoc))
+  const [tool, setTool] = useState(tools[0])
 
-  if (!languages.includes(language)) {
-    setLanguage(languages[0])
+  console.log("tools:", tools)
+  console.log("tool:", tool)
+  if (!tools.includes(tool)) {
+    setTool(tools[0])
   }
+  const sortedTools = _.sortBy(tools, tool => tool == "tools" ? 0 : 1)
 
-  const packages = packageDoc[language]
+  useEffect(() => {
 
+  }, )
+
+  const packages = _.filter(doc => doc["tool"] == tool, packageDoc)
   return h(Fragment, [
     div({ style: { display: 'flex', alignItems: 'center', textTransform: 'capitalize' } }, [
       div({ style: { fontWeight: 'bold', marginRight: '1rem' } }, ['Installed packages']),
-      languages.length === 1 ?
-        `${language}` :
+      tools.length === 1 ?
+        `${tool}` :
       div({ style: { width: 120, textTransform: 'capitalize' } }, [
         h(Select, {
           'aria-label': 'Select a language',
-          value: language,
-          onChange: ({ value }) => setLanguage(value),
+          value: tool,
+          onChange: ({ value }) => setTool(value),
           isSearchable: false,
           isClearable: false,
-          options: languages
+          options: sortedTools
         })
       ])
     ]),
@@ -45,14 +51,15 @@ export const ImageDepViewer = ({ packageDoc }) => {
             ])
           ]),
           tbody(
-            _.keys(packages).map((name, index) => {
+            _.flatten(_.map((doc, index) => {
               return [
                 tr({ key: index }, [
-                  td({ style: { paddingRight: '1rem', paddingTop: index === 0 ? '1rem' : '0rem' } }, [name]),
-                  td({ style: { paddingTop: index === 0 ? '1rem' : '0rem' } }, [packages[name]])
+                  td({ style: { paddingRight: '1rem', paddingTop: index === 0 ? '1rem' : '0rem' } }, [doc["name"]]),
+                  td({ style: { paddingTop: index === 0 ? '1rem' : '0rem' } }, [doc["version"]])
                 ])
               ]
-            }))
+            }, packages))
+          )
         ])
 
     ])

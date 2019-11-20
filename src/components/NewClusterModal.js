@@ -120,8 +120,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   async fetchMasterVersionFile() {
+    const { namespace } = this.props
     const defaultImageId = 'leonardo-jupyter-dev'
-    const file = await Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', this.props.namespace, true).then(res => res.json())
+    const file = await Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
 
     this.setState({ leoImages: file, selectedLeoImage: file.filter(doc => doc.id === defaultImageId)[0].image || {} })
 
@@ -132,45 +133,34 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   async fetchImageDocumentation(packageLink) {
+    const { namespace } = this.props
     const splitPath = packageLink.split('/')
     const object = splitPath[splitPath.length - 1]
     const bucket = splitPath[splitPath.length - 2]
 
-    const file = await Ajax().Buckets.getFile(bucket, object)
+    const file = await Ajax().Buckets.getObjectPreview(bucket, object, namespace, true).then(res => res.json())
 
-    this.setState({ packageDoc: this.packageDocAdaptor(file) })
+    const adaptedDoc = this.packageDocAdaptor(file)
+    console.log("adapted doc: ", adaptedDoc)
+    this.setState({ packageDoc: adaptedDoc })
   }
 
   //takes a packageDoc with n tools, and returns one with at most Python, R, and a generic 'tool' bucket
   packageDocAdaptor(packageDoc) {
     const tools = _.keys(packageDoc)
-    const nonGenericTools = ['r', 'python']
+    const mainTools = ["r", "python"]
 
-    const toolsLabel = 'tools'
+    // console.log('original packagdoc in adaptor', packageDoc, tools)
 
-    //transform list of tools into the documentation for the tools section
-    const toolsDoc = {
-      [toolsLabel]: tools
-        .filter(tool => !nonGenericTools.includes(tool.toLowerCase()))
-        .map(tool => packageDoc[tool])
-        .reduce((tool1Doc, tool2Doc) => _.merge(tool1Doc, tool2Doc), {})
-    }
+    const docs = _.map(
+        tool => {
+         return _.map(
+            lib => {
+              return { "tool": mainTools.includes(tool) ? tool : "tools", "name": lib, "version": packageDoc[tool][lib] }
+            } , _.keys(packageDoc[tool]))
+        }, tools)
 
-    //transforms the list of tools into the documentation for the generic packages section
-    const genericDoc = tools
-      .filter(tool => nonGenericTools.includes(tool.toLowerCase()))
-      .map(tool => {
-        return { [tool]: packageDoc[tool] }
-      })
-      .reduce((tool1Doc, tool2Doc) => _.merge(tool1Doc, tool2Doc), {})
-
-    let finalDoc = genericDoc
-    //if we found some tool docs
-    if (!_.isEmpty(toolsDoc[toolsLabel])) {
-      finalDoc = _.merge(genericDoc, toolsDoc)
-    }
-
-    return finalDoc
+    return _.flatten(docs)
   }
 
   getMachineConfig() {
@@ -243,6 +233,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { version, updated } = _.find({ image: selectedLeoImage }, leoImages) || { version: '0.0.0', updated: Utils.makeStandardDate('1970-01-01') }
 
     const isCustomImageInvalid = !imageValidationRegexp.test(customEnvImage)
+
+    console.log("packagedoc in modal render: ", packageDoc)
 
     const makeEnvSelect = id => h(Select, {
       id,
