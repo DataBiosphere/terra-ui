@@ -191,7 +191,7 @@ const UriViewer = _.flow(
           els.data(_.last(name.split('/')).split('.').join('.\u200B')) // allow line break on periods
         ]),
         h(PreviewContent, { uri, metadata, googleProject }),
-        els.cell([els.label('File size'), els.data(filesize(parseInt(size, 10)))]),
+        els.cell([els.label('File size'), els.data(filesize(size))]),
         els.cell([
           h(Link, {
             ...Utils.newTabLinkProps,

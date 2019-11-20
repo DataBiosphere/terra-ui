@@ -1,3 +1,4 @@
+import { parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import { ShibbolethLink } from 'src/components/common'
@@ -6,12 +7,16 @@ import { Ajax } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
-import { authStore, requesterPaysProjectStore, workspacesStore, workspaceStore } from 'src/libs/state'
+import { authStore, pfbImportJobStore, requesterPaysProjectStore, workspacesStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
 const getAuthInstance = () => {
   return window.gapi.auth2.getAuthInstance()
+}
+
+const getDateJoined = async () => {
+  return parseJSON((await Ajax().User.firstTimestamp()).timestamp)
 }
 
 export const signOut = () => {
@@ -153,10 +158,12 @@ authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldSt
  * hashes to identify a user in our analytics data. We trust our developers to refrain from
  * doing this.
  */
-authStore.subscribe((state, oldState) => {
+authStore.subscribe(async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     window.newrelic.setCustomAttribute('userGoogleId', state.user.id)
-    window.Appcues && window.Appcues.identify(state.user.id)
+    window.Appcues && window.Appcues.identify(state.user.id, {
+      dateJoined: await getDateJoined()
+    })
   }
 })
 
@@ -215,6 +222,7 @@ authStore.subscribe((state, oldState) => {
   if (oldState.isSignedIn && !state.isSignedIn) {
     workspaceStore.reset()
     workspacesStore.reset()
+    pfbImportJobStore.reset()
   }
 })
 

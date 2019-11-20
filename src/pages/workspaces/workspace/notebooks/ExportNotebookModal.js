@@ -112,7 +112,7 @@ export default _.flow(
             Nav.goToPath('workspace-notebook-launch', {
               namespace: selectedWorkspace.namespace,
               name: selectedWorkspace.name,
-              notebookName: newName + '.ipynb'
+              notebookName: `${newName}.ipynb`
             })
           } else {
             Nav.goToPath('workspace-notebooks', {

@@ -7,6 +7,7 @@ import ConfigOverridesWarning from 'src/components/ConfigOverridesWarning'
 import ErrorWrapper from 'src/components/ErrorWrapper'
 import FirecloudNotification from 'src/components/FirecloudNotification'
 import FreeCreditsModal from 'src/components/FreeCreditsModal'
+import ImportStatus from 'src/components/ImportStatus'
 import Notifications from 'src/components/Notifications'
 import { NpsSurvey } from 'src/components/NpsSurvey'
 import ServiceAlerts from 'src/components/ServiceAlerts'
@@ -18,6 +19,7 @@ import { LocationProvider, Router, TitleManager } from 'src/libs/nav'
 const Main = () => {
   return h(LocationProvider, [
     h(Notifications),
+    h(ImportStatus),
     h(ServiceAlerts),
     h(FreeCreditsModal),
     h(ErrorWrapper, [
