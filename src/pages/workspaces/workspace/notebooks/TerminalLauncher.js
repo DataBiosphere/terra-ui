@@ -101,8 +101,8 @@ const TerminalLauncher = _.flow(
       })
     } else {
       return div({ style: { padding: '2rem' } }, [
-        (clusterStatus === 'Creating' || clusterStatus === 'Stopping' || clusterStatus === 'Starting' || clusterStatus === 'Updating' ||
-          clusterStatus === 'Deleting') && spinner({ style: { color: colors.primary(), marginRight: '0.5rem' } }),
+        'Creating Stopping Starting Updating Deleting'.includes(clusterStatus) &&
+        spinner({ style: { color: colors.primary(), marginRight: '0.5rem' } }),
         Utils.cond(
           [clusterStatus === 'Creating', () => 'Creating notebook runtime environment. You can navigate away and return in 5-10 minutes.'],
           [clusterStatus === 'Stopping', () => 'Notebook runtime environment is stopping. You can restart it after it finishes.'],
