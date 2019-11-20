@@ -78,14 +78,13 @@ export const ImageDepViewer = ({ packageLink, namespace }) => {
             ])
           ]),
           tbody(
-            _.flatMap(doc => {
-              return [
-                tr({ key: doc['name'] }, [
-                  td({ style: { paddingRight: '1rem' } }, [doc['name']]),
-                  td([doc['version']])
-                ])
-              ]
-            }, packages))
+            _.map(doc => {
+              return tr({ key: doc['name'] }, [
+                td({ style: { paddingRight: '1rem' } }, [doc['name']]),
+                td([doc['version']])
+              ])
+            }, packages)
+          )
         ])
 
     ])
