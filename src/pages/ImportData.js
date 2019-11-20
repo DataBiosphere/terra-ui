@@ -8,6 +8,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { pfbImportJobStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -64,15 +65,23 @@ class Importer extends Component {
 
     try {
       await Utils.switchCase(format,
-        ['entitiesJson', () => wsAjax.importJSON(url)],
-        ['PFB', () => wsAjax.importPFB(url)],
-        [Utils.DEFAULT, () => wsAjax.importBagit(url)]
+        ['PFB', async () => {
+          const { jobId } = await wsAjax.importPFB(url)
+          pfbImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
+          notify('info', 'Data import in progress.', {
+            id: jobId,
+            message: 'Data will show up incrementally as the job progresses.'
+          })
+        }],
+        ['entitiesJson', async () => {
+          await wsAjax.importJSON(url)
+          notify('success', 'Data imported successfully.', { timeout: 3000 })
+        }],
+        [Utils.DEFAULT, async () => {
+          await wsAjax.importBagit(url)
+          notify('success', 'Data imported successfully.', { timeout: 3000 })
+        }]
       )
-      if (format === 'PFB') {
-        notify('info', 'Data import in progress.', { message: 'Data will show up incrementally as the job progresses.' })
-      } else {
-        notify('success', 'Data imported successfully.', { timeout: 3000 })
-      }
       Nav.goToPath('workspace-data', { namespace, name })
     } catch (e) {
       reportError('Import Error', e)
