@@ -31,7 +31,6 @@ export const ImageDepViewer = ({ packageLink, namespace }) => {
 
       const tools = _.uniq(_.map(doc => doc['tool'], docs))
       const sortedTools = _.sortBy(tool => tool === 'tools' ? 1 : 0, tools)
-
       setTools(sortedTools)
 
       if (!sortedTools.includes(tool)) {
@@ -92,7 +91,7 @@ function packageDocAdaptor(packageDoc) {
   const tools = _.keys(packageDoc)
   const mainTools = ['r', 'python']
 
-  const docs = _.map(
+  const docs = _.flatMap(
     tool => {
       return _.map(
         lib => {
@@ -100,5 +99,5 @@ function packageDocAdaptor(packageDoc) {
         }, _.keys(packageDoc[tool]))
     }, tools)
 
-  return _.flatten(docs)
+  return docs
 }
