@@ -1,40 +1,67 @@
 import _ from 'lodash/fp'
-import { Fragment, useState, useEffect } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h, table, tbody, td, thead, tr } from 'react-hyperscript-helpers'
+import { Ajax } from 'src/libs/ajax'
 
 import { Select } from './common'
 
-export const ImageDepViewer = ({ packageDoc }) => {
-  const tools = _.uniq(_.map(doc => doc["tool"], packageDoc))
-  const [tool, setTool] = useState(tools[0])
 
-  console.log("tools:", tools)
-  console.log("tool:", tool)
-  if (!tools.includes(tool)) {
-    setTool(tools[0])
+export const ImageDepViewer = ({ packageLink, namespace }) => {
+  const [tools, setTools] = useState([])
+  const [tool, setTool] = useState('Loading...')
+  const [packageDoc, setPackageDoc] = useState({})
+
+  const packages = _.filter(doc => doc['tool'] === tool, packageDoc)
+
+  const fetchImageDocumentation = async (packageLink, namespace) => {
+    const splitPath = packageLink.split('/')
+    const object = splitPath[splitPath.length - 1]
+    const bucket = splitPath[splitPath.length - 2]
+
+    const file = await Ajax().Buckets.getObjectPreview(bucket, object, namespace, true).then(res => res.json())
+
+    const adaptedDoc = packageDocAdaptor(file)
+    return adaptedDoc
   }
-  const sortedTools = _.sortBy(tools, tool => tool == "tools" ? 0 : 1)
 
   useEffect(() => {
+    async function inner() {
+      const docs = await fetchImageDocumentation(packageLink, namespace)
+      setPackageDoc(docs)
 
-  }, )
+      const tools = _.uniq(_.map(doc => doc['tool'], docs))
+      const sortedTools = _.sortBy(tool => tool === 'tools' ? 1 : 0, tools)
 
-  const packages = _.filter(doc => doc["tool"] == tool, packageDoc)
+      setTools(sortedTools)
+
+      if (!tool) {
+        setTool(sortedTools[0])
+      } else if (!tools.includes(tool)) {
+        setTool(sortedTools[0])
+      } else {
+        //in the case where tool exists and the current tool is in tool, we do not change it if the list of tools has changes so the dropdown does not change
+      }
+    }
+    inner()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [packageLink])
+
+
   return h(Fragment, [
     div({ style: { display: 'flex', alignItems: 'center', textTransform: 'capitalize' } }, [
       div({ style: { fontWeight: 'bold', marginRight: '1rem' } }, ['Installed packages']),
       tools.length === 1 ?
         `${tool}` :
-      div({ style: { width: 120, textTransform: 'capitalize' } }, [
-        h(Select, {
-          'aria-label': 'Select a language',
-          value: tool,
-          onChange: ({ value }) => setTool(value),
-          isSearchable: false,
-          isClearable: false,
-          options: sortedTools
-        })
-      ])
+        div({ style: { width: 120, textTransform: 'capitalize' } }, [
+          h(Select, {
+            'aria-label': 'Select a language',
+            value: tool,
+            onChange: ({ value }) => setTool(value),
+            isSearchable: false,
+            isClearable: false,
+            options: tools
+          })
+        ])
     ]),
     div({
       style: {
@@ -46,22 +73,37 @@ export const ImageDepViewer = ({ packageDoc }) => {
         [
           thead([
             tr([
-              td({ style: { align: 'left', fontWeight: 'bold', paddingRight: '1rem' } }, ['Package']),
-              td({ style: { align: 'left', fontWeight: 'bold' } }, ['Version'])
+              td({ style: { align: 'left', fontWeight: 'bold', paddingRight: '1rem', paddingBottom: '1rem' } }, ['Package']),
+              td({ style: { align: 'left', fontWeight: 'bold', paddingBottom: '1rem' } }, ['Version'])
             ])
           ]),
           tbody(
-            _.flatten(_.map((doc, index) => {
+            _.flatMap(doc => {
               return [
-                tr({ key: index }, [
-                  td({ style: { paddingRight: '1rem', paddingTop: index === 0 ? '1rem' : '0rem' } }, [doc["name"]]),
-                  td({ style: { paddingTop: index === 0 ? '1rem' : '0rem' } }, [doc["version"]])
+                tr({ key: doc['name'] }, [
+                  td({ style: { paddingRight: '1rem' } }, [doc['name']]),
+                  td([doc['version']])
                 ])
               ]
             }, packages))
-          )
         ])
 
     ])
   ])
+}
+
+//takes a packageDoc with n tools, and returns one with at most Python, R, and a generic 'tool' bucket
+function packageDocAdaptor(packageDoc) {
+  const tools = _.keys(packageDoc)
+  const mainTools = ['r', 'python']
+
+  const docs = _.map(
+    tool => {
+      return _.map(
+        lib => {
+          return { tool: mainTools.includes(tool) ? tool : 'tools', name: lib, version: packageDoc[tool][lib] }
+        }, _.keys(packageDoc[tool]))
+    }, tools)
+
+  return _.flatten(docs)
 }

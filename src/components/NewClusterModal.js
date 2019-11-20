@@ -129,38 +129,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const imageConfig = _.find({ id: defaultImageId }, file)
     const { packages } = imageConfig
 
-    this.fetchImageDocumentation(packages)
-  }
-
-  async fetchImageDocumentation(packageLink) {
-    const { namespace } = this.props
-    const splitPath = packageLink.split('/')
-    const object = splitPath[splitPath.length - 1]
-    const bucket = splitPath[splitPath.length - 2]
-
-    const file = await Ajax().Buckets.getObjectPreview(bucket, object, namespace, true).then(res => res.json())
-
-    const adaptedDoc = this.packageDocAdaptor(file)
-    console.log("adapted doc: ", adaptedDoc)
-    this.setState({ packageDoc: adaptedDoc })
-  }
-
-  //takes a packageDoc with n tools, and returns one with at most Python, R, and a generic 'tool' bucket
-  packageDocAdaptor(packageDoc) {
-    const tools = _.keys(packageDoc)
-    const mainTools = ["r", "python"]
-
-    // console.log('original packagdoc in adaptor', packageDoc, tools)
-
-    const docs = _.map(
-        tool => {
-         return _.map(
-            lib => {
-              return { "tool": mainTools.includes(tool) ? tool : "tools", "name": lib, "version": packageDoc[tool][lib] }
-            } , _.keys(packageDoc[tool]))
-        }, tools)
-
-    return _.flatten(docs)
+    this.setState({ packageLink: packages })
   }
 
   getMachineConfig() {
@@ -212,7 +181,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   })
 
   render() {
-    const { currentCluster, onDismiss } = this.props
+    const { currentCluster, onDismiss, namespace } = this.props
     const {
       profile,
       masterMachineType,
@@ -227,14 +196,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       customEnvImage,
       viewMode,
       leoImages,
-      packageDoc
+      packageLink
     } = this.state
 
     const { version, updated } = _.find({ image: selectedLeoImage }, leoImages) || { version: '0.0.0', updated: Utils.makeStandardDate('1970-01-01') }
 
     const isCustomImageInvalid = !imageValidationRegexp.test(customEnvImage)
-
-    console.log("packagedoc in modal render: ", packageDoc)
 
     const makeEnvSelect = id => h(Select, {
       id,
@@ -242,8 +209,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       onChange: ({ value }) => {
         const imageConfig = _.find({ image: value }, leoImages)
         const { packages } = imageConfig
-        this.fetchImageDocumentation(packages)
-        this.setState({ selectedLeoImage: value })
+        this.setState({ selectedLeoImage: value, packageLink: packages })
       },
       isSearchable: false,
       isClearable: false,
@@ -261,7 +227,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         contents: h(Fragment, [
           makeEnvSelect(),
           makeImageInfo({ margin: '1rem 0 2rem' }),
-          packageDoc && !_.isEmpty(packageDoc) && h(ImageDepViewer, { packageDoc })
+          packageLink && h(ImageDepViewer, { packageLink, namespace })
         ])
       })
     ], [
