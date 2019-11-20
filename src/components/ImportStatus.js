@@ -46,7 +46,8 @@ const ImportStatusItem = ({ job: { targetWorkspace, jobId }, onDone }) => {
       }
     }
 
-    const { message, status } = await fetchImportStatus()
+    const response = await fetchImportStatus()
+    const { message, status } = response
 
     if (!_.includes(status, ['PENDING', 'RUNNING'])) {
       Utils.switchCase(status,
