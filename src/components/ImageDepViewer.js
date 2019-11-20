@@ -13,17 +13,6 @@ export const ImageDepViewer = ({ packageLink, namespace }) => {
 
   const packages = _.filter(doc => doc['tool'] === tool, packageDoc)
 
-  const fetchImageDocumentation = async (packageLink, namespace) => {
-    const splitPath = packageLink.split('/')
-    const object = splitPath[splitPath.length - 1]
-    const bucket = splitPath[splitPath.length - 2]
-
-    const file = await Ajax().Buckets.getObjectPreview(bucket, object, namespace, true).then(res => res.json())
-
-    const adaptedDoc = packageDocAdaptor(file)
-    return adaptedDoc
-  }
-
   useEffect(() => {
     async function inner() {
       const docs = await fetchImageDocumentation(packageLink, namespace)
@@ -87,7 +76,7 @@ export const ImageDepViewer = ({ packageLink, namespace }) => {
 }
 
 //takes a packageDoc with n tools, and returns one with at most Python, R, and a generic 'tool' bucket
-function packageDocAdaptor(packageDoc) {
+const packageDocAdaptor = packageDoc => {
   const tools = _.keys(packageDoc)
   const mainTools = ['r', 'python']
 
@@ -100,4 +89,15 @@ function packageDocAdaptor(packageDoc) {
     }, tools)
 
   return docs
+}
+
+const fetchImageDocumentation = async (packageLink, namespace) => {
+  const splitPath = packageLink.split('/')
+  const object = splitPath[splitPath.length - 1]
+  const bucket = splitPath[splitPath.length - 2]
+
+  const file = await Ajax().Buckets.getObjectPreview(bucket, object, namespace, true).then(res => res.json())
+
+  const adaptedDoc = packageDocAdaptor(file)
+  return adaptedDoc
 }
