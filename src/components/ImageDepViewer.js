@@ -7,7 +7,7 @@ import { Select } from './common'
 
 
 export const ImageDepViewer = ({ packageLink, namespace }) => {
-  const [tools, setTools] = useState([])
+  const [tools, setTools] = useState(['Loading...'])
   const [tool, setTool] = useState('Loading...')
   const [packageDoc, setPackageDoc] = useState({})
 
