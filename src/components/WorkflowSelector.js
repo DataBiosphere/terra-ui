@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { workflowSelectionStore } from 'src/libs/state'
@@ -12,7 +12,7 @@ import { ModalToolButton } from 'src/pages/workspaces/workspace/Data'
 
 
 const WorkflowSelector = ({ workspace: { workspace: { namespace, name } }, selectedEntities }) => {
-  const { Workspaces } = Ajax(useCancellation())
+  const { Workspaces } = Ajax(Utils.useCancellation())
   const [loading, setLoading] = useState()
   const [configs, setConfigs] = useState()
   const selectionKey = Utils.useUniqueId()

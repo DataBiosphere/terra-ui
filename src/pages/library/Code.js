@@ -6,14 +6,14 @@ import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import broadSquare from 'src/images/library/code/broad-square.svg'
 import dockstoreLogo from 'src/images/library/code/dockstore.svg'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName, returnParam } from 'src/libs/logos'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
-import { useOnMount, withBusyState } from 'src/libs/utils'
+import { useCancellation, useOnMount, withBusyState } from 'src/libs/utils'
 
 
 const styles = {

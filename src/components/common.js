@@ -11,7 +11,7 @@ import Interactive from 'src/components/Interactive'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import hexButton from 'src/images/hex-button.svg'
 import scienceBackground from 'src/images/science-background.jpg'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { getConfig, isTerra } from 'src/libs/config'
 import { returnParam } from 'src/libs/logos'
@@ -368,7 +368,7 @@ export const FocusTrapper = ({ children, onBreakout, ...props }) => {
 
 export const CromwellVersionLink = props => {
   const [version, setVersion] = useState()
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
 
   Utils.useOnMount(() => {
     const setCromwellVersion = async () => {

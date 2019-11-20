@@ -8,14 +8,14 @@ import { icon } from 'src/components/icons'
 import { FlexTable, Sortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import { clusterCost, currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
-import { delay, formatUSD, makeCompleteDate, useGetter, useOnMount, withBusyState } from 'src/libs/utils'
+import { delay, formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, withBusyState } from 'src/libs/utils'
 
 
 const Clusters = () => {

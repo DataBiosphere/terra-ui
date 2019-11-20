@@ -9,7 +9,7 @@ import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { clearNotification, notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
-import { Ajax, saToken, useCancellation } from 'src/libs/ajax'
+import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import { currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
@@ -134,7 +134,7 @@ const WorkspaceAccessError = () => {
 }
 
 const useClusterPolling = namespace => {
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
   const timeout = useRef()
   const [clusters, setClusters] = useState()
   const reschedule = ms => {
@@ -165,7 +165,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
   const Wrapper = props => {
     const { namespace, name } = props
     const child = useRef()
-    const signal = useCancellation()
+    const signal = Utils.useCancellation()
     const [accessError, setAccessError] = useState(false)
     const accessNotificationId = useRef()
     const cachedWorkspace = Utils.useAtom(workspaceStore)
