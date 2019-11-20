@@ -34,12 +34,8 @@ export const ImageDepViewer = ({ packageLink, namespace }) => {
 
       setTools(sortedTools)
 
-      if (!tool) {
+      if (!sortedTools.includes(tool)) {
         setTool(sortedTools[0])
-      } else if (!tools.includes(tool)) {
-        setTool(sortedTools[0])
-      } else {
-        //in the case where tool exists and the current tool is in tool, we do not change it if the list of tools has changes so the dropdown does not change
       }
     }
     inner()
