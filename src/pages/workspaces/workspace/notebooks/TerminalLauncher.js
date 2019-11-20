@@ -102,17 +102,17 @@ const TerminalLauncher = _.flow(
     } else {
       return div({ style: { padding: '2rem' } }, [
         (clusterStatus !== 'Stopped') && spinner({ style: { color: colors.primary(), marginRight: '0.5rem' } }),
-        (() => {
-          if (clusterStatus === 'Creating' || !cluster) {
-            return 'Creating runtime environment. You can navigate away and return in 5-10 minutes.'
-          } else if (clusterStatus === 'Stopping') {
-            return 'Notebook runtime environment is stopping. You can restart it after it finishes.'
-          } else if (clusterStatus === 'Stopped') {
-            return 'Notebook runtime environment is stopped. Start it to edit your notebook.'
-          } else {
-            return 'Starting runtime environment, this may take up to 2 minutes.'
-          }
-        })()
+        Utils.cond(
+          [clusterStatus === 'Creating', () => 'Creating notebook runtime environment. You can navigate away and return in 5-10 minutes.'],
+          [clusterStatus === 'Stopping', () => 'Notebook runtime environment is stopping. You can restart it after it finishes.'],
+          [clusterStatus === 'Stopped', () => 'Notebook runtime environment is stopped. Start it to edit your notebook or use the terminal.'],
+          [clusterStatus === 'Starting', () => 'Starting notebook runtime environment, this may take up to 2 minutes.'],
+          [clusterStatus === 'Updating', () => 'Updating notebook runtime environment. You can navigate away and return in 5-10 minutes.'],
+          [clusterStatus === 'Deleting', () => 'Deleting notebook runtime environment, you can create a new one after it finishes'],
+          [clusterStatus === 'Deleted', () => 'No notebook runtime environment, you can create a new one to edit your notebook or use the terminal'],
+          [clusterStatus === 'Error', () => 'Error with the notebook runtime environment, please try again'],
+          [clusterStatus === 'Unknown', () => 'Error with the notebook runtime environment, please try again']
+        )
       ])
     }
   }
