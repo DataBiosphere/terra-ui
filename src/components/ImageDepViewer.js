@@ -9,7 +9,7 @@ import { Select } from './common'
 export const ImageDepViewer = ({ packageLink, namespace }) => {
   const [tools, setTools] = useState(['Loading...'])
   const [tool, setTool] = useState('Loading...')
-  const [packageDoc, setPackageDoc] = useState({})
+  const [packageDoc, setPackageDoc] = useState([])
 
   const packages = _.filter(doc => doc['tool'] === tool, packageDoc)
 
