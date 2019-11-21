@@ -86,12 +86,12 @@ const svgText = ({ textContains }) => {
   return `//*[name()="text" and contains(normalize-space(.),"${textContains}")]`
 }
 
-const workspaceTab = tabName => {
-  return `//*[@role="navigation"]/*[contains(normalize-space(.),"${tabName}")]`
+const navChild = text => {
+  return `//*[@role="navigation"]/*[contains(normalize-space(.),"${text}")]`
 }
 
-const findInDataTable = (page, entityName, data) => {
-  return findElement(page, `//*[@role="grid"]//*[contains(.,"${entityName}")]/following-sibling::*[contains(.,"${data}")]`)
+const findInDataTableRow = (page, entityName, text) => {
+  return findElement(page, `//*[@role="grid"]//*[contains(.,"${entityName}")]/following-sibling::*[contains(.,"${text}")]`)
 }
 
 module.exports = {
@@ -108,6 +108,6 @@ module.exports = {
   waitForNoSpinners,
   delay,
   signIntoTerra,
-  workspaceTab,
-  findInDataTable
+  navChild,
+  findInDataTableRow
 }

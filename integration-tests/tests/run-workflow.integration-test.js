@@ -1,7 +1,7 @@
 const pRetry = require('p-retry')
 const { testUrl, workflowName, billingProject } = require('../utils/integration-config')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, input, signIntoTerra, waitForNoSpinners, findInGrid, workspaceTab, findInDataTable } = require('../utils/integration-utils')
+const { click, clickable, input, signIntoTerra, waitForNoSpinners, findInGrid, navChild, findInDataTableRow } = require('../utils/integration-utils')
 
 
 const testEntity = { name: 'test_entity_1', entityType: 'test_entity', attributes: { input: 'foo' } }
@@ -17,7 +17,7 @@ test('run workflow', withWorkspace(async ({ workspaceName }) => {
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await click(page, clickable({ textContains: workspaceName }))
 
-  await click(page, workspaceTab('workflows'))
+  await click(page, navChild('workflows'))
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Find a Workflow' }))
   await click(page, clickable({ textContains: workflowName }))
@@ -50,7 +50,7 @@ test('run workflow', withWorkspace(async ({ workspaceName }) => {
     }
   })
 
-  await click(page, workspaceTab('data'))
+  await click(page, navChild('data'))
   await click(page, clickable({ textContains: 'test_entity' }))
-  await findInDataTable(page, testEntity.name, testEntity.attributes.input)
+  await findInDataTableRow(page, testEntity.name, testEntity.attributes.input)
 }), 10 * 60 * 1000)
