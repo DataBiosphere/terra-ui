@@ -90,6 +90,10 @@ const workspaceTab = tabName => {
   return `//*[@role="navigation"]/*[contains(normalize-space(.),"${tabName}")]`
 }
 
+const findInDataTable = (page, entityName, data) => {
+  return findElement(page, `//*[@role="grid"]//*[contains(.,"${entityName}")]/following-sibling::*[contains(.,"${data}")]`)
+}
+
 module.exports = {
   click,
   clickable,
@@ -104,5 +108,6 @@ module.exports = {
   waitForNoSpinners,
   delay,
   signIntoTerra,
-  workspaceTab
+  workspaceTab,
+  findInDataTable
 }

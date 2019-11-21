@@ -1,7 +1,7 @@
 const pRetry = require('p-retry')
 const { testUrl, workflowName, billingProject } = require('../utils/integration-config')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, findElement, input, signIntoTerra, waitForNoSpinners, findInGrid, workspaceTab } = require('../utils/integration-utils')
+const { click, clickable, input, signIntoTerra, waitForNoSpinners, findInGrid, workspaceTab, findInDataTable } = require('../utils/integration-utils')
 
 
 const testEntity = { name: 'test_entity_1', entityType: 'test_entity', attributes: { input: 'foo' } }
@@ -22,19 +22,19 @@ test('run workflow', withWorkspace(async ({ workspaceName }) => {
   await click(page, clickable({ textContains: 'Find a Workflow' }))
   await click(page, clickable({ textContains: workflowName }))
   await waitForNoSpinners(page)
-  await click(page, clickable({ textContains: 'Add to Workspace' }))
+  await click(page, clickable({ text: 'Add to Workspace' }))
   // note that this automatically brings in the highest numbered config, which isn't what happens when going through the method repo in FC
 
   await waitForNoSpinners(page)
-  await click(page, clickable({ textContains: 'Select Data' }))
+  await click(page, clickable({ text: 'Select Data' }))
   await click(page, input({ labelContains: 'Choose specific rows to process' }))
   await click(page, `//*[@role="checkbox" and contains(@aria-label, "${testEntity.name}")]`)
-  await click(page, clickable({ textContains: 'OK' }))
-  await click(page, clickable({ textContains: 'Run analysis' }))
+  await click(page, clickable({ text: 'OK' }))
+  await click(page, clickable({ text: 'Run analysis' }))
 
   await Promise.all([
     page.waitForNavigation(),
-    click(page, clickable({ textContains: 'Launch' }))
+    click(page, clickable({ text: 'Launch' }))
   ])
 
   await pRetry(async () => {
@@ -52,5 +52,5 @@ test('run workflow', withWorkspace(async ({ workspaceName }) => {
 
   await click(page, workspaceTab('data'))
   await click(page, clickable({ textContains: 'test_entity' }))
-  await findElement(page, `//*[@role="grid"]//*[contains(.,"${testEntity.name}")]/following-sibling::*[contains(.,"result: ${testEntity.attributes.input}")]`)
+  await findInDataTable(page, testEntity.name, testEntity.attributes.input)
 }), 10 * 60 * 1000)

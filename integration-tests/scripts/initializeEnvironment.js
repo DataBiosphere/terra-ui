@@ -26,7 +26,7 @@ const wdl = `task echo_to_file {
   }
 
   runtime {
-    docker: "bashell/alpine-bash"
+    docker: "photon"
   }
 }
 
