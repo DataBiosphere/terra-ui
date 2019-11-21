@@ -104,16 +104,16 @@ const TerminalLauncher = _.flow(
         'Creating Stopping Starting Updating Deleting'.includes(clusterStatus) &&
         spinner({ style: { color: colors.primary(), marginRight: '0.5rem' } }),
         Utils.cond(
-          [clusterStatus === 'Creating', () => 'Creating notebook runtime environment. You can navigate away and return in 5-10 minutes.'],
-          [clusterStatus === 'Stopping', () => 'Notebook runtime environment is stopping. You can restart it after it finishes.'],
+          [clusterStatus === 'Creating', () => 'Creating notebook runtime environment. You can navigate away and return in 3-5 minutes.'],
+          [clusterStatus === 'Stopping', () => 'Notebook runtime environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'],
           [clusterStatus === 'Starting', () => 'Starting notebook runtime environment, this may take up to 2 minutes.'],
-          [clusterStatus === 'Updating', () => 'Updating notebook runtime environment. You can navigate away and return in 5-10 minutes.'],
-          [clusterStatus === 'Deleting', () => 'Deleting notebook runtime environment, you can create a new one after it finishes'],
+          [clusterStatus === 'Updating', () => 'Updating notebook runtime environment. You can navigate away and return in 3-5 minutes.'],
+          [clusterStatus === 'Deleting', () => 'Deleting notebook runtime environment, you can create a new one after it finishes.'],
           [clusterStatus === 'Stopped', () => 'Notebook runtime environment is stopped. Start it to edit your notebook or use the terminal.'],
-          [clusterStatus === 'Deleted', () => 'No existing notebook runtime environment, you can create a new one to edit your notebook or use the terminal'],
-          [clusterStatus === 'Error', () => 'Error with the notebook runtime environment, please try again'],
-          [clusterStatus === 'Unknown', () => 'Error with the notebook runtime environment, please try again'],
-          () => 'Invalid notebook runtime environment state, please try again'
+          [clusterStatus === 'Deleted', () => 'No existing notebook runtime environment, you can create a new one to edit your notebook or use the terminal.'],
+          [clusterStatus === 'Error', () => 'Error with the notebook runtime environment, please try again.'],
+          [clusterStatus === 'Unknown', () => 'Error with the notebook runtime environment, please try again.'],
+          () => 'Invalid notebook runtime environment state, please try again.'
         )
       ])
     }
