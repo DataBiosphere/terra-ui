@@ -219,7 +219,7 @@ const NewAccountModal = ({ onDismiss }) => {
           },
           value: account.alertPolicy,
           options: _.rangeStep(10, 0, 100),
-          getOptionLabel: ({ value }) => value + '%',
+          getOptionLabel: ({ value }) => `${value}%`,
           isSearchable: false,
           isClearable: false,
           menuPortalTarget: document.getElementById('modal-root'),

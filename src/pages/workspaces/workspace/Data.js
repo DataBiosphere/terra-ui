@@ -38,6 +38,7 @@ import { getConfig } from 'src/libs/config'
 import { EntityDeleter, EntityUploader, ReferenceDataDeleter, ReferenceDataImporter, renderDataCell } from 'src/libs/data-utils'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { pfbImportJobStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -102,6 +103,15 @@ const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 1
     div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
       children
     ])
+  ])
+}
+
+const DataImportPlaceholder = () => {
+  return div({ style: { ...Style.navList.item(false), color: colors.dark(0.7) } }, [
+    div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
+      icon('downloadRegular', { size: 14 })
+    ]),
+    div({ style: { flex: 1 } }, ['Data import in progress'])
   ])
 }
 
@@ -424,9 +434,8 @@ const ToolDrawer = _.flow(
   const dataExplorerUrl = origDataExplorerUrl && `${baseURL}?${qs.stringify({ ...qs.parse(urlSearch), wid: workspaceId })}`
   const openDataExplorerInSameTab = dataExplorerUrl && (dataExplorerUrl.includes('terra.bio') || _.some({ origin: new URL(dataExplorerUrl).origin }, datasets))
   const dataset = openDataExplorerInSameTab && getDataset(dataExplorerUrl)
-  const dataExplorerPath = openDataExplorerInSameTab && Nav.getLink(dataset.authDomain ?
-    'data-explorer-private' :
-    'data-explorer-public', { dataset: dataset.name }) + '?' + dataExplorerUrl.split('?')[1]
+  const linkBase = openDataExplorerInSameTab && Nav.getLink(dataset.authDomain ? 'data-explorer-private' : 'data-explorer-public', { dataset: dataset.name })
+  const dataExplorerPath = openDataExplorerInSameTab && `${linkBase}?${dataExplorerUrl.split('?')[1]}`
 
   const notebookButtonEnabled = isCohort && entitiesCount === 1
 
@@ -640,7 +649,7 @@ class EntitiesContent extends Component {
 
     const header = _.join('\t', [`entity:${entityKey}_id`, ...attributeNames])
 
-    const entityTsv = _.join('\n', [header, ..._.map(entityToRow, sortedEntities)]) + '\n'
+    const entityTsv = `${_.join('\n', [header, ..._.map(entityToRow, sortedEntities)])}\n`
 
     if (isSet) {
       const entityToMembership = ({ attributes, name }) => _.map(
@@ -650,7 +659,7 @@ class EntitiesContent extends Component {
 
       const header = `membership:${entityKey}_id\t${setRoot}`
 
-      const membershipTsv = _.join('\n', [header, ..._.flatMap(entityToMembership, sortedEntities)]) + '\n'
+      const membershipTsv = `${_.join('\n', [header, ..._.flatMap(entityToMembership, sortedEntities)])}\n`
 
       const zipFile = new JSZip()
         .file(`${entityKey}_entity.tsv`, entityTsv)
@@ -896,7 +905,8 @@ const WorkspaceData = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
   }),
-  ajaxCaller
+  ajaxCaller,
+  Utils.connectAtom(pfbImportJobStore, 'pfbImportJobs')
 )(class WorkspaceData extends Component {
   constructor(props) {
     super(props)
@@ -945,7 +955,7 @@ const WorkspaceData = _.flow(
   }
 
   render() {
-    const { namespace, name, workspace, workspace: { workspace: { attributes } }, refreshWorkspace } = this.props
+    const { namespace, name, workspace, workspace: { workspace: { attributes } }, refreshWorkspace, pfbImportJobs } = this.props
     const { selectedDataType, entityMetadata, importingReference, deletingReference, firstRender, refreshKey, uploadingFile } = this.state
     const referenceData = getReferenceData(attributes)
 
@@ -961,6 +971,7 @@ const WorkspaceData = _.flow(
               onClick: () => this.setState({ uploadingFile: true })
             }, [icon('plus-circle', { size: 21 })])
           ]),
+          _.some({ targetWorkspace: { namespace, name } }, pfbImportJobs) && h(DataImportPlaceholder),
           _.map(([type, typeDetails]) => {
             return h(DataTypeButton, {
               key: type,

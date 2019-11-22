@@ -4,7 +4,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, CromwellVersionLink } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
@@ -134,8 +134,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     const {
       workspaceId: { namespace, name },
       entitySelectionModel: { newSetName },
-      config: { rootEntityType },
-      ajax: { Workspaces }
+      config: { rootEntityType }
     } = this.props
 
     const setType = `${rootEntityType}_set`
@@ -153,7 +152,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     }
 
     try {
-      await Workspaces.workspace(namespace, name).createEntity(newSet)
+      await Ajax().Workspaces.workspace(namespace, name).createEntity(newSet)
     } catch (error) {
       this.setState({ launchError: await error.text(), message: undefined })
       return
@@ -166,11 +165,10 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     const {
       workspaceId: { namespace, name },
       config: { namespace: configNamespace, name: configName },
-      useCallCache,
-      ajax: { Workspaces }
+      useCallCache
     } = this.props
 
-    return Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
+    return Ajax().Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
       entityType, entityName, expression, useCallCache
     })
   }

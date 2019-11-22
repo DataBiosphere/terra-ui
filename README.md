@@ -24,15 +24,15 @@ Requests related to the funtionality or usability of the UI can be submitted as 
 
 ### Developing
 
-1. We use Node 10 (the current LTS). On Darwin with Homebrew:
+1. We use Node 12 (the current LTS). On Darwin with Homebrew:
 
     ```sh
-    brew install node@10; brew link node@10 --force --overwrite
+    brew install node@12; brew link node@12 --force --overwrite
     ```
 2. Update npm:
 
     ```sh
-    npm install -g npm@6.12
+    npm install -g npm@6.13
     ```
 3. Install deps:
 

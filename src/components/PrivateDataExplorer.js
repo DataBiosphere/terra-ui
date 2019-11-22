@@ -44,7 +44,7 @@ export default _.flow(
 
     const [groupObjs] = await Promise.all([
       Groups.list(),
-      fetch(origin + '/favicon.ico', {
+      fetch(`${origin}/favicon.ico`, {
         // The whole point of reading this file is to test IAP. Prevent future
         // fetches from getting this file from disk cache.
         cache: 'no-store',
