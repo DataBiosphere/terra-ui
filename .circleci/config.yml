@@ -162,8 +162,8 @@ jobs:
             SCREENSHOT_DIR: "/tmp/failure-screenshots"
           command: |
             mkdir -p ${SCREENSHOT_DIR}
-            TERRA_TOKEN=$(node scripts/getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}")
             TESTFILES=$(circleci tests glob "tests/*.js" | circleci tests split --split-by=timings)
+            TERRA_TOKEN=$(node scripts/getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}") \
             npx npm@6.13 test $TESTFILES -- --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
       - store_test_results:
           path: /tmp/test-results
