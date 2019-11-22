@@ -1,9 +1,8 @@
 import _ from 'lodash/fp'
-import { Fragment, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import ButtonBar from 'src/components/ButtonBar'
 import Modal from 'src/components/Modal'
-import { notify } from 'src/components/Notifications'
 import { useCancellation } from 'src/libs/ajax'
 import { getLocalPref, removeLocalPref, setLocalPref } from 'src/libs/browser-storage'
 import { authStore } from 'src/libs/state'
@@ -35,11 +34,23 @@ export const usePolling = (initialDelay = 250) => {
 }
 
 const InactivityModal = () => {
+  const [expired, setExpired] = useState()
   const { isSignedIn, profile: { email } } = Utils.useAtom(authStore)
-  return !!email && !!isSignedIn && h(InactivityTimer)
+
+  return Utils.cond(
+    [!!email && !!isSignedIn, h(InactivityTimer, { expired, setExpired })],
+    [expired && !email && !isSignedIn, () => h(Modal, {
+      title: 'Session Expired',
+      showCancel: false,
+      onDismiss: () => setExpired(),
+      onOk: () => setExpired()
+    }, ['Your session has expired to maintain security and protect clinical data'])],
+    null)
 }
 
 const InactivityTimer = ({
+  setExpired,
+  expired,
   timeout = 10 * 1000 * 1,
   countdownStart = 5 * 1000 * 1
 }) => {
@@ -68,12 +79,14 @@ const InactivityTimer = ({
   })
 
   return Utils.cond([
-    timedOut || logoutRequested, () => {
+    expired || logoutRequested, () => {
       removeLocalPref('terra-timeout')
-      !logoutRequested && notify('info', 'Session Expired', { message: 'Your session has expired to maintain security and protect clinical data.' })
-      return h(Fragment, [
-        iframe({ style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })
-      ])
+      return iframe({ style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })
+    }
+  ], [
+    timedOut, () => {
+      setExpired(true)
+      return null
     }
   ], [
     showCountdown, () => h(Modal, {
