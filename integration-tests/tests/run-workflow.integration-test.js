@@ -1,6 +1,6 @@
 const pRetry = require('p-retry')
 const { testUrl, workflowName, billingProject } = require('../utils/integration-config')
-const { withWorkspace } = require('../utils/integration-helpers')
+const { withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, input, signIntoTerra, waitForNoSpinners, findInGrid, navChild, findInDataTableRow } = require('../utils/integration-utils')
 
 
@@ -10,9 +10,7 @@ test('run workflow', withWorkspace(async ({ workspaceName }) => {
   await page.goto(testUrl)
   await signIntoTerra(page)
 
-  await page.evaluate((name, billingProject, testEntity) => {
-    return window.Ajax().Workspaces.workspace(billingProject, name).createEntity(testEntity)
-  }, workspaceName, billingProject, testEntity)
+  await createEntityInWorkspace(page, billingProject, workspaceName, testEntity)
 
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await click(page, clickable({ textContains: workspaceName }))

@@ -53,6 +53,13 @@ const withWorkspace = test => async () => {
   }
 }
 
+const createEntityInWorkspace = (page, billingProject, workspaceName, testEntity) => {
+  return page.evaluate((billingProject, workspaceName, testEntity) => {
+    return window.Ajax().Workspaces.workspace(billingProject, workspaceName).createEntity(testEntity)
+  }, billingProject, workspaceName, testEntity)
+}
+
 module.exports = {
-  withWorkspace
+  withWorkspace,
+  createEntityInWorkspace
 }
