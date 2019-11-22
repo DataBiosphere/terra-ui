@@ -40,3 +40,4 @@ const withUserPrefix = key => `${getUser().id}/${key}`
 
 export const getLocalPref = key => getDynamic(localStorage, withUserPrefix(key))
 export const setLocalPref = (key, value) => setDynamic(localStorage, withUserPrefix(key), value)
+export const removeLocalPref = key => removeDynamic(localStorage, withUserPrefix(key))
