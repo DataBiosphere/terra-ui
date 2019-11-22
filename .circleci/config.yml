@@ -155,6 +155,7 @@ jobs:
           background: true
       - run: timeout 120 bash -c "until nc -z localhost 3000; do sleep 3; done"
       - run:
+          name: Run integration tests
           working_directory: integration-tests
           environment:
             JEST_JUNIT_OUTPUT_DIR: "/tmp/test-results/integration-test-results.xml"
@@ -163,7 +164,7 @@ jobs:
             mkdir -p ${SCREENSHOT_DIR}
             TERRA_TOKEN=$(node scripts/getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}")
             TESTFILES=$(circleci tests glob "integration-tests/tests/*" | circleci tests split --split-by=timings)
-            npx npm@6.13 test -- --ci --maxWorkers=2 --reporters=default --reporters=jest-junit $TESTFILES
+            npx npm@6.13 test $TESTFILES -- --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
       - store_test_results:
           path: /tmp/test-results
       - store_artifacts:
