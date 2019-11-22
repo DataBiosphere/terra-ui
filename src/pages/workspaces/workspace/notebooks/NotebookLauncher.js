@@ -457,7 +457,7 @@ const PeriodicCookieSetter = ({ namespace, clusterName }) => {
 
   const periodicallySetCookie = async () => {
     while (!signal.aborted) {
-      withErrorIgnoring(() => Ajax().Jupyter.notebooks(namespace, clusterName).setCookie())
+      withErrorIgnoring(() => Ajax().Jupyter.notebooks(namespace, clusterName).setCookie())()
       await Utils.delay(900000)
     }
   }
