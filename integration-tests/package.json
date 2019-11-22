@@ -12,6 +12,7 @@
     "jest-junit": "^9.0.0",
     "jest-puppeteer": "^4.3.0",
     "node-fetch": "^2.6.0",
+    "p-retry": "^4.2.0",
     "prompts": "^2.2.1",
     "puppeteer": "^1.20.0"
   },
