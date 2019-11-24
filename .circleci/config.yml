@@ -3,11 +3,11 @@ version: 2.1
 executors:
   node:
     docker:
-      - image: node:10
+      - image: node:12
         user: node
   puppeteer:
     docker:
-      - image: circleci/node:10-browsers
+      - image: circleci/node:12-browsers
         user: node
   gcloud:
     docker:
@@ -63,7 +63,7 @@ jobs:
             - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
             - deps2-{{ checksum "package.json" }}-
             - deps2-
-      - run: npx npm@6.12 ci
+      - run: npx npm@6.13 ci
       - save_cache:
           key: deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
           paths:
@@ -78,8 +78,8 @@ jobs:
             - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
             - deps2-{{ checksum "package.json" }}-
             - deps2-
-      - run: npx npm@6.12 ci
-      - run: npx npm@6.12 run build
+      - run: npx npm@6.13 ci
+      - run: npx npm@6.13 run build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz
@@ -143,7 +143,7 @@ jobs:
             - test-deps2-
       - run:
           working_directory: integration-tests
-          command: npx npm@6.12 install
+          command: npx npm@6.13 install
       - save_cache:
           key: test-deps2-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/package-lock.json" }}
           paths:
@@ -161,7 +161,7 @@ jobs:
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             TERRA_TOKEN=$(node scripts/getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}") \
-            npx npm@6.12 test -- --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
+            npx npm@6.13 test -- --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
       - store_test_results:
           path: /tmp/test-results
       - store_artifacts:

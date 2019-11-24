@@ -42,8 +42,11 @@ export const findPotentialNotebookLockers = async ({ canShare, namespace, wsName
 export const notebookNameValidator = existing => ({
   presence: { allowEmpty: false },
   format: {
-    pattern: /^[^#[\]*?:;@$%+=\\,/]*$/,
-    message: 'can\'t contain these characters: \r \r  @ # $ % * + = ? , [ ] : ; / \\ '
+    pattern: /^[^@#$%*+=?,[\]:;/\\]*$/,
+    message: h(Fragment, [
+      div('Name can\'t contain these characters:'),
+      div({ style: { margin: '0.5rem 1rem' } }, '@ # $ % * + = ? , [ ] : ; / \\ ')
+    ])
   },
   exclusion: {
     within: existing,
@@ -51,12 +54,14 @@ export const notebookNameValidator = existing => ({
   }
 })
 
-export const notebookNameInput = props => h(ValidatedInput, _.merge({
+export const notebookNameInput = ({ inputProps, ...props }) => h(ValidatedInput, {
+  ...props,
   inputProps: {
+    ...inputProps,
     autoFocus: true,
     placeholder: 'Enter a name'
   }
-}, props))
+})
 
 
 const baseNotebook = {

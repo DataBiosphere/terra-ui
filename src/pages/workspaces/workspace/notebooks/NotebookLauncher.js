@@ -16,7 +16,7 @@ import { dataSyncingDocUrl } from 'src/data/clusters'
 import { Ajax, useCancellation } from 'src/libs/ajax'
 import * as BrowserStorage from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -454,6 +454,23 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
   return null
 }
 
+const PeriodicCookieSetter = ({ namespace, clusterName }) => {
+  const signal = useCancellation()
+
+  const periodicallySetCookie = async () => {
+    while (!signal.aborted) {
+      withErrorIgnoring(() => Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie())()
+      await Utils.delay(15 * 60 * 1000)
+    }
+  }
+
+  Utils.useOnMount(() => {
+    periodicallySetCookie()
+  })
+
+  return null
+}
+
 const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
   console.assert(status === 'Running', 'Expected notebook runtime to be running')
   console.assert(!labels.welderInstallFailed, 'Expected cluster to have Welder')
@@ -496,6 +513,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
 
   return h(Fragment, [
     notebookSetupComplete && h(Fragment, [
+      h(PeriodicCookieSetter, { namespace, clusterName }),
       iframe({
         src: `${clusterUrl}/notebooks/${mode === 'edit' ? localBaseDirectory : localSafeModeBaseDirectory}/${notebookName}`,
         style: { border: 'none', flex: 1 },
