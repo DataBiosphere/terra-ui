@@ -67,7 +67,7 @@ export const DockstoreTile = () => {
   return div({ style: { display: 'flex' } }, [
     h(LogoTile, { logoFile: dockstoreLogo, style: { backgroundColor: 'white' } }),
     div([
-      h(Link, { href: `${getConfig().dockstoreUrlRoot}/search?_type=workflow&descriptorType=wdl&searchMode=files` }, 'Dockstore'),
+      h(Link, { href: `${getConfig().dockstoreUrlRoot}/search?_type=workflow&descriptorType=WDL&searchMode=files` }, 'Dockstore'),
       div(['Browse WDL workflows in Dockstore, an open platform used by the GA4GH for sharing Docker-based workflows'])
     ])
   ])
