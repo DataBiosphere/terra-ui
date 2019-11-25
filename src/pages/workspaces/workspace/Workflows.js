@@ -212,7 +212,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
       div({ style: { display: 'flex' } }, [
         div({ style: { flexGrow: 1, marginTop: '1rem' } }, [
           !isEditingName ?
-            h(Fragment, [span({ style: styles.sectionTitle }, ['Workflow Name: ']), `${workflowRename}`,
+            div([span({ style: styles.sectionTitle }, ['Workflow Name: ']), `${workflowRename}`,
               h(Link, {
                 style: { marginRight: '0.5rem' },
                 onClick: () => this.setState({ isEditingName: !isEditingName }),
