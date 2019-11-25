@@ -8,7 +8,7 @@ import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons
 import { TextInput, ValidatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
-import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -67,7 +67,7 @@ const NihLink = ({ nihToken }) => {
    */
   const { nihStatus } = Utils.useAtom(authStore)
   const [linking, setLinking] = useState(false)
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
 
   Utils.useOnMount(() => {
     const { User } = Ajax(signal)
@@ -176,7 +176,7 @@ const FenceLink = ({ provider, displayName }) => {
   const [isLoadingStatus, setIsLoadingStatus] = useState(false)
   const [isLoadingAuthUrl, setIsLoadingAuthUrl] = useState(false)
   const [isLinking, setIsLinking] = useState(false)
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
 
   const { User } = Ajax(signal)
 

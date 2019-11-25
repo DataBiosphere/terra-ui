@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { useEffect, useRef } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
@@ -1095,20 +1094,9 @@ export const Ajax = signal => {
 // Exposing Ajax for use by integration tests (and debugging, or whatever)
 window.Ajax = Ajax
 
-export const useCancellation = () => {
-  const controller = useRef()
-  useEffect(() => {
-    return () => controller.current.abort()
-  }, [])
-  if (!controller.current) {
-    controller.current = new window.AbortController()
-  }
-  return controller.current.signal
-}
-
 export const ajaxCaller = WrappedComponent => {
   return Utils.withDisplayName('ajaxCaller', props => {
-    const signal = useCancellation()
+    const signal = Utils.useCancellation()
     return h(WrappedComponent, { ...props, ajax: Ajax(signal) })
   })
 }
