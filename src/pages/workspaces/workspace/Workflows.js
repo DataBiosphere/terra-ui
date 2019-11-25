@@ -218,7 +218,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
                 style: { marginRight: '0.5rem' },
                 onClick: () => this.setState({ isEditingName: !isEditingName }),
                 'aria-label': 'Edit workflow name'
-              }, [icon('check', {style: {margin: 8}})])
+              }, [icon('check', { style: { margin: 8 } })])
             ])])]),
           div({ style: styles.sectionTitle }, ['Synopsis']),
           div([synopsis || (selectedWorkflowDetails && 'None')]),
