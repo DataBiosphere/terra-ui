@@ -106,6 +106,9 @@ commands:
     steps:
       - slack/status:
           include_job_number_field: false
+          include_project_field: false
+          failure_message: ":sadpanda: $CIRCLE_JOB failed."
+          success_message: ":circleci-pass: $CIRCLE_JOB ran successfully."
 
 jobs:
   test:
@@ -205,66 +208,66 @@ jobs:
 
 workflows:
   version: 2
-#  build-deploy:
-#    jobs:
-#      - test
-#      - build
-#      - integration-tests-branch-against-dev:
-#          requires:
-#            - build
-#          filters:
-#            branches:
-#              ignore:
-#                - dev
-#      - deploy-pr:
-#          requires:
-#            - test
-#            - build
-#          filters:
-#            branches:
-#              ignore:
-#                - dev
-#      - deploy-dev:
-#          requires:
-#            - test
-#            - build
-#          filters:
-#            branches:
-#              only: dev
-#      - deploy-alpha:
-#          requires:
-#            - test
-#            - build
-#          filters:
-#            branches:
-#              only: dev
-#      - deploy-perf:
-#          requires:
-#            - test
-#            - build
-#          filters:
-#            branches:
-#              only: dev
-#      - deploy-staging:
-#          requires:
-#            - test
-#            - build
-#          filters:
-#            branches:
-#              only: dev
-#  run-security-scans:
-#    jobs:
-#      - run-dev-security-scans:
-#          filters:
-#            branches:
-#              only: dev
-  alpha-integration-tests:
-#    triggers:
-#      - schedule:
-#          cron: "0 0 * * *"
-#          filters:
-#            branches:
-#              only: dev
+  build-deploy:
+    jobs:
+      - test
+      - build
+      - integration-tests-branch-against-dev:
+          requires:
+            - build
+          filters:
+            branches:
+              ignore:
+                - dev
+      - deploy-pr:
+          requires:
+            - test
+            - build
+          filters:
+            branches:
+              ignore:
+                - dev
+      - deploy-dev:
+          requires:
+            - test
+            - build
+          filters:
+            branches:
+              only: dev
+      - deploy-alpha:
+          requires:
+            - test
+            - build
+          filters:
+            branches:
+              only: dev
+      - deploy-perf:
+          requires:
+            - test
+            - build
+          filters:
+            branches:
+              only: dev
+      - deploy-staging:
+          requires:
+            - test
+            - build
+          filters:
+            branches:
+              only: dev
+  run-security-scans:
+    jobs:
+      - run-dev-security-scans:
+          filters:
+            branches:
+              only: dev
+  nightly-integration-tests:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only: dev
     jobs:
       - integration-tests-alpha
       - integration-tests-staging
