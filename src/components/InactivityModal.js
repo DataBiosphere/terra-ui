@@ -3,7 +3,6 @@ import { useRef, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import ButtonBar from 'src/components/ButtonBar'
 import Modal from 'src/components/Modal'
-import { useCancellation } from 'src/libs/ajax'
 import { getLocalPref, removeLocalPref, setLocalPref } from 'src/libs/browser-storage'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -12,12 +11,12 @@ import colors from '../libs/colors'
 
 
 const displayRemainingTime = remainingSeconds => {
-  return `${Math.floor(remainingSeconds / 60)}`.padStart(2, '0') + ':' + `${Math.floor(remainingSeconds % 60)}`.padStart(2, '0')
+  return `${Math.floor(remainingSeconds / 60).toString().padStart(2, '0')}:${Math.floor(remainingSeconds % 60).toString().padStart(2, '0')}`
 }
 
 export const usePolling = (initialDelay = 250) => {
   const [currentTime, setCurrentTime] = useState(Date.now())
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
   const delayRef = useRef(initialDelay)
 
   Utils.useOnMount(() => {
@@ -51,8 +50,8 @@ const InactivityModal = () => {
 const InactivityTimer = ({
   setExpired,
   expired,
-  timeout = 10 * 1000 * 1,
-  countdownStart = 5 * 1000 * 1
+  timeout = 15 * 1000 * 60,
+  countdownStart = 2 * 1000 * 60
 }) => {
   const [dismiss, setDismiss] = useState()
   const [logoutRequested, setLogoutRequested] = useState()
