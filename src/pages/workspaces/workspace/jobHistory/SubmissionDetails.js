@@ -10,7 +10,7 @@ import { collapseStatus, failedIcon, runningIcon, statusIcon, submittedIcon, suc
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -39,7 +39,7 @@ const SubmissionDetails = _.flow(
   const [statusFilter, setStatusFilter] = useState([])
   const [textFilter, setTextFilter] = useState('')
   const [sort, setSort] = useState({ field: 'workflowEntity', direction: 'asc' })
-  const { Workspaces } = Ajax(useCancellation())
+  const { Workspaces } = Ajax(Utils.useCancellation())
 
   /*
    * Data fetchers

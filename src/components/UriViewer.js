@@ -9,7 +9,7 @@ import { ButtonPrimary, Clickable, Link } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import DownloadPrices from 'src/data/download-prices'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -63,7 +63,7 @@ const getMaxDownloadCostNA = bytes => {
 }
 
 const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProject }) => {
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
   const [preview, setPreview] = useState()
   const loadPreview = async () => {
     try {
@@ -101,7 +101,7 @@ const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProje
 }
 
 const DownloadButton = ({ uri, metadata: { bucket, name, size } }) => {
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
   const [url, setUrl] = useState()
   const getUrl = async () => {
     try {
@@ -137,7 +137,7 @@ const UriViewer = _.flow(
   Utils.withDisplayName('UriViewer'),
   requesterPaysWrapper({ onDismiss: ({ onDismiss }) => onDismiss() })
 )(({ googleProject, uri, onDismiss, onRequesterPaysError }) => {
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
   const [metadata, setMetadata] = useState()
   const [copied, setCopied] = useState()
   const [loadingError, setLoadingError] = useState()
