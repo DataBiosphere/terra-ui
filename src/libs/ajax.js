@@ -906,13 +906,13 @@ const Methods = signal => ({
         return res.json()
       },
 
-      toWorkspace: async (workspace, config = {}) => {
+      toWorkspace: async (workspace, config = {}, workflowRename) => {
         const res = await fetchRawls(`workspaces/${workspace.namespace}/${workspace.name}/methodconfigs`,
           _.mergeAll([authOpts(), jsonBody(_.merge({
             methodRepoMethod: {
               methodUri: `agora://${namespace}/${name}/${snapshotId}`
             },
-            name,
+            name: workflowRename ? workflowRename : name,
             namespace,
             rootEntityType: '',
             prerequisites: {},

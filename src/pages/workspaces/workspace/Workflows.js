@@ -7,7 +7,7 @@ import {
   ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, makeMenuIcon, MenuButton, methodLink, PageBox, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { DelayedSearchInput } from 'src/components/input'
+import { DelayedSearchInput, TextInput } from 'src/components/input'
 import { MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -74,6 +74,11 @@ const styles = {
     flex: 1,
     paddingRight: '1rem',
     ...Style.noWrapEllipsis
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 600,
+    margin: '1rem 0 0.5rem'
   }
 }
 
@@ -163,7 +168,9 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
       featuredList: undefined,
       methods: undefined,
       selectedWorkflowDetails: undefined,
-      exporting: undefined
+      exporting: undefined,
+      workflowRename: '',
+      isEditingName: false
     }
   }
 
@@ -180,7 +187,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
   render() {
     const { onDismiss } = this.props
-    const { selectedWorkflow, featuredList, methods, selectedWorkflowDetails, exporting } = this.state
+    const { selectedWorkflow, featuredList, methods, selectedWorkflowDetails, exporting, workflowRename, isEditingName } = this.state
 
     const featuredMethods = _.compact(_.map(
       ({ namespace, name }) => _.maxBy('snapshotId', _.filter({ namespace, name }, methods)),
@@ -191,10 +198,31 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
     const renderDetails = () => [
       div({ style: { display: 'flex' } }, [
-        div({ style: { flexGrow: 1 } }, [
-          div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Synopsis']),
+        div({ style: { flexGrow: 1, marginTop: '1rem' } }, [
+          !isEditingName ?
+            div([span({ style: styles.sectionTitle }, ['Workflow Name: ']), `${workflowRename}`,
+              h(Link, {
+                style: { marginRight: '0.5rem' },
+                onClick: () => this.setState({ isEditingName: !isEditingName }),
+                'aria-label': 'Edit workflow name'
+              }, [icon('edit', { style: { marginLeft: '0.5rem' }, size: 13 })])])
+            :
+            span([`Workflow Name: `, h(IdContainer, [id => div({ style: { display: 'inline-flex', width: '100%' } }, [
+              h(TextInput, {
+                'aria-label': 'Edit workflow name',
+                style: { width: '50%' },
+                onChange: workflowRename => { this.setState({ workflowRename }) },
+                value: workflowRename
+              }),
+              h(Link, {
+                style: { marginRight: '0.5rem' },
+                onClick: () => this.setState({ isEditingName: !isEditingName }),
+                'aria-label': 'Edit workflow name'
+              }, [icon('check')])
+            ])])]),
+          div({ style: styles.sectionTitle }, ['Synopsis']),
           div([synopsis || (selectedWorkflowDetails && 'None')]),
-          div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Method Owner']),
+          div({ style: styles.sectionTitle }, ['Method Owner']),
           div([_.join(',', managers)])
         ]),
         div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column' } }, [
@@ -202,7 +230,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
           h(ButtonOutline, { onClick: () => this.setState({ selectedWorkflow: undefined, selectedWorkflowDetails: undefined }) }, ['Return to List'])
         ])
       ]),
-      div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Documentation']),
+      div({ style: styles.sectionTitle }, ['Documentation']),
       documentation && h(MarkdownViewer, { style: { maxHeight: 600, overflowY: 'auto' } }, [documentation]),
       (!selectedWorkflowDetails || exporting) && spinnerOverlay
     ]
@@ -223,7 +251,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
     return h(Modal, {
       onDismiss,
       showButtons: false,
-      title: selectedWorkflow ? `Workflow: ${selectedWorkflow.name}` : 'Suggested Workflows',
+      title: selectedWorkflow ? 'Import Selected Workflow to Workspace' : 'Suggested Workflows',
       showX: true,
       width: 900
     }, Utils.cond(
@@ -236,7 +264,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
     const { ajax: { Methods } } = this.props
     const { namespace, name, snapshotId } = selectedWorkflow
 
-    this.setState({ selectedWorkflow })
+    this.setState({ selectedWorkflow, workflowRename: selectedWorkflow.name })
     try {
       const selectedWorkflowDetails = await Methods.method(namespace, name, snapshotId).get()
       this.setState({ selectedWorkflowDetails })
@@ -248,7 +276,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
   async exportMethod() {
     const { namespace, name } = this.props
-    const { selectedWorkflow } = this.state
+    const { selectedWorkflow, workflowRename } = this.state
 
     this.setState({ exporting: true })
 
@@ -257,11 +285,16 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
       const config = _.maxBy('snapshotId', await methodAjax.configs())
 
-      await methodAjax.toWorkspace({ namespace, name }, config)
+      if (config && workflowRename !== selectedWorkflow.name) {
+        config.name = workflowRename
+        config.payloadObject.name = workflowRename
+      }
+
+      await methodAjax.toWorkspace({ namespace, name }, config, workflowRename !== selectedWorkflow.name ? workflowRename : undefined)
 
       const { namespace: workflowNamespace, name: workflowName } = config || selectedWorkflow
 
-      Nav.goToPath('workflow', { namespace, name, workflowNamespace, workflowName })
+      Nav.goToPath('workflow', { namespace, name, workflowNamespace, workflowName: config ? workflowName : workflowRename })
     } catch (error) {
       reportError('Error importing workflow', error)
       this.setState({ exporting: false })
