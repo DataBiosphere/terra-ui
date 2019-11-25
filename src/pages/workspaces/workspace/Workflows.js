@@ -4,10 +4,10 @@ import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
 import {
-  ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, makeMenuIcon, MenuButton, methodLink, PageBox, Select, spinnerOverlay
+  ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, makeMenuIcon, MenuButton, methodLink, PageBox, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { DelayedSearchInput, TextInput } from 'src/components/input'
+import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import { MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -15,6 +15,7 @@ import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
+import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -23,6 +24,7 @@ import { DockstoreTile, MethodCard, MethodRepoTile } from 'src/pages/library/Cod
 import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import validate from 'validate.js'
 
 
 const styles = {
@@ -196,38 +198,65 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
     const { synopsis, managers, documentation } = selectedWorkflowDetails || {}
 
+    const errors = validate({ workflowRename }, {
+      workflowRename: {
+        presence: { allowEmpty: false },
+        format: {
+          pattern: /^[A-Za-z0-9_\-.]*$/,
+          message: 'can only contain letters, numbers, underscores, dashes, and periods'
+        }
+      }
+    })
+
     const renderDetails = () => [
       div({ style: { display: 'flex' } }, [
         div({ style: { flexGrow: 1, marginTop: '1rem' } }, [
           !isEditingName ?
-            div([span({ style: styles.sectionTitle }, ['Workflow Name: ']), `${workflowRename}`,
+            h(Fragment, [span({ style: styles.sectionTitle }, ['Workflow Name: ']), `${workflowRename}`,
               h(Link, {
                 style: { marginRight: '0.5rem' },
                 onClick: () => this.setState({ isEditingName: !isEditingName }),
                 'aria-label': 'Edit workflow name'
               }, [icon('edit', { style: { marginLeft: '0.5rem' }, size: 13 })])])
             :
-            span([`Workflow Name: `, h(IdContainer, [id => div({ style: { display: 'inline-flex', width: '100%' } }, [
-              h(TextInput, {
-                'aria-label': 'Edit workflow name',
-                style: { width: '50%' },
-                onChange: workflowRename => { this.setState({ workflowRename }) },
-                value: workflowRename
-              }),
-              h(Link, {
-                style: { marginRight: '0.5rem' },
-                onClick: () => this.setState({ isEditingName: !isEditingName }),
-                'aria-label': 'Edit workflow name'
-              }, [icon('check', { style: { margin: 8 } })])
-            ])])]),
+            h(Fragment, [
+              h(IdContainer, [id => h(Fragment, [
+                h(FormLabel, { htmlFor: id, style: { margin: '0 0 0.25rem' } }, ['Workflow Name:']),
+                h(ValidatedInput, {
+                  error: Utils.summarizeErrors(errors && errors.workflowRename),
+                  inputProps: {
+                    id,
+                    value: workflowRename,
+                    onChange: workflowRename => { this.setState({ workflowRename }) }
+                  }
+                })
+              ])]),
+              div({ style: { marginTop: '0.5rem' } }, [
+                h(ButtonPrimary, {
+                  style: { marginRight: '0.5rem' },
+                  disabled: !!errors,
+                  onClick: () => this.setState({ isEditingName: !isEditingName })
+                }, ['save']),
+                h(ButtonSecondary, {
+                  onClick: () => this.setState({ isEditingName: !isEditingName, workflowRename: selectedWorkflow.name })
+                }, ['cancel'])
+              ])
+            ]),
           div({ style: styles.sectionTitle }, ['Synopsis']),
           div([synopsis || (selectedWorkflowDetails && 'None')]),
           div({ style: styles.sectionTitle }, ['Method Owner']),
           div([_.join(',', managers)])
         ]),
         div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column' } }, [
-          h(ButtonPrimary, { style: { marginBottom: '0.5rem' }, onClick: () => this.exportMethod() }, ['Add to Workspace']),
-          h(ButtonOutline, { onClick: () => this.setState({ selectedWorkflow: undefined, selectedWorkflowDetails: undefined }) }, ['Return to List'])
+          h(ButtonPrimary, {
+            disabled: !!errors || !!isEditingName,
+            tooltip: Utils.summarizeErrors(errors),
+            style: { marginBottom: '0.5rem' }, onClick: () => this.exportMethod()
+          }, ['Add to Workspace']),
+          h(ButtonOutline, {
+            onClick: () => this.setState(
+              { selectedWorkflow: undefined, selectedWorkflowDetails: undefined, isEditingName: false, workflowRename: undefined })
+          }, ['Return to List'])
         ])
       ]),
       div({ style: styles.sectionTitle }, ['Documentation']),
