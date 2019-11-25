@@ -57,6 +57,9 @@ commands:
                 command: gcloud app deploy --project=bvdp-saturn-<< parameters.env >> --promote --quiet
   integration-tests:
     parameters:
+      local:
+        type: boolean
+        default: false
       test_url:
         type: string
         default: "http://localhost:3000"
@@ -80,7 +83,7 @@ commands:
           paths:
             - integration-tests/node_modules
       - unless:
-          condition: << parameters.test_url >>
+          condition: << parameters.local >>
           steps:
             - run: cp config/dev.json build/config.json
             - run:
@@ -190,7 +193,8 @@ jobs:
   integration-tests-branch-against-dev:
     executor: puppeteer
     steps:
-      - integration-tests
+      - integration-tests:
+          local: true
   integration-tests-alpha:
     executor: puppeteer
     steps:
