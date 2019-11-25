@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  slack: circleci/slack@3.4.1
+
 executors:
   node:
     docker:
@@ -99,6 +102,10 @@ commands:
           path: /tmp/test-results
       - store_artifacts:
           path: /tmp/failure-screenshots
+  notify-qa:
+    steps:
+      - slack/status:
+          include_job_number_field: false
 
 jobs:
   test:
@@ -185,8 +192,16 @@ jobs:
     executor: puppeteer
     steps:
       - integration-tests:
-          billing_project: 'broad-dsde-alpha-two'
-          test_url: 'https://bvdp-saturn-alpha.appspot.com'
+          billing_project: "broad-dsde-alpha-two"
+          test_url: "https://bvdp-saturn-alpha.appspot.com"
+      - notify-qa
+  integration-tests-staging:
+    executor: puppeteer
+    steps:
+      - integration-tests:
+          billing_project: "bartholomew"
+          test_url: "https://bvdp-saturn-staging.appspot.com"
+      - notify-qa
 
 workflows:
   version: 2
@@ -252,3 +267,4 @@ workflows:
 #              only: dev
     jobs:
       - integration-tests-alpha
+      - integration-tests-staging
