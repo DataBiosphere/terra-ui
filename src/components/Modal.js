@@ -33,7 +33,7 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
 
   Utils.useOnMount(() => {
     previouslyFocusedNode.current = document.activeElement
-    return () => previouslyFocusedNode && previouslyFocusedNode.current && previouslyFocusedNode.current.focus()
+    return () => previouslyFocusedNode.current && previouslyFocusedNode.current.focus()
   })
 
   // react-modal applies aria-hidden to the app root *and* takes care of limiting what can be tab-focused - see appLoader.js
