@@ -1,103 +1,69 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, table, tbody, td, thead, tr } from 'react-hyperscript-helpers'
-import { Ajax } from 'src/libs/ajax'
+import { Select } from 'src/components/common'
+import { fetchOk } from 'src/libs/ajax'
+import { withErrorReporting } from 'src/libs/error'
 
-import { Select } from './common'
 
-
-export const ImageDepViewer = ({ packageLink, namespace }) => {
-  const [tools, setTools] = useState(['Loading...'])
-  const [tool, setTool] = useState('Loading...')
-  const [packageDoc, setPackageDoc] = useState([])
-
-  const packages = _.filter(doc => doc['tool'] === tool, packageDoc)
+export const ImageDepViewer = ({ packageLink }) => {
+  const [selectedTool, setSelectedTool] = useState()
+  const [packages, setPackages] = useState()
+  const toolsList = _.flow(_.map('tool'), _.uniq, _.sortBy(v => v === 'tools' ? 1 : 0))
+  const tools = toolsList(packages)
 
   useEffect(() => {
-    async function inner() {
-      const docs = await fetchImageDocumentation(packageLink, namespace)
-      setPackageDoc(docs)
-
-      const tools = _.uniq(_.map(doc => doc['tool'], docs))
-      const sortedTools = _.sortBy(tool => tool === 'tools' ? 1 : 0, tools)
-      setTools(sortedTools)
-
-      if (!sortedTools.includes(tool)) {
-        setTool(sortedTools[0])
+    const loadPackages = withErrorReporting('Error loading packages', async () => {
+      const res = await fetchOk(packageLink)
+      const data = await res.json()
+      const newPackages = _.flatMap(([tool, packages]) => {
+        return _.map(([name, version]) => {
+          return { tool: _.includes(tool, ['r', 'python']) ? tool : 'tools', name, version }
+        }, _.toPairs(packages))
+      }, _.toPairs(data))
+      setPackages(newPackages)
+      const newTools = toolsList(newPackages)
+      if (!_.includes(selectedTool, newTools)) {
+        setSelectedTool(newTools[0])
       }
-    }
-    inner()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [packageLink])
-
+    })
+    loadPackages()
+  }, [packageLink]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return h(Fragment, [
-    div({ style: { display: 'flex', alignItems: 'center', textTransform: 'capitalize' } }, [
+    div({ style: { display: 'flex', alignItems: 'center' } }, [
       div({ style: { fontWeight: 'bold', marginRight: '1rem' } }, ['Installed packages']),
       tools.length === 1 ?
-        `${tool}` :
-        div({ style: { width: 120, textTransform: 'capitalize' } }, [
+        _.startCase(selectedTool) :
+        div({ style: { width: 120 } }, [
           h(Select, {
             'aria-label': 'Select a language',
-            value: tool,
-            onChange: ({ value }) => setTool(value),
+            value: selectedTool,
+            onChange: ({ value }) => setSelectedTool(value),
             isSearchable: false,
             isClearable: false,
-            options: tools
+            options: tools,
+            getOptionLabel: ({ value }) => _.startCase(value)
           })
         ])
     ]),
-    div({
-      style: {
-        display: 'block', alignItems: 'left', padding: '1rem', marginTop: '1rem', backgroundColor: 'white', border: 'none', borderRadius: 5,
-        overflowY: 'auto', flexGrow: 1
-      }
-    }, [
-      table(
-        [
-          thead([
-            tr([
-              td({ style: { align: 'left', fontWeight: 'bold', paddingRight: '1rem', paddingBottom: '1rem' } }, ['Package']),
-              td({ style: { align: 'left', fontWeight: 'bold', paddingBottom: '1rem' } }, ['Version'])
+    div({ style: { padding: '1rem', marginTop: '1rem', backgroundColor: 'white', borderRadius: 5, flexGrow: 1 } }, [
+      table([
+        thead([
+          tr([
+            td({ style: { fontWeight: 'bold', paddingRight: '1rem', paddingBottom: '1rem' } }, ['Package']),
+            td({ style: { fontWeight: 'bold', paddingBottom: '1rem' } }, ['Version'])
+          ])
+        ]),
+        tbody(
+          _.map(({ name, version }) => {
+            return tr({ key: name }, [
+              td({ style: { paddingRight: '1rem' } }, [name]),
+              td([version])
             ])
-          ]),
-          tbody(
-            _.map(doc => {
-              return tr({ key: doc['name'] }, [
-                td({ style: { paddingRight: '1rem' } }, [doc['name']]),
-                td([doc['version']])
-              ])
-            }, packages)
-          )
-        ])
-
+          }, _.filter({ tool: selectedTool }, packages))
+        )
+      ])
     ])
   ])
-}
-
-//takes a packageDoc with n tools, and returns one with at most Python, R, and a generic 'tool' bucket
-const packageDocAdaptor = packageDoc => {
-  const tools = _.keys(packageDoc)
-  const mainTools = ['r', 'python']
-
-  const docs = _.flatMap(
-    tool => {
-      return _.map(
-        lib => {
-          return { tool: mainTools.includes(tool) ? tool : 'tools', name: lib, version: packageDoc[tool][lib] }
-        }, _.keys(packageDoc[tool]))
-    }, tools)
-
-  return docs
-}
-
-const fetchImageDocumentation = async (packageLink, namespace) => {
-  const splitPath = packageLink.split('/')
-  const object = splitPath[splitPath.length - 1]
-  const bucket = splitPath[splitPath.length - 2]
-
-  const file = await Ajax().Buckets.getObjectPreview(bucket, object, namespace, true).then(res => res.json())
-
-  const adaptedDoc = packageDocAdaptor(file)
-  return adaptedDoc
 }

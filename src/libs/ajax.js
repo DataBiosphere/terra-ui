@@ -97,7 +97,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
   return tryRequest()
 }
 
-const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
+export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
 const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://www.googleapis.com/'))(fetchOk)
@@ -734,7 +734,6 @@ const Workspaces = signal => ({
 
 
 const Buckets = signal => ({
-
   getObject: async (bucket, object, namespace) => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}`,
       _.merge(authOpts(await saToken(namespace)), { signal })
@@ -786,9 +785,7 @@ const Buckets = signal => ({
     return fetchBuckets(
       `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(prefix + file.name)}`,
       _.merge(authOpts(await saToken(namespace)), {
-        signal,
-        method: 'POST',
-        body: file,
+        signal, method: 'POST', body: file,
         headers: { 'Content-Type': file.type, 'Content-Length': file.size }
       })
     )

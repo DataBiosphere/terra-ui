@@ -108,39 +108,20 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ({ machineConfig }) => machineConfigsEqual(machineConfig, currentConfig),
       profiles
     )
-
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
       jupyterUserScriptUri: '',
-      isCustomEnv: false,
-      customEnvImage: '',
-      viewMode: undefined,
+      isCustomEnv: false, customEnvImage: '', viewMode: undefined,
       ...normalizeMachineConfig(currentConfig)
     }
-  }
-
-  async fetchMasterVersionFile() {
-    const { namespace } = this.props
-    const defaultImageId = 'leonardo-jupyter-dev'
-    const file = await Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
-
-    this.setState({ leoImages: file, selectedLeoImage: file.filter(doc => doc.id === defaultImageId)[0].image || {} })
-
-    const imageConfig = _.find({ id: defaultImageId }, file)
-    const { packages } = imageConfig
-
-    this.setState({ packageLink: packages })
   }
 
   getMachineConfig() {
     const { numberOfWorkers, masterMachineType, masterDiskSize, workerMachineType, workerDiskSize, numberOfPreemptibleWorkers } = this.state
     return {
-      numberOfWorkers,
-      masterMachineType,
-      masterDiskSize,
-      workerMachineType,
-      workerDiskSize,
-      numberOfWorkerLocalSSDs: 0,
+      numberOfWorkers, masterMachineType,
+      masterDiskSize, workerMachineType,
+      workerDiskSize, numberOfWorkerLocalSSDs: 0,
       numberOfPreemptibleWorkers
     }
   }
@@ -159,16 +140,18 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
-    const { currentCluster } = this.props
-    const { leoImages } = this.state
+    const { currentCluster, namespace } = this.props
 
-    this.fetchMasterVersionFile()
+    const [currentClusterDetails, newLeoImages] = await Promise.all([
+      currentCluster ? Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details() : null,
+      Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
+    ])
 
-    if (currentCluster) {
-      const { clusterImages, jupyterUserScriptUri } = await Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details()
+    this.setState({ leoImages: newLeoImages })
+    if (currentClusterDetails) {
+      const { clusterImages, jupyterUserScriptUri } = currentClusterDetails
       const { dockerImage } = _.find({ tool: 'Jupyter' }, clusterImages)
-
-      if (_.find({ image: dockerImage }, leoImages)) {
+      if (_.find({ image: dockerImage }, newLeoImages)) {
         this.setState({ selectedLeoImage: dockerImage })
       } else {
         this.setState({ isCustomEnv: true, customEnvImage: dockerImage })
@@ -177,48 +160,34 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       if (jupyterUserScriptUri) {
         this.setState({ jupyterUserScriptUri, profile: 'custom' })
       }
+    } else {
+      this.setState({ selectedLeoImage: _.find({ id: 'leonardo-jupyter-dev' }, newLeoImages).image })
     }
   })
 
   render() {
-    const { currentCluster, onDismiss, namespace } = this.props
+    const { currentCluster, onDismiss } = this.props
     const {
-      profile,
-      masterMachineType,
-      masterDiskSize,
-      workerMachineType,
-      numberOfWorkers,
-      numberOfPreemptibleWorkers,
-      workerDiskSize,
-      jupyterUserScriptUri,
-      selectedLeoImage,
-      isCustomEnv,
-      customEnvImage,
-      viewMode,
-      leoImages,
-      packageLink
+      profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
+      jupyterUserScriptUri, selectedLeoImage, isCustomEnv, customEnvImage,
+      viewMode, leoImages
     } = this.state
-
-    const { version, updated } = _.find({ image: selectedLeoImage }, leoImages) || { version: '0.0.0', updated: Utils.makeStandardDate('1970-01-01') }
+    const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
     const isCustomImageInvalid = !imageValidationRegexp.test(customEnvImage)
 
     const makeEnvSelect = id => h(Select, {
       id,
       value: selectedLeoImage,
-      onChange: ({ value }) => {
-        const imageConfig = _.find({ image: value }, leoImages)
-        const { packages } = imageConfig
-        this.setState({ selectedLeoImage: value, packageLink: packages })
-      },
+      onChange: ({ value }) => this.setState({ selectedLeoImage: value }),
       isSearchable: false,
       isClearable: false,
       options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
     })
 
     const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
-      div({ style: Style.proportionalNumbers }, [`Updated: ${Utils.makeStandardDate(updated)}`]),
-      div([`Version: ${version}`])
+      div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
+      div(['Version: ', version || null])
     ])
 
     const { contents, onPrevious } = Utils.switchCase(viewMode, [
@@ -227,7 +196,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         contents: h(Fragment, [
           makeEnvSelect(),
           makeImageInfo({ margin: '1rem 0 2rem' }),
-          packageLink && h(ImageDepViewer, { packageLink, namespace })
+          packages && h(ImageDepViewer, { packageLink: packages })
         ])
       })
     ], [
@@ -236,8 +205,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         contents: h(Fragment, [
           div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Warning!']),
           p([
-            `You are about to create a virtual machine using an unverified Docker image. 
-           Please make sure that it was created by you or someone you trust, using one of our `,
+            `You are about to create a virtual machine using an unverified Docker image.
+             Please make sure that it was created by you or someone you trust, using one of our `,
             h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
             ' Custom Docker images could potentially cause serious security issues.'
           ]),
@@ -266,12 +235,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           }),
           div({
             style: {
-              display: 'grid',
-              gridTemplateColumns: '7rem 2fr 1fr',
-              gridGap: '1rem',
-              alignItems: 'center',
-              margin: '1.5rem 0 1rem',
-              minHeight: 100
+              display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center', margin: '1.5rem 0 1rem', minHeight: 100
             }
           }, [
             isCustomEnv ?
@@ -309,19 +273,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   ])
                 ]),
                 div({ style: { gridColumnStart: 2, alignSelf: 'start' } }, [
-                  h(Link, { onClick: () => { this.setState({ viewMode: 'Packages' }) } },
-                    ['What’s installed on this environment?'])
+                  h(Link, { onClick: () => this.setState({ viewMode: 'Packages' }) }, ['What’s installed on this environment?'])
                 ]),
                 makeImageInfo()
               ])
           ]),
           div({
             style: {
-              padding: '1rem',
-              marginTop: '1rem',
+              padding: '1rem', marginTop: '1rem',
               backgroundColor: colors.dark(0.15),
-              border: `2px solid ${colors.dark(0.3)}`,
-              borderRadius: '9px'
+              border: `2px solid ${colors.dark(0.3)}`, borderRadius: '9px'
             }
           }, [
             div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
@@ -379,7 +340,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                       numberOfPreemptibleWorkers: 0
                     })
                   }, ' Configure as Spark cluster')
-                ]), !!numberOfWorkers && h(Fragment, [
+                ]),
+                !!numberOfWorkers && h(Fragment, [
                   h(IdContainer, [
                     id => h(Fragment, [
                       label({ htmlFor: id, style: styles.label }, 'Workers'),
@@ -427,7 +389,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['Cost:']),
               `${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
             ])
-          ]), !!currentCluster && div({ style: styles.warningBox }, [
+          ]),
+          !!currentCluster && div({ style: styles.warningBox }, [
             div({ style: styles.label }, ['Caution:']),
             'Replacing your runtime will stop all running notebooks, and delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
             h(Link, {
