@@ -455,7 +455,7 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
 }
 
 const PeriodicCookieSetter = ({ namespace, clusterName }) => {
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
 
   const periodicallySetCookie = async () => {
     while (!signal.aborted) {
