@@ -248,4 +248,7 @@ workflows:
 #            branches:
 #              only: dev
     jobs:
-      - integration-tests-alpha
+      - build
+      - integration-tests-alpha:
+          requires:
+            - build
