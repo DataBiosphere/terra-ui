@@ -82,7 +82,7 @@ commands:
           key: test-deps2-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/package-lock.json" }}
           paths:
             - integration-tests/node_modules
-      - unless:
+      - when:
           condition: << parameters.local >>
           steps:
             - run: cp config/dev.json build/config.json
