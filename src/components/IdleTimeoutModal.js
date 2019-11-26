@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import ButtonBar from 'src/components/ButtonBar'
 import Modal from 'src/components/Modal'
