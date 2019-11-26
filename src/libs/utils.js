@@ -406,6 +406,24 @@ export const useCancellation = () => {
   return controller.current.signal
 }
 
+export const usePolling = (initialDelay = 250) => {
+  const [currentTime, setCurrentTime] = useState(Date.now())
+  const signal = useCancellation()
+  const delayRef = useRef(initialDelay)
+
+  useOnMount(() => {
+    const poll = async () => {
+      while (!signal.aborted) {
+        await delay(delayRef.current)
+        !signal.aborted && setCurrentTime(Date.now())
+      }
+    }
+    poll()
+  })
+
+  return [currentTime, delay => { delayRef.current = delay }]
+}
+
 export const maybeParseJSON = maybeJSONString => {
   try {
     return JSON.parse(maybeJSONString)

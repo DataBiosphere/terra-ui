@@ -11,33 +11,16 @@ import colors from '../libs/colors'
 
 
 const displayRemainingTime = remainingSeconds => {
-  return `${Math.floor(remainingSeconds / 60).toString().padStart(2, '0')}:${Math.floor(remainingSeconds % 60).toString().padStart(2, '0')}`
+  return `${Math.floor(remainingSeconds / 60).toString().padStart(2, '0')}:${Math.ceil(remainingSeconds % 60).toString().padStart(2, '0')}`
 }
 
-export const usePolling = (initialDelay = 250) => {
-  const [currentTime, setCurrentTime] = useState(Date.now())
-  const signal = Utils.useCancellation()
-  const delayRef = useRef(initialDelay)
-
-  Utils.useOnMount(() => {
-    const poll = async () => {
-      while (!signal.aborted) {
-        await Utils.delay(delayRef.current)
-        !signal.aborted && setCurrentTime(Date.now())
-      }
-    }
-    poll()
-  })
-
-  return [currentTime, delay => { delayRef.current = delay }]
-}
-
-const InactivityModal = () => {
+const IdleTimeoutModal = ({ timeout = 15 * 1000 * 60, countdownStart = 2 * 1000 * 60, emailDomain }) => {
   const [expired, setExpired] = useState()
   const { isSignedIn, profile: { email } } = Utils.useAtom(authStore)
+  const domain = RegExp(`@${emailDomain}`)
 
   return Utils.cond(
-    [!!email && !!isSignedIn, h(InactivityTimer, { expired, setExpired })],
+    [!!isSignedIn && domain.test(email), h(InactivityTimer, { expired, setExpired, timeout, countdownStart })],
     [expired && !email && !isSignedIn, () => h(Modal, {
       title: 'Session Expired',
       showCancel: false,
@@ -47,15 +30,10 @@ const InactivityModal = () => {
     null)
 }
 
-const InactivityTimer = ({
-  setExpired,
-  expired,
-  timeout = 15 * 1000 * 60,
-  countdownStart = 2 * 1000 * 60
-}) => {
+const InactivityTimer = ({ setExpired, expired, timeout, countdownStart }) => {
   const [dismiss, setDismiss] = useState()
   const [logoutRequested, setLogoutRequested] = useState()
-  const [currentTime, setDelay] = usePolling()
+  const [currentTime, setDelay] = Utils.usePolling()
 
   const lastActiveTime = getLocalPref('terra-timeout') ? parseInt(getLocalPref('terra-timeout'), 10) : Date.now()
   const timeoutTime = lastActiveTime + timeout
@@ -109,4 +87,4 @@ const InactivityTimer = ({
   false)
 }
 
-export default InactivityModal
+export default IdleTimeoutModal
