@@ -1,12 +1,13 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { b, div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, CromwellVersionLink } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import * as Utils from 'src/libs/utils'
 import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
@@ -37,10 +38,26 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     }
   }
 
+  async componentDidMount() {
+    const { workspaceId: { namespace, name }, entitySelectionModel: { type, selectedEntities }, config: { rootEntityType }, ajax: { Workspaces } } = this.props
+
+    const entities = await Promise.resolve(Utils.switchCase(type,
+      [EntitySelectionType.processAll, async () => _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(rootEntityType))],
+      [EntitySelectionType.chooseRows, () => _.keys(selectedEntities)],
+      [EntitySelectionType.processMergedSet, () => _.flow(
+        _.flatMap(`attributes.${rootEntityType}s.items`),
+        _.map('entityName')
+      )(selectedEntities)],
+      [Utils.DEFAULT, () => selectedEntities]
+    ))
+
+    this.setState({ entities })
+  }
+
   render() {
-    const { onDismiss, entitySelectionModel: { type, selectedEntities } } = this.props
-    const { launching, message, multiLaunchCompletions, launchError, multiLaunchErrors } = this.state
-    const entityCount = _.size(selectedEntities)
+    const { onDismiss, entitySelectionModel: { type }, processSingle } = this.props
+    const { entities, launching, message, multiLaunchCompletions, launchError, multiLaunchErrors } = this.state
+    const entityCount = _.isArray(entities) ? _.uniq(entities).length : _.size(entities)
 
     return h(Modal, {
       title: !launching ? 'Confirm launch' : 'Launching Analysis',
@@ -54,11 +71,16 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
             this.doLaunch()
           }
         }, ['Launch']) :
-        h(ButtonPrimary, { onClick: onDismiss }, ['OK'])
+        h(ButtonPrimary, { onClick: onDismiss, disabled: !entities }, ['OK'])
     }, [
       div({ style: { margin: '1rem 0' } }, ['This analysis will be run by ', h(CromwellVersionLink), '.']),
-      type === EntitySelectionType.chooseSets && entityCount > 1 && div({ style: { margin: '1rem 0' } }, [
-        `This will launch ${entityCount} analyses simultaneously.`
+      (!entities && !processSingle) ? spinner() : div({ style: { margin: '1rem 0' } }, [
+        'This will launch ', b([entityCount]), ` analys${entityCount === 1 ? 'is' : 'es'}`,
+        type === EntitySelectionType.chooseSets && entityCount > 1 && ' simultaneously',
+        '.',
+        type !== EntitySelectionType.chooseSets && entityCount !== entities.length && div({ style: { fontStyle: 'italic', marginTop: '0.5rem' } }, [
+          '(Duplicate entities are only processed once.)'
+        ])
       ]),
       (message || multiLaunchCompletions !== undefined) && div({ style: { display: 'flex' } }, [
         spinner({ style: { marginRight: '0.5rem' } }),
@@ -83,11 +105,10 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
 
   async doLaunch() {
     const {
-      workspaceId: { namespace, name },
       processSingle, entitySelectionModel: { type, selectedEntities },
-      config: { rootEntityType },
-      ajax: { Workspaces }
+      config: { rootEntityType }
     } = this.props
+    const { entities } = this.state
 
     this.setState({ message: 'Checking bucket access...' })
     const hasBucketAccess = await this.preFlightBucketAccess()
@@ -99,31 +120,23 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     } else if (processSingle) {
       this.launch()
     } else if (type === EntitySelectionType.processAll) {
-      this.setState({ message: 'Fetching data...' })
-      const entities = _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(rootEntityType))
       this.createSetAndLaunch(entities)
     } else if (type === EntitySelectionType.chooseRows) {
-      const entities = _.keys(selectedEntities)
-      if (_.size(entities) === 1) {
-        this.launch(rootEntityType, _.head(entities))
+      if (entities.length === 1) {
+        this.launch(rootEntityType, entities[0])
       } else {
         this.createSetAndLaunch(entities)
       }
     } else if (type === EntitySelectionType.processMergedSet) {
-      if (_.size(selectedEntities) === 1) {
-        const { entityType, name } = _.values(selectedEntities)[0]
+      if (entities.length === 1) {
+        const { entityType, name } = entities[0]
         this.launch(entityType, name, `this.${rootEntityType}s`)
       } else {
-        const entities = _.flow(
-          _.flatMap(`attributes.${rootEntityType}s.items`),
-          _.map('entityName')
-        )(selectedEntities)
-
         this.createSetAndLaunch(entities)
       }
     } else if (type === EntitySelectionType.chooseSets) {
       if (_.size(selectedEntities) === 1) {
-        this.launch(rootEntityType, _.values(selectedEntities)[0].name)
+        this.launch(rootEntityType, _.values(entities)[0].name)
       } else {
         this.launchParallel()
       }
