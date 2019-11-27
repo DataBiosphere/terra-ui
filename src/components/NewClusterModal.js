@@ -1,13 +1,14 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, Fragment, useState } from 'react'
-import { b, div, h, iframe, label, p, span } from 'react-hyperscript-helpers'
+import { Component, Fragment } from 'react'
+import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, Link, Select, SimpleTabBar } from 'src/components/common'
+import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/clusters'
-import { imageValidationRegexp, leoImages } from 'src/data/leo-images'
+import { imageValidationRegexp } from 'src/data/leo-images'
 import { Ajax } from 'src/libs/ajax'
 import { machineConfigCost, normalizeMachineConfig } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
@@ -91,38 +92,6 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
   ])
 }
 
-const ImageDepViewer = ({ packages }) => {
-  const pages = _.keys(packages)
-  const [language, setLanguage] = useState(pages[0])
-  const url = packages[language]
-
-  return h(Fragment, [
-    div({ style: { display: 'flex', alignItems: 'center' } }, [
-      div({ style: { fontWeight: 'bold', marginRight: '1rem' } }, ['Installed packages']),
-      pages.length === 1 ?
-        `(${language})` :
-        div({ style: { width: 100, textTransform: 'capitalize' } }, [
-          h(Select, {
-            'aria-label': 'Select a language',
-            value: language,
-            onChange: ({ value }) => setLanguage(value),
-            isSearchable: false,
-            isClearable: false,
-            options: pages
-          })
-        ])
-    ]),
-    iframe({
-      src: url,
-      style: {
-        padding: '1rem', marginTop: '1rem',
-        backgroundColor: 'white', borderRadius: 5, border: 'none',
-        overflowY: 'auto', flexGrow: 1
-      }
-    })
-  ])
-}
-
 export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
   static propTypes = {
     currentCluster: PropTypes.object,
@@ -142,7 +111,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
       jupyterUserScriptUri: '',
-      selectedLeoImage: leoImages[0].image,
       isCustomEnv: false, customEnvImage: '', viewMode: undefined,
       ...normalizeMachineConfig(currentConfig)
     }
@@ -172,12 +140,18 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
-    const { currentCluster } = this.props
-    if (currentCluster) {
-      const { clusterImages, jupyterUserScriptUri } = await Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details()
-      const { dockerImage } = _.find({ tool: 'Jupyter' }, clusterImages)
+    const { currentCluster, namespace } = this.props
 
-      if (_.find({ image: dockerImage }, leoImages)) {
+    const [currentClusterDetails, newLeoImages] = await Promise.all([
+      currentCluster ? Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details() : null,
+      Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
+    ])
+
+    this.setState({ leoImages: newLeoImages })
+    if (currentClusterDetails) {
+      const { clusterImages, jupyterUserScriptUri } = currentClusterDetails
+      const { dockerImage } = _.find({ tool: 'Jupyter' }, clusterImages)
+      if (_.find({ image: dockerImage }, newLeoImages)) {
         this.setState({ selectedLeoImage: dockerImage })
       } else {
         this.setState({ isCustomEnv: true, customEnvImage: dockerImage })
@@ -186,6 +160,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       if (jupyterUserScriptUri) {
         this.setState({ jupyterUserScriptUri, profile: 'custom' })
       }
+    } else {
+      this.setState({ selectedLeoImage: _.find({ id: 'leonardo-jupyter-dev' }, newLeoImages).image })
     }
   })
 
@@ -194,7 +170,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
       jupyterUserScriptUri, selectedLeoImage, isCustomEnv, customEnvImage,
-      viewMode
+      viewMode, leoImages
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
@@ -210,8 +186,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     })
 
     const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
-      div({ style: Style.proportionalNumbers }, [`Updated: ${Utils.makeStandardDate(updated)}`]),
-      div([`Version: ${version}`])
+      div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
+      div(['Version: ', version || null])
     ])
 
     const { contents, onPrevious } = Utils.switchCase(viewMode, [
@@ -220,7 +196,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         contents: h(Fragment, [
           makeEnvSelect(),
           makeImageInfo({ margin: '1rem 0 2rem' }),
-          h(ImageDepViewer, { packages })
+          packages && h(ImageDepViewer, { packageLink: packages })
         ])
       })
     ], [
@@ -229,7 +205,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         contents: h(Fragment, [
           div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Warning!']),
           p([
-            `You are about to create a virtual machine using an unverified Docker image. 
+            `You are about to create a virtual machine using an unverified Docker image.
              Please make sure that it was created by you or someone you trust, using one of our `,
             h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
             ' Custom Docker images could potentially cause serious security issues.'

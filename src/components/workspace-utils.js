@@ -4,14 +4,14 @@ import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AsyncCreatableSelect, ButtonPrimary, Link, Select } from 'src/components/common'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import { workspacesStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
 export const useWorkspaces = () => {
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
   const [loading, setLoading] = useState(false)
   const workspaces = Utils.useAtom(workspacesStore)
   const refresh = _.flow(
@@ -99,7 +99,7 @@ export const WorkspaceImporter = _.flow(
 })
 
 export const WorkspaceTagSelect = props => {
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
   const getTagSuggestions = Utils.useInstance(() => debouncePromise(withErrorReporting('Error loading tags', async text => {
     if (text.length > 2) {
       return _.map(({ tag, count }) => {

@@ -101,10 +101,20 @@ const TerminalLauncher = _.flow(
       })
     } else {
       return div({ style: { padding: '2rem' } }, [
+        'Creating Stopping Starting Updating Deleting'.includes(clusterStatus) &&
         spinner({ style: { color: colors.primary(), marginRight: '0.5rem' } }),
-        (clusterStatus === 'Creating' || !cluster) ?
-          'Creating runtime environment. You can navigate away and return in 5-10 minutes.' :
-          'Starting runtime environment, this may take up to 2 minutes.'
+        Utils.switchCase(clusterStatus,
+          ['Creating', () => 'Creating notebook runtime environment. You can navigate away and return in 3-5 minutes.'],
+          ['Stopping', () => 'Notebook runtime environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'],
+          ['Starting', () => 'Starting notebook runtime environment, this may take up to 2 minutes.'],
+          ['Updating', () => 'Updating notebook runtime environment. You can navigate away and return in 3-5 minutes.'],
+          ['Deleting', () => 'Deleting notebook runtime environment, you can create a new one after it finishes.'],
+          ['Stopped', () => 'Notebook runtime environment is stopped. Start it to edit your notebook or use the terminal.'],
+          ['Deleted', () => 'No existing notebook runtime environment, you can create a new one to edit your notebook or use the terminal.'],
+          ['Error', () => 'Error with the notebook runtime environment, please try again.'],
+          ['Unknown', () => 'Error with the notebook runtime environment, please try again.'],
+          [Utils.DEFAULT, () => 'Invalid notebook runtime environment state, please try again.']
+        )
       ])
     }
   }

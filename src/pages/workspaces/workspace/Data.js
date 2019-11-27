@@ -31,7 +31,7 @@ import dataExplorerLogo from 'src/images/data-explorer-logo.svg'
 import igvLogo from 'src/images/igv-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import wdlLogo from 'src/images/wdl-logo.png'
-import { Ajax, ajaxCaller, useCancellation } from 'src/libs/ajax'
+import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -408,7 +408,7 @@ const ToolDrawer = _.flow(
 }) => {
   const [toolMode, setToolMode] = useState()
   const [notebookNames, setNotebookNames] = useState()
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
 
   const { Buckets } = Ajax(signal)
 

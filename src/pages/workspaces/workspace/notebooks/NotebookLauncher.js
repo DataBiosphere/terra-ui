@@ -13,7 +13,7 @@ import { findPotentialNotebookLockers, NotebookDuplicator, notebookLockHash } fr
 import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import * as BrowserStorage from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
@@ -33,7 +33,7 @@ const StatusMessage = ({ hideSpinner, children }) => {
 
 const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
   const getCluster = Utils.useGetter(cluster)
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
   const [busy, setBusy] = useState()
 
   const startClusterOnce = withErrorReporting('Error starting notebook runtime', async () => {
@@ -235,7 +235,7 @@ const PlaygroundHeader = () => {
 }
 
 const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, refreshClusters, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
   const { user: { email } } = Utils.useAtom(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
   const [editModeDisabledOpen, setEditModeDisabledOpen] = useState(false)
@@ -382,7 +382,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
 }
 
 const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError }) => {
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState()
   const frame = useRef()
@@ -455,7 +455,7 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
 }
 
 const PeriodicCookieSetter = ({ namespace, clusterName }) => {
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
 
   const periodicallySetCookie = async () => {
     while (!signal.aborted) {
@@ -532,7 +532,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
   console.assert(status === 'Running', 'Expected notebook runtime to be running')
   console.assert(!!labels.welderInstallFailed, 'Expected cluster to not have Welder')
   const frameRef = useRef()
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
   const [busy, setBusy] = useState(false)
   const [localized, setLocalized] = useState(false)
 

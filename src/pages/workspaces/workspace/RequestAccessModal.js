@@ -4,9 +4,9 @@ import { div, h, span, table, tbody, td, th, thead, tr } from 'react-hyperscript
 import { ButtonPrimary, Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
-import { cond, useOnMount, withBusyState } from 'src/libs/utils'
+import { cond, useCancellation, useOnMount, withBusyState } from 'src/libs/utils'
 
 
 export const RequestAccessModal = ({ onDismiss, workspace }) => {

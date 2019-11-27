@@ -33,7 +33,7 @@
     "react-dom": "npm:@hot-loader/react-dom@~16.11.0",
     "react-draggable": "^4.1.0",
     "react-dropzone": "^10.1.10",
-    "react-focus-lock": "2.1.0",
+    "react-focus-lock": "^2.2.1",
     "react-hyperscript-helpers": "^1.2.0",
     "react-modal": "^3.11.1",
     "react-notifications-component": "^2.2.3",

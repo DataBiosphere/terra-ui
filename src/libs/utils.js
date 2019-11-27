@@ -394,6 +394,18 @@ export const useConsoleAssert = (condition, message) => {
   }
 }
 
+
+export const useCancellation = () => {
+  const controller = useRef()
+  useEffect(() => {
+    return () => controller.current.abort()
+  }, [])
+  if (!controller.current) {
+    controller.current = new window.AbortController()
+  }
+  return controller.current.signal
+}
+
 export const maybeParseJSON = maybeJSONString => {
   try {
     return JSON.parse(maybeJSONString)
