@@ -105,7 +105,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
 
   async doLaunch() {
     const {
-      processSingle, entitySelectionModel: { type, selectedEntities },
+      processSingle, entitySelectionModel: { type },
       config: { rootEntityType }
     } = this.props
     const { entities } = this.state
@@ -135,7 +135,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         this.createSetAndLaunch(entities)
       }
     } else if (type === EntitySelectionType.chooseSets) {
-      if (_.size(selectedEntities) === 1) {
+      if (_.size(entities) === 1) {
         this.launch(rootEntityType, _.values(entities)[0].name)
       } else {
         this.launchParallel()
