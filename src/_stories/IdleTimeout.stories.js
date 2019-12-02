@@ -1,4 +1,3 @@
-// import { action } from '@storybook/addon-actions'
 import { number, text, withKnobs } from '@storybook/addon-knobs'
 import { storiesOf } from '@storybook/react'
 import IdleTimeoutModal from 'components/IdleTimeoutModal'
@@ -12,11 +11,15 @@ import * as Utils from 'src/libs/utils'
 
 
 const Container = ({ modal }) => {
+  const domain = text('User email domain', 'foo.com')
+  const [removeAuth, setRemoveAuth] = Utils.useLocalStorageState('auth-story', {
+    user: { id: 'test-123' }, isSignedIn: true, profile: { email: `user@${domain}` }
+  })
+
   const modalRef = useRef()
   const [counter, setCounter] = useState(0)
   const [agree, setAgree] = useState()
-  const domain = text('User email domain', 'foo.com')
-  agree && authStore.set({ user: `user@${domain}`, isSignedIn: true, profile: { email: `user@${domain}` } })
+  agree && authStore.set(removeAuth)
 
   const { user } = authStore.get()
   !agree && user && removeLocalPref('terra-timeout')
@@ -24,8 +27,8 @@ const Container = ({ modal }) => {
   Utils.useOnMount(() => {
     const observer = new MutationObserver(() => {
       const logout = document.evaluate('//iframe[@src="https://www.google.com/accounts/Logout"]',
-        document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
-      logout && authStore.set({ profile: {} })
+        modalRef.current, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
+      logout && setRemoveAuth({ user: { id: 'test-123' }, profile: {} })
     })
 
     observer.observe(modalRef.current, { attributes: false, childList: true, subtree: true })
@@ -34,19 +37,29 @@ const Container = ({ modal }) => {
 
 
   const agreement = h(Fragment, [
-    span({ style: { width: 600 } }, [
+    span({ style: { width: 300 } }, [
       'Running this story will log you out of all of your google accounts in this browser.',
       ' You may want to use a browser where you do not have accounts logged in, such as a private window.'
     ]),
     div([
       h(ButtonPrimary, {
         style: { margin: '1rem 1rem 0 0 ' },
-        onClick: () => setAgree(!agree)
-      }, [agree ? 'Please Stop' : 'I Understand']),
+        onClick: () => {
+          agree && removeLocalPref('terra-timeout')
+          setAgree(!agree)
+        }
+      },
+      [agree ? 'Please Stop' : 'I Understand']),
       !!agree && h(ButtonPrimary, {
         style: { margin: '1rem 0 0 0 ' },
-        onClick: () => setCounter(counter + 1)
-      }, ['Reset Timeout'])
+        onClick: () => {
+          setRemoveAuth({
+            user: { id: 'test-123' }, isSignedIn: true, profile: { email: `user@${domain}` }
+          })
+          setCounter(counter + 1)
+        }
+      },
+      ['Reset Timeout'])
     ])
   ])
 
@@ -60,8 +73,8 @@ const Container = ({ modal }) => {
     !!agree && h(IdleTimeoutModal, {
       key: counter,
       emailDomain: text(`Email domain that will be timed out`, 'foo.com'),
-      timeout: number('Timeout (seconds)', 10) * 1000,
-      countdownStart: number('Timeout Start (seconds)', 5) * 1000
+      timeout: number('Timeout (seconds)', 5) * 1000,
+      countdownStart: number('Timeout Start (seconds)', 3) * 1000
     })
   ])
 }

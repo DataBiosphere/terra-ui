@@ -4,6 +4,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { forwardRef, memo, useEffect, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
+import { getDynamicKey, getLocalPref, setLocalPref } from 'src/libs/browser-storage'
 import uuid from 'uuid/v4'
 
 
@@ -406,6 +407,8 @@ export const useCancellation = () => {
   return controller.current.signal
 }
 
+
+// Will cause a render to occur at each delay interval. The delay can be changed in the render.
 export const usePolling = (initialDelay = 250) => {
   const [currentTime, setCurrentTime] = useState(Date.now())
   const signal = useCancellation()
@@ -422,6 +425,31 @@ export const usePolling = (initialDelay = 250) => {
   })
 
   return [currentTime, delay => { delayRef.current = delay }]
+}
+
+/*
+ * Syncs state with a local storage key and will cause a render in components in
+ * other tabs that are using the same storage key with this hook
+ */
+export const useLocalStorageState = (keyToSync, initialValue) => {
+  const [value, setValue] = useState(() => {
+    initialValue !== undefined && setLocalPref(keyToSync, initialValue)
+    return getLocalPref(keyToSync)
+  })
+
+  useOnMount(() => {
+    const handleChange = ({ key }) => {
+      key === getDynamicKey(keyToSync) && setValue(getLocalPref(keyToSync))
+    }
+
+    window.addEventListener('storage', handleChange)
+    return () => window.removeEventListener('storage', handleChange)
+  })
+
+  return [value, v => {
+    setLocalPref(keyToSync, v)
+    setValue(v)
+  }]
 }
 
 export const maybeParseJSON = maybeJSONString => {

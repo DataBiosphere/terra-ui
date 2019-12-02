@@ -14,7 +14,7 @@ const displayRemainingTime = remainingSeconds => {
 }
 
 const IdleTimeoutModal = ({ timeout = 15 * 1000 * 60, countdownStart = 2 * 1000 * 60, emailDomain }) => {
-  const [expired, setExpired] = useState()
+  const [expired, setExpired] = Utils.useLocalStorageState('expired', false)
   const { isSignedIn, profile: { email } } = Utils.useAtom(authStore)
   const domain = RegExp(`@${emailDomain}`)
 

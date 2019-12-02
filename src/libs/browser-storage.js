@@ -3,6 +3,8 @@ import { getUser } from 'src/libs/auth'
 import { maybeParseJSON } from 'src/libs/utils'
 
 
+export const getDynamicKey = key => `dynamic-storage/${withUserPrefix(key)}`
+
 export const getDynamic = (storage, key) => {
   const storageKey = `dynamic-storage/${key}`
   const data = maybeParseJSON(storage.getItem(storageKey))
