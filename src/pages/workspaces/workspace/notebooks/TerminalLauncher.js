@@ -64,7 +64,8 @@ const TerminalLauncher = _.flow(
   }
 
   async componentDidUpdate() {
-    const { cluster: { clusterUrl } = {} } = this.props
+    const { cluster } = this.props || {}
+    const { clusterUrl } = cluster || {}
     const { url } = this.state
 
     if (clusterUrl && !url) {
@@ -99,6 +100,8 @@ const TerminalLauncher = _.flow(
         },
         title: 'Interactive terminal iframe'
       })
+    } else if (clusterStatus === null) {
+      return div({ style: { padding: '2rem' } }, ['No existing notebook runtime environment, you can create a new one to edit your notebook or use the terminal.'])
     } else {
       return div({ style: { padding: '2rem' } }, [
         'Creating Stopping Starting Updating Deleting'.includes(clusterStatus) &&
