@@ -15,7 +15,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -96,7 +96,7 @@ const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissi
 
 const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) => {
   const [workspace, setWorkspace] = useState(undefined)
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
   const loadWorkspace = withErrorReporting('Error loading workspace', async () => {
     setWorkspace(await Ajax(signal).Workspaces.workspace(namespace, name).details(['accessLevel', 'canShare']))
   })

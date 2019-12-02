@@ -3,7 +3,7 @@ import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
 import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
-import RSelect from 'react-select'
+import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -11,7 +11,7 @@ import Interactive from 'src/components/Interactive'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import hexButton from 'src/images/hex-button.svg'
 import scienceBackground from 'src/images/science-background.jpg'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { getConfig, isTerra } from 'src/libs/config'
 import { returnParam } from 'src/libs/logos'
@@ -276,8 +276,9 @@ const commonSelectProps = {
     singleValue: base => ({ ...base, color: colors.dark() }),
     option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
       overflowWrap: 'break-word',
-      backgroundColor: isSelected ? colors.light(0.4) : isFocused ? colors.dark(0.15) : undefined,
-      color: isSelected ? colors.accent() : isDisabled ? undefined : colors.dark(),
+      fontWeight: isSelected ? 600 : undefined,
+      backgroundColor: isFocused ? colors.dark(0.15) : 'white',
+      color: isDisabled ? undefined : colors.dark(),
       ':active': { backgroundColor: colors.accent(isSelected ? 0.55 : 0.4) }
     }),
     clearIndicator: base => ({ ...base, paddingRight: 0 }),
@@ -285,6 +286,16 @@ const commonSelectProps = {
     dropdownIndicator: (base, { selectProps: { isClearable } }) => _.merge(base, { paddingLeft: isClearable ? 0 : undefined }),
     multiValueLabel: base => ({ ...base, maxWidth: '100%' }),
     multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } })
+  },
+  components: {
+    Option: ({ children, ...props }) => {
+      return h(RSelectComponents.Option, props, [
+        div({ style: { display: 'flex', alignItems: 'center' } }, [
+          div({ style: { flexGrow: 1 } }, children),
+          props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
+        ])
+      ])
+    }
   }
 }
 
@@ -368,7 +379,7 @@ export const FocusTrapper = ({ children, onBreakout, ...props }) => {
 
 export const CromwellVersionLink = props => {
   const [version, setVersion] = useState()
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
 
   Utils.useOnMount(() => {
     const setCromwellVersion = async () => {

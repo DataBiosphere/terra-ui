@@ -3,9 +3,9 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { h, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { spinner } from 'src/components/icons'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
-import { useOnMount, withBusyState } from 'src/libs/utils'
+import { useCancellation, useOnMount, withBusyState } from 'src/libs/utils'
 
 
 export const SubmissionQueueStatus = () => {

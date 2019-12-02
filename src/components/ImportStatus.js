@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { clearNotification, notify } from 'src/components/Notifications'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import { pfbImportJobStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -19,7 +19,7 @@ const ImportStatus = () => {
 }
 
 const ImportStatusItem = ({ job: { targetWorkspace, jobId }, onDone }) => {
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
 
   Utils.useOnMount(() => {
     const poll = withErrorReporting('Problem checking status of PFB data import', async () => {

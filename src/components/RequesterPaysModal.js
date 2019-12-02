@@ -4,7 +4,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { Ajax, useCancellation } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
@@ -26,7 +26,7 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
   const [loading, setLoading] = useState(false)
   const [billingList, setBillingList] = useState([])
   const [selectedBilling, setSelectedBilling] = useState(requesterPaysProjectStore.get())
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
 
   Utils.useOnMount(() => {
     const loadBillingProjects = _.flow(
