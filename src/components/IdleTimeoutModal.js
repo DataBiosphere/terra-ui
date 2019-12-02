@@ -4,10 +4,9 @@ import { div, h, iframe } from 'react-hyperscript-helpers'
 import ButtonBar from 'src/components/ButtonBar'
 import Modal from 'src/components/Modal'
 import { getLocalPref, removeLocalPref, setLocalPref } from 'src/libs/browser-storage'
+import colors from 'src/libs/colors'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
-
-import colors from '../libs/colors'
 
 
 const displayRemainingTime = remainingSeconds => {
