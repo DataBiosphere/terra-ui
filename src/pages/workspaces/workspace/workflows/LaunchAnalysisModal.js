@@ -39,25 +39,31 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
   }
 
   async componentDidMount() {
-    const { workspaceId: { namespace, name }, entitySelectionModel: { type, selectedEntities }, config: { rootEntityType }, ajax: { Workspaces } } = this.props
+    const { workspaceId: { namespace, name }, entitySelectionModel: { type, selectedEntities }, processSingle, config: { rootEntityType }, ajax: { Workspaces } } = this.props
 
-    const entities = await Promise.resolve(Utils.switchCase(type,
-      [EntitySelectionType.processAll, async () => _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(rootEntityType))],
-      [EntitySelectionType.chooseRows, () => _.keys(selectedEntities)],
-      [EntitySelectionType.processMergedSet, () => _.flow(
-        _.flatMap(`attributes.${rootEntityType}s.items`),
-        _.map('entityName')
-      )(selectedEntities)],
-      [Utils.DEFAULT, () => selectedEntities]
-    ))
+    if (!processSingle) {
+      const entities = await Promise.resolve(Utils.switchCase(type,
+        [EntitySelectionType.processAll, async () => _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(rootEntityType))],
+        [EntitySelectionType.chooseRows, () => _.keys(selectedEntities)],
+        [EntitySelectionType.processMergedSet, () => _.flow(
+          _.flatMap(`attributes.${rootEntityType}s.items`),
+          _.map('entityName')
+        )(selectedEntities)],
+        [Utils.DEFAULT, () => selectedEntities]
+      ))
 
-    this.setState({ entities })
+      this.setState({ entities })
+    }
   }
 
   render() {
     const { onDismiss, entitySelectionModel: { type }, processSingle } = this.props
     const { entities, launching, message, multiLaunchCompletions, launchError, multiLaunchErrors } = this.state
-    const entityCount = _.isArray(entities) ? _.uniq(entities).length : _.size(entities)
+    const entityCount = Utils.cond(
+      [processSingle, () => 1],
+      [_.isArray(entities), () => _.uniq(entities).length],
+      () => _.size(entities)
+    )
 
     return h(Modal, {
       title: !launching ? 'Confirm launch' : 'Launching Analysis',
@@ -78,7 +84,9 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         'This will launch ', b([entityCount]), ` analys${entityCount === 1 ? 'is' : 'es'}`,
         type === EntitySelectionType.chooseSets && entityCount > 1 && ' simultaneously',
         '.',
-        type !== EntitySelectionType.chooseSets && entityCount !== entities.length && div({ style: { fontStyle: 'italic', marginTop: '0.5rem' } }, [
+        !processSingle && type !== EntitySelectionType.chooseSets && entityCount !== entities.length && div({
+          style: { fontStyle: 'italic', marginTop: '0.5rem' }
+        }, [
           '(Duplicate entities are only processed once.)'
         ])
       ]),
