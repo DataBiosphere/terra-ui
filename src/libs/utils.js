@@ -406,6 +406,20 @@ export const useCancellation = () => {
   return controller.current.signal
 }
 
+export const usePollingEffect = (effectFn, ms = 250) => {
+  const signal = useCancellation()
+
+  useOnMount(() => {
+    const poll = async () => {
+      while (!signal.aborted) {
+        await delay(ms)
+        !signal.aborted && effectFn()
+      }
+    }
+    poll()
+  })
+}
+
 export const maybeParseJSON = maybeJSONString => {
   try {
     return JSON.parse(maybeJSONString)
