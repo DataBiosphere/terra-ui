@@ -245,7 +245,6 @@ export default class TermsOfService extends Component {
       authStore.update(state => ({ ...state, acceptedTos: true }))
     } catch (error) {
       reportError('Error accepting TOS', error)
-    } finally {
       this.setState({ busy: false })
     }
   }
