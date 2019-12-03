@@ -65,7 +65,7 @@ const TerminalLauncher = _.flow(
 
   async componentDidUpdate() {
     const { cluster } = this.props || {}
-    const { clusterUrl } = cluster || {}
+    const { clusterUrl } = cluster
     const { url } = this.state
 
     if (clusterUrl && !url) {
