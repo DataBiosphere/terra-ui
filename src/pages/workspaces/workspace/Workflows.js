@@ -171,8 +171,10 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
       methods: undefined,
       selectedWorkflowDetails: undefined,
       exporting: undefined,
-      workflowRename: '',
-      isEditingName: false
+      workflowRename: undefined,
+      isEditingName: false,
+      config: undefined,
+      methodAjax: undefined
     }
   }
 
@@ -212,12 +214,12 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
       div({ style: { display: 'flex' } }, [
         div({ style: { flexGrow: 1, marginTop: '1rem' } }, [
           !isEditingName ?
-            div([span({ style: styles.sectionTitle }, ['Workflow Name: ']), `${workflowRename}`,
+            div([span({ style: styles.sectionTitle }, ['Workflow Name: ']), workflowRename ? `${workflowRename}` : '',
               h(Link, {
                 style: { marginRight: '0.5rem' },
                 onClick: () => this.setState({ isEditingName: !isEditingName }),
                 'aria-label': 'Edit workflow name'
-              }, [icon('edit', { style: { marginLeft: '0.5rem' }, size: 13 })])])
+              }, [workflowRename ? icon('edit', { style: { marginLeft: '0.5rem' }, size: 13 }) : undefined])])
             :
             h(Fragment, [
               h(IdContainer, [id => h(Fragment, [
@@ -293,10 +295,18 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
     const { ajax: { Methods } } = this.props
     const { namespace, name, snapshotId } = selectedWorkflow
 
-    this.setState({ selectedWorkflow, workflowRename: selectedWorkflow.name })
+    this.setState({ selectedWorkflow })
+
     try {
       const selectedWorkflowDetails = await Methods.method(namespace, name, snapshotId).get()
-      this.setState({ selectedWorkflowDetails })
+
+      const methodAjax = Ajax().Methods.method(selectedWorkflow.namespace, selectedWorkflow.name, selectedWorkflow.snapshotId)
+
+      const config = _.maxBy('snapshotId', await methodAjax.configs())
+
+      this.setState({ selectedWorkflowDetails, methodAjax })
+
+      config ? this.setState({ workflowRename: config.name, config }) : this.setState({ workflowRename: selectedWorkflow.name })
     } catch (error) {
       reportError('Error loading workflow', error)
       this.setState({ selectedWorkflow: undefined })
@@ -305,25 +315,20 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
   async exportMethod() {
     const { namespace, name } = this.props
-    const { selectedWorkflow, workflowRename } = this.state
+    const { selectedWorkflow, workflowRename, methodAjax, config } = this.state
 
     this.setState({ exporting: true })
 
     try {
-      const methodAjax = Ajax().Methods.method(selectedWorkflow.namespace, selectedWorkflow.name, selectedWorkflow.snapshotId)
+      const newConfig = (config && workflowRename !== selectedWorkflow.name) ?
+        _.merge({ name: workflowRename, payloadObject: { name: workflowRename } }, config) : undefined
 
-      const config = _.maxBy('snapshotId', await methodAjax.configs())
+      await methodAjax.toWorkspace({ namespace, name }, newConfig,
+        workflowRename !== selectedWorkflow.name ? workflowRename : undefined)
 
-      if (config && workflowRename !== selectedWorkflow.name) {
-        config.name = workflowRename
-        config.payloadObject.name = workflowRename
-      }
+      const { namespace: workflowNamespace } = newConfig || selectedWorkflow
 
-      await methodAjax.toWorkspace({ namespace, name }, config, workflowRename !== selectedWorkflow.name ? workflowRename : undefined)
-
-      const { namespace: workflowNamespace, name: workflowName } = config || selectedWorkflow
-
-      Nav.goToPath('workflow', { namespace, name, workflowNamespace, workflowName: config ? workflowName : workflowRename })
+      Nav.goToPath('workflow', { namespace, name, workflowNamespace, workflowName: workflowRename })
     } catch (error) {
       reportError('Error importing workflow', error)
       this.setState({ exporting: false })

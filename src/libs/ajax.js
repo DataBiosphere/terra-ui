@@ -911,7 +911,7 @@ const Methods = signal => ({
             methodRepoMethod: {
               methodUri: `agora://${namespace}/${name}/${snapshotId}`
             },
-            name: workflowRename ? workflowRename : name,
+            name: workflowRename || name,
             namespace,
             rootEntityType: '',
             prerequisites: {},
