@@ -12,14 +12,14 @@ import * as Utils from 'src/libs/utils'
 
 const Container = ({ modal }) => {
   const domain = text('User email domain', 'foo.com')
-  const [removeAuth, setRemoveAuth] = Utils.useLocalStorageState('auth-story', {
+  const [auth, setAuth] = Utils.useLocalStorageState('auth-story', {
     user: { id: 'test-123' }, isSignedIn: true, profile: { email: `user@${domain}` }
   })
 
   const modalRef = useRef()
   const [counter, setCounter] = useState(0)
   const [agree, setAgree] = useState()
-  agree && authStore.set(removeAuth)
+  agree && authStore.set(auth)
 
   const { user } = authStore.get()
   !agree && user && removeLocalPref('terra-timeout')
@@ -28,7 +28,7 @@ const Container = ({ modal }) => {
     const observer = new MutationObserver(() => {
       const logout = document.evaluate('//iframe[@src="https://www.google.com/accounts/Logout"]',
         modalRef.current, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
-      logout && setRemoveAuth({ user: { id: 'test-123' }, profile: {} })
+      logout && setAuth({ user: { id: 'test-123' }, profile: {} })
     })
 
     observer.observe(modalRef.current, { attributes: false, childList: true, subtree: true })
@@ -53,7 +53,8 @@ const Container = ({ modal }) => {
       !!agree && h(ButtonPrimary, {
         style: { margin: '1rem 0 0 0 ' },
         onClick: () => {
-          setRemoveAuth({
+          removeLocalPref('terra-timeout')
+          setAuth({
             user: { id: 'test-123' }, isSignedIn: true, profile: { email: `user@${domain}` }
           })
           setCounter(counter + 1)

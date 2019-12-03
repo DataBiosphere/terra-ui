@@ -10,7 +10,10 @@ import * as Utils from 'src/libs/utils'
 
 
 const displayRemainingTime = remainingSeconds => {
-  return `${Math.floor(remainingSeconds / 60).toString().padStart(2, '0')}:${Math.ceil(remainingSeconds % 60).toString().padStart(2, '0')}`
+  return _.join(':', [
+    `${Math.floor(remainingSeconds / 60).toString().padStart(2, '0')}`,
+    `${Math.ceil(remainingSeconds % 60).toString().padStart(2, '0')}`
+  ])
 }
 
 const IdleTimeoutModal = ({ timeout = 15 * 1000 * 60, countdownStart = 2 * 1000 * 60, emailDomain }) => {
@@ -72,7 +75,8 @@ const InactivityTimer = ({ setExpired, expired, timeout, countdownStart }) => {
     },
     [
       'To maintain security and protect clinical data, you will be logged out in',
-      div({ style: { whiteSpace: 'pre', textAlign: 'center', color: colors.accent(1), fontSize: '4rem' } }, [displayRemainingTime(countdown / 1000)]),
+      div({ style: { whiteSpace: 'pre', textAlign: 'center', color: colors.accent(1), fontSize: '4rem' } },
+        [displayRemainingTime(countdown / 1000)]),
       'You can extend your session to continue working',
       h(ButtonBar, {
         style: { marginTop: '1rem', display: 'flex', alignItem: 'baseline', justifyContent: 'flex-end' },
