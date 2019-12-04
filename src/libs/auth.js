@@ -162,7 +162,7 @@ authStore.subscribe(async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     window.newrelic.setCustomAttribute('userGoogleId', state.user.id)
     window.Appcues && window.Appcues.identify(state.user.id, {
-      dateJoined: await getDateJoined()
+      dateJoined: state.registrationStatus === 'registered' ? await getDateJoined() : Date.now()
     })
   }
 })

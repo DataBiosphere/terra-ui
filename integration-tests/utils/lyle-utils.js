@@ -1,26 +1,27 @@
+const { JWT } = require('google-auth-library')
 const fetch = require('node-fetch')
 const { lyleToken, lyleUrl } = require('./integration-config')
-const { GoogleToken } = require('gtoken')
 
-const getLyleToken = async () => {
+
+const makeAuthClient = () => {
   const { client_email: email, private_key: key } = JSON.parse(lyleToken)
 
-  const gtoken = new GoogleToken({
+  return new JWT({
     email,
     key,
-    additionalClaims: { target_audience: 'https://terra-lyle.appspot.com' }
+    additionalClaims: { target_audience: lyleUrl }
   })
-
-  const { id_token: token } = await gtoken.getToken()
-
-  return token
 }
 
+const authClient = makeAuthClient()
+
 const fetchLyle = async (path, email) => {
-  const res = await fetch(`${lyleUrl}/api/${path}`, {
+  const url = `${lyleUrl}/api/${path}`
+
+  const res = await fetch(url, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${await getLyleToken()}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({email})
+    headers: { 'Content-Type': 'application/json', ...(await authClient.getRequestHeaders(url)) },
+    body: JSON.stringify({ email })
   })
 
   return res.json()
