@@ -5,13 +5,13 @@ import { maybeParseJSON } from 'src/libs/utils'
 
 export const getDynamic = (storage, key) => {
   const storageKey = `dynamic-storage/${key}`
-  const data = maybeParseJSON(storage.getItem(`!${storageKey}`)) || maybeParseJSON(storage.getItem(storageKey))
+  const data = maybeParseJSON(storage.getItem(`important-${storageKey}`) || storage.getItem(storageKey))
   return data && data.value
 }
 
 export const setDynamic = (storage, key, value, options = {}) => {
   const { important = true } = options
-  const storageKey = important ? `!dynamic-storage/${key}` : `dynamic-storage/${key}`
+  const storageKey = important ? `important-dynamic-storage/${key}` : `dynamic-storage/${key}`
   const storageValue = JSON.stringify({ timestamp: Date.now(), value })
   while (true) {
     try {
