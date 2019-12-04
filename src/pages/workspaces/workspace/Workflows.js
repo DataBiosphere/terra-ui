@@ -20,11 +20,11 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { validateWorkflowName } from 'src/libs/workflow-utils'
 import { DockstoreTile, MethodCard, MethodRepoTile } from 'src/pages/library/Code'
 import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-import validate from 'validate.js'
 
 
 const styles = {
@@ -174,7 +174,8 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
       workflowRename: undefined,
       isEditingName: false,
       config: undefined,
-      methodAjax: undefined
+      methodAjax: undefined,
+      prevWorkflowRename: undefined
     }
   }
 
@@ -191,7 +192,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
   render() {
     const { onDismiss } = this.props
-    const { selectedWorkflow, featuredList, methods, selectedWorkflowDetails, exporting, workflowRename, isEditingName } = this.state
+    const { selectedWorkflow, featuredList, methods, selectedWorkflowDetails, exporting, workflowRename, isEditingName, prevWorkflowRename } = this.state
 
     const featuredMethods = _.compact(_.map(
       ({ namespace, name }) => _.maxBy('snapshotId', _.filter({ namespace, name }, methods)),
@@ -200,15 +201,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
     const { synopsis, managers, documentation } = selectedWorkflowDetails || {}
 
-    const errors = validate({ workflowRename }, {
-      workflowRename: {
-        presence: { allowEmpty: false },
-        format: {
-          pattern: /^[A-Za-z0-9_\-.]*$/,
-          message: 'can only contain letters, numbers, underscores, dashes, and periods'
-        }
-      }
-    })
+    const errors = validateWorkflowName(workflowRename, this.props.name)
 
     const renderDetails = () => [
       div({ style: { display: 'flex' } }, [
@@ -225,11 +218,11 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
               h(IdContainer, [id => h(Fragment, [
                 h(FormLabel, { htmlFor: id, style: { margin: '0 0 0.25rem' } }, ['Workflow Name:']),
                 h(ValidatedInput, {
-                  error: Utils.summarizeErrors(errors && errors.workflowRename),
+                  error: Utils.summarizeErrors(errors),
                   inputProps: {
                     id,
-                    value: workflowRename,
-                    onChange: workflowRename => { this.setState({ workflowRename }) }
+                    value: prevWorkflowRename,
+                    onChange: prevWorkflowRename => { this.setState({ prevWorkflowRename }) }
                   }
                 })
               ])]),
@@ -237,10 +230,10 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
                 h(ButtonPrimary, {
                   style: { marginRight: '0.5rem' },
                   disabled: !!errors,
-                  onClick: () => this.setState({ isEditingName: !isEditingName })
+                  onClick: () => this.setState({ isEditingName: !isEditingName, workflowRename: prevWorkflowRename })
                 }, ['save']),
                 h(ButtonSecondary, {
-                  onClick: () => this.setState({ isEditingName: !isEditingName, workflowRename: selectedWorkflow.name })
+                  onClick: () => this.setState({ isEditingName: !isEditingName, prevWorkflowRename: workflowRename })
                 }, ['cancel'])
               ])
             ]),
@@ -306,7 +299,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
       this.setState({ selectedWorkflowDetails, methodAjax })
 
-      config ? this.setState({ workflowRename: config.name, config }) : this.setState({ workflowRename: selectedWorkflow.name })
+      config ? this.setState({ workflowRename: config.name, prevWorkflowRename: config.name, config }) : this.setState({ workflowRename: selectedWorkflow.name, prevWorkflowRename: selectedWorkflow.name })
     } catch (error) {
       reportError('Error loading workflow', error)
       this.setState({ selectedWorkflow: undefined })
@@ -321,7 +314,8 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
     try {
       const newConfig = (config && workflowRename !== selectedWorkflow.name) ?
-        _.merge({ name: workflowRename, payloadObject: { name: workflowRename } }, config) : undefined
+        _.merge(config, { name: workflowRename, payloadObject: { name: workflowRename } }) : undefined
+      this.setState({ config: newConfig })
 
       await methodAjax.toWorkspace({ namespace, name }, newConfig,
         workflowRename !== selectedWorkflow.name ? workflowRename : undefined)
