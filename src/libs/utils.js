@@ -387,6 +387,8 @@ export const mergeQueryParams = (params, urlString) => {
   return url.href
 }
 
+export const hhmmssToMs = ({ hh = 0, mm = 0, ss = 0 }) => ((hh * 60 * 60) + (mm * 60) + ss) * 1000
+
 export const useConsoleAssert = (condition, message) => {
   const printed = useRef(false)
   if (!printed.current && !condition) {
@@ -409,7 +411,7 @@ export const useCancellation = () => {
 
 
 // Will cause a render to occur at each delay interval. The delay can be changed in the render.
-export const usePolling = (initialDelay = 250) => {
+export const useCurrentTime = (initialDelay = 250) => {
   const [currentTime, setCurrentTime] = useState(Date.now())
   const signal = useCancellation()
   const delayRef = useRef(initialDelay)

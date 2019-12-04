@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import ButtonBar from 'src/components/ButtonBar'
 import Modal from 'src/components/Modal'
@@ -16,7 +16,7 @@ const displayRemainingTime = remainingSeconds => {
   ])
 }
 
-const IdleTimeoutModal = ({ timeout = 15 * 1000 * 60, countdownStart = 2 * 1000 * 60, emailDomain }) => {
+const IdleTimeoutModal = ({ timeout = Utils.hhmmssToMs({ mm: 15 }), countdownStart = Utils.hhmmssToMs({ mm: 2 }), emailDomain }) => {
   const [expired, setExpired] = Utils.useLocalStorageState('expired', false)
   const { isSignedIn, profile: { email } } = Utils.useAtom(authStore)
   const domain = RegExp(`@${emailDomain}`)
@@ -35,7 +35,7 @@ const IdleTimeoutModal = ({ timeout = 15 * 1000 * 60, countdownStart = 2 * 1000 
 const InactivityTimer = ({ setExpired, expired, timeout, countdownStart }) => {
   const [dismiss, setDismiss] = useState()
   const [logoutRequested, setLogoutRequested] = useState()
-  const [currentTime, setDelay] = Utils.usePolling()
+  const [currentTime, setDelay] = Utils.useCurrentTime()
 
   const lastActiveTime = getLocalPref('terra-timeout') ? parseInt(getLocalPref('terra-timeout'), 10) : Date.now()
   const timeoutTime = lastActiveTime + timeout
@@ -57,9 +57,10 @@ const InactivityTimer = ({ setExpired, expired, timeout, countdownStart }) => {
     }
   })
 
+  useEffect(() => (expired || logoutRequested) && removeLocalPref('terra-timeout'), [expired, logoutRequested])
+
   return Utils.cond([
     expired || logoutRequested, () => {
-      removeLocalPref('terra-timeout')
       return iframe({ style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })
     }
   ], [
