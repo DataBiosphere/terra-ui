@@ -384,7 +384,9 @@ const WorkflowView = _.flow(
     // modifiedConfig: active data, potentially unsaved
     const {
       isFreshData, savedConfig, launching, activeTab, useCallCache,
-      entitySelectionModel, variableSelected, modifiedConfig, updatingConfig
+      entitySelectionModel, variableSelected,
+      modifiedConfig, modifiedConfig: { rootEntityType }, entityMetadata,
+      updatingConfig
     } = this.state
     const { namespace, name, workspace } = this.props
     const workspaceId = { namespace, name }
@@ -400,6 +402,7 @@ const WorkflowView = _.flow(
           workspaceId, config: savedConfig,
           accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache,
+          rootEntityTotal: entityMetadata[rootEntityType].count,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId }),
           onSuccessMulti: () => Nav.goToPath('workspace-job-history', workspaceId)

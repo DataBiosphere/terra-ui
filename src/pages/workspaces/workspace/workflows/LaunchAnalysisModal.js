@@ -38,29 +38,29 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     }
   }
 
-  async componentDidMount() {
-    const { workspaceId: { namespace, name }, entitySelectionModel: { type, selectedEntities }, processSingle, config: { rootEntityType }, ajax: { Workspaces } } = this.props
+  componentDidMount() {
+    const { entitySelectionModel: { type, selectedEntities }, processSingle, config: { rootEntityType } } = this.props
 
     if (!processSingle) {
-      const entities = await Promise.resolve(Utils.switchCase(type,
-        [EntitySelectionType.processAll, async () => _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(rootEntityType))],
+      const entities = Utils.switchCase(type,
         [EntitySelectionType.chooseRows, () => _.keys(selectedEntities)],
         [EntitySelectionType.processMergedSet, () => _.flow(
           _.flatMap(`attributes.${rootEntityType}s.items`),
           _.map('entityName')
         )(selectedEntities)],
         [Utils.DEFAULT, () => selectedEntities]
-      ))
+      )
 
       this.setState({ entities })
     }
   }
 
   render() {
-    const { onDismiss, entitySelectionModel: { type }, processSingle } = this.props
+    const { onDismiss, entitySelectionModel: { type }, rootEntityTotal, processSingle } = this.props
     const { entities, launching, message, multiLaunchCompletions, launchError, multiLaunchErrors } = this.state
     const entityCount = Utils.cond(
       [processSingle, () => 1],
+      [type === EntitySelectionType.processAll, () => rootEntityTotal],
       [_.isArray(entities), () => _.uniq(entities).length],
       () => _.size(entities)
     )
@@ -112,10 +112,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
   }
 
   async doLaunch() {
-    const {
-      processSingle, entitySelectionModel: { type },
-      config: { rootEntityType }
-    } = this.props
+    const { workspaceId: { namespace, name }, processSingle, entitySelectionModel: { type }, config: { rootEntityType }, ajax: { Workspaces } } = this.props
     const { entities } = this.state
 
     this.setState({ message: 'Checking bucket access...' })
@@ -128,7 +125,9 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     } else if (processSingle) {
       this.launch()
     } else if (type === EntitySelectionType.processAll) {
-      this.createSetAndLaunch(entities)
+      this.setState({ message: 'Fetching data...' })
+      const allEntities = _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(rootEntityType))
+      this.createSetAndLaunch(allEntities)
     } else if (type === EntitySelectionType.chooseRows) {
       if (entities.length === 1) {
         this.launch(rootEntityType, entities[0])
@@ -137,8 +136,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       }
     } else if (type === EntitySelectionType.processMergedSet) {
       if (entities.length === 1) {
-        const { entityType, name } = entities[0]
-        this.launch(entityType, name, `this.${rootEntityType}s`)
+        this.launch(rootEntityType, entities[0], `this.${rootEntityType}s`)
       } else {
         this.createSetAndLaunch(entities)
       }
