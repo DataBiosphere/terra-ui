@@ -56,11 +56,11 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
   }
 
   render() {
-    const { onDismiss, entitySelectionModel: { type }, rootEntityTotal, processSingle } = this.props
+    const { onDismiss, entitySelectionModel: { type }, entityMetadata, config: { rootEntityType }, processSingle } = this.props
     const { entities, launching, message, multiLaunchCompletions, launchError, multiLaunchErrors } = this.state
     const entityCount = Utils.cond(
       [processSingle, () => 1],
-      [type === EntitySelectionType.processAll, () => rootEntityTotal],
+      [type === EntitySelectionType.processAll, () => entityMetadata[rootEntityType].count],
       [_.isArray(entities), () => _.uniq(entities).length],
       () => _.size(entities)
     )
@@ -84,11 +84,9 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         'This will launch ', b([entityCount]), ` analys${entityCount === 1 ? 'is' : 'es'}`,
         type === EntitySelectionType.chooseSets && entityCount > 1 && ' simultaneously',
         '.',
-        !processSingle && type !== EntitySelectionType.chooseSets && entityCount !== entities.length && div({
+        !processSingle && type !== EntitySelectionType.chooseSets && type !== EntitySelectionType.processAll && entityCount !== entities.length && div({
           style: { fontStyle: 'italic', marginTop: '0.5rem' }
-        }, [
-          '(Duplicate entities are only processed once.)'
-        ])
+        }, ['(Duplicate entities are only processed once.)'])
       ]),
       (message || multiLaunchCompletions !== undefined) && div({ style: { display: 'flex' } }, [
         spinner({ style: { marginRight: '0.5rem' } }),
