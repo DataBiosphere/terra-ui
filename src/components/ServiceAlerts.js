@@ -4,6 +4,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { clearNotification, notify } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
+import { withErrorIgnoring } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
@@ -11,20 +12,9 @@ export const ServiceAlerts = () => {
   const [alerts, setAlerts] = useState([])
   const prevAlerts = Utils.usePrevious(alerts)
 
-  Utils.useOnMount(() => {
-    const checkAlerts = async () => {
-      while (true) {
-        try {
-          setAlerts(_.uniqWith(_.isEqual, await Ajax().Buckets.getServiceAlerts()))
-        } catch {
-          // swallowing error, yum!
-        }
-        await Utils.delay(60000)
-      }
-    }
-
-    checkAlerts()
-  })
+  Utils.usePollingEffect(withErrorIgnoring(
+    async () => setAlerts(_.uniqWith(_.isEqual, await Ajax().Buckets.getServiceAlerts()))
+  ), 60000)
 
   useEffect(() => {
     if (prevAlerts) {
