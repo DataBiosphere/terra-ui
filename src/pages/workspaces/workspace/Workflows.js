@@ -175,7 +175,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
       isEditingName: false,
       config: undefined,
       methodAjax: undefined,
-      prevWorkflowRename: undefined
+      editedWorkflowName: undefined
     }
   }
 
@@ -192,7 +192,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
   render() {
     const { onDismiss } = this.props
-    const { selectedWorkflow, featuredList, methods, selectedWorkflowDetails, exporting, workflowRename, isEditingName, prevWorkflowRename } = this.state
+    const { selectedWorkflow, featuredList, methods, selectedWorkflowDetails, exporting, workflowRename, isEditingName, editedWorkflowName } = this.state
 
     const featuredMethods = _.compact(_.map(
       ({ namespace, name }) => _.maxBy('snapshotId', _.filter({ namespace, name }, methods)),
@@ -201,7 +201,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
     const { synopsis, managers, documentation } = selectedWorkflowDetails || {}
 
-    const errors = validateWorkflowName(workflowRename, this.props.name)
+    const errors = validateWorkflowName(editedWorkflowName, this.props.name)
 
     const renderDetails = () => [
       div({ style: { display: 'flex' } }, [
@@ -221,8 +221,8 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
                   error: Utils.summarizeErrors(errors),
                   inputProps: {
                     id,
-                    value: prevWorkflowRename,
-                    onChange: prevWorkflowRename => { this.setState({ prevWorkflowRename }) }
+                    value: editedWorkflowName,
+                    onChange: editedWorkflowName => { this.setState({ editedWorkflowName }) }
                   }
                 })
               ])]),
@@ -230,10 +230,10 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
                 h(ButtonPrimary, {
                   style: { marginRight: '0.5rem' },
                   disabled: !!errors,
-                  onClick: () => this.setState({ isEditingName: !isEditingName, workflowRename: prevWorkflowRename })
+                  onClick: () => this.setState({ isEditingName: !isEditingName, workflowRename: editedWorkflowName })
                 }, ['save']),
                 h(ButtonSecondary, {
-                  onClick: () => this.setState({ isEditingName: !isEditingName, prevWorkflowRename: workflowRename })
+                  onClick: () => this.setState({ isEditingName: !isEditingName, editedWorkflowName: workflowRename })
                 }, ['cancel'])
               ])
             ]),
@@ -299,7 +299,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
       this.setState({ selectedWorkflowDetails, methodAjax })
 
-      config ? this.setState({ workflowRename: config.name, prevWorkflowRename: config.name, config }) : this.setState({ workflowRename: selectedWorkflow.name, prevWorkflowRename: selectedWorkflow.name })
+      config ? this.setState({ workflowRename: config.name, editedWorkflowName: config.name, config }) : this.setState({ workflowRename: selectedWorkflow.name, editedWorkflowName: selectedWorkflow.name })
     } catch (error) {
       reportError('Error loading workflow', error)
       this.setState({ selectedWorkflow: undefined })
