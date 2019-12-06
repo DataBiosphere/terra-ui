@@ -41,7 +41,7 @@ const Clusters = () => {
   const loadClusters = withErrorReporting('Error loading notebook runtimes', refreshClusters)
 
   useOnMount(() => { loadClusters() })
-  usePollingEffect(withErrorIgnoring(refreshClusters), 30000)
+  usePollingEffect(withErrorIgnoring(refreshClusters), { ms: 30000 })
 
   const filteredClusters = _.orderBy([{
     project: 'googleProject',

@@ -24,7 +24,7 @@ const ImportStatusItem = ({ job: { targetWorkspace, jobId }, onDone }) => {
   Utils.usePollingEffect(
     withErrorReporting('Problem checking status of PFB data import', async () => {
       await checkForCompletion(targetWorkspace, jobId)
-    }), 5000)
+    }), { ms: 5000 })
 
   const checkForCompletion = async ({ namespace, name }, jobId) => {
     const fetchImportStatus = async () => {

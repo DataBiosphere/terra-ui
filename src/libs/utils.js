@@ -406,14 +406,15 @@ export const useCancellation = () => {
   return controller.current.signal
 }
 
-export const usePollingEffect = (effectFn, ms = 250) => {
+export const usePollingEffect = (effectFn, { ms, leading }) => {
   const signal = useCancellation()
 
   useOnMount(() => {
     const poll = async () => {
+      leading && await effectFn()
       while (!signal.aborted) {
         await delay(ms)
-        !signal.aborted && effectFn()
+        !signal.aborted && await effectFn()
       }
     }
     poll()

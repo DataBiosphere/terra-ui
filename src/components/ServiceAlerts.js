@@ -14,7 +14,7 @@ export const ServiceAlerts = () => {
 
   Utils.usePollingEffect(withErrorIgnoring(
     async () => setAlerts(_.uniqWith(_.isEqual, await Ajax().Buckets.getServiceAlerts()))
-  ), 60000)
+  ), { ms: 60000, leading: true })
 
   useEffect(() => {
     if (prevAlerts) {
