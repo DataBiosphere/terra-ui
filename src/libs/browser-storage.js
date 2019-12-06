@@ -3,13 +3,13 @@ import { getUser } from 'src/libs/auth'
 import { maybeParseJSON } from 'src/libs/utils'
 
 
-export const getDynamic = (storage, key, { important = false } = {}) => {
+export const getDynamic = (storage, key, { important } = {}) => {
   const storageKey = maybeImportantKey(important, `dynamic-storage/${key}`)
   const data = maybeParseJSON(storage.getItem(storageKey))
   return data && data.value
 }
 
-export const setDynamic = (storage, key, value, { important = false } = {}) => {
+export const setDynamic = (storage, key, value, { important } = {}) => {
   const storageKey = maybeImportantKey(important, `dynamic-storage/${key}`)
   const storageValue = JSON.stringify({ timestamp: Date.now(), value })
   while (true) {
@@ -31,8 +31,8 @@ export const setDynamic = (storage, key, value, { important = false } = {}) => {
   }
 }
 
-export const removeDynamic = (storage, key) => {
-  const storageKey = `dynamic-storage/${key}`
+export const removeDynamic = (storage, key, { important }) => {
+  const storageKey = maybeImportantKey(important, `dynamic-storage/${key}`)
   storage.removeItem(storageKey)
 }
 
