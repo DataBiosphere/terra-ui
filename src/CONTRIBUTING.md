@@ -40,10 +40,17 @@ React has simple and elegant API's that allow us to easily componentize pieces o
   * Could it be factored out to something more generally
     * Write hooks, wrappers ("with" handlers), HoC's
   * Strive more towards being development minded
+* ...At the right time
+  * Avoid premature optimization
+  * Create the right abstractions at the right time
+  * Avoid gold plating
+  * When it makes sense (repeating code / pattern, cleaning up code)
 * If something is hard to understand or see something that can be done better, do it!
   * This keeps tech debt down, the code base simple, easy to understand and work with
 * Keep the development environment simple and easy to use, providing clear error messages
-* 
+* Write tests for the users
+* Use the least possbile abstraction to complete the job
+* Usability and A11y
 # Stylistic Aspects (how we maintain our philosophy)
 * Avoid using let (never use var) prefer using const instead 
   * Using let introduces additional state and potentially side effects into a function. This can make it diffcult to reason about the code and potentially introduce bugs
