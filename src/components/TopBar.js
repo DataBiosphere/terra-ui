@@ -278,7 +278,12 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
                 this.hideNav()
                 contactUsActive.set(true)
               }
-            }, ['Contact Us'])
+            }, ['Contact Us']),
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/sections/360003424251-Release-Notes',
+              onClick: () => this.hideNav(),
+              ...Utils.newTabLinkProps
+            }, ['Release Notes'])
           ]),
           isFirecloud() && h(NavSection, {
             disabled: !isSignedIn,
