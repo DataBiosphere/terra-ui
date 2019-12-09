@@ -49,7 +49,7 @@ React has simple and elegant API's that allow us to easily componentize pieces o
   * This keeps tech debt down, the code base simple, easy to understand and work with
 * Keep the development environment simple and easy to use, providing clear error messages
 * Write tests for the users
-* Use the least possbile abstraction to complete the job
+* Use the least powerful abstraction to complete the job
 * Usability and A11y
 # Stylistic Aspects (how we maintain our philosophy)
 * Avoid using let (never use var) prefer using const instead 
