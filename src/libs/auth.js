@@ -159,10 +159,10 @@ authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldSt
  * doing this.
  */
 authStore.subscribe(async (state, oldState) => {
-  if (!oldState.isSignedIn && state.isSignedIn) {
+  if (!oldState.registrationStatus && state.registrationStatus) {
     window.newrelic.setCustomAttribute('userGoogleId', state.user.id)
     window.Appcues && window.Appcues.identify(state.user.id, {
-      dateJoined: await getDateJoined()
+      dateJoined: state.registrationStatus === 'registered' ? await getDateJoined() : Date.now()
     })
   }
 })
