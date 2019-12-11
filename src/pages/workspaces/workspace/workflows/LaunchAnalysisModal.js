@@ -38,11 +38,11 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     }
   }
 
-  componentDidMount() {
+  getEntities() {
     const { entitySelectionModel: { type, selectedEntities }, processSingle, config: { rootEntityType } } = this.props
 
     if (!processSingle) {
-      const entities = Utils.switchCase(type,
+      return Utils.switchCase(type,
         [EntitySelectionType.chooseRows, () => _.keys(selectedEntities)],
         [EntitySelectionType.processMergedSet, () => _.flow(
           _.flatMap(`attributes.${rootEntityType}s.items`),
@@ -50,14 +50,13 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         )(selectedEntities)],
         [Utils.DEFAULT, () => selectedEntities]
       )
-
-      this.setState({ entities })
     }
   }
 
   render() {
     const { onDismiss, entitySelectionModel: { type }, entityMetadata, config: { rootEntityType }, processSingle } = this.props
-    const { entities, launching, message, multiLaunchCompletions, launchError, multiLaunchErrors } = this.state
+    const { launching, message, multiLaunchCompletions, launchError, multiLaunchErrors } = this.state
+    const entities = this.getEntities()
     const entityCount = Utils.cond(
       [processSingle, () => 1],
       [type === EntitySelectionType.processAll, () => entityMetadata[rootEntityType].count],
@@ -111,7 +110,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
 
   async doLaunch() {
     const { workspaceId: { namespace, name }, processSingle, entitySelectionModel: { type }, config: { rootEntityType }, ajax: { Workspaces } } = this.props
-    const { entities } = this.state
+    const entities = this.getEntities()
 
     this.setState({ message: 'Checking bucket access...' })
     const hasBucketAccess = await this.preFlightBucketAccess()
@@ -133,11 +132,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         this.createSetAndLaunch(entities)
       }
     } else if (type === EntitySelectionType.processMergedSet) {
-      if (entities.length === 1) {
-        this.launch(rootEntityType, entities[0], `this.${rootEntityType}s`)
-      } else {
-        this.createSetAndLaunch(entities)
-      }
+      this.createSetAndLaunch(entities)
     } else if (type === EntitySelectionType.chooseSets) {
       if (_.size(entities) === 1) {
         this.launch(rootEntityType, _.values(entities)[0].name)
