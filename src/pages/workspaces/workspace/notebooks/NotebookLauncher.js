@@ -456,18 +456,9 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
 
 const PeriodicCookieSetter = ({ namespace, clusterName }) => {
   const signal = Utils.useCancellation()
-
-  const periodicallySetCookie = async () => {
-    while (!signal.aborted) {
-      withErrorIgnoring(() => Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie())()
-      await Utils.delay(15 * 60 * 1000)
-    }
-  }
-
-  Utils.useOnMount(() => {
-    periodicallySetCookie()
-  })
-
+  Utils.usePollingEffect(
+    withErrorIgnoring(() => Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()),
+    { ms: 15 * 60 * 1000 })
   return null
 }
 

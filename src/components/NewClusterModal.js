@@ -150,11 +150,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     this.setState({ leoImages: newLeoImages })
     if (currentClusterDetails) {
       const { clusterImages, jupyterUserScriptUri } = currentClusterDetails
-      const { dockerImage } = _.find({ tool: 'Jupyter' }, clusterImages)
-      if (_.find({ image: dockerImage }, newLeoImages)) {
-        this.setState({ selectedLeoImage: dockerImage })
+      const { imageUrl } = _.find({ imageType: 'Jupyter' }, clusterImages)
+      if (_.find({ image: imageUrl }, newLeoImages)) {
+        this.setState({ selectedLeoImage: imageUrl })
       } else {
-        this.setState({ isCustomEnv: true, customEnvImage: dockerImage })
+        this.setState({ isCustomEnv: true, customEnvImage: imageUrl })
       }
 
       if (jupyterUserScriptUri) {
