@@ -1,6 +1,6 @@
 const {
   BILLING_PROJECT: billingProject = 'general-dev-billing-account',
-  LYLE_SA_KEY: lyleToken,
+  LYLE_SA_KEY: lyleKey,
   LYLE_URL: lyleUrl = 'https://terra-lyle.appspot.com',
   SCREENSHOT_DIR: screenshotDir,
   TERRA_TOKEN: bearerToken,
@@ -11,7 +11,7 @@ const {
 module.exports = {
   bearerToken,
   billingProject,
-  lyleToken,
+  lyleKey,
   lyleUrl,
   screenshotDir,
   testUrl,

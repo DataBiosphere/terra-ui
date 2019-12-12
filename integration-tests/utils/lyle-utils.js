@@ -1,10 +1,10 @@
 const { JWT } = require('google-auth-library')
 const fetch = require('node-fetch')
-const { lyleToken, lyleUrl } = require('./integration-config')
+const { lyleKey, lyleUrl } = require('./integration-config')
 
 
 const makeAuthClient = () => {
-  const { client_email: email, private_key: key } = JSON.parse(lyleToken)
+  const { client_email: email, private_key: key } = JSON.parse(lyleKey)
 
   return new JWT({
     email,
