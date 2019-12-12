@@ -72,10 +72,10 @@ const delay = ms => {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-const signIntoTerra = async page => {
+const signIntoTerra = async (page, token = bearerToken) => {
   await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true })
   await waitForNoSpinners(page)
-  return page.evaluate(token => window.forceSignIn(token), bearerToken)
+  return page.evaluate(token => window.forceSignIn(token), token)
 }
 
 const findElement = (page, xpath) => {
