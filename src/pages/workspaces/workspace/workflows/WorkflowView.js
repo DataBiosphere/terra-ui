@@ -12,6 +12,7 @@ import {
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedAutocompleteTextInput, DelayedSearchInput } from 'src/components/input'
+import { entitySafeString } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
