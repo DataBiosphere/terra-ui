@@ -3,7 +3,7 @@ import { isAfter } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
-import { div, h, p, span } from 'react-hyperscript-helpers'
+import { div, h, img, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -11,6 +11,7 @@ import { NewClusterModal } from 'src/components/NewClusterModal'
 import { notify } from 'src/components/Notifications.js'
 import { Popup } from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
+import rLogo from 'src/images/r-logo.svg'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
 import { clusterCost, currentCluster, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
@@ -265,6 +266,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     }
     const currentCluster = this.getCurrentCluster()
     const currentStatus = currentCluster && currentCluster.status
+    const currentTool = currentCluster && currentCluster.tool
     const renderIcon = () => {
       switch (currentStatus) {
         case 'Stopped':
@@ -318,7 +320,13 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const isDisabled = !canCompute || creating || multiple || busy
 
     return div({ style: styles.container }, [
-      h(Link, {
+      currentTool === 'rstudio' ? h(Link, {
+        href: Nav.getLink('workspace-rstudio-launch', { namespace, name }),
+        tooltip: 'Open RStudio',
+        'aria-label': 'Open RStudio',
+        style: { marginRight: '2rem', ...styles.verticalCenter },
+        ...Utils.newTabLinkProps
+      }, [img({ src: rLogo, style: { maxWidth: 24, maxHeight: 24 } })]) : h(Link, {
         href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
         tooltip: Utils.cond(
           [!canCompute, () => noCompute],

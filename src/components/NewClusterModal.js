@@ -132,7 +132,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess(Promise.all([
       Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: this.getMachineConfig(),
-        jupyterDockerImage: isCustomEnv ? customEnvImage : selectedLeoImage,
+        toolDockerImage: isCustomEnv ? customEnvImage : selectedLeoImage,
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
       currentCluster && currentCluster.status === 'Error' && Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
