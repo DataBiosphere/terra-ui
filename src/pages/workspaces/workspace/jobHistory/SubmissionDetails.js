@@ -249,7 +249,7 @@ const SubmissionDetails = _.flow(
                 return h(TooltipCell, [h(Fragment, _.map(div, filteredWorkflows[rowIndex].messages))])
               }
             }, {
-              size: { basis: 150, grow: 0 },
+              size: { basis: 375, grow: 0 },
               headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
