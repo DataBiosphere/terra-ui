@@ -36,3 +36,5 @@ export const statusIcon = (status, style) => {
       return submittedIcon(style)
   }
 }
+
+const entitySafeString = unsafe => unsafe.replace(/[^\w]/g, '-')
