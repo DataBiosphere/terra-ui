@@ -2,7 +2,6 @@ import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
-import { entitySafeString } from 'src/components/job-common'
 import { clearNotification, notify } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
 import { launch } from 'src/libs/analysis'
@@ -43,7 +42,7 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
       _.map('workflowEntity')
     )(workflows)
 
-    const newSetName = entitySafeString(`${configName}-resubmission-${new Date().toISOString().slice(0, -5)}`)
+    const newSetName = Utils.sanitizeEntityName(`${configName}-resubmission-${new Date().toISOString().slice(0, -5)}`)
 
     await launch({
       workspaceNamespace: namespace, workspaceName: name,

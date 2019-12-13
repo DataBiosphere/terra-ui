@@ -428,3 +428,5 @@ export const maybeParseJSON = maybeJSONString => {
     return undefined
   }
 }
+
+export const sanitizeEntityName = unsafe => unsafe.replace(/[^\w]/g, '-')

@@ -12,7 +12,6 @@ import {
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedAutocompleteTextInput, DelayedSearchInput } from 'src/components/input'
-import { entitySafeString } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
@@ -322,7 +321,7 @@ const WorkflowView = _.flow(
         () => EntitySelectionType.chooseRows
       ),
       selectedEntities,
-      newSetName: entitySafeString(`${this.props.workflowName}_${new Date().toISOString().slice(0, -5)}`)
+      newSetName: Utils.sanitizeEntityName(`${this.props.workflowName}_${new Date().toISOString().slice(0, -5)}`)
     }
   }
 
