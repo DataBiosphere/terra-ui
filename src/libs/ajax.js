@@ -942,8 +942,8 @@ const Submissions = signal => ({
 })
 
 
-const Jupyter = signal => ({
-  clustersList: async (labels = {}) => {
+const Clusters = signal => ({
+  list: async (labels = {}) => {
     const res = await fetchLeo(`api/clusters?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
@@ -1084,7 +1084,7 @@ export const Ajax = signal => {
     GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),
     Submissions: Submissions(signal),
-    Jupyter: Jupyter(signal),
+    Clusters: Clusters(signal),
     Dockstore: Dockstore(signal),
     Martha: Martha(signal),
     Duos: Duos(signal)

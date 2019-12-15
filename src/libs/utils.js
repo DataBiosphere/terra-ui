@@ -361,10 +361,10 @@ export const useUniqueId = () => {
   return useInstance(() => _.uniqueId('unique-id-'))
 }
 
-export const handleNonRunningCluster = ({ status, googleProject, clusterName }, JupyterAjax) => {
+export const handleNonRunningCluster = ({ status, googleProject, clusterName }, ClustersAjax) => {
   switch (status) {
     case 'Stopped':
-      return JupyterAjax.cluster(googleProject, clusterName).start()
+      return ClustersAjax.cluster(googleProject, clusterName).start()
     case 'Creating':
       return delay(15000)
     default:

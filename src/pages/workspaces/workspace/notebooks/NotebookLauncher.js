@@ -43,7 +43,7 @@ const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
       const currentStatus = currentCluster && status
       if (currentStatus === 'Stopped') {
         setBusy(true)
-        await Ajax().Jupyter.cluster(googleProject, clusterName).start()
+        await Ajax().Clusters.cluster(googleProject, clusterName).start()
         await refreshClusters()
         setBusy(false)
         return
@@ -457,7 +457,7 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
 const PeriodicCookieSetter = ({ namespace, clusterName }) => {
   const signal = Utils.useCancellation()
   Utils.usePollingEffect(
-    withErrorIgnoring(() => Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()),
+    withErrorIgnoring(() => Ajax(signal).Clusters.notebooks(namespace, clusterName).setCookie()),
     { ms: 15 * 60 * 1000 })
   return null
 }
@@ -478,21 +478,21 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
     withErrorReporting('Error setting up notebook')
   )(async () => {
     await Ajax()
-      .Jupyter
+      .Clusters
       .notebooks(namespace, clusterName)
       .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
-    if (mode === 'edit' && !(await Ajax().Jupyter.notebooks(namespace, clusterName).lock(`${localBaseDirectory}/${notebookName}`))) {
+    if (mode === 'edit' && !(await Ajax().Clusters.notebooks(namespace, clusterName).lock(`${localBaseDirectory}/${notebookName}`))) {
       notify('error', 'Unable to Edit Notebook', {
         message: 'Another user is currently editing this notebook. You can run it in Playground Mode or make a copy.'
       })
       chooseMode(undefined)
     } else {
       await Promise.all([
-        Ajax().Jupyter.notebooks(namespace, clusterName).localize([{
+        Ajax().Clusters.notebooks(namespace, clusterName).localize([{
           sourceUri: `${cloudStorageDirectory}/${notebookName}`,
           localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${notebookName}` : `${localSafeModeBaseDirectory}/${notebookName}`
         }]),
-        Ajax().Jupyter.notebooks(namespace, clusterName).setCookie()
+        Ajax().Clusters.notebooks(namespace, clusterName).setCookie()
       ])
       setNotebookSetupComplete(true)
     }
@@ -545,10 +545,10 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
       chooseMode(undefined)
     } else {
       await Promise.all([
-        Ajax(signal).Jupyter.notebooks(namespace, clusterName).oldLocalize({
+        Ajax(signal).Clusters.notebooks(namespace, clusterName).oldLocalize({
           [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
         }),
-        Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()
+        Ajax(signal).Clusters.notebooks(namespace, clusterName).setCookie()
       ])
       setLocalized(true)
     }

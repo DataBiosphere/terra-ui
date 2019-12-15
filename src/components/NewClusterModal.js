@@ -130,12 +130,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { namespace, onSuccess, currentCluster } = this.props
     const { jupyterUserScriptUri, selectedLeoImage, isCustomEnv, customEnvImage } = this.state
     onSuccess(Promise.all([
-      Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: this.getMachineConfig(),
         toolDockerImage: isCustomEnv ? customEnvImage : selectedLeoImage,
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
-      currentCluster && currentCluster.status === 'Error' && Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
+      currentCluster && currentCluster.status === 'Error' && Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
     ]))
   }
 
@@ -143,14 +143,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, namespace } = this.props
 
     const [currentClusterDetails, newLeoImages] = await Promise.all([
-      currentCluster ? Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details() : null,
+      currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.clusterName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
     ])
 
     this.setState({ leoImages: newLeoImages })
     if (currentClusterDetails) {
       const { clusterImages, jupyterUserScriptUri } = currentClusterDetails
-      const { imageUrl } = _.find({ imageType: 'Jupyter' }, clusterImages)
+      const { imageUrl } = _.find(({ imageType }) => ['Jupyter', 'RStudio'].includes(imageType), clusterImages)
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
       } else {

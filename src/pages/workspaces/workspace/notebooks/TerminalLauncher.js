@@ -26,18 +26,18 @@ const TerminalLauncher = _.flow(
   }
 
   refreshCookie() {
-    const { namespace, cluster: { clusterName }, ajax: { Jupyter } } = this.props
+    const { namespace, cluster: { clusterName }, ajax: { Clusters } } = this.props
 
     this.scheduledRefresh = setTimeout(() => this.refreshCookie(), 1000 * 60 * 20)
 
-    return Jupyter.notebooks(namespace, clusterName).setCookie()
+    return Clusters.notebooks(namespace, clusterName).setCookie()
   }
 
   async startCluster() {
-    const { namespace, refreshClusters, ajax: { Jupyter } } = this.props
+    const { namespace, refreshClusters, ajax: { Clusters } } = this.props
     await refreshClusters()
     if (!this.props.cluster) {
-      await Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+      await Clusters.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: normalizeMachineConfig({})
       })
     }
@@ -50,7 +50,7 @@ const TerminalLauncher = _.flow(
       if (status === 'Running') {
         return
       } else {
-        await Utils.handleNonRunningCluster(cluster, Jupyter)
+        await Utils.handleNonRunningCluster(cluster, Clusters)
       }
     }
   }

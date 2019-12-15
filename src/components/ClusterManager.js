@@ -62,7 +62,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
     withErrorReporting('Error loading notebook runtime details'),
     Utils.withBusyState(setLoadingClusterDetails)
   )(async () => {
-    const { errors: clusterErrors } = await Ajax().Jupyter.cluster(cluster.googleProject, cluster.clusterName).details()
+    const { errors: clusterErrors } = await Ajax().Clusters.cluster(cluster.googleProject, cluster.clusterName).details()
     if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), clusterErrors)) {
       setError(
         await Ajax().Buckets.getObjectPreview(cluster.stagingBucket, `userscript_output.txt`, cluster.googleProject, true).then(res => res.text()))
@@ -90,7 +90,7 @@ export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, on
     Utils.withBusyState(setDeleting),
     withErrorReporting('Error deleting notebook runtime')
   )(async () => {
-    await Ajax().Jupyter.cluster(googleProject, clusterName).delete()
+    await Ajax().Clusters.cluster(googleProject, clusterName).delete()
     onSuccess()
   })
   return h(Modal, {
@@ -203,38 +203,38 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   }
 
   createDefaultCluster() {
-    const { ajax: { Jupyter }, namespace } = this.props
+    const { ajax: { Clusters }, namespace } = this.props
     this.executeAndRefresh(
-      Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+      Clusters.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: normalizeMachineConfig({})
       })
     )
   }
 
   destroyClusters(keepIndex) {
-    const { ajax: { Jupyter } } = this.props
+    const { ajax: { Clusters } } = this.props
     const activeClusters = this.getActiveClustersOldestFirst()
     this.executeAndRefresh(
       Promise.all(_.map(
-        ({ googleProject, clusterName }) => Jupyter.cluster(googleProject, clusterName).delete(),
+        ({ googleProject, clusterName }) => Clusters.cluster(googleProject, clusterName).delete(),
         _.without([_.nth(keepIndex, activeClusters)], activeClusters)
       ))
     )
   }
 
   startCluster() {
-    const { ajax: { Jupyter } } = this.props
+    const { ajax: { Clusters } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Jupyter.cluster(googleProject, clusterName).start()
+      Clusters.cluster(googleProject, clusterName).start()
     )
   }
 
   stopCluster() {
-    const { ajax: { Jupyter } } = this.props
+    const { ajax: { Clusters } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Jupyter.cluster(googleProject, clusterName).stop()
+      Clusters.cluster(googleProject, clusterName).stop()
     )
   }
 

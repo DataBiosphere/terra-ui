@@ -25,15 +25,15 @@ const RStudioLauncher = _.flow(
   }
 
   refreshCookie() {
-    const { namespace, cluster: { clusterName }, ajax: { Jupyter } } = this.props
+    const { namespace, cluster: { clusterName }, ajax: { Clusters } } = this.props
 
     this.scheduledRefresh = setTimeout(() => this.refreshCookie(), 1000 * 60 * 20)
 
-    return Jupyter.notebooks(namespace, clusterName).setCookie()
+    return Clusters.notebooks(namespace, clusterName).setCookie()
   }
 
   async startCluster() {
-    const { refreshClusters, ajax: { Jupyter } } = this.props
+    const { refreshClusters, ajax: { Clusters } } = this.props
     await refreshClusters()
 
     while (true) {
@@ -44,7 +44,7 @@ const RStudioLauncher = _.flow(
       if (status === 'Running') {
         return
       } else {
-        await Utils.handleNonRunningCluster(cluster, Jupyter)
+        await Utils.handleNonRunningCluster(cluster, Clusters)
       }
     }
   }
