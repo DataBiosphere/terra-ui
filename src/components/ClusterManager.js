@@ -330,6 +330,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           () => `Open ${appName}`
         ),
         'aria-label': `Open ${appName}`,
+        disabled: !canCompute,
         style: { marginRight: '2rem', ...styles.verticalCenter },
         ...Utils.newTabLinkProps
       }, [isRStudioImage ? img({ src: rLogo, style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
