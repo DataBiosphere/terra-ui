@@ -24,9 +24,8 @@ import * as Data from 'src/pages/workspaces/workspace/Data'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/SubmissionDetails'
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
+import * as AppLauncher from 'src/pages/workspaces/workspace/notebooks/AppLauncher'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
-import * as RStudioLauncher from 'src/pages/workspaces/workspace/notebooks/RStudioLauncher'
-import * as TerminalLauncher from 'src/pages/workspaces/workspace/notebooks/TerminalLauncher'
 import * as Workflows from 'src/pages/workspaces/workspace/Workflows'
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView'
 
@@ -49,8 +48,7 @@ const routes = _.flatten([
   Profile.navPaths,
   Groups.navPaths,
   Group.navPaths,
-  TerminalLauncher.navPaths,
-  RStudioLauncher.navPaths,
+  AppLauncher.navPaths,
   TermsOfService.navPaths,
   Code.navPaths,
   DataExplorer.navPaths,

@@ -318,26 +318,21 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const creating = _.some({ status: 'Creating' }, activeClusters)
     const multiple = !creating && activeClusters.length > 1 && currentStatus !== 'Error'
     const isDisabled = !canCompute || creating || multiple || busy
+    const isRStudioImage = currentTool === 'rstudio'
+    const appName = isRStudioImage ? 'RStudio' : 'terminal'
 
     return div({ style: styles.container }, [
-      currentTool === 'rstudio' ? h(Link, {
-        href: Nav.getLink('workspace-rstudio-launch', { namespace, name }),
-        tooltip: 'Open RStudio',
-        'aria-label': 'Open RStudio',
-        style: { marginRight: '2rem', ...styles.verticalCenter },
-        ...Utils.newTabLinkProps
-      }, [img({ src: rLogo, style: { maxWidth: 24, maxHeight: 24 } })]) : h(Link, {
-        href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
+      h(Link, {
+        href: Nav.getLink('workspace-app-launch', { namespace, name, app: _.lowerCase(appName) }),
         tooltip: Utils.cond(
           [!canCompute, () => noCompute],
           [!currentCluster, () => 'Create a basic notebook runtime and open its terminal'],
-          () => 'Open terminal'
+          () => `Open ${appName}`
         ),
-        'aria-label': 'Open terminal',
-        disabled: !canCompute,
+        'aria-label': `Open ${appName}`,
         style: { marginRight: '2rem', ...styles.verticalCenter },
         ...Utils.newTabLinkProps
-      }, [icon('terminal', { size: 24 })]),
+      }, [isRStudioImage ? img({ src: rLogo, style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
       renderIcon(),
       h(ClusterIcon, {
         shape: 'trash',

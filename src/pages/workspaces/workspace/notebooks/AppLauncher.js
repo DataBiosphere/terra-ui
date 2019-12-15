@@ -12,14 +12,14 @@ import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const TerminalLauncher = _.flow(
+const AppLauncher = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: () => `Terminal`,
+    title: ({ app }) => _.startCase(app),
     activeTab: 'notebooks'
   }),
   ajaxCaller
-)(class TerminalLauncher extends Component {
+)(class AppLauncher extends Component {
   constructor(props) {
     super(props)
     this.state = { url: undefined }
@@ -56,22 +56,24 @@ const TerminalLauncher = _.flow(
   }
 
   async componentDidMount() {
+    const { app } = this.props
+
     try {
       await this.startCluster()
     } catch (error) {
-      reportError('Error launching terminal', error)
+      reportError(`Error launching ${app}`, error)
     }
   }
 
   async componentDidUpdate() {
-    const { cluster: { clusterUrl } = {} } = this.props
+    const { cluster: { clusterUrl } = {}, app } = this.props
     const { url } = this.state
 
     if (clusterUrl && !url) {
       try {
         await this.refreshCookie()
 
-        this.setState({ url: `${clusterUrl}/terminals/1` },
+        this.setState({ url: `${clusterUrl}/${app === 'rstudio' ? '' : 'terminals/1'}` },
           () => { findDOMNode(this).onload = function() { this.contentWindow.focus() } })
       } catch (error) {
         reportError('Error launching terminal', error)
@@ -86,7 +88,7 @@ const TerminalLauncher = _.flow(
   }
 
   render() {
-    const { cluster } = this.props
+    const { cluster, app } = this.props
     const { url } = this.state
     const clusterStatus = cluster && cluster.status
 
@@ -95,14 +97,15 @@ const TerminalLauncher = _.flow(
         src: url,
         style: {
           border: 'none', flex: 1,
-          marginTop: -45, clipPath: 'inset(45px 0 0)' // cuts off the useless Jupyter top bar
+          ...(app === 'terminal' ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
         },
-        title: 'Interactive terminal iframe'
+        title: `Interactive ${app} iframe`
       })
     } else {
       return div({ style: { padding: '2rem' } }, [
-        'Creating Stopping Starting Updating Deleting'.includes(clusterStatus) &&
-        spinner({ style: { color: colors.primary(), marginRight: '0.5rem' } }),
+        ['Creating', 'Stopping', 'Starting', 'Updating', 'Deleting'].includes(clusterStatus) && spinner({
+          style: { color: colors.primary(), marginRight: '0.5rem' }
+        }),
         Utils.switchCase(clusterStatus,
           ['Creating', () => 'Creating notebook runtime environment. You can navigate away and return in 3-5 minutes.'],
           ['Stopping', () => 'Notebook runtime environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'],
@@ -123,9 +126,9 @@ const TerminalLauncher = _.flow(
 
 export const navPaths = [
   {
-    name: 'workspace-terminal-launch',
-    path: '/workspaces/:namespace/:name/notebooks/terminal',
-    component: TerminalLauncher,
-    title: ({ name }) => `${name} - Terminal`
+    name: 'workspace-app-launch',
+    path: '/workspaces/:namespace/:name/notebooks/:app',
+    component: AppLauncher,
+    title: ({ name, app }) => `${name} - ${_.startCase(app)}`
   }
 ]
