@@ -292,6 +292,7 @@ export const Workflows = _.flow(
   constructor(props) {
     super(props)
     this.state = {
+      loading: true,
       sortOrder: defaultSort.value,
       filter: '',
       ...StateHistory.get()
