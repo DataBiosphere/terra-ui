@@ -116,6 +116,7 @@ const AppLauncher = _.flow(
           ['Deleted', () => 'No existing notebook runtime environment, you can create a new one to edit your notebook or use the terminal.'],
           ['Error', () => 'Error with the notebook runtime environment, please try again.'],
           ['Unknown', () => 'Error with the notebook runtime environment, please try again.'],
+          ['Running', () => 'Almost ready...'],
           [Utils.DEFAULT, () => 'Invalid notebook runtime environment state, please try again.']
         )
       ])
