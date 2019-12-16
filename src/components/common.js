@@ -306,7 +306,7 @@ const commonSelectProps = {
  * @param props.withGroups - boolean; see {@link https://react-select.com/advanced#replacing-builtins} for info on formatting the options array
  */
 export const Select = ({ value, options, id, withGroups = false, ...props }) => {
-  const newOptions = withGroups ? _.flatten(_.map('options', options)) : options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
+  const newOptions = withGroups ? _.flatMap('options', options) : options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
   const findValue = target => _.find({ value: target }, newOptions)
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
 
