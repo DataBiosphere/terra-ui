@@ -88,14 +88,3 @@ export const staticStorageSlot = (storage, key) => {
   listenStatic(storage, key, next)
   return { subscribe, get, set, update: fn => set(fn(get())) }
 }
-
-export const dynamicStorageSlot = (storage, key) => {
-  const { subscribe, next } = subscribable()
-  const get = () => getDynamic(storage, key)
-  const set = newValue => {
-    setDynamic(storage, key, newValue)
-    next(newValue)
-  }
-  listenDynamic(storage, key, next)
-  return { subscribe, get, set, update: fn => set(fn(get())) }
-}
