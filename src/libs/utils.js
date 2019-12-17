@@ -361,17 +361,6 @@ export const useUniqueId = () => {
   return useInstance(() => _.uniqueId('unique-id-'))
 }
 
-export const handleNonRunningCluster = ({ status, googleProject, clusterName }, ClustersAjax) => {
-  switch (status) {
-    case 'Stopped':
-      return ClustersAjax.cluster(googleProject, clusterName).start()
-    case 'Creating':
-      return delay(15000)
-    default:
-      return delay(3000)
-  }
-}
-
 export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' } // https://mathiasbynens.github.io/rel-noopener/
 
 export const createHtmlElement = (doc, name, attrs) => {

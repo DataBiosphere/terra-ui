@@ -993,11 +993,10 @@ const Clusters = signal => ({
 
   notebooks: (project, name) => {
     const root = `proxy/${project}/${name}`
-    const oldRoot = `notebooks/${project}/${name}` // TODO: remove once Leo bug for setCookie is fixed: https://broadworkbench.atlassian.net/browse/IA-1269
 
     return {
       oldLocalize: files => {
-        return fetchLeo(`${oldRoot}/api/localize`,
+        return fetchLeo(`notebooks/${project}/${name}/api/localize`, // this is the old root url
           _.mergeAll([authOpts(), jsonBody(files), { signal, method: 'POST' }]))
       },
 
@@ -1008,8 +1007,7 @@ const Clusters = signal => ({
       },
 
       setCookie: () => {
-        return fetchLeo(`${oldRoot}/setCookie`,
-          _.merge(authOpts(), { signal, credentials: 'include' }))
+        return fetchLeo(`${root}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
       },
 
       setStorageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {

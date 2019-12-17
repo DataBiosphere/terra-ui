@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import { machineTypes, storagePrice } from 'src/data/clusters'
+import { delay } from 'src/libs/utils'
 
 
 export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
@@ -13,7 +14,7 @@ export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numb
   }
 }
 
-export const machineStorageCost = config => {
+const machineStorageCost = config => {
   const { masterDiskSize, numberOfWorkers, workerDiskSize } = normalizeMachineConfig(config)
   return (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice
 }
@@ -48,3 +49,16 @@ export const trimClustersOldestFirst = _.flow(
 )
 
 export const currentCluster = _.flow(trimClustersOldestFirst, _.last)
+
+export const handleNonRunningCluster = ({ status, googleProject, clusterName }, ClustersAjax) => {
+  switch (status) {
+    case 'Stopped':
+      return ClustersAjax.cluster(googleProject, clusterName).start()
+    case 'Creating':
+      return delay(15000)
+    case undefined:
+      return delay(500)
+    default:
+      return delay(3000)
+  }
+}

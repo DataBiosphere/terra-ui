@@ -5,8 +5,9 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
+import { ClusterKicker, StatusMessage } from 'src/components/cluster-common'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
-import { icon, spinner } from 'src/components/icons'
+import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { findPotentialNotebookLockers, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
@@ -23,47 +24,6 @@ import * as Utils from 'src/libs/utils'
 import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
-
-const StatusMessage = ({ hideSpinner, children }) => {
-  return div({ style: { padding: '1.5rem 2rem', display: 'flex' } }, [
-    !hideSpinner && spinner({ style: { marginRight: '0.5rem' } }),
-    div([children])
-  ])
-}
-
-const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
-  const getCluster = Utils.useGetter(cluster)
-  const signal = Utils.useCancellation()
-  const [busy, setBusy] = useState()
-
-  const startClusterOnce = withErrorReporting('Error starting notebook runtime', async () => {
-    while (!signal.aborted) {
-      const currentCluster = getCluster()
-      const { status, googleProject, clusterName } = currentCluster || {}
-      const currentStatus = currentCluster && status
-      if (currentStatus === 'Stopped') {
-        setBusy(true)
-        await Ajax().Clusters.cluster(googleProject, clusterName).start()
-        await refreshClusters()
-        setBusy(false)
-        return
-      } else if (currentStatus === undefined || currentStatus === 'Stopping') {
-        await Utils.delay(500)
-      } else if (currentStatus === null) {
-        onNullCluster()
-        return
-      } else {
-        return
-      }
-    }
-  })
-
-  Utils.useOnMount(() => {
-    startClusterOnce()
-  })
-
-  return busy ? spinnerOverlay : null
-}
 
 const chooseMode = mode => {
   Nav.history.replace({ search: qs.stringify({ mode }) })
@@ -189,7 +149,7 @@ const EditModeDisabledModal = ({ onDismiss, onRecreateCluster, onPlayground }) =
       h(ButtonPrimary, {
         style: { padding: '0 1rem', marginLeft: '2rem' },
         onClick: () => onRecreateCluster()
-      }, ['Recreate notebook runtime'])
+      }, ['Recreate application instance'])
     ])
   ])
 }
@@ -313,20 +273,20 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
         ],
         [
           clusterStatus === 'Creating', () => h(StatusMessage, [
-            'Creating notebook runtime environment, this will take 5-10 minutes. You can navigate away and return when it’s ready.'
+            'Creating application instance, this will take 5-10 minutes. You can navigate away and return when it’s ready.'
           ])
         ],
         [
           clusterStatus === 'Starting', () => h(StatusMessage, [
-            'Starting notebook runtime environment, this may take up to 2 minutes.'
+            'Starting application instance, this may take up to 2 minutes.'
           ])
         ],
         [
           clusterStatus === 'Stopping', () => h(StatusMessage, [
-            'Notebook runtime environment is stopping. You can restart it after it finishes.'
+            'application instance is stopping. You can restart it after it finishes.'
           ])
         ],
-        [clusterStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Notebook runtime error.'])]
+        [clusterStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['application instance error.'])]
       ),
     div({ style: { flexGrow: 1 } }),
     div({ style: { position: 'relative' } }, [
@@ -463,7 +423,7 @@ const PeriodicCookieSetter = ({ namespace, clusterName }) => {
 }
 
 const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
-  console.assert(status === 'Running', 'Expected notebook runtime to be running')
+  console.assert(status === 'Running', 'Expected application instance to be running')
   console.assert(!labels.welderInstallFailed, 'Expected cluster to have Welder')
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)
@@ -520,7 +480,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
 }
 
 const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
-  console.assert(status === 'Running', 'Expected notebook runtime to be running')
+  console.assert(status === 'Running', 'Expected application instance to be running')
   console.assert(!!labels.welderInstallFailed, 'Expected cluster to not have Welder')
   const frameRef = useRef()
   const signal = Utils.useCancellation()
@@ -534,7 +494,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
     if (mode === 'edit') {
       notify('error', 'Cannot Edit Notebook', {
         message: h(Fragment, [
-          p(['Recent updates to Terra are not compatible with the older notebook runtime in this workspace. Please recreate your runtime in order to access Edit Mode for this notebook.']),
+          p(['Recent updates to Terra are not compatible with the older application instance in this workspace. Please recreate your runtime in order to access Edit Mode for this notebook.']),
           h(Link, {
             variant: 'light',
             href: dataSyncingDocUrl,

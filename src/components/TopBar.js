@@ -174,7 +174,7 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
               h(DropDownSubItem, {
                 href: Nav.getLink('clusters'),
                 onClick: () => this.hideNav()
-              }, ['Notebook Runtimes']),
+              }, ['Application Instances']),
               h(DropDownSubItem, {
                 onClick: signOut
               }, ['Sign Out'])

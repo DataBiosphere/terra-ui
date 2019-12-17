@@ -11,7 +11,7 @@ import { authStore, pfbImportJobStore, requesterPaysProjectStore, workspacesStor
 import * as Utils from 'src/libs/utils'
 
 
-const getAuthInstance = () => {
+export const getAuthInstance = () => {
   return window.gapi.auth2.getAuthInstance()
 }
 
@@ -25,7 +25,7 @@ export const signOut = () => {
 }
 
 export const reloadAuthToken = () => {
-  return getAuthInstance().currentUser.get().reloadAuthResponse().then(() => true, () => false)
+  return getAuthInstance().currentUser.get().reloadAuthResponse().catch(() => false)
 }
 
 export const hasBillingScope = () => {

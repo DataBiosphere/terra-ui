@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
-import { Component } from 'react'
-import { findDOMNode } from 'react-dom'
+import { useRef, useState } from 'react'
 import { div, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { spinner } from 'src/components/icons'
-import { ajaxCaller } from 'src/libs/ajax'
-import { normalizeMachineConfig } from 'src/libs/cluster-utils'
+import { centeredSpinner, spinner } from 'src/components/icons'
+import { Ajax } from 'src/libs/ajax'
+import * as Auth from 'src/libs/auth'
+import { handleNonRunningCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -13,114 +13,81 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 
 const AppLauncher = _.flow(
+  Utils.forwardRefWithName('AppLauncher'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: ({ app }) => _.startCase(app),
+    title: _.get('app'),
     activeTab: 'notebooks'
-  }),
-  ajaxCaller
-)(class AppLauncher extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { url: undefined }
-  }
+  })
+)(({ namespace, refreshClusters, cluster, app }, ref) => {
+  const signal = Utils.useCancellation()
+  const { Clusters } = Ajax(signal)
+  const [cookieReady, setCookieReady] = useState()
+  const getCluster = Utils.useGetter(cluster)
 
-  refreshCookie() {
-    const { namespace, cluster: { clusterName }, ajax: { Clusters } } = this.props
+  const cookieTimeout = useRef()
+  const iframeRef = useRef()
 
-    this.scheduledRefresh = setTimeout(() => this.refreshCookie(), 1000 * 60 * 20)
+  Utils.useOnMount(() => {
+    const refreshCookie = async () => {
+      const { expires_in: expiresInSec } = await Auth.reloadAuthToken() // give us max time until expiry, should be 1 hour
 
-    return Clusters.notebooks(namespace, clusterName).setCookie()
-  }
+      cookieTimeout.current = setTimeout(refreshCookie, (expiresInSec - (15 * 60)) * 1000) // refresh 15 mins early
 
-  async startCluster() {
-    const { namespace, refreshClusters, ajax: { Clusters } } = this.props
-    await refreshClusters()
-    if (!this.props.cluster) {
-      await Clusters.cluster(namespace, Utils.generateClusterName()).create({
-        machineConfig: normalizeMachineConfig({})
-      })
+      await Clusters.notebooks(namespace, getCluster().clusterName).setCookie()
     }
 
-    while (true) {
-      await refreshClusters()
-      const cluster = this.props.cluster // Note: reading up-to-date prop
-      const status = cluster && cluster.status
+    const startCluster = async () => {
+      while (true) {
+        try {
+          await refreshClusters()
+          const cluster = getCluster()
+          const status = cluster && cluster.status
 
-      if (status === 'Running') {
-        return
-      } else {
-        await Utils.handleNonRunningCluster(cluster, Clusters)
+          if (status === 'Running') {
+            await refreshCookie()
+            setCookieReady(true)
+            iframeRef.current.onload = function() { this.contentWindow.focus() }
+            return
+          } else {
+            await handleNonRunningCluster(cluster, Clusters)
+          }
+        } catch (error) {
+          reportError(`Error launching ${app}`, error)
+        }
       }
     }
-  }
 
-  async componentDidMount() {
-    const { app } = this.props
+    startCluster()
+    return () => clearTimeout(cookieTimeout.current)
+  })
 
-    try {
-      await this.startCluster()
-    } catch (error) {
-      reportError(`Error launching ${app}`, error)
-    }
-  }
+  const clusterStatus = cluster?.status
 
-  async componentDidUpdate() {
-    const { cluster: { clusterUrl } = {}, app } = this.props
-    const { url } = this.state
-
-    if (clusterUrl && !url) {
-      try {
-        await this.refreshCookie()
-
-        this.setState({ url: `${clusterUrl}/${app === 'rstudio' ? '' : 'terminals/1'}` },
-          () => { findDOMNode(this).onload = function() { this.contentWindow.focus() } })
-      } catch (error) {
-        reportError('Error launching terminal', error)
-      }
-    }
-  }
-
-  componentWillUnmount() {
-    if (this.scheduledRefresh) {
-      clearTimeout(this.scheduledRefresh)
-    }
-  }
-
-  render() {
-    const { cluster, app } = this.props
-    const { url } = this.state
-    const clusterStatus = cluster && cluster.status
-
-    if (clusterStatus === 'Running' && url) {
-      return iframe({
-        src: url,
-        style: {
-          border: 'none', flex: 1,
-          ...(app === 'terminal' ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
-        },
-        title: `Interactive ${app} iframe`
-      })
-    } else {
-      return div({ style: { padding: '2rem' } }, [
-        ['Creating', 'Stopping', 'Starting', 'Updating', 'Deleting'].includes(clusterStatus) && spinner({
-          style: { color: colors.primary(), marginRight: '0.5rem' }
-        }),
-        Utils.switchCase(clusterStatus,
-          ['Creating', () => 'Creating notebook runtime environment. You can navigate away and return in 3-5 minutes.'],
-          ['Stopping', () => 'Notebook runtime environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'],
-          ['Starting', () => 'Starting notebook runtime environment, this may take up to 2 minutes.'],
-          ['Updating', () => 'Updating notebook runtime environment. You can navigate away and return in 3-5 minutes.'],
-          ['Deleting', () => 'Deleting notebook runtime environment, you can create a new one after it finishes.'],
-          ['Stopped', () => 'Notebook runtime environment is stopped. Start it to edit your notebook or use the terminal.'],
-          ['Deleted', () => 'No existing notebook runtime environment, you can create a new one to edit your notebook or use the terminal.'],
-          ['Error', () => 'Error with the notebook runtime environment, please try again.'],
-          ['Unknown', () => 'Error with the notebook runtime environment, please try again.'],
-          ['Running', () => 'Almost ready...'],
-          [Utils.DEFAULT, () => 'Invalid notebook runtime environment state, please try again.']
-        )
-      ])
-    }
+  if (cookieReady) {
+    return iframe({
+      src: `${cluster.clusterUrl}/${app === 'RStudio' ? '' : 'terminals/1'}`,
+      ref: iframeRef,
+      style: {
+        border: 'none', flex: 1,
+        ...(app === 'terminal' ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
+      },
+      title: `Interactive ${app} iframe`
+    })
+  } else {
+    return div({ style: { padding: '2rem' } }, [
+      !['Error', 'Unknown', undefined].includes(clusterStatus) && spinner({ style: { color: colors.primary(), marginRight: '0.5rem' } }),
+      Utils.switchCase(clusterStatus,
+        ['Creating', () => 'Creating application instance. You can navigate away and return in 3-5 minutes.'],
+        ['Stopping', () => 'Application instance is stopping, which takes ~4 minutes. It will restart after it finishes if you stay on this screen.'],
+        ['Starting', () => 'Starting application instance. You can navigate away and return in ~2 minutes.'],
+        ['Updating', () => 'Updating application instance. You can navigate away and return in 3-5 minutes.'],
+        ['Deleting', () => 'Deleting application instance, you can create a new one after it finishes.'],
+        ['Error', () => 'Error with the application instance, please try again.'],
+        ['Unknown', () => 'Error with the application instance, please try again.'],
+        [Utils.DEFAULT, () => 'Getting ready...']
+      )
+    ])
   }
 })
 
@@ -130,6 +97,6 @@ export const navPaths = [
     name: 'workspace-app-launch',
     path: '/workspaces/:namespace/:name/notebooks/:app',
     component: AppLauncher,
-    title: ({ name, app }) => `${name} - ${_.startCase(app)}`
+    title: ({ name, app }) => `${name} - ${app}`
   }
 ]
