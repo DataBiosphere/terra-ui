@@ -34,7 +34,7 @@ const FooterWrapper = ({ children }) => {
       div({ style: styles.item }, '|'),
       a({ href: Nav.getLink('terms-of-service'), style: styles.item }, 'Terms of Service'),
       div({ style: styles.item }, '|'),
-      a({href: 'https://example.com', target: '_blank', style: styles.item }, 'Security'),
+      a({ href: 'https://example.com', target: '_blank', style: styles.item }, 'Security'),
       div({ style: styles.item }, '|'),
       a({
         href: 'https://support.terra.bio/hc/en-us', target: '_blank',
