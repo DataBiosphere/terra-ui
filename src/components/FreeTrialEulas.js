@@ -5,11 +5,11 @@ import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
 const broadEula = `
 1. The Terra Free Credits Program (“credits”), sponsored by Google, is administered by [Onix Networking](https://www.onixnet.com/products/google-cloud/google-cloud-platform/google-app-engine) (“Onix”), a Google Cloud Premier Partner. 
 
-2. By opting into this program, you are authorizing Terra to give Onix and Google access to your Terra user profile information. This is necessary for Onix and Google to give you the free credits. 
+2. By opting into this free credits program, you are authorizing Terra to give Onix and Google access to your Terra user profile information. This is necessary for Onix and Google to give you the free credits. 
 
 3. Your credits of $300 will expire December 30, 2019 or 60 days after they were issued, whichever comes first.
 
-4. Onix will contact you during the trial with information on options for creating your own billing account to further use Terra once the credits expire. Other billing options will be available on the Terra website.
+4. Onix will contact you during the trial with information on options for creating your own billing account to further use Terra after the credits expire. Other billing options will be available on the Terra website.
 
 5. Terra has no obligation to maintain a billing account or any data saved under an account once credits are exhausted.
 
