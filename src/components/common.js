@@ -303,11 +303,12 @@ const commonSelectProps = {
  * @param {Object} props - see {@link https://react-select.com/props#select-props}
  * @param props.value - a member of options
  * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
- * @param props.withGroups - boolean; see {@link https://react-select.com/advanced#replacing-builtins} for info on formatting the options array
+ * @param {boolean} [props.withGroups=false] - see {@link https://react-select.com/advanced#replacing-builtins} for info on formatting the options array
  */
 export const Select = ({ value, options, id, withGroups = false, ...props }) => {
-  const newOptions = withGroups ? _.flatMap('options', options) : options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
-  const findValue = target => _.find({ value: target }, newOptions)
+  const newOptions = !withGroups && options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
+  const flattenedOptions = withGroups ? _.flatMap('options', newOptions) : undefined
+  const findValue = target => _.find({ value: target }, flattenedOptions || newOptions)
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
 
   return h(RSelect, _.merge({
@@ -315,7 +316,7 @@ export const Select = ({ value, options, id, withGroups = false, ...props }) => 
     ...commonSelectProps,
     getOptionLabel: ({ value, label }) => label || value.toString(),
     value: newValue || null, // need null instead of undefined to clear the select
-    options: withGroups ? options : newOptions
+    options: newOptions
   }, props))
 }
 
