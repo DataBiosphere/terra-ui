@@ -16,7 +16,7 @@ export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
   const getCluster = Utils.useGetter(cluster)
   const signal = Utils.useCancellation()
 
-  const startClusterOnce = withErrorReporting('Error starting application instance', async () => {
+  const startClusterOnce = withErrorReporting('Error starting application compute instance', async () => {
     while (!signal.aborted) {
       const currentStatus = getCluster()?.status
       if (currentStatus === null) {

@@ -59,7 +59,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   const [loadingClusterDetails, setLoadingClusterDetails] = useState(false)
 
   const loadClusterError = _.flow(
-    withErrorReporting('Error loading application instance details'),
+    withErrorReporting('Error loading application compute instance details'),
     Utils.withBusyState(setLoadingClusterDetails)
   )(async () => {
     const { errors: clusterErrors } = await Ajax().Clusters.cluster(cluster.googleProject, cluster.clusterName).details()
@@ -75,7 +75,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   Utils.useOnMount(() => { loadClusterError() })
 
   return h(Modal, {
-    title: userscriptError ? 'Application instance Creation Failed due to Userscript Error' : 'Application instance Creation Failed',
+    title: userscriptError ? 'Application Compute Instance Creation Failed due to Userscript Error' : 'Application instance Creation Failed',
     showCancel: false,
     onDismiss
   }, [
@@ -88,17 +88,17 @@ export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, on
   const [deleting, setDeleting] = useState()
   const deleteCluster = _.flow(
     Utils.withBusyState(setDeleting),
-    withErrorReporting('Error deleting application instance')
+    withErrorReporting('Error deleting application compute instance')
   )(async () => {
     await Ajax().Clusters.cluster(googleProject, clusterName).delete()
     onSuccess()
   })
   return h(Modal, {
-    title: 'Delete application instance?',
+    title: 'Delete application compute instance?',
     onDismiss,
     okButton: deleteCluster
   }, [
-    p(['Deleting your application instance will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
+    p(['Deleting your application compute instance will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
     span({ style: { fontWeight: 'bold' } }, 'NOTE: '),
     'Deleting your runtime will also delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
     h(Link, {
@@ -155,7 +155,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`) || {}
 
     if (cluster.status === 'Error' && prevCluster.status !== 'Error' && !_.includes(cluster.id, errorNotifiedClusters.get())) {
-      notify('error', 'Error Creating Application instance', {
+      notify('error', 'Error Creating Application Compute Instance', {
         message: h(ClusterErrorNotification, { cluster })
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
@@ -163,7 +163,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
       notify('warn', 'Please Update Your Runtime', {
         message: h(Fragment, [
-          p(['On Sunday Oct 20th at 10am, we are introducing important updates to Terra, which are not compatible with the older application instance in this workspace. After this date, you will no longer be able to save new changes to notebooks in one of these older runtimes.']),
+          p(['On Sunday Oct 20th at 10am, we are introducing important updates to Terra, which are not compatible with the older application compute instance in this workspace. After this date, you will no longer be able to save new changes to notebooks in one of these older runtimes.']),
           h(Link, {
             variant: 'light',
             href: dataSyncingDocUrl,
@@ -173,8 +173,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       })
     } else if (isAfter(createdDate, twoMonthsAgo) && !isToday(dateNotified)) {
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
-      notify('warn', 'Outdated Application instance', {
-        message: 'Your application instance is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'
+      notify('warn', 'Outdated Application Compute Instance', {
+        message: 'Your application compute instance is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'
       })
     }
   }
@@ -196,7 +196,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       await promise
       await refreshClusters()
     } catch (error) {
-      reportError('Application instance Error', error)
+      reportError('Application compute instance Error', error)
     } finally {
       this.setState({ busy: false })
     }
@@ -274,16 +274,16 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             shape: 'play',
             onClick: () => this.startCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Start application instance' : noCompute,
-            'aria-label': 'Start application instance'
+            tooltip: canCompute ? 'Start application compute instance' : noCompute,
+            'aria-label': 'Start application compute instance'
           })
         case 'Running':
           return h(ClusterIcon, {
             shape: 'pause',
             onClick: () => this.stopCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Stop application instance' : noCompute,
-            'aria-label': 'Stop application instance'
+            tooltip: canCompute ? 'Stop application compute instance' : noCompute,
+            'aria-label': 'Stop application compute instance'
           })
         case 'Starting':
         case 'Stopping':
@@ -291,8 +291,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           return h(ClusterIcon, {
             shape: 'sync',
             disabled: true,
-            tooltip: 'Application instance update in progress',
-            'aria-label': 'Application instance update in progress'
+            tooltip: 'Application compute instance update in progress',
+            'aria-label': 'Application compute instance update in progress'
           })
         case 'Error':
           return h(ClusterIcon, {
@@ -308,8 +308,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             shape: 'play',
             onClick: () => this.createDefaultCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Create application instance' : noCompute,
-            'aria-label': 'Create application instance'
+            tooltip: canCompute ? 'Create application compute instance' : noCompute,
+            'aria-label': 'Create application compute instance'
           })
       }
     }
@@ -338,8 +338,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         shape: 'trash',
         onClick: () => this.setState({ deleteModalOpen: true }),
         disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error', 'Stopping', 'Starting']),
-        tooltip: 'Delete application instance',
-        'aria-label': 'Delete application instance',
+        tooltip: 'Delete application compute instance',
+        'aria-label': 'Delete application compute instance',
         style: { marginLeft: '0.5rem' }
       }),
       h(IdContainer, [id => h(Fragment, [
@@ -356,7 +356,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           disabled: isDisabled
         }, [
           div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
-            div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Application instance'),
+            div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Application Compute'),
             div({ style: { fontSize: 10 } }, [
               span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
               ` (${Utils.formatUSD(totalCost)} hr)`

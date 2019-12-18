@@ -226,7 +226,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onPrevious: undefined,
         contents: h(Fragment, [
           div({ style: { marginBottom: '1rem' } }, [
-            'Choose a Terra pre-installed application instance (e.g. programming languages + packages) or choose a custom environment'
+            'Choose a Terra pre-installed application compute instance (e.g. programming languages + packages) or choose a custom environment'
           ]),
           h(SimpleTabBar, {
             tabs: [{ title: 'PRE-INSTALLED ENVIRONMENT', key: false, width: 265 }, { title: 'CUSTOM ENVIRONMENT', key: true, width: 215 }],
@@ -392,7 +392,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ]),
           !!currentCluster && div({ style: styles.warningBox }, [
             div({ style: styles.label }, ['Caution:']),
-            'Replacing your instance will stop all running notebooks, and delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+            'Replacing your compute instance will stop all running notebooks, and delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
             h(Link, {
               variant: 'light',
               href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
@@ -418,7 +418,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ])
     return h(Fragment, [
       h(TitleBar, {
-        title: viewMode === 'Packages' ? 'INSTALLED PACKAGES' : 'INSTANCE CONFIGURATION',
+        title: viewMode === 'Packages' ? 'INSTALLED PACKAGES' : 'APPLICATION COMPUTE INSTANCE CONFIGURATION',
         onDismiss,
         onPrevious
       }),

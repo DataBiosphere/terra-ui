@@ -78,13 +78,13 @@ const AppLauncher = _.flow(
     return div({ style: { padding: '2rem' } }, [
       !['Error', 'Unknown', undefined].includes(clusterStatus) && spinner({ style: { color: colors.primary(), marginRight: '0.5rem' } }),
       Utils.switchCase(clusterStatus,
-        ['Creating', () => 'Creating application instance. You can navigate away and return in 3-5 minutes.'],
-        ['Stopping', () => 'Application instance is stopping, which takes ~4 minutes. It will restart after it finishes if you stay on this screen.'],
-        ['Starting', () => 'Starting application instance. You can navigate away and return in ~2 minutes.'],
-        ['Updating', () => 'Updating application instance. You can navigate away and return in 3-5 minutes.'],
-        ['Deleting', () => 'Deleting application instance, you can create a new one after it finishes.'],
-        ['Error', () => 'Error with the application instance, please try again.'],
-        ['Unknown', () => 'Error with the application instance, please try again.'],
+        ['Creating', () => 'Creating application compute instance. You can navigate away and return in 3-5 minutes.'],
+        ['Stopping', () => 'Application compute instance is stopping, which takes ~4 minutes. It will restart after it finishes if you stay on this screen.'],
+        ['Starting', () => 'Starting application compute instance. You can navigate away and return in ~2 minutes.'],
+        ['Updating', () => 'Updating application compute instance. You can navigate away and return in 3-5 minutes.'],
+        ['Deleting', () => 'Deleting application compute instance, you can create a new one after it finishes.'],
+        ['Error', () => 'Error with the application compute instance, please try again.'],
+        ['Unknown', () => 'Error with the application compute instance, please try again.'],
         [Utils.DEFAULT, () => 'Getting ready...']
       )
     ])
