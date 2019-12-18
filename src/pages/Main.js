@@ -13,10 +13,12 @@ import { NpsSurvey } from 'src/components/NpsSurvey'
 import ServiceAlerts from 'src/components/ServiceAlerts'
 import SupportRequest from 'src/components/SupportRequest'
 import { TrialBanner } from 'src/components/TrialBanner'
+import { useInstrumentation } from 'src/libs/analytics-utils'
 import { LocationProvider, Router, TitleManager } from 'src/libs/nav'
 
 
 const Main = () => {
+  useInstrumentation()
   return h(LocationProvider, [
     h(Notifications),
     h(ImportStatus),

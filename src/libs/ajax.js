@@ -4,11 +4,11 @@ import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
-import { ajaxOverridesStore, requesterPaysBuckets, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
+import { ajaxAnalyticsStore, ajaxOverridesStore, requesterPaysBuckets, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
-window.ajaxOverrideUtils = {
+export const ajaxOverrideUtils = {
   mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
     const res = await wrappedFetch(...args)
     return new Response(JSON.stringify(fn(await res.json())), res)
@@ -20,6 +20,8 @@ window.ajaxOverrideUtils = {
   })
 }
 
+window.ajaxOverrideUtils = ajaxOverrideUtils
+
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
@@ -27,7 +29,8 @@ const tosData = { appid: 'Saturn', tosversion: 5 }
 
 const withInstrumentation = wrappedFetch => (...args) => {
   return _.flow(
-    ..._.map('fn', _.filter(({ filter }) => args[0].match(filter), ajaxOverridesStore.get()))
+    ..._.map('fn', _.filter(({ filter }) => args[0].match(filter), ajaxOverridesStore.get())),
+    ..._.map('fn', _.filter(({ filter, filterFn }) => filterFn ? filterFn(...args) : args[0].match(filter), ajaxAnalyticsStore.get()))
   )(wrappedFetch)(...args)
 }
 
@@ -109,6 +112,7 @@ const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlR
 const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
+const fetchMixPanel = withUrlPrefix('https://api.mixpanel.com/track', fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
@@ -872,6 +876,9 @@ const GoogleBilling = signal => ({
   }
 })
 
+const MixPanel = signal => ({
+  track: event => fetchMixPanel(`?data=${btoa(JSON.stringify(event))}`, { signal })
+})
 
 const Methods = signal => ({
   list: async params => {
@@ -1087,7 +1094,8 @@ export const Ajax = signal => {
     Jupyter: Jupyter(signal),
     Dockstore: Dockstore(signal),
     Martha: Martha(signal),
-    Duos: Duos(signal)
+    Duos: Duos(signal),
+    MixPanel: MixPanel(signal)
   }
 }
 
