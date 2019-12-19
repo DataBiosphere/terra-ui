@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { machineTypes, storagePrice } from 'src/data/clusters'
-import { delay } from 'src/libs/utils'
+import * as Utils from 'src/libs/utils'
 
 
 export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
@@ -56,10 +56,10 @@ export const handleNonRunningCluster = (cluster, ClustersAjax) => {
     case 'Stopped':
       return ClustersAjax.cluster(googleProject, clusterName).start()
     case 'Creating':
-      return delay(15000)
+      return Utils.delay(15000)
     case undefined:
-      return delay(500)
+      return Utils.delay(cluster === undefined ? 500 : 3000)
     default:
-      return delay(3000)
+      return Utils.delay(3000)
   }
 }

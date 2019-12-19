@@ -3,11 +3,12 @@ import { Fragment, useRef, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { PlaygroundHeader, StatusMessage } from 'src/components/cluster-common'
-import { Link } from 'src/components/common'
+import { Link, spinnerOverlay } from 'src/components/common'
+import { NewClusterModal } from 'src/components/NewClusterModal'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import { handleNonRunningCluster } from 'src/libs/cluster-utils'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -22,7 +23,9 @@ const AppLauncher = _.flow(
 )(({ namespace, refreshClusters, cluster, app }, ref) => {
   const signal = Utils.useCancellation()
   const { Clusters } = Ajax(signal)
-  const [cookieReady, setCookieReady] = useState()
+  const [cookieReady, setCookieReady] = useState(false)
+  const [shownCreate, setShownCreate] = useState(false)
+  const [busy, setBusy] = useState(false)
   const getCluster = Utils.useGetter(cluster)
 
   const cookieTimeout = useRef()
@@ -42,7 +45,7 @@ const AppLauncher = _.flow(
         try {
           await refreshClusters()
           const cluster = getCluster()
-          const status = cluster?.status ?? cluster
+          const status = cluster?.status
 
           if (status === 'Running') {
             await refreshCookie()
@@ -75,7 +78,7 @@ const AppLauncher = _.flow(
         '.'
       ]),
       iframe({
-        src: `${cluster?.clusterUrl}/${app === 'RStudio' ? '' : 'terminals/1'}`,
+        src: `${cluster.clusterUrl}/${app === 'RStudio' ? '' : 'terminals/1'}`,
         ref: iframeRef,
         style: {
           border: 'none', flex: 1,
@@ -95,7 +98,20 @@ const AppLauncher = _.flow(
         ['Unknown', () => 'Error with the application compute instance, please try again.'],
         [null, () => 'Create an application compute instance to continue.'],
         [Utils.DEFAULT, () => 'Getting ready...']
-      )])
+      )]),
+      h(NewClusterModal, {
+        isOpen: cluster === null && !shownCreate,
+        namespace, currentCluster: cluster,
+        onDismiss: () => setShownCreate(true),
+        onSuccess: withErrorReporting('Error creating cluster', async promise => {
+          setShownCreate(true)
+          setBusy(true)
+          await promise
+          await refreshClusters()
+          setBusy(false)
+        })
+      }),
+      busy && spinnerOverlay
     ])
 })
 
