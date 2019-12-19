@@ -11,7 +11,7 @@ import { authStore, pfbImportJobStore, requesterPaysProjectStore, workspacesStor
 import * as Utils from 'src/libs/utils'
 
 
-export const getAuthInstance = () => {
+const getAuthInstance = () => {
   return window.gapi.auth2.getAuthInstance()
 }
 

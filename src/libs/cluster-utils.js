@@ -50,7 +50,8 @@ export const trimClustersOldestFirst = _.flow(
 
 export const currentCluster = _.flow(trimClustersOldestFirst, _.last)
 
-export const handleNonRunningCluster = ({ status, googleProject, clusterName }, ClustersAjax) => {
+export const handleNonRunningCluster = (cluster, ClustersAjax) => {
+  const { status, googleProject, clusterName } = cluster || {}
   switch (status) {
     case 'Stopped':
       return ClustersAjax.cluster(googleProject, clusterName).start()

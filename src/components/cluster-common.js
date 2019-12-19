@@ -1,7 +1,8 @@
+import { useState } from 'react'
 import { div } from 'react-hyperscript-helpers'
+import { spinnerOverlay } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
-import { handleNonRunningCluster } from 'src/libs/cluster-utils'
 import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
@@ -12,19 +13,29 @@ export const StatusMessage = ({ hideSpinner, children }) => {
     div([children])
   ])
 }
+
 export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
   const getCluster = Utils.useGetter(cluster)
   const signal = Utils.useCancellation()
+  const [busy, setBusy] = useState()
 
-  const startClusterOnce = withErrorReporting('Error starting application compute instance', async () => {
+  const startClusterOnce = withErrorReporting('Error starting notebook runtime', async () => {
     while (!signal.aborted) {
-      const currentStatus = getCluster()?.status
-      if (currentStatus === null) {
+      const currentCluster = getCluster()
+      const { status, googleProject, clusterName } = currentCluster || {}
+      const currentStatus = currentCluster && status
+      if (currentStatus === 'Stopped') {
+        setBusy(true)
+        await Ajax().Jupyter.cluster(googleProject, clusterName).start()
+        await refreshClusters()
+        setBusy(false)
+        return
+      } else if (currentStatus === undefined || currentStatus === 'Stopping') {
+        await Utils.delay(500)
+      } else if (currentStatus === null) {
         onNullCluster()
         return
       } else {
-        await handleNonRunningCluster(cluster, Ajax(signal).Clusters)
-        await refreshClusters()
         return
       }
     }
@@ -34,5 +45,5 @@ export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
     startClusterOnce()
   })
 
-  return null
+  return busy ? spinnerOverlay : null
 }

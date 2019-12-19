@@ -42,7 +42,7 @@ const AppLauncher = _.flow(
         try {
           await refreshClusters()
           const cluster = getCluster()
-          const status = cluster && cluster.status
+          const status = cluster?.status ?? cluster
 
           if (status === 'Running') {
             await refreshCookie()
@@ -62,33 +62,32 @@ const AppLauncher = _.flow(
     return () => clearTimeout(cookieTimeout.current)
   })
 
-  const clusterStatus = cluster?.status
+  const clusterStatus = cluster?.status ?? cluster
 
-  if (cookieReady) {
-    return iframe({
-      src: `${cluster.clusterUrl}/${app === 'RStudio' ? '' : 'terminals/1'}`,
+  return (cookieReady && clusterStatus === 'Running') ?
+    iframe({
+      src: `${cluster?.clusterUrl}/${app === 'RStudio' ? '' : 'terminals/1'}`,
       ref: iframeRef,
       style: {
         border: 'none', flex: 1,
         ...(app === 'terminal' ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
       },
       title: `Interactive ${app} iframe`
-    })
-  } else {
-    return div({ style: { padding: '2rem' } }, [
-      !['Error', 'Unknown', undefined].includes(clusterStatus) && spinner({ style: { color: colors.primary(), marginRight: '0.5rem' } }),
+    }) :
+    div({ style: { padding: '2rem' } }, [
+      !['Error', 'Unknown', undefined, null].includes(clusterStatus) && spinner({ style: { color: colors.primary(), marginRight: '0.5rem' } }),
       Utils.switchCase(clusterStatus,
         ['Creating', () => 'Creating application compute instance. You can navigate away and return in 3-5 minutes.'],
-        ['Stopping', () => 'Application compute instance is stopping, which takes ~4 minutes. It will restart after it finishes if you stay on this screen.'],
+        ['Stopping', () => 'Application compute instance is stopping, which takes ~4 minutes.'],
         ['Starting', () => 'Starting application compute instance. You can navigate away and return in ~2 minutes.'],
         ['Updating', () => 'Updating application compute instance. You can navigate away and return in 3-5 minutes.'],
         ['Deleting', () => 'Deleting application compute instance, you can create a new one after it finishes.'],
         ['Error', () => 'Error with the application compute instance, please try again.'],
         ['Unknown', () => 'Error with the application compute instance, please try again.'],
+        [null, () => 'Create an application compute instance to continue.'],
         [Utils.DEFAULT, () => 'Getting ready...']
       )
     ])
-  }
 })
 
 
