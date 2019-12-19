@@ -1323,7 +1323,7 @@ https://cloud.google.com/docs
 `
 
 const FreeTrialEulas = ({ pageTwo }) => {
-  return div({ style: { maxHeight: 500, maxWidth: 1500, overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' } }, [
+  return div({ style: { maxHeight: 600, maxWidth: 1500, overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' } }, [
     h(MarkdownViewer, {
       renderers: {
         link: newWindowLinkRenderer,
