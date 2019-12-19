@@ -294,9 +294,7 @@ const hca = () => h(Participant, {
   monitoring, and treating disease.`
 }, [
   h(ButtonPrimary, {
-    disabled: true,
-    tooltip: 'HCA not yet in production'
-    //when in production, add this tooltip: browseTooltip
+    tooltip: browseTooltip
   }, ['Browse Data'])
 ])
 
