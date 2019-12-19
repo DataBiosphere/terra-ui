@@ -62,7 +62,7 @@ const AppLauncher = _.flow(
     return () => clearTimeout(cookieTimeout.current)
   })
 
-  const clusterStatus = cluster?.status ?? cluster
+  const clusterStatus = cluster?.status ?? cluster // preserving null vs undefined cluster value
 
   return (cookieReady && clusterStatus === 'Running') ?
     iframe({
