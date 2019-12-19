@@ -135,7 +135,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         toolDockerImage: isCustomEnv ? customEnvImage : selectedLeoImage,
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
-      currentCluster && currentCluster.status === 'Error' && Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
+      currentCluster?.status === 'Error' && Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
     ]))
   }
 

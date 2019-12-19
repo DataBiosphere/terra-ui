@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { div } from 'react-hyperscript-helpers'
+import { Fragment, useState } from 'react'
+import { b, div, h } from 'react-hyperscript-helpers'
 import { spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
@@ -49,13 +49,23 @@ export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
   return busy ? spinnerOverlay : null
 }
 
-export const PlaygroundHeader = ({ children }) => {
+export const ApplicationHeader = ({ label, labelBgColor, bgColor, children }) => {
   return div({
     style: {
-      backgroundColor: colors.warning(0.25), display: 'flex', alignItems: 'center', borderBottom: `2px solid ${colors.dark(0.2)}`, whiteSpace: 'pre'
+      backgroundColor: bgColor, display: 'flex', alignItems: 'center', borderBottom: `2px solid ${colors.dark(0.2)}`, whiteSpace: 'pre'
     }
   }, [
-    div({ style: { fontWeight: 'bold', backgroundColor: colors.warning(0.4), padding: '0.75rem 2rem' } }, ['PLAYGROUND MODE']),
+    b({ style: { backgroundColor: labelBgColor, padding: '0.75rem 2rem', alignSelf: 'stretch', display: 'flex', alignItems: 'center' } }, [label]),
+    h(Fragment, [children])
+  ])
+}
+
+export const PlaygroundHeader = ({ children }) => {
+  return h(ApplicationHeader, {
+    label: 'PLAYGROUND MODE',
+    labelBgColor: colors.warning(0.4),
+    bgColor: colors.warning(0.25)
+  }, [
     icon('warning-standard', { style: { color: colors.warning(), marginLeft: '1rem' } }),
     div({ style: { marginLeft: '1rem' } }, [children])
   ])
