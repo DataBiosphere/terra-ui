@@ -65,7 +65,7 @@ const AppLauncher = _.flow(
     return () => clearTimeout(cookieTimeout.current)
   })
 
-  const clusterStatus = cluster?.status ?? cluster // preserving null vs undefined cluster value
+  const clusterStatus = cluster && cluster.status
 
   return (cookieReady && clusterStatus === 'Running') ?
     h(Fragment, [
