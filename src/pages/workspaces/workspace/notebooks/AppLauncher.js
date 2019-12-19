@@ -1,12 +1,12 @@
 import _ from 'lodash/fp'
-import { useRef, useState } from 'react'
-import { div, iframe } from 'react-hyperscript-helpers'
+import { Fragment, useRef, useState } from 'react'
+import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { spinner } from 'src/components/icons'
+import { PlaygroundHeader, StatusMessage } from 'src/components/cluster-common'
+import { Link } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import { handleNonRunningCluster } from 'src/libs/cluster-utils'
-import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -65,18 +65,27 @@ const AppLauncher = _.flow(
   const clusterStatus = cluster?.status ?? cluster // preserving null vs undefined cluster value
 
   return (cookieReady && clusterStatus === 'Running') ?
-    iframe({
-      src: `${cluster?.clusterUrl}/${app === 'RStudio' ? '' : 'terminals/1'}`,
-      ref: iframeRef,
-      style: {
-        border: 'none', flex: 1,
-        ...(app === 'terminal' ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
-      },
-      title: `Interactive ${app} iframe`
-    }) :
+    h(Fragment, [
+      app === 'RStudio' && h(PlaygroundHeader, [
+        'This feature is in early development. Your R Code is saved on your compute instance but not to your workspace. We encourage you to frequently ',
+        h(Link, {
+          href: '', // TODO: put a link here
+          ...Utils.newTabLinkProps
+        }, ['back up your code manually']),
+        '.'
+      ]),
+      iframe({
+        src: `${cluster?.clusterUrl}/${app === 'RStudio' ? '' : 'terminals/1'}`,
+        ref: iframeRef,
+        style: {
+          border: 'none', flex: 1,
+          ...(app === 'terminal' ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
+        },
+        title: `Interactive ${app} iframe`
+      })
+    ]) :
     div({ style: { padding: '2rem' } }, [
-      !['Error', 'Unknown', undefined, null].includes(clusterStatus) && spinner({ style: { color: colors.primary(), marginRight: '0.5rem' } }),
-      Utils.switchCase(clusterStatus,
+      h(StatusMessage, { hideSpinner: ['Error', 'Unknown', null].includes(clusterStatus) }, [Utils.switchCase(clusterStatus,
         ['Creating', () => 'Creating application compute instance. You can navigate away and return in 3-5 minutes.'],
         ['Stopping', () => 'Application compute instance is stopping, which takes ~4 minutes.'],
         ['Starting', () => 'Starting application compute instance. You can navigate away and return in ~2 minutes.'],
@@ -86,7 +95,7 @@ const AppLauncher = _.flow(
         ['Unknown', () => 'Error with the application compute instance, please try again.'],
         [null, () => 'Create an application compute instance to continue.'],
         [Utils.DEFAULT, () => 'Getting ready...']
-      )
+      )])
     ])
 })
 

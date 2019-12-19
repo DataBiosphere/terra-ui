@@ -5,7 +5,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { ClusterKicker, StatusMessage } from 'src/components/cluster-common'
+import { ClusterKicker, PlaygroundHeader, StatusMessage } from 'src/components/cluster-common'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -174,23 +174,6 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
       checked: hidePlaygroundMessage,
       onChange: setHidePlaygroundMessage
     }, [span({ style: { marginLeft: '0.5rem' } }, ['Do not show again '])])
-  ])
-}
-
-const PlaygroundHeader = () => {
-  return div({ style: { backgroundColor: colors.warning(0.7), display: 'flex', alignItems: 'center', borderBottom: `2px solid ${colors.dark(0.2)}`, height: '3.5rem', whiteSpace: 'pre' } }, [
-    div({ style: { fontSize: 18, fontWeight: 'bold', backgroundColor: colors.warning(0.9), padding: '0 4rem', height: '100%', display: 'flex', alignItems: 'center' } },
-      ['PLAYGROUND MODE']),
-    div({ style: { marginLeft: '2rem' } }, [
-      'Edits to this notebook are ',
-      b(['NOT ']),
-      'being saved to the workspace. To save your changes, download the notebook using the file menu.',
-      h(Link, {
-        style: { marginLeft: '0.5rem' },
-        href: dataSyncingDocUrl,
-        ...Utils.newTabLinkProps
-      }, ['Read here for more details.'])
-    ])
   ])
 }
 
@@ -519,7 +502,16 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
   })
 
   return h(Fragment, [
-    h(PlaygroundHeader),
+    h(PlaygroundHeader, [
+      'Edits to this notebook are ',
+      b(['NOT ']),
+      'being saved to the workspace. To save your changes, download the notebook using the file menu.',
+      h(Link, {
+        style: { marginLeft: '0.5rem' },
+        href: dataSyncingDocUrl,
+        ...Utils.newTabLinkProps
+      }, ['Read here for more details.'])
+    ]),
     localized && h(Fragment, [
       iframe({
         src: `${clusterUrl}/notebooks/${name}/${notebookName}`,
