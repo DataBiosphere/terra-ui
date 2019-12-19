@@ -60,11 +60,13 @@ const NotebookLauncher = _.flow(
     const [busy, setBusy] = useState()
     const { mode } = queryParams
 
+    const hasJupyter = labels?.tool === 'Jupyter'
+
     return h(Fragment, [
-      (Utils.canWrite(accessLevel) && canCompute && !!mode && status === 'Running') ?
+      (Utils.canWrite(accessLevel) && canCompute && !!mode && status === 'Running' && hasJupyter) ?
         h(labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : NotebookEditorFrame, { key: clusterName, workspace, cluster, notebookName, mode }) :
         h(Fragment, [
-          h(PreviewHeader, { queryParams, cluster, refreshClusters, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateCluster: () => setCreateOpen(true) }),
+          h(PreviewHeader, { queryParams, cluster, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateCluster: () => setCreateOpen(true) }),
           h(NotebookPreviewFrame, { notebookName, workspace })
         ]),
       mode && h(ClusterKicker, { cluster, refreshClusters, onNullCluster: () => setCreateOpen(true) }),
@@ -177,7 +179,7 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
   ])
 }
 
-const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, refreshClusters, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
+const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
   const signal = Utils.useCancellation()
   const { user: { email } } = Utils.useAtom(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
@@ -212,8 +214,11 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
     readOnlyAccess ?
       h(ButtonSecondary, { style: buttonStyle, onClick: () => setExportingNotebook(true) }, [makeMenuIcon('export'), 'Copy to another workspace']) :
       Utils.cond(
+        [!!clusterStatus && cluster.labels.tool !== 'Jupyter', () => h(StatusMessage, { hideSpinner: true }, [
+          'Your application compute instance doesn\'t appear to be running Jupyter. Create a new instance with Jupyter on it to edit this notebook.'
+        ])],
         [
-          !mode || clusterStatus === null || clusterStatus === 'Stopped', () => h(Fragment, [
+          !mode || [null, 'Stopped'].includes(clusterStatus), () => h(Fragment, [
             Utils.cond(
               [cluster && !welderEnabled, () => h(ButtonSecondary, {
                 style: buttonStyle,
