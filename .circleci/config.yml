@@ -82,6 +82,7 @@ commands:
           key: test-deps3-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
           paths:
             - integration-tests/node_modules
+            - ~/.cache/yarn
       - when:
           condition: << parameters.local >>
           steps:
@@ -127,6 +128,7 @@ jobs:
       - save_cache:
           key: deps3-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
           paths:
+            - node_modules
             - ~/.cache/yarn
       - run: yarn test
   build:
