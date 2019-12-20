@@ -52,7 +52,7 @@
   },
   "scripts": {
     "preinstall": "node .hooks/check-engine-light.js",
-    "analyze": "npm run build; source-map-explorer build/static/js/*",
+    "analyze": "yarn build; source-map-explorer build/static/js/*",
     "optimize-image-svgs": "svgo --enable=inlineStyles,prefixIds  --config '{ \"plugins\": [ { \"inlineStyles\": { \"onlyMatchedOnce\": false } }] }' --pretty -f src/images -r -p 1 --multipass",
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
