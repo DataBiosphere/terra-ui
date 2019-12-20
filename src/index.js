@@ -5,7 +5,7 @@ const loadApp = async () => {
   const res = await fetch('config.json')
   loadedConfigStore.current = await res.json()
 
-  await import('src/appLoader')
+  import('src/appLoader') // eslint-disable-line no-unused-expressions
 }
 
 loadApp()
