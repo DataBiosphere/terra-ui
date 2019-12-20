@@ -154,7 +154,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
       } else {
-        this.setState({ customEnvImage: imageUrl })
+        this.setState({ customEnvImage: imageUrl, viewMode: 'CustomEnv' })
       }
 
       if (jupyterUserScriptUri) {
@@ -188,9 +188,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const makeGroupedEnvSelect = id => h(Select, {
       withGroups: true,
       id,
-      value: selectedLeoImage,
+      value: viewMode === 'JupyterEnv' ? selectedLeoImage : customEnvImage,
       onChange: ({ value, label }) => label === 'Custom Environment' ?
-        this.setState({ viewMode: 'CustomEnv', prevViewMode: value, selectedLeoImage: value }) :
+        this.setState({ viewMode: 'CustomEnv', prevViewMode: 'CustomEnv', customEnvImage: value }) :
         this.setState({ selectedLeoImage: value, viewMode: 'JupyterEnv', prevViewMode: 'JupyterEnv' }),
       isSearchable: false,
       isClearable: false,
@@ -200,7 +200,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const makeGroupedOptionsArray = () => {
       return (
         [{ label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
-          { label: 'OTHER ENVIRONMENTS', options: [{ label: 'Custom Environment', value: 'CustomEnv' }] }]
+          { label: 'OTHER ENVIRONMENTS', options: [{ label: 'Custom Environment', value: customEnvImage }] }]
       )
     }
 
