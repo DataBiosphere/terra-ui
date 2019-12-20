@@ -295,7 +295,7 @@ const hca = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     href: 'https://data.humancellatlas.org/explore/projects',
-    target: '_blank',
+    ...Utils.newTabLinkProps,
     tooltip: 'Look for the export selected data icon to export data from this provider.'
   }, ['Browse Data'])
 ])
