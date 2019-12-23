@@ -305,10 +305,7 @@ const commonSelectProps = {
  * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
  * @param {boolean} [props.withGroups=false] - see {@link https://react-select.com/advanced#replacing-builtins} for info on formatting the options array
  */
-export const Select = ({ value, options, id, withGroups = false, ...props }) => {
-  const newOptions = !withGroups && options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
-  const flattenedOptions = withGroups ? _.flatMap('options', newOptions) : undefined
-  const findValue = target => _.find({ value: target }, flattenedOptions || newOptions)
+export const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
 
   return h(RSelect, _.merge({
@@ -318,6 +315,20 @@ export const Select = ({ value, options, id, withGroups = false, ...props }) => 
     value: newValue || null, // need null instead of undefined to clear the select
     options: newOptions
   }, props))
+}
+
+export const Select = ({ value, options, id, ...props }) => {
+  const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
+  const findValue = target => _.find({ value: target }, newOptions)
+
+  return h(BaseSelect, { value, newOptions, id, findValue, ...props })
+}
+
+export const GroupedSelect = ({ value, options, id, ...props }) => {
+  const flattenedOptions = _.flatMap('options', options)
+  const findValue = target => _.find({ value: target }, flattenedOptions)
+
+  return h(BaseSelect, { value, newOptions: options, id, findValue, ...props })
 }
 
 export const AsyncCreatableSelect = props => {
