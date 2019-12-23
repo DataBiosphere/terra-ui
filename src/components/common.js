@@ -304,7 +304,7 @@ const commonSelectProps = {
  * @param props.value - a member of options
  * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
  */
-export const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
+const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
 
   return h(RSelect, _.merge({
