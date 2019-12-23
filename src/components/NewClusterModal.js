@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -111,7 +111,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
       jupyterUserScriptUri: '',
-      customEnvImage: '', viewMode: 'JupyterEnv', prevViewMode: 'JupyterEnv',
+      customEnvImage: '',
+      viewModeBreadCrumbs: ['JupyterEnv'],
       ...normalizeMachineConfig(currentConfig)
     }
   }
@@ -128,25 +129,42 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   createCluster() {
     const { namespace, onSuccess, currentCluster } = this.props
-    const { jupyterUserScriptUri, selectedLeoImage, customEnvImage, prevViewMode } = this.state
+    const { jupyterUserScriptUri, selectedLeoImage, customEnvImage } = this.state
     onSuccess(Promise.all([
       Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: this.getMachineConfig(),
-        toolDockerImage: prevViewMode === 'CustomEnv' ? customEnvImage : selectedLeoImage,
+        toolDockerImage: this.getCurrViewFromBreadCrumbs() === 'CustomEnv' ? customEnvImage : selectedLeoImage,
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
       currentCluster && currentCluster.status === 'Error' && Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
     ]))
   }
 
+  addCurrViewToBreadCrumbs = viewMode => {
+    const { viewModeBreadCrumbs } = this.state
+    const tempBreadCrumbs = viewModeBreadCrumbs
+    tempBreadCrumbs.push(viewMode)
+    this.setState({ viewModeBreadCrumbs: tempBreadCrumbs })
+  }
+
+  getCurrViewFromBreadCrumbs = () => {
+    const { viewModeBreadCrumbs } = this.state
+    return (viewModeBreadCrumbs[viewModeBreadCrumbs.length - 1])
+  }
+
+  removeCurrViewFromBreadCrumbs = () => {
+    const { viewModeBreadCrumbs } = this.state
+    const tempBreadCrumbs = viewModeBreadCrumbs
+    tempBreadCrumbs.pop()
+    this.setState({ viewModeBreadCrumbs: tempBreadCrumbs })
+  }
+
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
     const { currentCluster, namespace } = this.props
-
     const [currentClusterDetails, newLeoImages] = await Promise.all([
       currentCluster ? Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
     ])
-
     this.setState({ leoImages: newLeoImages })
     if (currentClusterDetails) {
       const { clusterImages, jupyterUserScriptUri } = currentClusterDetails
@@ -154,9 +172,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
       } else {
-        this.setState({ customEnvImage: imageUrl, viewMode: 'CustomEnv' })
+        this.addCurrViewToBreadCrumbs('CustomEnv')
+        this.setState({ customEnvImage: imageUrl })
       }
-
       if (jupyterUserScriptUri) {
         this.setState({ jupyterUserScriptUri, profile: 'custom' })
       }
@@ -169,8 +187,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, onDismiss } = this.props
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, customEnvImage,
-      viewMode, leoImages
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
@@ -185,13 +202,23 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
     })
 
-    const makeGroupedEnvSelect = id => h(Select, {
-      withGroups: true,
+    const makeGroupedEnvSelect = id => h(GroupedSelect, {
       id,
-      value: viewMode === 'JupyterEnv' ? selectedLeoImage : customEnvImage,
-      onChange: ({ value, label }) => label === 'Custom Environment' ?
-        this.setState({ viewMode: 'CustomEnv', prevViewMode: 'CustomEnv', customEnvImage: value }) :
-        this.setState({ selectedLeoImage: value, viewMode: 'JupyterEnv', prevViewMode: 'JupyterEnv' }),
+      value: this.getCurrViewFromBreadCrumbs() === 'JupyterEnv' ? selectedLeoImage : customEnvImage,
+      onChange: ({ value, label }) => {
+        Utils.switchCase(label,
+          ['Custom Environment',
+            () => {
+              this.setState({ customEnvImage: value })
+              this.addCurrViewToBreadCrumbs('CustomEnv')
+            }],
+          [Utils.DEFAULT,
+            () => {
+              this.setState({ selectedLeoImage: value })
+              this.addCurrViewToBreadCrumbs('JupyterEnv')
+            }]
+        )
+      },
       isSearchable: false,
       isClearable: false,
       options: makeGroupedOptionsArray()
@@ -209,7 +236,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       div(['Version: ', version || null])
     ])
 
-    const { contents, onPrevious } = Utils.switchCase(viewMode,
+    const { contents, onPrevious } = Utils.switchCase(this.getCurrViewFromBreadCrumbs(),
       ['CustomEnv', () => ({
         contents: h(Fragment, [
           h(IdContainer, [
@@ -239,14 +266,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ['JupyterEnv', () => ({
         contents: h(Fragment, [
           div({ style: { gridColumnStart: 1, gridColumnEnd: 'span 2', alignSelf: 'start' } }, [
-            h(Link, { onClick: () => this.setState({ viewMode: 'Packages', prevViewMode: 'JupyterEnv' }) },
+            h(Link, { onClick: () => this.addCurrViewToBreadCrumbs('Packages') },
               ['What’s installed on this environment?'])
           ]),
           makeImageInfo()
         ])
       })],
       ['Packages', () => ({
-        onPrevious: () => this.setState({ viewMode: 'JupyterEnv' }),
+        onPrevious: () => this.removeCurrViewFromBreadCrumbs(),
         contents: h(Fragment, [
           makeEnvSelect(),
           makeImageInfo({ margin: '1rem 0 2rem' }),
@@ -254,7 +281,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       })],
       ['Warning', () => ({
-        onPrevious: () => this.setState({ viewMode: 'CustomEnv', prevViewMode: 'CustomEnv' }),
+        onPrevious: () => this.removeCurrViewFromBreadCrumbs(),
         contents: h(Fragment, [
           div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Warning!']),
           p([
@@ -269,7 +296,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ' to select another image.'
           ]),
           div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
-            h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: 'CustomEnv', prevViewMode: 'CustomEnv' }) },
+            h(ButtonSecondary,
+              {
+                style: { marginRight: '2rem' }, onClick: () => this.removeCurrViewFromBreadCrumbs()
+              },
               ['Back']),
             h(ButtonPrimary, { onClick: () => this.createCluster() }, ['Create'])
           ])
@@ -289,9 +319,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ]),
           div({ style: { gridColumnStart: '4' } }, [
             h(ButtonPrimary, {
-              disabled: viewMode === 'CustomEnv' && isCustomImageInvalid,
-              tooltip: viewMode === 'CustomEnv' && isCustomImageInvalid && 'Enter a valid docker image to use',
-              onClick: () => viewMode === 'CustomEnv' ? this.setState({ viewMode: 'Warning' }) : this.createCluster()
+              disabled: this.getCurrViewFromBreadCrumbs() === 'CustomEnv' && isCustomImageInvalid,
+              tooltip: this.getCurrViewFromBreadCrumbs() === 'CustomEnv' && isCustomImageInvalid &&
+                'Enter a valid docker image to use',
+              onClick: () => this.getCurrViewFromBreadCrumbs() === 'CustomEnv' ?
+                this.addCurrViewToBreadCrumbs('Warning') :
+                this.createCluster()
             }, !!currentCluster ? 'Replace' : 'Create')
           ])
         ])
@@ -424,7 +457,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const fullDrawer = () => {
       return (
-        viewMode === 'CustomEnv' || viewMode === 'JupyterEnv' ?
+        this.getCurrViewFromBreadCrumbs() === 'CustomEnv' || this.getCurrViewFromBreadCrumbs() === 'JupyterEnv' ?
           h(Fragment, [
             div({ style: { marginBottom: '1rem' } },
               ['Create a compute instance to launch Jupyter Notebooks or a Project-Specific software application.']),
@@ -443,7 +476,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     return h(Fragment, [
       h(TitleBar, {
-        title: viewMode === 'Packages' ? 'INSTALLED PACKAGES' : 'APPLICATION COMPUTE CONFIGURATION',
+        title: this.getCurrViewFromBreadCrumbs() === 'Packages' ? 'INSTALLED PACKAGES' : 'APPLICATION COMPUTE CONFIGURATION',
         onDismiss,
         onPrevious
       }),
