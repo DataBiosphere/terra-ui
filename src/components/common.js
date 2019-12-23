@@ -303,7 +303,6 @@ const commonSelectProps = {
  * @param {Object} props - see {@link https://react-select.com/props#select-props}
  * @param props.value - a member of options
  * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
- * @param {boolean} [props.withGroups=false] - see {@link https://react-select.com/advanced#replacing-builtins} for info on formatting the options array
  */
 export const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
