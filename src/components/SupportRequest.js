@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, RadioButton, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
@@ -208,6 +208,18 @@ const SupportRequest = _.flow(
             onChange: v => this.setState({ email: v })
           })
         ])]),
+        h(IdContainer, [id => h(Fragment, [
+          h(RadioButton, {
+            text: 'Yes', name: 'is-clinical-user', checked: profileInfo[key] === value,
+            labelStyle: { margin: '0 2rem 0 0.25rem' },
+            onChange: () => this.assignValue(key, value)
+          }),
+          h(RadioButton, {
+            text: 'No', name: 'is-clinical-user', checked: profileInfo[key] === value,
+            labelStyle: { margin: '0 2rem 0 0.25rem' },
+            onChange: () => this.assignValue(key, value)
+          })
+          ])]),
         submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
         submitting && spinnerOverlay,
         div({ style: styles.buttonRow }, [
