@@ -304,9 +304,7 @@ const commonSelectProps = {
  * @param props.value - a member of options
  * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
  */
-export const Select = ({ value, options, id, ...props }) => {
-  const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
-  const findValue = target => _.find({ value: target }, newOptions)
+const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
 
   return h(RSelect, _.merge({
@@ -316,6 +314,20 @@ export const Select = ({ value, options, id, ...props }) => {
     value: newValue || null, // need null instead of undefined to clear the select
     options: newOptions
   }, props))
+}
+
+export const Select = ({ value, options, id, ...props }) => {
+  const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
+  const findValue = target => _.find({ value: target }, newOptions)
+
+  return h(BaseSelect, { value, newOptions, id, findValue, ...props })
+}
+
+export const GroupedSelect = ({ value, options, id, ...props }) => {
+  const flattenedOptions = _.flatMap('options', options)
+  const findValue = target => _.find({ value: target }, flattenedOptions)
+
+  return h(BaseSelect, { value, newOptions: options, id, findValue, ...props })
 }
 
 export const AsyncCreatableSelect = props => {
