@@ -17,6 +17,10 @@ export const ajaxOverrideUtils = {
     return Math.random() < frequency ?
       Promise.resolve(new Response('Instrumented error', { status })) :
       wrappedFetch(...args)
+  }),
+  passThroughEffect: _.curry((fn, wrappedFetch) => async (...args) => {
+    fn()
+    return await wrappedFetch(...args)
   })
 }
 

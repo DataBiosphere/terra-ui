@@ -1,5 +1,6 @@
 import 'src/libs/routes'
 
+import { useInstrumentation } from 'libs/analytics'
 import { hot } from 'react-hot-loader/root'
 import { h } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
@@ -13,7 +14,6 @@ import { NpsSurvey } from 'src/components/NpsSurvey'
 import ServiceAlerts from 'src/components/ServiceAlerts'
 import SupportRequest from 'src/components/SupportRequest'
 import { TrialBanner } from 'src/components/TrialBanner'
-import { useInstrumentation } from 'src/libs/analytics-utils'
 import { LocationProvider, Router, TitleManager } from 'src/libs/nav'
 
 
