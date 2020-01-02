@@ -112,9 +112,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     )
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
-      jupyterUserScriptUri: '',
-      customEnvImage: '',
-      viewMode: undefined,
+      jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
       ...normalizeMachineConfig(currentConfig)
     }
   }
@@ -144,10 +142,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
     const { currentCluster, namespace } = this.props
+
     const [currentClusterDetails, newLeoImages] = await Promise.all([
       currentCluster ? Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
     ])
+
     this.setState({ leoImages: newLeoImages })
     if (currentClusterDetails) {
       const { clusterImages, jupyterUserScriptUri } = currentClusterDetails
@@ -155,8 +155,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
       } else {
-        this.setState({ customEnvImage: imageUrl, selectedLeoImage: CUSTOM_MODE })
+        this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl })
       }
+
       if (jupyterUserScriptUri) {
         this.setState({ jupyterUserScriptUri, profile: 'custom' })
       }
@@ -192,15 +193,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       },
       isSearchable: false,
       isClearable: false,
-      options: makeGroupedOptionsArray()
+      options: [{ label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
+        { label: 'OTHER ENVIRONMENTS', options: [{ label: 'Custom Environment', value: CUSTOM_MODE }] }]
     })
-
-    const makeGroupedOptionsArray = () => {
-      return (
-        [{ label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
-          { label: 'OTHER ENVIRONMENTS', options: [{ label: 'Custom Environment', value: CUSTOM_MODE }] }]
-      )
-    }
 
     const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
       div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
@@ -210,14 +205,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const bottomButtons = () => h(Fragment, [
       div({ style: { flexGrow: 1 } }),
       div(
-        { style: { display: 'grid', gridTemplateColumns: '2fr 1.5fr .75fr .75fr', gridGap: '1rem', margin: '1.5rem 0 1rem', alignItems: 'center' } },
+        { style: { display: 'flex', marginTop: '1rem' } },
         [
-          div({ style: { gridColumnStart: '3' } }, [
+          div({ style: { marginLeft: 'auto', marginRight: '2rem' } }, [
             h(ButtonSecondary, {
               onClick: onDismiss
             }, 'Cancel')
           ]),
-          div({ style: { gridColumnStart: '4' } }, [
+          div([
             h(ButtonPrimary, {
               disabled: selectedLeoImage === CUSTOM_MODE && isCustomImageInvalid,
               tooltip: selectedLeoImage === CUSTOM_MODE && isCustomImageInvalid &&
@@ -394,12 +389,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         contents: h(Fragment, [
           div({ style: { marginBottom: '1rem' } },
             ['Create a compute instance to launch Jupyter Notebooks or a Project-Specific software application.']),
-          div({ style: { display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '0.75rem', alignItems: 'center', minHeight: 100 } },
+          div({ style: { minHeight: 100 } },
             [
-              h(IdContainer, [
-                id => h(Fragment, [
-                  label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT'),
-                  div({ style: { gridColumnEnd: 'span 3', height: '45px' } }, [makeGroupedEnvSelect(id)])
+              div([
+                h(IdContainer, [
+                  id => h(Fragment, [
+                    div({ style: { marginBottom: '0.5rem' } }, [label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT')]),
+                    div({ style: { height: '45px' } }, [makeGroupedEnvSelect(id)])
+                  ])
                 ])
               ]),
               Utils.switchCase(selectedLeoImage,
@@ -407,8 +404,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   return h(Fragment, [
                     h(IdContainer, [
                       id => h(Fragment, [
-                        label({ htmlFor: id, style: { ...styles.label, alignSelf: 'start' } }, 'CONTAINER IMAGE'),
-                        div({ style: { gridColumnStart: '1', gridColumnEnd: 'span 3', alignSelf: 'start', height: '45px' } }, [
+                        div({ style: { marginBottom: '0.5rem', marginTop: '0.5rem' } },
+                          [label({ htmlFor: id, style: { ...styles.label, alignSelf: 'start' } }, 'CONTAINER IMAGE')]),
+                        div({ style: { height: '45px', alignItems: 'center', marginBottom: '0.5rem' } }, [
                           h(ValidatedInput, {
                             inputProps: {
                               id,
@@ -421,7 +419,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                         ])
                       ])
                     ]),
-                    div({ style: { gridColumnStart: 1, gridColumnEnd: 'span 3', alignSelf: 'start', margin: '0.5rem' } }, [
+                    div({ style: { margin: '0.5rem' } }, [
                       h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom notebook environments']),
                       span({ style: { fontWeight: 'bold' } }, [' must ']),
                       ' be based off one of the ',
@@ -431,11 +429,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 }],
                 [Utils.DEFAULT, () => {
                   return h(Fragment, [
-                    div({ style: { gridColumnStart: 1, gridColumnEnd: 'span 2', alignSelf: 'start' } }, [
+                    div({ style: { display: 'flex' } }, [
                       h(Link, { onClick: () => this.setState({ viewMode: 'Packages' }) },
-                        ['What’s installed on this environment?'])
-                    ]),
-                    makeImageInfo()
+                        ['What’s installed on this environment?']),
+                      makeImageInfo({ marginLeft: 'auto' })
+                    ])
                   ])
                 }])
             ]),
