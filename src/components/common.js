@@ -3,7 +3,7 @@ import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
 import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
-import RSelect from 'react-select'
+import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -276,8 +276,9 @@ const commonSelectProps = {
     singleValue: base => ({ ...base, color: colors.dark() }),
     option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
       overflowWrap: 'break-word',
-      backgroundColor: isSelected ? colors.light(0.4) : isFocused ? colors.dark(0.15) : undefined,
-      color: isSelected ? colors.accent() : isDisabled ? undefined : colors.dark(),
+      fontWeight: isSelected ? 600 : undefined,
+      backgroundColor: isFocused ? colors.dark(0.15) : 'white',
+      color: isDisabled ? undefined : colors.dark(),
       ':active': { backgroundColor: colors.accent(isSelected ? 0.55 : 0.4) }
     }),
     clearIndicator: base => ({ ...base, paddingRight: 0 }),
@@ -285,6 +286,16 @@ const commonSelectProps = {
     dropdownIndicator: (base, { selectProps: { isClearable } }) => _.merge(base, { paddingLeft: isClearable ? 0 : undefined }),
     multiValueLabel: base => ({ ...base, maxWidth: '100%' }),
     multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } })
+  },
+  components: {
+    Option: ({ children, ...props }) => {
+      return h(RSelectComponents.Option, props, [
+        div({ style: { display: 'flex', alignItems: 'center' } }, [
+          div({ style: { flexGrow: 1 } }, children),
+          props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
+        ])
+      ])
+    }
   }
 }
 
@@ -293,9 +304,7 @@ const commonSelectProps = {
  * @param props.value - a member of options
  * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
  */
-export const Select = ({ value, options, id, ...props }) => {
-  const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
-  const findValue = target => _.find({ value: target }, newOptions)
+const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
 
   return h(RSelect, _.merge({
@@ -305,6 +314,20 @@ export const Select = ({ value, options, id, ...props }) => {
     value: newValue || null, // need null instead of undefined to clear the select
     options: newOptions
   }, props))
+}
+
+export const Select = ({ value, options, id, ...props }) => {
+  const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
+  const findValue = target => _.find({ value: target }, newOptions)
+
+  return h(BaseSelect, { value, newOptions, id, findValue, ...props })
+}
+
+export const GroupedSelect = ({ value, options, id, ...props }) => {
+  const flattenedOptions = _.flatMap('options', options)
+  const findValue = target => _.find({ value: target }, flattenedOptions)
+
+  return h(BaseSelect, { value, newOptions: options, id, findValue, ...props })
 }
 
 export const AsyncCreatableSelect = props => {

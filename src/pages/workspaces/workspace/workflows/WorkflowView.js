@@ -321,7 +321,7 @@ const WorkflowView = _.flow(
         () => EntitySelectionType.chooseRows
       ),
       selectedEntities,
-      newSetName: `${this.props.workflowName}_${new Date().toISOString().slice(0, -5)}`.replace(/[^\w]/g, '-') // colons in date, periods in wf name
+      newSetName: Utils.sanitizeEntityName(`${this.props.workflowName}_${new Date().toISOString().slice(0, -5)}`)
     }
   }
 
@@ -383,7 +383,7 @@ const WorkflowView = _.flow(
     // savedConfig: unmodified copy of config for checking for unsaved edits
     // modifiedConfig: active data, potentially unsaved
     const {
-      isFreshData, savedConfig, launching, activeTab, useCallCache,
+      isFreshData, savedConfig, entityMetadata, launching, activeTab, useCallCache,
       entitySelectionModel, variableSelected, modifiedConfig, updatingConfig
     } = this.state
     const { namespace, name, workspace } = this.props
@@ -397,7 +397,7 @@ const WorkflowView = _.flow(
           ['outputs', () => this.renderIOTable('outputs')]
         ),
         launching && h(LaunchAnalysisModal, {
-          workspaceId, config: savedConfig,
+          workspaceId, config: savedConfig, entityMetadata,
           accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache,
           onDismiss: () => this.setState({ launching: false }),

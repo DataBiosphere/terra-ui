@@ -22,7 +22,7 @@ const constraints = {
 export default class Register extends Component {
   constructor(props) {
     super(props)
-    const { givenName, familyName, email } = getUser()
+    const { givenName = '', familyName = '', email = '' } = getUser()
     this.state = {
       busy: false,
       givenName,
@@ -44,7 +44,6 @@ export default class Register extends Component {
       await refreshTerraProfile()
     } catch (error) {
       reportError('Error registering', error)
-    } finally {
       this.setState({ busy: false })
     }
   }

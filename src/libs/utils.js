@@ -8,31 +8,37 @@ import { getDynamicKey, getLocalPref, setLocalPref } from 'src/libs/browser-stor
 import uuid from 'uuid/v4'
 
 
+export const subscribable = () => {
+  let subscribers = []
+  return {
+    subscribe: fn => {
+      subscribers = append(fn, subscribers)
+      return {
+        unsubscribe: () => {
+          subscribers = _.without([fn], subscribers)
+        }
+      }
+    },
+    next: (...args) => {
+      _.forEach(fn => fn(...args), subscribers)
+    }
+  }
+}
+
 /**
  * A simple state container inspired by clojure atoms. Method names were chosen based on similarity
  * to lodash and Immutable. (deref => get, reset! => set, swap! => update, reset to go back to initial value)
  */
 export const atom = initialValue => {
   let value = initialValue
-  let subscribers = []
+  const { subscribe, next } = subscribable()
+  const get = () => value
   const set = newValue => {
     const oldValue = value
     value = newValue
-    subscribers.forEach(fn => fn(newValue, oldValue))
+    next(newValue, oldValue)
   }
-  return {
-    subscribe: fn => {
-      subscribers = _.union(subscribers, [fn])
-    },
-    unsubscribe: fn => {
-      console.assert(_.includes(fn, subscribers), 'Function is not subscribed')
-      subscribers = _.difference(subscribers, [fn])
-    },
-    get: () => value,
-    set,
-    update: fn => set(fn(value)),
-    reset: () => set(initialValue)
-  }
+  return { subscribe, get, set, update: fn => set(fn(get())), reset: () => set(initialValue) }
 }
 
 /**
@@ -41,9 +47,7 @@ export const atom = initialValue => {
 export const useAtom = theAtom => {
   const [value, setValue] = useState(theAtom.get())
   useEffect(() => {
-    const handleChange = v => setValue(v)
-    theAtom.subscribe(handleChange)
-    return () => theAtom.unsubscribe(handleChange)
+    return theAtom.subscribe(v => setValue(v)).unsubscribe
   }, [theAtom, setValue])
   return value
 }
@@ -70,29 +74,6 @@ export const connectAtom = (theAtom, name) => WrappedComponent => {
     const value = useAtom(theAtom)
     return h(WrappedComponent, { ...props, [name]: value })
   })
-}
-
-/**
- * Sets up the given atom to sync to/from sessionStorage at the given key.
- * On initialization, if the key exists, the value will be read in.
- * If it doesn't, the current value of the atom will be written out.
- */
-export const syncAtomToSessionStorage = (theAtom, key) => {
-  theAtom.subscribe(v => {
-    if (v === undefined) {
-      sessionStorage.removeItem(key)
-    } else {
-      sessionStorage[key] = JSON.stringify(v)
-    }
-  })
-  const existing = (() => {
-    try {
-      return JSON.parse(sessionStorage[key])
-    } catch (e) {
-      return undefined
-    }
-  })()
-  theAtom.update(v => existing === undefined ? v : existing)
 }
 
 const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -409,49 +390,19 @@ export const useCancellation = () => {
   return controller.current.signal
 }
 
-
-// Will cause a render to occur at each delay interval. The delay can be changed in the render.
-export const useCurrentTime = (initialDelay = 250) => {
-  const [currentTime, setCurrentTime] = useState(Date.now())
+export const usePollingEffect = (effectFn, { ms, leading }) => {
   const signal = useCancellation()
-  const delayRef = useRef(initialDelay)
 
   useOnMount(() => {
     const poll = async () => {
+      leading && await effectFn()
       while (!signal.aborted) {
-        await delay(delayRef.current)
-        !signal.aborted && setCurrentTime(Date.now())
+        await delay(ms)
+        !signal.aborted && await effectFn()
       }
     }
     poll()
   })
-
-  return [currentTime, delay => { delayRef.current = delay }]
-}
-
-/*
- * Syncs state with a local storage key and will cause a render in components in
- * other tabs that are using the same storage key with this hook
- */
-export const useLocalStorageState = (keyToSync, initialValue) => {
-  const [value, setValue] = useState(() => {
-    initialValue !== undefined && setLocalPref(keyToSync, initialValue)
-    return getLocalPref(keyToSync)
-  })
-
-  useOnMount(() => {
-    const handleChange = ({ key }) => {
-      key === getDynamicKey(keyToSync) && setValue(getLocalPref(keyToSync))
-    }
-
-    window.addEventListener('storage', handleChange)
-    return () => window.removeEventListener('storage', handleChange)
-  })
-
-  return [value, v => {
-    setLocalPref(keyToSync, v)
-    setValue(v)
-  }]
 }
 
 export const maybeParseJSON = maybeJSONString => {
@@ -461,3 +412,5 @@ export const maybeParseJSON = maybeJSONString => {
     return undefined
   }
 }
+
+export const sanitizeEntityName = unsafe => unsafe.replace(/[^\w]/g, '-')

@@ -96,7 +96,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
   return tryRequest()
 }
 
-const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
+export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
 const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://www.googleapis.com/'))(fetchOk)

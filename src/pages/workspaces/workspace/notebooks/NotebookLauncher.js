@@ -14,10 +14,10 @@ import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
 import { Ajax } from 'src/libs/ajax'
-import * as BrowserStorage from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
@@ -202,7 +202,7 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
     onDismiss,
     okButton: h(ButtonPrimary, {
       onClick: () => {
-        BrowserStorage.setLocalPref('hidePlaygroundMessage', hidePlaygroundMessage)
+        setLocalPref('hidePlaygroundMessage', hidePlaygroundMessage)
         onPlayground()
       }
     },
@@ -289,7 +289,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
             ),
             h(ButtonSecondary, {
               style: buttonStyle,
-              onClick: () => BrowserStorage.getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
+              onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
             }, [makeMenuIcon('chalkboard'), 'Playground mode']),
             h(PopupTrigger, {
               closeOnClick: true,
@@ -456,18 +456,9 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
 
 const PeriodicCookieSetter = ({ namespace, clusterName }) => {
   const signal = Utils.useCancellation()
-
-  const periodicallySetCookie = async () => {
-    while (!signal.aborted) {
-      withErrorIgnoring(() => Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie())()
-      await Utils.delay(15 * 60 * 1000)
-    }
-  }
-
-  Utils.useOnMount(() => {
-    periodicallySetCookie()
-  })
-
+  Utils.usePollingEffect(
+    withErrorIgnoring(() => Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()),
+    { ms: 15 * 60 * 1000 })
   return null
 }
 
