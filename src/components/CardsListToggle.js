@@ -35,8 +35,6 @@ export const ViewToggleButtons = ({ listView, setListView }) => {
   ])
 }
 
-Utils.syncAtomToSessionStorage(toggleStateAtom, 'toggleState')
-
 export const useViewToggle = key => {
   const toggleState = Utils.useAtom(toggleStateAtom)
   return [toggleState[key], v => toggleStateAtom.update(_.set(key, v))]

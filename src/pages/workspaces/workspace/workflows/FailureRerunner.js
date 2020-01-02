@@ -42,7 +42,7 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
       _.map('workflowEntity')
     )(workflows)
 
-    const newSetName = `${configName}-resubmission-${new Date().toISOString().slice(0, -5).replace(/:/g, '-')}`
+    const newSetName = Utils.sanitizeEntityName(`${configName}-resubmission-${new Date().toISOString().slice(0, -5)}`)
 
     await launch({
       workspaceNamespace: namespace, workspaceName: name,

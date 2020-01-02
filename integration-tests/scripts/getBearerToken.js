@@ -1,19 +1,19 @@
-const { GoogleToken } = require('gtoken')
+const { JWT } = require('google-auth-library')
 
 
 const getToken = async () => {
   try {
-    const [sub, keyString] = process.argv.slice(2)
+    const [subject, keyString] = process.argv.slice(2)
     const { client_email: email, private_key: key } = JSON.parse(keyString)
 
-    const gtoken = new GoogleToken({
+    const authClient = new JWT({
       email,
-      scope: ['profile', 'email', 'openid'],
-      sub,
+      scopes: ['profile', 'email', 'openid'],
+      subject,
       key
     })
 
-    const { access_token: token } = await gtoken.getToken()
+    const { token } = await authClient.getAccessToken()
     console.log(token)
     process.exit(0)
   } catch (err) {

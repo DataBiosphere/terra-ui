@@ -1,5 +1,6 @@
 const { billingProject, testUrl, screenshotDir } = require('./integration-config')
 const { delay, signIntoTerra } = require('./integration-utils')
+const { fetchLyle } = require('./lyle-utils')
 
 
 const makeWorkspace = async () => {
@@ -59,7 +60,30 @@ const createEntityInWorkspace = (page, billingProject, workspaceName, testEntity
   }, billingProject, workspaceName, testEntity)
 }
 
+const makeUser = async () => {
+  const { email } = await fetchLyle('create')
+  const { accessToken: token } = await fetchLyle('token', email)
+
+  return { email, token }
+}
+
+const withUser = test => async () => {
+  const { email, token } = await makeUser()
+
+  try {
+    await test({ email, token })
+  } catch (e) {
+    if (screenshotDir) {
+      await page.screenshot({ path: `${screenshotDir}/failure-${email}.png`, fullPage: true })
+    }
+    throw e
+  } finally {
+    await fetchLyle('delete', email)
+  }
+}
+
 module.exports = {
   withWorkspace,
-  createEntityInWorkspace
+  createEntityInWorkspace,
+  withUser
 }
