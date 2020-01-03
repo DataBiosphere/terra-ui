@@ -19,7 +19,7 @@ const styles = {
   questionInput: { marginBottom: '0.75rem', height: '4rem', marginTop: '0.25rem' }
 }
 
-export const NpsSurvey = Utils.connectAtom(authStore, 'authState')(class NpsSurvey extends Component {
+export const NpsSurvey = Utils.connectStore(authStore, 'authState')(class NpsSurvey extends Component {
   constructor(props) {
     super(props)
 

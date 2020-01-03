@@ -37,8 +37,8 @@ const styles = {
 // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
 
 const SupportRequest = _.flow(
-  Utils.connectAtom(contactUsActive, 'isActive'),
-  Utils.connectAtom(authStore, 'authState')
+  Utils.connectStore(contactUsActive, 'isActive'),
+  Utils.connectStore(authStore, 'authState')
 )(class SupportRequest extends Component {
   constructor(props) {
     super(props)

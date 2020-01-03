@@ -20,7 +20,7 @@ const billingHelpInfo = div({ style: { paddingTop: '1rem' } }, [
 ])
 
 const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
-  const { profile } = Utils.useAtom(authStore)
+  const { profile } = Utils.useStore(authStore)
   const { trialState } = profile
   const hasFreeCredits = trialState === 'Enabled'
   const [loading, setLoading] = useState(false)

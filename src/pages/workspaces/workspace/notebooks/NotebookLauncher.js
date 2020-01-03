@@ -236,7 +236,7 @@ const PlaygroundHeader = () => {
 
 const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, refreshClusters, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
   const signal = Utils.useCancellation()
-  const { user: { email } } = Utils.useAtom(authStore)
+  const { user: { email } } = Utils.useStore(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
   const [editModeDisabledOpen, setEditModeDisabledOpen] = useState(false)
   const [playgroundModalOpen, setPlaygroundModalOpen] = useState(false)

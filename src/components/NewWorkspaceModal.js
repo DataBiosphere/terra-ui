@@ -33,7 +33,7 @@ const constraints = {
 
 export default _.flow(
   ajaxCaller,
-  Utils.connectAtom(authStore, 'authState')
+  Utils.connectStore(authStore, 'authState')
 )(class NewWorkspaceModal extends Component {
   static propTypes = {
     cloneWorkspace: PropTypes.object,
