@@ -65,7 +65,7 @@ const NihLink = ({ nihToken }) => {
   /*
    * Hooks
    */
-  const { nihStatus } = Utils.useAtom(authStore)
+  const { nihStatus } = Utils.useStore(authStore)
   const [linking, setLinking] = useState(false)
   const signal = Utils.useCancellation()
 
@@ -265,7 +265,7 @@ const sectionTitle = text => div({ style: styles.sectionTitle }, [text])
 
 const Profile = _.flow(
   ajaxCaller,
-  Utils.connectAtom(authStore, 'authState')
+  Utils.connectStore(authStore, 'authState')
 )(class Profile extends Component {
   constructor(props) {
     super(props)

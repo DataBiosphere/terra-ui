@@ -75,7 +75,7 @@ export const listenDynamic = (storage, key, fn) => {
 
 /**
  * Returns a stateful object that manages the given storage location.
- * Implements an atom-compaible interface, and can be passed to useAtom.
+ * Implements the Store interface, and can be passed to useStore.
  */
 
 export const staticStorageSlot = (storage, key) => {
