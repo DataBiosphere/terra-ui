@@ -92,6 +92,8 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
   ])
 }
 
+const CUSTOM_MODE = '__custom_mode__'
+
 export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
   static propTypes = {
     currentCluster: PropTypes.object,
@@ -110,9 +112,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     )
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
-      jupyterUserScriptUri: '',
-      customEnvImage: '',
-      viewModeBreadCrumbs: ['JupyterEnv'],
+      jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
       ...normalizeMachineConfig(currentConfig)
     }
   }
@@ -133,38 +133,21 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess(Promise.all([
       Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: this.getMachineConfig(),
-        toolDockerImage: this.getCurrViewFromBreadCrumbs() === 'CustomEnv' ? customEnvImage : selectedLeoImage,
+        toolDockerImage: selectedLeoImage === CUSTOM_MODE ? customEnvImage : selectedLeoImage,
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
       currentCluster && currentCluster.status === 'Error' && Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
     ]))
   }
 
-  addCurrViewToBreadCrumbs = viewMode => {
-    const { viewModeBreadCrumbs } = this.state
-    const tempBreadCrumbs = viewModeBreadCrumbs
-    tempBreadCrumbs.push(viewMode)
-    this.setState({ viewModeBreadCrumbs: tempBreadCrumbs })
-  }
-
-  getCurrViewFromBreadCrumbs = () => {
-    const { viewModeBreadCrumbs } = this.state
-    return (viewModeBreadCrumbs[viewModeBreadCrumbs.length - 1])
-  }
-
-  removeCurrViewFromBreadCrumbs = () => {
-    const { viewModeBreadCrumbs } = this.state
-    const tempBreadCrumbs = viewModeBreadCrumbs
-    tempBreadCrumbs.pop()
-    this.setState({ viewModeBreadCrumbs: tempBreadCrumbs })
-  }
-
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
     const { currentCluster, namespace } = this.props
+
     const [currentClusterDetails, newLeoImages] = await Promise.all([
       currentCluster ? Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
     ])
+
     this.setState({ leoImages: newLeoImages })
     if (currentClusterDetails) {
       const { clusterImages, jupyterUserScriptUri } = currentClusterDetails
@@ -172,9 +155,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
       } else {
-        this.addCurrViewToBreadCrumbs('CustomEnv')
-        this.setState({ customEnvImage: imageUrl })
+        this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl })
       }
+
       if (jupyterUserScriptUri) {
         this.setState({ jupyterUserScriptUri, profile: 'custom' })
       }
@@ -187,11 +170,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, onDismiss } = this.props
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
     const isCustomImageInvalid = !imageValidationRegexp.test(customEnvImage)
+
+    const isSelectedImageCustom = selectedLeoImage === CUSTOM_MODE
 
     const makeEnvSelect = id => h(Select, {
       id,
@@ -204,126 +189,38 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const makeGroupedEnvSelect = id => h(GroupedSelect, {
       id,
-      value: this.getCurrViewFromBreadCrumbs() === 'JupyterEnv' ? selectedLeoImage : customEnvImage,
-      onChange: ({ value, label }) => {
-        Utils.switchCase(label,
-          ['Custom Environment',
-            () => {
-              this.setState({ customEnvImage: value })
-              this.addCurrViewToBreadCrumbs('CustomEnv')
-            }],
-          [Utils.DEFAULT,
-            () => {
-              this.setState({ selectedLeoImage: value })
-              this.addCurrViewToBreadCrumbs('JupyterEnv')
-            }]
-        )
+      value: selectedLeoImage,
+      onChange: ({ value }) => {
+        this.setState({ selectedLeoImage: value })
       },
       isSearchable: false,
       isClearable: false,
-      options: makeGroupedOptionsArray()
+      options: [{ label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
+        { label: 'OTHER ENVIRONMENTS', options: [{ label: 'Custom Environment', value: CUSTOM_MODE }] }]
     })
-
-    const makeGroupedOptionsArray = () => {
-      return (
-        [{ label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
-          { label: 'OTHER ENVIRONMENTS', options: [{ label: 'Custom Environment', value: customEnvImage }] }]
-      )
-    }
 
     const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
       div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
       div(['Version: ', version || null])
     ])
 
-    const { contents, onPrevious } = Utils.switchCase(this.getCurrViewFromBreadCrumbs(),
-      ['CustomEnv', () => ({
-        contents: h(Fragment, [
-          h(IdContainer, [
-            id => h(Fragment, [
-              label({ htmlFor: id, style: { ...styles.label, alignSelf: 'start' } }, 'CONTAINER IMAGE'),
-              div({ style: { gridColumnStart: '1', gridColumnEnd: 'span 3', alignSelf: 'start', height: '45px' } }, [
-                h(ValidatedInput, {
-                  inputProps: {
-                    id,
-                    placeholder: '<image name>:<tag>',
-                    value: customEnvImage,
-                    onChange: customEnvImage => this.setState({ customEnvImage })
-                  },
-                  error: customEnvImage && isCustomImageInvalid && 'Not a valid image'
-                })
-              ])
-            ])
-          ]),
-          div({ style: { gridColumnStart: 1, gridColumnEnd: 'span 3', alignSelf: 'start', margin: '0.5rem' } }, [
-            h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom notebook environments']),
-            span({ style: { fontWeight: 'bold' } }, [' must ']),
-            ' be based off one of the ',
-            h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])
-          ])
-        ])
-      })],
-      ['JupyterEnv', () => ({
-        contents: h(Fragment, [
-          div({ style: { gridColumnStart: 1, gridColumnEnd: 'span 2', alignSelf: 'start' } }, [
-            h(Link, { onClick: () => this.addCurrViewToBreadCrumbs('Packages') },
-              ['What’s installed on this environment?'])
-          ]),
-          makeImageInfo()
-        ])
-      })],
-      ['Packages', () => ({
-        onPrevious: () => this.removeCurrViewFromBreadCrumbs(),
-        contents: h(Fragment, [
-          makeEnvSelect(),
-          makeImageInfo({ margin: '1rem 0 2rem' }),
-          packages && h(ImageDepViewer, { packageLink: packages })
-        ])
-      })],
-      ['Warning', () => ({
-        onPrevious: () => this.removeCurrViewFromBreadCrumbs(),
-        contents: h(Fragment, [
-          div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Warning!']),
-          p([
-            `You are about to create a virtual machine using an unverified Docker image.
-             Please make sure that it was created by you or someone you trust, using one of our `,
-            h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
-            ' Custom Docker images could potentially cause serious security issues.'
-          ]),
-          h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
-          p([
-            'If you\'re confident that your image is safe, click ', b(['Create']), ' to use it. Otherwise, click ', b(['Back']),
-            ' to select another image.'
-          ]),
-          div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
-            h(ButtonSecondary,
-              {
-                style: { marginRight: '2rem' }, onClick: () => this.removeCurrViewFromBreadCrumbs()
-              },
-              ['Back']),
-            h(ButtonPrimary, { onClick: () => this.createCluster() }, ['Create'])
-          ])
-        ])
-      })]
-    )
-
     const bottomButtons = () => h(Fragment, [
       div({ style: { flexGrow: 1 } }),
       div(
-        { style: { display: 'grid', gridTemplateColumns: '2fr 1.5fr .75fr .75fr', gridGap: '1rem', margin: '1.5rem 0 1rem', alignItems: 'center' } },
+        { style: { display: 'flex', marginTop: '1rem' } },
         [
-          div({ style: { gridColumnStart: '3' } }, [
+          div({ style: { marginLeft: 'auto', marginRight: '2rem' } }, [
             h(ButtonSecondary, {
               onClick: onDismiss
             }, 'Cancel')
           ]),
-          div({ style: { gridColumnStart: '4' } }, [
+          div([
             h(ButtonPrimary, {
-              disabled: this.getCurrViewFromBreadCrumbs() === 'CustomEnv' && isCustomImageInvalid,
-              tooltip: this.getCurrViewFromBreadCrumbs() === 'CustomEnv' && isCustomImageInvalid &&
+              disabled: isSelectedImageCustom && isCustomImageInvalid,
+              tooltip: isSelectedImageCustom && isCustomImageInvalid &&
                 'Enter a valid docker image to use',
-              onClick: () => this.getCurrViewFromBreadCrumbs() === 'CustomEnv' ?
-                this.addCurrViewToBreadCrumbs('Warning') :
+              onClick: () => isSelectedImageCustom ?
+                this.setState({ viewMode: 'Warning' }) :
                 this.createCluster()
             }, !!currentCluster ? 'Replace' : 'Create')
           ])
@@ -455,32 +352,103 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])
     ])
 
-    const fullDrawer = () => {
-      return (
-        this.getCurrViewFromBreadCrumbs() === 'CustomEnv' || this.getCurrViewFromBreadCrumbs() === 'JupyterEnv' ?
-          h(Fragment, [
-            div({ style: { marginBottom: '1rem' } },
-              ['Create a compute instance to launch Jupyter Notebooks or a Project-Specific software application.']),
-            div({ style: { display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '0.75rem', alignItems: 'center', minHeight: 100 } },
-              [h(IdContainer, [
-                id => h(Fragment, [
-                  label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT'),
-                  div({ style: { gridColumnEnd: 'span 3', height: '45px' } }, [makeGroupedEnvSelect(id)])
+    const { contents, onPrevious } = Utils.switchCase(viewMode,
+      ['Packages', () => ({
+        onPrevious: () => this.setState({ viewMode: undefined }),
+        contents: h(Fragment, [
+          makeEnvSelect(),
+          makeImageInfo({ margin: '1rem 0 2rem' }),
+          packages && h(ImageDepViewer, { packageLink: packages })
+        ])
+      })],
+      ['Warning', () => ({
+        onPrevious: () => this.setState({ viewMode: undefined }),
+        contents: h(Fragment, [
+          div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Warning!']),
+          p([
+            `You are about to create a virtual machine using an unverified Docker image.
+             Please make sure that it was created by you or someone you trust, using one of our `,
+            h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
+            ' Custom Docker images could potentially cause serious security issues.'
+          ]),
+          h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
+          p([
+            'If you\'re confident that your image is safe, click ', b(['Create']), ' to use it. Otherwise, click ', b(['Back']),
+            ' to select another image.'
+          ]),
+          div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
+            h(ButtonSecondary,
+              {
+                style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined })
+              },
+              ['Back']),
+            h(ButtonPrimary, { onClick: () => this.createCluster() }, ['Create'])
+          ])
+        ])
+      })],
+      [Utils.DEFAULT, () => ({
+        onPrevious: undefined,
+        contents: h(Fragment, [
+          div({ style: { marginBottom: '1rem' } },
+            ['Create a compute instance to launch Jupyter Notebooks or a Project-Specific software application.']),
+          div([
+            h(IdContainer, [
+              id => h(Fragment, [
+                div({ style: { marginBottom: '0.5rem' } }, [label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT')]),
+                div({ style: { height: '45px' } }, [makeGroupedEnvSelect(id)])
+              ])
+            ]),
+            Utils.switchCase(selectedLeoImage,
+              [CUSTOM_MODE, () => {
+                return h(Fragment, [
+                  h(IdContainer, [
+                    id => h(Fragment, [
+                      div({ style: { marginBottom: '0.5rem', marginTop: '0.5rem' } },
+                        [label({ htmlFor: id, style: { ...styles.label, alignSelf: 'start' } }, 'CONTAINER IMAGE')]),
+                      div({ style: { height: '52px', alignItems: 'center', marginBottom: '0.5rem' } }, [
+                        h(ValidatedInput, {
+                          inputProps: {
+                            id,
+                            placeholder: '<image name>:<tag>',
+                            value: customEnvImage,
+                            onChange: customEnvImage => this.setState({ customEnvImage })
+                          },
+                          error: customEnvImage && isCustomImageInvalid && 'Not a valid image'
+                        })
+                      ])
+                    ])
+                  ]),
+                  div({ style: { margin: '0.5rem' } }, [
+                    h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom notebook environments']),
+                    span({ style: { fontWeight: 'bold' } }, [' must ']),
+                    ' be based off one of the ',
+                    h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])
+                  ])
                 ])
-              ]), contents]),
-            machineConfig(),
-            bottomButtons()
-          ]) : h(Fragment, [contents])
-      )
-    }
+              }],
+              [Utils.DEFAULT, () => {
+                return h(Fragment, [
+                  div({ style: { display: 'flex' } }, [
+                    h(Link, { onClick: () => this.setState({ viewMode: 'Packages' }) },
+                      ['What’s installed on this environment?']),
+                    makeImageInfo({ marginLeft: 'auto' })
+                  ])
+                ])
+              }])
+          ]),
+          machineConfig(),
+          bottomButtons()
+        ])
+      })]
+    )
 
     return h(Fragment, [
       h(TitleBar, {
-        title: this.getCurrViewFromBreadCrumbs() === 'Packages' ? 'INSTALLED PACKAGES' : 'APPLICATION COMPUTE CONFIGURATION',
+        title: viewMode === 'Packages' ? 'INSTALLED PACKAGES' : 'APPLICATION COMPUTE CONFIGURATION',
         onDismiss,
         onPrevious
       }),
-      div({ style: { padding: '0 1.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [fullDrawer()])
+      div({ style: { padding: '0 1.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents])
     ])
   }
 })

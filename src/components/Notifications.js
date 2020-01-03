@@ -42,7 +42,7 @@ export const notify = (type, title, props) => {
 
 export const clearNotification = id => store.removeNotification(id)
 
-const NotificationDisplay = Utils.connectAtom(notificationStore, 'notificationState')(class NotificationDisplay extends Component {
+const NotificationDisplay = Utils.connectStore(notificationStore, 'notificationState')(class NotificationDisplay extends Component {
   constructor(props) {
     super(props)
     this.state = { modal: false, notificationNumber: 0 }
@@ -160,4 +160,4 @@ const showNotification = ({ id, timeout }) => {
   })
 }
 
-export default Utils.connectAtom(notificationStore, 'notificationState')(ReactNotification)
+export default Utils.connectStore(notificationStore, 'notificationState')(ReactNotification)
