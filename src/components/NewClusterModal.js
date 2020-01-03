@@ -112,7 +112,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     )
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
-      jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
+      jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined, isDeleteView: false,
       ...normalizeMachineConfig(currentConfig)
     }
   }
@@ -127,6 +127,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
+  deleteCluster() {
+    const { currentCluster, onSuccess } = this.props
+    const { googleProject, clusterName } = currentCluster
+
+    onSuccess(Ajax().Jupyter.cluster(googleProject, clusterName).delete())
+  }
+
   createCluster() {
     const { namespace, onSuccess, currentCluster } = this.props
     const { jupyterUserScriptUri, selectedLeoImage, customEnvImage } = this.state
@@ -136,7 +143,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         toolDockerImage: selectedLeoImage === CUSTOM_MODE ? customEnvImage : selectedLeoImage,
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
-      currentCluster && currentCluster.status === 'Error' && Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
+      currentCluster && currentCluster.status === 'Error' && this.deleteCluster()
     ]))
   }
 
@@ -170,7 +177,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, onDismiss } = this.props
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, isDeleteView
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
@@ -209,6 +216,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       div(
         { style: { display: 'flex', marginTop: '1rem' } },
         [
+          currentCluster && div([
+            h(ButtonSecondary, {
+              onClick: () => this.setState({ isDeleteView: true }),
+              tooltip: 'Delete application compute instance',
+              'aria-label': 'Delete application compute instance'
+            }, 'Delete Compute')
+          ]),
           div({ style: { marginLeft: 'auto', marginRight: '2rem' } }, [
             h(ButtonSecondary, {
               onClick: onDismiss
@@ -236,7 +250,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         }
       }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
-        div({ style: { marginBottom: '1rem' } }, ['Select from one of the compute runtime profiles or define your own']),
+        div({ style: { marginBottom: '1rem' } }, ['Select from one of the compute compute instance profiles or define your own']),
         div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
           h(IdContainer, [
             id => h(Fragment, [
@@ -342,7 +356,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ]),
       !!currentCluster && div({ style: styles.warningBox }, [
         div({ style: styles.label }, ['Caution:']),
-        'Replacing your runtime will stop all running notebooks, and delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+        'Replacing your compute instance will stop all running notebooks, and delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
         h(Link, {
           variant: 'light',
           href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
@@ -352,8 +366,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])
     ])
 
-    const { contents, onPrevious } = Utils.switchCase(viewMode,
-      ['Packages', () => ({
+    const { contents, onPrevious } = Utils.cond(
+      [viewMode === 'Packages', () => ({
         onPrevious: () => this.setState({ viewMode: undefined }),
         contents: h(Fragment, [
           makeEnvSelect(),
@@ -361,7 +375,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           packages && h(ImageDepViewer, { packageLink: packages })
         ])
       })],
-      ['Warning', () => ({
+      [viewMode === 'Warning', () => ({
         onPrevious: () => this.setState({ viewMode: undefined }),
         contents: h(Fragment, [
           div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Warning!']),
@@ -386,7 +400,27 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ])
         ])
       })],
-      [Utils.DEFAULT, () => ({
+      [isDeleteView === true, () => ({
+        onPrevious: () => this.setState({ isDeleteView: false }),
+        contents: h(Fragment, [
+          div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Delete Application Compute Instance?']),
+          p(['Deleting your application compute instance will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
+          span({ style: { fontWeight: 'bold' } }, 'NOTE: '),
+          'Deleting your compute instance will also delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+          h(Link, {
+            href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+            ...Utils.newTabLinkProps
+          }, ['move them to the workspace bucket.']),
+          div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
+            h(ButtonSecondary,
+              { style: { marginRight: '2rem' }, onClick: () => this.setState({ isDeleteView: false }) }, ['CANCEL']),
+            h(ButtonPrimary, {
+              onClick: () => this.deleteCluster()
+            }, ['DELETE'])
+          ])
+        ])
+      })],
+      () => ({
         onPrevious: undefined,
         contents: h(Fragment, [
           div({ style: { marginBottom: '1rem' } },
@@ -439,7 +473,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           machineConfig(),
           bottomButtons()
         ])
-      })]
+      })
     )
 
     return h(Fragment, [

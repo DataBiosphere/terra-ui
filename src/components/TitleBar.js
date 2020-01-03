@@ -10,15 +10,16 @@ const TitleBar = ({ onPrevious, title, onDismiss, titleExtras }) => {
       display: 'flex', alignItems: 'baseline', flex: 'none', padding: '1.5rem'
     }
   }, [
+    div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, [title]),
+    titleExtras,
     onPrevious && h(Link, {
       'aria-label': 'Back',
+      style: { marginLeft: 'auto', paddingRight: '0.5rem' },
       onClick: onPrevious
     }, [icon('arrowLeft', { size: 17 })]),
-    div({ style: { fontSize: '0.875rem', fontWeight: 600, marginLeft: onPrevious ? 'auto' : undefined } }, [title]),
-    titleExtras,
     onDismiss && h(Link, {
       'aria-label': 'Close',
-      style: { marginLeft: 'auto' },
+      style: { marginLeft: onPrevious ? undefined: 'auto' },
       onClick: onDismiss
     }, [icon('times', { size: 20 })])
   ])
