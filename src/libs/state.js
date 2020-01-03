@@ -12,6 +12,12 @@ export const authStore = Utils.atom({
   profile: {}
 })
 
+export const lastActiveTimeStore = staticStorageSlot(localStorage, 'idleTimeout')
+lastActiveTimeStore.update(v => v || {})
+
+export const expiredStore = staticStorageSlot(localStorage, 'expired')
+expiredStore.update(v => v || {})
+
 export const toggleStateAtom = staticStorageSlot(sessionStorage, 'toggleState')
 toggleStateAtom.update(v => v || { notebooksTab: true })
 

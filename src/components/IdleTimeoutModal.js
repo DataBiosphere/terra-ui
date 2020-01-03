@@ -3,9 +3,9 @@ import { useEffect, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import ButtonBar from 'src/components/ButtonBar'
 import Modal from 'src/components/Modal'
-import { getLocalPref, removeLocalPref, setLocalPref } from 'src/libs/browser-storage'
+import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { authStore } from 'src/libs/state'
+import { authStore, expiredStore, lastActiveTimeStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -16,14 +16,18 @@ const displayRemainingTime = remainingSeconds => {
   ])
 }
 
-const IdleTimeoutModal = ({ timeout = Utils.hhmmssToMs({ mm: 15 }), countdownStart = Utils.hhmmssToMs({ mm: 2 }), emailDomain }) => {
-  const [expired, setExpired] = Utils.useLocalStorageState('expired', false)
-  const { isSignedIn, profile: { email } } = Utils.useAtom(authStore)
-  const domain = RegExp(`@${emailDomain}`)
+const setLastActive = lastActive => lastActiveTimeStore.update(existing => ({ ...existing, [getUser().id]: lastActive }))
+const setExpired = expired => expiredStore.update(existing => ({ ...existing, [getUser().id]: expired }))
+
+const IdleTimeoutModal = ({ timeout = Utils.hhmmssToMs({ mm: 0, ss: 15 }), countdownStart = Utils.hhmmssToMs({ mm: 0, ss: 15 }), emailDomain = 'gmail' }) => {
+  const expiredUsers = Utils.useAtom(expiredStore)
+  const { isSignedIn, profile: { email }, user: { id } } = Utils.useAtom(authStore)
+  const isClinicalDomain = email && emailDomain ? email.includes(`@${emailDomain}`) : false
+  const expired = expiredUsers[id]
 
   return Utils.cond(
-    [!!isSignedIn && domain.test(email), h(InactivityTimer, { expired, setExpired, timeout, countdownStart })],
-    [expired && !email && !isSignedIn, () => h(Modal, {
+    [!!isSignedIn && isClinicalDomain, h(InactivityTimer, { id, expired, timeout, countdownStart })],
+    [expired && !isSignedIn, () => h(Modal, {
       title: 'Session Expired',
       showCancel: false,
       onDismiss: () => setExpired(),
@@ -32,13 +36,14 @@ const IdleTimeoutModal = ({ timeout = Utils.hhmmssToMs({ mm: 15 }), countdownSta
     null)
 }
 
-const InactivityTimer = ({ setExpired, expired, timeout, countdownStart }) => {
+const InactivityTimer = ({ id, expired, timeout, countdownStart }) => {
   const [dismiss, setDismiss] = useState()
   const [logoutRequested, setLogoutRequested] = useState()
   const [currentTime, setDelay] = Utils.useCurrentTime()
+  const lastActiveTime = lastActiveTimeStore.get()[id]
 
-  const lastActiveTime = getLocalPref('terra-timeout') ? parseInt(getLocalPref('terra-timeout'), 10) : Date.now()
-  const timeoutTime = lastActiveTime + timeout
+  const lastActive = lastActiveTime ? parseInt(lastActiveTime, 10) : Date.now()
+  const timeoutTime = lastActive + timeout
   const timedOut = currentTime > timeoutTime
   const showCountdown = currentTime > timeoutTime - countdownStart
   const countdown = Math.max(0, timeoutTime - currentTime)
@@ -47,9 +52,9 @@ const InactivityTimer = ({ setExpired, expired, timeout, countdownStart }) => {
 
   Utils.useOnMount(() => {
     const targetEvents = ['mousedown', 'keydown']
-    const updateLastActive = () => setLocalPref('terra-timeout', Date.now().toString())
+    const updateLastActive = () => setLastActive(Date.now().toString())
 
-    !getLocalPref('terra-timeout') && setLocalPref('terra-timeout', Date.now().toString())
+    !lastActiveTime && setLastActive(Date.now().toString())
     _.forEach(event => document.addEventListener(event, updateLastActive), targetEvents)
 
     return () => {
@@ -57,7 +62,7 @@ const InactivityTimer = ({ setExpired, expired, timeout, countdownStart }) => {
     }
   })
 
-  useEffect(() => (expired || logoutRequested) && removeLocalPref('terra-timeout'), [expired, logoutRequested])
+  useEffect(() => (expired || logoutRequested) && setLastActive(), [expired, logoutRequested])
 
   return Utils.cond([
     expired || logoutRequested, () => {
