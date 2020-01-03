@@ -154,7 +154,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({
     ])
   ])
   const descText = description ?
-    removeMd(listView ? description.split('\n')[0] : description) :
+    removeMd(listView ? description.split('\n')[0] : description.substr(0, 1000)) :
     span({ style: { color: colors.dark(0.85) } }, ['No description added'])
   const titleOverrides = !canView ? { color: colors.dark(0.7) } : {}
 
