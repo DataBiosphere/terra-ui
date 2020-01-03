@@ -6,8 +6,8 @@ import * as Utils from 'src/libs/utils'
 
 
 const ConfigOverridesWarning = () => {
-  const configOverrides = Utils.useAtom(configOverridesStore)
-  const ajaxOverrides = Utils.useAtom(ajaxOverridesStore)
+  const configOverrides = Utils.useStore(configOverridesStore)
+  const ajaxOverrides = Utils.useStore(ajaxOverridesStore)
   return (!!configOverrides || !!ajaxOverrides) && div({
     style: {
       position: 'fixed', bottom: 0, right: 0,

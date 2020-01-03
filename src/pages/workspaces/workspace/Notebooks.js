@@ -202,7 +202,7 @@ const Notebooks = _.flow(
   }),
   withViewToggle('notebooksTab'),
   ajaxCaller,
-  Utils.connectAtom(authStore, 'authState')
+  Utils.connectStore(authStore, 'authState')
 )(class Notebooks extends Component {
   constructor(props) {
     super(props)

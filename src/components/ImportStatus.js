@@ -9,7 +9,7 @@ import * as Utils from 'src/libs/utils'
 
 
 const ImportStatus = () => {
-  const jobs = Utils.useAtom(pfbImportJobStore)
+  const jobs = Utils.useStore(pfbImportJobStore)
   return h(Fragment, _.map(job => h(ImportStatusItem, {
     job,
     onDone: () => {

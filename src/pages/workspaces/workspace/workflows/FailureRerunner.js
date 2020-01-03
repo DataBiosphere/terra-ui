@@ -11,7 +11,7 @@ import { rerunFailuresStatus } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
-const ToastMessageComponent = Utils.connectAtom(rerunFailuresStatus, 'status')(class ToastMessageComponent extends Component {
+const ToastMessageComponent = Utils.connectStore(rerunFailuresStatus, 'status')(class ToastMessageComponent extends Component {
   render() {
     const { status: { done, text } } = this.props
 
