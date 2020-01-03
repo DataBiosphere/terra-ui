@@ -196,7 +196,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
 
 export const BillingList = _.flow(
   ajaxCaller,
-  Utils.connectAtom(authStore, 'authState')
+  Utils.connectStore(authStore, 'authState')
 )(class BillingList extends Component {
   constructor(props) {
     super(props)
