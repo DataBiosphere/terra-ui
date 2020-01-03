@@ -176,6 +176,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const isCustomImageInvalid = !imageValidationRegexp.test(customEnvImage)
 
+    const isSelectedImageCustom = selectedLeoImage === CUSTOM_MODE
+
     const makeEnvSelect = id => h(Select, {
       id,
       value: selectedLeoImage,
@@ -214,10 +216,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ]),
           div([
             h(ButtonPrimary, {
-              disabled: selectedLeoImage === CUSTOM_MODE && isCustomImageInvalid,
-              tooltip: selectedLeoImage === CUSTOM_MODE && isCustomImageInvalid &&
+              disabled: isSelectedImageCustom && isCustomImageInvalid,
+              tooltip: isSelectedImageCustom && isCustomImageInvalid &&
                 'Enter a valid docker image to use',
-              onClick: () => selectedLeoImage === CUSTOM_MODE ?
+              onClick: () => isSelectedImageCustom ?
                 this.setState({ viewMode: 'Warning' }) :
                 this.createCluster()
             }, !!currentCluster ? 'Replace' : 'Create')
@@ -389,54 +391,51 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         contents: h(Fragment, [
           div({ style: { marginBottom: '1rem' } },
             ['Create a compute instance to launch Jupyter Notebooks or a Project-Specific software application.']),
-          div({ style: { minHeight: 100 } },
-            [
-              div([
-                h(IdContainer, [
-                  id => h(Fragment, [
-                    div({ style: { marginBottom: '0.5rem' } }, [label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT')]),
-                    div({ style: { height: '45px' } }, [makeGroupedEnvSelect(id)])
+          div([
+            h(IdContainer, [
+              id => h(Fragment, [
+                div({ style: { marginBottom: '0.5rem' } }, [label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT')]),
+                div({ style: { height: '45px' } }, [makeGroupedEnvSelect(id)])
+              ])
+            ]),
+            Utils.switchCase(selectedLeoImage,
+              [CUSTOM_MODE, () => {
+                return h(Fragment, [
+                  h(IdContainer, [
+                    id => h(Fragment, [
+                      div({ style: { marginBottom: '0.5rem', marginTop: '0.5rem' } },
+                        [label({ htmlFor: id, style: { ...styles.label, alignSelf: 'start' } }, 'CONTAINER IMAGE')]),
+                      div({ style: { height: '52px', alignItems: 'center', marginBottom: '0.5rem' } }, [
+                        h(ValidatedInput, {
+                          inputProps: {
+                            id,
+                            placeholder: '<image name>:<tag>',
+                            value: customEnvImage,
+                            onChange: customEnvImage => this.setState({ customEnvImage })
+                          },
+                          error: customEnvImage && isCustomImageInvalid && 'Not a valid image'
+                        })
+                      ])
+                    ])
+                  ]),
+                  div({ style: { margin: '0.5rem' } }, [
+                    h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom notebook environments']),
+                    span({ style: { fontWeight: 'bold' } }, [' must ']),
+                    ' be based off one of the ',
+                    h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])
                   ])
                 ])
-              ]),
-              Utils.switchCase(selectedLeoImage,
-                [CUSTOM_MODE, () => {
-                  return h(Fragment, [
-                    h(IdContainer, [
-                      id => h(Fragment, [
-                        div({ style: { marginBottom: '0.5rem', marginTop: '0.5rem' } },
-                          [label({ htmlFor: id, style: { ...styles.label, alignSelf: 'start' } }, 'CONTAINER IMAGE')]),
-                        div({ style: { height: '45px', alignItems: 'center', marginBottom: '0.5rem' } }, [
-                          h(ValidatedInput, {
-                            inputProps: {
-                              id,
-                              placeholder: '<image name>:<tag>',
-                              value: customEnvImage,
-                              onChange: customEnvImage => this.setState({ customEnvImage })
-                            },
-                            error: customEnvImage && isCustomImageInvalid && 'Not a valid image'
-                          })
-                        ])
-                      ])
-                    ]),
-                    div({ style: { margin: '0.5rem' } }, [
-                      h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom notebook environments']),
-                      span({ style: { fontWeight: 'bold' } }, [' must ']),
-                      ' be based off one of the ',
-                      h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])
-                    ])
+              }],
+              [Utils.DEFAULT, () => {
+                return h(Fragment, [
+                  div({ style: { display: 'flex' } }, [
+                    h(Link, { onClick: () => this.setState({ viewMode: 'Packages' }) },
+                      ['What’s installed on this environment?']),
+                    makeImageInfo({ marginLeft: 'auto' })
                   ])
-                }],
-                [Utils.DEFAULT, () => {
-                  return h(Fragment, [
-                    div({ style: { display: 'flex' } }, [
-                      h(Link, { onClick: () => this.setState({ viewMode: 'Packages' }) },
-                        ['What’s installed on this environment?']),
-                      makeImageInfo({ marginLeft: 'auto' })
-                    ])
-                  ])
-                }])
-            ]),
+                ])
+              }])
+          ]),
           machineConfig(),
           bottomButtons()
         ])
