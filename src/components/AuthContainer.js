@@ -12,7 +12,7 @@ import TermsOfService from 'src/pages/TermsOfService'
 
 const AuthContainer = ({ children }) => {
   const { public: isPublic } = useRoute()
-  const { isSignedIn, registrationStatus, acceptedTos, profile } = Utils.useAtom(authStore)
+  const { isSignedIn, registrationStatus, acceptedTos, profile } = Utils.useStore(authStore)
   return Utils.cond(
     [isSignedIn === undefined && !isPublic, centeredSpinner],
     [isSignedIn === false && !isPublic, h(SignIn)],
