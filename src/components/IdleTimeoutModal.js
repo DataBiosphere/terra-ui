@@ -19,14 +19,17 @@ const displayRemainingTime = remainingSeconds => {
 const setLastActive = lastActive => lastActiveTimeStore.update(existing => ({ ...existing, [getUser().id]: lastActive }))
 const setExpired = expired => expiredStore.update(existing => ({ ...existing, [getUser().id]: expired }))
 
-const IdleTimeoutModal = ({ timeout = Utils.hhmmssToMs({ mm: 0, ss: 15 }), countdownStart = Utils.hhmmssToMs({ mm: 0, ss: 15 }), emailDomain = 'gmail' }) => {
+const IdleTimeoutModal = ({
+  timeout = Utils.hhmmssToMs({ mm: 15 }),
+  countdownStart = Utils.hhmmssToMs({ mm: 3 }), emailDomain = 'gmail'
+}) => {
   const expiredUsers = Utils.useAtom(expiredStore)
   const { isSignedIn, profile: { email }, user: { id } } = Utils.useAtom(authStore)
   const isClinicalDomain = email && emailDomain ? email.includes(`@${emailDomain}`) : false
   const expired = expiredUsers[id]
 
   return Utils.cond(
-    [!!isSignedIn && isClinicalDomain, h(InactivityTimer, { id, expired, timeout, countdownStart })],
+    [isSignedIn && isClinicalDomain, h(InactivityTimer, { id, expired, timeout, countdownStart })],
     [expired && !isSignedIn, () => h(Modal, {
       title: 'Session Expired',
       showCancel: false,
@@ -65,9 +68,7 @@ const InactivityTimer = ({ id, expired, timeout, countdownStart }) => {
   useEffect(() => (expired || logoutRequested) && setLastActive(), [expired, logoutRequested])
 
   return Utils.cond([
-    expired || logoutRequested, () => {
-      return iframe({ style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })
-    }
+    expired || logoutRequested, () => iframe({ style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })
   ], [
     timedOut, () => {
       setExpired(true)
