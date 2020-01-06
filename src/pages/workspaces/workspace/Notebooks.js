@@ -176,7 +176,7 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
         alignItems: 'center',
         justifyContent: 'space-between',
         borderTop: `solid 1px ${colors.dark(0.4)}`,
-        padding: '0.5rem',
+        paddingLeft: '0.5rem', paddingRight: '0.5rem', height: '2.5rem',
         backgroundColor: colors.light(0.4),
         borderRadius: '0 0 5px 5px'
       }
@@ -202,7 +202,7 @@ const Notebooks = _.flow(
   }),
   withViewToggle('notebooksTab'),
   ajaxCaller,
-  Utils.connectAtom(authStore, 'authState')
+  Utils.connectStore(authStore, 'authState')
 )(class Notebooks extends Component {
   constructor(props) {
     super(props)

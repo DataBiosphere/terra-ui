@@ -3,7 +3,6 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import removeMd from 'remove-markdown'
 import { useViewToggle, ViewToggleButtons } from 'src/components/CardsListToggle'
 import {
   Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
@@ -154,7 +153,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({
     ])
   ])
   const descText = description ?
-    removeMd(listView ? description.split('\n')[0] : description) :
+    listView ? description.split('\n')[0] : description :
     span({ style: { color: colors.dark(0.85) } }, ['No description added'])
   const titleOverrides = !canView ? { color: colors.dark(0.7) } : {}
 

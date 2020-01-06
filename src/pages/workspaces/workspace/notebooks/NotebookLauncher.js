@@ -15,10 +15,10 @@ import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
 import { Ajax } from 'src/libs/ajax'
-import * as BrowserStorage from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
@@ -163,7 +163,7 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
     onDismiss,
     okButton: h(ButtonPrimary, {
       onClick: () => {
-        BrowserStorage.setLocalPref('hidePlaygroundMessage', hidePlaygroundMessage)
+        setLocalPref('hidePlaygroundMessage', hidePlaygroundMessage)
         onPlayground()
       }
     },
@@ -184,7 +184,7 @@ const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
 
 const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
   const signal = Utils.useCancellation()
-  const { user: { email } } = Utils.useAtom(authStore)
+  const { user: { email } } = Utils.useStore(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
   const [editModeDisabledOpen, setEditModeDisabledOpen] = useState(false)
   const [playgroundModalOpen, setPlaygroundModalOpen] = useState(false)
@@ -234,7 +234,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
           }, [makeMenuIcon('edit'), 'Edit'])
         ),
         h(HeaderButton, {
-          onClick: () => BrowserStorage.getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
+          onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
         }, [makeMenuIcon('chalkboard'), 'Playground mode']),
         h(PopupTrigger, {
           closeOnClick: true,
