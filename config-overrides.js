@@ -4,6 +4,7 @@ const _ = require('lodash/fp')
 const path = require('path')
 const rewireReactHotLoader = require('react-app-rewire-hot-loader')
 const { addBabelPlugin, addWebpackModuleRule, addWebpackPlugin, useEslintRc } = require('customize-cra')
+const manualOverrides = require('./webpack.config')
 
 
 module.exports = {
@@ -28,7 +29,7 @@ module.exports = {
       }))
     )(config)
 
-    return rewireReactHotLoader(newConfig, env)
+    return rewireReactHotLoader(_.merge(newConfig, manualOverrides), env)
   },
   jest(config) {
     return _.merge(config, {
