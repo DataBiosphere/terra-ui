@@ -14,14 +14,14 @@ const TitleBar = ({ onPrevious, title, onDismiss, titleExtras }) => {
     titleExtras,
     onPrevious && h(Link, {
       'aria-label': 'Back',
-      style: { marginLeft: 'auto', paddingRight: '0.5rem' },
+      style: { marginLeft: 'auto', marginRight: '2rem', alignSelf: 'center' },
       onClick: onPrevious
-    }, [icon('arrowLeft', { size: 17 })]),
+    }, [icon('arrowLeftCustom', { size: 19 })]),
     onDismiss && h(Link, {
       'aria-label': 'Close',
       style: { marginLeft: onPrevious ? undefined: 'auto' },
       onClick: onDismiss
-    }, [icon('times', { size: 20 })])
+    }, [icon('times', { size: 21 })])
   ])
 }
 

@@ -25,6 +25,7 @@ import loadingSpinner from 'src/icons/loading-spinner.svg'
 import renameIcon from 'src/icons/rename-icon.svg'
 import syncAlt from 'src/icons/sync-alt-regular.svg'
 import times from 'src/icons/times-light.svg'
+import arrowLeftCustom from 'src/icons/arrow-left-light.svg'
 
 
 const fa = _.curry((shape, { size, ...props }) => h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props)))
@@ -83,6 +84,7 @@ const iconDict = {
   'warning-standard': fa(faExclamationTriangle),
   'ellipsis-v': fa(faEllipsisV),
   arrowLeft: fa(faArrowLeft),
+  arrowLeftCustom: custom(arrowLeftCustom),
   arrowRight: fa(faArrowRight),
   cardMenuIcon: custom(cardMenuIcon),
   caretDown: fa(faCaretDown),

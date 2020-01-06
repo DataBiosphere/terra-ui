@@ -214,7 +214,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const bottomButtons = () => h(Fragment, [
       div({ style: { flexGrow: 1 } }),
       div(
-        { style: { display: 'flex', marginTop: '1rem' } },
+        { style: { display: 'flex', marginTop: '1rem', marginBottom: '1rem' } },
         [
           currentCluster && div([
             h(ButtonSecondary, {
@@ -378,8 +378,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       [viewMode === 'Warning', () => ({
         onPrevious: () => this.setState({ viewMode: undefined }),
         contents: h(Fragment, [
-          div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Warning!']),
-          p([
+          p({ style: { margin: '0px 0px 14px' } }, [
             `You are about to create a virtual machine using an unverified Docker image.
              Please make sure that it was created by you or someone you trust, using one of our `,
             h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
@@ -390,7 +389,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             'If you\'re confident that your image is safe, click ', b(['Create']), ' to use it. Otherwise, click ', b(['Back']),
             ' to select another image.'
           ]),
-          div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
+          div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
             h(ButtonSecondary,
               {
                 style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined })
@@ -403,15 +402,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       [isDeleteView === true, () => ({
         onPrevious: () => this.setState({ isDeleteView: false }),
         contents: h(Fragment, [
-          div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Delete Application Compute Instance?']),
-          p(['Deleting your application compute instance will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
+          p({ style: { margin: '0px 0px 14px' } }, [
+            'Deleting your application compute instance will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
           span({ style: { fontWeight: 'bold' } }, 'NOTE: '),
           'Deleting your compute instance will also delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
           h(Link, {
             href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
             ...Utils.newTabLinkProps
           }, ['move them to the workspace bucket.']),
-          div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
+          div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
             h(ButtonSecondary,
               { style: { marginRight: '2rem' }, onClick: () => this.setState({ isDeleteView: false }) }, ['CANCEL']),
             h(ButtonPrimary, {
@@ -478,7 +477,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     return h(Fragment, [
       h(TitleBar, {
-        title: viewMode === 'Packages' ? 'INSTALLED PACKAGES' : 'APPLICATION COMPUTE CONFIGURATION',
+        title: Utils.cond(
+          [viewMode === 'Packages', () => 'INSTALLED PACKAGES'],
+          [viewMode === 'Warning', () => 'WARNING!'],
+          [isDeleteView === true, () => 'DELETE APPLICATION COMPUTE INSTANCE?'],
+          () => 'APPLICATION COMPUTE CONFIGURATION'
+        ),
         onDismiss,
         onPrevious
       }),

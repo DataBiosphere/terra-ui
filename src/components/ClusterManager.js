@@ -327,18 +327,10 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         ),
         'aria-label': 'Open terminal',
         disabled: !canCompute,
-        style: { marginRight: '2rem', ...styles.verticalCenter },
+        style: { marginRight: '1rem', ...styles.verticalCenter },
         ...Utils.newTabLinkProps
       }, [icon('terminal', { size: 24 })]),
       renderIcon(),
-      h(ClusterIcon, {
-        shape: 'trash',
-        onClick: () => this.setState({ deleteModalOpen: true }),
-        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error', 'Stopping', 'Starting']),
-        tooltip: 'Delete notebook runtime',
-        'aria-label': 'Delete notebook runtime',
-        style: { marginLeft: '0.5rem' }
-      }),
       h(IdContainer, [id => h(Fragment, [
         h(Clickable, {
           id,
