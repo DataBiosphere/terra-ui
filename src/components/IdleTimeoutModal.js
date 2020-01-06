@@ -65,16 +65,12 @@ const InactivityTimer = ({ id, expired, timeout, countdownStart }) => {
     }
   })
 
-  useEffect(() => (expired || logoutRequested) && setLastActive(), [expired, logoutRequested])
+  useEffect(() => { (expired || logoutRequested) && setLastActive() }, [expired, logoutRequested])
+  useEffect(() => { timedOut && setExpired(true) }, [timedOut])
 
   return Utils.cond([
     expired || logoutRequested, () => {
       return iframe({ style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })
-    }
-  ], [
-    timedOut, () => {
-      setExpired(true)
-      return null
     }
   ], [
     showCountdown, () => h(Modal, {
