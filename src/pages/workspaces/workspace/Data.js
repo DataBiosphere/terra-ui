@@ -906,7 +906,7 @@ const WorkspaceData = _.flow(
     title: 'Data', activeTab: 'data'
   }),
   ajaxCaller,
-  Utils.connectAtom(pfbImportJobStore, 'pfbImportJobs')
+  Utils.connectStore(pfbImportJobStore, 'pfbImportJobs')
 )(class WorkspaceData extends Component {
   constructor(props) {
     super(props)

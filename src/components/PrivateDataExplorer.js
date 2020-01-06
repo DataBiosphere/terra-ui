@@ -28,7 +28,7 @@ import * as Utils from 'src/libs/utils'
 
 export default _.flow(
   ajaxCaller,
-  Utils.connectAtom(authStore, 'authState')
+  Utils.connectStore(authStore, 'authState')
 )(class PrivateDataExplorer extends Component {
   constructor(props) {
     super(props)

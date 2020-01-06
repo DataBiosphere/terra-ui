@@ -27,6 +27,7 @@ export const subscribable = () => {
 /**
  * A simple state container inspired by clojure atoms. Method names were chosen based on similarity
  * to lodash and Immutable. (deref => get, reset! => set, swap! => update, reset to go back to initial value)
+ * Implements the Store interface
  */
 export const atom = initialValue => {
   let value = initialValue
@@ -41,13 +42,13 @@ export const atom = initialValue => {
 }
 
 /**
- * Hook that returns the value of a given atom. When the atom changes, the component will re-render
+ * Hook that returns the value of a given store. When the store changes, the component will re-render
  */
-export const useAtom = theAtom => {
-  const [value, setValue] = useState(theAtom.get())
+export const useStore = theStore => {
+  const [value, setValue] = useState(theStore.get())
   useEffect(() => {
-    return theAtom.subscribe(v => setValue(v)).unsubscribe
-  }, [theAtom, setValue])
+    return theStore.subscribe(v => setValue(v)).unsubscribe
+  }, [theStore, setValue])
   return value
 }
 
@@ -65,12 +66,12 @@ export const memoWithName = _.curry((name, WrappedComponent) => {
 })
 
 /**
- * HOC that injects the value of the given atom as a prop. When the atom changes, the wrapped
+ * HOC that injects the value of the given store as a prop. When the store changes, the wrapped
  * component will re-render
  */
-export const connectAtom = (theAtom, name) => WrappedComponent => {
-  return withDisplayName('connectAtom', props => {
-    const value = useAtom(theAtom)
+export const connectStore = (theStore, name) => WrappedComponent => {
+  return withDisplayName('connectStore', props => {
+    const value = useStore(theStore)
     return h(WrappedComponent, { ...props, [name]: value })
   })
 }
