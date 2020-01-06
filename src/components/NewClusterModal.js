@@ -47,46 +47,49 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, 'CPUs'),
-        div([
-          h(Select, {
-            isDisabled: readOnly,
-            id,
-            isSearchable: false,
-            value: currentCpu,
-            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
-            options: _.uniq(_.map('cpu', machineTypes))
-          })
-        ])
+        readOnly ? div({ style: { border: `1px solid ${colors.dark(0.3)}`, borderRadius: '9px', padding: '0.5rem' } }, [currentCpu]) :
+          div([
+            h(Select, {
+              isDisabled: readOnly,
+              id,
+              isSearchable: false,
+              value: currentCpu,
+              onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
+              options: _.uniq(_.map('cpu', machineTypes))
+            })
+          ])
       ])
     ]),
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, 'Memory (GB)'),
-        div([
-          h(Select, {
-            isDisabled: readOnly,
-            id,
-            isSearchable: false,
-            value: currentMemory,
-            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),
-            options: _.map('memory', _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes)))
-          })
-        ])
+        readOnly ? div({ style: { border: `1px solid ${colors.dark(0.3)}`, borderRadius: '9px', padding: '0.5rem' } }, [currentMemory]) :
+          div([
+            h(Select, {
+              isDisabled: readOnly,
+              id,
+              isSearchable: false,
+              value: currentMemory,
+              onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),
+              options: _.map('memory', _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes)))
+            })
+          ])
       ])
     ]),
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, 'Disk size (GB)'),
-        h(NumberInput, {
-          disabled: readOnly,
-          id,
-          min: 10,
-          max: 64000,
-          isClearable: false,
-          onlyInteger: true,
-          value: diskSize,
-          onChange: onChangeDiskSize
-        })
+        readOnly ? div({ style: { border: `1px solid ${colors.dark(0.3)}`, borderRadius: '9px', padding: '0.5rem' } }, [diskSize]) :
+          h(NumberInput, {
+            disabled: readOnly,
+            id,
+            min: 10,
+            max: 64000,
+            isClearable: false,
+            onlyInteger: true,
+            value: diskSize,
+            onChange: onChangeDiskSize
+          })
       ])
     ])
   ])
@@ -212,9 +215,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ])
 
     const bottomButtons = () => h(Fragment, [
-      div({ style: { flexGrow: 1 } }),
       div(
-        { style: { display: 'flex', marginTop: '1rem', marginBottom: '1rem' } },
+        { style: { display: 'flex', marginTop: '2rem', marginBottom: '1rem' } },
         [
           currentCluster && div([
             h(ButtonSecondary, {
@@ -245,12 +247,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       div({
         style: {
           padding: '1rem', marginTop: '1rem',
-          backgroundColor: colors.dark(0.15),
           border: `2px solid ${colors.dark(0.3)}`, borderRadius: '9px'
         }
       }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
-        div({ style: { marginBottom: '1rem' } }, ['Select from one of the compute compute instance profiles or define your own']),
+        div({ style: { marginBottom: '1rem' } }, ['Select from one of the default compute cluster profiles or define your own.']),
         div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
           h(IdContainer, [
             id => h(Fragment, [
@@ -349,8 +350,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ])
           ])
         ]),
-        div({ style: styles.row }, [
-          span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['Cost:']),
+        div({ style: { backgroundColor: colors.dark(0.1), borderRadius: '100px', width: '11rem', padding: '0.5rem', ...styles.row } }, [
+          span({ style: { ...styles.label, marginRight: '0.25rem' } }, [' COST:']),
           `${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
         ])
       ]),
