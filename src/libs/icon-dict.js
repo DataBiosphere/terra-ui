@@ -12,6 +12,7 @@ import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import angleDoubleUp from 'src/icons/angle-double-up-regular.svg'
 import angleUp from 'src/icons/angle-up-regular.svg'
+import arrowLeftCustom from 'src/icons/arrow-left-light.svg'
 import bars from 'src/icons/bars-light.svg'
 import books from 'src/icons/books-solid.svg'
 import cardMenuIcon from 'src/icons/card-menu-icon.svg'
@@ -25,7 +26,6 @@ import loadingSpinner from 'src/icons/loading-spinner.svg'
 import renameIcon from 'src/icons/rename-icon.svg'
 import syncAlt from 'src/icons/sync-alt-regular.svg'
 import times from 'src/icons/times-light.svg'
-import arrowLeftCustom from 'src/icons/arrow-left-light.svg'
 
 
 const fa = _.curry((shape, { size, ...props }) => h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props)))

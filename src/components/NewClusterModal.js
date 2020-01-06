@@ -403,7 +403,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onPrevious: () => this.setState({ isDeleteView: false }),
         contents: h(Fragment, [
           p({ style: { margin: '0px 0px 14px' } }, [
-            'Deleting your application compute instance will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
+            'Deleting your application compute instance will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.'
+          ]),
           span({ style: { fontWeight: 'bold' } }, 'NOTE: '),
           'Deleting your compute instance will also delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
           h(Link, {

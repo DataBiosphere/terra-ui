@@ -140,8 +140,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     super(props)
     this.state = {
       createModalDrawerOpen: false,
-      busy: false,
-      deleteModalOpen: false
+      busy: false
     }
   }
 
@@ -258,8 +257,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, clusters, canCompute, refreshClusters } = this.props
-    const { busy, createModalDrawerOpen, deleteModalOpen, errorModalOpen, pendingNav } = this.state
+    const { namespace, name, clusters, canCompute } = this.props
+    const { busy, createModalDrawerOpen, errorModalOpen, pendingNav } = this.state
     if (!clusters) {
       return null
     }
@@ -355,14 +354,6 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         ]),
         multiple && h(Popup, { side: 'bottom', target: id, handleClickOutside: _.noop }, [this.renderDestroyForm()])
       ])]),
-      deleteModalOpen && h(DeleteClusterModal, {
-        cluster: this.getCurrentCluster(),
-        onDismiss: () => this.setState({ deleteModalOpen: false }),
-        onSuccess: () => {
-          this.setState({ deleteModalOpen: false })
-          refreshClusters()
-        }
-      }),
       h(NewClusterModal, {
         isOpen: createModalDrawerOpen,
         namespace,
