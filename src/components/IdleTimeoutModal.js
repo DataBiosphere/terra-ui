@@ -21,7 +21,7 @@ const setExpired = expired => expiredStore.update(existing => ({ ...existing, [g
 
 const IdleTimeoutModal = ({
   timeout = Utils.hhmmssToMs({ mm: 15 }),
-  countdownStart = Utils.hhmmssToMs({ mm: 3 }), emailDomain = 'gmail'
+  countdownStart = Utils.hhmmssToMs({ mm: 3 }), emailDomain = ''
 }) => {
   const expiredUsers = Utils.useStore(expiredStore)
   const { isSignedIn, profile: { email }, user: { id } } = Utils.useStore(authStore)
@@ -68,7 +68,9 @@ const InactivityTimer = ({ id, expired, timeout, countdownStart }) => {
   useEffect(() => (expired || logoutRequested) && setLastActive(), [expired, logoutRequested])
 
   return Utils.cond([
-    expired || logoutRequested, () => iframe({ style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })
+    expired || logoutRequested, () => {
+      return iframe({ style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })
+    }
   ], [
     timedOut, () => {
       setExpired(true)
