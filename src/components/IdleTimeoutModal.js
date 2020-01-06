@@ -23,8 +23,8 @@ const IdleTimeoutModal = ({
   timeout = Utils.hhmmssToMs({ mm: 15 }),
   countdownStart = Utils.hhmmssToMs({ mm: 3 }), emailDomain = 'gmail'
 }) => {
-  const expiredUsers = Utils.useAtom(expiredStore)
-  const { isSignedIn, profile: { email }, user: { id } } = Utils.useAtom(authStore)
+  const expiredUsers = Utils.useStore(expiredStore)
+  const { isSignedIn, profile: { email }, user: { id } } = Utils.useStore(authStore)
   const isClinicalDomain = email && emailDomain ? email.includes(`@${emailDomain}`) : false
   const expired = expiredUsers[id]
 
