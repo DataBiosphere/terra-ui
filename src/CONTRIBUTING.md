@@ -13,9 +13,14 @@ React has simple and elegant API's that allow us to easily componentize pieces o
 ### Helpful Links
 [Lodash/fp API's](https://gist.github.com/jfmengels/6b973b69c491375117dc)
 # Philosophy
-* Write simple, easy to understand code
+1. Write simple, easy to understand code
   * Functional decomposition
-* Prefer functional coding
+  * Can you easily explain your code?
+ * Could someone else explain your code?
+ * In a year from now will you still understand this code?
+ * Simple code alleviates the need for comments which can easily become stale
+ * See Rich Hickey's Simple made easy
+2. Prefer functional coding
   * Functional code that is side-effect free or has predictable effects is easier to reason about
   * Easier to test
   * Easier to understand
@@ -24,7 +29,7 @@ React has simple and elegant API's that allow us to easily componentize pieces o
   * Using wrappers (e.g. withErrorHandling)
   * Making composable components and functions
   * Using currying where applicable
-* Don't be afraid to upset the status quo
+3. Don't be afraid to upset the status quo
   * While accepted or industry standard approaches have value and get us close to where we want to be, rethinking problems from first principles can spur innovation and deliver better results
   * Industry standard approches will solve for a general problem, but if we think of a solution to our specific problem it can yield a better solution
   * CSS Variables
@@ -33,23 +38,23 @@ React has simple and elegant API's that allow us to easily componentize pieces o
   * Quality approach
   * React Hooks
   * Daily releases
-* Always ask why / what is the problem we are addressing?
+4. Always ask why / what is the problem we are addressing?
   * Just because we can, does that mean we should?
   * Are we solving an issue for the user, or completing a task?
   * Making sure we understand the problem as a whole, pushing back when it is not clearly understood
   * Finding value to bring to the users
   * ex. Widening of columns because the user asked for it
-* Release Often
+5. Release Often
   * Release small iterable chunks of functionality with low risk 
   * Makes it easier to find and fix issues when they arise
   * Daily releases
   * Fast fixes to bugs found in the wild
   * promotion from dev to prod is fast
-* Handling feedback
+6. Handling feedback
   * Iterate on the code until it is at a high level of craftsmanship before merging
   * Quality over speed
   * PR cycle, at least 1 approval is needed
-* Finding the right abstractions
+7. Finding the right abstractions
   * Is what you are writing generally useful?
   * Is it imperative code? 
   * Could it be factored out to something more generally
@@ -58,19 +63,19 @@ React has simple and elegant API's that allow us to easily componentize pieces o
     * Fix the problems that inhibit productivity rather than working around them
     * Writing generally useful abstractions rather than 1 offs
   * This may be better stated in easy to understand or functional coding
-* ...At the right time
+8. ...At the right time
   * Avoid premature optimization
   * Create the right abstractions at the right time
   * Avoid gold plating
     * More description for this term if we keep it
   * When it makes sense (repeating code / pattern, cleaning up code)
-* If something is hard to understand or see something that can be done better, do it!
+9. If something is hard to understand or see something that can be done better, do it!
   * This keeps tech debt down, the code base simple, easy to understand and work with
   * This can be rolled in with development minded
-* Keep the development environment simple and easy to use, providing clear error messages
-* Write tests for the users
+10. Keep the development environment simple and easy to use, providing clear error messages
+11. Write tests for the users
   * Have the tests focus on how a user will use the application rather than unit tests
-* Use the least powerful abstraction to complete the job
+12. Use the least powerful abstraction to complete the job
   * Using switchcase instead of cond where applicable
   * Using map flatten + map rather reduce / breaking things out into smaller and easier to understand chunks
   * Safer to use the lesser abstraction, less chance of things going wrong
@@ -81,12 +86,23 @@ React has simple and elegant API's that allow us to easily componentize pieces o
   * Accessible applications tend to be more usable for all
 * 
 # (Stylistic) How we maintain our philosophy
-* Can you easily explain your code?
-* Could someone else explain your code?
-* In a year from now will you still understand this code?
-* Simple code alleviates the need for comments which can easily become stale
 
-* Avoid using let (never use var) prefer using const instead 
+* Avoid using let (never use var) prefer using const instead (functional coding)
   * Using let introduces additional state and potentially side effects into a function. This can make it diffcult to reason about the code and potentially introduce bugs
-* There is no official taxonomy for the code base
+
+* Use Lodash/fp for data transformation and functional utility (functiona coding)
+  * fp is the functional programming variant of Lodash designed for better composability and currying
+  * Deals with collections in many cases instead of arrays
+  * Lodash will auto curry functions
+  * Examples: map, filter, flow
+* Destructure down to the most atomic property in most cases (simple, easy to understand, avoids access to mutable objects)
+* Use reasonable default values when appropriate rather than using imperative code or conditionals (simple, easy to understand)
+* Try to reduce the overall amount of state required by your code (simple, easy to understand)
+  * Be mindful of how much state (breadth) is being managed in the code
+  * Avoid setting complex state (depth) prefer simple states
+* Functional vs class components
+  * Various API hooks that will be used with those (unsure what this means)
+* 
+# Miscellany
+* firecloud & workspace are not camelcased
 # Deployment Cycle (Other Tips)
