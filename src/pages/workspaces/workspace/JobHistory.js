@@ -7,7 +7,6 @@ import { ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/c
 import { DelayedSearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, submittedIcon, successIcon } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
-import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
@@ -17,7 +16,6 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { SubmissionQueueStatus } from 'src/pages/workspaces/workspace/SubmissionQueueStatus'
 import { rerunFailures } from 'src/pages/workspaces/workspace/workflows/FailureRerunner'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -154,10 +152,6 @@ const JobHistory = _.flow(
     return h(Fragment, [
       div({ style: { display: 'flex', alignItems: 'center', margin: '1rem 1rem 0' } }, [
         div({ style: { flexGrow: 1 } }),
-        h(PopupTrigger, {
-          content: div({ style: { margin: '0.5rem' } }, [h(SubmissionQueueStatus)]),
-          side: 'bottom'
-        }, [h(Link, ['Queue Status'])]),
         h(DelayedSearchInput, {
           'aria-label': 'Search',
           style: { width: 300, marginLeft: '1rem' },
