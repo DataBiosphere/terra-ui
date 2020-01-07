@@ -81,8 +81,8 @@ const Container = ({ modal }) => {
       div({ style: { margin: '1rem' } }, [agreement]),
     !!agree && h(IdleTimeoutModal, {
       emailDomain: text(`Email domain that will be timed out`, 'foo.com'),
-      timeout: number('Timeout (seconds)', 15) * 1000,
-      countdownStart: number('Timeout Start (seconds)', 10) * 1000
+      timeout: number('Timeout (seconds)', 5) * 1000,
+      countdownStart: number('Timeout Start (seconds)', 3) * 1000
     })
   ])
 }
