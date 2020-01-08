@@ -47,7 +47,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, 'CPUs'),
-        readOnly ? div({ style: { border: `1px solid ${colors.dark(0.55)}`, borderRadius: '4px', padding: '0.5rem' } }, [currentCpu]) :
+        readOnly ? div({ style: { border: `1px solid ${colors.dark(0.2)}`, borderRadius: '4px', padding: '0.5rem' } }, [currentCpu]) :
           div([
             h(Select, {
               isDisabled: readOnly,
@@ -63,7 +63,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, 'Memory (GB)'),
-        readOnly ? div({ style: { border: `1px solid ${colors.dark(0.55)}`, borderRadius: '4px', padding: '0.5rem' } }, [currentMemory]) :
+        readOnly ? div({ style: { border: `1px solid ${colors.dark(0.2)}`, borderRadius: '4px', padding: '0.5rem' } }, [currentMemory]) :
           div([
             h(Select, {
               isDisabled: readOnly,
@@ -79,7 +79,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, 'Disk size (GB)'),
-        readOnly ? div({ style: { border: `1px solid ${colors.dark(0.55)}`, borderRadius: '4px', padding: '0.5rem' } }, [diskSize]) :
+        readOnly ? div({ style: { border: `1px solid ${colors.dark(0.2)}`, borderRadius: '4px', padding: '0.5rem' } }, [diskSize]) :
           h(NumberInput, {
             disabled: readOnly,
             id,
@@ -216,7 +216,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const bottomButtons = () => h(Fragment, [
       div(
-        { style: { display: 'flex', marginTop: '2rem', marginBottom: '1rem' } },
+        { style: { display: 'flex', marginTop: '3rem', marginBottom: '1rem' } },
         [
           currentCluster && div([
             h(ButtonSecondary, {
@@ -350,7 +350,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ])
           ])
         ]),
-        div({ style: { backgroundColor: '#E1E2E5', borderRadius: '100px', width: 'fit-content', padding: '0.5rem 1rem', ...styles.row } }, [
+        div({ style: { backgroundColor: colors.dark(0.2), borderRadius: '100px', width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row } }, [
           span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['COST:']),
           `${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
         ])
@@ -386,7 +386,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ' Custom Docker images could potentially cause serious security issues.'
           ]),
           h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
-          p({ style: { lineHeight: '1.5' } },[
+          p({ style: { lineHeight: '1.5' } }, [
             'If you\'re confident that your image is safe, click ', b(['CREATE']), ' to use it. Otherwise, click ', b(['BACK']),
             ' to select another image.'
           ]),

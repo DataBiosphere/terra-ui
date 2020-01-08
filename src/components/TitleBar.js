@@ -16,7 +16,7 @@ const TitleBar = ({ onPrevious, title, onDismiss, titleExtras, titleSize = '0.87
       'aria-label': 'Back',
       style: { marginLeft: 'auto', marginRight: '2rem', alignSelf: 'center' },
       onClick: onPrevious
-    }, [icon('arrowLeftCustom', { size: arrowSize })]),
+    }, [icon('arrowLeftRegular', { size: arrowSize })]),
     onDismiss && h(Link, {
       'aria-label': 'Close',
       style: { marginLeft: onPrevious ? undefined: 'auto' },
