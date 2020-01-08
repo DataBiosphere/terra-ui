@@ -24,30 +24,25 @@ Requests related to the funtionality or usability of the UI can be submitted as 
 
 ### Developing
 
-1. We use Node 12 (the current LTS). On Darwin with Homebrew:
+1. We use Node 12 (the current LTS) and Yarn. On Darwin with Homebrew:
 
     ```sh
-    brew install node@12; brew link node@12 --force --overwrite
+    brew install node@12 yarn; brew link node@12 --force --overwrite
     ```
-2. Update npm:
+2. Install deps:
 
     ```sh
-    npm install -g npm@6.13
+    yarn install
     ```
-3. Install deps:
+3. Start development server, which will report any lint violations as well:
 
     ```sh
-    npm install
+    yarn start
     ```
-4. Start development server, which will report any lint violations as well:
-
-    ```sh
-    npm start
-    ```
-5. Testing:
+4. Testing:
     
     ```sh
-    npm test
+    yarn test
     ```
 6. Code style:
     * Not in IntelliJ: use an eslint plugin.
