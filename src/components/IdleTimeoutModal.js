@@ -74,30 +74,31 @@ const InactivityTimer = ({ id, timeout, countdownStart }) => {
 
   useEffect(() => { logoutRequested && setLastActive() }, [logoutRequested])
 
-  return Utils.cond(
-    [timedOut || logoutRequested, () => {
+  return Utils.cond([
+    timedOut || logoutRequested, () => {
       return iframe({ style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })
-    }],
+    }
+  ],
+  [
+    showCountdown, () => h(Modal, {
+      title: 'Your session is about to expire!',
+      onDismiss: () => null,
+      showButtons: false
+    },
     [
-      showCountdown, () => h(Modal, {
-        title: 'Your session is about to expire!',
-        onDismiss: () => null,
-        showButtons: false
-      },
-      [
-        'To maintain security and protect clinical data, you will be logged out in',
-        div({ style: { whiteSpace: 'pre', textAlign: 'center', color: colors.accent(1), fontSize: '4rem' } },
-          [displayRemainingTime(countdown / 1000)]),
-        'You can extend your session to continue working',
-        h(ButtonBar, {
-          style: { marginTop: '1rem', display: 'flex', alignItem: 'baseline', justifyContent: 'flex-end' },
-          okText: 'Extend Session',
-          cancelText: 'Log Out',
-          onCancel: () => setLogoutRequested(true)
-        })
-      ])
-    ],
-    false)
+      'To maintain security and protect clinical data, you will be logged out in',
+      div({ style: { whiteSpace: 'pre', textAlign: 'center', color: colors.accent(1), fontSize: '4rem' } },
+        [displayRemainingTime(countdown / 1000)]),
+      'You can extend your session to continue working',
+      h(ButtonBar, {
+        style: { marginTop: '1rem', display: 'flex', alignItem: 'baseline', justifyContent: 'flex-end' },
+        okText: 'Extend Session',
+        cancelText: 'Log Out',
+        onCancel: () => setLogoutRequested(true)
+      })
+    ])
+  ],
+  false)
 }
 
 export default IdleTimeoutModal
