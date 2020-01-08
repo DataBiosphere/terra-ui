@@ -19,8 +19,8 @@ const displayRemainingTime = remainingSeconds => {
 const setLastActive = lastActive => lastActiveTimeStore.update(existing => ({ ...existing, [getUser().id]: lastActive }))
 
 const IdleTimeoutModal = ({
-  timeout = Utils.hhmmssToMs({ ss: 5 }),
-  countdownStart = Utils.hhmmssToMs({ ss: 3 }), emailDomain = 'gmail'
+  timeout = Utils.hhmmssToMs({ mm: 15 }),
+  countdownStart = Utils.hhmmssToMs({ mm: 3 }), emailDomain = ''
 }) => {
   const { isSignedIn, profile: { email }, user: { id } } = Utils.useStore(authStore)
   const isClinicalDomain = email && emailDomain ? email.includes(`@${emailDomain}`) : false
@@ -28,10 +28,9 @@ const IdleTimeoutModal = ({
 
   const lastActive = activeTimeStore[id] === 'expired' ? null : activeTimeStore[id]
   const lastActiveTime = lastActive ? parseInt(lastActive, 10) : Date.now()
-  const timeoutTime = lastActiveTime + timeout
-  const timedOut = Date.now() > timeoutTime
+  const timedOut = Date.now() > lastActiveTime + timeout
 
-  useEffect(() => { timedOut && !isSignedIn && setLastActive('expired') })
+  useEffect(() => { timedOut && !isSignedIn && setLastActive('expired') }, [isSignedIn, timedOut])
 
   return Utils.cond(
     [isSignedIn && isClinicalDomain, h(InactivityTimer, { id, timeout, countdownStart })],
