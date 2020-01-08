@@ -350,7 +350,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ])
           ])
         ]),
-        div({ style: { backgroundColor: colors.dark(0.1), borderRadius: '100px', width: 'fit-content', padding: '0.5rem 1rem', ...styles.row } }, [
+        div({ style: { backgroundColor: '#E1E2E5', borderRadius: '100px', width: 'fit-content', padding: '0.5rem 1rem', ...styles.row } }, [
           span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['COST:']),
           `${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
         ])
@@ -372,22 +372,22 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onPrevious: () => this.setState({ viewMode: undefined }),
         contents: h(Fragment, [
           makeEnvSelect(),
-          makeImageInfo({ margin: '1rem 0 2rem' }),
+          makeImageInfo({ margin: '1rem 0 0.5rem' }),
           packages && h(ImageDepViewer, { packageLink: packages })
         ])
       })],
       [viewMode === 'Warning', () => ({
         onPrevious: () => this.setState({ viewMode: undefined }),
         contents: h(Fragment, [
-          p({ style: { margin: '0px 0px 14px' } }, [
+          p({ style: { margin: '0px 0px 14px', lineHeight: '1.5' } }, [
             `You are about to create a virtual machine using an unverified Docker image.
-             Please make sure that it was created by you or someone you trust, using one of our `,
+            Please make sure that it was created by you or someone you trust, using one of our `,
             h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
             ' Custom Docker images could potentially cause serious security issues.'
           ]),
           h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
-          p([
-            'If you\'re confident that your image is safe, click ', b(['Create']), ' to use it. Otherwise, click ', b(['Back']),
+          p({ style: { lineHeight: '1.5' } },[
+            'If you\'re confident that your image is safe, click ', b(['CREATE']), ' to use it. Otherwise, click ', b(['BACK']),
             ' to select another image.'
           ]),
           div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
@@ -491,7 +491,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onDismiss,
         onPrevious
       }),
-      div({ style: { padding: '0 1.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents])
+      div({ style: { padding: '0.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents])
     ])
   }
 })

@@ -7,7 +7,7 @@ import { icon } from 'src/components/icons'
 const TitleBar = ({ onPrevious, title, onDismiss, titleExtras, titleSize = '0.875rem', arrowSize = '17', dismissSize = '20' }) => {
   return div({
     style: {
-      display: 'flex', alignItems: 'baseline', flex: 'none', padding: '1.5rem'
+      display: 'flex', alignItems: 'baseline', flex: 'none', padding: '1.5rem 1.5rem 0rem'
     }
   }, [
     div({ style: { fontSize: titleSize, fontWeight: 600 } }, [title]),
