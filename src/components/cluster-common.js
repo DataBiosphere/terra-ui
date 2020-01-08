@@ -1,10 +1,11 @@
-import { Fragment, useState } from 'react'
+import _ from 'lodash/fp'
+import { useEffect, useState } from 'react'
 import { b, div, h } from 'react-hyperscript-helpers'
 import { spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
 
@@ -24,16 +25,16 @@ export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
     while (!signal.aborted) {
       const currentCluster = getCluster()
       const { status, googleProject, clusterName } = currentCluster || {}
-      const currentStatus = currentCluster && status
-      if (currentStatus === 'Stopped') {
+
+      if (status === 'Stopped') {
         setBusy(true)
-        await Ajax().Jupyter.cluster(googleProject, clusterName).start()
+        await Ajax().Clusters.cluster(googleProject, clusterName).start()
         await refreshClusters()
         setBusy(false)
         return
-      } else if (currentStatus === undefined || currentStatus === 'Stopping') {
+      } else if (currentCluster === undefined || status === 'Stopping') {
         await Utils.delay(500)
-      } else if (currentStatus === null) {
+      } else if (currentCluster === null) {
         onNullCluster()
         return
       } else {
@@ -56,7 +57,7 @@ export const ApplicationHeader = ({ label, labelBgColor, bgColor, children }) =>
     }
   }, [
     b({ style: { backgroundColor: labelBgColor, padding: '0.75rem 2rem', alignSelf: 'stretch', display: 'flex', alignItems: 'center' } }, [label]),
-    h(Fragment, [children])
+    children
   ])
 }
 
@@ -69,4 +70,27 @@ export const PlaygroundHeader = ({ children }) => {
     icon('warning-standard', { style: { color: colors.warning(), marginLeft: '1rem' } }),
     div({ style: { marginLeft: '1rem' } }, [children])
   ])
+}
+
+export const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning = _.noop, onClusterStartedRunning = _.noop }) => {
+  const currentStatus = cluster && cluster.status
+  const prevStatus = Utils.usePrevious(currentStatus)
+
+  useEffect(() => {
+    if (prevStatus === 'Running' && currentStatus !== 'Running') {
+      onClusterStoppedRunning()
+    } else if (prevStatus !== 'Running' && currentStatus === 'Running') {
+      onClusterStartedRunning()
+    }
+  }, [currentStatus, onClusterStartedRunning, onClusterStoppedRunning, prevStatus])
+
+  return null
+}
+
+export const PeriodicCookieSetter = ({ namespace, clusterName, leading }) => {
+  const signal = Utils.useCancellation()
+  Utils.usePollingEffect(
+    withErrorIgnoring(() => Ajax(signal).Clusters.notebooks(namespace, clusterName).setCookie()),
+    { ms: 15 * 60 * 1000, leading })
+  return null
 }

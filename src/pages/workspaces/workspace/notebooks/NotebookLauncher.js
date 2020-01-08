@@ -1,11 +1,13 @@
 import * as clipboard from 'clipboard-polyfill'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { ApplicationHeader, ClusterKicker, PlaygroundHeader, StatusMessage } from 'src/components/cluster-common'
+import {
+  ApplicationHeader, ClusterKicker, ClusterStatusMonitor, PeriodicCookieSetter, PlaygroundHeader, StatusMessage
+} from 'src/components/cluster-common'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -16,7 +18,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { authStore } from 'src/libs/state'
@@ -27,19 +29,6 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const chooseMode = mode => {
   Nav.history.replace({ search: qs.stringify({ mode }) })
-}
-
-const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning }) => {
-  const currentStatus = cluster && cluster.status
-  const prevStatus = Utils.usePrevious(currentStatus)
-
-  useEffect(() => {
-    if (prevStatus === 'Running' && currentStatus !== 'Running') {
-      onClusterStoppedRunning()
-    }
-  }, [currentStatus, onClusterStoppedRunning, prevStatus])
-
-  return null
 }
 
 const NotebookLauncher = _.flow(
@@ -387,14 +376,6 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
       Nav.blockNav.reset()
     }
   })
-  return null
-}
-
-const PeriodicCookieSetter = ({ namespace, clusterName }) => {
-  const signal = Utils.useCancellation()
-  Utils.usePollingEffect(
-    withErrorIgnoring(() => Ajax(signal).Clusters.notebooks(namespace, clusterName).setCookie()),
-    { ms: 15 * 60 * 1000 })
   return null
 }
 
