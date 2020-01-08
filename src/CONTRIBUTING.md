@@ -12,6 +12,8 @@ React has simple and elegant API's that allow us to easily componentize pieces o
 ## Lodash/fp
 ### Helpful Links
 [Lodash/fp API's](https://gist.github.com/jfmengels/6b973b69c491375117dc)
+
+## CircleCI
 # Philosophy
 1. Write simple, easy to understand code
   * Functional decomposition
@@ -100,9 +102,26 @@ React has simple and elegant API's that allow us to easily componentize pieces o
 * Try to reduce the overall amount of state required by your code (simple, easy to understand)
   * Be mindful of how much state (breadth) is being managed in the code
   * Avoid setting complex state (depth) prefer simple states
-* Functional vs class components
-  * Various API hooks that will be used with those (unsure what this means)
+* Use functional instead of class components (functional coding)
+  * Functional components better support our functional coding style 
+  * Use react hooks instead of lifecycle methods in a functional component
+    * If you need more custom behavior look at the code base for our custom hooks
+    * All custom hooks will be prefixed with "use" (e.g. useOnMount)
+* We use react-hyperscript-helpers rather than JSX to keep our code base cleaner (status quo)
+  * Hyperscript helpers allows developers to remain in a javascript context rather than having to make a mental context switch to the JSX templating language while developing
+*  We style our site using inline styling. This keeps the styling close to the code allowing developers to easily (Simple code)
+  add styles without having to switch contexts to CSS or another file
+  * This also prevents developers from having to deal with css classes and the cascade
+* We have a daily release cycle (Release often)
+  * We use CircleCI to run our tests and deploy our code
+  * Once code has been merged in with our dev branch it will be deployed at approximately 10:30AM the following day
+* We tend to iterate on the code in our PR cyle. (Handling Feedback)
+  * We emphasize a high level of code quality in our codebase to prevent technical debt and keep the application easy to develop
+  * We prefer slowing down and iterating several times on a PR to ensure the code is right and in line with our standards rather than
+  quickly pushing code through
+  * We encourage comments and discusssion in PR's to release high quality, understandable code
 * 
+
 # Miscellany
 * firecloud & workspace are not camelcased
 # Deployment Cycle (Other Tips)
