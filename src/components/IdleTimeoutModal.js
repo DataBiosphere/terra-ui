@@ -22,15 +22,20 @@ const IdleTimeoutModal = ({
   timeout = Utils.hhmmssToMs({ ss: 5 }),
   countdownStart = Utils.hhmmssToMs({ ss: 3 }), emailDomain = 'gmail'
 }) => {
-  const lastActiveTime = Utils.useStore(lastActiveTimeStore)
   const { isSignedIn, profile: { email }, user: { id } } = Utils.useStore(authStore)
   const isClinicalDomain = email && emailDomain ? email.includes(`@${emailDomain}`) : false
-  const expired = lastActiveTime[id] === 'expired'
-  console.log('e:', expired, lastActiveTime[id])
+  const activeTimeStore = Utils.useStore(lastActiveTimeStore)
+
+  const lastActive = activeTimeStore[id] === 'expired' ? null : activeTimeStore[id]
+  const lastActiveTime = lastActive ? parseInt(lastActive, 10) : Date.now()
+  const timeoutTime = lastActiveTime + timeout
+  const timedOut = Date.now() > timeoutTime
+
+  useEffect(() => { timedOut && !isSignedIn && setLastActive('expired') })
 
   return Utils.cond(
-    [isSignedIn && isClinicalDomain, h(InactivityTimer, { id, expired, timeout, countdownStart })],
-    [expired && !isSignedIn, () => h(Modal, {
+    [isSignedIn && isClinicalDomain, h(InactivityTimer, { id, timeout, countdownStart })],
+    [activeTimeStore[id] === 'expired' && !isSignedIn, () => h(Modal, {
       title: 'Session Expired',
       showCancel: false,
       onDismiss: () => setLastActive(),
@@ -40,12 +45,13 @@ const IdleTimeoutModal = ({
 }
 
 const InactivityTimer = ({ id, timeout, countdownStart }) => {
-  const lastActiveTime = Utils.useStore(lastActiveTimeStore)[id]
+  const activeTimeStore = Utils.useStore(lastActiveTimeStore)
   const [logoutRequested, setLogoutRequested] = useState()
   const [currentTime, setDelay] = Utils.useCurrentTime()
 
-  const lastActive = lastActiveTime ? parseInt(lastActiveTime, 10) : Date.now()
-  const timeoutTime = lastActive + timeout
+  const lastActive = activeTimeStore[id] === 'expired' ? Date.now() : activeTimeStore[id]
+  const lastActiveTime = lastActive ? parseInt(lastActive, 10) : Date.now()
+  const timeoutTime = lastActiveTime + timeout
   const timedOut = currentTime > timeoutTime
   const showCountdown = currentTime > timeoutTime - countdownStart
   const countdown = Math.max(0, timeoutTime - currentTime)
@@ -53,10 +59,10 @@ const InactivityTimer = ({ id, timeout, countdownStart }) => {
   setDelay(showCountdown ? 1000 : Math.max(250, countdown - countdownStart))
 
   Utils.useOnMount(() => {
-    const targetEvents = ['mousedown', 'keydown']
+    const targetEvents = ['click', 'keydown']
     const updateLastActive = () => setLastActive(Date.now().toString())
 
-    if (!lastActiveTime || lastActiveTime === 'expired') {
+    if (!activeTimeStore[id] || activeTimeStore[id] === 'expired') {
       setLastActive(Date.now().toString())
     }
 
@@ -68,11 +74,9 @@ const InactivityTimer = ({ id, timeout, countdownStart }) => {
   })
 
   useEffect(() => { logoutRequested && setLastActive() }, [logoutRequested])
-  useEffect(() => { timedOut && setLastActive('expired') }, [timedOut])
 
   return Utils.cond(
     [timedOut || logoutRequested, () => {
-      console.log('iframe')
       return iframe({ style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })
     }],
     [
