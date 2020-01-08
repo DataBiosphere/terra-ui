@@ -1,9 +1,9 @@
 import { number, text, withKnobs } from '@storybook/addon-knobs'
 import { storiesOf } from '@storybook/react'
-import IdleTimeoutModal from 'components/IdleTimeoutModal'
 import { Fragment, useEffect, useRef } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
+import IdleTimeoutModal from 'src/components/IdleTimeoutModal'
 import Modal from 'src/components/Modal'
 import { getDynamic, listenDynamic, setDynamic } from 'src/libs/browser-storage'
 import { authStore } from 'src/libs/state'
@@ -22,6 +22,7 @@ const dynamicStorageSlot = (storage, key) => {
 }
 
 const authTest = dynamicStorageSlot(localStorage, 'auth-story')
+authTest.update(v => v || {})
 const agreeTest = dynamicStorageSlot(localStorage, 'terra-timeout-agree')
 
 const Container = ({ modal }) => {
