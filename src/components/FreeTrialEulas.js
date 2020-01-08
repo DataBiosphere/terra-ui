@@ -5,17 +5,19 @@ import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
 const broadEula = `
 1. The Terra Free Credits Program (“credits”), sponsored by Google, is administered by [Onix Networking](https://www.onixnet.com/products/google-cloud/google-cloud-platform/google-app-engine) (“Onix”), a Google Cloud Premier Partner. 
 
-2. By opting into this program, you are authorizing Terra to give Onix and Google access to your Terra user profile information. This is necessary for Onix and Google to give you the free credits. 
+2. By opting into this free credits program, you are authorizing Terra to give Onix and Google access to your Terra user profile information. This is necessary for Onix and Google to give you the free credits. 
 
-3. Your credits of $300 will expire December 30, 2019 or 60 days after they were issued, whichever comes first.
+3. Your credits of $300 will expire February 4, 2021 or 60 days after they were issued, whichever comes first.
 
-4. Onix will contact you during the trial with information on options for creating your own billing account to further use Terra once the credits expire. Other billing options will be available on the Terra website.
+4. Onix will contact you during the trial with information on options for creating your own billing account to further use Terra after the credits expire. Other billing options will be available on the Terra website.
 
-5. Terra has no obligation to maintain a billing account or any data saved under an account once credits are exhausted.
+5. Terra has no obligation to maintain a billing account or any data saved under an account.
 
 6. Credits are not redeemable for cash and are not transferable.
 
-7. All use of Terra by researchers is subject to the [Terra Terms of Use](https://app.terra.bio/#terms-of-service), which may be updated from time to time. Terra reserves the right to revoke credits for any activity that violates the Terms of Use.
+7. You may only use credits for the purpose of evaluating Terra and/or performing scientific analyses on Terra, and not for any other purpose including but not limited to generating, distributing, publishing or facilitating unsolicited mass email, promotions, advertisings or other solicitations or the mining of cryptocurrency.
+
+8. All use of Terra by researchers is subject to the [Terra Terms of Use](https://app.terra.bio/#terms-of-service), which may be updated from time to time. Terra reserves the right to revoke credits for any activity that violates the Terms of Use.
 `
 
 const onixEula = `### Onix Networking Google Cloud Platform Online Customer Agreement
@@ -1321,7 +1323,7 @@ https://cloud.google.com/docs
 `
 
 const FreeTrialEulas = ({ pageTwo }) => {
-  return div({ style: { maxHeight: 500, maxWidth: 1500, overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' } }, [
+  return div({ style: { maxHeight: 600, maxWidth: 1500, overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' } }, [
     h(MarkdownViewer, {
       renderers: {
         link: newWindowLinkRenderer,

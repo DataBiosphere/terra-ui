@@ -50,7 +50,7 @@ const messages = {
 }
 
 
-export const TrialBanner = Utils.connectAtom(authStore, 'authState')(class TrialBanner extends Component {
+export const TrialBanner = Utils.connectStore(authStore, 'authState')(class TrialBanner extends Component {
   constructor(props) {
     super(props)
     this.state = {

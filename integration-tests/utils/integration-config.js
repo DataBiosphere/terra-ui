@@ -1,15 +1,19 @@
 const {
-  TEST_URL: testUrl = 'http://localhost:3000',
-  TERRA_TOKEN: bearerToken,
   BILLING_PROJECT: billingProject = 'general-dev-billing-account',
-  WORKFLOW_NAME: workflowName = 'echo_to_file',
-  SCREENSHOT_DIR: screenshotDir
+  LYLE_SA_KEY: lyleKey,
+  LYLE_URL: lyleUrl = 'https://terra-lyle.appspot.com',
+  SCREENSHOT_DIR: screenshotDir,
+  TERRA_TOKEN: bearerToken,
+  TEST_URL: testUrl = 'http://localhost:3000',
+  WORKFLOW_NAME: workflowName = 'echo_to_file'
 } = process.env
 
 module.exports = {
   bearerToken,
   billingProject,
+  lyleKey,
+  lyleUrl,
+  screenshotDir,
   testUrl,
-  workflowName,
-  screenshotDir
+  workflowName
 }

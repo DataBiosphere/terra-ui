@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  slack: circleci/slack@3.4.1
+
 executors:
   node:
     docker:
@@ -52,6 +55,64 @@ commands:
             - deploy:
                 name: Deploy << parameters.env >>
                 command: gcloud app deploy --project=bvdp-saturn-<< parameters.env >> --promote --quiet
+  integration-tests:
+    parameters:
+      local:
+        type: boolean
+        default: false
+      test_url:
+        type: string
+        default: "http://localhost:3000"
+      billing_project:
+        type: string
+        default: "general-dev-billing-account"
+    steps:
+      - checkout
+      - attach_workspace:
+          at: .
+      - restore_cache:
+          keys:
+            - test-deps3-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
+            - test-deps3-{{ checksum "integration-tests/package.json" }}-
+            - test-deps3-
+      - run:
+          working_directory: integration-tests
+          command: yarn install --frozen-lockfile
+      - save_cache:
+          key: test-deps3-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
+          paths:
+            - integration-tests/node_modules
+            - ~/.cache/yarn
+      - when:
+          condition: << parameters.local >>
+          steps:
+            - run: cp config/dev.json build/config.json
+            - run:
+                command: npx serve build -l 3000
+                background: true
+            - run: timeout 120 bash -c "until nc -z localhost 3000; do sleep 3; done"
+      - run:
+          working_directory: integration-tests
+          environment:
+            JEST_JUNIT_OUTPUT_DIR: "/tmp/test-results/integration-test-results.xml"
+            SCREENSHOT_DIR: "/tmp/failure-screenshots"
+            TEST_URL: << parameters.test_url >>
+            BILLING_PROJECT: << parameters.billing_project >>
+          command: |
+            mkdir -p ${SCREENSHOT_DIR}
+            TERRA_TOKEN=$(node scripts/getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}") \
+            yarn test --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
+      - store_test_results:
+          path: /tmp/test-results
+      - store_artifacts:
+          path: /tmp/failure-screenshots
+  notify-qa:
+    steps:
+      - slack/status:
+          include_job_number_field: false
+          include_project_field: false
+          failure_message: ":sadpanda: $CIRCLE_JOB failed."
+          success_message: ":circleci-pass: $CIRCLE_JOB ran successfully."
 
 jobs:
   test:
@@ -60,26 +121,27 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
-            - deps2-{{ checksum "package.json" }}-
-            - deps2-
-      - run: npx npm@6.13 ci
+            - deps3-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
+            - deps3-{{ checksum "package.json" }}-
+            - deps3-
+      - run: yarn install --frozen-lockfile
       - save_cache:
-          key: deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+          key: deps3-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
           paths:
-            - ~/.npm
-      - run: npm test
+            - node_modules
+            - ~/.cache/yarn
+      - run: yarn test
   build:
     executor: node
     steps:
       - checkout
       - restore_cache:
           keys:
-            - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
-            - deps2-{{ checksum "package.json" }}-
-            - deps2-
-      - run: npx npm@6.13 ci
-      - run: npx npm@6.13 run build
+            - deps3-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
+            - deps3-{{ checksum "package.json" }}-
+            - deps3-
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz
@@ -130,42 +192,25 @@ jobs:
               docker run -t owasp/zap2docker-weekly zap-baseline.py -t ${env};
               if [ $? -ne 1 ]; then exit 0; else exit 1; fi;
             )
-  integration-tests:
+  integration-tests-branch-against-dev:
     executor: puppeteer
     steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - restore_cache:
-          keys:
-            - test-deps2-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/package-lock.json" }}
-            - test-deps2-{{ checksum "integration-tests/package.json" }}-
-            - test-deps2-
-      - run:
-          working_directory: integration-tests
-          command: npx npm@6.13 install
-      - save_cache:
-          key: test-deps2-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/package-lock.json" }}
-          paths:
-            - integration-tests/node_modules
-      - run: cp config/dev.json build/config.json
-      - run:
-          command: npx serve build -l 3000
-          background: true
-      - run: timeout 120 bash -c "until nc -z localhost 3000; do sleep 3; done"
-      - run:
-          working_directory: integration-tests
-          environment:
-            JEST_JUNIT_OUTPUT_DIR: "/tmp/test-results/integration-test-results.xml"
-            SCREENSHOT_DIR: "/tmp/failure-screenshots"
-          command: |
-            mkdir -p ${SCREENSHOT_DIR}
-            TERRA_TOKEN=$(node scripts/getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}") \
-            npx npm@6.13 test -- --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
-      - store_test_results:
-          path: /tmp/test-results
-      - store_artifacts:
-          path: /tmp/failure-screenshots
+      - integration-tests:
+          local: true
+  integration-tests-alpha:
+    executor: puppeteer
+    steps:
+      - integration-tests:
+          billing_project: "broad-dsde-alpha-two"
+          test_url: "https://bvdp-saturn-alpha.appspot.com"
+      - notify-qa
+  integration-tests-staging:
+    executor: puppeteer
+    steps:
+      - integration-tests:
+          billing_project: "bartholomew"
+          test_url: "https://bvdp-saturn-staging.appspot.com"
+      - notify-qa
 
 workflows:
   version: 2
@@ -173,7 +218,7 @@ workflows:
     jobs:
       - test
       - build
-      - integration-tests:
+      - integration-tests-branch-against-dev:
           requires:
             - build
           filters:
@@ -222,3 +267,13 @@ workflows:
           filters:
             branches:
               only: dev
+  nightly-integration-tests:
+    triggers:
+      - schedule:
+          cron: "0 8 * * *"
+          filters:
+            branches:
+              only: dev
+    jobs:
+      - integration-tests-alpha
+      - integration-tests-staging

@@ -13,7 +13,7 @@ import * as Utils from 'src/libs/utils'
 export const useWorkspaces = () => {
   const signal = Utils.useCancellation()
   const [loading, setLoading] = useState(false)
-  const workspaces = Utils.useAtom(workspacesStore)
+  const workspaces = Utils.useStore(workspacesStore)
   const refresh = _.flow(
     withErrorReporting('Error loading workspace list'),
     Utils.withBusyState(setLoading)

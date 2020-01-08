@@ -15,7 +15,7 @@ import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
-import { delay, formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, withBusyState } from 'src/libs/utils'
+import { formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
 
 const Clusters = () => {
@@ -39,17 +39,9 @@ const Clusters = () => {
     }
   })
   const loadClusters = withErrorReporting('Error loading notebook runtimes', refreshClusters)
-  const loadClustersSilently = withErrorIgnoring(refreshClusters)
-  const pollClusters = async () => {
-    while (true) {
-      await delay(30000)
-      await loadClustersSilently()
-    }
-  }
-  useOnMount(() => {
-    loadClusters()
-    pollClusters()
-  })
+
+  useOnMount(() => { loadClusters() })
+  usePollingEffect(withErrorIgnoring(refreshClusters), { ms: 30000 })
 
   const filteredClusters = _.orderBy([{
     project: 'googleProject',

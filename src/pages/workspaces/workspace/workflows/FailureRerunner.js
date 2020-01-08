@@ -11,7 +11,7 @@ import { rerunFailuresStatus } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
-const ToastMessageComponent = Utils.connectAtom(rerunFailuresStatus, 'status')(class ToastMessageComponent extends Component {
+const ToastMessageComponent = Utils.connectStore(rerunFailuresStatus, 'status')(class ToastMessageComponent extends Component {
   render() {
     const { status: { done, text } } = this.props
 
@@ -42,7 +42,7 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
       _.map('workflowEntity')
     )(workflows)
 
-    const newSetName = `${configName}-resubmission-${new Date().toISOString().slice(0, -5).replace(/:/g, '-')}`
+    const newSetName = Utils.sanitizeEntityName(`${configName}-resubmission-${new Date().toISOString().slice(0, -5)}`)
 
     await launch({
       workspaceNamespace: namespace, workspaceName: name,
