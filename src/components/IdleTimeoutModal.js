@@ -26,9 +26,10 @@ const IdleTimeoutModal = ({
   const isClinicalDomain = email && emailDomain ? email.includes(`@${emailDomain}`) : false
   const activeTimeStore = Utils.useStore(lastActiveTimeStore)
 
+  const currentTime = Date.now()
   const lastActive = activeTimeStore[id] === 'expired' ? null : activeTimeStore[id]
-  const lastActiveTime = lastActive ? parseInt(lastActive, 10) : Date.now()
-  const timedOut = Date.now() > lastActiveTime + timeout
+  const lastActiveTime = lastActive ? parseInt(lastActive, 10) : currentTime
+  const timedOut = currentTime > lastActiveTime + timeout
 
   useEffect(() => { timedOut && !isSignedIn && setLastActive('expired') }, [isSignedIn, timedOut])
 
