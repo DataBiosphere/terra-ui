@@ -1,16 +1,17 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { spinnerOverlay } from 'src/components/common'
+import { IdContainer, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
-import { WorkspaceImporter } from 'src/components/workspace-utils'
+import { WorkspaceImporter, WorkspaceSelector } from 'src/components/workspace-utils'
 import importBackground from 'src/images/hex-import-background.svg'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -72,6 +73,9 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
         ]),
         wdl && h(WDLViewer, { wdl, style: { height: 500 } })
       ]),
+
+
+
       div({ style: { ...styles.card, margin: '0 2.5rem', maxWidth: 430 } }, [
         div({ style: styles.title }, ['Workflow Name']),
         h(TextInput, {
@@ -80,9 +84,28 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
           value: workflowName
         }),
         div({ style: { ...styles.title, paddingTop: '2rem' } }, ['Destination Workspace']),
+
+        // h(IdContainer, [id => h(Fragment, [
+        //   h(FormLabel, { htmlFor: id }, ['Destination']),
+        //   h(WorkspaceSelector, {
+        //     id,
+        //     // workspaces: _.filter(Utils.isValidWsExportTarget(workspace), workspaces),
+        //     // value: selectedWorkspaceId,
+        //     onChange: v => {
+        //       this.setState({ selectedWorkspaceId: v })
+        //       this.findNotebooks(v)
+        //     }
+        //   })
+        // ])]),
+
+
         h(WorkspaceImporter, { onImport: ws => this.import_(ws) }),
         isImporting && spinnerOverlay
       ])
+
+
+
+
     ])
   }
 
