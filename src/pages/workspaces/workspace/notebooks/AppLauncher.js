@@ -60,6 +60,7 @@ const AppLauncher = _.flow(
       div({ style: { padding: '2rem' } }, [
         h(StatusMessage, { hideSpinner: ['Error', 'Stopped', null].includes(clusterStatus) }, [
           Utils.switchCase(clusterStatus,
+            ['Running', () => 'Almost ready...'],
             ['Creating', () => 'Creating application compute instance. You can navigate away and return in 3-5 minutes.'],
             ['Stopping', () => 'Application compute instance is stopping. This takes ~4 minutes.'],
             ['Starting', () => 'Starting application compute instance. You can navigate away and return in ~2 minutes.'],
