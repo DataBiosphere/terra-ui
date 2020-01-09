@@ -368,7 +368,7 @@ export const mergeQueryParams = (params, urlString) => {
   return url.href
 }
 
-export const hhmmssToMs = ({ hh = 0, mm = 0, ss = 0 }) => ((hh * 60 * 60) + (mm * 60) + ss) * 1000
+export const durationToMillis = ({ hours = 0, minutes = 0, seconds = 0 }) => ((hours * 60 * 60) + (minutes * 60) + seconds) * 1000
 
 export const useConsoleAssert = (condition, message) => {
   const printed = useRef(false)

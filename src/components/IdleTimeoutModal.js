@@ -12,30 +12,32 @@ import * as Utils from 'src/libs/utils'
 const displayRemainingTime = remainingSeconds => {
   return _.join(':', [
     `${Math.floor(remainingSeconds / 60).toString().padStart(2, '0')}`,
-    `${Math.ceil(remainingSeconds % 60).toString().padStart(2, '0')}`
+    `${Math.floor(remainingSeconds % 60).toString().padStart(2, '0')}`
   ])
 }
 
-const setLastActive = lastActive => lastActiveTimeStore.update(existing => ({ ...existing, [getUser().id]: lastActive }))
+const setLastActive = lastActive => lastActiveTimeStore.update(_.set(getUser().id, lastActive))
+const getLastActiveTime = lastRecordedActivity => Utils.cond(
+  [lastRecordedActivity === 'expired' || !lastRecordedActivity, () => Date.now()],
+  () => parseInt(lastRecordedActivity, 10)
+)
 
-const IdleTimeoutModal = ({
-  timeout = Utils.hhmmssToMs({ mm: 15 }),
-  countdownStart = Utils.hhmmssToMs({ mm: 3 }), emailDomain = ''
+const IdleStatusMonitor = ({
+  timeout = Utils.durationToMillis({ minutes: 15 }),
+  countdownStart = Utils.durationToMillis({ minutes: 3 }), emailDomain = ''
 }) => {
-  const { isSignedIn, profile: { email }, user: { id } } = Utils.useStore(authStore)
-  const isClinicalDomain = email && emailDomain ? email.includes(`@${emailDomain}`) : false
-  const activeTimeStore = Utils.useStore(lastActiveTimeStore)
-
-  const currentTime = Date.now()
-  const lastActive = activeTimeStore[id] === 'expired' ? null : activeTimeStore[id]
-  const lastActiveTime = lastActive ? parseInt(lastActive, 10) : currentTime
-  const timedOut = currentTime > lastActiveTime + timeout
+  const { isSignedIn, user: { id, email } } = Utils.useStore(authStore)
+  // Placeholder code until the clinical user information is available in the user's profile.
+  // This will likely be a boolean property in the profile
+  const isClinicalDomain = email && emailDomain && email.endsWith(`@${emailDomain}`)
+  const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore)
+  const timedOut = Date.now() > getLastActiveTime(lastRecordedActivity) + timeout
 
   useEffect(() => { timedOut && !isSignedIn && setLastActive('expired') }, [isSignedIn, timedOut])
 
   return Utils.cond(
     [isSignedIn && isClinicalDomain, h(InactivityTimer, { id, timeout, countdownStart })],
-    [activeTimeStore[id] === 'expired' && !isSignedIn, () => h(Modal, {
+    [lastRecordedActivity === 'expired' && !isSignedIn, () => h(Modal, {
       title: 'Session Expired',
       showCancel: false,
       onDismiss: () => setLastActive(),
@@ -44,14 +46,32 @@ const IdleTimeoutModal = ({
     null)
 }
 
+const CountdownModal = ({ onCancel, countdown }) => {
+  return h(Modal, {
+    title: 'Your session is about to expire!',
+    onDismiss: () => null,
+    showButtons: false
+  },
+  [
+    'To maintain security and protect clinical data, you will be logged out in',
+    div({ style: { whiteSpace: 'pre', textAlign: 'center', color: colors.accent(1), fontSize: '4rem' } },
+      [displayRemainingTime(countdown / 1000)]),
+    'You can extend your session to continue working',
+    h(ButtonBar, {
+      style: { marginTop: '1rem', display: 'flex', alignItem: 'baseline', justifyContent: 'flex-end' },
+      okText: 'Extend Session',
+      cancelText: 'Log Out',
+      onCancel
+    })
+  ])
+}
+
 const InactivityTimer = ({ id, timeout, countdownStart }) => {
-  const activeTimeStore = Utils.useStore(lastActiveTimeStore)
+  const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore)
   const [logoutRequested, setLogoutRequested] = useState()
   const [currentTime, setDelay] = Utils.useCurrentTime()
 
-  const lastActive = activeTimeStore[id] === 'expired' ? Date.now() : activeTimeStore[id]
-  const lastActiveTime = lastActive ? parseInt(lastActive, 10) : Date.now()
-  const timeoutTime = lastActiveTime + timeout
+  const timeoutTime = getLastActiveTime(lastRecordedActivity) + timeout
   const timedOut = currentTime > timeoutTime
   const showCountdown = currentTime > timeoutTime - countdownStart
   const countdown = Math.max(0, timeoutTime - currentTime)
@@ -62,7 +82,7 @@ const InactivityTimer = ({ id, timeout, countdownStart }) => {
     const targetEvents = ['click', 'keydown']
     const updateLastActive = () => setLastActive(Date.now().toString())
 
-    if (!activeTimeStore[id] || activeTimeStore[id] === 'expired') {
+    if (!lastRecordedActivity || lastRecordedActivity === 'expired') {
       setLastActive(Date.now().toString())
     }
 
@@ -80,26 +100,8 @@ const InactivityTimer = ({ id, timeout, countdownStart }) => {
       return iframe({ style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })
     }
   ],
-  [
-    showCountdown, () => h(Modal, {
-      title: 'Your session is about to expire!',
-      onDismiss: () => null,
-      showButtons: false
-    },
-    [
-      'To maintain security and protect clinical data, you will be logged out in',
-      div({ style: { whiteSpace: 'pre', textAlign: 'center', color: colors.accent(1), fontSize: '4rem' } },
-        [displayRemainingTime(countdown / 1000)]),
-      'You can extend your session to continue working',
-      h(ButtonBar, {
-        style: { marginTop: '1rem', display: 'flex', alignItem: 'baseline', justifyContent: 'flex-end' },
-        okText: 'Extend Session',
-        cancelText: 'Log Out',
-        onCancel: () => setLogoutRequested(true)
-      })
-    ])
-  ],
-  false)
+  [showCountdown, () => h(CountdownModal, { onCancel: () => setLogoutRequested(true), countdown })],
+  null)
 }
 
-export default IdleTimeoutModal
+export default IdleStatusMonitor

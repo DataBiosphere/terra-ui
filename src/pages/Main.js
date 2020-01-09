@@ -7,7 +7,7 @@ import ConfigOverridesWarning from 'src/components/ConfigOverridesWarning'
 import ErrorWrapper from 'src/components/ErrorWrapper'
 import FirecloudNotification from 'src/components/FirecloudNotification'
 import FreeCreditsModal from 'src/components/FreeCreditsModal'
-import IdleTimeoutModal from 'src/components/IdleTimeoutModal'
+import IdleStatusMonitor from 'src/components/IdleTimeoutModal'
 import ImportStatus from 'src/components/ImportStatus'
 import Notifications from 'src/components/Notifications'
 import { NpsSurvey } from 'src/components/NpsSurvey'
@@ -23,7 +23,7 @@ const Main = () => {
     h(ImportStatus),
     h(ServiceAlerts),
     h(FreeCreditsModal),
-    h(IdleTimeoutModal),
+    h(IdleStatusMonitor),
     h(ErrorWrapper, [
       h(TitleManager),
       h(FirecloudNotification),
