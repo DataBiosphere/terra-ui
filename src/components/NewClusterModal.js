@@ -221,9 +221,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           currentCluster && div([
             h(ButtonSecondary, {
               onClick: () => this.setState({ isDeleteView: true }),
-              tooltip: 'Delete application compute instance',
-              'aria-label': 'Delete application compute instance'
-            }, 'Delete Compute')
+              tooltip: 'Delete runtime configuration',
+              'aria-label': 'Delete runtime configuration'
+            }, 'Delete Runtime')
           ]),
           div({ style: { marginLeft: 'auto', marginRight: '2rem' } }, [
             h(ButtonSecondary, {
@@ -251,7 +251,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         }
       }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
-        div({ style: { marginBottom: '1rem' } }, ['Select from one of the default compute cluster profiles or define your own.']),
+        div({ style: { marginBottom: '1rem' } }, ['Select from one of the compute runtime profiles or define your own']),
         div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
           h(IdContainer, [
             id => h(Fragment, [
@@ -357,7 +357,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ]),
       !!currentCluster && div({ style: styles.warningBox }, [
         div({ style: styles.label }, ['Caution:']),
-        'Replacing your compute instance will stop all running notebooks, and delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+        'Replacing your runtime will stop all running notebooks, and delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
         h(Link, {
           variant: 'light',
           href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
@@ -404,10 +404,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onPrevious: () => this.setState({ isDeleteView: false }),
         contents: h(Fragment, [
           p({ style: { margin: '0px 0px 14px' } }, [
-            'Deleting your application compute instance will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.'
+            'Deleting your runtime configuration will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.'
           ]),
           span({ style: { fontWeight: 'bold' } }, 'NOTE: '),
-          'Deleting your compute instance will also delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+          'Deleting your runtime configuration will also delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
           h(Link, {
             href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
             ...Utils.newTabLinkProps
@@ -425,7 +425,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onPrevious: undefined,
         contents: h(Fragment, [
           div({ style: { marginBottom: '1rem' } },
-            ['Create a cloud compute instance to launch Jupyter Notebooks or a Project-specific software application.']),
+            ['Choose a Terra pre-installed runtime environment (e.g. programming languages + packages) or choose a custom environment.']),
           div([
             h(IdContainer, [
               id => h(Fragment, [
@@ -485,8 +485,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         title: Utils.cond(
           [viewMode === 'Packages', () => 'INSTALLED PACKAGES'],
           [viewMode === 'Warning', () => 'WARNING!'],
-          [isDeleteView === true, () => 'DELETE APPLICATION COMPUTE INSTANCE?'],
-          () => 'APPLICATION COMPUTE CONFIGURATION'
+          [isDeleteView === true, () => 'DELETE RUNTIME CONFIGURATION?'],
+          () => 'RUNTIME CONFIGURATION'
         ),
         onDismiss,
         onPrevious
