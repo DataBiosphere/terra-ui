@@ -316,21 +316,18 @@ export default class ClusterManager extends PureComponent {
     const multiple = !creating && activeClusters.length > 1 && currentStatus !== 'Error'
     const isDisabled = !canCompute || creating || multiple || busy
 
-    const currentTool = currentCluster?.labels.tool
-    const appName = currentTool === 'Jupyter' ? 'terminal' : currentTool
+    const isRStudioImage = currentCluster?.labels.tool === 'RStudio'
+    const appName = isRStudioImage ? 'RStudio' : 'terminal'
 
     return div({ style: styles.container }, [
       h(Link, {
         href: Nav.getLink('workspace-app-launch', { namespace, name, app: appName }),
-        tooltip: Utils.cond(
-          [!canCompute, () => noCompute],
-          () => `Open ${appName}`
-        ),
+        tooltip: canCompute ? `Open ${appName}` : noCompute,
         'aria-label': `Open ${appName}`,
         disabled: !canCompute,
         style: { marginRight: '2rem', ...styles.verticalCenter },
-        ...(currentTool === 'Jupyter' ? Utils.newTabLinkProps : {})
-      }, [currentTool === 'RStudio' ? img({ src: rLogo, style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
+        ...(isRStudioImage ? {} : Utils.newTabLinkProps)
+      }, [isRStudioImage ? img({ src: rLogo, style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
       renderIcon(),
       h(ClusterIcon, {
         shape: 'trash',

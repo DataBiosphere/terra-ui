@@ -7,6 +7,7 @@ import { Link, spinnerOverlay } from 'src/components/common'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
+import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -22,13 +23,14 @@ const AppLauncher = _.flow(
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
 
-  const clusterStatus = cluster && cluster.status
+  const clusterStatus = cluster && cluster.status // preserve null vs undefined
+  const clusterName = cluster?.clusterName
 
   return h(Fragment, [
     h(ClusterStatusMonitor, {
       cluster,
       onClusterStartedRunning: async () => {
-        await Ajax().Clusters.notebooks(namespace, cluster.clusterName).setCookie()
+        await Ajax().Clusters.notebooks(namespace, clusterName).setCookie()
         setCookieReady(true)
       },
       onClusterStoppedRunning: () => setCookieReady(false)
@@ -37,9 +39,9 @@ const AppLauncher = _.flow(
       cluster, refreshClusters,
       onNullCluster: () => setShowCreate(true)
     }),
-    cookieReady ?
+    clusterStatus === 'Running' && cookieReady ?
       h(Fragment, [
-        h(PeriodicCookieSetter, { namespace, clusterName: cluster.cluster }),
+        h(PeriodicCookieSetter, { namespace, clusterName }),
         app === 'RStudio' && h(PlaygroundHeader, [
           'This feature is in early development. Your R Code is saved on your compute instance but not to your workspace. We encourage you to frequently ',
           h(Link, {
@@ -58,12 +60,12 @@ const AppLauncher = _.flow(
         })
       ]) :
       div({ style: { padding: '2rem' } }, [
-        h(StatusMessage, { hideSpinner: ['Error', 'Stopped', null].includes(clusterStatus) }, [
+        !busy && h(StatusMessage, { hideSpinner: ['Error', 'Stopped', null].includes(clusterStatus) }, [
           Utils.switchCase(clusterStatus,
-            ['Running', () => 'Almost ready...'],
             ['Creating', () => 'Creating application compute instance. You can navigate away and return in 3-5 minutes.'],
-            ['Stopping', () => 'Application compute instance is stopping. This takes ~4 minutes.'],
             ['Starting', () => 'Starting application compute instance. You can navigate away and return in ~2 minutes.'],
+            ['Running', () => 'Almost ready...'],
+            ['Stopping', () => 'Application compute instance is stopping. This takes ~4 minutes.'],
             ['Stopped', () => 'Application compute instance is stopped. Start it or reload the page to continue.'],
             ['Error', () => 'Error with the application compute instance, please create a new one to continue.'],
             [null, () => 'Create an application compute instance to continue.'],
@@ -79,6 +81,7 @@ const AppLauncher = _.flow(
             withErrorReporting('Error creating cluster'),
             Utils.withBusyState(setBusy)
           )(async promise => {
+            setShowCreate(false)
             await promise
             await refreshClusters()
           })
@@ -91,8 +94,13 @@ const AppLauncher = _.flow(
 
 export const navPaths = [
   {
+    name: 'workspace-terminal', // legacy
+    path: '/workspaces/:namespace/:name/notebooks/terminal',
+    component: props => h(Nav.Redirector, { pathname: Nav.getPath('workspace-app-launch', { ...props, app: 'terminal' }) })
+  },
+  {
     name: 'workspace-app-launch',
-    path: '/workspaces/:namespace/:name/notebooks/:app',
+    path: '/workspaces/:namespace/:name/applications/:app',
     component: AppLauncher,
     title: ({ name, app }) => `${name} - ${app}`
   }
