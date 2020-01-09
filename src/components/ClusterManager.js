@@ -12,7 +12,7 @@ import { notify } from 'src/components/Notifications.js'
 import { Popup } from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
 import rLogo from 'src/images/r-logo.svg'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
 import { clusterCost, currentCluster, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
@@ -128,7 +128,7 @@ const ClusterErrorNotification = ({ cluster }) => {
   ])
 }
 
-export default ajaxCaller(class ClusterManager extends PureComponent {
+export default class ClusterManager extends PureComponent {
   static propTypes = {
     namespace: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
@@ -203,38 +203,35 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   }
 
   createDefaultCluster() {
-    const { ajax: { Clusters }, namespace } = this.props
+    const { namespace } = this.props
     this.executeAndRefresh(
-      Clusters.cluster(namespace, Utils.generateClusterName()).create({
+      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: normalizeMachineConfig({})
       })
     )
   }
 
   destroyClusters(keepIndex) {
-    const { ajax: { Clusters } } = this.props
     const activeClusters = this.getActiveClustersOldestFirst()
     this.executeAndRefresh(
       Promise.all(_.map(
-        ({ googleProject, clusterName }) => Clusters.cluster(googleProject, clusterName).delete(),
+        ({ googleProject, clusterName }) => Ajax().Clusters.cluster(googleProject, clusterName).delete(),
         _.without([_.nth(keepIndex, activeClusters)], activeClusters)
       ))
     )
   }
 
   startCluster() {
-    const { ajax: { Clusters } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Clusters.cluster(googleProject, clusterName).start()
+      Ajax().Clusters.cluster(googleProject, clusterName).start()
     )
   }
 
   stopCluster() {
-    const { ajax: { Clusters } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Clusters.cluster(googleProject, clusterName).stop()
+      Ajax().Clusters.cluster(googleProject, clusterName).stop()
     )
   }
 
@@ -392,4 +389,4 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       pendingNav && spinnerOverlay
     ])
   }
-})
+}
