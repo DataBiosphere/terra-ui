@@ -131,10 +131,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   deleteCluster() {
-    const { currentCluster, onSuccess } = this.props
+    const { currentCluster } = this.props
     const { googleProject, clusterName } = currentCluster
 
-    onSuccess(Ajax().Jupyter.cluster(googleProject, clusterName).delete())
+    return (Ajax().Jupyter.cluster(googleProject, clusterName).delete())
   }
 
   createCluster() {
@@ -177,7 +177,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   })
 
   render() {
-    const { currentCluster, onDismiss } = this.props
+    const { currentCluster, onDismiss, onSuccess } = this.props
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
       jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, isDeleteView
@@ -417,7 +417,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             h(ButtonSecondary,
               { style: { marginRight: '2rem' }, onClick: () => this.setState({ isDeleteView: false }) }, ['CANCEL']),
             h(ButtonPrimary, {
-              onClick: () => this.deleteCluster()
+              onClick: () => onSuccess(this.deleteCluster())
             }, ['DELETE'])
           ])
         ])
