@@ -50,7 +50,7 @@ const withWorkspace = test => async () => {
     }
     throw e
   } finally {
-    await deleteWorkspace(workspaceName).catch(e => console.error(e))
+    await deleteWorkspace(workspaceName)
   }
 }
 
