@@ -265,8 +265,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       return null
     }
     const currentCluster = this.getCurrentCluster()
-    const currentStatus = currentCluster && currentCluster.status
-    const currentTool = currentCluster && currentCluster.labels.tool
+    const currentStatus = currentCluster?.status
+
     const renderIcon = () => {
       switch (currentStatus) {
         case 'Stopped':
@@ -318,8 +318,9 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const creating = _.some({ status: 'Creating' }, activeClusters)
     const multiple = !creating && activeClusters.length > 1 && currentStatus !== 'Error'
     const isDisabled = !canCompute || creating || multiple || busy
-    const isRStudioImage = currentTool === 'RStudio'
-    const appName = isRStudioImage ? 'RStudio' : 'terminal'
+
+    const currentTool = currentCluster?.labels.tool
+    const appName = currentTool === 'Jupyter' ? 'terminal' : currentTool
 
     return div({ style: styles.container }, [
       h(Link, {
@@ -331,8 +332,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
         'aria-label': `Open ${appName}`,
         disabled: !canCompute,
         style: { marginRight: '2rem', ...styles.verticalCenter },
-        ...(!isRStudioImage ? Utils.newTabLinkProps : {})
-      }, [isRStudioImage ? img({ src: rLogo, style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
+        ...(currentTool === 'Jupyter' ? Utils.newTabLinkProps : {})
+      }, [currentTool === 'RStudio' ? img({ src: rLogo, style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
       renderIcon(),
       h(ClusterIcon, {
         shape: 'trash',
