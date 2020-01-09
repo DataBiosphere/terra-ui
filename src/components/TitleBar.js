@@ -4,24 +4,24 @@ import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 
 
-const TitleBar = ({ onPrevious, title, onDismiss, titleExtras, titleSize = '0.875rem', arrowSize = '17', dismissSize = '20' }) => {
+const TitleBar = ({ onPrevious, title, onDismiss, titleExtras }) => {
   return div({
     style: {
       display: 'flex', alignItems: 'baseline', flex: 'none', padding: '1.5rem 1.5rem 0rem'
     }
   }, [
-    div({ style: { fontSize: titleSize, fontWeight: 600 } }, [title]),
+    div({ style: { fontSize: '1rem', fontWeight: 600 } }, [title]),
     titleExtras,
     onPrevious && h(Link, {
       'aria-label': 'Back',
       style: { marginLeft: 'auto', marginRight: '2rem', alignSelf: 'center' },
       onClick: onPrevious
-    }, [icon('arrowLeftRegular', { size: arrowSize })]),
+    }, [icon('arrowLeftRegular', { size: '22' })]),
     onDismiss && h(Link, {
       'aria-label': 'Close',
       style: { marginLeft: onPrevious ? undefined: 'auto' },
       onClick: onDismiss
-    }, [icon('times', { size: dismissSize })])
+    }, [icon('times', { size: '25' })])
   ])
 }
 
