@@ -3,7 +3,7 @@ import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { TextInput } from 'src/components/input'
+import { ValidatedInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import { WorkspaceImporter } from 'src/components/workspace-utils'
@@ -14,6 +14,7 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { validateWorkflowName } from 'src/libs/workflow-utils'
 
 
 const styles = {
@@ -74,10 +75,13 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
       ]),
       div({ style: { ...styles.card, margin: '0 2.5rem', maxWidth: 430 } }, [
         div({ style: styles.title }, ['Workflow Name']),
-        h(TextInput, {
-          'aria-label': 'Workflow name',
-          onChange: workflowName => { this.setState({ workflowName }) },
-          value: workflowName
+        h(ValidatedInput, {
+          inputProps: {
+            'aria-label': 'Workflow name',
+            onChange: workflowName => { this.setState({ workflowName }) },
+            value: workflowName
+          },
+          error: Utils.summarizeErrors(validateWorkflowName(workflowName))
         }),
         div({ style: { ...styles.title, paddingTop: '2rem' } }, ['Destination Workspace']),
         h(WorkspaceImporter, { onImport: ws => this.import_(ws) }),
