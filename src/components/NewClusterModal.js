@@ -30,6 +30,9 @@ const styles = {
     color: 'white',
     padding: '2rem',
     margin: '2rem -1.5rem 0 -1.5rem'
+  },
+  disabledInputs: {
+    border: `1px solid ${colors.dark(0.2)}`, borderRadius: '4px', padding: '0.5rem'
   }
 }
 
@@ -47,10 +50,9 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, 'CPUs'),
-        readOnly ? div({ style: { border: `1px solid ${colors.dark(0.2)}`, borderRadius: '4px', padding: '0.5rem' } }, [currentCpu]) :
+        readOnly ? div({ style: styles.disabledInputs }, [currentCpu]) :
           div([
             h(Select, {
-              isDisabled: readOnly,
               id,
               isSearchable: false,
               value: currentCpu,
@@ -63,10 +65,9 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, 'Memory (GB)'),
-        readOnly ? div({ style: { border: `1px solid ${colors.dark(0.2)}`, borderRadius: '4px', padding: '0.5rem' } }, [currentMemory]) :
+        readOnly ? div({ style: styles.disabledInputs }, [currentMemory]) :
           div([
             h(Select, {
-              isDisabled: readOnly,
               id,
               isSearchable: false,
               value: currentMemory,
@@ -79,9 +80,8 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, 'Disk size (GB)'),
-        readOnly ? div({ style: { border: `1px solid ${colors.dark(0.2)}`, borderRadius: '4px', padding: '0.5rem' } }, [diskSize]) :
+        readOnly ? div({ style: styles.disabledInputs }, [diskSize]) :
           h(NumberInput, {
-            disabled: readOnly,
             id,
             min: 10,
             max: 64000,
@@ -220,9 +220,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         [
           currentCluster && div([
             h(ButtonSecondary, {
-              onClick: () => this.setState({ isDeleteView: true }),
-              tooltip: 'Delete runtime configuration',
-              'aria-label': 'Delete runtime configuration'
+              onClick: () => this.setState({ isDeleteView: true })
             }, 'Delete Runtime')
           ]),
           div({ style: { marginLeft: 'auto', marginRight: '2rem' } }, [
@@ -400,11 +398,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ])
         ])
       })],
-      [isDeleteView === true, () => ({
+      [isDeleteView, () => ({
         onPrevious: () => this.setState({ isDeleteView: false }),
         contents: h(Fragment, [
           p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
-            'Deleting your runtime configuration will also ',
+            'Deleting your runtime will also ',
             span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
             '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
             h(Link, {
@@ -413,7 +411,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             }, ['move them to the workspace bucket.'])
           ]),
           p({ style: { margin: '14px 0px 0px', lineHeight: '1.5rem' } },
-            ['Deleting your runtime configuration will stop all running notebooks and associated costs. You can recreate your runtime later, ' +
+            ['Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, ' +
             'which will take several minutes.']),
           div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
             h(ButtonSecondary,
@@ -485,7 +483,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         title: Utils.cond(
           [viewMode === 'Packages', () => 'INSTALLED PACKAGES'],
           [viewMode === 'Warning', () => 'WARNING!'],
-          [isDeleteView === true, () => 'DELETE RUNTIME CONFIGURATION?'],
+          [isDeleteView, () => 'DELETE RUNTIME?'],
           () => 'RUNTIME CONFIGURATION'
         ),
         onDismiss,
