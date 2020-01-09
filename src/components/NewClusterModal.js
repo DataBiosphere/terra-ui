@@ -403,15 +403,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       [isDeleteView === true, () => ({
         onPrevious: () => this.setState({ isDeleteView: false }),
         contents: h(Fragment, [
-          p({ style: { margin: '0px 0px 14px' } }, [
-            'Deleting your runtime configuration will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.'
+          p({ style: { margin: '0px' } }, [
+            'Deleting your runtime configuration will stop all running notebooks and associated costs. '
           ]),
-          span({ style: { fontWeight: 'bold' } }, 'NOTE: '),
-          'Deleting your runtime configuration will also delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+          p({ style: { margin: '14px 0px 0px' } }, ['Deleting your runtime configuration will also delete any files on the associated hard disk ' +
+          '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
           h(Link, {
             href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
             ...Utils.newTabLinkProps
-          }, ['move them to the workspace bucket.']),
+          }, ['move them to the workspace bucket.'])]),
+          p({ style: { margin: '14px 0px 0px' } }, ['You can recreate your runtime later, which will take several minutes.']),
           div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
             h(ButtonSecondary,
               { style: { marginRight: '2rem' }, onClick: () => this.setState({ isDeleteView: false }) }, ['CANCEL']),
