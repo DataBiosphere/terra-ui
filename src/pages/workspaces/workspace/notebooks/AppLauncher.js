@@ -43,7 +43,7 @@ const AppLauncher = _.flow(
         app === 'RStudio' && h(PlaygroundHeader, [
           'This feature is in early development. Your R Code is saved on your compute instance but not to your workspace. We encourage you to frequently ',
           h(Link, {
-            href: 'https://support.terra.bio/hc/en-us/articles/360037269472', // TODO: needs an anchor
+            href: 'https://support.terra.bio/hc/en-us/articles/360037269472#h_822db925-41fa-4797-b0da-0839580a74da',
             ...Utils.newTabLinkProps
           }, ['back up your code manually']),
           '.'
