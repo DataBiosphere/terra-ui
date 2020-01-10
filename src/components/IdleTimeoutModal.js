@@ -17,10 +17,19 @@ const displayRemainingTime = remainingSeconds => {
 }
 
 const setLastActive = lastActive => lastActiveTimeStore.update(_.set(getUser().id, lastActive))
-const getLastActiveTime = lastRecordedActivity => Utils.cond(
-  [lastRecordedActivity === 'expired' || !lastRecordedActivity, () => Date.now()],
-  () => parseInt(lastRecordedActivity, 10)
-)
+const getIdleData = ({ currentTime, lastRecordedActivity, timeout, countdownStart }) => {
+  const lastActiveTime = Utils.cond(
+    [lastRecordedActivity === 'expired' || !lastRecordedActivity, () => currentTime],
+    () => parseInt(lastRecordedActivity, 10)
+  )
+  const timeoutTime = lastActiveTime + timeout
+
+  return {
+    timedOut: currentTime > timeoutTime,
+    showCountdown: currentTime > timeoutTime - countdownStart,
+    countdown: Math.max(0, timeoutTime - currentTime)
+  }
+}
 
 const IdleStatusMonitor = ({
   timeout = Utils.durationToMillis({ minutes: 15 }),
@@ -31,7 +40,7 @@ const IdleStatusMonitor = ({
   // This will likely be a boolean property in the profile
   const isClinicalDomain = email && emailDomain && email.endsWith(`@${emailDomain}`)
   const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore)
-  const timedOut = Date.now() > getLastActiveTime(lastRecordedActivity) + timeout
+  const { timedOut } = getIdleData({ currentTime: Date.now(), lastRecordedActivity, timeout, countdownStart })
 
   useEffect(() => { timedOut && !isSignedIn && setLastActive('expired') }, [isSignedIn, timedOut])
 
@@ -70,20 +79,16 @@ const InactivityTimer = ({ id, timeout, countdownStart }) => {
   const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore)
   const [logoutRequested, setLogoutRequested] = useState()
   const [currentTime, setDelay] = Utils.useCurrentTime()
-
-  const timeoutTime = getLastActiveTime(lastRecordedActivity) + timeout
-  const timedOut = currentTime > timeoutTime
-  const showCountdown = currentTime > timeoutTime - countdownStart
-  const countdown = Math.max(0, timeoutTime - currentTime)
+  const { timedOut, showCountdown, countdown } = getIdleData({ currentTime, lastRecordedActivity, timeout, countdownStart })
 
   setDelay(showCountdown ? 1000 : Math.max(250, countdown - countdownStart))
 
   Utils.useOnMount(() => {
     const targetEvents = ['click', 'keydown']
-    const updateLastActive = () => setLastActive(Date.now().toString())
+    const updateLastActive = () => setLastActive(Date.now())
 
     if (!lastRecordedActivity || lastRecordedActivity === 'expired') {
-      setLastActive(Date.now().toString())
+      setLastActive(Date.now())
     }
 
     _.forEach(event => document.addEventListener(event, updateLastActive), targetEvents)

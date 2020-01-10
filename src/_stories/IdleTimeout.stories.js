@@ -1,5 +1,6 @@
 import { number, text, withKnobs } from '@storybook/addon-knobs'
 import { storiesOf } from '@storybook/react'
+import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary } from 'src/components/common'
@@ -35,7 +36,7 @@ const Container = ({ modal }) => {
   agree && authStore.set(auth)
 
   useEffect(() => {
-    authTest.set({ user: { id: `${userEmail}-123` }, isSignedIn: false, profile: { email: `user@${userEmail}` } })
+    authTest.set({ user: { id: `${userEmail.replace('.', '')}-123`, email: `user@${userEmail}` }, isSignedIn: false })
   }, [userEmail])
 
   Utils.useOnMount(() => {
@@ -44,7 +45,7 @@ const Container = ({ modal }) => {
     const observer = new MutationObserver(() => {
       const logout = document.evaluate('//iframe[@src="https://www.google.com/accounts/Logout"]',
         document.body, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
-      logout && authTest.set({ user: { id: `${userEmail}-123` }, profile: {} })
+      logout && authTest.update(_.set('isSignedIn', false))
     })
 
     observer.observe(document.body, { attributes: false, childList: true, subtree: true })
@@ -64,10 +65,7 @@ const Container = ({ modal }) => {
       [agree ? 'Please Stop' : 'I Understand']),
       !!agree && h(ButtonPrimary, {
         style: { margin: '1rem 0 0 0 ' },
-        onClick: () => {
-          authTest.set(isSignedIn ? { user: { id: `${userEmail}-123` }, isSignedIn: false, profile: {} } :
-            { user: { id: `${userEmail}-123` }, isSignedIn: true, profile: { email: `user@${userEmail}` } })
-        }
+        onClick: () => authTest.update(_.set('isSignedIn', !isSignedIn))
       },
       [isSignedIn ? 'Sign Out' : 'Sign In'])
     ])
