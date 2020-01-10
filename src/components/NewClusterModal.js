@@ -355,12 +355,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ]),
       !!currentCluster && div({ style: styles.warningBox }, [
         div({ style: styles.label }, ['Caution:']),
-        'Replacing your runtime will stop all running notebooks, and delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
-        h(Link, {
-          variant: 'light',
-          href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-          ...Utils.newTabLinkProps
-        }, ['move them to the workspace bucket.']),
+        p([
+          'Replacing your runtime will ',
+          span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
+          '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+          h(Link, {
+            variant: 'light',
+            href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+            ...Utils.newTabLinkProps
+          }, ['move them to the workspace bucket.'])
+        ]),
         p(['You will be unable to work on the notebooks in this workspace while it updates, which can take a few minutes.'])
       ])
     ])
