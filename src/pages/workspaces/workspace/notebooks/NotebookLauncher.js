@@ -379,6 +379,10 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
   return null
 }
 
+const copyingNotebookMessage = div({ style: { paddingTop: '2rem' } }, [
+  h(StatusMessage, ['Copying notebook to runtime environment, almost ready...'])
+])
+
 const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
   console.assert(status === 'Running', 'Expected application compute instance to be running')
   console.assert(!labels.welderInstallFailed, 'Expected cluster to have Welder')
@@ -432,7 +436,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
         onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name })
       })
     ]),
-    busy && h(StatusMessage, ['Copying notebook to runtime environment, almost ready...'])
+    busy && copyingNotebookMessage
   ])
 }
 
@@ -497,7 +501,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
         onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name })
       })
     ]),
-    busy && h(StatusMessage, ['Copying notebook to runtime environment, almost ready...'])
+    busy && copyingNotebookMessage
   ])
 }
 

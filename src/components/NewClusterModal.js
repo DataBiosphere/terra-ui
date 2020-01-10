@@ -151,7 +151,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     this.setState({ leoImages: newLeoImages })
     if (currentClusterDetails) {
       const { clusterImages, jupyterUserScriptUri } = currentClusterDetails
-      const { imageUrl } = _.find(({ imageType }) => ['Jupyter', 'RStudio'].includes(imageType), clusterImages)
+      const { imageUrl } = _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), clusterImages)
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
       } else {

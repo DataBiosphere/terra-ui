@@ -10,7 +10,7 @@ import * as Utils from 'src/libs/utils'
 
 
 export const StatusMessage = ({ hideSpinner, children }) => {
-  return div({ style: { padding: '1.5rem 2rem', display: 'flex' } }, [
+  return div({ style: { paddingLeft: '2rem', display: 'flex', alignItems: 'center' } }, [
     !hideSpinner && spinner({ style: { marginRight: '0.5rem' } }),
     div([children])
   ])
