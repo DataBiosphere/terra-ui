@@ -13,7 +13,6 @@ import { getUser } from 'src/libs/auth'
 import { clusterCost, currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
