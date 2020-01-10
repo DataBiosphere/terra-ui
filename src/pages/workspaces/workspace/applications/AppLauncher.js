@@ -68,7 +68,7 @@ const AppLauncher = _.flow(
             ['Stopping', () => 'Notebook runtime is stopping. This takes ~4 minutes.'],
             ['Stopped', () => 'Notebook runtime is stopped. Start it or reload the page to continue.'],
             ['Error', () => 'Error with the notebook runtime, please create a new one to continue.'],
-            [null, () => 'Create an notebook runtime to continue.'],
+            [null, () => 'Create a notebook runtime to continue.'],
             [undefined, () => 'Loading...'],
             [Utils.DEFAULT, () => 'Unknown notebook runtime status. Please create a new instance or contact support.']
           )
