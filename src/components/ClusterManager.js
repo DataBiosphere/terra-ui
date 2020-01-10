@@ -75,7 +75,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   Utils.useOnMount(() => { loadClusterError() })
 
   return h(Modal, {
-    title: userscriptError ? 'Application Compute Instance Creation Failed due to Userscript Error' : 'Application instance Creation Failed',
+    title: `Application Compute Instance Creation Failed${userscriptError ? ' due to Userscript Error' : ''}`,
     showCancel: false,
     onDismiss
   }, [
