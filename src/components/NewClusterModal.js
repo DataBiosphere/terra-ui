@@ -131,12 +131,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { namespace, onSuccess, currentCluster } = this.props
     const { jupyterUserScriptUri, selectedLeoImage, customEnvImage } = this.state
     onSuccess(Promise.all([
-      Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: this.getMachineConfig(),
         toolDockerImage: selectedLeoImage === CUSTOM_MODE ? customEnvImage : selectedLeoImage,
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
-      currentCluster && currentCluster.status === 'Error' && Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
+      currentCluster?.status === 'Error' && Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
     ]))
   }
 
@@ -144,14 +144,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, namespace } = this.props
 
     const [currentClusterDetails, newLeoImages] = await Promise.all([
-      currentCluster ? Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).details() : null,
+      currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.clusterName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
     ])
 
     this.setState({ leoImages: newLeoImages })
     if (currentClusterDetails) {
       const { clusterImages, jupyterUserScriptUri } = currentClusterDetails
-      const { imageUrl } = _.find({ imageType: 'Jupyter' }, clusterImages)
+      const { imageUrl } = _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), clusterImages)
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
       } else {
@@ -236,7 +236,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         }
       }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
-        div({ style: { marginBottom: '1rem' } }, ['Select from one of the compute runtime profiles or define your own']),
+        div({ style: { marginBottom: '1rem' } }, ['Select from one of the compute instance profiles or define your own']),
         div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
           h(IdContainer, [
             id => h(Fragment, [
@@ -342,7 +342,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ]),
       !!currentCluster && div({ style: styles.warningBox }, [
         div({ style: styles.label }, ['Caution:']),
-        'Replacing your runtime will stop all running notebooks, and delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+        'Replacing your compute instance will stop all running notebooks, and delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
         h(Link, {
           variant: 'light',
           href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
@@ -444,7 +444,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     return h(Fragment, [
       h(TitleBar, {
-        title: viewMode === 'Packages' ? 'INSTALLED PACKAGES' : 'RUNTIME CONFIGURATION',
+        title: viewMode === 'Packages' ? 'INSTALLED PACKAGES' : 'APPLICATION COMPUTE INSTANCE CONFIGURATION',
         onDismiss,
         onPrevious
       }),

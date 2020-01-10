@@ -29,7 +29,7 @@ const Clusters = () => {
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
 
   const refreshClusters = withBusyState(setLoading, async () => {
-    const newClusters = await Ajax(signal).Jupyter.clustersList({ creator: getUser().email })
+    const newClusters = await Ajax(signal).Clusters.list({ creator: getUser().email })
     setClusters(newClusters)
     if (!_.some({ id: getErrorClusterId() }, newClusters)) {
       setErrorClusterId(undefined)
@@ -38,7 +38,7 @@ const Clusters = () => {
       setDeleteClusterId(undefined)
     }
   })
-  const loadClusters = withErrorReporting('Error loading notebook runtimes', refreshClusters)
+  const loadClusters = withErrorReporting('Error loading application compute instances', refreshClusters)
 
   useOnMount(() => { loadClusters() })
   usePollingEffect(withErrorIgnoring(refreshClusters), { ms: 30000 })
@@ -56,9 +56,9 @@ const Clusters = () => {
   const clustersByProject = _.groupBy('googleProject', clusters)
 
   return h(Fragment, [
-    h(TopBar, { title: 'Notebook runtimes', href: Nav.getLink('clusters') }),
+    h(TopBar, { title: 'Application compute instances', href: Nav.getLink('clusters') }),
     div({ role: 'main', style: { padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', marginBottom: '1rem' } }, ['Your notebook runtimes']),
+      div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', marginBottom: '1rem' } }, ['Your application compute instances']),
       div({ style: { flex: 1 } }, [
         clusters && h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
@@ -122,8 +122,8 @@ const Clusters = () => {
                 cellRenderer: ({ rowIndex }) => {
                   const cluster = filteredClusters[rowIndex]
                   return h(Link, {
-                    'aria-label': 'Delete notebook runtime',
-                    tooltip: 'Delete notebook runtime',
+                    'aria-label': 'Delete application compute instance',
+                    tooltip: 'Delete application compute instance',
                     onClick: () => setDeleteClusterId(cluster.id)
                   }, [icon('trash')])
                 }

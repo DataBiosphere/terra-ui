@@ -3,7 +3,7 @@ import { isAfter } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
-import { div, h, p, span } from 'react-hyperscript-helpers'
+import { div, h, img, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -11,7 +11,8 @@ import { NewClusterModal } from 'src/components/NewClusterModal'
 import { notify } from 'src/components/Notifications.js'
 import { Popup } from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import rLogo from 'src/images/r-logo.svg'
+import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
 import { clusterCost, currentCluster, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
@@ -58,10 +59,10 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   const [loadingClusterDetails, setLoadingClusterDetails] = useState(false)
 
   const loadClusterError = _.flow(
-    withErrorReporting('Error loading notebook runtime details'),
+    withErrorReporting('Error loading application compute instance details'),
     Utils.withBusyState(setLoadingClusterDetails)
   )(async () => {
-    const { errors: clusterErrors } = await Ajax().Jupyter.cluster(cluster.googleProject, cluster.clusterName).details()
+    const { errors: clusterErrors } = await Ajax().Clusters.cluster(cluster.googleProject, cluster.clusterName).details()
     if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), clusterErrors)) {
       setError(
         await Ajax().Buckets.getObjectPreview(cluster.stagingBucket, `userscript_output.txt`, cluster.googleProject, true).then(res => res.text()))
@@ -74,7 +75,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   Utils.useOnMount(() => { loadClusterError() })
 
   return h(Modal, {
-    title: userscriptError ? 'Notebook Runtime Creation Failed due to Userscript Error' : 'Notebook Runtime Creation Failed',
+    title: `Application Compute Instance Creation Failed${userscriptError ? ' due to Userscript Error' : ''}`,
     showCancel: false,
     onDismiss
   }, [
@@ -87,17 +88,17 @@ export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, on
   const [deleting, setDeleting] = useState()
   const deleteCluster = _.flow(
     Utils.withBusyState(setDeleting),
-    withErrorReporting('Error deleting notebook runtime')
+    withErrorReporting('Error deleting application compute instance')
   )(async () => {
-    await Ajax().Jupyter.cluster(googleProject, clusterName).delete()
+    await Ajax().Clusters.cluster(googleProject, clusterName).delete()
     onSuccess()
   })
   return h(Modal, {
-    title: 'Delete notebook runtime?',
+    title: 'Delete application compute instance?',
     onDismiss,
     okButton: deleteCluster
   }, [
-    p(['Deleting your notebook runtime will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
+    p(['Deleting your application compute instance will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
     span({ style: { fontWeight: 'bold' } }, 'NOTE: '),
     'Deleting your runtime will also delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
     h(Link, {
@@ -127,7 +128,7 @@ const ClusterErrorNotification = ({ cluster }) => {
   ])
 }
 
-export default ajaxCaller(class ClusterManager extends PureComponent {
+export default class ClusterManager extends PureComponent {
   static propTypes = {
     namespace: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
@@ -154,7 +155,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`) || {}
 
     if (cluster.status === 'Error' && prevCluster.status !== 'Error' && !_.includes(cluster.id, errorNotifiedClusters.get())) {
-      notify('error', 'Error Creating Notebook Runtime', {
+      notify('error', 'Error Creating Application Compute Instance', {
         message: h(ClusterErrorNotification, { cluster })
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
@@ -162,7 +163,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
       notify('warn', 'Please Update Your Runtime', {
         message: h(Fragment, [
-          p(['On Sunday Oct 20th at 10am, we are introducing important updates to Terra, which are not compatible with the older notebook runtime in this workspace. After this date, you will no longer be able to save new changes to notebooks in one of these older runtimes.']),
+          p(['On Sunday Oct 20th at 10am, we are introducing important updates to Terra, which are not compatible with the older application compute instance in this workspace. After this date, you will no longer be able to save new changes to notebooks in one of these older runtimes.']),
           h(Link, {
             variant: 'light',
             href: dataSyncingDocUrl,
@@ -172,8 +173,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       })
     } else if (isAfter(createdDate, twoMonthsAgo) && !isToday(dateNotified)) {
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
-      notify('warn', 'Outdated Notebook Runtime', {
-        message: 'Your notebook runtime is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'
+      notify('warn', 'Outdated Application Compute Instance', {
+        message: 'Your application compute instance is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'
       })
     }
   }
@@ -195,45 +196,42 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       await promise
       await refreshClusters()
     } catch (error) {
-      reportError('Notebook Runtime Error', error)
+      reportError('Application compute instance Error', error)
     } finally {
       this.setState({ busy: false })
     }
   }
 
   createDefaultCluster() {
-    const { ajax: { Jupyter }, namespace } = this.props
+    const { namespace } = this.props
     this.executeAndRefresh(
-      Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: normalizeMachineConfig({})
       })
     )
   }
 
   destroyClusters(keepIndex) {
-    const { ajax: { Jupyter } } = this.props
     const activeClusters = this.getActiveClustersOldestFirst()
     this.executeAndRefresh(
       Promise.all(_.map(
-        ({ googleProject, clusterName }) => Jupyter.cluster(googleProject, clusterName).delete(),
+        ({ googleProject, clusterName }) => Ajax().Clusters.cluster(googleProject, clusterName).delete(),
         _.without([_.nth(keepIndex, activeClusters)], activeClusters)
       ))
     )
   }
 
   startCluster() {
-    const { ajax: { Jupyter } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Jupyter.cluster(googleProject, clusterName).start()
+      Ajax().Clusters.cluster(googleProject, clusterName).start()
     )
   }
 
   stopCluster() {
-    const { ajax: { Jupyter } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Jupyter.cluster(googleProject, clusterName).stop()
+      Ajax().Clusters.cluster(googleProject, clusterName).stop()
     )
   }
 
@@ -264,7 +262,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       return null
     }
     const currentCluster = this.getCurrentCluster()
-    const currentStatus = currentCluster && currentCluster.status
+    const currentStatus = currentCluster?.status
+
     const renderIcon = () => {
       switch (currentStatus) {
         case 'Stopped':
@@ -272,16 +271,16 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             shape: 'play',
             onClick: () => this.startCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Start notebook runtime' : noCompute,
-            'aria-label': 'Start notebook runtime'
+            tooltip: canCompute ? 'Start application compute instance' : noCompute,
+            'aria-label': 'Start application compute instance'
           })
         case 'Running':
           return h(ClusterIcon, {
             shape: 'pause',
             onClick: () => this.stopCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Stop notebook runtime' : noCompute,
-            'aria-label': 'Stop notebook runtime'
+            tooltip: canCompute ? 'Stop application compute instance' : noCompute,
+            'aria-label': 'Stop application compute instance'
           })
         case 'Starting':
         case 'Stopping':
@@ -289,8 +288,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           return h(ClusterIcon, {
             shape: 'sync',
             disabled: true,
-            tooltip: 'Notebook runtime update in progress',
-            'aria-label': 'Notebook runtime update in progress'
+            tooltip: 'Application compute instance update in progress',
+            'aria-label': 'Application compute instance update in progress'
           })
         case 'Error':
           return h(ClusterIcon, {
@@ -306,8 +305,8 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             shape: 'play',
             onClick: () => this.createDefaultCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Create notebook runtime' : noCompute,
-            'aria-label': 'Create notebook runtime'
+            tooltip: canCompute ? 'Create application compute instance' : noCompute,
+            'aria-label': 'Create application compute instance'
           })
       }
     }
@@ -317,26 +316,25 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const multiple = !creating && activeClusters.length > 1 && currentStatus !== 'Error'
     const isDisabled = !canCompute || creating || multiple || busy
 
+    const isRStudioImage = currentCluster?.labels.tool === 'RStudio'
+    const appName = isRStudioImage ? 'RStudio' : 'terminal'
+
     return div({ style: styles.container }, [
       h(Link, {
-        href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
-        tooltip: Utils.cond(
-          [!canCompute, () => noCompute],
-          [!currentCluster, () => 'Create a basic notebook runtime and open its terminal'],
-          () => 'Open terminal'
-        ),
-        'aria-label': 'Open terminal',
+        href: Nav.getLink('workspace-app-launch', { namespace, name, app: appName }),
+        tooltip: canCompute ? `Open ${appName}` : noCompute,
+        'aria-label': `Open ${appName}`,
         disabled: !canCompute,
         style: { marginRight: '2rem', ...styles.verticalCenter },
-        ...Utils.newTabLinkProps
-      }, [icon('terminal', { size: 24 })]),
+        ...(isRStudioImage ? {} : Utils.newTabLinkProps)
+      }, [isRStudioImage ? img({ src: rLogo, style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
       renderIcon(),
       h(ClusterIcon, {
         shape: 'trash',
         onClick: () => this.setState({ deleteModalOpen: true }),
         disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error', 'Stopping', 'Starting']),
-        tooltip: 'Delete notebook runtime',
-        'aria-label': 'Delete notebook runtime',
+        tooltip: 'Delete application compute instance',
+        'aria-label': 'Delete application compute instance',
         style: { marginLeft: '0.5rem' }
       }),
       h(IdContainer, [id => h(Fragment, [
@@ -353,7 +351,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
           disabled: isDisabled
         }, [
           div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
-            div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
+            div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Application Compute'),
             div({ style: { fontSize: 10 } }, [
               span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
               ` (${Utils.formatUSD(totalCost)} hr)`
@@ -388,4 +386,4 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       pendingNav && spinnerOverlay
     ])
   }
-})
+}
