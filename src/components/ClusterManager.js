@@ -351,7 +351,7 @@ export default class ClusterManager extends PureComponent {
           disabled: isDisabled
         }, [
           div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
-            div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Application Compute'),
+            div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
             div({ style: { fontSize: 10 } }, [
               span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
               ` (${Utils.formatUSD(totalCost)} hr)`
