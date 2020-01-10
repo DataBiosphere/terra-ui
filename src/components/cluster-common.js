@@ -21,7 +21,7 @@ export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
   const signal = Utils.useCancellation()
   const [busy, setBusy] = useState()
 
-  const startClusterOnce = withErrorReporting('Error starting application compute instance', async () => {
+  const startClusterOnce = withErrorReporting('Error starting notebook runtime', async () => {
     while (!signal.aborted) {
       const currentCluster = getCluster()
       const { status, googleProject, clusterName } = currentCluster || {}
