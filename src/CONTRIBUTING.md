@@ -39,16 +39,12 @@ React has simple and elegant API's that allow us to easily componentize pieces o
   * We accept this within our own codebase as well. If the rationale for doing something no longer holds, be willing to change it. "That is how we have always done it" is not a good rationale
 
 3. Release Often
-  * Release small iterable chunks of functionality with low risk 
-  * Makes it easier to find and fix issues when they arise
-  * Daily releases
-  * Fast fixes to bugs found in the wild
-  * promotion from dev to prod is fast
-  
+  * We strive to release small chunks of functionality with low risk 
+  * This makes it easier to find and fix issues when they arise
+    
 4. Be willing to give and receive feedback
   * Being able to give and receive feedback is an excellent way to improve your skills as an individual and support the team
   
-
 5. Ask why / what is the problem we are addressing?
   * Just because we can do something, does that mean we should? Is it the right thing to do?
   * Are we solving an issue for the user, or completing a prescribed task?
@@ -56,19 +52,19 @@ React has simple and elegant API's that allow us to easily componentize pieces o
   
 6. Is something hard to understand? Can it be done better? Do it!
   * This keeps tech debt down, the code base simple, easy to understand and work with
-  * This can be rolled in with development minded
+  * Strive to be more development-minded, fixing issues that can benefit everyone working on the codebase
   
-7. The developer experience should be ejoyable
+7. The developer experience should be enjoyable
    * Use tools that keep the environment simple and easy to use
    * Provide clear error messages where appropriate
   
 8. Write tests baed on how the users will interact with the application
-  * Have the tests focus on how a user will use the application rather than unit tests
+  * Basing tests on how users will actually use the application will help use get a better signal to noise ratio when testing
+  
 9. Use the least powerful abstraction to complete the job
-  * Using switchcase instead of cond where applicable
-  * Using map flatten + map rather reduce / breaking things out into smaller and easier to understand chunks
-  * Safer to use the lesser abstraction, less chance of things going wrong
+  * This is akin to using the right tool for the job
   * The intent of the code is clearer and more precise with simpler abstractions
+  
 10. Usability and A11y
   * Use aria labels
   * Ensure our application is accessible so everyone can use it
@@ -153,6 +149,14 @@ React has simple and elegant API's that allow us to easily componentize pieces o
 8. Understanding the problem
   * Finding value to bring to the users
   * ex. Widening of columns because the user asked for it
+
+9. Release often
+* Daily releases
+  * promotion from dev to prod is fast
+
+10. Least powerful abstraction
+  * Using switchcase instead of cond where applicable
+  * Using map flatten + map rather reduce / breaking things out into smaller and easier to understand chunks
 
 # Miscellany
 * firecloud & workspace are not camelcased
