@@ -72,16 +72,17 @@ commands:
           at: .
       - restore_cache:
           keys:
-            - test-deps2-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/package-lock.json" }}
-            - test-deps2-{{ checksum "integration-tests/package.json" }}-
-            - test-deps2-
+            - test-deps3-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
+            - test-deps3-{{ checksum "integration-tests/package.json" }}-
+            - test-deps3-
       - run:
           working_directory: integration-tests
-          command: npx npm@6.13 install
+          command: yarn install --frozen-lockfile
       - save_cache:
-          key: test-deps2-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/package-lock.json" }}
+          key: test-deps3-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
           paths:
             - integration-tests/node_modules
+            - ~/.cache/yarn
       - when:
           condition: << parameters.local >>
           steps:
@@ -100,7 +101,7 @@ commands:
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             TERRA_TOKEN=$(node scripts/getBearerToken.js "${ALPHA_TEST_UA}" "${ALPHA_USER_SA_KEY_JSON}") \
-            npx npm@6.13 test -- --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
+            yarn test --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
       - store_test_results:
           path: /tmp/test-results
       - store_artifacts:
@@ -120,26 +121,27 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
-            - deps2-{{ checksum "package.json" }}-
-            - deps2-
-      - run: npx npm@6.13 ci
+            - deps3-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
+            - deps3-{{ checksum "package.json" }}-
+            - deps3-
+      - run: yarn install --frozen-lockfile
       - save_cache:
-          key: deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+          key: deps3-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
           paths:
-            - ~/.npm
-      - run: npm test
+            - node_modules
+            - ~/.cache/yarn
+      - run: yarn test
   build:
     executor: node
     steps:
       - checkout
       - restore_cache:
           keys:
-            - deps2-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
-            - deps2-{{ checksum "package.json" }}-
-            - deps2-
-      - run: npx npm@6.13 ci
-      - run: npx npm@6.13 run build
+            - deps3-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
+            - deps3-{{ checksum "package.json" }}-
+            - deps3-
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
           path: build.tgz
@@ -268,7 +270,7 @@ workflows:
   nightly-integration-tests:
     triggers:
       - schedule:
-          cron: "0 0 * * *"
+          cron: "0 8 * * *"
           filters:
             branches:
               only: dev

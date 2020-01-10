@@ -294,9 +294,9 @@ const hca = () => h(Participant, {
   monitoring, and treating disease.`
 }, [
   h(ButtonPrimary, {
-    disabled: true,
-    tooltip: 'HCA not yet in production'
-    //when in production, add this tooltip: browseTooltip
+    href: 'https://data.humancellatlas.org/explore/projects',
+    ...Utils.newTabLinkProps,
+    tooltip: 'Look for the Export Selected Data button to export data from this provider.'
   }, ['Browse Data'])
 ])
 

@@ -102,7 +102,7 @@ const DropDownSection = ({ titleIcon, title, isOpened, onClick, children }) => {
   ])
 }
 
-const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Component {
+const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends Component {
   static propTypes = {
     title: PropTypes.node,
     href: PropTypes.string, // link destination
@@ -278,7 +278,12 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
                 this.hideNav()
                 contactUsActive.set(true)
               }
-            }, ['Contact Us'])
+            }, ['Contact Us']),
+            h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/sections/360003424251-Release-Notes',
+              onClick: () => this.hideNav(),
+              ...Utils.newTabLinkProps
+            }, ['Release Notes'])
           ]),
           isFirecloud() && h(NavSection, {
             disabled: !isSignedIn,
@@ -390,7 +395,7 @@ const PreferFirecloudModal = ({ onDismiss }) => {
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const { profile: { email, firstName, lastName } } = Utils.useAtom(authStore)
+  const { profile: { email, firstName, lastName } } = Utils.useStore(authStore)
   const currUrl = window.location.href
 
   const returnToLegacyFC = _.flow(

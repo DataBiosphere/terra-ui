@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, IdContainer, LabeledCheckbox, Link, Select, SimpleTabBar } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -92,6 +92,8 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
   ])
 }
 
+const CUSTOM_MODE = '__custom_mode__'
+
 export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
   static propTypes = {
     currentCluster: PropTypes.object,
@@ -110,8 +112,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     )
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
-      jupyterUserScriptUri: '',
-      isCustomEnv: false, customEnvImage: '', viewMode: undefined,
+      jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
       ...normalizeMachineConfig(currentConfig)
     }
   }
@@ -128,11 +129,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   createCluster() {
     const { namespace, onSuccess, currentCluster } = this.props
-    const { jupyterUserScriptUri, selectedLeoImage, isCustomEnv, customEnvImage } = this.state
+    const { jupyterUserScriptUri, selectedLeoImage, customEnvImage } = this.state
     onSuccess(Promise.all([
       Ajax().Jupyter.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: this.getMachineConfig(),
-        jupyterDockerImage: isCustomEnv ? customEnvImage : selectedLeoImage,
+        toolDockerImage: selectedLeoImage === CUSTOM_MODE ? customEnvImage : selectedLeoImage,
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
       currentCluster && currentCluster.status === 'Error' && Ajax().Jupyter.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
@@ -154,7 +155,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
       } else {
-        this.setState({ isCustomEnv: true, customEnvImage: imageUrl })
+        this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl })
       }
 
       if (jupyterUserScriptUri) {
@@ -169,12 +170,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, onDismiss } = this.props
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, isCustomEnv, customEnvImage,
-      viewMode, leoImages
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
     const isCustomImageInvalid = !imageValidationRegexp.test(customEnvImage)
+
+    const isSelectedImageCustom = selectedLeoImage === CUSTOM_MODE
 
     const makeEnvSelect = id => h(Select, {
       id,
@@ -185,22 +187,181 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
     })
 
+    const makeGroupedEnvSelect = id => h(GroupedSelect, {
+      id,
+      value: selectedLeoImage,
+      onChange: ({ value }) => {
+        this.setState({ selectedLeoImage: value })
+      },
+      isSearchable: false,
+      isClearable: false,
+      options: [{ label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
+        { label: 'OTHER ENVIRONMENTS', options: [{ label: 'Custom Environment', value: CUSTOM_MODE }] }]
+    })
+
     const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
       div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
       div(['Version: ', version || null])
     ])
 
-    const { contents, onPrevious } = Utils.switchCase(viewMode, [
-      'Packages', () => ({
-        onPrevious: () => this.setState({ viewingPackages: false, viewMode: undefined }),
+    const bottomButtons = () => h(Fragment, [
+      div({ style: { flexGrow: 1 } }),
+      div(
+        { style: { display: 'flex', marginTop: '1rem' } },
+        [
+          div({ style: { marginLeft: 'auto', marginRight: '2rem' } }, [
+            h(ButtonSecondary, {
+              onClick: onDismiss
+            }, 'Cancel')
+          ]),
+          div([
+            h(ButtonPrimary, {
+              disabled: isSelectedImageCustom && isCustomImageInvalid,
+              tooltip: isSelectedImageCustom && isCustomImageInvalid &&
+                'Enter a valid docker image to use',
+              onClick: () => isSelectedImageCustom ?
+                this.setState({ viewMode: 'Warning' }) :
+                this.createCluster()
+            }, !!currentCluster ? 'Replace' : 'Create')
+          ])
+        ])
+    ])
+
+    const machineConfig = () => h(Fragment, [
+      div({
+        style: {
+          padding: '1rem', marginTop: '1rem',
+          backgroundColor: colors.dark(0.15),
+          border: `2px solid ${colors.dark(0.3)}`, borderRadius: '9px'
+        }
+      }, [
+        div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
+        div({ style: { marginBottom: '1rem' } }, ['Select from one of the compute runtime profiles or define your own']),
+        div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: styles.label }, 'Profile'),
+              div({ style: { gridColumnEnd: 'span 5' } }, [
+                h(Select, {
+                  id,
+                  value: profile,
+                  onChange: ({ value }) => {
+                    this.setState({
+                      profile: value,
+                      ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).machineConfig))
+                    })
+                  },
+                  isSearchable: false,
+                  isClearable: false,
+                  options: [
+                    ..._.map(({ name, label }) => ({ value: name, label: `${label} computer power` }), profiles),
+                    { value: 'custom', label: 'Custom' }
+                  ]
+                })
+              ])
+            ])
+          ]),
+          h(MachineSelector, {
+            machineType: masterMachineType,
+            onChangeMachineType: v => this.setState({ masterMachineType: v }),
+            diskSize: masterDiskSize,
+            onChangeDiskSize: v => this.setState({ masterDiskSize: v }),
+            readOnly: profile !== 'custom'
+          }),
+          profile === 'custom' && h(Fragment, [
+            h(IdContainer, [
+              id => h(Fragment, [
+                label({ htmlFor: id, style: styles.label }, 'Startup\nscript'),
+                div({ style: { gridColumnEnd: 'span 5' } }, [
+                  h(TextInput, {
+                    id,
+                    placeholder: 'URI',
+                    value: jupyterUserScriptUri,
+                    onChange: v => this.setState({ jupyterUserScriptUri: v })
+                  })
+                ])
+              ])
+            ]),
+            div({ style: { gridColumnEnd: 'span 6' } }, [
+              h(LabeledCheckbox, {
+                checked: !!numberOfWorkers,
+                onChange: v => this.setState({
+                  numberOfWorkers: v ? 2 : 0,
+                  numberOfPreemptibleWorkers: 0
+                })
+              }, ' Configure as Spark cluster')
+            ]),
+            !!numberOfWorkers && h(Fragment, [
+              h(IdContainer, [
+                id => h(Fragment, [
+                  label({ htmlFor: id, style: styles.label }, 'Workers'),
+                  h(NumberInput, {
+                    id,
+                    min: 2,
+                    isClearable: false,
+                    onlyInteger: true,
+                    value: numberOfWorkers,
+                    onChange: v => this.setState({
+                      numberOfWorkers: v,
+                      numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+                    })
+                  })
+                ])
+              ]),
+              h(IdContainer, [
+                id => h(Fragment, [
+                  label({
+                    htmlFor: id,
+                    style: styles.label
+                  }, 'Preemptible'),
+                  h(NumberInput, {
+                    id,
+                    min: 0,
+                    max: numberOfWorkers,
+                    isClearable: false,
+                    onlyInteger: true,
+                    value: numberOfPreemptibleWorkers,
+                    onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
+                  })
+                ])
+              ]),
+              div({ style: { gridColumnEnd: 'span 2' } }),
+              h(MachineSelector, {
+                machineType: workerMachineType,
+                onChangeMachineType: v => this.setState({ workerMachineType: v }),
+                diskSize: workerDiskSize,
+                onChangeDiskSize: v => this.setState({ workerDiskSize: v })
+              })
+            ])
+          ])
+        ]),
+        div({ style: styles.row }, [
+          span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['Cost:']),
+          `${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
+        ])
+      ]),
+      !!currentCluster && div({ style: styles.warningBox }, [
+        div({ style: styles.label }, ['Caution:']),
+        'Replacing your runtime will stop all running notebooks, and delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+        h(Link, {
+          variant: 'light',
+          href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+          ...Utils.newTabLinkProps
+        }, ['move them to the workspace bucket.']),
+        p(['You will be unable to work on the notebooks in this workspace while it updates, which can take a few minutes.'])
+      ])
+    ])
+
+    const { contents, onPrevious } = Utils.switchCase(viewMode,
+      ['Packages', () => ({
+        onPrevious: () => this.setState({ viewMode: undefined }),
         contents: h(Fragment, [
           makeEnvSelect(),
           makeImageInfo({ margin: '1rem 0 2rem' }),
           packages && h(ImageDepViewer, { packageLink: packages })
         ])
-      })
-    ], [
-      'Warning', () => ({
+      })],
+      ['Warning', () => ({
         onPrevious: () => this.setState({ viewMode: undefined }),
         contents: h(Fragment, [
           div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Warning!']),
@@ -216,206 +377,71 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ' to select another image.'
           ]),
           div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
-            h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Back']),
+            h(ButtonSecondary,
+              {
+                style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined })
+              },
+              ['Back']),
             h(ButtonPrimary, { onClick: () => this.createCluster() }, ['Create'])
           ])
         ])
-      })
-    ], [
-      Utils.DEFAULT, () => ({
+      })],
+      [Utils.DEFAULT, () => ({
         onPrevious: undefined,
         contents: h(Fragment, [
-          div({ style: { marginBottom: '1rem' } }, [
-            'Choose a Terra pre-installed runtime environment (e.g. programming languages + packages) or choose a custom environment'
-          ]),
-          h(SimpleTabBar, {
-            tabs: [{ title: 'PRE-INSTALLED ENVIRONMENT', key: false, width: 265 }, { title: 'CUSTOM ENVIRONMENT', key: true, width: 215 }],
-            value: isCustomEnv,
-            onChange: value => this.setState({ isCustomEnv: value })
-          }),
-          div({
-            style: {
-              display: 'grid', gridTemplateColumns: '7rem 2fr 1fr', gridGap: '1rem', alignItems: 'center', margin: '1.5rem 0 1rem', minHeight: 100
-            }
-          }, [
-            isCustomEnv ?
-              h(Fragment, [
-                h(IdContainer, [
-                  id => h(Fragment, [
-                    label({ htmlFor: id, style: { ...styles.label, lineHeight: '38px', alignSelf: 'start' } }, 'Container image'),
-                    div({ style: { gridColumnEnd: 'span 2', alignSelf: 'start', height: '45px' } }, [
-                      h(ValidatedInput, {
-                        inputProps: {
-                          id,
-                          placeholder: '<image name>:<tag>',
-                          value: customEnvImage,
-                          onChange: customEnvImage => this.setState({ customEnvImage })
-                        },
-                        error: customEnvImage && isCustomImageInvalid && 'Not a valid image'
-                      })
-                    ])
-                  ])
-                ]),
-                div({ style: { gridColumnStart: 2, gridColumnEnd: 'span 2', alignSelf: 'start' } }, [
-                  h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom notebook environments']),
-                  span({ style: { fontWeight: 'bold' } }, [' must ']),
-                  ' be based off one of the ',
-                  h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])
-                ])
-              ]) :
-              h(Fragment, [
-                h(IdContainer, [
-                  id => h(Fragment, [
-                    label({ htmlFor: id, style: styles.label }, 'Environment'),
-                    div({ style: { gridColumnEnd: 'span 2', height: '45px' } }, [
-                      makeEnvSelect(id)
-                    ])
-                  ])
-                ]),
-                div({ style: { gridColumnStart: 2, alignSelf: 'start' } }, [
-                  h(Link, { onClick: () => this.setState({ viewMode: 'Packages' }) }, ['What’s installed on this environment?'])
-                ]),
-                makeImageInfo()
-              ])
-          ]),
-          div({
-            style: {
-              padding: '1rem', marginTop: '1rem',
-              backgroundColor: colors.dark(0.15),
-              border: `2px solid ${colors.dark(0.3)}`, borderRadius: '9px'
-            }
-          }, [
-            div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
-            div({ style: { marginBottom: '1rem' } }, ['Select from one of the compute runtime profiles or define your own']),
-            div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
-              h(IdContainer, [
-                id => h(Fragment, [
-                  label({ htmlFor: id, style: styles.label }, 'Profile'),
-                  div({ style: { gridColumnEnd: 'span 5' } }, [
-                    h(Select, {
-                      id,
-                      value: profile,
-                      onChange: ({ value }) => {
-                        this.setState({
-                          profile: value,
-                          ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).machineConfig))
-                        })
-                      },
-                      isSearchable: false,
-                      isClearable: false,
-                      options: [
-                        ..._.map(({ name, label }) => ({ value: name, label: `${label} computer power` }), profiles),
-                        { value: 'custom', label: 'Custom' }
-                      ]
-                    })
-                  ])
-                ])
-              ]),
-              h(MachineSelector, {
-                machineType: masterMachineType,
-                onChangeMachineType: v => this.setState({ masterMachineType: v }),
-                diskSize: masterDiskSize,
-                onChangeDiskSize: v => this.setState({ masterDiskSize: v }),
-                readOnly: profile !== 'custom'
-              }),
-              profile === 'custom' && h(Fragment, [
-                h(IdContainer, [
-                  id => h(Fragment, [
-                    label({ htmlFor: id, style: styles.label }, 'Startup\nscript'),
-                    div({ style: { gridColumnEnd: 'span 5' } }, [
-                      h(TextInput, {
-                        id,
-                        placeholder: 'URI',
-                        value: jupyterUserScriptUri,
-                        onChange: v => this.setState({ jupyterUserScriptUri: v })
-                      })
-                    ])
-                  ])
-                ]),
-                div({ style: { gridColumnEnd: 'span 6' } }, [
-                  h(LabeledCheckbox, {
-                    checked: !!numberOfWorkers,
-                    onChange: v => this.setState({
-                      numberOfWorkers: v ? 2 : 0,
-                      numberOfPreemptibleWorkers: 0
-                    })
-                  }, ' Configure as Spark cluster')
-                ]),
-                !!numberOfWorkers && h(Fragment, [
-                  h(IdContainer, [
-                    id => h(Fragment, [
-                      label({ htmlFor: id, style: styles.label }, 'Workers'),
-                      h(NumberInput, {
-                        id,
-                        min: 2,
-                        isClearable: false,
-                        onlyInteger: true,
-                        value: numberOfWorkers,
-                        onChange: v => this.setState({
-                          numberOfWorkers: v,
-                          numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
-                        })
-                      })
-                    ])
-                  ]),
-                  h(IdContainer, [
-                    id => h(Fragment, [
-                      label({
-                        htmlFor: id,
-                        style: styles.label
-                      }, 'Preemptible'),
-                      h(NumberInput, {
-                        id,
-                        min: 0,
-                        max: numberOfWorkers,
-                        isClearable: false,
-                        onlyInteger: true,
-                        value: numberOfPreemptibleWorkers,
-                        onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
-                      })
-                    ])
-                  ]),
-                  div({ style: { gridColumnEnd: 'span 2' } }),
-                  h(MachineSelector, {
-                    machineType: workerMachineType,
-                    onChangeMachineType: v => this.setState({ workerMachineType: v }),
-                    diskSize: workerDiskSize,
-                    onChangeDiskSize: v => this.setState({ workerDiskSize: v })
-                  })
-                ])
+          div({ style: { marginBottom: '1rem' } },
+            ['Choose a Terra pre-installed runtime environment (e.g. programming languages + packages) or choose a custom environment.']),
+          div([
+            h(IdContainer, [
+              id => h(Fragment, [
+                div({ style: { marginBottom: '0.5rem' } }, [label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT')]),
+                div({ style: { height: '45px' } }, [makeGroupedEnvSelect(id)])
               ])
             ]),
-            div({ style: styles.row }, [
-              span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['Cost:']),
-              `${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
-            ])
+            Utils.switchCase(selectedLeoImage,
+              [CUSTOM_MODE, () => {
+                return h(Fragment, [
+                  h(IdContainer, [
+                    id => h(Fragment, [
+                      div({ style: { marginBottom: '0.5rem', marginTop: '0.5rem' } },
+                        [label({ htmlFor: id, style: { ...styles.label, alignSelf: 'start' } }, 'CONTAINER IMAGE')]),
+                      div({ style: { height: '52px', alignItems: 'center', marginBottom: '0.5rem' } }, [
+                        h(ValidatedInput, {
+                          inputProps: {
+                            id,
+                            placeholder: '<image name>:<tag>',
+                            value: customEnvImage,
+                            onChange: customEnvImage => this.setState({ customEnvImage })
+                          },
+                          error: customEnvImage && isCustomImageInvalid && 'Not a valid image'
+                        })
+                      ])
+                    ])
+                  ]),
+                  div({ style: { margin: '0.5rem' } }, [
+                    h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom notebook environments']),
+                    span({ style: { fontWeight: 'bold' } }, [' must ']),
+                    ' be based off one of the ',
+                    h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])
+                  ])
+                ])
+              }],
+              [Utils.DEFAULT, () => {
+                return h(Fragment, [
+                  div({ style: { display: 'flex' } }, [
+                    h(Link, { onClick: () => this.setState({ viewMode: 'Packages' }) },
+                      ['What’s installed on this environment?']),
+                    makeImageInfo({ marginLeft: 'auto' })
+                  ])
+                ])
+              }])
           ]),
-          !!currentCluster && div({ style: styles.warningBox }, [
-            div({ style: styles.label }, ['Caution:']),
-            'Replacing your runtime will stop all running notebooks, and delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
-            h(Link, {
-              variant: 'light',
-              href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-              ...Utils.newTabLinkProps
-            }, ['move them to the workspace bucket.']),
-            p(['You will be unable to work on the notebooks in this workspace while it updates, which can take a few minutes.'])
-          ]),
-          div({ style: { flexGrow: 1 } }),
-          div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
-            h(ButtonSecondary, {
-              style: { marginTop: '1rem', marginRight: '2rem' },
-              onClick: onDismiss
-            }, 'Cancel'),
-            h(ButtonPrimary, {
-              disabled: isCustomEnv && isCustomImageInvalid,
-              tooltip: isCustomEnv && isCustomImageInvalid && 'Enter a valid docker image to use',
-              style: { marginTop: '1rem' },
-              onClick: () => isCustomEnv ? this.setState({ viewMode: 'Warning' }) : this.createCluster()
-            }, !!currentCluster ? 'Replace' : 'Create')
-          ])
+          machineConfig(),
+          bottomButtons()
         ])
-      })
-    ])
+      })]
+    )
+
     return h(Fragment, [
       h(TitleBar, {
         title: viewMode === 'Packages' ? 'INSTALLED PACKAGES' : 'RUNTIME CONFIGURATION',

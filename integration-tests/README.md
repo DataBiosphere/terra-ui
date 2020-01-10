@@ -2,14 +2,14 @@
 
 ### Setup
 
-1. Start by making sure you're running the correct versions of Node and NPM, as described in the [root README](../README.md).
-2. Run `npm install` in this directory.
+1. Start by making sure you're running the correct versions of Node and Yarn, as described in the [root README](../README.md).
+2. Run `yarn install` in this directory.
 3. To set up an environment, run `node scripts/initializeEnvironment.js`.
 
 ### Running the tests
 
 ```sh
-TERRA_TOKEN=[bearer token] npm run test
+TERRA_TOKEN=[bearer token] LYLE_SA_KEY=[full key json] yarn test
 ```
 
 #### Configuration
@@ -22,4 +22,17 @@ The following environment variables are parsed by the tests:
     * _Default `general-dev-billing-account`_
 4. `WORKFLOW_NAME`: workflow/method used for tests. Expects published config named `[name]-configured`.
     * _Default `echo_to_file`_
-5. `SCREENSHOT_DIR`: without this, screenshots won't be saved on test failure.
+5.  `LYLE_SA_KEY` **(required)**: service account key to access Lyle.  
+    Can be found in vault at `secret/dsde/terra/envs/common/lyle-user-service-account-key`
+6.  `LYLE_URL`: URL for the service account allocator.
+    * _Default `https://terra-lyle.appspot.com`_
+7. `SCREENSHOT_DIR`: without this, screenshots won't be saved on test failure.
+
+#### Convenient one-liner:
+_(make sure you're `gcloud auth`ed as a user registered on Terra on your environment, with access to the billing project)_
+
+```sh
+TERRA_TOKEN=$(gcloud auth print-access-token) \
+LYLE_SA_KEY=$(vault read --format=json secret/dsde/terra/envs/common/lyle-user-service-account-key | jq .data) \
+yarn test
+```

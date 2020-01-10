@@ -1,10 +1,11 @@
 const pRetry = require('p-retry')
 const { testUrl, workflowName, billingProject } = require('../utils/integration-config')
 const { withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, input, signIntoTerra, waitForNoSpinners, findInGrid, navChild, findInDataTableRow } = require('../utils/integration-utils')
+const { click, clickable, findElement, input, signIntoTerra, waitForNoSpinners, findInGrid, navChild, findInDataTableRow } = require('../utils/integration-utils')
 
 
 const testEntity = { name: 'test_entity_1', entityType: 'test_entity', attributes: { input: 'foo' } }
+const findWorkflowButton = clickable({ textContains: 'Find a Workflow' })
 
 test('run workflow', withWorkspace(async ({ workspaceName }) => {
   await page.goto(testUrl)
@@ -16,8 +17,9 @@ test('run workflow', withWorkspace(async ({ workspaceName }) => {
   await click(page, clickable({ textContains: workspaceName }))
 
   await click(page, navChild('workflows'))
+  await findElement(page, findWorkflowButton)
   await waitForNoSpinners(page)
-  await click(page, clickable({ textContains: 'Find a Workflow' }))
+  await click(page, findWorkflowButton)
   await click(page, clickable({ textContains: workflowName }))
   await waitForNoSpinners(page)
   await click(page, clickable({ text: 'Add to Workspace' }))

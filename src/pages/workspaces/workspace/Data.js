@@ -641,25 +641,20 @@ class EntitiesContent extends Component {
       isSet ? _.without([`${setRoot}s`]) : _.identity
     )(columnSettings)
 
-    const entityToRow = entity => _.join('\t', [
-      entity.name, ..._.map(
-        attribute => Utils.entityAttributeText(entity.attributes[attribute], true),
-        attributeNames)
+    const entityTsv = Utils.makeTSV([
+      [`entity:${entityKey}_id`, ...attributeNames],
+      ..._.map(({ name, attributes }) => {
+        return [name, ..._.map(attribute => Utils.entityAttributeText(attributes[attribute], true), attributeNames)]
+      }, sortedEntities)
     ])
 
-    const header = _.join('\t', [`entity:${entityKey}_id`, ...attributeNames])
-
-    const entityTsv = `${_.join('\n', [header, ..._.map(entityToRow, sortedEntities)])}\n`
-
     if (isSet) {
-      const entityToMembership = ({ attributes, name }) => _.map(
-        ({ entityName }) => `${name}\t${entityName}`,
-        attributes[`${setRoot}s`].items
-      )
-
-      const header = `membership:${entityKey}_id\t${setRoot}`
-
-      const membershipTsv = `${_.join('\n', [header, ..._.flatMap(entityToMembership, sortedEntities)])}\n`
+      const membershipTsv = Utils.makeTSV([
+        [`membership:${entityKey}_id`, setRoot],
+        ..._.flatMap(({ attributes, name }) => {
+          return _.map(({ entityName }) => [name, entityName], attributes[`${setRoot}s`].items)
+        }, sortedEntities)
+      ])
 
       const zipFile = new JSZip()
         .file(`${entityKey}_entity.tsv`, entityTsv)
@@ -906,7 +901,7 @@ const WorkspaceData = _.flow(
     title: 'Data', activeTab: 'data'
   }),
   ajaxCaller,
-  Utils.connectAtom(pfbImportJobStore, 'pfbImportJobs')
+  Utils.connectStore(pfbImportJobStore, 'pfbImportJobs')
 )(class WorkspaceData extends Component {
   constructor(props) {
     super(props)

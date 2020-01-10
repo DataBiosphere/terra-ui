@@ -7,7 +7,6 @@ import { Link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, statusIcon, submittedIcon, successIcon } from 'src/components/job-common'
-import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
@@ -18,7 +17,6 @@ import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { SubmissionQueueStatus } from 'src/pages/workspaces/workspace/SubmissionQueueStatus'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -192,12 +190,7 @@ const SubmissionDetails = _.flow(
             onChange: data => setStatusFilter(_.map('value', data)),
             options: Utils.workflowStatuses
           })
-        ]),
-        div({ style: { flexGrow: '1' } }),
-        h(PopupTrigger, {
-          content: div({ style: { margin: '0.5rem' } }, [h(SubmissionQueueStatus)]),
-          side: 'bottom'
-        }, [h(Link, ['Queue Status'])])
+        ])
       ]),
       div({ style: { flex: 1 } }, [
         h(AutoSizer, [({ width, height }) => h(FlexTable, {
@@ -249,7 +242,7 @@ const SubmissionDetails = _.flow(
                 return h(TooltipCell, [h(Fragment, _.map(div, filteredWorkflows[rowIndex].messages))])
               }
             }, {
-              size: { basis: 150, grow: 0 },
+              size: { basis: 375, grow: 0 },
               headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
