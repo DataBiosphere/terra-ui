@@ -430,3 +430,7 @@ export const maybeParseJSON = maybeJSONString => {
 }
 
 export const sanitizeEntityName = unsafe => unsafe.replace(/[^\w]/g, '-')
+
+export const makeTSV = rows => {
+  return _.join('', _.map(row => `${_.join('\t', row)}\n`, rows))
+}
