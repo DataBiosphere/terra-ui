@@ -298,7 +298,7 @@ const commonSelectProps = {
     }
   }
 }
-const formatGroupLabel = groupedLabels => (
+const formatGroupLabel = group => (
   div({
     style: {
       color: colors.dark(),
@@ -307,7 +307,7 @@ const formatGroupLabel = groupedLabels => (
       fontWeight: 600,
       borderBottom: `1px solid ${colors.dark(0.25)}`
     }
-  }, [groupedLabels.label]))
+  }, [group.label]))
 
 const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
@@ -318,7 +318,7 @@ const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
     getOptionLabel: ({ value, label }) => label || value.toString(),
     value: newValue || null, // need null instead of undefined to clear the select
     options: newOptions,
-    formatGroupLabel: groupedLabels => formatGroupLabel(groupedLabels)
+    formatGroupLabel
   }, props))
 }
 
