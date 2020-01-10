@@ -444,7 +444,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     return h(Fragment, [
       h(TitleBar, {
-        title: viewMode === 'Packages' ? 'INSTALLED PACKAGES' : 'APPLICATION COMPUTE INSTANCE CONFIGURATION',
+        title: viewMode === 'Packages' ? 'INSTALLED PACKAGES' : 'NOTEBOOK RUNTIME CONFIGURATION',
         onDismiss,
         onPrevious
       }),
