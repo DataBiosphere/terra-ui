@@ -177,8 +177,6 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
       const parsedValue = isList ? _.map(Utils.convertValue(newBaseType), editValue.split(/,\s*/)) :
         Utils.convertValue(newBaseType, editValue)
 
-      this.setState({ saving: true })
-
       await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes({ [editKey]: parsedValue })
 
       if (editKey !== originalKey) {
@@ -326,10 +324,7 @@ const LocalVariablesContent = class LocalVariablesContent extends Component {
         onDismiss: () => this.setState({ deleteIndex: undefined }),
         title: 'Are you sure you wish to delete this variable?',
         okButton: h(ButtonPrimary, {
-          onClick: _.flow(
-            withErrorReporting('Error deleting workspace variable'),
-            Utils.withBusyState(v => this.setState({ saving: v }))
-          )(async () => {
+          onClick: withErrorReporting('Error deleting workspace variable', async () => {
             this.setState({ deleteIndex: undefined })
             await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
             refreshWorkspace()
@@ -432,9 +427,11 @@ const ToolDrawer = _.flow(
   const origDataExplorerUrl = dataExplorerButtonEnabled ? _.values(selectedEntities)[0].attributes.data_explorer_url : undefined
   const [baseURL, urlSearch] = origDataExplorerUrl ? origDataExplorerUrl.split('?') : []
   const dataExplorerUrl = origDataExplorerUrl && `${baseURL}?${qs.stringify({ ...qs.parse(urlSearch), wid: workspaceId })}`
-  const openDataExplorerInSameTab = dataExplorerUrl && (dataExplorerUrl.includes('terra.bio') || _.some({ origin: new URL(dataExplorerUrl).origin }, datasets))
+  const openDataExplorerInSameTab = dataExplorerUrl &&
+    (dataExplorerUrl.includes('terra.bio') || _.some({ origin: new URL(dataExplorerUrl).origin }, datasets))
   const dataset = openDataExplorerInSameTab && getDataset(dataExplorerUrl)
-  const linkBase = openDataExplorerInSameTab && Nav.getLink(dataset.authDomain ? 'data-explorer-private' : 'data-explorer-public', { dataset: dataset.name })
+  const linkBase = openDataExplorerInSameTab &&
+    Nav.getLink(dataset.authDomain ? 'data-explorer-private' : 'data-explorer-public', { dataset: dataset.name })
   const dataExplorerPath = openDataExplorerInSameTab && `${linkBase}?${dataExplorerUrl.split('?')[1]}`
 
   const notebookButtonEnabled = isCohort && entitiesCount === 1
@@ -493,7 +490,8 @@ const ToolDrawer = _.flow(
               ...(!openDataExplorerInSameTab ? Utils.newTabLinkProps : {}),
               disabled: !dataExplorerButtonEnabled,
               tooltip: Utils.cond(
-                [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
+                [!entityMetadata.cohort,
+                  () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
                 [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in Data Explorer'],
                 [isCohort && !dataExplorerUrl, () => 'Cohort is too old, please recreate in Data Explorer and save to Terra again'],
                 [!isCohort, () => 'Only cohorts can be opened with Data Explorer']
@@ -505,7 +503,8 @@ const ToolDrawer = _.flow(
               onClick: () => setToolMode('Notebook'),
               disabled: !notebookButtonEnabled,
               tooltip: Utils.cond(
-                [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
+                [!entityMetadata.cohort,
+                  () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
                 [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in notebook'],
                 [!isCohort, () => 'Only cohorts can be opened with notebooks'],
                 [notebookButtonEnabled, () => 'Create a Python 2 or 3 notebook with this cohort']
