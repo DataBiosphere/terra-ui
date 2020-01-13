@@ -290,7 +290,7 @@ const commonSelectProps = {
   components: {
     Option: ({ children, ...props }) => {
       return h(RSelectComponents.Option, props, [
-        div({ style: { display: 'flex', alignItems: 'center' } }, [
+        div({ style: { display: 'flex', alignItems: 'center', height: 25 } }, [
           div({ style: { flexGrow: 1 } }, children),
           props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
         ])
@@ -298,6 +298,16 @@ const commonSelectProps = {
     }
   }
 }
+const formatGroupLabel = group => (
+  div({
+    style: {
+      color: colors.dark(),
+      fontSize: 14,
+      height: 30,
+      fontWeight: 600,
+      borderBottom: `1px solid ${colors.dark(0.25)}`
+    }
+  }, [group.label]))
 
 const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
@@ -307,7 +317,8 @@ const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
     ...commonSelectProps,
     getOptionLabel: ({ value, label }) => label || value.toString(),
     value: newValue || null, // need null instead of undefined to clear the select
-    options: newOptions
+    options: newOptions,
+    formatGroupLabel
   }, props))
 }
 

@@ -343,17 +343,6 @@ export const useUniqueId = () => {
   return useInstance(() => _.uniqueId('unique-id-'))
 }
 
-export const handleNonRunningCluster = ({ status, googleProject, clusterName }, JupyterAjax) => {
-  switch (status) {
-    case 'Stopped':
-      return JupyterAjax.cluster(googleProject, clusterName).start()
-    case 'Creating':
-      return delay(15000)
-    default:
-      return delay(3000)
-  }
-}
-
 export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' } // https://mathiasbynens.github.io/rel-noopener/
 
 export const createHtmlElement = (doc, name, attrs) => {
@@ -367,6 +356,8 @@ export const mergeQueryParams = (params, urlString) => {
   url.search = qs.stringify({ ...qs.parse(url.search, { ignoreQueryPrefix: true, plainObjects: true }), ...params })
   return url.href
 }
+
+export const durationToMillis = ({ hours = 0, minutes = 0, seconds = 0 }) => ((hours * 60 * 60) + (minutes * 60) + seconds) * 1000
 
 export const useConsoleAssert = (condition, message) => {
   const printed = useRef(false)
@@ -403,6 +394,22 @@ export const usePollingEffect = (effectFn, { ms, leading }) => {
   })
 }
 
+export const useCurrentTime = (initialDelay = 250) => {
+  const [currentTime, setCurrentTime] = useState(Date.now())
+  const signal = useCancellation()
+  const delayRef = useRef(initialDelay)
+  useOnMount(() => {
+    const poll = async () => {
+      while (!signal.aborted) {
+        await delay(delayRef.current)
+        !signal.aborted && setCurrentTime(Date.now())
+      }
+    }
+    poll()
+  })
+  return [currentTime, delay => { delayRef.current = delay }]
+}
+
 export const maybeParseJSON = maybeJSONString => {
   try {
     return JSON.parse(maybeJSONString)
@@ -412,3 +419,7 @@ export const maybeParseJSON = maybeJSONString => {
 }
 
 export const sanitizeEntityName = unsafe => unsafe.replace(/[^\w]/g, '-')
+
+export const makeTSV = rows => {
+  return _.join('', _.map(row => `${_.join('\t', row)}\n`, rows))
+}

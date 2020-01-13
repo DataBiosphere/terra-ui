@@ -942,8 +942,8 @@ const Submissions = signal => ({
 })
 
 
-const Jupyter = signal => ({
-  clustersList: async (labels = {}) => {
+const Clusters = signal => ({
+  list: async (labels = {}) => {
     const res = await fetchLeo(`api/clusters?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
@@ -993,11 +993,10 @@ const Jupyter = signal => ({
 
   notebooks: (project, name) => {
     const root = `proxy/${project}/${name}`
-    const oldRoot = `notebooks/${project}/${name}` // TODO: remove once Leo bug for setCookie is fixed: https://broadworkbench.atlassian.net/browse/IA-1269
 
     return {
       oldLocalize: files => {
-        return fetchLeo(`${oldRoot}/api/localize`,
+        return fetchLeo(`notebooks/${project}/${name}/api/localize`, // this is the old root url
           _.mergeAll([authOpts(), jsonBody(files), { signal, method: 'POST' }]))
       },
 
@@ -1008,8 +1007,7 @@ const Jupyter = signal => ({
       },
 
       setCookie: () => {
-        return fetchLeo(`${oldRoot}/setCookie`,
-          _.merge(authOpts(), { signal, credentials: 'include' }))
+        return fetchLeo(`${root}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
       },
 
       setStorageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {
@@ -1084,7 +1082,7 @@ export const Ajax = signal => {
     GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),
     Submissions: Submissions(signal),
-    Jupyter: Jupyter(signal),
+    Clusters: Clusters(signal),
     Dockstore: Dockstore(signal),
     Martha: Martha(signal),
     Duos: Duos(signal)

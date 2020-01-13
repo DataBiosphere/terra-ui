@@ -13,7 +13,6 @@ import { getUser } from 'src/libs/auth'
 import { clusterCost, currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import { formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
@@ -29,7 +28,7 @@ const Clusters = () => {
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
 
   const refreshClusters = withBusyState(setLoading, async () => {
-    const newClusters = await Ajax(signal).Jupyter.clustersList({ creator: getUser().email })
+    const newClusters = await Ajax(signal).Clusters.list({ creator: getUser().email })
     setClusters(newClusters)
     if (!_.some({ id: getErrorClusterId() }, newClusters)) {
       setErrorClusterId(undefined)
@@ -56,7 +55,7 @@ const Clusters = () => {
   const clustersByProject = _.groupBy('googleProject', clusters)
 
   return h(Fragment, [
-    h(TopBar, { title: 'Notebook runtimes', href: Nav.getLink('clusters') }),
+    h(TopBar, { title: 'Notebook runtimes' }),
     div({ role: 'main', style: { padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', marginBottom: '1rem' } }, ['Your notebook runtimes']),
       div({ style: { flex: 1 } }, [

@@ -19,13 +19,13 @@ import * as Profile from 'src/pages/Profile'
 import * as TermsOfService from 'src/pages/TermsOfService'
 import * as TestLogin from 'src/pages/TestLogin'
 import * as WorkspaceList from 'src/pages/workspaces/List'
+import * as AppLauncher from 'src/pages/workspaces/workspace/applications/AppLauncher'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
 import * as Data from 'src/pages/workspaces/workspace/Data'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/SubmissionDetails'
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
-import * as TerminalLauncher from 'src/pages/workspaces/workspace/notebooks/TerminalLauncher'
 import * as Workflows from 'src/pages/workspaces/workspace/Workflows'
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView'
 
@@ -48,7 +48,7 @@ const routes = _.flatten([
   Profile.navPaths,
   Groups.navPaths,
   Group.navPaths,
-  TerminalLauncher.navPaths,
+  AppLauncher.navPaths,
   TermsOfService.navPaths,
   Code.navPaths,
   DataExplorer.navPaths,
