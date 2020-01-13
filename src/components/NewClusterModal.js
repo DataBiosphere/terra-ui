@@ -137,7 +137,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster } = this.props
     const { googleProject, clusterName } = currentCluster
 
-    return (Ajax().Jupyter.cluster(googleProject, clusterName).delete())
+    return (Ajax().Clusters.cluster(googleProject, clusterName).delete())
   }
 
   createCluster() {

@@ -85,7 +85,7 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
     content: h(Fragment, [
       h(MenuButton, {
         href: notebookLink,
-        tooltip: canWrite && 'Open without runtime',
+        tooltip: canWrite && 'Open without compute instance',
         tooltipSide: 'left'
       }, [makeMenuIcon('eye'), 'Open preview']),
       h(MenuButton, {

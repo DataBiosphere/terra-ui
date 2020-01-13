@@ -62,15 +62,15 @@ const AppLauncher = _.flow(
       div({ style: { padding: '2rem' } }, [
         !busy && h(StatusMessage, { hideSpinner: ['Error', 'Stopped', null].includes(clusterStatus) }, [
           Utils.switchCase(clusterStatus,
-            ['Creating', () => 'Creating notebook runtime. You can navigate away and return in 3-5 minutes.'],
-            ['Starting', () => 'Starting notebook runtime. You can navigate away and return in ~2 minutes.'],
+            ['Creating', () => 'Creating application compute instance. You can navigate away and return in 3-5 minutes.'],
+            ['Starting', () => 'Starting application compute instance. You can navigate away and return in ~2 minutes.'],
             ['Running', () => 'Almost ready...'],
-            ['Stopping', () => 'Notebook runtime is stopping. This takes ~4 minutes.'],
-            ['Stopped', () => 'Notebook runtime is stopped. Start it or reload the page to continue.'],
-            ['Error', () => 'Error with the notebook runtime, please create a new one to continue.'],
-            [null, () => 'Create a notebook runtime to continue.'],
+            ['Stopping', () => 'Application compute instance is stopping. This takes ~4 minutes.'],
+            ['Stopped', () => 'Application compute instance is stopped. Start it or reload the page to continue.'],
+            ['Error', () => 'Error with the application compute instance, please create a new one to continue.'],
+            [null, () => 'Create an application compute instance to continue.'],
             [undefined, () => 'Loading...'],
-            [Utils.DEFAULT, () => 'Unknown notebook runtime status. Please create a new instance or contact support.']
+            [Utils.DEFAULT, () => 'Unknown application compute instance status. Please create a new instance or contact support.']
           )
         ]),
         h(NewClusterModal, {
