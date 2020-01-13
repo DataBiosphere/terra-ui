@@ -100,6 +100,6 @@ module.exports = {
 
     'import/newline-after-import': ['warn', { 'count': 2 }],
     'import/no-anonymous-default-export': ['warn', { 'allowObject': true }],
-    'import/order': ['warn', { 'alphabetize': { 'order': 'asc', 'caseInsensitive': true } }]
+    'import/order': ['warn', { 'alphabetize': { 'caseInsensitive': true, 'order': 'asc' } }]
   }
 }
