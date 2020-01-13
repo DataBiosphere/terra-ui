@@ -220,7 +220,7 @@ const User = signal => ({
   // 2. Check the tickets are generated on Zendesk
   // 3. Reply internally (as a Light Agent) and make sure an email is not sent
   // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
-  createSupportRequest: ({ name, email, currUrl, subject, type, description, attachmentToken, emailAgreed }) => {
+  createSupportRequest: ({ name, email, currUrl, subject, type, description, attachmentToken, emailAgreed, isClinicalUser }) => {
     return fetchOk(
       `https://support.terra.bio/api/v2/requests.json`,
       _.merge({ signal, method: 'POST' }, jsonBody({
@@ -233,7 +233,8 @@ const User = signal => ({
             { id: 360007369412, value: description },
             { id: 360012744292, value: name },
             { id: 360012782111, value: email },
-            { id: 360018545031, value: emailAgreed }
+            { id: 360018545031, value: emailAgreed },
+            { id: 360027238572, value: isClinicalUser }
           ],
           comment: {
             body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`,

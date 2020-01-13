@@ -92,7 +92,7 @@ const SupportRequest = _.flow(
 
   getRequest() {
     const { authState: { profile: { firstName, lastName } } } = this.props
-    const { nameEntered, email, description, subject, type, attachmentToken } = this.state
+    const { nameEntered, email, description, subject, type, attachmentToken, isClinicalUser } = this.state
 
     return {
       name: this.hasName() ? `${firstName} ${lastName}` : nameEntered,
@@ -100,7 +100,8 @@ const SupportRequest = _.flow(
       description,
       subject,
       type,
-      attachmentToken
+      attachmentToken,
+      isClinicalUser
     }
   }
 
