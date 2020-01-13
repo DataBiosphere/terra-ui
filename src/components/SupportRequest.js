@@ -63,7 +63,7 @@ const SupportRequest = _.flow(
       uploadingFile: false,
       attachmentName: '',
       isClinicalUserQuestionAnswered: false,
-      isClinicalUser: null
+      isClinicalUser: undefined
     }
   }
 
@@ -227,7 +227,7 @@ const SupportRequest = _.flow(
             labelStyle: { margin: '0 2rem 0 0.25rem' },
             onChange: () => this.assignIsClinicalUser(false)
           })
-          ])]),
+        ])]),
         submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
         submitting && spinnerOverlay,
         div({ style: styles.buttonRow }, [
@@ -250,7 +250,7 @@ const SupportRequest = _.flow(
   }
 
   submit = Utils.withBusyState(v => this.setState({ submitting: v }), async () => {
-    const { type, email, subject, description, attachmentToken } = this.state
+    const { type, email, subject, description, attachmentToken, isClinicalUser } = this.state
     const currUrl = window.location.href
     const hasAttachment = attachmentToken !== ''
 
@@ -263,7 +263,7 @@ const SupportRequest = _.flow(
           style: { fontWeight: 800, color: 'white' },
           hover: { color: 'white', textDecoration: 'underline' },
           href: `mailto:terra-support@broadinstitute.zendesk.org?subject=${type}%3A%20${subject}&body=Original%20support%20request%3A%0A` +
-            `------------------------------------%0AContact email%3A%20${email}%0A%0A${description}%0A%0A------------------------------------` +
+            `------------------------------------%0AContact email%3A%20${email}%0AIs clinical user%3A%20${isClinicalUser}%0A%0A${description}%0A%0A------------------------------------` +
             `%0AError%20reported%20from%20Zendesk%3A%0A%0A${JSON.stringify(error)}`,
           ...Utils.newTabLinkProps
         }, 'Click here to email support'), hasAttachment && ' and make sure to add your attachment to the email.']
