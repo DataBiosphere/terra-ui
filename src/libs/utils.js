@@ -357,6 +357,8 @@ export const mergeQueryParams = (params, urlString) => {
   return url.href
 }
 
+export const durationToMillis = ({ hours = 0, minutes = 0, seconds = 0 }) => ((hours * 60 * 60) + (minutes * 60) + seconds) * 1000
+
 export const useConsoleAssert = (condition, message) => {
   const printed = useRef(false)
   if (!printed.current && !condition) {
@@ -390,6 +392,22 @@ export const usePollingEffect = (effectFn, { ms, leading }) => {
     }
     poll()
   })
+}
+
+export const useCurrentTime = (initialDelay = 250) => {
+  const [currentTime, setCurrentTime] = useState(Date.now())
+  const signal = useCancellation()
+  const delayRef = useRef(initialDelay)
+  useOnMount(() => {
+    const poll = async () => {
+      while (!signal.aborted) {
+        await delay(delayRef.current)
+        !signal.aborted && setCurrentTime(Date.now())
+      }
+    }
+    poll()
+  })
+  return [currentTime, delay => { delayRef.current = delay }]
 }
 
 export const maybeParseJSON = maybeJSONString => {
