@@ -17,7 +17,7 @@ export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numb
   }
 }
 
-export const machineStorageCost = config => {
+const machineStorageCost = config => {
   const { masterDiskSize, numberOfWorkers, workerDiskSize } = normalizeMachineConfig(config)
   return (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice
 }

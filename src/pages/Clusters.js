@@ -28,7 +28,7 @@ const Clusters = () => {
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
 
   const refreshClusters = withBusyState(setLoading, async () => {
-    const newClusters = await Ajax(signal).Jupyter.clustersList({ creator: getUser().email })
+    const newClusters = await Ajax(signal).Clusters.list({ creator: getUser().email })
     setClusters(newClusters)
     if (!_.some({ id: getErrorClusterId() }, newClusters)) {
       setErrorClusterId(undefined)
