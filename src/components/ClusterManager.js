@@ -14,7 +14,7 @@ import { dataSyncingDocUrl } from 'src/data/clusters'
 import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
-import { clusterCost, currentCluster, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
+import { clusterCost, currentCluster, deleteText, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -98,13 +98,7 @@ export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, on
     onDismiss,
     okButton: deleteCluster
   }, [
-    p(['Deleting your notebook runtime will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
-    span({ style: { fontWeight: 'bold' } }, 'NOTE: '),
-    'Deleting your runtime will also delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
-    h(Link, {
-      href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-      ...Utils.newTabLinkProps
-    }, ['move them to the workspace bucket.']),
+    h(deleteText),
     deleting && spinnerOverlay
   ])
 }
@@ -141,8 +135,7 @@ export default class ClusterManager extends PureComponent {
     super(props)
     this.state = {
       createModalDrawerOpen: false,
-      busy: false,
-      deleteModalOpen: false
+      busy: false
     }
   }
 
@@ -256,8 +249,8 @@ export default class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, clusters, canCompute, refreshClusters } = this.props
-    const { busy, createModalDrawerOpen, deleteModalOpen, errorModalOpen } = this.state
+    const { namespace, name, clusters, canCompute } = this.props
+    const { busy, createModalDrawerOpen, errorModalOpen } = this.state
     if (!clusters) {
       return null
     }
@@ -329,14 +322,6 @@ export default class ClusterManager extends PureComponent {
         ...(isRStudioImage ? {} : Utils.newTabLinkProps)
       }, [isRStudioImage ? img({ src: rLogo, style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
       renderIcon(),
-      h(ClusterIcon, {
-        shape: 'trash',
-        onClick: () => this.setState({ deleteModalOpen: true }),
-        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error', 'Stopping', 'Starting']),
-        tooltip: 'Delete notebook runtime',
-        'aria-label': 'Delete notebook runtime',
-        style: { marginLeft: '0.5rem' }
-      }),
       h(IdContainer, [id => h(Fragment, [
         h(Clickable, {
           id,
@@ -354,21 +339,13 @@ export default class ClusterManager extends PureComponent {
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
             div({ style: { fontSize: 10 } }, [
               span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
-              ` (${Utils.formatUSD(totalCost)} hr)`
+              currentStatus && ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
           icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
         ]),
         multiple && h(Popup, { side: 'bottom', target: id, handleClickOutside: _.noop }, [this.renderDestroyForm()])
       ])]),
-      deleteModalOpen && h(DeleteClusterModal, {
-        cluster: this.getCurrentCluster(),
-        onDismiss: () => this.setState({ deleteModalOpen: false }),
-        onSuccess: () => {
-          this.setState({ deleteModalOpen: false })
-          refreshClusters()
-        }
-      }),
       h(NewClusterModal, {
         isOpen: createModalDrawerOpen,
         namespace,

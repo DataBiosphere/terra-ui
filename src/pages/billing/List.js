@@ -257,7 +257,7 @@ export const BillingList = _.flow(
     const breadcrumbs = `Billing > Billing Project`
 
     return h(Fragment, [
-      h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
+      h(TopBar, { title: 'Billing' }, [
         !!selectedName && div({
           style: {
             color: 'white', paddingLeft: '5rem', minWidth: 0, marginRight: '0.5rem'
