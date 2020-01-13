@@ -61,13 +61,20 @@ const SupportRequest = _.flow(
       nameEntered: '',
       attachmentToken: '',
       uploadingFile: false,
-      attachmentName: ''
+      attachmentName: '',
+      isClinicalUserQuestionAnswered: false,
+      isClinicalUser: null
     }
   }
 
   hasName() {
     const { authState: { profile: { firstName } } } = this.props
     return !(firstName === 'N/A' || firstName === undefined)
+  }
+
+  assignIsClinicalUser(value) {
+    this.setState({ isClinicalUser: value })
+    this.setState({ isClinicalUserQuestionAnswered: true})
   }
 
   async uploadFile(files) {
@@ -209,15 +216,16 @@ const SupportRequest = _.flow(
           })
         ])]),
         h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { required: true, htmlFor: id }, ['Are you a clinical user?']),
           h(RadioButton, {
-            text: 'Yes', name: 'is-clinical-user', checked: profileInfo[key] === value,
+            text: 'Yes', name: 'is-clinical-user', checked: this.state.isClinicalUserQuestionAnswered && this.state.isClinicalUser,
             labelStyle: { margin: '0 2rem 0 0.25rem' },
-            onChange: () => this.assignValue(key, value)
+            onChange: () => this.assignIsClinicalUser(true)
           }),
           h(RadioButton, {
-            text: 'No', name: 'is-clinical-user', checked: profileInfo[key] === value,
+            text: 'No', name: 'is-clinical-user', checked: this.state.isClinicalUserQuestionAnswered && !this.state.isClinicalUser,
             labelStyle: { margin: '0 2rem 0 0.25rem' },
-            onChange: () => this.assignValue(key, value)
+            onChange: () => this.assignIsClinicalUser(false)
           })
           ])]),
         submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
