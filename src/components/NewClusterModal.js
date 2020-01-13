@@ -10,7 +10,7 @@ import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/clusters'
 import { imageValidationRegexp } from 'src/data/leo-images'
 import { Ajax } from 'src/libs/ajax'
-import { machineConfigCost, normalizeMachineConfig } from 'src/libs/cluster-utils'
+import { deleteText, machineConfigCost, normalizeMachineConfig } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
@@ -30,6 +30,9 @@ const styles = {
     color: 'white',
     padding: '2rem',
     margin: '2rem -1.5rem 0 -1.5rem'
+  },
+  disabledInputs: {
+    border: `1px solid ${colors.dark(0.2)}`, borderRadius: '4px', padding: '0.5rem'
   }
 }
 
@@ -47,46 +50,46 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, 'CPUs'),
-        div([
-          h(Select, {
-            isDisabled: readOnly,
-            id,
-            isSearchable: false,
-            value: currentCpu,
-            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
-            options: _.uniq(_.map('cpu', machineTypes))
-          })
-        ])
+        readOnly ? div({ style: styles.disabledInputs }, [currentCpu]) :
+          div([
+            h(Select, {
+              id,
+              isSearchable: false,
+              value: currentCpu,
+              onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
+              options: _.uniq(_.map('cpu', machineTypes))
+            })
+          ])
       ])
     ]),
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, 'Memory (GB)'),
-        div([
-          h(Select, {
-            isDisabled: readOnly,
-            id,
-            isSearchable: false,
-            value: currentMemory,
-            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),
-            options: _.map('memory', _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes)))
-          })
-        ])
+        readOnly ? div({ style: styles.disabledInputs }, [currentMemory]) :
+          div([
+            h(Select, {
+              id,
+              isSearchable: false,
+              value: currentMemory,
+              onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),
+              options: _.map('memory', _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes)))
+            })
+          ])
       ])
     ]),
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, 'Disk size (GB)'),
-        h(NumberInput, {
-          disabled: readOnly,
-          id,
-          min: 10,
-          max: 64000,
-          isClearable: false,
-          onlyInteger: true,
-          value: diskSize,
-          onChange: onChangeDiskSize
-        })
+        readOnly ? div({ style: styles.disabledInputs }, [diskSize]) :
+          h(NumberInput, {
+            id,
+            min: 10,
+            max: 64000,
+            isClearable: false,
+            onlyInteger: true,
+            value: diskSize,
+            onChange: onChangeDiskSize
+          })
       ])
     ])
   ])
@@ -112,7 +115,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     )
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
-      jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
+      jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined, isDeleteView: false,
       ...normalizeMachineConfig(currentConfig)
     }
   }
@@ -127,6 +130,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
+  deleteCluster() {
+    const { currentCluster } = this.props
+    const { googleProject, clusterName } = currentCluster
+
+    return (Ajax().Jupyter.cluster(googleProject, clusterName).delete())
+  }
+
   createCluster() {
     const { namespace, onSuccess, currentCluster } = this.props
     const { jupyterUserScriptUri, selectedLeoImage, customEnvImage } = this.state
@@ -136,7 +146,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         toolDockerImage: selectedLeoImage === CUSTOM_MODE ? customEnvImage : selectedLeoImage,
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
-      currentCluster?.status === 'Error' && Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.clusterName).delete()
+      currentCluster?.status === 'Error' && this.deleteCluster()
     ]))
   }
 
@@ -167,10 +177,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   })
 
   render() {
-    const { currentCluster, onDismiss } = this.props
+    const { currentCluster, onDismiss, onSuccess } = this.props
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, isDeleteView
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
@@ -205,10 +215,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ])
 
     const bottomButtons = () => h(Fragment, [
-      div({ style: { flexGrow: 1 } }),
       div(
-        { style: { display: 'flex', marginTop: '1rem' } },
+        { style: { display: 'flex', marginTop: '3rem', marginBottom: '1rem' } },
         [
+          currentCluster && div([
+            h(ButtonSecondary, {
+              onClick: () => this.setState({ isDeleteView: true })
+            }, 'Delete Runtime')
+          ]),
           div({ style: { marginLeft: 'auto', marginRight: '2rem' } }, [
             h(ButtonSecondary, {
               onClick: onDismiss
@@ -231,7 +245,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       div({
         style: {
           padding: '1rem', marginTop: '1rem',
-          backgroundColor: colors.dark(0.15),
           border: `2px solid ${colors.dark(0.3)}`, borderRadius: '9px'
         }
       }, [
@@ -335,48 +348,51 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ])
           ])
         ]),
-        div({ style: styles.row }, [
-          span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['Cost:']),
+        div({ style: { backgroundColor: colors.dark(0.2), borderRadius: '100px', width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row } }, [
+          span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['COST:']),
           `${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
         ])
       ]),
       !!currentCluster && div({ style: styles.warningBox }, [
         div({ style: styles.label }, ['Caution:']),
-        'Replacing your runtime will stop all running notebooks, and delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
-        h(Link, {
-          variant: 'light',
-          href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-          ...Utils.newTabLinkProps
-        }, ['move them to the workspace bucket.']),
+        p([
+          'Replacing your runtime will ',
+          span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
+          '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+          h(Link, {
+            variant: 'light',
+            href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+            ...Utils.newTabLinkProps
+          }, ['move them to the workspace bucket.'])
+        ]),
         p(['You will be unable to work on the notebooks in this workspace while it updates, which can take a few minutes.'])
       ])
     ])
 
-    const { contents, onPrevious } = Utils.switchCase(viewMode,
-      ['Packages', () => ({
+    const { contents, onPrevious } = Utils.cond(
+      [viewMode === 'Packages', () => ({
         onPrevious: () => this.setState({ viewMode: undefined }),
         contents: h(Fragment, [
           makeEnvSelect(),
-          makeImageInfo({ margin: '1rem 0 2rem' }),
+          makeImageInfo({ margin: '1rem 0 0.5rem' }),
           packages && h(ImageDepViewer, { packageLink: packages })
         ])
       })],
-      ['Warning', () => ({
+      [viewMode === 'Warning', () => ({
         onPrevious: () => this.setState({ viewMode: undefined }),
         contents: h(Fragment, [
-          div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Warning!']),
-          p([
+          p({ style: { margin: '0px 0px 14px', lineHeight: '1.5' } }, [
             `You are about to create a virtual machine using an unverified Docker image.
-             Please make sure that it was created by you or someone you trust, using one of our `,
+            Please make sure that it was created by you or someone you trust, using one of our `,
             h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
             ' Custom Docker images could potentially cause serious security issues.'
           ]),
           h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
-          p([
-            'If you\'re confident that your image is safe, click ', b(['Create']), ' to use it. Otherwise, click ', b(['Back']),
+          p({ style: { lineHeight: '1.5' } }, [
+            'If you\'re confident that your image is safe, click ', b(['CREATE']), ' to use it. Otherwise, click ', b(['BACK']),
             ' to select another image.'
           ]),
-          div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
+          div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
             h(ButtonSecondary,
               {
                 style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined })
@@ -386,7 +402,20 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ])
         ])
       })],
-      [Utils.DEFAULT, () => ({
+      [isDeleteView, () => ({
+        onPrevious: () => this.setState({ isDeleteView: false }),
+        contents: h(Fragment, [
+          h(deleteText),
+          div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+            h(ButtonSecondary,
+              { style: { marginRight: '2rem' }, onClick: () => this.setState({ isDeleteView: false }) }, ['CANCEL']),
+            h(ButtonPrimary, {
+              onClick: () => onSuccess(this.deleteCluster())
+            }, ['DELETE'])
+          ])
+        ])
+      })],
+      () => ({
         onPrevious: undefined,
         contents: h(Fragment, [
           div({ style: { marginBottom: '1rem' } },
@@ -439,16 +468,21 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           machineConfig(),
           bottomButtons()
         ])
-      })]
+      })
     )
 
     return h(Fragment, [
       h(TitleBar, {
-        title: viewMode === 'Packages' ? 'INSTALLED PACKAGES' : 'NOTEBOOK RUNTIME CONFIGURATION',
+        title: Utils.cond(
+          [viewMode === 'Packages', () => 'INSTALLED PACKAGES'],
+          [viewMode === 'Warning', () => 'WARNING!'],
+          [isDeleteView, () => 'DELETE RUNTIME?'],
+          () => 'RUNTIME CONFIGURATION'
+        ),
         onDismiss,
         onPrevious
       }),
-      div({ style: { padding: '0 1.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents])
+      div({ style: { padding: '0.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents])
     ])
   }
 })

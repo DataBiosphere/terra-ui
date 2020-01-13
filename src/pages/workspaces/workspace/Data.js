@@ -530,7 +530,7 @@ const ToolDrawer = _.flow(
         borderRadius: '1rem',
         border: `1px solid ${colors.dark(0.5)}`,
         padding: '0.25rem 0.875rem',
-        margin: '-1rem 1.5rem 1.5rem',
+        margin: '0.5rem 1.5rem 1.5rem',
         alignSelf: 'flex-start',
         fontSize: 12
       }
