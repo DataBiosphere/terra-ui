@@ -33,89 +33,74 @@ React has simple and elegant API's that allow us to easily componentize pieces o
    * Simple does not mean easy, difficult problems can be coded with simplicity
    * This is difficult to do in practice, but we always strive for simple code
 
-2. Don't be afraid to upset the status quo
-     * Aaccepted or industry standard approaches have value and get us close to where we want to be, rethinking problems from first principles can spur innovation and deliver better results
-     * The world around us is constantly changing and new solutions can present themselves when rethinking a problem
-     * We accept this within our own codebase as well. If the rationale for doing something no longer holds, be willing to change it. "That is how we have always done it" is not a good rationale
-
-3. Release Often
-     * We strive to release small chunks of functionality with low risk 
-     * This makes it easier to find and fix issues when they arise
-    
-4. Be willing to give and receive feedback
-     * Being able to give and receive feedback is an excellent way to improve your skills as an individual and support the project
-  
-5. Ask why / what is the problem we are addressing?
+2. Ask why / what is the problem we are addressing?
+     * Does it bring value to the user?
      * Just because we can do something, does that mean we should? Is it the right thing to do?
      * Are we solving an issue for the user, or completing a prescribed task?
      * Making sure we understand the problem as a whole, pushing back and getting clarification when it is not clearly understood
+    
+3. Don't be afraid to upset the status quo
+     * Accepted or industry standard approaches have value and get us close to where we want to be, rethinking problems from first principles can spur innovation and deliver better results
+     * The world around us is constantly changing and new solutions can present themselves when rethinking a problem
+     * We accept this within our own codebase as well. If the rationale for doing something no longer holds, be willing to change it. "That is how we have always done it" is not a good rationale
+     * **Is something hard to understand? Can it be done better? Do it!** This keeps tech debt down, the code base simple, easy to understand and work with.
+     * Fix issues that can benefit everyone working on the codebase
   
-6. Is something hard to understand? Can it be done better? Do it!
-     * This keeps tech debt down, the code base simple, easy to understand and work with
-     * Strive to be more development-minded, fixing issues that can benefit everyone working on the codebase
+4. Be willing to give and receive feedback
+     * Being able to give and receive feedback is an excellent way to improve your skills as an individual and support the project
+
+5. Usability and Accessibility
+     * Ensure our application is accessible so everyone can use it
+     * Accessible applications tend to be more usable for all
+  * Test how the users will interact with the application
   
-7. The developer experience should be enjoyable
-     * Use tools that keep the environment simple and easy to use
+6. Mentoring is an integral part of becoming a better engineer
+      * "If you can't explain it simply you don't understand it well enough" ~quote commonly misattributed to Einstein
+      * Asking questions helps you and the person your asking learn
+
+7. Keep the environment simple so the developer experience is painless
+     * Use tools that keep the environment simple and straightforward to use
      * Provide clear error messages where appropriate
   
-8. Write tests baed on how the users will interact with the application
-     * Basing tests on how users will actually use the application will help use get a better signal to noise ratio when testing
-  
-9. Use the least powerful abstraction to complete the job
-     * The intent of the code is clearer and more precise with simpler abstractions
-     * This is akin to using the right tool for the job (e.g. don't use a sledge hammer to hang a picture)
-  
-10. Usability and A11y
-      * Ensure our application is accessible so everyone can use it
-      * Accessible applications tend to be more usable for all
-  
+    
+
 # Coding Style
+1. We use react-hyperscript-helpers rather than JSX to keep our code base cleaner (status quo)
+  * Hyperscript helpers allows developers to remain in a javascript context rather than having to make a mental context switch to the JSX templating language while developing
 
-* Avoid using let (never use var) prefer using const instead (functional coding)
-  * Using let introduces additional state and potentially side effects into a function. This can make it diffcult to reason about the code and potentially introduce bugs
-
-* Use Lodash/fp for data transformation and functional utility (functional coding)
+2. Use Lodash/fp for data transformation and functional utility
   * fp is the functional programming variant of Lodash designed for better composability, immutability and auto currying built in
   * This allows us to keep the data simple and not tie the data or shape of the data directly into our UI components
   
-* Destructure down to the most atomic property in most cases (simple, easy to understand, avoids access to mutable objects)
-  
-* Use reasonable default values when appropriate rather than using imperative code or conditionals (simple, easy to understand)
-  
-* Try to reduce the overall amount of state required by your code (simple, easy to understand)
-  * Be mindful of how much state (breadth) is being managed in the code
-  * Avoid setting complex state (depth) prefer simple states
-  
-* Use functional instead of class components (functional coding)
+3. Use functional instead of class components
   * Functional components better support our functional coding style 
   * Use react hooks instead of lifecycle methods in a functional component
     * If you need more custom behavior look at the code base for our custom hooks
     * All custom hooks will be prefixed with "use" (e.g. useOnMount)
-  
-* We use react-hyperscript-helpers rather than JSX to keep our code base cleaner (status quo)
-  * Hyperscript helpers allows developers to remain in a javascript context rather than having to make a mental context switch to the JSX templating language while developing
-
-*  We style our site using inline styling. This keeps the styling close to the code allowing developers to easily add styles without having to switch contexts to CSS or another file
+    
+4.  We style our site using inline styling. This keeps the styling close to the code allowing developers to easily add styles without having to switch contexts to CSS or another file
   * This also prevents developers from having to deal with css classes and side effects of the cascade
-  
-* We tend to iterate on the code in our PR cyle. (Handling Feedback)
-  * We emphasize a high level of code quality in our codebase to prevent technical debt and keep the application easy to develop
-  * We prefer slowing down and iterating several times on a PR to ensure the code is right and in line with our standards rather than quickly pushing code through
-  * We encourage comments and discusssion in PR's to release high quality, understandable code
+      
+5. Destructure down to the most atomic property in most cases
 
-* We lint our code using our (custom ESLint rules)[https://github.com/DataBiosphere/terra-ui/blob/dev/.eslintrc.js]
-  * Using an esling plugin with our IDE will improve your developer experience when working with our codebase
+6. Use reasonable default values when appropriate rather than using imperative code or conditionals 
+  * short-circuiting (double check this name)
+
+7. Prefer using constants over (mutable) variables
+  * Variables introduce additional state and potentially side effects into a function. This can make it difficult to reason about the code and potentially introduce bugs
+
+8. We lint our code using our (custom ESLint rules)[https://github.com/DataBiosphere/terra-ui/blob/dev/.eslintrc.js]
+  * Using an eslint plugin with our IDE will improve your developer experience when working with our codebase
 
 # Coding Practices
 
 1. Keeping code simple is easier said than done. 
   * Some General thoughts on simplicity to take into account when contributing code
-    * Can you easily explain your code?
     * Could someone else explain your code?
     * In a year from now will you still understand this code?
     * Did you have to use comments to clarify your code, or is it self explanatory?
     * Do your functions and components need to know implementation details about other functions and components?
-    * Is the data being treated simply as data or is there logic coupled with your data representation?
+    * Is the data decoupled sufficiently from the logic?
 
   * Concepts that can make your code simpler
     * Reduce the amount of state in your functions and component - what is the minimum state needed?
@@ -140,25 +125,27 @@ React has simple and elegant API's that allow us to easily componentize pieces o
      * We prefer to composable constructs such as wrappers (e.g. withErrorHandling) as opposed to imperative code
      * When the need for imperative code arises, make sure the coding style is clearly imperative (use if/else rather than ternary expressions)
      * Take advantage of currying where you can
-     
-3. Do not be afraid to change existing code to make it easier to work with
-    * If you find yourself trying to work around existing code think about what improvements could be 
-      made to it rather then continuing on the workaround
-    * Feel free to reach out to any member of the team if you are unsure of how to proceed before investing too much time
-      into a solution - we love to help our contributors!
-   
-4. Feedback
-     * When in review it may take several iterations for the code to be approved, especially when you are new to the codebase
-     * To merge the code with our dev branch, at least 1 PR approval is needed
-     * Keeping the codebase at a high level of craftsmanship will prevent us from taking on technical debt and pushing problems down the road. A rigorous review cycle is one way in which we try to achieve this
-  
-5. Understanding the problem
+ 
+3. Understanding the problem
      * Before writing code, it is good to understand what value the change is bringing to the users
      * It is also good to understand the user flow - how the user uses the application to make sure we are providing the correct functionality rather than prescribed functionality
      * For example, a user may request making a data column wider so they can more easily copy and paste data
        * Diving into this deeper and asking why they want to copy data in the first place may yield more information unveiling what the user actually wants vs. what they asked for
+  
+4. Feedback
+     * We prefer slowing down and iterating several times on a PR to ensure the code is right and in line with our standards rather than quickly pushing code through
+     * To merge the code with our dev branch, at least 1 PR approval is needed
+     * We emphasize a high level of code quality in our codebase to prevent technical debt and keep the application easy to develop
+     * We encourage comments and discussion in PR's to release high quality, understandable code
 
+5. Do not be afraid to change existing code to make it easier to work with
+    * If you find yourself trying to work around existing code think about what improvements could be 
+      made to it rather then continuing on the workaround
+    * Feel free to reach out to any member of the team if you are unsure of how to proceed before investing too much time
+      into a solution - we love to help our contributors!
+      
 6. Release often
+     * **Once code is merged to dev, it is considered production ready and deployable**
      * We release daily. Once you have merged your code it will be live in production around 10:00AM
      * A rapid release cycle helps us to keep our deployment process simple and allows to to rapidly fix issues as they arise
 
@@ -166,6 +153,4 @@ React has simple and elegant API's that allow us to easily componentize pieces o
 * firecloud & workspace are not camelcased
 * We have a daily release cycle (Release often)
   * We use CircleCI to run our tests and deploy our code
-  * Once code has been merged in with our dev branch it will be deployed at approximately 10:00AM the following day
-   
-# Deployment Cycle (Other Tips)
+  * Once code has been merged in with our dev branch it will be deployed at approximately 10:00AM EST the following day
