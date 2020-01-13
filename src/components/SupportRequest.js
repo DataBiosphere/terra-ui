@@ -20,7 +20,8 @@ const constraints = {
   name: { presence: { allowEmpty: false } },
   subject: { presence: { allowEmpty: false } },
   description: { presence: { allowEmpty: false } },
-  email: { email: true, presence: { allowEmpty: false } }
+  email: { email: true, presence: { allowEmpty: false } },
+  clinicalUser: { presence: { allowEmpty: false } }
 }
 
 const styles = {
@@ -62,8 +63,8 @@ const SupportRequest = _.flow(
       attachmentToken: '',
       uploadingFile: false,
       attachmentName: '',
-      isClinicalUserQuestionAnswered: false,
-      isClinicalUser: undefined
+      clinicalUserQuestionAnswered: false,
+      clinicalUser: undefined
     }
   }
 
@@ -72,9 +73,9 @@ const SupportRequest = _.flow(
     return !(firstName === 'N/A' || firstName === undefined)
   }
 
-  assignIsClinicalUser(value) {
-    this.setState({ isClinicalUser: value })
-    this.setState({ isClinicalUserQuestionAnswered: true})
+  assignclinicalUser(value) {
+    this.setState({ clinicalUser: value })
+    this.setState({ clinicalUserQuestionAnswered: true })
   }
 
   async uploadFile(files) {
@@ -92,7 +93,7 @@ const SupportRequest = _.flow(
 
   getRequest() {
     const { authState: { profile: { firstName, lastName } } } = this.props
-    const { nameEntered, email, description, subject, type, attachmentToken, isClinicalUser } = this.state
+    const { nameEntered, email, description, subject, type, attachmentToken, clinicalUser } = this.state
 
     return {
       name: this.hasName() ? `${firstName} ${lastName}` : nameEntered,
@@ -101,13 +102,13 @@ const SupportRequest = _.flow(
       subject,
       type,
       attachmentToken,
-      isClinicalUser
+      clinicalUser
     }
   }
 
   render() {
     const { isActive, authState: { profile: { firstName } } } = this.props
-    const { submitting, submitError, subject, description, type, email, nameEntered, uploadingFile, attachmentToken, attachmentName } = this.state
+    const { submitting, submitError, subject, description, type, email, nameEntered, uploadingFile, attachmentToken, attachmentName, clinicalUser } = this.state
     const greetUser = this.hasName() ? `, ${firstName}` : ''
     const errors = validate(this.getRequest(), constraints)
 
@@ -219,14 +220,16 @@ const SupportRequest = _.flow(
         h(IdContainer, [id => h(Fragment, [
           h(FormLabel, { required: true, htmlFor: id }, ['Are you a clinical user?']),
           h(RadioButton, {
-            text: 'Yes', name: 'is-clinical-user', checked: this.state.isClinicalUserQuestionAnswered && this.state.isClinicalUser,
+            text: 'Yes', name: 'is-clinical-user', checked: this.state.clinicalUserQuestionAnswered && this.state.clinicalUser,
             labelStyle: { margin: '0 2rem 0 0.25rem' },
-            onChange: () => this.assignIsClinicalUser(true)
+            onChange: () => this.assignclinicalUser(true),
+            value: clinicalUser
           }),
           h(RadioButton, {
-            text: 'No', name: 'is-clinical-user', checked: this.state.isClinicalUserQuestionAnswered && !this.state.isClinicalUser,
+            text: 'No', name: 'is-clinical-user', checked: this.state.clinicalUserQuestionAnswered && !this.state.clinicalUser,
             labelStyle: { margin: '0 2rem 0 0.25rem' },
-            onChange: () => this.assignIsClinicalUser(false)
+            onChange: () => this.assignclinicalUser(false),
+            value: clinicalUser
           })
         ])]),
         submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
@@ -251,7 +254,7 @@ const SupportRequest = _.flow(
   }
 
   submit = Utils.withBusyState(v => this.setState({ submitting: v }), async () => {
-    const { type, email, subject, description, attachmentToken, isClinicalUser } = this.state
+    const { type, email, subject, description, attachmentToken, clinicalUser } = this.state
     const currUrl = window.location.href
     const hasAttachment = attachmentToken !== ''
 
@@ -264,7 +267,7 @@ const SupportRequest = _.flow(
           style: { fontWeight: 800, color: 'white' },
           hover: { color: 'white', textDecoration: 'underline' },
           href: `mailto:terra-support@broadinstitute.zendesk.org?subject=${type}%3A%20${subject}&body=Original%20support%20request%3A%0A` +
-            `------------------------------------%0AContact email%3A%20${email}%0AIs clinical user%3A%20${isClinicalUser}%0A%0A${description}%0A%0A------------------------------------` +
+            `------------------------------------%0AContact email%3A%20${email}%0AIs clinical user%3A%20${clinicalUser}%0A%0A${description}%0A%0A------------------------------------` +
             `%0AError%20reported%20from%20Zendesk%3A%0A%0A${JSON.stringify(error)}`,
           ...Utils.newTabLinkProps
         }, 'Click here to email support'), hasAttachment && ' and make sure to add your attachment to the email.']
