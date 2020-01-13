@@ -34,131 +34,138 @@ React has simple and elegant API's that allow us to easily componentize pieces o
    * This is difficult to do in practice, but we always strive for simple code
 
 2. Don't be afraid to upset the status quo
-  * Aaccepted or industry standard approaches have value and get us close to where we want to be, rethinking problems from first principles can spur innovation and deliver better results
-  * The world around us is constantly changing and new solutions can present themselves when rethinking a problem
-  * We accept this within our own codebase as well. If the rationale for doing something no longer holds, be willing to change it. "That is how we have always done it" is not a good rationale
+     * Aaccepted or industry standard approaches have value and get us close to where we want to be, rethinking problems from first principles can spur innovation and deliver better results
+     * The world around us is constantly changing and new solutions can present themselves when rethinking a problem
+     * We accept this within our own codebase as well. If the rationale for doing something no longer holds, be willing to change it. "That is how we have always done it" is not a good rationale
 
 3. Release Often
-  * We strive to release small chunks of functionality with low risk 
-  * This makes it easier to find and fix issues when they arise
+     * We strive to release small chunks of functionality with low risk 
+     * This makes it easier to find and fix issues when they arise
     
 4. Be willing to give and receive feedback
-  * Being able to give and receive feedback is an excellent way to improve your skills as an individual and support the team
+     * Being able to give and receive feedback is an excellent way to improve your skills as an individual and support the project
   
 5. Ask why / what is the problem we are addressing?
-  * Just because we can do something, does that mean we should? Is it the right thing to do?
-  * Are we solving an issue for the user, or completing a prescribed task?
-  * Making sure we understand the problem as a whole, pushing back and getting clarification when it is not clearly understood
+     * Just because we can do something, does that mean we should? Is it the right thing to do?
+     * Are we solving an issue for the user, or completing a prescribed task?
+     * Making sure we understand the problem as a whole, pushing back and getting clarification when it is not clearly understood
   
 6. Is something hard to understand? Can it be done better? Do it!
-  * This keeps tech debt down, the code base simple, easy to understand and work with
-  * Strive to be more development-minded, fixing issues that can benefit everyone working on the codebase
+     * This keeps tech debt down, the code base simple, easy to understand and work with
+     * Strive to be more development-minded, fixing issues that can benefit everyone working on the codebase
   
 7. The developer experience should be enjoyable
-   * Use tools that keep the environment simple and easy to use
-   * Provide clear error messages where appropriate
+     * Use tools that keep the environment simple and easy to use
+     * Provide clear error messages where appropriate
   
 8. Write tests baed on how the users will interact with the application
-  * Basing tests on how users will actually use the application will help use get a better signal to noise ratio when testing
+     * Basing tests on how users will actually use the application will help use get a better signal to noise ratio when testing
   
 9. Use the least powerful abstraction to complete the job
-  * This is akin to using the right tool for the job
-  * The intent of the code is clearer and more precise with simpler abstractions
+     * The intent of the code is clearer and more precise with simpler abstractions
+     * This is akin to using the right tool for the job (e.g. don't use a sledge hammer to hang a picture)
   
 10. Usability and A11y
-  * Use aria labels
-  * Ensure our application is accessible so everyone can use it
-  * Accessible applications tend to be more usable for all
+      * Ensure our application is accessible so everyone can use it
+      * Accessible applications tend to be more usable for all
   
 # Coding Style
 
 * Avoid using let (never use var) prefer using const instead (functional coding)
   * Using let introduces additional state and potentially side effects into a function. This can make it diffcult to reason about the code and potentially introduce bugs
 
-* Use Lodash/fp for data transformation and functional utility (functiona coding)
-  * fp is the functional programming variant of Lodash designed for better composability and currying
-  * Deals with collections in many cases instead of arrays
-  * Lodash will auto curry functions
-  * Examples: map, filter, flow
+* Use Lodash/fp for data transformation and functional utility (functional coding)
+  * fp is the functional programming variant of Lodash designed for better composability, immutability and auto currying built in
+  * This allows us to keep the data simple and not tie the data or shape of the data directly into our UI components
+  
 * Destructure down to the most atomic property in most cases (simple, easy to understand, avoids access to mutable objects)
+  
 * Use reasonable default values when appropriate rather than using imperative code or conditionals (simple, easy to understand)
+  
 * Try to reduce the overall amount of state required by your code (simple, easy to understand)
   * Be mindful of how much state (breadth) is being managed in the code
   * Avoid setting complex state (depth) prefer simple states
+  
 * Use functional instead of class components (functional coding)
   * Functional components better support our functional coding style 
   * Use react hooks instead of lifecycle methods in a functional component
     * If you need more custom behavior look at the code base for our custom hooks
     * All custom hooks will be prefixed with "use" (e.g. useOnMount)
+  
 * We use react-hyperscript-helpers rather than JSX to keep our code base cleaner (status quo)
   * Hyperscript helpers allows developers to remain in a javascript context rather than having to make a mental context switch to the JSX templating language while developing
-*  We style our site using inline styling. This keeps the styling close to the code allowing developers to easily (Simple code)
-  add styles without having to switch contexts to CSS or another file
-  * This also prevents developers from having to deal with css classes and the cascade
-* We have a daily release cycle (Release often)
-  * We use CircleCI to run our tests and deploy our code
-  * Once code has been merged in with our dev branch it will be deployed at approximately 10:30AM the following day
+
+*  We style our site using inline styling. This keeps the styling close to the code allowing developers to easily add styles without having to switch contexts to CSS or another file
+  * This also prevents developers from having to deal with css classes and side effects of the cascade
+  
 * We tend to iterate on the code in our PR cyle. (Handling Feedback)
   * We emphasize a high level of code quality in our codebase to prevent technical debt and keep the application easy to develop
-  * We prefer slowing down and iterating several times on a PR to ensure the code is right and in line with our standards rather than
-  quickly pushing code through
+  * We prefer slowing down and iterating several times on a PR to ensure the code is right and in line with our standards rather than quickly pushing code through
   * We encourage comments and discusssion in PR's to release high quality, understandable code
-* 
+
+* We lint our code using our (custom ESLint rules)[https://github.com/DataBiosphere/terra-ui/blob/dev/.eslintrc.js]
+  * Using an esling plugin with our IDE will improve your developer experience when working with our codebase
 
 # Coding Practices
 
-1. Keeping it simple
-  * Functional decomposition
-  * Can you easily explain your code?
- * Could someone else explain your code?
- * In a year from now will you still understand this code?
- * Simple code alleviates the need for comments which can easily become stale
- * See Rich Hickey's Simple made easy
- 5. Finding the right abstractions
-  * We try to make our code easy to understand by providing useful abstractions to help simplify what we are trying to do
+1. Keeping code simple is easier said than done. 
+  * Some General thoughts on simplicity to take into account when contributing code
+    * Can you easily explain your code?
+    * Could someone else explain your code?
+    * In a year from now will you still understand this code?
+    * Did you have to use comments to clarify your code, or is it self explanatory?
+    * Do your functions and components need to know implementation details about other functions and components?
+    * Is the data being treated simply as data or is there logic coupled with your data representation?
 
-6. ...At the right time
-  * Avoid premature optimization
-  * Create the right abstractions at the right time
-  * Avoid gold plating
-    * More description for this term if we keep it
-  * When it makes sense (repeating code / pattern, cleaning up code)
+  * Concepts that can make your code simpler
+    * Reduce the amount of state in your functions and component - what is the minimum state needed?
+    * Ensure functions and components are single purpose
+    * Avoid side effects
+    * When you need to deal with side effects, use the right abstractions to make it clear we are dealing with a side effect (e.g using useEffect)
+    * Make use of small, simple helper functions
+    * Keep functions pure
+    * Utilize our existing constructs (e.g. use withErrorHandling instead of using try/catch)
+
+  * Concepts that will add complexity to your code
+    * Adding a lot of state
+    * Sharing state across components
+    * Excessive branching / conditionals
+    * Adding special cases
+    * Using abstractions that are too powerful for the intended result
+    * Premature optimizations 
 
 2. Favor functional, declarative coding
-  * Functional code that is side-effect free or has predictable effects is easier to reason about
-  * Easier to test
-  * Easier to understand
-  * Using lodash
-  * Keeping data concerns separate from the application
-  * Using wrappers (e.g. withErrorHandling)
-  * Making composable components and functions
-  * Using currying where applicable
-
-3. Status Quo  
-  * CSS Variables
-  * Hyperscript
-  * No Taxonomy
-  * Quality approach
-  * React Hooks
-  * Daily releases
+     * Functional code that is side-effect free or has predictable effects is easier to reason about and test
+     * This helps us keeping data separate from the application logic
+     * We prefer to composable constructs such as wrappers (e.g. withErrorHandling) as opposed to imperative code
+     * When the need for imperative code arises, make sure the coding style is clearly imperative (use if/else rather than ternary expressions)
+     * Take advantage of currying where you can
+     
+3. Do not be afraid to change existing code to make it easier to work with
+    * If you find yourself trying to work around existing code think about what improvements could be 
+      made to it rather then continuing on the workaround
+    * Feel free to reach out to any member of the team if you are unsure of how to proceed before investing too much time
+      into a solution - we love to help our contributors!
+   
 4. Feedback
-  * Quality over speed
-  * PR cycle, at least 1 approval is needed
-  * Keeping the codebase at a high level of craftsmanship will prevent us from taking on technical debt and pushing problems down the road
+     * When in review it may take several iterations for the code to be approved, especially when you are new to the codebase
+     * To merge the code with our dev branch, at least 1 PR approval is needed
+     * Keeping the codebase at a high level of craftsmanship will prevent us from taking on technical debt and pushing problems down the road. A rigorous review cycle is one way in which we try to achieve this
   
-8. Understanding the problem
-  * Finding value to bring to the users
-  * ex. Widening of columns because the user asked for it
+5. Understanding the problem
+     * Before writing code, it is good to understand what value the change is bringing to the users
+     * It is also good to understand the user flow - how the user uses the application to make sure we are providing the correct functionality rather than prescribed functionality
+     * For example, a user may request making a data column wider so they can more easily copy and paste data
+       * Diving into this deeper and asking why they want to copy data in the first place may yield more information unveiling what the user actually wants vs. what they asked for
 
-9. Release often
-* Daily releases
-  * promotion from dev to prod is fast
-
-10. Least powerful abstraction
-  * Using switchcase instead of cond where applicable
-  * Using map flatten + map rather reduce / breaking things out into smaller and easier to understand chunks
+6. Release often
+     * We release daily. Once you have merged your code it will be live in production around 10:00AM
+     * A rapid release cycle helps us to keep our deployment process simple and allows to to rapidly fix issues as they arise
 
 # Miscellany
 * firecloud & workspace are not camelcased
+* We have a daily release cycle (Release often)
+  * We use CircleCI to run our tests and deploy our code
+  * Once code has been merged in with our dev branch it will be deployed at approximately 10:00AM the following day
    
 # Deployment Cycle (Other Tips)
