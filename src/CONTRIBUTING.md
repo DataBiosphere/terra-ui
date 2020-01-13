@@ -32,37 +32,37 @@ React has simple and elegant API's that allow us to easily componentize pieces o
   
 # Our Coding Philosophy
 1. Write simple, easy to understand code
-   * Simple does not mean easy, difficult problems can be coded with simplicity
-   * This is difficult to do in practice, but we always strive for simple code
+    * Simple does not mean easy, difficult problems can be coded with simplicity
+    * This is difficult to do in practice, but we always strive for simple code
 
 2. Ask why / what is the problem we are addressing?
-     * Does it bring value to the user?
-     * Just because we can do something, does that mean we should? Is it the right thing to do?
-     * Are we solving an issue for the user, or completing a prescribed task?
-     * Making sure we understand the problem as a whole, pushing back and getting clarification when it is not clearly understood
+    * Does it bring value to the user?
+    * Just because we can do something, does that mean we should? Is it the right thing to do?
+    * Are we solving an issue for the user, or completing a prescribed task?
+    * Making sure we understand the problem as a whole, pushing back and getting clarification when it is not clearly understood
     
 3. Don't be afraid to upset the status quo
-     * Accepted or industry standard approaches have value and get us close to where we want to be, rethinking problems from first principles can spur innovation and deliver better results
-     * The world around us is constantly changing and new solutions can present themselves when rethinking a problem
-     * We accept this within our own codebase as well. If the rationale for doing something no longer holds, be willing to change it. "That is how we have always done it" is not a good rationale
-     * **Is something hard to understand? Can it be done better? Do it!** This keeps tech debt down, the code base simple, easy to understand and work with.
-     * Fix issues that can benefit everyone working on the codebase
+    * Accepted or industry standard approaches have value and get us close to where we want to be, rethinking problems from first principles can spur innovation and deliver better results
+    * The world around us is constantly changing and new solutions can present themselves when rethinking a problem
+    * We accept this within our own codebase as well. If the rationale for doing something no longer holds, be willing to change it. "That is how we have always done it" is not a good rationale
+    * **Is something hard to understand? Can it be done better? Do it!** This keeps tech debt down, the code base simple, easy to understand and work with.
+    * Fix issues that can benefit everyone working on the codebase
   
 4. Be willing to give and receive feedback
-     * Being able to give and receive feedback is an excellent way to improve your skills as an individual and support the project
+    * Being able to give and receive feedback is an excellent way to improve your skills as an individual and support the project
 
 5. Usability and Accessibility
-     * Ensure our application is accessible so everyone can use it
-     * Accessible applications tend to be more usable for all
-  * Test how the users will interact with the application
+    * Ensure our application is accessible so everyone can use it
+    * Accessible applications tend to be more usable for all
+    * Test how the users will interact with the application
   
 6. Mentoring is an integral part of becoming a better engineer
-      * "If you can't explain it simply you don't understand it well enough" ~quote commonly misattributed to Einstein
-      * Asking questions helps you and the person your asking learn
+    * "If you can't explain it simply you don't understand it well enough" ~quote commonly misattributed to Einstein
+    * Asking questions helps you and the person your asking learn
 
 7. Keep the environment simple so the developer experience is painless
-     * Use tools that keep the environment simple and straightforward to use
-     * Provide clear error messages where appropriate
+    * Use tools that keep the environment simple and straightforward to use
+    * Provide clear error messages where appropriate
 
 # Coding Style
 1. We use react-hyperscript-helpers rather than JSX to keep our code base cleaner (status quo)
@@ -95,29 +95,29 @@ React has simple and elegant API's that allow us to easily componentize pieces o
 # Coding Practices
 
 1. Keeping code simple is easier said than done. 
-  * Some General thoughts on simplicity to take into account when contributing code
-    * Could someone else explain your code?
-    * In a year from now will you still understand this code?
-    * Did you have to use comments to clarify your code, or is it self explanatory?
-    * Do your functions and components need to know implementation details about other functions and components?
-    * Is the data decoupled sufficiently from the logic?
+     * Some General thoughts on simplicity to take into account when contributing code
+       * Could someone else explain your code?
+       * In a year from now will you still understand this code?
+       * Did you have to use comments to clarify your code, or is it self explanatory?
+       * Do your functions and components need to know implementation details about other functions and components?
+       * Is the data decoupled sufficiently from the logic?
 
-  * Concepts that can make your code simpler
-    * Reduce the amount of state in your functions and component - what is the minimum state needed?
-    * Ensure functions and components are single purpose
-    * Avoid side effects
-    * When you need to deal with side effects, use the right abstractions to make it clear we are dealing with a side effect (e.g using useEffect)
-    * Make use of small, simple helper functions
-    * Keep functions pure
-    * Utilize our existing constructs (e.g. use withErrorHandling instead of using try/catch)
+     * Concepts that can make your code simpler
+       * Reduce the amount of state in your functions and component - what is the minimum state needed?
+       * Ensure functions and components are single purpose
+       * Avoid side effects
+       * When you need to deal with side effects, use the right abstractions to make it clear we are dealing with a side effect (e.g using useEffect)
+       * Make use of small, simple helper functions
+       * Keep functions pure
+       * Utilize our existing constructs (e.g. use withErrorHandling instead of using try/catch)
 
-  * Concepts that will add complexity to your code
-    * Adding a lot of state
-    * Sharing state across components
-    * Excessive branching / conditionals
-    * Adding special cases
-    * Using abstractions that are too powerful for the intended result
-    * Premature optimizations 
+     * Concepts that will add complexity to your code
+       * Adding a lot of state
+       * Sharing state across components
+       * Excessive branching / conditionals
+       * Adding special cases
+       * Using abstractions that are too powerful for the intended result
+       * Premature optimizations 
 
 2. Favor functional, declarative coding
     * Functional code that is side-effect free or has predictable effects is easier to reason about and test
