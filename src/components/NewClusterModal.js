@@ -6,6 +6,7 @@ import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledChec
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
+import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/clusters'
 import { imageValidationRegexp } from 'src/data/leo-images'
@@ -40,6 +41,7 @@ const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
 const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
 const imageInstructions = `${terraDockerBaseGithubUrl}#how-to-create-your-own-custom-image-to-use-with-notebooks-on-terra`
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
+const rstudioBaseImages = 'https://github.com/anvilproject/anvil-docker'
 const machineConfigsEqual = (a, b) => {
   return _.isEqual(normalizeMachineConfig(a), normalizeMachineConfig(b))
 }
@@ -96,6 +98,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
 }
 
 const CUSTOM_MODE = '__custom_mode__'
+const PROJECT_SPECIFIC_MODE = '__project_specific_mode__'
 
 export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
   static propTypes = {
@@ -115,7 +118,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     )
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
-      jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined, isDeleteView: false,
+      jupyterUserScriptUri: '', customEnvImage: '', projSpecImage: '', viewMode: undefined, isDeleteView: false,
       ...normalizeMachineConfig(currentConfig)
     }
   }
@@ -139,15 +142,22 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   createCluster() {
     const { namespace, onSuccess, currentCluster } = this.props
-    const { jupyterUserScriptUri, selectedLeoImage, customEnvImage } = this.state
+    const { jupyterUserScriptUri, selectedLeoImage, customEnvImage, projSpecImage } = this.state
     onSuccess(Promise.all([
       Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: this.getMachineConfig(),
-        toolDockerImage: selectedLeoImage === CUSTOM_MODE ? customEnvImage : selectedLeoImage,
+        toolDockerImage: Utils.switchCase(selectedLeoImage,
+          [CUSTOM_MODE, () => { return customEnvImage }],
+          [PROJECT_SPECIFIC_MODE, () => { return projSpecImage }],
+          [Utils.DEFAULT, () => { return selectedLeoImage }]),
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
       currentCluster?.status === 'Error' && this.deleteCluster()
     ]))
+  }
+
+  isInputtedImageInvalid(imageURL) {
+    return (!imageValidationRegexp.test(imageURL))
   }
 
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
@@ -164,6 +174,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       const { imageUrl } = _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), clusterImages)
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
+      } else if (currentClusterDetails.labels.tool === 'RStudio') {
+        this.setState({ selectedLeoImage: PROJECT_SPECIFIC_MODE, projSpecImage: imageUrl })
       } else {
         this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl })
       }
@@ -180,11 +192,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, onDismiss, onSuccess } = this.props
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, isDeleteView
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, projSpecImage, leoImages, viewMode, isDeleteView
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
-
-    const isCustomImageInvalid = !imageValidationRegexp.test(customEnvImage)
 
     const isSelectedImageCustom = selectedLeoImage === CUSTOM_MODE
 
@@ -206,7 +216,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       isSearchable: false,
       isClearable: false,
       options: [{ label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
-        { label: 'OTHER ENVIRONMENTS', options: [{ label: 'Custom Environment', value: CUSTOM_MODE }] }]
+        {
+          label: 'OTHER ENVIRONMENTS',
+          options: [{ label: 'Custom Environment', value: CUSTOM_MODE }, { label: 'Project-Specific Environment', value: PROJECT_SPECIFIC_MODE }]
+        }]
     })
 
     const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
@@ -221,7 +234,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           currentCluster && div([
             h(ButtonSecondary, {
               onClick: () => this.setState({ isDeleteView: true })
-            }, 'Delete Runtime')
+            }, 'Delete Compute')
           ]),
           div({ style: { marginLeft: 'auto', marginRight: '2rem' } }, [
             h(ButtonSecondary, {
@@ -230,9 +243,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ]),
           div([
             h(ButtonPrimary, {
-              disabled: isSelectedImageCustom && isCustomImageInvalid,
-              tooltip: isSelectedImageCustom && isCustomImageInvalid &&
-                'Enter a valid docker image to use',
+              disabled: Utils.switchCase(selectedLeoImage,
+                [CUSTOM_MODE, () => { return this.isInputtedImageInvalid(customEnvImage) }],
+                [PROJECT_SPECIFIC_MODE, () => { return this.isInputtedImageInvalid(projSpecImage) }]
+              ),
+              tooltip: Utils.switchCase(selectedLeoImage,
+                [CUSTOM_MODE, () => { if (this.isInputtedImageInvalid(customEnvImage)) return 'Enter a valid docker image to use' }],
+                [PROJECT_SPECIFIC_MODE, () => { if (this.isInputtedImageInvalid(projSpecImage)) return 'Enter a valid rstudio image to use' }]
+              ),
               onClick: () => isSelectedImageCustom ?
                 this.setState({ viewMode: 'Warning' }) :
                 this.createCluster()
@@ -249,7 +267,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         }
       }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
-        div({ style: { marginBottom: '1rem' } }, ['Select from one of the runtime profiles or define your own']),
+        div({ style: { marginBottom: '1rem' } }, ['Select from one of the default compute cluster profiles or define your own']),
         div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
           h(IdContainer, [
             id => h(Fragment, [
@@ -348,15 +366,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ])
           ])
         ]),
-        div({ style: { backgroundColor: colors.dark(0.2), borderRadius: '100px', width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row } }, [
-          span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['COST:']),
-          `${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
-        ])
+        div({ style: { backgroundColor: colors.dark(0.2), borderRadius: '100px', width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row } },
+          [
+            span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['COST:']),
+            `${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
+          ])
       ]),
       !!currentCluster && div({ style: styles.warningBox }, [
         div({ style: styles.label }, ['Caution:']),
         p([
-          'Replacing your runtime will ',
+          'Replacing your application compute will ',
           span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
           '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
           h(Link, {
@@ -419,11 +438,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onPrevious: undefined,
         contents: h(Fragment, [
           div({ style: { marginBottom: '1rem' } },
-            ['Choose a Terra pre-installed runtime environment (e.g. programming languages + packages) or choose a custom environment.']),
+            ['Create a cloud compute instance to launch Jupyter Notebooks or a Project-specific software application']),
           div([
             h(IdContainer, [
               id => h(Fragment, [
-                div({ style: { marginBottom: '0.5rem' } }, [label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT')]),
+                div({ style: { marginBottom: '0.5rem' } }, [label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT'),
+                  h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+                    'Environment defines the software application + programming languages + packages used when you create you compute. ' +
+                    'Below, you can choose from a selection of pre-built Jupyter Notebook environments, or to use a custom or project-specific environment.'
+                  ])]),
                 div({ style: { height: '45px' } }, [makeGroupedEnvSelect(id)])
               ])
             ]),
@@ -442,7 +465,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                             value: customEnvImage,
                             onChange: customEnvImage => this.setState({ customEnvImage })
                           },
-                          error: customEnvImage && isCustomImageInvalid && 'Not a valid image'
+                          error: customEnvImage && this.isInputtedImageInvalid(customEnvImage) && 'Not a valid image'
                         })
                       ])
                     ])
@@ -452,6 +475,28 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                     span({ style: { fontWeight: 'bold' } }, [' must ']),
                     ' be based off one of the ',
                     h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])
+                  ])
+                ])
+              }],
+              [PROJECT_SPECIFIC_MODE, () => {
+                return h(Fragment, [
+                  div([
+                    'Some projects, such as',
+                    h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['ANVIL']),
+                    'have created environments that are specific to their project. If you want to use one of these:\n' +
+                    '1. Find the environment image (view a list)\n' +
+                    '2. Copy the URL from the github repository\n' +
+                    '3. Enter the URL for the image in the text box below:',
+                    div({ style: { height: '52px', alignItems: 'center', marginBottom: '0.5rem' } }, [
+                      h(ValidatedInput, {
+                        inputProps: {
+                          placeholder: '<image name>:<tag>',
+                          value: projSpecImage,
+                          onChange: projSpecImage => this.setState({ projSpecImage })
+                        },
+                        error: projSpecImage && this.isInputtedImageInvalid(projSpecImage) && 'Not a valid image'
+                      })
+                    ])
                   ])
                 ])
               }],
@@ -476,8 +521,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         title: Utils.cond(
           [viewMode === 'Packages', () => 'INSTALLED PACKAGES'],
           [viewMode === 'Warning', () => 'WARNING!'],
-          [isDeleteView, () => 'DELETE RUNTIME?'],
-          () => 'RUNTIME CONFIGURATION'
+          [isDeleteView, () => 'DELETE APPLICATION COMPUTE?'],
+          () => 'APPLICATION COMPUTE CONFIGURATION'
         ),
         onDismiss,
         onPrevious
