@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
-import { spinnerOverlay } from 'src/components/common'
+import { div, h, label } from 'react-hyperscript-helpers'
+import { IdContainer, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
@@ -57,6 +57,13 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
   render() {
     const { path, version } = this.props
     const { isImporting, wdl, workflowName } = this.state
+
+    const workflowNameValidationDetails = () => {
+      return (validate({ workflowName }, {
+        workflowName: workflowNameValidation()
+      }))
+    }
+
     return div({ style: styles.container }, [
       div({ style: { ...styles.card, maxWidth: 740 } }, [
         div({ style: styles.title }, ['Importing from Dockstore']),
@@ -75,20 +82,22 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
         wdl && h(WDLViewer, { wdl, style: { height: 500 } })
       ]),
       div({ style: { ...styles.card, margin: '0 2.5rem', maxWidth: 430 } }, [
-        div({ style: styles.title }, ['Workflow Name']),
-        h(ValidatedInput, {
-          inputProps: {
-            'aria-label': 'Workflow name',
-            onChange: workflowName => { this.setState({ workflowName }) },
-            value: workflowName
-          },
-          error: Utils.summarizeErrors(validate({ workflowName }, {
-            workflowName: workflowNameValidation()
-          }))
-        }),
+        h(IdContainer, [
+          id => h(Fragment, [
+            div([label({ htmlFor: id, style: { ...styles.title } }, 'Workflow Name')]),
+            div({ style: { marginTop: '2rem' } }, [h(ValidatedInput, {
+              inputProps: {
+                id,
+                onChange: workflowName => { this.setState({ workflowName }) },
+                value: workflowName
+              },
+              error: Utils.summarizeErrors(workflowNameValidationDetails())
+            })])
+          ])
+        ]),
         div({ style: { ...styles.title, paddingTop: '2rem' } }, ['Destination Workspace']),
         h(WorkspaceImporter,
-          { onImport: ws => this.import_(ws), additionalErrors: validate({ workflowName }, { workflowName: workflowNameValidation() }) }),
+          { onImport: ws => this.import_(ws), additionalErrors: workflowNameValidationDetails() }),
         isImporting && spinnerOverlay
       ])
     ])
