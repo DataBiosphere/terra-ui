@@ -84,7 +84,7 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
           error: Utils.summarizeErrors(validateWorkflowName(workflowName))
         }),
         div({ style: { ...styles.title, paddingTop: '2rem' } }, ['Destination Workspace']),
-        h(WorkspaceImporter, { onImport: ws => this.import_(ws) }),
+        h(WorkspaceImporter, { onImport: ws => this.import_(ws), isWorkflowInvalid: validateWorkflowName(workflowName) }),
         isImporting && spinnerOverlay
       ])
     ])

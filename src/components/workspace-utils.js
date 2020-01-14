@@ -59,7 +59,7 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, ...props }) => 
 export const WorkspaceImporter = _.flow(
   Utils.withDisplayName('WorkspaceImporter'),
   withWorkspaces
-)(({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs }) => {
+)(({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs, isWorkflowInvalid = false }) => {
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(initialWs)
   const [creatingWorkspace, setCreatingWorkspace] = useState(false)
 
@@ -69,19 +69,23 @@ export const WorkspaceImporter = _.flow(
     h(WorkspaceSelector, {
       workspaces: _.filter(ws => {
         return Utils.canWrite(ws.accessLevel) &&
-            (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
+          (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
       }, workspaces),
       value: selectedWorkspaceId,
       onChange: setSelectedWorkspaceId
     }),
     div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
       h(ButtonPrimary, {
-        disabled: !selectedWorkspace,
-        tooltip: !selectedWorkspace ? 'You must select a workspace to import' : 'Import workflow to workspace',
+        disabled: !selectedWorkspace || isWorkflowInvalid,
+        tooltip: Utils.cond([!selectedWorkspace, 'Select valid a workspace to import'],
+          [isWorkflowInvalid, 'Enter a valid a workflow name to import'],
+          'Import workflow to workspace'
+        ),
         onClick: () => onImport(selectedWorkspace.workspace)
       }, ['Import']),
       div({ style: { marginLeft: '1rem', whiteSpace: 'pre' } }, ['Or ']),
       h(Link, {
+        disabled: isWorkflowInvalid,
         onClick: () => setCreatingWorkspace(true)
       }, ['create a new workspace'])
     ]),
