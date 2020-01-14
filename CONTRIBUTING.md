@@ -1,36 +1,21 @@
 ## Table of Contents
 
 - [Libraries and Technologies](#libraries-and-technologies)
-  - [React](#react)
-  - [react-hyperscript-helpers](#react-hyperscript-helpers)
-  - [Lodash/fp](#lodashfp)
-    - [Helpful Links](#helpful-links)
-  - [CircleCI](#circleci)
 - [Our Coding Philosophy](#our-coding-philosophy)
 - [Coding Style](#coding-style)
 - [Coding Practices](#coding-practices)
 
 # Libraries and Technologies
-## React
-What is React?
-React is a Javascript library for building user interfaces. 
-
-Why do we use React?
-React has simple and elegant API's that allow us to easily componentize pieces of our application without prescribing how applications should be written.
-  
-[React](https://reactjs.org/docs/getting-started.html)
-## react-hyperscript-helpers
-[react-hyperscript-helpers](https://github.com/Jador/react-hyperscript-helpers)
-## Lodash/fp
-### Helpful Links
-[Lodash/fp API's](https://gist.github.com/jfmengels/6b973b69c491375117dc)
-
-## CircleCI
-* We have a daily release cycle (Release often)
-  * We use CircleCI to run our tests and deploy our code
-  * Once code has been merged in with our dev branch it will be deployed at approximately 10:00AM EST the following day
-  
+1. [React](https://reactjs.org/docs/getting-started.html)
+2. [react-hyperscript-helpers](https://github.com/Jador/react-hyperscript-helpers)
+3. [Lodash/fp](https://gist.github.com/jfmengels/6b973b69c491375117dc)
+4. [CircleCI](https://circleci.com/)
+5. [yarn](https://yarnpkg.com/lang/en/)
+ 
 # Our Coding Philosophy
+
+We would like our contributors to understand the principles behind our coding style and practices. With this information we hope to make it easier for you to contribute to our code base, and understand why we have made certain decisions in our code. As you read through the document you should see these philosophies emerge in our coding style and practices.
+
 1. Write simple, easy to understand code
     * Simple does not mean easy, difficult problems can be coded with simplicity
     * This is difficult to do in practice, but we always strive for simple code
@@ -51,7 +36,7 @@ React has simple and elegant API's that allow us to easily componentize pieces o
 4. Be willing to give and receive feedback
     * Being able to give and receive feedback is an excellent way to improve your skills as an individual and support the project
 
-5. Usability and Accessibility
+5. Usability and Accessibility are a high priority
     * Ensure our application is accessible so everyone can use it
     * Accessible applications tend to be more usable for all
     * Test how the users will interact with the application
@@ -78,18 +63,22 @@ React has simple and elegant API's that allow us to easily componentize pieces o
        * If you need more custom behavior look at the code base for our custom hooks
        * All custom hooks will be prefixed with "use" (e.g. useOnMount)
        
-4.  We style our site using inline styling. This keeps the styling close to the code allowing developers to easily add styles without having to switch contexts to CSS or another file
-  * This also prevents developers from having to deal with css classes and side effects of the cascade
-      
-5. Destructure down to the most atomic property in most cases
+4.  We style our site using inline styling. 
+     * This keeps the styling close to the code allowing developers to easily add styles without having to switch contexts to CSS or another file
+     * This also prevents developers from having to deal with css classes and side effects of the cascade
 
-6. Use reasonable default values when appropriate rather than using imperative code or conditionals 
-    * short-circuiting (double check this name)
+5. Be sure any components you add to the page have the appropriate aria-labels and keyboard accessibility
 
-7. Prefer using constants over (mutable) variables
+6. Destructure down to the most atomic property in most cases
+
+7. Be mindful when using conditionals
+    * Use reasonable default values when appropriate rather than using imperative code or conditionals 
+    * We use [short circuit evaluation](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Logical_Operators#Short-circuit_evaluation) for conditionals with a boolean result
+
+8. We Prefer using constants over variables
     * Variables introduce additional state and potentially side effects into a function. This can make it difficult to reason about the code and potentially introduce bugs
 
-8. We lint our code using our [custom ESLint rules](https://github.com/DataBiosphere/terra-ui/blob/dev/.eslintrc.js)
+9. We lint our code using our [ESLint rule set](https://github.com/DataBiosphere/terra-ui/blob/dev/.eslintrc.js)
     * Using an eslint plugin with our IDE will improve your developer experience when working with our codebase
 
 # Coding Practices
@@ -99,7 +88,7 @@ React has simple and elegant API's that allow us to easily componentize pieces o
        * Could someone else explain your code?
        * In a year from now will you still understand this code?
        * Did you have to use comments to clarify your code, or is it self explanatory?
-       * Do your functions and components need to know implementation details about other functions and components?
+       * Do your functions and components need to know implementation details of other functions and components?
        * Is the data decoupled sufficiently from the logic?
 
      * Concepts that can make your code simpler
