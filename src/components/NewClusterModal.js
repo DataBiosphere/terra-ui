@@ -42,6 +42,7 @@ const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
 const imageInstructions = `${terraDockerBaseGithubUrl}#how-to-create-your-own-custom-image-to-use-with-notebooks-on-terra`
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
 const rstudioBaseImages = 'https://github.com/anvilproject/anvil-docker'
+const zendeskImagePage = 'https://support.terra.bio/hc/en-us/articles/360037269472'
 const machineConfigsEqual = (a, b) => {
   return _.isEqual(normalizeMachineConfig(a), normalizeMachineConfig(b))
 }
@@ -438,7 +439,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onPrevious: undefined,
         contents: h(Fragment, [
           div({ style: { marginBottom: '1rem' } },
-            ['Create a cloud compute instance to launch Jupyter Notebooks or a Project-specific software application']),
+            ['Create a cloud compute instance to launch Jupyter Notebooks or Project-specific software applications.']),
           div([
             h(IdContainer, [
               id => h(Fragment, [
@@ -471,32 +472,34 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                     ])
                   ]),
                   div({ style: { margin: '0.5rem' } }, [
-                    h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom notebook environments']),
+                    h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom environments']),
                     span({ style: { fontWeight: 'bold' } }, [' must ']),
                     ' be based off one of the ',
-                    h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])
+                    h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images']),
+                    ' or a ',
+                    h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-specific image']),
                   ])
                 ])
               }],
               [PROJECT_SPECIFIC_MODE, () => {
                 return h(Fragment, [
-                  div([
-                    'Some projects, such as',
-                    h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['ANVIL']),
-                    'have created environments that are specific to their project. If you want to use one of these:\n' +
-                    '1. Find the environment image (view a list)\n' +
-                    '2. Copy the URL from the github repository\n' +
-                    '3. Enter the URL for the image in the text box below:',
-                    div({ style: { height: '52px', alignItems: 'center', marginBottom: '0.5rem' } }, [
-                      h(ValidatedInput, {
-                        inputProps: {
-                          placeholder: '<image name>:<tag>',
-                          value: projSpecImage,
-                          onChange: projSpecImage => this.setState({ projSpecImage })
-                        },
-                        error: projSpecImage && this.isInputtedImageInvalid(projSpecImage) && 'Not a valid image'
-                      })
-                    ])
+                  div({ style: { lineHeight: '1.5' } }, [
+                    'Some projects, such as ',
+                    h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['AnVIL']),
+                    ', have created environments that are specific to their project. If you want to use one of these: ',
+                    div({ style: { marginTop: '0.5rem' } }, ['1. Find the environment image (',
+                      h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['view image list']),
+                      ') ']),
+                    div({ style: { margin: '0.5rem 0' } }, ['2. Copy the URL from the github repository ']),
+                    div({ style: { margin: '0.5rem 0' } }, ['3. Enter the URL for the image in the text box below ']),
+                    h(ValidatedInput, {
+                      inputProps: {
+                        placeholder: 'Paste image path here',
+                        value: projSpecImage,
+                        onChange: projSpecImage => this.setState({ projSpecImage })
+                      },
+                      error: projSpecImage && this.isInputtedImageInvalid(projSpecImage) && 'Not a valid image'
+                    })
                   ])
                 ])
               }],
