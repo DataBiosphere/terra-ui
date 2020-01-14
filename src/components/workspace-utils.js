@@ -59,7 +59,7 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, ...props }) => 
 export const WorkspaceImporter = _.flow(
   Utils.withDisplayName('WorkspaceImporter'),
   withWorkspaces
-)(({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs, isWorkflowInvalid = false }) => {
+)(({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs, additionalErrors }) => {
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(initialWs)
   const [creatingWorkspace, setCreatingWorkspace] = useState(false)
 
@@ -76,16 +76,16 @@ export const WorkspaceImporter = _.flow(
     }),
     div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
       h(ButtonPrimary, {
-        disabled: !selectedWorkspace || isWorkflowInvalid,
+        disabled: !selectedWorkspace || additionalErrors,
         tooltip: Utils.cond([!selectedWorkspace, 'Select valid a workspace to import'],
-          [isWorkflowInvalid, 'Enter a valid a workflow name to import'],
+          [additionalErrors, Utils.summarizeErrors(additionalErrors)],
           'Import workflow to workspace'
         ),
         onClick: () => onImport(selectedWorkspace.workspace)
       }, ['Import']),
       div({ style: { marginLeft: '1rem', whiteSpace: 'pre' } }, ['Or ']),
       h(Link, {
-        disabled: isWorkflowInvalid,
+        disabled: additionalErrors,
         onClick: () => setCreatingWorkspace(true)
       }, ['create a new workspace'])
     ]),
