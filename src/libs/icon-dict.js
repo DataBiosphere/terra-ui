@@ -12,6 +12,7 @@ import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import angleDoubleUp from 'src/icons/angle-double-up-regular.svg'
 import angleUp from 'src/icons/angle-up-regular.svg'
+import arrowLeftRegular from 'src/icons/arrow-left-regular.svg'
 import bars from 'src/icons/bars-light.svg'
 import books from 'src/icons/books-solid.svg'
 import cardMenuIcon from 'src/icons/card-menu-icon.svg'
@@ -83,6 +84,7 @@ const iconDict = {
   'warning-standard': fa(faExclamationTriangle),
   'ellipsis-v': fa(faEllipsisV),
   arrowLeft: fa(faArrowLeft),
+  arrowLeftRegular: custom(arrowLeftRegular),
   arrowRight: fa(faArrowRight),
   cardMenuIcon: custom(cardMenuIcon),
   caretDown: fa(faCaretDown),

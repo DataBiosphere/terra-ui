@@ -1,3 +1,4 @@
+import { staticStorageSlot } from 'src/libs/browser-storage'
 import * as Utils from 'src/libs/utils'
 
 
@@ -11,7 +12,11 @@ export const authStore = Utils.atom({
   profile: {}
 })
 
-export const toggleStateAtom = Utils.atom({ notebooksTab: true })
+export const lastActiveTimeStore = staticStorageSlot(localStorage, 'idleTimeout')
+lastActiveTimeStore.update(v => v || {})
+
+export const toggleStateAtom = staticStorageSlot(sessionStorage, 'toggleState')
+toggleStateAtom.update(v => v || { notebooksTab: true })
 
 export const freeCreditsActive = Utils.atom(false)
 
@@ -52,5 +57,5 @@ window.ajaxOverridesStore = ajaxOverridesStore
  * Modifies config settings for testing purposes.
  * Can be set to an object which will be merged with the loaded config object.
  */
-export const configOverridesStore = Utils.atom()
+export const configOverridesStore = staticStorageSlot(sessionStorage, 'config-overrides')
 window.configOverridesStore = configOverridesStore

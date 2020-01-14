@@ -1,7 +1,7 @@
 const fetch = require('node-fetch')
-const { click, clickable, findText, select, signIntoTerra } = require('../utils/integration-utils')
 const { testUrl } = require('../utils/integration-config')
 const { withWorkspace } = require('../utils/integration-helpers')
+const { click, clickable, findText, select, signIntoTerra } = require('../utils/integration-utils')
 
 
 const testWorkflowIdentifier = 'github.com/DataBiosphere/topmed-workflows/UM_variant_caller_wdl:1.32.0'

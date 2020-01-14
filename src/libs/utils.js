@@ -7,43 +7,48 @@ import { div, h } from 'react-hyperscript-helpers'
 import uuid from 'uuid/v4'
 
 
-/**
- * A simple state container inspired by clojure atoms. Method names were chosen based on similarity
- * to lodash and Immutable. (deref => get, reset! => set, swap! => update, reset to go back to initial value)
- */
-export const atom = initialValue => {
-  let value = initialValue
+export const subscribable = () => {
   let subscribers = []
-  const set = newValue => {
-    const oldValue = value
-    value = newValue
-    subscribers.forEach(fn => fn(newValue, oldValue))
-  }
   return {
     subscribe: fn => {
-      subscribers = _.union(subscribers, [fn])
+      subscribers = append(fn, subscribers)
+      return {
+        unsubscribe: () => {
+          subscribers = _.without([fn], subscribers)
+        }
+      }
     },
-    unsubscribe: fn => {
-      console.assert(_.includes(fn, subscribers), 'Function is not subscribed')
-      subscribers = _.difference(subscribers, [fn])
-    },
-    get: () => value,
-    set,
-    update: fn => set(fn(value)),
-    reset: () => set(initialValue)
+    next: (...args) => {
+      _.forEach(fn => fn(...args), subscribers)
+    }
   }
 }
 
 /**
- * Hook that returns the value of a given atom. When the atom changes, the component will re-render
+ * A simple state container inspired by clojure atoms. Method names were chosen based on similarity
+ * to lodash and Immutable. (deref => get, reset! => set, swap! => update, reset to go back to initial value)
+ * Implements the Store interface
  */
-export const useAtom = theAtom => {
-  const [value, setValue] = useState(theAtom.get())
+export const atom = initialValue => {
+  let value = initialValue
+  const { subscribe, next } = subscribable()
+  const get = () => value
+  const set = newValue => {
+    const oldValue = value
+    value = newValue
+    next(newValue, oldValue)
+  }
+  return { subscribe, get, set, update: fn => set(fn(get())), reset: () => set(initialValue) }
+}
+
+/**
+ * Hook that returns the value of a given store. When the store changes, the component will re-render
+ */
+export const useStore = theStore => {
+  const [value, setValue] = useState(theStore.get())
   useEffect(() => {
-    const handleChange = v => setValue(v)
-    theAtom.subscribe(handleChange)
-    return () => theAtom.unsubscribe(handleChange)
-  }, [theAtom, setValue])
+    return theStore.subscribe(v => setValue(v)).unsubscribe
+  }, [theStore, setValue])
   return value
 }
 
@@ -61,37 +66,14 @@ export const memoWithName = _.curry((name, WrappedComponent) => {
 })
 
 /**
- * HOC that injects the value of the given atom as a prop. When the atom changes, the wrapped
+ * HOC that injects the value of the given store as a prop. When the store changes, the wrapped
  * component will re-render
  */
-export const connectAtom = (theAtom, name) => WrappedComponent => {
-  return withDisplayName('connectAtom', props => {
-    const value = useAtom(theAtom)
+export const connectStore = (theStore, name) => WrappedComponent => {
+  return withDisplayName('connectStore', props => {
+    const value = useStore(theStore)
     return h(WrappedComponent, { ...props, [name]: value })
   })
-}
-
-/**
- * Sets up the given atom to sync to/from sessionStorage at the given key.
- * On initialization, if the key exists, the value will be read in.
- * If it doesn't, the current value of the atom will be written out.
- */
-export const syncAtomToSessionStorage = (theAtom, key) => {
-  theAtom.subscribe(v => {
-    if (v === undefined) {
-      sessionStorage.removeItem(key)
-    } else {
-      sessionStorage[key] = JSON.stringify(v)
-    }
-  })
-  const existing = (() => {
-    try {
-      return JSON.parse(sessionStorage[key])
-    } catch (e) {
-      return undefined
-    }
-  })()
-  theAtom.update(v => existing === undefined ? v : existing)
 }
 
 const dateFormat = new Intl.DateTimeFormat('default', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -361,17 +343,6 @@ export const useUniqueId = () => {
   return useInstance(() => _.uniqueId('unique-id-'))
 }
 
-export const handleNonRunningCluster = ({ status, googleProject, clusterName }, JupyterAjax) => {
-  switch (status) {
-    case 'Stopped':
-      return JupyterAjax.cluster(googleProject, clusterName).start()
-    case 'Creating':
-      return delay(15000)
-    default:
-      return delay(3000)
-  }
-}
-
 export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' } // https://mathiasbynens.github.io/rel-noopener/
 
 export const createHtmlElement = (doc, name, attrs) => {
@@ -385,6 +356,8 @@ export const mergeQueryParams = (params, urlString) => {
   url.search = qs.stringify({ ...qs.parse(url.search, { ignoreQueryPrefix: true, plainObjects: true }), ...params })
   return url.href
 }
+
+export const durationToMillis = ({ hours = 0, minutes = 0, seconds = 0 }) => ((hours * 60 * 60) + (minutes * 60) + seconds) * 1000
 
 export const useConsoleAssert = (condition, message) => {
   const printed = useRef(false)
@@ -421,6 +394,22 @@ export const usePollingEffect = (effectFn, { ms, leading }) => {
   })
 }
 
+export const useCurrentTime = (initialDelay = 250) => {
+  const [currentTime, setCurrentTime] = useState(Date.now())
+  const signal = useCancellation()
+  const delayRef = useRef(initialDelay)
+  useOnMount(() => {
+    const poll = async () => {
+      while (!signal.aborted) {
+        await delay(delayRef.current)
+        !signal.aborted && setCurrentTime(Date.now())
+      }
+    }
+    poll()
+  })
+  return [currentTime, delay => { delayRef.current = delay }]
+}
+
 export const maybeParseJSON = maybeJSONString => {
   try {
     return JSON.parse(maybeJSONString)
@@ -430,3 +419,7 @@ export const maybeParseJSON = maybeJSONString => {
 }
 
 export const sanitizeEntityName = unsafe => unsafe.replace(/[^\w]/g, '-')
+
+export const makeTSV = rows => {
+  return _.join('', _.map(row => `${_.join('\t', row)}\n`, rows))
+}

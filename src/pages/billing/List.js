@@ -196,7 +196,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
 
 export const BillingList = _.flow(
   ajaxCaller,
-  Utils.connectAtom(authStore, 'authState')
+  Utils.connectStore(authStore, 'authState')
 )(class BillingList extends Component {
   constructor(props) {
     super(props)
@@ -262,7 +262,7 @@ export const BillingList = _.flow(
     const breadcrumbs = `Billing > Billing Project`
 
     return h(Fragment, [
-      h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
+      h(TopBar, { title: 'Billing' }, [
         !!selectedName && div({
           style: {
             color: 'white', paddingLeft: '5rem', minWidth: 0, marginRight: '0.5rem'

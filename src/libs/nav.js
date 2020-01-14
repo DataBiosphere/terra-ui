@@ -5,7 +5,7 @@ import { Component, createContext, useContext, useEffect, useState } from 'react
 import { div, h } from 'react-hyperscript-helpers'
 import { getAppName } from 'src/libs/logos'
 import { routeHandlersStore } from 'src/libs/state'
-import { atom, cond, useAtom, useOnMount } from 'src/libs/utils'
+import { atom, cond, useOnMount, useStore } from 'src/libs/utils'
 
 
 export const blockNav = atom(() => Promise.resolve())
@@ -76,7 +76,7 @@ export const LocationProvider = ({ children }) => {
 
 export const useRoute = () => {
   const location = useContext(locationContext)
-  const handlers = useAtom(routeHandlersStore)
+  const handlers = useStore(routeHandlersStore)
   return parseRoute(handlers, location)
 }
 

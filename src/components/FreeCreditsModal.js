@@ -12,7 +12,7 @@ import { freeCreditsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
-const FreeCreditsModal = Utils.connectAtom(freeCreditsActive, 'isActive')(class FreeCreditsModal extends Component {
+const FreeCreditsModal = Utils.connectStore(freeCreditsActive, 'isActive')(class FreeCreditsModal extends Component {
   constructor(props) {
     super(props)
     this.state = {

@@ -25,7 +25,7 @@ export const signOut = () => {
 }
 
 export const reloadAuthToken = () => {
-  return getAuthInstance().currentUser.get().reloadAuthResponse().then(() => true, () => false)
+  return getAuthInstance().currentUser.get().reloadAuthResponse().catch(() => false)
 }
 
 export const hasBillingScope = () => {
