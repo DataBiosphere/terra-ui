@@ -14,7 +14,7 @@
  
 # Our Coding Philosophy
 
-We would like our contributors to understand the principles behind our coding style and practices. With this information we hope to make it easier for you to contribute to our code base, and understand why we have made certain decisions in our code. As you read through the document you should see these philosophies emerge in our coding style and practices.
+We would like our contributors to understand the principles behind our code base. With this information we hope to make it easier for you to contribute to our code base, and understand why we have made certain decisions in our code. As you read through the document you should see these philosophies emerge in our coding style and practices.
 
 1. Write simple, easy to understand code
     * Simple does not mean easy, difficult problems can be coded with simplicity
@@ -27,11 +27,10 @@ We would like our contributors to understand the principles behind our coding st
     * Making sure we understand the problem as a whole, pushing back and getting clarification when it is not clearly understood
     
 3. Don't be afraid to upset the status quo
+    * **Is something hard to understand? Can it be done better? Do it!** This keeps tech debt down, the code base simple, easy to understand and work with.
     * Accepted or industry standard approaches have value and get us close to where we want to be, rethinking problems from first principles can spur innovation and deliver better results
     * The world around us is constantly changing and new solutions can present themselves when rethinking a problem
     * We accept this within our own codebase as well. If the rationale for doing something no longer holds, be willing to change it. "That is how we have always done it" is not a good rationale
-    * **Is something hard to understand? Can it be done better? Do it!** This keeps tech debt down, the code base simple, easy to understand and work with.
-    * Fix issues that can benefit everyone working on the codebase
   
 4. Be willing to give and receive feedback
     * Being able to give and receive feedback is an excellent way to improve your skills as an individual and support the project
@@ -105,7 +104,8 @@ We would like our contributors to understand the principles behind our coding st
        * Sharing state across components
        * Excessive branching / conditionals
        * Adding special cases
-       * Using abstractions that are too powerful for the intended result
+       * Using abstractions that are too powerful for the intended result 
+         * e.g. using a sledgehammer to hang a picture
        * Premature optimizations 
 
 2. Favor functional, declarative coding
@@ -115,17 +115,18 @@ We would like our contributors to understand the principles behind our coding st
     * When the need for imperative code arises, make sure the coding style is clearly imperative (use if/else rather than ternary expressions)
     * Take advantage of currying where you can
  
-3. Understanding the problem
+3. Understand the problem
     * Before writing code, it is good to understand what value the change is bringing to the users
     * It is also good to understand the user flow - how the user uses the application to make sure we are providing the correct functionality rather than prescribed functionality
     * For example, a user may request making a data column wider so they can more easily copy and paste data
-      * Diving into this deeper and asking why they want to copy data in the first place may yield more information unveiling what the user actually wants vs. what they asked for
+      * Diving deeper and asking why they want to copy data in the first place may yield more information, unveiling what the user actually wants vs. what they asked for
 
 4. Feedback
     * We prefer slowing down and iterating several times on a PR to ensure the code is right and in line with our standards rather than quickly pushing code through
-    * To merge the code with our dev branch, at least 1 PR approval is needed
     * We emphasize a high level of code quality in our codebase to prevent technical debt and keep the application easy to develop
     * We encourage comments and discussion in PR's to release high quality, understandable code
+    * To merge the code with our dev branch, at least 1 PR approval is needed
+
 
 5. Do not be afraid to change existing code to make it easier to work with
     * If you find yourself trying to work around existing code think about what improvements could be 
