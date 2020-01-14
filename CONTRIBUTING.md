@@ -1,5 +1,5 @@
-## Table of Contents
-
+# Table of Contents
+- [Table of Contents](#table-of-contents)
 - [Libraries and Technologies](#libraries-and-technologies)
 - [Our Coding Philosophy](#our-coding-philosophy)
 - [Coding Style](#coding-style)
@@ -14,7 +14,7 @@
  
 # Our Coding Philosophy
 
-We would like our contributors to understand the principles behind our code base. With this information we hope to make it easier for you to contribute to our code base, and understand why we have made certain decisions in our code. As you read through the document you should see these philosophies emerge in our coding style and practices.
+We would like our contributors to understand the principles behind our code base. With this information we hope to make it easier for you to contribute and understand why we have made certain decisions in our code. As you read through the document you should see these philosophies emerge in our coding style and practices.
 
 1. Write simple, easy to understand code
     * Simple does not mean easy, difficult problems can be coded with simplicity
@@ -49,7 +49,7 @@ We would like our contributors to understand the principles behind our code base
     * Provide clear error messages where appropriate
 
 # Coding Style
-1. We use react-hyperscript-helpers rather than JSX to keep our code base cleaner (status quo)
+1. We use react-hyperscript-helpers rather than JSX to keep our code base cleaner
      * Hyperscript helpers allows developers to remain in a javascript context rather than having to make a mental context switch to the JSX templating language while developing
 
 2. Use Lodash/fp for data transformation and functional utility
@@ -64,7 +64,7 @@ We would like our contributors to understand the principles behind our code base
        
 4.  We style our site using inline styling. 
      * This keeps the styling close to the code allowing developers to easily add styles without having to switch contexts to CSS or another file
-     * This also prevents developers from having to deal with css classes and side effects of the cascade
+     * This also prevents developers from having to deal with CSS classes and side effects of the cascade
 
 5. Be sure any components you add to the page have the appropriate aria-labels and keyboard accessibility
 
