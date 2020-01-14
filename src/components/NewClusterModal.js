@@ -148,9 +148,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: this.getMachineConfig(),
         toolDockerImage: Utils.switchCase(selectedLeoImage,
-          [CUSTOM_MODE, () => { return customEnvImage }],
-          [PROJECT_SPECIFIC_MODE, () => { return projSpecImage }],
-          [Utils.DEFAULT, () => { return selectedLeoImage }]),
+          [CUSTOM_MODE, () => customEnvImage],
+          [PROJECT_SPECIFIC_MODE, () => projSpecImage],
+          [Utils.DEFAULT, () => selectedLeoImage]),
+        labels: { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` },
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
       currentCluster?.status === 'Error' && this.deleteCluster()
@@ -175,12 +176,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       const { imageUrl } = _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), clusterImages)
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
-      } else if (currentClusterDetails.labels.tool === 'RStudio') {
+      } else if (currentClusterDetails.labels.saturnIsProjectSpecific === 'true') {
         this.setState({ selectedLeoImage: PROJECT_SPECIFIC_MODE, projSpecImage: imageUrl })
       } else {
         this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl })
       }
-
       if (jupyterUserScriptUri) {
         this.setState({ jupyterUserScriptUri, profile: 'custom' })
       }
@@ -197,7 +197,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
-    const isSelectedImageCustom = selectedLeoImage === CUSTOM_MODE
+    const isSelectedImageInputted = selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE
 
     const makeEnvSelect = id => h(Select, {
       id,
@@ -252,7 +252,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 [CUSTOM_MODE, () => { if (this.isInputtedImageInvalid(customEnvImage)) return 'Enter a valid docker image to use' }],
                 [PROJECT_SPECIFIC_MODE, () => { if (this.isInputtedImageInvalid(projSpecImage)) return 'Enter a valid rstudio image to use' }]
               ),
-              onClick: () => isSelectedImageCustom ?
+              onClick: () => isSelectedImageInputted ?
                 this.setState({ viewMode: 'Warning' }) :
                 this.createCluster()
             }, !!currentCluster ? 'Replace' : 'Create')
@@ -477,7 +477,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                     ' be based off one of the ',
                     h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images']),
                     ' or a ',
-                    h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-specific image']),
+                    h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-specific image'])
                   ])
                 ])
               }],
