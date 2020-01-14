@@ -10,7 +10,8 @@ import { Ajax } from 'src/libs/ajax'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
-import { validateWorkflowNameWithWorkSpace } from 'src/libs/workflow-utils'
+import { workflowNameValidation } from 'src/libs/workflow-utils'
+import validate from 'validate.js'
 
 
 const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Component {
@@ -41,7 +42,10 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
     const { workspaces, thisWorkspace, sameWorkspace, onDismiss } = this.props
     const { selectedWorkspaceId, workflowName, exporting, error } = this.state
 
-    const errors = validateWorkflowNameWithWorkSpace(workflowName, selectedWorkspaceId)
+    const errors = validate({ selectedWorkspaceId, workflowName }, {
+      selectedWorkspaceId: { presence: true },
+      workflowName: workflowNameValidation()
+    })
 
     return h(Modal, {
       title: sameWorkspace ? 'Duplicate Workflow' : 'Copy to Workspace',

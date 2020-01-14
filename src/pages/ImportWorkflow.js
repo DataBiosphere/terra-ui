@@ -14,7 +14,8 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { validateWorkflowName } from 'src/libs/workflow-utils'
+import { workflowNameValidation } from 'src/libs/workflow-utils'
+import validate from 'validate.js'
 
 
 const styles = {
@@ -81,10 +82,13 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
             onChange: workflowName => { this.setState({ workflowName }) },
             value: workflowName
           },
-          error: Utils.summarizeErrors(validateWorkflowName(workflowName))
+          error: Utils.summarizeErrors(validate({ workflowName }, {
+            workflowName: workflowNameValidation()
+          }))
         }),
         div({ style: { ...styles.title, paddingTop: '2rem' } }, ['Destination Workspace']),
-        h(WorkspaceImporter, { onImport: ws => this.import_(ws), additionalErrors: validateWorkflowName(workflowName) }),
+        h(WorkspaceImporter,
+          { onImport: ws => this.import_(ws), additionalErrors: validate({ workflowName }, { workflowName: workflowNameValidation() }) }),
         isImporting && spinnerOverlay
       ])
     ])
