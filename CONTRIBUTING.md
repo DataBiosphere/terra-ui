@@ -41,8 +41,8 @@ We would like our contributors to understand the principles behind our code base
     * Test how the users will interact with the application
   
 6. Mentoring is an integral part of becoming a better engineer
-    * "If you can't explain it simply you don't understand it well enough" ~quote commonly misattributed to Einstein
-    * Asking questions helps you and the person your asking learn
+    * The ability to explain and answer questions demonstrates greater understanding and exposes areas where you can improve
+    * Ask questions! This helps you and the person explaining the answer solidify knowledge and exposes areas of confusion.
 
 7. Keep the environment simple so the developer experience is painless
     * Use tools that keep the environment simple and straightforward to use
