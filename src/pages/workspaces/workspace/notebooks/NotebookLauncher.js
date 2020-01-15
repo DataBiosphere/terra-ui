@@ -330,6 +330,7 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
         onLoad: () => {
           const doc = frame.current.contentWindow.document
           doc.head.appendChild(Utils.createHtmlElement(doc, 'base', Utils.newTabLinkProps))
+          doc.addEventListener('mousedown', () => window.document.dispatchEvent(new MouseEvent('mousedown')))
         },
         style: { border: 'none', flex: 1 },
         srcDoc: preview,

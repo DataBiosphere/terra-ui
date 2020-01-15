@@ -8,6 +8,7 @@ import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, spinnerOv
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
+import { clearNotification } from 'src/components/Notifications'
 import { notify } from 'src/components/Notifications.js'
 import { Popup } from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
@@ -140,6 +141,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   componentDidUpdate(prevProps) {
+    const { namespace, name } = this.props
     const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
     const cluster = this.getCurrentCluster() || {}
     const twoMonthsAgo = _.tap(d => d.setMonth(d.getMonth() - 2), new Date())
@@ -152,6 +154,13 @@ export default class ClusterManager extends PureComponent {
         message: h(ClusterErrorNotification, { cluster })
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
+    } else if (cluster.status === 'Running' && prevCluster.status && prevCluster.status !== 'Running' && cluster.labels.tool === 'RStudio') {
+      const rStudioNotificationId = notify('info', 'Your compute instance is ready.', {
+        message: h(ButtonPrimary, {
+          href: Nav.getLink('workspace-app-launch', { namespace, name, app: 'RStudio' }),
+          onClick: () => clearNotification(rStudioNotificationId)
+        }, 'Launch Application')
+      })
     } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) { // TODO: remove this notification some time after the data syncing release
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
       notify('warn', 'Please Update Your Application Compute', {
