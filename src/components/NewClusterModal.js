@@ -118,7 +118,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     )
     this.state = {
       profile: matchingProfile ? matchingProfile.name : 'custom',
-      jupyterUserScriptUri: '', customEnvImage: '', projSpecImage: '', viewMode: undefined, isDeleteView: false,
+      jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined, isDeleteView: false,
       ...normalizeMachineConfig(currentConfig)
     }
   }
@@ -142,23 +142,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   createCluster() {
     const { namespace, onSuccess, currentCluster } = this.props
-    const { jupyterUserScriptUri, selectedLeoImage, customEnvImage, projSpecImage } = this.state
+    const { jupyterUserScriptUri, selectedLeoImage, customEnvImage } = this.state
     onSuccess(Promise.all([
       Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: this.getMachineConfig(),
-        toolDockerImage: Utils.switchCase(selectedLeoImage,
-          [CUSTOM_MODE, () => customEnvImage],
-          [PROJECT_SPECIFIC_MODE, () => projSpecImage],
-          [Utils.DEFAULT, () => selectedLeoImage]),
+        toolDockerImage: selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE ? customEnvImage : selectedLeoImage,
         labels: { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` },
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
       currentCluster?.status === 'Error' && this.deleteCluster()
     ]))
-  }
-
-  isInputtedImageInvalid(imageURL) {
-    return (!imageValidationRegexp.test(imageURL))
   }
 
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
@@ -176,7 +169,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
       } else if (currentClusterDetails.labels.saturnIsProjectSpecific === 'true') {
-        this.setState({ selectedLeoImage: PROJECT_SPECIFIC_MODE, projSpecImage: imageUrl })
+        this.setState({ selectedLeoImage: PROJECT_SPECIFIC_MODE, customEnvImage: imageUrl })
       } else {
         this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl })
       }
@@ -192,11 +185,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, onDismiss, onSuccess } = this.props
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, customEnvImage, projSpecImage, leoImages, viewMode, isDeleteView
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, isDeleteView
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
-    const isSelectedImageInputted = selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE
 
     const makeEnvSelect = id => h(Select, {
       id,
@@ -207,12 +199,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
     })
 
+    const isCustomImageInvalid = customEnvImage && !imageValidationRegexp.test(customEnvImage)
+    const isSelectedImageInputted = selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE
+
     const makeGroupedEnvSelect = id => h(GroupedSelect, {
       id,
       maxHeight: '25rem',
       value: selectedLeoImage,
       onChange: ({ value }) => {
-        this.setState({ selectedLeoImage: value })
+        this.setState({ selectedLeoImage: value, customEnvImage: '' })
       },
       isSearchable: false,
       isClearable: false,
@@ -244,14 +239,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ]),
           div([
             h(ButtonPrimary, {
-              disabled: Utils.switchCase(selectedLeoImage,
-                [CUSTOM_MODE, () => { return this.isInputtedImageInvalid(customEnvImage) }],
-                [PROJECT_SPECIFIC_MODE, () => { return this.isInputtedImageInvalid(projSpecImage) }]
-              ),
-              tooltip: Utils.switchCase(selectedLeoImage,
-                [CUSTOM_MODE, () => { if (this.isInputtedImageInvalid(customEnvImage)) return 'Enter a valid docker image to use' }],
-                [PROJECT_SPECIFIC_MODE, () => { if (this.isInputtedImageInvalid(projSpecImage)) return 'Enter a valid rstudio image to use' }]
-              ),
+              disabled: isCustomImageInvalid,
+              tooltip: isCustomImageInvalid && 'Enter a valid docker image to use',
               onClick: () => isSelectedImageInputted ?
                 this.setState({ viewMode: 'Warning' }) :
                 this.createCluster()
@@ -465,7 +454,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                             value: customEnvImage,
                             onChange: customEnvImage => this.setState({ customEnvImage })
                           },
-                          error: customEnvImage && this.isInputtedImageInvalid(customEnvImage) && 'Not a valid image'
+                          error: isCustomImageInvalid && 'Not a valid image'
                         })
                       ])
                     ])
@@ -481,25 +470,25 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 ])
               }],
               [PROJECT_SPECIFIC_MODE, () => {
-                return h(Fragment, [
-                  div({ style: { lineHeight: '1.5' } }, [
-                    'Some consortium projects, such as ',
-                    h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['AnVIL']),
-                    ', have created environments that are specific to their project. If you want to use one of these: ',
-                    div({ style: { marginTop: '0.5rem' } }, ['1. Find the environment image (',
-                      h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['view image list']),
-                      ') ']),
-                    div({ style: { margin: '0.5rem 0' } }, ['2. Copy the URL from the github repository ']),
-                    div({ style: { margin: '0.5rem 0' } }, ['3. Enter the URL for the image in the text box below ']),
-                    h(ValidatedInput, {
-                      inputProps: {
-                        placeholder: 'Paste image path here',
-                        value: projSpecImage,
-                        onChange: projSpecImage => this.setState({ projSpecImage })
-                      },
-                      error: projSpecImage && this.isInputtedImageInvalid(projSpecImage) && 'Not a valid image'
-                    })
-                  ])
+                return div({ style: { lineHeight: '1.5' } }, [
+                  'Some consortium projects, such as ',
+                  h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['AnVIL']),
+                  ', have created environments that are specific to their project. If you want to use one of these: ',
+                  div({ style: { marginTop: '0.5rem' } }, [
+                    '1. Find the environment image (',
+                    h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['view image list']),
+                    ') '
+                  ]),
+                  div({ style: { margin: '0.5rem 0' } }, ['2. Copy the URL from the github repository ']),
+                  div({ style: { margin: '0.5rem 0' } }, ['3. Enter the URL for the image in the text box below ']),
+                  h(ValidatedInput, {
+                    inputProps: {
+                      placeholder: 'Paste image path here',
+                      value: customEnvImage,
+                      onChange: customEnvImage => this.setState({ customEnvImage })
+                    },
+                    error: isCustomImageInvalid && 'Not a valid image'
+                  })
                 ])
               }],
               [Utils.DEFAULT, () => {
