@@ -7,20 +7,21 @@ import { icon } from 'src/components/icons'
 const TitleBar = ({ onPrevious, title, onDismiss, titleExtras }) => {
   return div({
     style: {
-      display: 'flex', alignItems: 'baseline', flex: 'none', padding: '1.5rem'
+      display: 'flex', alignItems: 'baseline', flex: 'none', padding: '1.5rem 1.5rem 0rem'
     }
   }, [
+    div({ style: { fontSize: '1rem', fontWeight: 600 } }, [title]),
+    titleExtras,
     onPrevious && h(Link, {
       'aria-label': 'Back',
+      style: { marginLeft: 'auto', marginRight: '2rem', alignSelf: 'center' },
       onClick: onPrevious
-    }, [icon('arrowLeft', { size: 17 })]),
-    div({ style: { fontSize: '0.875rem', fontWeight: 600, marginLeft: onPrevious ? 'auto' : undefined } }, [title]),
-    titleExtras,
+    }, [icon('arrowLeftRegular', { size: '22' })]),
     onDismiss && h(Link, {
       'aria-label': 'Close',
-      style: { marginLeft: 'auto' },
+      style: { marginLeft: onPrevious ? undefined: 'auto' },
       onClick: onDismiss
-    }, [icon('times', { size: 20 })])
+    }, [icon('times', { size: '25' })])
   ])
 }
 
