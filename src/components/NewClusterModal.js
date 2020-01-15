@@ -39,7 +39,6 @@ const styles = {
 
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
 const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
-const imageInstructions = `${terraDockerBaseGithubUrl}#how-to-create-your-own-custom-image-to-use-with-notebooks-on-terra`
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
 const rstudioBaseImages = 'https://github.com/anvilproject/anvil-docker'
 const zendeskImagePage = 'https://support.terra.bio/hc/en-us/articles/360037269472'
