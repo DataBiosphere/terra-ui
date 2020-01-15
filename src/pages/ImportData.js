@@ -1,10 +1,12 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { backgroundLogo, spinnerOverlay } from 'src/components/common'
+import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable, spinnerOverlay } from 'src/components/common'
+import { icon } from 'src/components/icons'
+import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
-import { WorkspaceImporter } from 'src/components/workspace-utils'
+import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -20,17 +22,43 @@ const styles = {
     position: 'relative', padding: '2rem'
   },
   title: {
-    fontSize: 24, fontWeight: 600, color: colors.dark(), marginBottom: '2rem'
+    fontSize: 24, fontWeight: 600, color: colors.dark(), marginBottom: '1rem'
   },
   card: {
-    borderRadius: 5, backgroundColor: 'rgba(255,255,255,0.85)', padding: '2rem',
+    borderRadius: 5, backgroundColor: 'white', padding: '2rem',
     flex: 1, minWidth: 0, boxShadow: Style.standardShadow
   }
 }
 
+const ChoiceButton = ({ iconName, title, detail, style, ...props }) => {
+  return h(Clickable, {
+    style: {
+      ...style,
+      padding: '1rem',
+      display: 'flex', alignItems: 'center',
+      border: `1px solid ${colors.accent()}`, borderRadius: 4
+    },
+    hover: { backgroundColor: colors.accent(0.1) },
+    ...props
+  }, [
+    icon(iconName, { size: 24, style: { flex: 'none', marginRight: '1rem' } }),
+    div({ style: { flex: 1 } }, [
+      div({ style: { fontWeight: 'bold' } }, [title]),
+      div([detail])
+    ]),
+    icon('angle-right', { size: 32, style: { flex: 'none', marginLeft: '1rem' } })
+  ])
+}
+
 const ImportData = () => {
+  const { workspaces, refresh: refreshWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
   const { query: { url, format, ad, wid } } = Nav.useRoute()
+  const [mode, setMode] = useState(wid ? 'existing' : undefined)
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(wid)
+
+  const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
 
   const onImport = _.flow(
     Utils.withBusyState(setIsImporting),
@@ -63,15 +91,66 @@ const ImportData = () => {
     div({ role: 'main', style: styles.container }, [
       div({ style: styles.card }, [
         div({ style: styles.title }, ['Importing Data']),
-        div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname])
+        div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
+        div({ style: { marginTop: '1rem' } }, [
+          'The dataset(s) you just chose to import to Terra will be made available to you within a workspace of your choice where you can then perform analysis.'
+        ])
       ]),
       div({ style: { ...styles.card, marginLeft: '2rem' } }, [
-        div({ style: styles.title }, ['Destination Workspace']),
-        h(WorkspaceImporter, {
-          authorizationDomain: ad,
-          selectedWorkspaceId: wid,
-          onImport
-        }),
+        Utils.switchCase(mode,
+          ['existing', () => {
+            return h(Fragment, [
+              div({ style: styles.title }, ['Start with an existing workspace']),
+              h(WorkspaceSelector, {
+                workspaces: _.filter(ws => {
+                  return Utils.canWrite(ws.accessLevel) &&
+                    (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
+                }, workspaces),
+                value: selectedWorkspaceId,
+                onChange: setSelectedWorkspaceId
+              }),
+              div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
+                h(ButtonPrimary, {
+                  disabled: !selectedWorkspace,
+                  onClick: () => onImport(selectedWorkspace.workspace)
+                }, ['Import']),
+                h(ButtonSecondary, { style: { marginLeft: '1rem' }, onClick: () => setMode() }, ['Back'])
+              ])
+            ])
+          }],
+          [Utils.DEFAULT, () => {
+            return h(Fragment, [
+              div({ style: styles.title }, ['Destination Workspace']),
+              div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
+              div({ style: { marginTop: '0.5rem' } }, ['Note that the import process may take some time after you are redirected into your destination workspace.']),
+              h(ChoiceButton, {
+                style: { marginTop: '1rem' },
+                onClick: () => setMode('existing'),
+                iconName: 'folder-open',
+                title: 'Start with an existing workspace',
+                detail: 'Select one of your workspaces'
+              }),
+              h(ChoiceButton, {
+                style: { marginTop: '1rem' },
+                onClick: () => setIsCreateOpen(true),
+                iconName: 'plus',
+                title: 'Start with a new workspace',
+                detail: 'Set up an empty workspace that you will configure for analysis'
+              }),
+              isCreateOpen && h(NewWorkspaceModal, {
+                requiredAuthDomain: ad,
+                onDismiss: () => setIsCreateOpen(false),
+                onSuccess: w => {
+                  setMode('existing')
+                  setIsCreateOpen(false)
+                  setSelectedWorkspaceId(w.workspaceId)
+                  refreshWorkspaces()
+                  onImport(w)
+                }
+              })
+            ])
+          }]
+        ),
         isImporting && spinnerOverlay
       ])
     ])
