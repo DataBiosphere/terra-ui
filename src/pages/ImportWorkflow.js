@@ -57,12 +57,7 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
   render() {
     const { path, version } = this.props
     const { isImporting, wdl, workflowName } = this.state
-
-    const workflowNameValidationDetails = () => {
-      return (validate({ workflowName }, {
-        workflowName: workflowNameValidation()
-      }))
-    }
+    const errors = (validate({ workflowName }, { workflowName: workflowNameValidation() }))
 
     return div({ style: styles.container }, [
       div({ style: { ...styles.card, maxWidth: 740 } }, [
@@ -91,13 +86,13 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
                 onChange: workflowName => { this.setState({ workflowName }) },
                 value: workflowName
               },
-              error: Utils.summarizeErrors(workflowNameValidationDetails())
+              error: Utils.summarizeErrors(errors)
             })])
           ])
         ]),
         div({ style: { ...styles.title, paddingTop: '2rem' } }, ['Destination Workspace']),
         h(WorkspaceImporter,
-          { onImport: ws => this.import_(ws), additionalErrors: workflowNameValidationDetails() }),
+          { onImport: ws => this.import_(ws), additionalErrors: errors }),
         isImporting && spinnerOverlay
       ])
     ])
