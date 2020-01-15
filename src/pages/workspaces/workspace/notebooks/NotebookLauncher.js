@@ -139,7 +139,7 @@ const EditModeDisabledModal = ({ onDismiss, onRecreateCluster, onPlayground }) =
       h(ButtonPrimary, {
         style: { padding: '0 1rem', marginLeft: '2rem' },
         onClick: () => onRecreateCluster()
-      }, ['Recreate application compute instance'])
+      }, ['Recreate notebook runtime'])
     ])
   ])
 }
@@ -208,7 +208,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
         [makeMenuIcon('export'), 'Copy to another workspace']
       )],
       [!!clusterStatus && cluster.labels.tool !== 'Jupyter', () => h(StatusMessage, { hideSpinner: true }, [
-        'Your application compute instance doesn\'t appear to be running Jupyter. Create a new instance with Jupyter on it to edit this notebook.'
+        'Your notebook runtime doesn\'t appear to be running Jupyter. Create a new instance with Jupyter on it to edit this notebook.'
       ])],
       [!mode || [null, 'Stopped'].includes(clusterStatus), () => h(Fragment, [
         Utils.cond(
@@ -243,15 +243,15 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
         ])
       ])],
       [clusterStatus === 'Creating', () => h(StatusMessage, [
-        'Creating application compute instance, this will take 5-10 minutes. You can navigate away and return when it’s ready.'
+        'Creating notebook runtime, this will take 5-10 minutes. You can navigate away and return when it’s ready.'
       ])],
       [clusterStatus === 'Starting', () => h(StatusMessage, [
-        'Starting application compute instance, this may take up to 2 minutes.'
+        'Starting notebook runtime, this may take up to 2 minutes.'
       ])],
       [clusterStatus === 'Stopping', () => h(StatusMessage, [
-        'Application compute instance is stopping. You can restart it after it finishes.'
+        'Notebook runtime is stopping. You can restart it after it finishes.'
       ])],
-      [clusterStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Application compute instance error.'])]
+      [clusterStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Notebook runtime error.'])]
     ),
     div({ style: { flexGrow: 1 } }),
     div({ style: { position: 'relative' } }, [
@@ -385,7 +385,7 @@ const copyingNotebookMessage = div({ style: { paddingTop: '2rem' } }, [
 ])
 
 const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
-  console.assert(status === 'Running', 'Expected application compute instance to be running')
+  console.assert(status === 'Running', 'Expected notebook runtime to be running')
   console.assert(!labels.welderInstallFailed, 'Expected cluster to have Welder')
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)
@@ -442,7 +442,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
 }
 
 const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
-  console.assert(status === 'Running', 'Expected application compute instance to be running')
+  console.assert(status === 'Running', 'Expected notebook runtime to be running')
   console.assert(!!labels.welderInstallFailed, 'Expected cluster to not have Welder')
   const frameRef = useRef()
   const signal = Utils.useCancellation()
@@ -456,7 +456,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
     if (mode === 'edit') {
       notify('error', 'Cannot Edit Notebook', {
         message: h(Fragment, [
-          p(['Recent updates to Terra are not compatible with the older application compute instance in this workspace. Please recreate your runtime in order to access Edit Mode for this notebook.']),
+          p(['Recent updates to Terra are not compatible with the older notebook runtime in this workspace. Please recreate your runtime in order to access Edit Mode for this notebook.']),
           h(Link, {
             variant: 'light',
             href: dataSyncingDocUrl,

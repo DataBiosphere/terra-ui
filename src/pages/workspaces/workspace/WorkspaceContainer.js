@@ -152,7 +152,7 @@ const useClusterPolling = namespace => {
       throw error
     }
   }
-  const refreshClusters = withErrorReporting('Error loading application compute instances', loadClusters)
+  const refreshClusters = withErrorReporting('Error loading notebook runtime configurations', loadClusters)
   const refreshClustersSilently = withErrorIgnoring(loadClusters)
   Utils.useOnMount(() => {
     refreshClusters()

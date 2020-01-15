@@ -257,7 +257,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         }
       }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
-        div({ style: { marginBottom: '1rem' } }, ['Select from one of the default compute cluster profiles or define your own']),
+        div({ style: { marginBottom: '1rem' } }, ['Select from one of the default runtime profiles or define your own']),
         div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
           h(IdContainer, [
             id => h(Fragment, [
@@ -365,7 +365,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       !!currentCluster && div({ style: styles.warningBox }, [
         div({ style: styles.label }, ['Caution:']),
         p([
-          'Replacing your application compute will ',
+          'Replacing your notebook runtime will ',
           span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
           '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
           h(Link, {
@@ -428,13 +428,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onPrevious: undefined,
         contents: h(Fragment, [
           div({ style: { marginBottom: '1rem' } },
-            ['Create a cloud compute instance to launch Jupyter Notebooks or Project-Specific software applications.']),
+            ['Choose a Terra pre-installed runtime environment (e.g. programming languages + packages) or choose a custom environment.']),
           div([
             h(IdContainer, [
               id => h(Fragment, [
                 div({ style: { marginBottom: '0.5rem' } }, [label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT'),
                   h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-                    'Environment defines the software application + programming languages + packages used when you create your compute. '
+                    'Environment defines the software application + programming languages + packages used when you create your runtime. '
                   ])]),
                 div({ style: { height: '45px' } }, [makeGroupedEnvSelect(id)])
               ])
@@ -512,8 +512,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         title: Utils.cond(
           [viewMode === 'Packages', () => 'INSTALLED PACKAGES'],
           [viewMode === 'Warning', () => 'WARNING!'],
-          [isDeleteView, () => 'DELETE APPLICATION COMPUTE?'],
-          () => 'APPLICATION COMPUTE CONFIGURATION'
+          [isDeleteView, () => 'DELETE RUNTIME?'],
+          () => 'RUNTIME CONFIGURATION'
         ),
         onDismiss,
         onPrevious
