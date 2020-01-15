@@ -35,8 +35,7 @@ const FooterWrapper = ({ children }) => {
       a({ href: Nav.getLink('terms-of-service'), style: styles.item }, 'Terms of Service'),
       div({ style: styles.item }, '|'),
       a({ href: 'https://support.terra.bio/hc/en-us/articles/360030793091-Terra-FireCloud-Security-Posture', target: '_blank', style: styles.item },
-        ['Security', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
-      ]),
+        ['Security', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })]),
       div({ style: styles.item }, '|'),
       a({
         href: 'https://support.terra.bio/hc/en-us', target: '_blank',
