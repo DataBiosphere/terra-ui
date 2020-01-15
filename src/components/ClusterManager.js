@@ -154,9 +154,9 @@ export default class ClusterManager extends PureComponent {
       errorNotifiedClusters.update(Utils.append(cluster.id))
     } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) { // TODO: remove this notification some time after the data syncing release
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
-      notify('warn', 'Please Update Your Runtime', {
+      notify('warn', 'Please Update Your Application Compute', {
         message: h(Fragment, [
-          p(['On Sunday Oct 20th at 10am, we are introducing important updates to Terra, which are not compatible with the older application compute instance in this workspace. After this date, you will no longer be able to save new changes to notebooks in one of these older runtimes.']),
+          p(['On Sunday Oct 20th at 10am, we are introducing important updates to Terra, which are not compatible with the older application compute instance in this workspace. After this date, you will no longer be able to save new changes to notebooks in one of these older application compute instances.']),
           h(Link, {
             variant: 'light',
             href: dataSyncingDocUrl,
@@ -167,7 +167,7 @@ export default class ClusterManager extends PureComponent {
     } else if (isAfter(createdDate, twoMonthsAgo) && !isToday(dateNotified)) {
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
       notify('warn', 'Outdated Application Compute Instance', {
-        message: 'Your application compute instance is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'
+        message: 'Your application compute instance is over two months old. Please consider deleting and recreating your application compute in order to access the latest features and security updates.'
       })
     }
   }
@@ -232,7 +232,7 @@ export default class ClusterManager extends PureComponent {
     const { busy } = this.state
     return div({ style: { padding: '1rem', width: 300 } }, [
       div([
-        'Your new runtime environment is ready to use.'
+        'Your new application compute environment is ready to use.'
       ]),
       div({ style: styles.row }, [
         div({ style: { marginLeft: 'auto' } }, [
@@ -330,7 +330,7 @@ export default class ClusterManager extends PureComponent {
             [!canCompute, () => noCompute],
             [creating, () => 'Your environment is being created'],
             [multiple, () => undefined],
-            () => 'Update runtime'
+            () => 'Update application compute'
           ),
           onClick: () => this.setState({ createModalDrawerOpen: true }),
           disabled: isDisabled

@@ -439,14 +439,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onPrevious: undefined,
         contents: h(Fragment, [
           div({ style: { marginBottom: '1rem' } },
-            ['Create a cloud compute instance to launch Jupyter Notebooks or Project-specific software applications.']),
+            ['Create a cloud compute instance to launch Jupyter Notebooks or Project-Specific software applications.']),
           div([
             h(IdContainer, [
               id => h(Fragment, [
                 div({ style: { marginBottom: '0.5rem' } }, [label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT'),
                   h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-                    'Environment defines the software application + programming languages + packages used when you create you compute. ' +
-                    'Below, you can choose from a selection of pre-built Jupyter Notebook environments, or to use a custom or project-specific environment.'
+                    'Environment defines the software application + programming languages + packages used when you create your compute. '
                   ])]),
                 div({ style: { height: '45px' } }, [makeGroupedEnvSelect(id)])
               ])
@@ -472,19 +471,19 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                     ])
                   ]),
                   div({ style: { margin: '0.5rem' } }, [
-                    h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom environments']),
+                    'Custom environments',
                     span({ style: { fontWeight: 'bold' } }, [' must ']),
                     ' be based off one of the ',
                     h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images']),
                     ' or a ',
-                    h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-specific image'])
+                    h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-Specific image'])
                   ])
                 ])
               }],
               [PROJECT_SPECIFIC_MODE, () => {
                 return h(Fragment, [
                   div({ style: { lineHeight: '1.5' } }, [
-                    'Some projects, such as ',
+                    'Some consortium projects, such as ',
                     h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['AnVIL']),
                     ', have created environments that are specific to their project. If you want to use one of these: ',
                     div({ style: { marginTop: '0.5rem' } }, ['1. Find the environment image (',
