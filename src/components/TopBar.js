@@ -305,10 +305,10 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
             div({ style: { color: colors.dark(0.3), fontSize: 10, fontWeight: 600, marginTop: '0.5rem' } }, [
               'Built on: ',
               h(Clickable, {
-                href: `https://github.com/DataBiosphere/terra-ui/commits/${process.env.REACT_APP_SATURN_VERSION}`,
+                href: `https://github.com/DataBiosphere/terra-ui/commits/${process.env.REACT_APP_VERSION}`,
                 ...Utils.newTabLinkProps,
                 style: { textDecoration: 'underline', marginLeft: '0.25rem' }
-              }, [new Date(parseInt(process.env.REACT_APP_SATURN_BUILD_TIMESTAMP)).toLocaleString()])
+              }, [new Date(parseInt(process.env.REACT_APP_BUILD_TIMESTAMP)).toLocaleString()])
             ])
           ])
         ])
