@@ -4,6 +4,7 @@ import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import { footerLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import * as Utils from 'src/libs/utils'
 
 
 const styles = {
@@ -31,10 +32,14 @@ const FooterWrapper = ({ children }) => {
         footerLogo()
       ]),
       a({ href: Nav.getLink('privacy'), style: styles.item }, 'Privacy Policy'),
+      div({ style: styles.item }, '|'),
       a({ href: Nav.getLink('terms-of-service'), style: styles.item }, 'Terms of Service'),
       div({ style: styles.item }, '|'),
+      a({ href: 'https://support.terra.bio/hc/en-us/articles/360030793091-Terra-FireCloud-Security-Posture', target: '_blank', style: styles.item },
+        ['Security', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })]),
+      div({ style: styles.item }, '|'),
       a({
-        href: 'https://support.terra.bio/hc/en-us', target: '_blank',
+        href: 'https://support.terra.bio/hc/en-us', ...Utils.newTabLinkProps,
         style: { ...styles.item, display: 'flex', alignItems: 'center' }
       }, [
         'Documentation', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
