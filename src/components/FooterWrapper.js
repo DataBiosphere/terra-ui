@@ -4,6 +4,7 @@ import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import { footerLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import * as Utils from 'src/libs/utils'
 
 
 const styles = {
@@ -38,7 +39,7 @@ const FooterWrapper = ({ children }) => {
         ['Security', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })]),
       div({ style: styles.item }, '|'),
       a({
-        href: 'https://support.terra.bio/hc/en-us', target: '_blank',
+        href: 'https://support.terra.bio/hc/en-us', ...Utils.newTabLinkProps,
         style: { ...styles.item, display: 'flex', alignItems: 'center' }
       }, [
         'Documentation', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
