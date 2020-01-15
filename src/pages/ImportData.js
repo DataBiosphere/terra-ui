@@ -55,6 +55,7 @@ const ImportData = () => {
   const [isImporting, setIsImporting] = useState(false)
   const { query: { url, format, ad, wid } } = Nav.useRoute()
   const [mode, setMode] = useState(wid ? 'existing' : undefined)
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(wid)
 
   const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
@@ -93,9 +94,6 @@ const ImportData = () => {
         div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
         div({ style: { marginTop: '1rem' } }, [
           'The dataset(s) you just chose to import to Terra will be made available to you within a workspace of your choice where you can then perform analysis.'
-        ]),
-        div({ style: { marginTop: '0.5rem' } }, [
-          'You can import into a new blank workspace or an existing workspace you have already been working on.'
         ])
       ]),
       div({ style: { ...styles.card, marginLeft: '2rem' } }, [
@@ -120,21 +118,6 @@ const ImportData = () => {
               ])
             ])
           }],
-          ['new', () => {
-            return h(Fragment, [
-              div({ style: styles.title }, ['Start with a new workspace']),
-              h(NewWorkspaceModal, {
-                requiredAuthDomain: ad,
-                onDismiss: () => setMode(),
-                onSuccess: w => {
-                  setMode('existing')
-                  setSelectedWorkspaceId(w.workspaceId)
-                  refreshWorkspaces()
-                  onImport(w)
-                }
-              })
-            ])
-          }],
           [Utils.DEFAULT, () => {
             return h(Fragment, [
               div({ style: styles.title }, ['Destination Workspace']),
@@ -149,10 +132,21 @@ const ImportData = () => {
               }),
               h(ChoiceButton, {
                 style: { marginTop: '1rem' },
-                onClick: () => setMode('new'),
+                onClick: () => setIsCreateOpen(true),
                 iconName: 'plus',
                 title: 'Start with a new workspace',
                 detail: 'Set up an empty workspace that you will configure for analysis'
+              }),
+              isCreateOpen && h(NewWorkspaceModal, {
+                requiredAuthDomain: ad,
+                onDismiss: () => setIsCreateOpen(false),
+                onSuccess: w => {
+                  setMode('existing')
+                  setIsCreateOpen(false)
+                  setSelectedWorkspaceId(w.workspaceId)
+                  refreshWorkspaces()
+                  onImport(w)
+                }
               })
             ])
           }]
