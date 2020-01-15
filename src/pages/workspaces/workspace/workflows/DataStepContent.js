@@ -8,6 +8,7 @@ import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import * as Style from 'src/libs/style'
 import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
+import validate from 'validate.js'
 
 
 const { processAll, processMergedSet, chooseRows, chooseSets } = EntitySelectionType
@@ -69,12 +70,21 @@ export default class DataStepContent extends Component {
     const isProcessMergedSet = type === processMergedSet
     const isChooseRows = type === chooseRows
     const isChooseSets = type === chooseSets
+    const errors = validate({ newSetName }, {
+      newSetName: {
+        presence: { allowEmpty: false},
+        format: {
+          pattern: /^[A-Za-z0-9_\-.]*$/,
+          message: 'can only contain letters, numbers, underscores, dashes, and periods'
+        }
+      }
+    })
 
     return h(Modal, {
       title: 'Select Data',
       okButton: h(ButtonPrimary, {
         tooltip: isChooseSets && _.size(selectedEntities) > 10 && 'Please select 10 or fewer sets',
-        disabled: !this.isValidSelectionModel(),
+        disabled: !this.isValidSelectionModel() && !!errors,
         onClick: () => onSuccess(newSelectionModel)
       }, 'OK'),
       onDismiss,
