@@ -29,8 +29,8 @@ const styles = {
     fontSize: 12,
     backgroundColor: colors.warning(),
     color: 'white',
-    padding: '2rem',
-    margin: '2rem -1.5rem 0 -1.5rem'
+    padding: '1.5rem',
+    margin: '1.5rem -1.5rem 0 -1.5rem'
   },
   disabledInputs: {
     border: `1px solid ${colors.dark(0.2)}`, borderRadius: '4px', padding: '0.5rem'
@@ -229,7 +229,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const bottomButtons = () => h(Fragment, [
       div(
-        { style: { display: 'flex', marginTop: '3rem', marginBottom: '1rem' } },
+        { style: { display: 'flex', marginTop: '2.5rem', marginBottom: '1rem' } },
         [
           currentCluster && div([
             h(ButtonSecondary, {
