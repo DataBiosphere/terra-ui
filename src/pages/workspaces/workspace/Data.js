@@ -159,13 +159,12 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
     setEditType()
   }
 
-  const initialAttributes = _.flow(
+  const filteredAttributes = _.flow(
     _.toPairs,
     _.remove(([key]) => key === 'description' || key.includes(':') || key.startsWith('referenceData_')),
-    _.sortBy(_.first)
+    _.sortBy(_.first),
+    _.filter(data => Utils.textMatch(textFilter, _.join(' ', data)))
   )(attributes)
-
-  const filteredAttributes = _.filter(data => Utils.textMatch(textFilter, _.join(' ', data)), initialAttributes)
 
   const creatingNewVariable = editIndex === filteredAttributes.length
   const amendedAttributes = [
