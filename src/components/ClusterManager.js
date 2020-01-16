@@ -4,13 +4,12 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
 import { div, h, img, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, IdContainer, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { clearNotification } from 'src/components/Notifications'
 import { notify } from 'src/components/Notifications.js'
-import { Popup } from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
 import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
@@ -213,16 +212,6 @@ export default class ClusterManager extends PureComponent {
     )
   }
 
-  destroyClusters(keepIndex) {
-    const activeClusters = this.getActiveClustersOldestFirst()
-    this.executeAndRefresh(
-      Promise.all(_.map(
-        ({ googleProject, clusterName }) => Ajax().Clusters.cluster(googleProject, clusterName).delete(),
-        _.without([_.nth(keepIndex, activeClusters)], activeClusters)
-      ))
-    )
-  }
-
   startCluster() {
     const { googleProject, clusterName } = this.getCurrentCluster()
     this.executeAndRefresh(
@@ -235,26 +224,6 @@ export default class ClusterManager extends PureComponent {
     this.executeAndRefresh(
       Ajax().Clusters.cluster(googleProject, clusterName).stop()
     )
-  }
-
-  renderDestroyForm() {
-    const { busy } = this.state
-    return div({ style: { padding: '1rem', width: 300 } }, [
-      div([
-        'Your new runtime environment is ready to use.'
-      ]),
-      div({ style: styles.row }, [
-        div({ style: { marginLeft: 'auto' } }, [
-          busy && icon('loadingSpinner')
-        ]),
-        h(ButtonSecondary, {
-          style: { marginLeft: '1rem', marginRight: '1rem' },
-          disabled: busy,
-          onClick: () => this.destroyClusters(-2)
-        }, 'Discard'),
-        h(ButtonPrimary, { disabled: busy, onClick: () => this.destroyClusters(-1) }, 'Apply')
-      ])
-    ])
   }
 
   render() {
@@ -315,8 +284,7 @@ export default class ClusterManager extends PureComponent {
     const totalCost = _.sum(_.map(clusterCost, clusters))
     const activeClusters = this.getActiveClustersOldestFirst()
     const creating = _.some({ status: 'Creating' }, activeClusters)
-    const multiple = !creating && activeClusters.length > 1 && currentStatus !== 'Error'
-    const isDisabled = !canCompute || creating || multiple || busy
+    const isDisabled = !canCompute || creating || busy
 
     const isRStudioImage = currentCluster?.labels.tool === 'RStudio'
     const appName = isRStudioImage ? 'RStudio' : 'terminal'
@@ -338,7 +306,6 @@ export default class ClusterManager extends PureComponent {
           tooltip: Utils.cond(
             [!canCompute, () => noCompute],
             [creating, () => 'Your environment is being created'],
-            [multiple, () => undefined],
             () => 'Update runtime'
           ),
           onClick: () => this.setState({ createModalDrawerOpen: true }),
@@ -352,8 +319,7 @@ export default class ClusterManager extends PureComponent {
             ])
           ]),
           icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
-        ]),
-        multiple && h(Popup, { side: 'bottom', target: id, handleClickOutside: _.noop }, [this.renderDestroyForm()])
+        ])
       ])]),
       h(NewClusterModal, {
         isOpen: createModalDrawerOpen,
