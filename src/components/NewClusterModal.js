@@ -428,7 +428,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onPrevious: undefined,
         contents: h(Fragment, [
           div({ style: { marginBottom: '1rem' } },
-            ['Choose a Terra pre-installed runtime environment (e.g. programming languages + packages) or choose a custom environment.']),
+            ['Create a cloud compute instance to launch Jupyter Notebooks or a Project-Specific software application.']),
           div([
             h(IdContainer, [
               id => h(Fragment, [
