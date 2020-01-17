@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import ButtonBar from 'src/components/ButtonBar'
 import Modal from 'src/components/Modal'
+import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { authStore, lastActiveTimeStore } from 'src/libs/state'
@@ -33,19 +34,25 @@ const getIdleData = ({ currentTime, lastRecordedActivity, timeout, countdownStar
 
 const IdleStatusMonitor = ({
   timeout = Utils.durationToMillis({ minutes: 15 }),
-  countdownStart = Utils.durationToMillis({ minutes: 3 }), emailDomain = ''
+  countdownStart = Utils.durationToMillis({ minutes: 3 })
 }) => {
-  const { isSignedIn, user: { id, email } } = Utils.useStore(authStore)
-  // Placeholder code until the clinical user information is available in the user's profile.
-  // This will likely be a boolean property in the profile
-  const isClinicalDomain = email && emailDomain && email.endsWith(`@${emailDomain}`)
+  const signal = Utils.useCancellation()
+  const [isClinicalUser, setIsClinicalUser] = useState()
+  const { isSignedIn, user: { id } } = Utils.useStore(authStore)
   const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore)
   const { timedOut } = getIdleData({ currentTime: Date.now(), lastRecordedActivity, timeout, countdownStart })
+
+  useEffect(() => {
+    const setClinicalStatus = async () => {
+      setIsClinicalUser(!!_.find({ groupName: 'session_timeout' }, await Ajax(signal).Groups.list()))
+    }
+    isSignedIn && setClinicalStatus()
+  }, [isSignedIn, signal])
 
   useEffect(() => { timedOut && !isSignedIn && setLastActive('expired') }, [isSignedIn, timedOut])
 
   return Utils.cond(
-    [isSignedIn && isClinicalDomain, h(InactivityTimer, { id, timeout, countdownStart })],
+    [isSignedIn && isClinicalUser, h(InactivityTimer, { id, timeout, countdownStart })],
     [lastRecordedActivity === 'expired' && !isSignedIn, () => h(Modal, {
       title: 'Session Expired',
       showCancel: false,
