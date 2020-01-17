@@ -290,6 +290,11 @@ export default class ClusterManager extends PureComponent {
     const appName = isRStudioImage ? 'RStudio' : 'terminal'
 
     return div({ style: styles.container }, [
+      activeClusters.length > 1 && h(Link, {
+        style: { marginRight: '1rem' },
+        href: Nav.getLink('clusters'),
+        tooltip: 'Multiple runtimes found in this billing project. Click to select which to delete.'
+      }, [icon('warning-standard', { size: 24, style: { color: colors.danger() } })]),
       h(Link, {
         href: Nav.getLink('workspace-app-launch', { namespace, name, app: appName }),
         tooltip: canCompute ? `Open ${appName}` : noCompute,
