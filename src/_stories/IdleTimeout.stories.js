@@ -41,7 +41,6 @@ const agreeTest = dynamicStorageSlot(localStorage, 'terra-timeout-agree')
 
 const Container = ({ modal }) => {
   const isClinical = boolean('Is Clinical User', false)
-
   const agree = Utils.useStore(agreeTest)
   const auth = Utils.useStore(authTest)
   const { isSignedIn } = auth
