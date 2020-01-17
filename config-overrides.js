@@ -1,10 +1,6 @@
-const { execSync } = require('child_process')
-const webpack = require('webpack')
 const _ = require('lodash/fp')
-const path = require('path')
 const rewireReactHotLoader = require('react-app-rewire-hot-loader')
-const { addBabelPlugin, addWebpackModuleRule, addWebpackPlugin, useEslintRc } = require('customize-cra')
-const manualOverrides = require('./webpack.config')
+const { addBabelPlugin, useEslintRc } = require('customize-cra')
 
 
 module.exports = {
@@ -18,18 +14,10 @@ module.exports = {
           theme: 'default',
           css: true
         }
-      ]),
-      addWebpackModuleRule({
-        include: [path.resolve(__dirname, 'src/icons')],
-        loader: 'svg-react-loader'
-      }),
-      addWebpackPlugin(new webpack.DefinePlugin({
-        SATURN_VERSION: JSON.stringify(execSync('git rev-parse HEAD').toString().trim()),
-        SATURN_BUILD_TIMESTAMP: JSON.stringify(Date.now())
-      }))
+      ])
     )(config)
 
-    return rewireReactHotLoader(_.merge(newConfig, manualOverrides), env)
+    return rewireReactHotLoader(newConfig, env)
   },
   jest(config) {
     return _.merge(config, {

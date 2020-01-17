@@ -4,6 +4,9 @@
 @import "~easymde/dist/easymde.min.css";
 @import "~react-notifications-component/dist/theme.css";
 
+/* This adds some low-level css resets based on the browserslist in package.json, see https://create-react-app.dev/docs/adding-css-reset */
+@import-normalize;
+
 .hover-style:hover {
   --hover-backgroundColor: var(--app-hover-backgroundColor);
   --hover-border: var(--app-hover-border);

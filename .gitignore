@@ -26,6 +26,3 @@ yarn-error.log*
 
 /.idea/
 saturn-ui.iml
-
-#vscode
-jsconfig.json
