@@ -308,7 +308,7 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
                 href: `https://github.com/DataBiosphere/terra-ui/commits/${process.env.REACT_APP_VERSION}`,
                 ...Utils.newTabLinkProps,
                 style: { textDecoration: 'underline', marginLeft: '0.25rem' }
-              }, [new Date(parseInt(process.env.REACT_APP_BUILD_TIMESTAMP)).toLocaleString()])
+              }, [new Date(parseInt(process.env.REACT_APP_BUILD_TIMESTAMP, 10)).toLocaleString()])
             ])
           ])
         ])
