@@ -58,7 +58,7 @@ export default class DataStepContent extends Component {
       workspaceId, entityMetadata, rootEntityType,
       workspace: { attributes: { 'workspace-column-defaults': columnDefaults } }
     } = this.props
-    const { newSelectionModel, newSelectionModel: { type, selectedEntities, newSetName } } = this.state
+    const { newSelectionModel, newSelectionModel: { type, selectedEntities, newSetName, error: undefined } } = this.state
 
     const count = entityMetadata[rootEntityType].count
 
@@ -72,7 +72,7 @@ export default class DataStepContent extends Component {
     const isChooseSets = type === chooseSets
     const errors = validate({ newSetName }, {
       newSetName: {
-        presence: { allowEmpty: false},
+        presence: { allowEmpty: false },
         format: {
           pattern: /^[A-Za-z0-9_\-.]*$/,
           message: 'can only contain letters, numbers, underscores, dashes, and periods'
