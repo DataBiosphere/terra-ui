@@ -120,7 +120,7 @@ const Clusters = () => {
                 headerRenderer: () => null,
                 cellRenderer: ({ rowIndex }) => {
                   const cluster = filteredClusters[rowIndex]
-                  return h(Link, {
+                  return cluster.status !== 'Deleting' && h(Link, {
                     'aria-label': 'Delete notebook runtime',
                     tooltip: 'Delete notebook runtime',
                     onClick: () => setDeleteClusterId(cluster.id)
