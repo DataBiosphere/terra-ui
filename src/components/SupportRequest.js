@@ -211,7 +211,7 @@ const SupportRequest = _.flow(
             onChange: v => this.setState({ email: v })
           })
         ])]),
-        h(IdContainer, [id => h(Fragment, [
+        h(Fragment, [
           h(FormLabel, { required: true, htmlFor: id }, ['Are you a clinical user?']),
           h(RadioButton, {
             text: 'Yes', name: 'is-clinical-user', checked: clinicalUser === true,
@@ -223,7 +223,7 @@ const SupportRequest = _.flow(
             labelStyle: { margin: '0 2rem 0 0.25rem' },
             onChange: () => this.setState({ clinicalUser: false })
           })
-        ])]),
+        ]),
         submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
         submitting && spinnerOverlay,
         div({ style: styles.buttonRow }, [
