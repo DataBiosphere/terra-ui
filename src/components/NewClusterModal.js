@@ -466,9 +466,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return h(Fragment, [
       h(TitleBar, {
         title: Utils.switchCase(viewMode,
-          ['Packages', () => 'INSTALLED PACKAGES'],
-          ['Warning', () => 'WARNING!'],
-          ['DELETE', () => 'DELETE RUNTIME?'],
+          ['packages', () => 'INSTALLED PACKAGES'],
+          ['warning', () => 'WARNING!'],
+          ['delete', () => 'DELETE RUNTIME?'],
           [Utils.DEFAULT, () => 'RUNTIME CONFIGURATION']
         ),
         onDismiss,
