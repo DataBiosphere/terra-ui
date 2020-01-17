@@ -212,7 +212,7 @@ const SupportRequest = _.flow(
           })
         ])]),
         h(Fragment, [
-          h(FormLabel, { required: true, htmlFor: id }, ['Are you a clinical user?']),
+          h(FormLabel, { required: true }, ['Are you a clinical user?']),
           h(RadioButton, {
             text: 'Yes', name: 'is-clinical-user', checked: clinicalUser === true,
             labelStyle: { margin: '0 2rem 0 0.25rem' },
