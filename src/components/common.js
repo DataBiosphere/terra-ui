@@ -314,7 +314,6 @@ const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) =
 
   return h(RSelect, _.merge({
     inputId: id,
-    maxMenuHeight: maxHeight || undefined,
     ...commonSelectProps,
     getOptionLabel: ({ value, label }) => label || value.toString(),
     value: newValue || null, // need null instead of undefined to clear the select

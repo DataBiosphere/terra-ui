@@ -204,7 +204,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const makeGroupedEnvSelect = id => h(GroupedSelect, {
       id,
-      maxHeight: '25rem',
+      maxMenuHeight: '25rem',
       value: selectedLeoImage,
       onChange: ({ value }) => {
         this.setState({ selectedLeoImage: value, customEnvImage: '' })
