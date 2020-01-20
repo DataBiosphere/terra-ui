@@ -230,7 +230,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           currentCluster && div([
             h(ButtonSecondary, {
               onClick: () => this.setState({ isDeleteView: true })
-            }, 'Delete Compute')
+            }, 'Delete Runtime')
           ]),
           div({ style: { marginLeft: 'auto', marginRight: '2rem' } }, [
             h(ButtonSecondary, {

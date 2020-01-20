@@ -159,7 +159,7 @@ export default class ClusterManager extends PureComponent {
         message: h(ButtonPrimary, {
           href: Nav.getLink('workspace-app-launch', { namespace, name, app: 'RStudio' }),
           onClick: () => clearNotification(rStudioNotificationId)
-        }, 'Launch Application')
+        }, 'Launch Runtime')
       })
     } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) { // TODO: remove this notification some time after the data syncing release
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
