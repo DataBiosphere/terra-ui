@@ -68,7 +68,7 @@ export const PlaygroundHeader = ({ children }) => {
     bgColor: colors.warning(0.25)
   }, [
     icon('warning-standard', { style: { color: colors.warning(), marginLeft: '1rem' } }),
-    div({ style: { marginLeft: '1rem' } }, [children])
+    div({ style: { margin: '0.5rem 1rem', whiteSpace: 'initial' } }, [children])
   ])
 }
 

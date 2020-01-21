@@ -14,7 +14,7 @@ const appRoot = document.getElementById('root')
 
 RModal.defaultStyles = { overlay: {}, content: {} }
 RModal.setAppElement(appRoot)
-window.SATURN_VERSION = SATURN_VERSION
+window.SATURN_VERSION = process.env.REACT_APP_VERSION
 marked.setOptions({ sanitize: true, sanitizer: _.escape })
 
 
