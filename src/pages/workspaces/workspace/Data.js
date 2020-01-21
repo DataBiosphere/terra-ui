@@ -4,7 +4,7 @@ import filesize from 'filesize'
 import JSZip from 'jszip'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Component, createRef, Fragment, useState } from 'react'
+import { Component, createRef, Fragment, useEffect, useState } from 'react'
 import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -129,7 +129,7 @@ const getReferenceData = _.flow(
   _.groupBy('datum')
 )
 
-const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace, name } }, firstRender }) => {
+const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace, name } }, firstRender, refreshKey }) => {
   const signal = Utils.useCancellation()
 
   const [editIndex, setEditIndex] = useState()
@@ -150,9 +150,9 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
     setAttributes(attributes)
   })
 
-  Utils.useOnMount(() => {
+  useEffect(() => {
     loadAttributes()
-  })
+  }, [refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const stopEditing = () => {
     setEditIndex()
@@ -161,16 +161,17 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
     setEditType()
   }
 
-  const filteredAttributes = _.flow(
+  const initialAttributes = _.flow(
     _.toPairs,
-    _.remove(([key, value]) => /^description$|:|^referenceData_/.test(key) || !Utils.textMatch(textFilter, `${key} ${value}`)),
-    _.sortBy(_.first)
+    _.remove(([key]) => /^description$|:|^referenceData_/.test(key))
   )(attributes)
 
-  const creatingNewVariable = editIndex === filteredAttributes.length
-  const amendedAttributes = [
-    ...filteredAttributes, ...(creatingNewVariable ? [['', '']] : [])
-  ]
+  const creatingNewVariable = editIndex === initialAttributes.length
+  const amendedAttributes = _.flow(
+    _.filter(([key, value]) => Utils.textMatch(textFilter, `${key} ${value}`)),
+    _.sortBy(_.first),
+    arr => [...arr, ...(creatingNewVariable ? [['', '']] : [])]
+  )(initialAttributes)
 
   const inputErrors = editIndex !== undefined && [
     ...(_.keys(_.unset(amendedAttributes[editIndex][0], attributes)).includes(editKey) ? ['Key must be unique'] : []),
@@ -217,7 +218,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
     withErrorReporting('Error downloading attributes'),
     Utils.withBusyState(setBusy)
   )(async () => {
-    const blob = await Ajax(signal).Workspaces.workspace(namespace, name).exportAttributes()
+    const blob = await Ajax().Workspaces.workspace(namespace, name).exportAttributes()
     FileSaver.saveAs(blob, `${name}-workspace-attributes.tsv`)
   })
 
@@ -248,7 +249,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
         onScroll: y => saveScroll(0, y),
         initialY,
         hoverHighlight: true,
-        noContentMessage: _.isEmpty(amendedAttributes) ? 'No Workspace Data defined' : 'No matching data',
+        noContentMessage: _.isEmpty(initialAttributes) ? 'No Workspace Data defined' : 'No matching data',
         columns: [{
           size: { basis: 400, grow: 0 },
           headerRenderer: () => h(HeaderCell, ['Key']),
@@ -329,7 +330,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
       label: 'ADD VARIABLE',
       iconShape: 'plus',
       onClick: () => {
-        setEditIndex(filteredAttributes.length)
+        setEditIndex(initialAttributes.length)
         setEditValue('')
         setEditKey('')
         setEditType('string')
@@ -345,7 +346,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
         )(async () => {
           setDeleteIndex()
           await Ajax().Workspaces.workspace(namespace, name).deleteAttributes([amendedAttributes[deleteIndex][0]])
-          loadAttributes()
+          await loadAttributes()
         })
       },
       'Delete Variable')
@@ -1046,8 +1047,7 @@ const WorkspaceData = _.flow(
           h(DataTypeButton, {
             selected: selectedDataType === localVariables,
             onClick: () => {
-              this.setState({ selectedDataType: localVariables })
-              refreshWorkspace()
+              this.setState({ selectedDataType: localVariables, refreshKey: refreshKey + 1 })
             }
           }, ['Workspace Data']),
           h(DataTypeButton, {
@@ -1063,7 +1063,7 @@ const WorkspaceData = _.flow(
             ['none', () => div({ style: { textAlign: 'center' } }, ['Select a data type'])],
             ['localVariables', () => h(LocalVariablesContent, {
               workspace,
-              refreshWorkspace,
+              refreshKey,
               firstRender
             })],
             ['referenceData', () => h(ReferenceDataContent, {
