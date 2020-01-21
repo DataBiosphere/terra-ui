@@ -8,7 +8,6 @@ import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { FormLabel } from 'src/libs/forms'
 import * as Style from 'src/libs/style'
-import * as Utils from 'src/libs/utils'
 import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 import validate from 'validate.js'
 
