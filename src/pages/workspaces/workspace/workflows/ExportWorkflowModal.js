@@ -10,6 +10,7 @@ import { Ajax } from 'src/libs/ajax'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
+import { workflowNameValidation } from 'src/libs/workflow-utils'
 import validate from 'validate.js'
 
 
@@ -43,13 +44,7 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
 
     const errors = validate({ selectedWorkspaceId, workflowName }, {
       selectedWorkspaceId: { presence: true },
-      workflowName: {
-        presence: { allowEmpty: false },
-        format: {
-          pattern: /^[A-Za-z0-9_\-.]*$/,
-          message: 'can only contain letters, numbers, underscores, dashes, and periods'
-        }
-      }
+      workflowName: workflowNameValidation()
     })
 
     return h(Modal, {

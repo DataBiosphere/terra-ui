@@ -679,7 +679,7 @@ const WorkflowView = _.flow(
                 options: _.keys(entityMetadata)
               }),
               h(Link, {
-                disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !!Utils.editWorkspaceError(ws),
+                disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !entityMetadata[rootEntityType] || !!Utils.editWorkspaceError(ws),
                 tooltip: Utils.editWorkspaceError(ws),
                 onClick: () => this.setState({ selectingData: true }),
                 style: { marginLeft: '1rem' }

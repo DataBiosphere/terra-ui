@@ -172,7 +172,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         this.setState({ jupyterUserScriptUri, profile: 'custom' })
       }
     } else {
-      this.setState({ selectedLeoImage: _.find({ id: 'leonardo-jupyter-dev' }, newLeoImages).image })
+      this.setState({ selectedLeoImage: _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image })
     }
   })
 
