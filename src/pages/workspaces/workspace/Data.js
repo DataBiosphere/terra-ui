@@ -584,22 +584,23 @@ class EntitiesContent extends Component {
         input({ type: 'hidden', name: 'model', value: 'flexible' })
       ]),
       h(ButtonPrimary, {
-        style: { marginRight: '1rem' },
-        tooltip: `Download all ${entityKey}s as a file`,
+        tooltip: `Download a .tsv file containing all the ${entityKey}s in this table`,
         onClick: () => this.downloadForm.current.submit()
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
-        'Download as TSV'
+        'Download all Rows'
       ])
     ])
   }
 
   renderCopyButton(entities, columnSettings) {
+    const { entityKey } = this.props
     const { copying } = this.state
 
     return h(Fragment, [
       h(ButtonPrimary, {
-        tooltip: 'Copy only the current page to the clipboard',
+        style: { marginLeft: '1rem' },
+        tooltip: `Copy only the ${entityKey}s visible on the current page to the clipboard in .tsv format`,
         onClick: _.flow(
           withErrorReporting('Error copying to clipboard'),
           Utils.withBusyState(v => this.setState({ copying: v }))
