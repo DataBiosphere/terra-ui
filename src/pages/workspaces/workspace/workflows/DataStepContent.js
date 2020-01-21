@@ -4,9 +4,10 @@ import { Component } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
-import { TextInput } from 'src/components/input'
+import { TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 import validate from 'validate.js'
 
@@ -83,8 +84,9 @@ export default class DataStepContent extends Component {
     return h(Modal, {
       title: 'Select Data',
       okButton: h(ButtonPrimary, {
-        tooltip: isChooseSets && _.size(selectedEntities) > 10 && 'Please select 10 or fewer sets',
-        disabled: !this.isValidSelectionModel() && !!errors,
+        tooltip: (isChooseSets && _.size(selectedEntities) > 10 && 'Please select 10 or fewer sets')
+        || Utils.summarizeErrors(errors),
+        disabled: !!errors && !this.isValidSelectionModel(),
         onClick: () => onSuccess(newSelectionModel)
       }, 'OK'),
       onDismiss,
@@ -147,11 +149,12 @@ export default class DataStepContent extends Component {
           style: { marginTop: '1rem' }
         }, [
           label({ htmlFor: id }, [`Selected rows will ${isProcessMergedSet ? 'have their membership combined into' : 'be saved as'} a new set named:`]),
-          h(TextInput, {
-            id,
-            style: { width: 500, marginLeft: '0.25rem' },
-            value: newSetName,
-            onChange: v => this.setNewSelectionModel({ newSetName: v })
+          h(ValidatedInput, {
+            error: Utils.summarizeErrors(errors && errors.newSetName),
+            inputProps: {
+              id, value: newSetName, style: { width: 500, marginLeft: '0.25rem' },
+              onChange: v => this.setNewSelectionModel({ newSetName: v })
+            }
           })
         ])])
       ])
