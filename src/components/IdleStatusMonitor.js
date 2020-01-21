@@ -44,7 +44,7 @@ const IdleStatusMonitor = ({
 
   useEffect(() => {
     const setClinicalStatus = async () => {
-      setIsClinicalUser(!!_.find({ groupName: 'session_timeout' }, await Ajax(signal).Groups.list()))
+      setIsClinicalUser(_.some({ groupName: 'session_timeout' }, await Ajax(signal).Groups.list()))
     }
     isSignedIn && setClinicalStatus()
   }, [isSignedIn, signal])
