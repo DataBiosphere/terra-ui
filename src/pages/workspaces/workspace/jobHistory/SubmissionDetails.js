@@ -249,7 +249,7 @@ const SubmissionDetails = _.flow(
                 return h(TooltipCell, { tooltip: workflowId }, [
                   inputName ? h(Link, {
                     ...Utils.newTabLinkProps,
-                    href: inputName && bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`)
+                    href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`)
                   }, [workflowId]) : workflowId
                 ])
               }

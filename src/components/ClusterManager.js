@@ -263,7 +263,7 @@ export default class ClusterManager extends PureComponent {
 
   render() {
     const { namespace, name, clusters, canCompute } = this.props
-    const { busy, createModalDrawerOpen, errorModalOpen, pendingNav } = this.state
+    const { busy, createModalDrawerOpen, errorModalOpen } = this.state
     if (!clusters) {
       return null
     }
@@ -374,8 +374,7 @@ export default class ClusterManager extends PureComponent {
       errorModalOpen && h(ClusterErrorModal, {
         cluster: currentCluster,
         onDismiss: () => this.setState({ errorModalOpen: false })
-      }),
-      pendingNav && spinnerOverlay
+      })
     ])
   }
 }
