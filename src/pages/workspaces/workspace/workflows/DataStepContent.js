@@ -4,8 +4,10 @@ import { Component } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
-import { TextInput, ValidatedInput } from 'src/components/input'
+import ErrorView from 'src/components/ErrorView'
+import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { FormLabel } from 'src/libs/forms'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
@@ -59,7 +61,7 @@ export default class DataStepContent extends Component {
       workspaceId, entityMetadata, rootEntityType,
       workspace: { attributes: { 'workspace-column-defaults': columnDefaults } }
     } = this.props
-    const { newSelectionModel, newSelectionModel: { type, selectedEntities, newSetName, error: undefined } } = this.state
+    const { newSelectionModel, newSelectionModel: { type, selectedEntities, newSetName, error } } = this.state
 
     const count = entityMetadata[rootEntityType].count
 
@@ -71,6 +73,7 @@ export default class DataStepContent extends Component {
     const isProcessMergedSet = type === processMergedSet
     const isChooseRows = type === chooseRows
     const isChooseSets = type === chooseSets
+
     const errors = validate({ newSetName }, {
       newSetName: {
         presence: { allowEmpty: false },
@@ -84,9 +87,8 @@ export default class DataStepContent extends Component {
     return h(Modal, {
       title: 'Select Data',
       okButton: h(ButtonPrimary, {
-        tooltip: (isChooseSets && _.size(selectedEntities) > 10 && 'Please select 10 or fewer sets')
-        || Utils.summarizeErrors(errors),
-        disabled: !!errors && !this.isValidSelectionModel(),
+        tooltip: isChooseSets && _.size(selectedEntities) > 10 && 'Please select 10 or fewer sets',
+        disabled: !!errors || !this.isValidSelectionModel(),
         onClick: () => onSuccess(newSelectionModel)
       }, 'OK'),
       onDismiss,
@@ -145,18 +147,17 @@ export default class DataStepContent extends Component {
           })
         ]),
         (isProcessAll ||
-          ((isChooseRows || isProcessMergedSet) && _.size(selectedEntities) > 1)) && h(IdContainer, [id => div({
-          style: { marginTop: '1rem' }
-        }, [
-          label({ htmlFor: id }, [`Selected rows will ${isProcessMergedSet ? 'have their membership combined into' : 'be saved as'} a new set named:`]),
-          h(ValidatedInput, {
-            error: Utils.summarizeErrors(errors && errors.newSetName),
-            inputProps: {
-              id, value: newSetName, style: { width: 500, marginLeft: '0.25rem' },
-              onChange: v => this.setNewSelectionModel({ newSetName: v })
-            }
-          })
-        ])])
+          ((isChooseRows || isProcessMergedSet) && _.size(selectedEntities) > 1)) && h(IdContainer,
+          [id => div({ style: { marginTop: '1rem' } }, [
+            h(FormLabel, { htmlFor: id }, [`Selected rows will ${isProcessMergedSet ? 'have their membership combined into' : 'be saved as'} a new set named:`]),
+            h(ValidatedInput, {
+              error: Utils.summarizeErrors(errors && errors.newSetName),
+              inputProps: {
+                id, value: newSetName, style: { width: 500, marginLeft: '0.25rem' },
+                onChange: v => this.setNewSelectionModel({ newSetName: v })
+              }
+            })
+          ])])
       ])
     ])
   }

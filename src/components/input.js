@@ -174,12 +174,10 @@ export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity,
  * @param {object} props.inputProps
  * @param {object} [props.error] - error message content
  */
-export const ValidatedInput = props => {
-  const { inputProps, error } = props
-
+export const ValidatedInput = ({ inputProps, error }) => {
   return h(Fragment, [
     div({
-      style: { position: 'relative', display: 'flex', alignItems: 'center' }
+      style: { position: 'relative', display: 'flex', alignItems: 'center', width: inputProps?.style?.width }
     }, [
       h(TextInput, _.merge({
         style: error ? {
