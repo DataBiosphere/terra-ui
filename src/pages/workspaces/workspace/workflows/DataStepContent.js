@@ -1,10 +1,9 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component } from 'react'
-import { div, h, label } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
-import ErrorView from 'src/components/ErrorView'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { FormLabel } from 'src/libs/forms'
@@ -61,7 +60,7 @@ export default class DataStepContent extends Component {
       workspaceId, entityMetadata, rootEntityType,
       workspace: { attributes: { 'workspace-column-defaults': columnDefaults } }
     } = this.props
-    const { newSelectionModel, newSelectionModel: { type, selectedEntities, newSetName, error } } = this.state
+    const { newSelectionModel, newSelectionModel: { type, selectedEntities, newSetName } } = this.state
 
     const count = entityMetadata[rootEntityType].count
 
@@ -151,7 +150,6 @@ export default class DataStepContent extends Component {
           [id => div({ style: { marginTop: '1rem' } }, [
             h(FormLabel, { htmlFor: id }, [`Selected rows will ${isProcessMergedSet ? 'have their membership combined into' : 'be saved as'} a new set named:`]),
             h(ValidatedInput, {
-              error: Utils.summarizeErrors(errors && errors.newSetName),
               inputProps: {
                 id, value: newSetName, style: { width: 500, marginLeft: '0.25rem' },
                 onChange: v => this.setNewSelectionModel({ newSetName: v })
