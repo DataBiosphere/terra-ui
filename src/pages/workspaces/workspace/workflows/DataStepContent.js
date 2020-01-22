@@ -8,6 +8,7 @@ import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { FormLabel } from 'src/libs/forms'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 import validate from 'validate.js'
 
@@ -152,7 +153,8 @@ export default class DataStepContent extends Component {
               inputProps: {
                 id, value: newSetName, style: { width: 500, marginLeft: '0.25rem' },
                 onChange: v => this.setNewSelectionModel({ newSetName: v })
-              }
+              },
+              error: Utils.summarizeErrors(errors && errors.newSetName)
             })
           ])])
       ])
