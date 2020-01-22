@@ -621,13 +621,13 @@ class EntitiesContent extends Component {
     const { workspace, entityKey } = this.props
     const { selectedEntities } = this.state
     const isSet = _.endsWith('_set', entityKey)
-    const disabled = _.isEmpty(selectedEntities)
+    const noEdit = Utils.editWorkspaceError(workspace)
 
-    return h(PopupTrigger, {
+    return !_.isEmpty(selectedEntities) && h(PopupTrigger, {
       side: 'bottom',
+      closeOnClick: true,
       content: h(Fragment, [
         h(MenuButton, {
-          disabled,
           tooltip: `Download the selected data as a file`,
           onClick: async () => {
             const tsv = this.buildTSV(columnSettings, selectedEntities)
@@ -637,22 +637,20 @@ class EntitiesContent extends Component {
           }
         }, ['Download as TSV']),
         h(MenuButton, {
-          disabled,
           tooltip: 'Open the selected data to work with it',
           onClick: () => this.setState({ showToolSelector: true })
         }, ['Open with...']),
         h(MenuButton, {
-          disabled,
           tooltip: 'Send the selected data to another workspace',
           onClick: () => this.setState({ copyingEntities: true })
         }, ['Export to Workspace']),
         h(MenuButton, {
-          tooltip: 'Permanently delete the selected data',
-          disabled: disabled || Utils.editWorkspaceError(workspace),
+          tooltip: noEdit ? 'You don\'t have permission to modify this workspace' : 'Permanently delete the selected data',
+          disabled: noEdit,
           onClick: () => this.setState({ deletingEntities: true })
         }, ['Delete Data'])
       ])
-    }, [h(Clickable, { style: { marginRight: '1rem', color: colors.accent() } }, [
+    }, [h(Link, { style: { marginRight: '1rem' } }, [
       icon('ellipsis-v-circle', { size: 24 })
     ])])
   }
