@@ -147,16 +147,20 @@ export default class ClusterManager extends PureComponent {
     const welderCutOff = new Date('2019-08-01')
     const createdDate = new Date(cluster.createdDate)
     const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`) || {}
+    const rStudioLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: 'RStudio' })
 
     if (cluster.status === 'Error' && prevCluster.status !== 'Error' && !_.includes(cluster.id, errorNotifiedClusters.get())) {
       notify('error', 'Error Creating Notebook Runtime', {
         message: h(ClusterErrorNotification, { cluster })
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
-    } else if (cluster.status === 'Running' && prevCluster.status && prevCluster.status !== 'Running' && cluster.labels.tool === 'RStudio') {
-      const rStudioNotificationId = notify('info', 'Your compute instance is ready.', {
+    } else if (
+      cluster.status === 'Running' && prevCluster.status && prevCluster.status !== 'Running' &&
+      cluster.labels.tool === 'RStudio' && window.location.hash !== rStudioLaunchLink
+    ) {
+      const rStudioNotificationId = notify('info', 'Your runtime is ready.', {
         message: h(ButtonPrimary, {
-          href: Nav.getLink('workspace-app-launch', { namespace, name, app: 'RStudio' }),
+          href: rStudioLaunchLink,
           onClick: () => clearNotification(rStudioNotificationId)
         }, 'Launch Application')
       })
@@ -228,7 +232,7 @@ export default class ClusterManager extends PureComponent {
 
   render() {
     const { namespace, name, clusters, canCompute } = this.props
-    const { busy, createModalDrawerOpen, errorModalOpen, pendingNav } = this.state
+    const { busy, createModalDrawerOpen, errorModalOpen } = this.state
     if (!clusters) {
       return null
     }
@@ -288,6 +292,7 @@ export default class ClusterManager extends PureComponent {
 
     const isRStudioImage = currentCluster?.labels.tool === 'RStudio'
     const appName = isRStudioImage ? 'RStudio' : 'terminal'
+    const appLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: appName })
 
     return div({ style: styles.container }, [
       activeClusters.length > 1 && h(Link, {
@@ -296,7 +301,8 @@ export default class ClusterManager extends PureComponent {
         tooltip: 'Multiple runtimes found in this billing project. Click to select which to delete.'
       }, [icon('warning-standard', { size: 24, style: { color: colors.danger() } })]),
       h(Link, {
-        href: Nav.getLink('workspace-app-launch', { namespace, name, app: appName }),
+        href: appLaunchLink,
+        onClick: window.location.hash === appLaunchLink && currentStatus === 'Stopped' ? () => this.startCluster() : undefined,
         tooltip: canCompute ? `Open ${appName}` : noCompute,
         'aria-label': `Open ${appName}`,
         disabled: !canCompute,
@@ -339,8 +345,7 @@ export default class ClusterManager extends PureComponent {
       errorModalOpen && h(ClusterErrorModal, {
         cluster: currentCluster,
         onDismiss: () => this.setState({ errorModalOpen: false })
-      }),
-      pendingNav && spinnerOverlay
+      })
     ])
   }
 }
