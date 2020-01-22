@@ -248,7 +248,7 @@ export const EntityUploader = class EntityUploader extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      newEntityType: '', useFireCloudDataModel: false, isFileImportCurrMode: true, isFileImportLastUsedMode: undefined,
+      useFireCloudDataModel: false, isFileImportCurrMode: true, isFileImportLastUsedMode: undefined,
       file: undefined, fileContents: '', showInvalidEntryMethodWarning: false
     }
   }

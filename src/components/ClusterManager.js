@@ -60,7 +60,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   const [loadingClusterDetails, setLoadingClusterDetails] = useState(false)
 
   const loadClusterError = _.flow(
-    withErrorReporting('Error loading notebook runtime configuration details'),
+    withErrorReporting('Error loading notebook runtime details'),
     Utils.withBusyState(setLoadingClusterDetails)
   )(async () => {
     const { errors: clusterErrors } = await Ajax().Clusters.cluster(cluster.googleProject, cluster.clusterName).details()
@@ -76,7 +76,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   Utils.useOnMount(() => { loadClusterError() })
 
   return h(Modal, {
-    title: `Notebook Runtime Configuration Creation Failed${userscriptError ? ' due to Userscript Error' : ''}`,
+    title: `Notebook Runtime Creation Failed${userscriptError ? ' due to Userscript Error' : ''}`,
     showCancel: false,
     onDismiss
   }, [
@@ -89,7 +89,7 @@ export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, on
   const [deleting, setDeleting] = useState()
   const deleteCluster = _.flow(
     Utils.withBusyState(setDeleting),
-    withErrorReporting('Error deleting notebook runtime configuration')
+    withErrorReporting('Error deleting notebook runtime')
   )(async () => {
     await Ajax().Clusters.cluster(googleProject, clusterName).delete()
     onSuccess()
@@ -148,24 +148,28 @@ export default class ClusterManager extends PureComponent {
     const welderCutOff = new Date('2019-08-01')
     const createdDate = new Date(cluster.createdDate)
     const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`) || {}
+    const rStudioLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: 'RStudio' })
 
     if (cluster.status === 'Error' && prevCluster.status !== 'Error' && !_.includes(cluster.id, errorNotifiedClusters.get())) {
       notify('error', 'Error Creating Notebook Runtime', {
         message: h(ClusterErrorNotification, { cluster })
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
-    } else if (cluster.status === 'Running' && prevCluster.status && prevCluster.status !== 'Running' && cluster.labels.tool === 'RStudio') {
-      const rStudioNotificationId = notify('info', 'Your notebook runtime is ready.', {
+    } else if (
+      cluster.status === 'Running' && prevCluster.status && prevCluster.status !== 'Running' &&
+      cluster.labels.tool === 'RStudio' && window.location.hash !== rStudioLaunchLink
+    ) {
+      const rStudioNotificationId = notify('info', 'Your runtime is ready.', {
         message: h(ButtonPrimary, {
-          href: Nav.getLink('workspace-app-launch', { namespace, name, app: 'RStudio' }),
+          href: rStudioLaunchLink,
           onClick: () => clearNotification(rStudioNotificationId)
         }, 'Launch Runtime')
       })
     } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) { // TODO: remove this notification some time after the data syncing release
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
-      notify('warn', 'Please Update Your Notebook Runtime', {
+      notify('warn', 'Please Update Your Runtime', {
         message: h(Fragment, [
-          p(['On Sunday Oct 20th at 10am, we are introducing important updates to Terra, which are not compatible with the older notebook runtime instance in this workspace. After this date, you will no longer be able to save new changes to notebooks in one of these older notebook runtimes.']),
+          p(['On Sunday Oct 20th at 10am, we are introducing important updates to Terra, which are not compatible with the older notebook runtime in this workspace. After this date, you will no longer be able to save new changes to notebooks in one of these older runtimes.']),
           h(Link, {
             variant: 'light',
             href: dataSyncingDocUrl,
@@ -175,8 +179,8 @@ export default class ClusterManager extends PureComponent {
       })
     } else if (isAfter(createdDate, twoMonthsAgo) && !isToday(dateNotified)) {
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
-      notify('warn', 'Outdated Notebook Runtime Configuration', {
-        message: 'Your notebook runtime configuration is over two months old. Please consider deleting and recreating your notebook runtime in order to access the latest features and security updates.'
+      notify('warn', 'Outdated Notebook Runtime', {
+        message: 'Your notebook runtime is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'
       })
     }
   }
@@ -259,7 +263,7 @@ export default class ClusterManager extends PureComponent {
 
   render() {
     const { namespace, name, clusters, canCompute } = this.props
-    const { busy, createModalDrawerOpen, errorModalOpen, pendingNav } = this.state
+    const { busy, createModalDrawerOpen, errorModalOpen } = this.state
     if (!clusters) {
       return null
     }
@@ -320,10 +324,12 @@ export default class ClusterManager extends PureComponent {
 
     const isRStudioImage = currentCluster?.labels.tool === 'RStudio'
     const appName = isRStudioImage ? 'RStudio' : 'terminal'
+    const appLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: appName })
 
     return div({ style: styles.container }, [
       h(Link, {
-        href: Nav.getLink('workspace-app-launch', { namespace, name, app: appName }),
+        href: appLaunchLink,
+        onClick: window.location.hash === appLaunchLink && currentStatus === 'Stopped' ? () => this.startCluster() : undefined,
         tooltip: canCompute ? `Open ${appName}` : noCompute,
         'aria-label': `Open ${appName}`,
         disabled: !canCompute,
@@ -339,7 +345,7 @@ export default class ClusterManager extends PureComponent {
             [!canCompute, () => noCompute],
             [creating, () => 'Your environment is being created'],
             [multiple, () => undefined],
-            () => 'Update notebook runtime'
+            () => 'Update runtime'
           ),
           onClick: () => this.setState({ createModalDrawerOpen: true }),
           disabled: isDisabled
@@ -368,8 +374,7 @@ export default class ClusterManager extends PureComponent {
       errorModalOpen && h(ClusterErrorModal, {
         cluster: currentCluster,
         onDismiss: () => this.setState({ errorModalOpen: false })
-      }),
-      pendingNav && spinnerOverlay
+      })
     ])
   }
 }
