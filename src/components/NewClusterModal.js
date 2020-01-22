@@ -23,13 +23,6 @@ const styles = {
     marginTop: '1rem'
   },
   label: { fontWeight: 600, whiteSpace: 'pre' },
-  warningBox: {
-    fontSize: 12,
-    backgroundColor: colors.warning(),
-    color: 'white',
-    padding: '2rem',
-    margin: '2rem -1.5rem 0 -1.5rem'
-  },
   disabledInputs: {
     border: `1px solid ${colors.dark(0.2)}`, borderRadius: '4px', padding: '0.5rem'
   }
@@ -353,114 +346,99 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])
     ])
 
-    const { contents, onPrevious } = Utils.switchCase(viewMode,
-      ['packages', () => ({
-        onPrevious: () => this.setState({ viewMode: undefined }),
-        contents: h(Fragment, [
-          makeEnvSelect(),
-          makeImageInfo({ margin: '1rem 0 0.5rem' }),
-          packages && h(ImageDepViewer, { packageLink: packages })
-        ])
-      })],
-      ['warning', () => ({
-        onPrevious: () => this.setState({ viewMode: undefined }),
-        contents: h(Fragment, [
-          p({ style: { marginTop: 0, lineHeight: '1.5' } }, [
-            `You are about to create a virtual machine using an unverified Docker image.
+    const contents = Utils.switchCase(viewMode,
+      ['packages', () => h(Fragment, [
+        makeEnvSelect(),
+        makeImageInfo({ margin: '1rem 0 0.5rem' }),
+        packages && h(ImageDepViewer, { packageLink: packages })
+      ])],
+      ['warning', () => h(Fragment, [
+        p({ style: { marginTop: 0, lineHeight: '1.5' } }, [
+          `You are about to create a virtual machine using an unverified Docker image.
             Please make sure that it was created by you or someone you trust, using one of our `,
-            h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
-            ' Custom Docker images could potentially cause serious security issues.'
-          ]),
-          h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
-          p({ style: { lineHeight: '1.5' } }, [
-            'If you\'re confident that your image is safe, click ', b([!!currentCluster ? 'NEXT' : 'CREATE']),
-            ' to use it. Otherwise, click ', b(['BACK']), ' to select another image.'
-          ]),
-          div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-            h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Back']),
-            h(ButtonPrimary, {
-              onClick: () => !!currentCluster ? this.setState({ viewMode: 'replace' }) : this.createCluster()
-            }, [!!currentCluster ? 'Next' : 'Create'])
-          ])
+          h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
+          ' Custom Docker images could potentially cause serious security issues.'
+        ]),
+        h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
+        p({ style: { lineHeight: '1.5' } }, [
+          'If you\'re confident that your image is safe, click ', b([!!currentCluster ? 'NEXT' : 'CREATE']),
+          ' to use it. Otherwise, click ', b(['BACK']), ' to select another image.'
+        ]),
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Back']),
+          h(ButtonPrimary, {
+            onClick: () => !!currentCluster ? this.setState({ viewMode: 'replace' }) : this.createCluster()
+          }, [!!currentCluster ? 'Next' : 'Create'])
         ])
-      })],
-      ['delete', () => ({
-        onPrevious: () => this.setState({ viewMode: undefined }),
-        contents: h(Fragment, [
-          h(deleteText),
-          div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-            h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
-            h(ButtonPrimary, { onClick: () => onSuccess(this.deleteCluster()) }, ['DELETE'])
-          ])
+      ])],
+      ['delete', () => h(Fragment, [
+        h(deleteText),
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
+          h(ButtonPrimary, { onClick: () => onSuccess(this.deleteCluster()) }, ['DELETE'])
         ])
-      })],
-      ['replace', () => ({
-        onPrevious: () => this.setState({ viewMode: isSelectedImageCustom ? 'warning' : undefined }),
-        contents: h(Fragment, [
-          p([
-            'Replacing your runtime will ', b(['delete any files on the associated hard disk ']),
-            '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
-            h(Link, {
-              href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-              ...Utils.newTabLinkProps
-            }, ['move them to the workspace bucket.'])
-          ]),
-          p(['You will be unable to work on the notebooks in this workspace while it updates, which can take a few minutes.']),
-          div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-            h(ButtonSecondary, {
-              style: { marginRight: '2rem' },
-              onClick: () => this.setState({ viewMode: isSelectedImageCustom ? 'warning' : undefined })
-            }, ['BACK']),
-            h(ButtonPrimary, { onClick: () => this.createCluster() }, ['REPLACE'])
-          ])
+      ])],
+      ['replace', () => h(Fragment, [
+        p([
+          'Replacing your runtime will ', b(['delete any files on the associated hard disk ']),
+          '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+          h(Link, {
+            href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+            ...Utils.newTabLinkProps
+          }, ['move them to the workspace bucket.'])
+        ]),
+        p(['You will be unable to work on the notebooks in this workspace while it updates, which can take a few minutes.']),
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          h(ButtonSecondary, {
+            style: { marginRight: '2rem' },
+            onClick: () => this.setState({ viewMode: isSelectedImageCustom ? 'warning' : undefined })
+          }, ['BACK']),
+          h(ButtonPrimary, { onClick: () => this.createCluster() }, ['REPLACE'])
         ])
-      })],
-      [Utils.DEFAULT, () => ({
-        onPrevious: undefined,
-        contents: h(Fragment, [
-          div({ style: { marginBottom: '1rem' } }, [
-            'Choose a Terra pre-installed runtime environment (e.g. programming languages + packages) or choose a custom environment.'
+      ])],
+      [Utils.DEFAULT, () => h(Fragment, [
+        div({ style: { marginBottom: '1rem' } }, [
+          'Choose a Terra pre-installed runtime environment (e.g. programming languages + packages) or choose a custom environment.'
+        ]),
+        div([
+          h(IdContainer, [
+            id => h(Fragment, [
+              div({ style: { marginBottom: '0.5rem' } }, [label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT')]),
+              div({ style: { height: '45px' } }, [makeGroupedEnvSelect(id)])
+            ])
           ]),
-          div([
-            h(IdContainer, [
-              id => h(Fragment, [
-                div({ style: { marginBottom: '0.5rem' } }, [label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT')]),
-                div({ style: { height: '45px' } }, [makeGroupedEnvSelect(id)])
-              ])
-            ]),
-            isSelectedImageCustom ?
-              h(Fragment, [
-                h(IdContainer, [id => h(Fragment, [
-                  div({ style: { margin: '0.5rem 0' } }, [
-                    label({ htmlFor: id, style: { ...styles.label, alignSelf: 'start' } }, 'CONTAINER IMAGE')
-                  ]),
-                  div({ style: { height: 52, alignItems: 'center', marginBottom: '0.5rem' } }, [
-                    h(ValidatedInput, {
-                      inputProps: {
-                        id,
-                        placeholder: '<image name>:<tag>',
-                        value: customEnvImage,
-                        onChange: customEnvImage => this.setState({ customEnvImage })
-                      },
-                      error: customEnvImage && isCustomImageInvalid && 'Not a valid image'
-                    })
-                  ])
-                ])]),
-                div({ style: { margin: '0.5rem' } }, [
-                  h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom notebook environments ']),
-                  b(['must ']), 'be based off one of the ',
-                  h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])
+          isSelectedImageCustom ?
+            h(Fragment, [
+              h(IdContainer, [id => h(Fragment, [
+                div({ style: { margin: '0.5rem 0' } }, [
+                  label({ htmlFor: id, style: { ...styles.label, alignSelf: 'start' } }, 'CONTAINER IMAGE')
+                ]),
+                div({ style: { height: 52, alignItems: 'center', marginBottom: '0.5rem' } }, [
+                  h(ValidatedInput, {
+                    inputProps: {
+                      id,
+                      placeholder: '<image name>:<tag>',
+                      value: customEnvImage,
+                      onChange: customEnvImage => this.setState({ customEnvImage })
+                    },
+                    error: customEnvImage && isCustomImageInvalid && 'Not a valid image'
+                  })
                 ])
-              ]) :
-              div({ style: { display: 'flex' } }, [
-                h(Link, { onClick: () => this.setState({ viewMode: 'packages' }) }, ['What’s installed on this environment?']),
-                makeImageInfo({ marginLeft: 'auto' })
+              ])]),
+              div({ style: { margin: '0.5rem' } }, [
+                h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom notebook environments ']),
+                b(['must ']), 'be based off one of the ',
+                h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])
               ])
-          ]),
-          machineConfig(),
-          bottomButtons()
-        ])
-      })]
+            ]) :
+            div({ style: { display: 'flex' } }, [
+              h(Link, { onClick: () => this.setState({ viewMode: 'packages' }) }, ['What’s installed on this environment?']),
+              makeImageInfo({ marginLeft: 'auto' })
+            ])
+        ]),
+        machineConfig(),
+        bottomButtons()
+      ])]
     )
 
     return h(Fragment, [
@@ -472,7 +450,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           [Utils.DEFAULT, () => 'RUNTIME CONFIGURATION']
         ),
         onDismiss,
-        onPrevious
+        onPrevious: () => !!viewMode && this.setState({ viewMode: undefined })
       }),
       div({ style: { padding: '0.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents])
     ])
