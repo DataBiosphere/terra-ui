@@ -391,7 +391,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, {
             style: { marginRight: '2rem' },
-            onClick: () => this.setState({ viewMode: isSelectedImageCustom ? 'warning' : undefined })
+            onClick: () => this.setState({ viewMode: undefined })
           }, ['BACK']),
           h(ButtonPrimary, { onClick: () => this.createCluster() }, ['REPLACE'])
         ])
@@ -450,7 +450,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           [Utils.DEFAULT, () => 'RUNTIME CONFIGURATION']
         ),
         onDismiss,
-        onPrevious: () => !!viewMode && this.setState({ viewMode: undefined })
+        onPrevious: !!viewMode ? () => this.setState({ viewMode: undefined }) : undefined
       }),
       div({ style: { padding: '0.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents])
     ])
