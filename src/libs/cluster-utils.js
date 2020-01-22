@@ -56,7 +56,7 @@ export const currentCluster = _.flow(trimClustersOldestFirst, _.last)
 
 export const deleteText = () => {
   return h(Fragment, [p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
-    'Deleting your notebook runtime will also ',
+    'Deleting your runtime will also ',
     span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
     '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
     h(Link, {
@@ -65,6 +65,6 @@ export const deleteText = () => {
     }, ['move them to the workspace bucket.'])
   ]),
   p({ style: { margin: '14px 0px 0px', lineHeight: '1.5rem' } },
-    ['Deleting your notebook runtime will stop all running notebooks and associated costs. You can recreate your notebook runtime later, ' +
+    ['Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, ' +
       'which will take several minutes.'])])
 }
