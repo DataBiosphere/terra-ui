@@ -17,9 +17,11 @@ const setOverrides = ({ isClinical }) => {
   ajaxOverridesStore.set([{
     filter: /api\/groups\/v1/,
     fn: () => () => {
-      const r = isClinical ? new Response(
-        JSON.stringify([{ groupName: 'session_timeout' }]), { status: 200 }) : new Response(null, { status: 404 })
-      return r
+      // const r = !isClinical ? new Response(
+      //   JSON.stringify([{ groupName: 'session_timeout' }]), { status: 200 }) :
+      return new Response(null, { status: 404 })
+      // console.log('r:', r)
+      // return r
     }
   }])
 }
@@ -54,7 +56,7 @@ const Container = ({ modal }) => {
   }, [isClinical])
 
   useEffect(() => {
-    authTest.set({ user: { id: 'foo-123' }, isSignedIn: false })
+    authTest.set({ user: { id: 'foo-123' }, registrationStatus: 'registered', isisSignedIn: false })
   }, [])
 
   Utils.useOnMount(() => {

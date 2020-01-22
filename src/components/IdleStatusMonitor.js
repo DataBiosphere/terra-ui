@@ -6,6 +6,7 @@ import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { withErrorReporting } from 'src/libs/error'
 import { authStore, lastActiveTimeStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -38,16 +39,16 @@ const IdleStatusMonitor = ({
 }) => {
   const signal = Utils.useCancellation()
   const [isClinicalUser, setIsClinicalUser] = useState()
-  const { isSignedIn, user: { id } } = Utils.useStore(authStore)
+  const { isSignedIn, registrationStatus, user: { id } } = Utils.useStore(authStore)
   const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore)
   const { timedOut } = getIdleData({ currentTime: Date.now(), lastRecordedActivity, timeout, countdownStart })
 
   useEffect(() => {
-    const setClinicalStatus = async () => {
+    const setClinicalStatus = withErrorReporting('Error loading group list', async () => {
       setIsClinicalUser(_.some({ groupName: 'session_timeout' }, await Ajax(signal).Groups.list()))
-    }
-    isSignedIn && setClinicalStatus()
-  }, [isSignedIn, signal])
+    })
+    isSignedIn && registrationStatus === 'registered' ? setClinicalStatus() : setIsClinicalUser()
+  }, [isSignedIn, signal, registrationStatus])
 
   useEffect(() => { timedOut && !isSignedIn && setLastActive('expired') }, [isSignedIn, timedOut])
 
