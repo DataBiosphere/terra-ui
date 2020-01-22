@@ -37,7 +37,7 @@ const Clusters = () => {
       setDeleteClusterId(undefined)
     }
   })
-  const loadClusters = withErrorReporting('Error loading notebooks runtimes', refreshClusters)
+  const loadClusters = withErrorReporting('Error loading notebook runtimes', refreshClusters)
 
   useOnMount(() => { loadClusters() })
   usePollingEffect(withErrorIgnoring(refreshClusters), { ms: 30000 })
