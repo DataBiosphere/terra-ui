@@ -94,7 +94,7 @@ export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, on
     onSuccess()
   })
   return h(Modal, {
-    title: 'Delete notebook runtime?',
+    title: 'Delete Notebook Runtime?',
     onDismiss,
     okButton: deleteCluster
   }, [
@@ -162,7 +162,7 @@ export default class ClusterManager extends PureComponent {
         message: h(ButtonPrimary, {
           href: rStudioLaunchLink,
           onClick: () => clearNotification(rStudioNotificationId)
-        }, 'Launch Application')
+        }, 'Launch Runtime')
       })
     } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) { // TODO: remove this notification some time after the data syncing release
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
