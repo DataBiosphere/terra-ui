@@ -8,6 +8,7 @@ import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, spinnerOv
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
+import { clearNotification } from 'src/components/Notifications'
 import { notify } from 'src/components/Notifications.js'
 import { Popup } from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
@@ -94,7 +95,7 @@ export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, on
     onSuccess()
   })
   return h(Modal, {
-    title: 'Delete notebook runtime?',
+    title: 'Delete Notebook Runtime?',
     onDismiss,
     okButton: deleteCluster
   }, [
@@ -140,18 +141,30 @@ export default class ClusterManager extends PureComponent {
   }
 
   componentDidUpdate(prevProps) {
+    const { namespace, name } = this.props
     const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
     const cluster = this.getCurrentCluster() || {}
     const twoMonthsAgo = _.tap(d => d.setMonth(d.getMonth() - 2), new Date())
     const welderCutOff = new Date('2019-08-01')
     const createdDate = new Date(cluster.createdDate)
     const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`) || {}
+    const rStudioLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: 'RStudio' })
 
     if (cluster.status === 'Error' && prevCluster.status !== 'Error' && !_.includes(cluster.id, errorNotifiedClusters.get())) {
       notify('error', 'Error Creating Notebook Runtime', {
         message: h(ClusterErrorNotification, { cluster })
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
+    } else if (
+      cluster.status === 'Running' && prevCluster.status && prevCluster.status !== 'Running' &&
+      cluster.labels.tool === 'RStudio' && window.location.hash !== rStudioLaunchLink
+    ) {
+      const rStudioNotificationId = notify('info', 'Your runtime is ready.', {
+        message: h(ButtonPrimary, {
+          href: rStudioLaunchLink,
+          onClick: () => clearNotification(rStudioNotificationId)
+        }, 'Launch Runtime')
+      })
     } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) { // TODO: remove this notification some time after the data syncing release
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
       notify('warn', 'Please Update Your Runtime', {
@@ -250,7 +263,7 @@ export default class ClusterManager extends PureComponent {
 
   render() {
     const { namespace, name, clusters, canCompute } = this.props
-    const { busy, createModalDrawerOpen, errorModalOpen, pendingNav } = this.state
+    const { busy, createModalDrawerOpen, errorModalOpen } = this.state
     if (!clusters) {
       return null
     }
@@ -311,10 +324,12 @@ export default class ClusterManager extends PureComponent {
 
     const isRStudioImage = currentCluster?.labels.tool === 'RStudio'
     const appName = isRStudioImage ? 'RStudio' : 'terminal'
+    const appLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: appName })
 
     return div({ style: styles.container }, [
       h(Link, {
-        href: Nav.getLink('workspace-app-launch', { namespace, name, app: appName }),
+        href: appLaunchLink,
+        onClick: window.location.hash === appLaunchLink && currentStatus === 'Stopped' ? () => this.startCluster() : undefined,
         tooltip: canCompute ? `Open ${appName}` : noCompute,
         'aria-label': `Open ${appName}`,
         disabled: !canCompute,
@@ -359,8 +374,7 @@ export default class ClusterManager extends PureComponent {
       errorModalOpen && h(ClusterErrorModal, {
         cluster: currentCluster,
         onDismiss: () => this.setState({ errorModalOpen: false })
-      }),
-      pendingNav && spinnerOverlay
+      })
     ])
   }
 }

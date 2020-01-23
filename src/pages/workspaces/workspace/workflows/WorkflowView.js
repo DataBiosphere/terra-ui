@@ -679,7 +679,7 @@ const WorkflowView = _.flow(
                 options: _.keys(entityMetadata)
               }),
               h(Link, {
-                disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !!Utils.editWorkspaceError(ws),
+                disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !entityMetadata[rootEntityType] || !!Utils.editWorkspaceError(ws),
                 tooltip: Utils.editWorkspaceError(ws),
                 onClick: () => this.setState({ selectingData: true }),
                 style: { marginLeft: '1rem' }
@@ -872,11 +872,13 @@ const WorkflowView = _.flow(
           errors,
           onBrowse: name => this.setState({ variableSelected: name }),
           onChange: (name, v) => this.setState(_.set(['modifiedConfig', key, name], v)),
-          onSetDefaults: () => {
-            this.setState(_.set(['modifiedConfig', 'outputs'], _.fromPairs(_.map(({ name }) => {
-              return [name, `this.${_.last(name.split('.'))}`]
-            }, modifiedInputsOutputs.outputs))))
-          },
+          onSetDefaults: () => this.setState(oldState => {
+            return _.set(
+              ['modifiedConfig', 'outputs'],
+              _.fromPairs(_.map(({ name }) => [name, `this.${_.last(name.split('.'))}`], oldState.modifiedInputsOutputs.outputs)),
+              oldState
+            )
+          }),
           suggestions
         })
       ])

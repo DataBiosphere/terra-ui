@@ -6,6 +6,7 @@ import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledChec
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
+import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/clusters'
 import { imageValidationRegexp } from 'src/data/leo-images'
@@ -28,8 +29,8 @@ const styles = {
     fontSize: 12,
     backgroundColor: colors.warning(),
     color: 'white',
-    padding: '2rem',
-    margin: '2rem -1.5rem 0 -1.5rem'
+    padding: '1.5rem',
+    margin: '1.5rem -1.5rem 0 -1.5rem'
   },
   disabledInputs: {
     border: `1px solid ${colors.dark(0.2)}`, borderRadius: '4px', padding: '0.5rem'
@@ -38,8 +39,9 @@ const styles = {
 
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
 const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
-const imageInstructions = `${terraDockerBaseGithubUrl}#how-to-create-your-own-custom-image-to-use-with-notebooks-on-terra`
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
+const rstudioBaseImages = 'https://github.com/anvilproject/anvil-docker'
+const zendeskImagePage = 'https://support.terra.bio/hc/en-us/articles/360037269472'
 const machineConfigsEqual = (a, b) => {
   return _.isEqual(normalizeMachineConfig(a), normalizeMachineConfig(b))
 }
@@ -96,6 +98,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
 }
 
 const CUSTOM_MODE = '__custom_mode__'
+const PROJECT_SPECIFIC_MODE = '__project_specific_mode__'
 
 export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
   static propTypes = {
@@ -143,7 +146,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess(Promise.all([
       Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: this.getMachineConfig(),
-        toolDockerImage: selectedLeoImage === CUSTOM_MODE ? customEnvImage : selectedLeoImage,
+        toolDockerImage: selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE ? customEnvImage : selectedLeoImage,
+        labels: { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` },
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
       currentCluster?.status === 'Error' && this.deleteCluster()
@@ -164,15 +168,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       const { imageUrl } = _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), clusterImages)
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
+      } else if (currentClusterDetails.labels.saturnIsProjectSpecific === 'true') {
+        this.setState({ selectedLeoImage: PROJECT_SPECIFIC_MODE, customEnvImage: imageUrl })
       } else {
         this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl })
       }
-
       if (jupyterUserScriptUri) {
         this.setState({ jupyterUserScriptUri, profile: 'custom' })
       }
     } else {
-      this.setState({ selectedLeoImage: _.find({ id: 'leonardo-jupyter-dev' }, newLeoImages).image })
+      this.setState({ selectedLeoImage: _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image })
     }
   })
 
@@ -184,9 +189,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
-    const isCustomImageInvalid = !imageValidationRegexp.test(customEnvImage)
-
-    const isSelectedImageCustom = selectedLeoImage === CUSTOM_MODE
 
     const makeEnvSelect = id => h(Select, {
       id,
@@ -197,16 +199,23 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
     })
 
+    const isCustomImageInvalid = customEnvImage && !imageValidationRegexp.test(customEnvImage)
+    const isSelectedImageInputted = selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE
+
     const makeGroupedEnvSelect = id => h(GroupedSelect, {
       id,
+      maxMenuHeight: '25rem',
       value: selectedLeoImage,
       onChange: ({ value }) => {
-        this.setState({ selectedLeoImage: value })
+        this.setState({ selectedLeoImage: value, customEnvImage: '' })
       },
       isSearchable: false,
       isClearable: false,
       options: [{ label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
-        { label: 'OTHER ENVIRONMENTS', options: [{ label: 'Custom Environment', value: CUSTOM_MODE }] }]
+        {
+          label: 'OTHER ENVIRONMENTS',
+          options: [{ label: 'Custom Environment', value: CUSTOM_MODE }, { label: 'Project-Specific Environment', value: PROJECT_SPECIFIC_MODE }]
+        }]
     })
 
     const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
@@ -216,7 +225,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const bottomButtons = () => h(Fragment, [
       div(
-        { style: { display: 'flex', marginTop: '3rem', marginBottom: '1rem' } },
+        { style: { display: 'flex', marginTop: '2.5rem', marginBottom: '1rem' } },
         [
           currentCluster && div([
             h(ButtonSecondary, {
@@ -230,10 +239,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ]),
           div([
             h(ButtonPrimary, {
-              disabled: isSelectedImageCustom && isCustomImageInvalid,
-              tooltip: isSelectedImageCustom && isCustomImageInvalid &&
-                'Enter a valid docker image to use',
-              onClick: () => isSelectedImageCustom ?
+              disabled: isCustomImageInvalid,
+              tooltip: isCustomImageInvalid && 'Enter a valid docker image to use',
+              onClick: () => isSelectedImageInputted ?
                 this.setState({ viewMode: 'Warning' }) :
                 this.createCluster()
             }, !!currentCluster ? 'Replace' : 'Create')
@@ -249,7 +257,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         }
       }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
-        div({ style: { marginBottom: '1rem' } }, ['Select from one of the runtime profiles or define your own']),
+        div({ style: { marginBottom: '1rem' } }, ['Select from one of the default runtime profiles or define your own']),
         div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
           h(IdContainer, [
             id => h(Fragment, [
@@ -348,15 +356,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ])
           ])
         ]),
-        div({ style: { backgroundColor: colors.dark(0.2), borderRadius: '100px', width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row } }, [
-          span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['COST:']),
-          `${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
-        ])
+        div({ style: { backgroundColor: colors.dark(0.2), borderRadius: '100px', width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row } },
+          [
+            span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['COST:']),
+            `${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
+          ])
       ]),
       !!currentCluster && div({ style: styles.warningBox }, [
         div({ style: styles.label }, ['Caution:']),
         p([
-          'Replacing your runtime will ',
+          'Replacing your notebook runtime will ',
           span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
           '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
           h(Link, {
@@ -419,11 +428,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onPrevious: undefined,
         contents: h(Fragment, [
           div({ style: { marginBottom: '1rem' } },
-            ['Choose a Terra pre-installed runtime environment (e.g. programming languages + packages) or choose a custom environment.']),
+            ['Create a cloud compute instance to launch Jupyter Notebooks or a Project-Specific software application.']),
           div([
             h(IdContainer, [
               id => h(Fragment, [
-                div({ style: { marginBottom: '0.5rem' } }, [label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT')]),
+                div({ style: { marginBottom: '0.5rem' } }, [label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT'),
+                  h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+                    'Environment defines the software application + programming languages + packages used when you create your runtime. '
+                  ])]),
                 div({ style: { height: '45px' } }, [makeGroupedEnvSelect(id)])
               ])
             ]),
@@ -442,17 +454,41 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                             value: customEnvImage,
                             onChange: customEnvImage => this.setState({ customEnvImage })
                           },
-                          error: customEnvImage && isCustomImageInvalid && 'Not a valid image'
+                          error: isCustomImageInvalid && 'Not a valid image'
                         })
                       ])
                     ])
                   ]),
                   div({ style: { margin: '0.5rem' } }, [
-                    h(Link, { href: imageInstructions, ...Utils.newTabLinkProps }, ['Custom notebook environments']),
+                    'Custom environments',
                     span({ style: { fontWeight: 'bold' } }, [' must ']),
                     ' be based off one of the ',
-                    h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.'])
+                    h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images']),
+                    ' or a ',
+                    h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-Specific image'])
                   ])
+                ])
+              }],
+              [PROJECT_SPECIFIC_MODE, () => {
+                return div({ style: { lineHeight: '1.5' } }, [
+                  'Some consortium projects, such as ',
+                  h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['AnVIL']),
+                  ', have created environments that are specific to their project. If you want to use one of these: ',
+                  div({ style: { marginTop: '0.5rem' } }, [
+                    '1. Find the environment image (',
+                    h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['view image list']),
+                    ') '
+                  ]),
+                  div({ style: { margin: '0.5rem 0' } }, ['2. Copy the URL from the github repository ']),
+                  div({ style: { margin: '0.5rem 0' } }, ['3. Enter the URL for the image in the text box below ']),
+                  h(ValidatedInput, {
+                    inputProps: {
+                      placeholder: 'Paste image path here',
+                      value: customEnvImage,
+                      onChange: customEnvImage => this.setState({ customEnvImage })
+                    },
+                    error: isCustomImageInvalid && 'Not a valid image'
+                  })
                 ])
               }],
               [Utils.DEFAULT, () => {

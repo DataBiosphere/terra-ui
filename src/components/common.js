@@ -309,7 +309,7 @@ const formatGroupLabel = group => (
     }
   }, [group.label]))
 
-const BaseSelect = ({ value, newOptions, id, findValue, ...props }) => {
+const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
 
   return h(RSelect, _.merge({

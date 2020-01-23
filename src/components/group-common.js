@@ -195,7 +195,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
       onSuccess()
     } catch (error) {
       this.setState({ busy: false, confirmAddUser: false })
-      if (400 <= error.status <= 499) {
+      if (400 <= error.status && error.status <= 499) {
         this.setState({ submitError: (await error.json()).message })
       } else {
         reportError('Error adding user', error)

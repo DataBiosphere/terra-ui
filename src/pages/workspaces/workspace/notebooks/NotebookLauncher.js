@@ -208,7 +208,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
         [makeMenuIcon('export'), 'Copy to another workspace']
       )],
       [!!clusterStatus && cluster.labels.tool !== 'Jupyter', () => h(StatusMessage, { hideSpinner: true }, [
-        'Your notebook runtime doesn\'t appear to be running Jupyter. Create a new instance with Jupyter on it to edit this notebook.'
+        'Your notebook runtime doesn\'t appear to be running Jupyter. Create a new runtime with Jupyter on it to edit this notebook.'
       ])],
       [!mode || [null, 'Stopped'].includes(clusterStatus), () => h(Fragment, [
         Utils.cond(
@@ -330,6 +330,7 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
         onLoad: () => {
           const doc = frame.current.contentWindow.document
           doc.head.appendChild(Utils.createHtmlElement(doc, 'base', Utils.newTabLinkProps))
+          doc.addEventListener('mousedown', () => window.document.dispatchEvent(new MouseEvent('mousedown')))
         },
         style: { border: 'none', flex: 1 },
         srcDoc: preview,

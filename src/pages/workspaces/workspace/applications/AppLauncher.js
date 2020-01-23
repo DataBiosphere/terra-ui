@@ -43,11 +43,11 @@ const AppLauncher = _.flow(
       h(Fragment, [
         h(PeriodicCookieSetter, { namespace, clusterName }),
         app === 'RStudio' && h(PlaygroundHeader, [
-          'This feature is in early development. Your R Code is saved on your compute instance but not to your workspace. We encourage you to frequently ',
+          'This feature is in early development. Your files are saved on your runtime but not to your workspace. We encourage you to frequently ',
           h(Link, {
             href: 'https://support.terra.bio/hc/en-us/articles/360037269472#h_822db925-41fa-4797-b0da-0839580a74da',
             ...Utils.newTabLinkProps
-          }, ['back up your code manually']),
+          }, ['back up your files manually']),
           '.'
         ]),
         iframe({
@@ -62,15 +62,15 @@ const AppLauncher = _.flow(
       div({ style: { padding: '2rem' } }, [
         !busy && h(StatusMessage, { hideSpinner: ['Error', 'Stopped', null].includes(clusterStatus) }, [
           Utils.switchCase(clusterStatus,
-            ['Creating', () => 'Creating notebook runtime. You can navigate away and return in 3-5 minutes.'],
-            ['Starting', () => 'Starting notebook runtime. You can navigate away and return in ~2 minutes.'],
+            ['Creating', () => 'Creating notebook runtime environment. You can navigate away and return in 3-5 minutes.'],
+            ['Starting', () => 'Starting notebook runtime environment, this may take up to 2 minutes.'],
             ['Running', () => 'Almost ready...'],
-            ['Stopping', () => 'Notebook runtime is stopping. This takes ~4 minutes.'],
-            ['Stopped', () => 'Notebook runtime is stopped. Start it or reload the page to continue.'],
-            ['Error', () => 'Error with the notebook runtime, please create a new one to continue.'],
+            ['Stopping', () => 'Notebook runtime environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'],
+            ['Stopped', () => 'Notebook runtime environment is stopped. Start it to edit your notebook or use the terminal.'],
+            ['Error', () => 'Error with the notebook runtime environment, please try again.'],
             [null, () => 'Create a notebook runtime to continue.'],
             [undefined, () => 'Loading...'],
-            [Utils.DEFAULT, () => 'Unknown notebook runtime status. Please create a new instance or contact support.']
+            [Utils.DEFAULT, () => 'Unknown notebook runtime status. Please create a new runtime or contact support.']
           )
         ]),
         h(NewClusterModal, {
