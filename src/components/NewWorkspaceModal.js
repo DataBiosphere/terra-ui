@@ -38,7 +38,7 @@ export default _.flow(
   static propTypes = {
     cloneWorkspace: PropTypes.object,
     onDismiss: PropTypes.func.isRequired,
-    title: PropTypes.string,
+    customTitle: PropTypes.string,
     customMessage: PropTypes.string
   }
 
@@ -110,7 +110,7 @@ export default _.flow(
   })
 
   render() {
-    const { onDismiss, cloneWorkspace, authState: { profile }, title, customMessage } = this.props
+    const { onDismiss, cloneWorkspace, authState: { profile }, customTitle, customMessage } = this.props
     const { trialState } = profile
     const { namespace, name, billingProjects, allGroups, groups, description, nameModified, loading, createError, creating } = this.state
     const existingGroups = this.getRequiredGroups()
@@ -123,8 +123,8 @@ export default _.flow(
     return Utils.cond(
       [loading, spinnerOverlay],
       [hasBillingProjects, () => h(Modal, {
-        title: Utils.cond(
-          [title, title],
+        customTitle: Utils.cond(
+          [customTitle, customTitle],
           [cloneWorkspace, 'Clone a workspace'],
           [Utils.DEFAULT, 'Create a New Workspace']
         ),
