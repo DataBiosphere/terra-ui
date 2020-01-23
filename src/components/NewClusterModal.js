@@ -25,7 +25,7 @@ const styles = {
   },
   label: { fontWeight: 600, whiteSpace: 'pre' },
   disabledInputs: {
-    border: `1px solid ${colors.dark(0.2)}`, borderRadius: '4px', padding: '0.5rem'
+    border: `1px solid ${colors.dark(0.2)}`, borderRadius: 4, padding: '0.5rem'
   }
 }
 
@@ -194,7 +194,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
     })
 
-    const isCustomImageInvalid = customEnvImage && !imageValidationRegexp.test(customEnvImage)
+    const isCustomImageInvalid = !imageValidationRegexp.test(customEnvImage)
     const isSelectedImageInputted = selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE
 
     const makeGroupedEnvSelect = id => h(GroupedSelect, {
@@ -243,7 +243,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       div({
         style: {
           padding: '1rem', marginTop: '1rem',
-          border: `2px solid ${colors.dark(0.3)}`, borderRadius: '9px'
+          border: `2px solid ${colors.dark(0.3)}`, borderRadius: 9
         }
       }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
@@ -347,7 +347,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ])
         ]),
         div({
-          style: { backgroundColor: colors.dark(0.2), borderRadius: '100px', width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
+          style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
         }, [
           span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['COST:']),
           `${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
@@ -362,14 +362,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         packages && h(ImageDepViewer, { packageLink: packages })
       ])],
       ['warning', () => h(Fragment, [
-        p({ style: { marginTop: 0, lineHeight: '1.5' } }, [
+        p({ style: { marginTop: 0, lineHeight: 1.5 } }, [
           `You are about to create a virtual machine using an unverified Docker image.
             Please make sure that it was created by you or someone you trust, using one of our `,
           h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
           ' Custom Docker images could potentially cause serious security issues.'
         ]),
         h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
-        p({ style: { lineHeight: '1.5' } }, [
+        p({ style: { lineHeight: 1.5 } }, [
           'If you\'re confident that your image is safe, click ', b([!!currentCluster ? 'NEXT' : 'CREATE']),
           ' to use it. Otherwise, click ', b(['BACK']), ' to select another image.'
         ]),
@@ -409,79 +409,74 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({ style: { marginBottom: '1rem' } }, [
           'Create a cloud compute instance to launch Jupyter Notebooks or a Project-Specific software application.'
         ]),
-        div([
-          h(IdContainer, [
-            id => h(Fragment, [
-              div({ style: { marginBottom: '0.5rem' } }, [
-                label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT'),
-                h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-                  'Environment defines the software application + programming languages + packages used when you create your runtime. '
+        h(IdContainer, [
+          id => h(Fragment, [
+            div({ style: { marginBottom: '0.5rem' } }, [
+              label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT'),
+              h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+                'Environment defines the software application + programming languages + packages used when you create your runtime. '
+              ])
+            ]),
+            div({ style: { height: 45 } }, [makeGroupedEnvSelect(id)])
+          ])
+        ]),
+        Utils.switchCase(selectedLeoImage,
+          [CUSTOM_MODE, () => {
+            return h(Fragment, [
+              h(IdContainer, [
+                id => h(Fragment, [
+                  label({ htmlFor: id, style: { ...styles.label, display: 'block', margin: '0.5rem 0' } }, 'CONTAINER IMAGE'),
+                  div({ style: { height: 52, marginBottom: '0.5rem' } }, [
+                    h(ValidatedInput, {
+                      inputProps: {
+                        id,
+                        placeholder: '<image name>:<tag>',
+                        value: customEnvImage,
+                        onChange: customEnvImage => this.setState({ customEnvImage })
+                      },
+                      error: customEnvImage && isCustomImageInvalid && 'Not a valid image'
+                    })
+                  ])
                 ])
               ]),
-              div({ style: { height: '45px' } }, [makeGroupedEnvSelect(id)])
+              div({ style: { margin: '0.5rem' } }, [
+                'Custom environments ', b(['must ']), 'be based off one of the ',
+                h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images']),
+                ' or a ',
+                h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-Specific image'])
+              ])
             ])
-          ]),
-          Utils.switchCase(selectedLeoImage,
-            [CUSTOM_MODE, () => {
-              return h(Fragment, [
-                h(IdContainer, [
-                  id => h(Fragment, [
-                    div({ style: { marginBottom: '0.5rem', marginTop: '0.5rem' } },
-                      [label({ htmlFor: id, style: { ...styles.label, alignSelf: 'start' } }, 'CONTAINER IMAGE')]),
-                    div({ style: { height: '52px', alignItems: 'center', marginBottom: '0.5rem' } }, [
-                      h(ValidatedInput, {
-                        inputProps: {
-                          id,
-                          placeholder: '<image name>:<tag>',
-                          value: customEnvImage,
-                          onChange: customEnvImage => this.setState({ customEnvImage })
-                        },
-                        error: isCustomImageInvalid && 'Not a valid image'
-                      })
-                    ])
-                  ])
-                ]),
-                div({ style: { margin: '0.5rem' } }, [
-                  'Custom environments',
-                  span({ style: { fontWeight: 'bold' } }, [' must ']),
-                  ' be based off one of the ',
-                  h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images']),
-                  ' or a ',
-                  h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-Specific image'])
-                ])
+          }],
+          [PROJECT_SPECIFIC_MODE, () => {
+            return div({ style: { lineHeight: 1.5 } }, [
+              'Some consortium projects, such as ',
+              h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['AnVIL']),
+              ', have created environments that are specific to their project. If you want to use one of these:',
+              div({ style: { marginTop: '0.5rem' } }, [
+                '1. Find the environment image (',
+                h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['view image list']),
+                ') '
+              ]),
+              div({ style: { margin: '0.5rem 0' } }, ['2. Copy the URL from the github repository']),
+              div({ style: { margin: '0.5rem 0' } }, ['3. Enter the URL for the image in the text box below']),
+              h(ValidatedInput, {
+                inputProps: {
+                  placeholder: 'Paste image path here',
+                  value: customEnvImage,
+                  onChange: customEnvImage => this.setState({ customEnvImage })
+                },
+                error: customEnvImage && isCustomImageInvalid && 'Not a valid image'
+              })
+            ])
+          }],
+          [Utils.DEFAULT, () => {
+            return h(Fragment, [
+              div({ style: { display: 'flex' } }, [
+                h(Link, { onClick: () => this.setState({ viewMode: 'packages' }) }, ['What’s installed on this environment?']),
+                makeImageInfo({ marginLeft: 'auto' })
               ])
-            }],
-            [PROJECT_SPECIFIC_MODE, () => {
-              return div({ style: { lineHeight: '1.5' } }, [
-                'Some consortium projects, such as ',
-                h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['AnVIL']),
-                ', have created environments that are specific to their project. If you want to use one of these: ',
-                div({ style: { marginTop: '0.5rem' } }, [
-                  '1. Find the environment image (',
-                  h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['view image list']),
-                  ') '
-                ]),
-                div({ style: { margin: '0.5rem 0' } }, ['2. Copy the URL from the github repository ']),
-                div({ style: { margin: '0.5rem 0' } }, ['3. Enter the URL for the image in the text box below ']),
-                h(ValidatedInput, {
-                  inputProps: {
-                    placeholder: 'Paste image path here',
-                    value: customEnvImage,
-                    onChange: customEnvImage => this.setState({ customEnvImage })
-                  },
-                  error: isCustomImageInvalid && 'Not a valid image'
-                })
-              ])
-            }],
-            [Utils.DEFAULT, () => {
-              return h(Fragment, [
-                div({ style: { display: 'flex' } }, [
-                  h(Link, { onClick: () => this.setState({ viewMode: 'packages' }) }, ['What’s installed on this environment?']),
-                  makeImageInfo({ marginLeft: 'auto' })
-                ])
-              ])
-            }])
-        ]),
+            ])
+          }]),
         machineConfig(),
         bottomButtons()
       ])]
