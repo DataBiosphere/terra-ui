@@ -2,9 +2,11 @@ import {
   faClipboard, faClock, faClone, faEye, faFolder, faFolderOpen, faListAlt, faSquare as faSquareRegular, faTimesCircle
 } from '@fortawesome/free-regular-svg-icons'
 import {
-  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCheckSquare, faCloud, faCog, faCreditCard, faDownload, faEllipsisV,
+  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCheckSquare, faCloud, faCog, faCreditCard, faDownload,
+  faEllipsisV,
   faExclamationCircle,
-  faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faPause, faPen,
+  faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faPause,
+  faPen,
   faPlay, faPlus, faPlusCircle, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid, faTerminal, faTrashAlt
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -18,9 +20,11 @@ import books from 'src/icons/books-solid.svg'
 import cardMenuIcon from 'src/icons/card-menu-icon.svg'
 import cloudUpload from 'src/icons/cloud-upload-solid.svg'
 import columnGrabber from 'src/icons/column_grabber.svg'
+import copySolid from 'src/icons/copy-solid.svg'
 import downloadRegular from 'src/icons/download-regular.svg'
 import externalLinkAlt from 'src/icons/external-link-alt-regular.svg'
 import fileExport from 'src/icons/file-export-regular.svg'
+import fileSearchSolid from 'src/icons/file-search-solid.svg'
 import list from 'src/icons/list-regular.svg'
 import loadingSpinner from 'src/icons/loading-spinner.svg'
 import renameIcon from 'src/icons/rename-icon.svg'
@@ -95,7 +99,10 @@ const iconDict = {
   loadingSpinner: custom(loadingSpinner),
   purchaseOrder: fa(faFileInvoiceDollar),
   renameIcon: custom(renameIcon),
-  square: fa(faSquareRegular)
+  square: fa(faSquareRegular),
+  copySolid: custom(copySolid),
+  fileSearchSolid: custom(fileSearchSolid)
+
 }
 
 export default iconDict

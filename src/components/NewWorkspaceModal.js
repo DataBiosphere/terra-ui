@@ -37,7 +37,9 @@ export default _.flow(
 )(class NewWorkspaceModal extends Component {
   static propTypes = {
     cloneWorkspace: PropTypes.object,
-    onDismiss: PropTypes.func.isRequired
+    onDismiss: PropTypes.func.isRequired,
+    title: PropTypes.string,
+    customMessage: PropTypes.string
   }
 
   constructor(props) {
@@ -108,7 +110,7 @@ export default _.flow(
   })
 
   render() {
-    const { onDismiss, cloneWorkspace, authState: { profile } } = this.props
+    const { onDismiss, cloneWorkspace, authState: { profile }, title, customMessage } = this.props
     const { trialState } = profile
     const { namespace, name, billingProjects, allGroups, groups, description, nameModified, loading, createError, creating } = this.state
     const existingGroups = this.getRequiredGroups()
@@ -121,7 +123,11 @@ export default _.flow(
     return Utils.cond(
       [loading, spinnerOverlay],
       [hasBillingProjects, () => h(Modal, {
-        title: cloneWorkspace ? 'Clone a Workspace' : 'Create a New Workspace',
+        title: Utils.cond(
+          [title, title],
+          [cloneWorkspace, 'Clone a workspace'],
+          [Utils.DEFAULT, 'Create a New Workspace']
+        ),
         onDismiss,
         okButton: h(ButtonPrimary, {
           disabled: errors,
@@ -191,6 +197,7 @@ export default _.flow(
             options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()
           })
         ])]),
+        div({ style: { marginTop: '1rem' } }, [customMessage]),
         createError && div({
           style: { marginTop: '1rem', color: colors.danger() }
         }, [createError]),

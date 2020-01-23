@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, img } from 'react-hyperscript-helpers'
+import { div, h, img, p } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable, RadioButton, spinnerOverlay } from 'src/components/common'
 import { icon, wdlIcon } from 'src/components/icons'
@@ -40,16 +40,16 @@ const ChoiceButton = ({ onClick, iconName, title, detail }) => {
     style: {
       padding: '1rem', marginTop: '1rem',
       display: 'flex', alignItems: 'center',
-      border: `1px solid ${colors.accent()}`, borderRadius: 4
+      border: `1px solid ${colors.accent(1)}`, borderRadius: 4
     },
     hover: { backgroundColor: colors.accent(0.1) }
   }, [
-    icon(iconName, { size: 24, style: { flex: 'none', marginRight: '1rem' } }),
+    icon(iconName, { size: 29, style: { flex: 'none', marginRight: '1rem', color: colors.accent(1) } }),
     div({ style: { flex: 1 } }, [
-      div({ style: { fontWeight: 'bold' } }, [title]),
+      div({ style: { fontWeight: 'bold', color: colors.accent(1) } }, [title]),
       div([detail])
     ]),
-    icon('angle-right', { size: 32, style: { flex: 'none', marginLeft: '1rem' } })
+    icon('angle-right', { size: 32, style: { flex: 'none', marginLeft: '1rem', color: colors.accent(1) } })
   ])
 }
 
@@ -62,8 +62,12 @@ const ImportData = () => {
   const [isCloneOpen, setIsCloneOpen] = useState(false)
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(wid)
   const [selectedTemplateWorkspace, setSelectedTemplateWorkspace] = useState()
-  const [selected, setSelected] = useState()
+  const [radioButtonSelected, setRadioButtonSelected] = useState()
   const [templateWorkspaces, setTemplateWorkspaces] = useState()
+
+  const noteMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.'
+
+  const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
 
   Utils.useOnMount(() => {
     const loadTemplateWorkspaces = async () => {
@@ -78,24 +82,22 @@ const ImportData = () => {
     loadTemplateWorkspaces()
   })
 
-  const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
-
-  const setSelectedTemp = ws => {
-    setSelected(ws)
+  const setSelectionInList = ws => {
+    setRadioButtonSelected(ws)
     setSelectedTemplateWorkspace(ws)
   }
 
-  const setSelectedTempWorkSpaceWithDetails = async () => {
-    try {
+  const setSelectedTempWorkSpaceWithDetails =
+    _.flow(
+      Utils.withBusyState(setIsImporting),
+      withErrorReporting('Import Error')
+    )(async () => {
       const workspace = await Ajax().Workspaces.workspace(selectedTemplateWorkspace.namespace, selectedTemplateWorkspace.name).details([
         'workspace', 'workspace.attributes'
       ])
       setSelectedTemplateWorkspace(workspace)
       setIsCloneOpen(true)
-    } catch {
-      setIsCloneOpen(false)
-    }
-  }
+    })
 
   const onImport = _.flow(
     Utils.withBusyState(setIsImporting),
@@ -148,7 +150,7 @@ const ImportData = () => {
                 onChange: setSelectedWorkspaceId
               }),
               div({ style: { marginTop: '0.5rem' } },
-                ['Note that the import process may take some time after you are redirected into your destination workspace.']),
+                [noteMessage]),
               div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
                 h(ButtonSecondary, { onClick: () => setMode(), style: { marginLeft: 'auto' } }, ['Back']),
                 h(ButtonPrimary, {
@@ -163,12 +165,12 @@ const ImportData = () => {
             return h(Fragment, [
               div({ style: styles.title }, ['Start with a template']),
               div({ style: { marginBottom: '1rem' } }, [
-                'Note that the import process may take some time after you are redirected into your destination workspace.'
+                noteMessage
               ]),
-              div({ style: { overflow: 'auto', height: '20rem' } }, [
+              div({ style: { overflow: 'auto', maxHeight: '25rem' } }, [
                 _.map(([i, ws]) => {
                   const { name, namespace, description, hasNotebooks, hasWorkflows } = ws
-                  const isSelected = _.isEqual(ws, selected)
+                  const isSelected = _.isEqual(ws, radioButtonSelected)
 
                   return div({
                     key: `${name}/${namespace}`,
@@ -181,22 +183,22 @@ const ImportData = () => {
                     h(RadioButton, {
                       name: 'select-template',
                       checked: isSelected,
-                      onChange: () => setSelectedTemp(ws),
+                      onChange: () => setSelectionInList(ws),
                       text: h(Collapse, {
                         buttonStyle: { color: colors.dark(), fontWeight: 600 },
-                        style: { fontSize: 16, marginLeft: '0.5rem' },
+                        style: { fontSize: 14, marginLeft: '0.5rem' },
                         title: h(Fragment, [
                           name,
-                          hasWorkflows && wdlIcon({ style: { height: 22, width: 22, marginLeft: '0.5rem' } }),
-                          hasNotebooks && img({ src: jupyterLogo, style: { height: 22, width: 22, marginLeft: '0.5rem' } })
+                          hasNotebooks && img({ src: jupyterLogo, style: { height: 23, width: 23, marginLeft: '0.5rem' } }),
+                          hasWorkflows &&
+                            wdlIcon({ style: { height: 23, width: 23, marginLeft: '0.5rem', borderRadius: 3, padding: '8px 4px 7px 4px' } })
                         ])
-                      }, [description])
+                      }, [p({ style: { fontSize: 14, lineHeight: '1.5', marginRight: '1rem' } }, description)])
                     })
                   ]
                   )
                 }, Utils.toIndexPairs(templateWorkspaces))
               ]),
-              div({ style: { margin: '0 -2rem', borderTop: `0.5px solid ${colors.dark(0.2)}` } }),
               div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
                 h(ButtonSecondary, { style: { marginLeft: 'auto' }, onClick: () => setMode() }, ['Back']),
                 h(ButtonPrimary, {
@@ -213,13 +215,13 @@ const ImportData = () => {
               div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
               !!templateWorkspaces && h(ChoiceButton, {
                 onClick: () => setMode('template'),
-                iconName: 'copy',
+                iconName: 'copySolid',
                 title: 'Start with a template',
                 detail: 'Clone from one of our template workspaces that has analyses ready for use'
               }),
               h(ChoiceButton, {
                 onClick: () => setMode('existing'),
-                iconName: 'folder-open',
+                iconName: 'fileSearchSolid',
                 title: 'Start with an existing workspace',
                 detail: 'Select one of your workspaces'
               }),
@@ -231,6 +233,7 @@ const ImportData = () => {
               }),
               isCreateOpen && h(NewWorkspaceModal, {
                 requiredAuthDomain: ad,
+                customMessage: noteMessage,
                 onDismiss: () => setIsCreateOpen(false),
                 onSuccess: w => {
                   setMode('existing')
@@ -245,6 +248,8 @@ const ImportData = () => {
         ),
         isCloneOpen && h(NewWorkspaceModal, {
           cloneWorkspace: selectedTemplateWorkspace,
+          title: `Clone ${selectedTemplateWorkspace.workspace.name} and Import Data`,
+          customMessage: noteMessage,
           onDismiss: () => setIsCloneOpen(false),
           onSuccess: w => {
             setMode('template')
