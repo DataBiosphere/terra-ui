@@ -12,7 +12,7 @@ import * as Utils from 'src/libs/utils'
 const styles = {
   input: {
     height: '2.25rem',
-    border: `1px solid ${colors.light()}`, borderRadius: 4
+    border: `1px solid ${colors.dark(0.55)}`, borderRadius: 4
   },
   suggestionsContainer: {
     position: 'fixed', top: 0, left: 0,
@@ -28,7 +28,7 @@ const styles = {
   }),
   textarea: {
     width: '100%', resize: 'none',
-    border: `1px solid ${colors.light()}`, borderRadius: 4,
+    border: `1px solid ${colors.dark(0.55)}`, borderRadius: 4,
     fontSize: 14, fontWeight: 400,
     padding: '0.5rem 1rem',
     cursor: 'text'

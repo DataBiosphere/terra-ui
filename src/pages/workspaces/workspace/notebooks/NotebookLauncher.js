@@ -1,12 +1,15 @@
 import * as clipboard from 'clipboard-polyfill'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
+import {
+  ApplicationHeader, ClusterKicker, ClusterStatusMonitor, PeriodicCookieSetter, PlaygroundHeader, StatusMessage
+} from 'src/components/cluster-common'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
-import { icon, spinner } from 'src/components/icons'
+import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { findPotentialNotebookLockers, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
@@ -14,72 +17,18 @@ import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
 import { Ajax } from 'src/libs/ajax'
-import * as BrowserStorage from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
-import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const StatusMessage = ({ hideSpinner, children }) => {
-  return div({ style: { padding: '1.5rem 2rem', display: 'flex' } }, [
-    !hideSpinner && spinner({ style: { marginRight: '0.5rem' } }),
-    div([children])
-  ])
-}
-
-const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
-  const getCluster = Utils.useGetter(cluster)
-  const signal = Utils.useCancellation()
-  const [busy, setBusy] = useState()
-
-  const startClusterOnce = withErrorReporting('Error starting notebook runtime', async () => {
-    while (!signal.aborted) {
-      const currentCluster = getCluster()
-      const { status, googleProject, clusterName } = currentCluster || {}
-      const currentStatus = currentCluster && status
-      if (currentStatus === 'Stopped') {
-        setBusy(true)
-        await Ajax().Jupyter.cluster(googleProject, clusterName).start()
-        await refreshClusters()
-        setBusy(false)
-        return
-      } else if (currentStatus === undefined || currentStatus === 'Stopping') {
-        await Utils.delay(500)
-      } else if (currentStatus === null) {
-        onNullCluster()
-        return
-      } else {
-        return
-      }
-    }
-  })
-
-  Utils.useOnMount(() => {
-    startClusterOnce()
-  })
-
-  return busy ? spinnerOverlay : null
-}
-
 const chooseMode = mode => {
   Nav.history.replace({ search: qs.stringify({ mode }) })
-}
-
-const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning }) => {
-  const currentStatus = cluster && cluster.status
-  const prevStatus = Utils.usePrevious(currentStatus)
-
-  useEffect(() => {
-    if (prevStatus === 'Running' && currentStatus !== 'Running') {
-      onClusterStoppedRunning()
-    }
-  }, [currentStatus, onClusterStoppedRunning, prevStatus])
-
-  return null
 }
 
 const NotebookLauncher = _.flow(
@@ -101,10 +50,11 @@ const NotebookLauncher = _.flow(
     const { mode } = queryParams
 
     return h(Fragment, [
-      (Utils.canWrite(accessLevel) && canCompute && !!mode && status === 'Running') ?
-        h(labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : NotebookEditorFrame, { key: clusterName, workspace, cluster, notebookName, mode }) :
+      (Utils.canWrite(accessLevel) && canCompute && !!mode && status === 'Running' && labels.tool === 'Jupyter') ?
+        h(labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : NotebookEditorFrame,
+          { key: clusterName, workspace, cluster, notebookName, mode }) :
         h(Fragment, [
-          h(PreviewHeader, { queryParams, cluster, refreshClusters, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateCluster: () => setCreateOpen(true) }),
+          h(PreviewHeader, { queryParams, cluster, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateCluster: () => setCreateOpen(true) }),
           h(NotebookPreviewFrame, { notebookName, workspace })
         ]),
       mode && h(ClusterKicker, { cluster, refreshClusters, onNullCluster: () => setCreateOpen(true) }),
@@ -202,7 +152,7 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
     onDismiss,
     okButton: h(ButtonPrimary, {
       onClick: () => {
-        BrowserStorage.setLocalPref('hidePlaygroundMessage', hidePlaygroundMessage)
+        setLocalPref('hidePlaygroundMessage', hidePlaygroundMessage)
         onPlayground()
       }
     },
@@ -217,26 +167,13 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
   ])
 }
 
-const PlaygroundHeader = () => {
-  return div({ style: { backgroundColor: colors.warning(0.7), display: 'flex', alignItems: 'center', borderBottom: `2px solid ${colors.dark(0.2)}`, height: '3.5rem', whiteSpace: 'pre' } }, [
-    div({ style: { fontSize: 18, fontWeight: 'bold', backgroundColor: colors.warning(0.9), padding: '0 4rem', height: '100%', display: 'flex', alignItems: 'center' } },
-      ['PLAYGROUND MODE']),
-    div({ style: { marginLeft: '2rem' } }, [
-      'Edits to this notebook are ',
-      b(['NOT ']),
-      'being saved to the workspace. To save your changes, download the notebook using the file menu.',
-      h(Link, {
-        style: { marginLeft: '0.5rem' },
-        href: dataSyncingDocUrl,
-        ...Utils.newTabLinkProps
-      }, ['Read here for more details.'])
-    ])
-  ])
-}
+const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
+  style: { padding: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: 2 }, ...props
+}, [children])
 
-const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, refreshClusters, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
+const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
   const signal = Utils.useCancellation()
-  const { user: { email } } = Utils.useAtom(authStore)
+  const { user: { email } } = Utils.useStore(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
   const [editModeDisabledOpen, setEditModeDisabledOpen] = useState(false)
   const [playgroundModalOpen, setPlaygroundModalOpen] = useState(false)
@@ -248,7 +185,6 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
   const welderEnabled = cluster && !cluster.labels.welderInstallFailed
   const { mode } = queryParams
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
-  const buttonStyle = { padding: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: 2 }
 
   const checkIfLocked = withErrorReporting('Error checking notebook lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
@@ -263,71 +199,60 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
 
   Utils.useOnMount(() => { checkIfLocked() })
 
-  return div({ style: { display: 'flex', alignItems: 'center', borderBottom: `2px solid ${colors.dark(0.2)}`, height: '3.5rem' } }, [
-    div({ style: { fontSize: 18, fontWeight: 'bold', backgroundColor: colors.dark(0.2), padding: '0 4rem', height: '100%', display: 'flex', alignItems: 'center' } },
-      ['PREVIEW (READ-ONLY)']),
-    readOnlyAccess ?
-      h(ButtonSecondary, { style: buttonStyle, onClick: () => setExportingNotebook(true) }, [makeMenuIcon('export'), 'Copy to another workspace']) :
-      Utils.cond(
-        [
-          !mode || clusterStatus === null || clusterStatus === 'Stopped', () => h(Fragment, [
-            Utils.cond(
-              [cluster && !welderEnabled, () => h(ButtonSecondary, {
-                style: buttonStyle,
-                onClick: () => setEditModeDisabledOpen(true)
-              }, [makeMenuIcon('warning-standard'), 'Edit (Disabled)'])],
-              [
-                locked, () => h(ButtonSecondary, {
-                  style: buttonStyle,
-                  onClick: () => setFileInUseOpen(true)
-                }, [makeMenuIcon('lock'), 'Edit (In use)'])
-              ],
-              () => h(ButtonSecondary, {
-                style: buttonStyle,
-                onClick: () => chooseMode('edit')
-              }, [makeMenuIcon('edit'), 'Edit'])
-            ),
-            h(ButtonSecondary, {
-              style: buttonStyle,
-              onClick: () => BrowserStorage.getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
-            }, [makeMenuIcon('chalkboard'), 'Playground mode']),
-            h(PopupTrigger, {
-              closeOnClick: true,
-              content: h(Fragment, [
-                h(MenuButton, { onClick: () => setCopyingNotebook(true) }, ['Make a Copy']),
-                h(MenuButton, { onClick: () => setExportingNotebook(true) }, ['Copy to another workspace']),
-                h(MenuButton, {
-                  onClick: withErrorReporting('Error copying to clipboard', async () => {
-                    await clipboard.writeText(`${window.location.host}/${notebookLink}`)
-                    notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 })
-                  })
-                }, ['Copy URL to clipboard'])
-              ]),
-              side: 'bottom'
-            }, [
-              h(ButtonSecondary, {
-                style: buttonStyle
-              }, [icon('ellipsis-v')])
-            ])
-          ])
-        ],
-        [
-          clusterStatus === 'Creating', () => h(StatusMessage, [
-            'Creating notebook runtime environment, this will take 5-10 minutes. You can navigate away and return when it’s ready.'
-          ])
-        ],
-        [
-          clusterStatus === 'Starting', () => h(StatusMessage, [
-            'Starting notebook runtime environment, this may take up to 2 minutes.'
-          ])
-        ],
-        [
-          clusterStatus === 'Stopping', () => h(StatusMessage, [
-            'Notebook runtime environment is stopping. You can restart it after it finishes.'
-          ])
-        ],
-        [clusterStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Notebook runtime error.'])]
-      ),
+  return h(ApplicationHeader, {
+    label: 'PREVIEW (READ-ONLY)',
+    labelBgColor: colors.dark(0.2)
+  }, [
+    Utils.cond(
+      [readOnlyAccess, () => h(HeaderButton, { onClick: () => setExportingNotebook(true) },
+        [makeMenuIcon('export'), 'Copy to another workspace']
+      )],
+      [!!clusterStatus && cluster.labels.tool !== 'Jupyter', () => h(StatusMessage, { hideSpinner: true }, [
+        'Your notebook runtime doesn\'t appear to be running Jupyter. Create a new runtime with Jupyter on it to edit this notebook.'
+      ])],
+      [!mode || [null, 'Stopped'].includes(clusterStatus), () => h(Fragment, [
+        Utils.cond(
+          [cluster && !welderEnabled, () => h(HeaderButton, {
+            onClick: () => setEditModeDisabledOpen(true)
+          }, [makeMenuIcon('warning-standard'), 'Edit (Disabled)'])],
+          [locked, () => h(HeaderButton, {
+            onClick: () => setFileInUseOpen(true)
+          }, [makeMenuIcon('lock'), 'Edit (In use)'])],
+          () => h(HeaderButton, {
+            onClick: () => chooseMode('edit')
+          }, [makeMenuIcon('edit'), 'Edit'])
+        ),
+        h(HeaderButton, {
+          onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
+        }, [makeMenuIcon('chalkboard'), 'Playground mode']),
+        h(PopupTrigger, {
+          closeOnClick: true,
+          content: h(Fragment, [
+            h(MenuButton, { onClick: () => setCopyingNotebook(true) }, ['Make a Copy']),
+            h(MenuButton, { onClick: () => setExportingNotebook(true) }, ['Copy to another workspace']),
+            h(MenuButton, {
+              onClick: withErrorReporting('Error copying to clipboard', async () => {
+                await clipboard.writeText(`${window.location.host}/${notebookLink}`)
+                notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 })
+              })
+            }, ['Copy URL to clipboard'])
+          ]),
+          side: 'bottom'
+        }, [
+          h(HeaderButton, {}, [icon('ellipsis-v')])
+        ])
+      ])],
+      [clusterStatus === 'Creating', () => h(StatusMessage, [
+        'Creating notebook runtime, this will take 5-10 minutes. You can navigate away and return when it’s ready.'
+      ])],
+      [clusterStatus === 'Starting', () => h(StatusMessage, [
+        'Starting notebook runtime, this may take up to 2 minutes.'
+      ])],
+      [clusterStatus === 'Stopping', () => h(StatusMessage, [
+        'Notebook runtime is stopping. You can restart it after it finishes.'
+      ])],
+      [clusterStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Notebook runtime error.'])]
+    ),
     div({ style: { flexGrow: 1 } }),
     div({ style: { position: 'relative' } }, [
       h(Clickable, {
@@ -405,6 +330,7 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
         onLoad: () => {
           const doc = frame.current.contentWindow.document
           doc.head.appendChild(Utils.createHtmlElement(doc, 'base', Utils.newTabLinkProps))
+          doc.addEventListener('mousedown', () => window.document.dispatchEvent(new MouseEvent('mousedown')))
         },
         style: { border: 'none', flex: 1 },
         srcDoc: preview,
@@ -454,13 +380,9 @@ const JupyterFrameManager = ({ onClose, frameRef }) => {
   return null
 }
 
-const PeriodicCookieSetter = ({ namespace, clusterName }) => {
-  const signal = Utils.useCancellation()
-  Utils.usePollingEffect(
-    withErrorIgnoring(() => Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()),
-    { ms: 15 * 60 * 1000 })
-  return null
-}
+const copyingNotebookMessage = div({ style: { paddingTop: '2rem' } }, [
+  h(StatusMessage, ['Copying notebook to runtime environment, almost ready...'])
+])
 
 const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
   console.assert(status === 'Running', 'Expected notebook runtime to be running')
@@ -478,21 +400,21 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
     withErrorReporting('Error setting up notebook')
   )(async () => {
     await Ajax()
-      .Jupyter
+      .Clusters
       .notebooks(namespace, clusterName)
       .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
-    if (mode === 'edit' && !(await Ajax().Jupyter.notebooks(namespace, clusterName).lock(`${localBaseDirectory}/${notebookName}`))) {
+    if (mode === 'edit' && !(await Ajax().Clusters.notebooks(namespace, clusterName).lock(`${localBaseDirectory}/${notebookName}`))) {
       notify('error', 'Unable to Edit Notebook', {
         message: 'Another user is currently editing this notebook. You can run it in Playground Mode or make a copy.'
       })
       chooseMode(undefined)
     } else {
       await Promise.all([
-        Ajax().Jupyter.notebooks(namespace, clusterName).localize([{
+        Ajax().Clusters.notebooks(namespace, clusterName).localize([{
           sourceUri: `${cloudStorageDirectory}/${notebookName}`,
           localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${notebookName}` : `${localSafeModeBaseDirectory}/${notebookName}`
         }]),
-        Ajax().Jupyter.notebooks(namespace, clusterName).setCookie()
+        Ajax().Clusters.notebooks(namespace, clusterName).setCookie()
       ])
       setNotebookSetupComplete(true)
     }
@@ -515,7 +437,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
         onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name })
       })
     ]),
-    busy && h(StatusMessage, ['Copying notebook to runtime environment, almost ready...'])
+    busy && copyingNotebookMessage
   ])
 }
 
@@ -545,10 +467,10 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
       chooseMode(undefined)
     } else {
       await Promise.all([
-        Ajax(signal).Jupyter.notebooks(namespace, clusterName).oldLocalize({
+        Ajax(signal).Clusters.notebooks(namespace, clusterName).oldLocalize({
           [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
         }),
-        Ajax(signal).Jupyter.notebooks(namespace, clusterName).setCookie()
+        Ajax(signal).Clusters.notebooks(namespace, clusterName).setCookie()
       ])
       setLocalized(true)
     }
@@ -559,7 +481,16 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
   })
 
   return h(Fragment, [
-    h(PlaygroundHeader),
+    h(PlaygroundHeader, [
+      'Edits to this notebook are ',
+      b(['NOT ']),
+      'being saved to the workspace. To save your changes, download the notebook using the file menu.',
+      h(Link, {
+        style: { marginLeft: '0.5rem' },
+        href: dataSyncingDocUrl,
+        ...Utils.newTabLinkProps
+      }, ['Read here for more details.'])
+    ]),
     localized && h(Fragment, [
       iframe({
         src: `${clusterUrl}/notebooks/${name}/${notebookName}`,
@@ -571,7 +502,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
         onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name })
       })
     ]),
-    busy && h(StatusMessage, ['Copying notebook to runtime environment, almost ready...'])
+    busy && copyingNotebookMessage
   ])
 }
 

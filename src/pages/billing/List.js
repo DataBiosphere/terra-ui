@@ -157,12 +157,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
               ...Utils.newTabLinkProps
             }, ['Google Cloud Console', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])]),
           div({ style: { marginBottom: '0.25rem' } }, ['Then, ',
-            h(Link, {
-              onClick: () => {
-                this.setState({ billingAccounts: undefined })
-                this.loadAccounts()
-              }
-            }, ['click here']), ' to refresh your billing accounts.']),
+            h(Link, { onClick: () => this.loadAccounts() }, ['click here']), ' to refresh your billing accounts.']),
           div({ style: { marginTop: '0.5rem' } }, [
             h(Link, {
               href: `https://support.terra.bio/hc/en-us/articles/360026182251`,
@@ -196,7 +191,7 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
 
 export const BillingList = _.flow(
   ajaxCaller,
-  Utils.connectAtom(authStore, 'authState')
+  Utils.connectStore(authStore, 'authState')
 )(class BillingList extends Component {
   constructor(props) {
     super(props)
@@ -262,7 +257,7 @@ export const BillingList = _.flow(
     const breadcrumbs = `Billing > Billing Project`
 
     return h(Fragment, [
-      h(TopBar, { title: 'Billing', href: Nav.getLink('billing') }, [
+      h(TopBar, { title: 'Billing' }, [
         !!selectedName && div({
           style: {
             color: 'white', paddingLeft: '5rem', minWidth: 0, marginRight: '0.5rem'

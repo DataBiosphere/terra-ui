@@ -290,13 +290,36 @@ const commonSelectProps = {
   components: {
     Option: ({ children, ...props }) => {
       return h(RSelectComponents.Option, props, [
-        div({ style: { display: 'flex', alignItems: 'center' } }, [
+        div({ style: { display: 'flex', alignItems: 'center', height: 25 } }, [
           div({ style: { flexGrow: 1 } }, children),
           props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
         ])
       ])
     }
   }
+}
+const formatGroupLabel = group => (
+  div({
+    style: {
+      color: colors.dark(),
+      fontSize: 14,
+      height: 30,
+      fontWeight: 600,
+      borderBottom: `1px solid ${colors.dark(0.25)}`
+    }
+  }, [group.label]))
+
+const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) => {
+  const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
+
+  return h(RSelect, _.merge({
+    inputId: id,
+    ...commonSelectProps,
+    getOptionLabel: ({ value, label }) => label || value.toString(),
+    value: newValue || null, // need null instead of undefined to clear the select
+    options: newOptions,
+    formatGroupLabel
+  }, props))
 }
 
 /**
@@ -307,15 +330,20 @@ const commonSelectProps = {
 export const Select = ({ value, options, id, ...props }) => {
   const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
   const findValue = target => _.find({ value: target }, newOptions)
-  const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
 
-  return h(RSelect, _.merge({
-    inputId: id,
-    ...commonSelectProps,
-    getOptionLabel: ({ value, label }) => label || value.toString(),
-    value: newValue || null, // need null instead of undefined to clear the select
-    options: newOptions
-  }, props))
+  return h(BaseSelect, { value, newOptions, id, findValue, ...props })
+}
+
+/**
+ * @param {Object} props - see {@link https://react-select.com/props#select-props}
+ * @param props.value - a member of an inner options object
+ * @param {Array} props.options - an object with toplevel pairs of label:options where label is a group label and options is an array of objects containing value:label pairs
+ */
+export const GroupedSelect = ({ value, options, id, ...props }) => {
+  const flattenedOptions = _.flatMap('options', options)
+  const findValue = target => _.find({ value: target }, flattenedOptions)
+
+  return h(BaseSelect, { value, newOptions: options, id, findValue, ...props })
 }
 
 export const AsyncCreatableSelect = props => {

@@ -30,19 +30,18 @@ export default class DataStepContent extends Component {
 
   constructor(props) {
     super(props)
-    const { rootEntityType, entitySelectionModel } = props
-    this.state = { rootEntityType, entitySelectionModel }
+    const { entitySelectionModel } = props
+    this.state = { newSelectionModel: entitySelectionModel }
   }
 
-  setEntitySelectionModel(modelUpdates) {
-    this.setState(({ entitySelectionModel }) => {
-      return { entitySelectionModel: { ...entitySelectionModel, ...modelUpdates } }
+  setNewSelectionModel(modelUpdates) {
+    this.setState(({ newSelectionModel }) => {
+      return { newSelectionModel: { ...newSelectionModel, ...modelUpdates } }
     })
   }
 
   isValidSelectionModel() {
-    const { entitySelectionModel } = this.state
-    const { newSetName, selectedEntities, type } = entitySelectionModel
+    const { newSelectionModel: { newSetName, selectedEntities, type } } = this.state
     const selectionSize = _.size(selectedEntities)
 
     return selectionSize === 1 ||
@@ -55,12 +54,12 @@ export default class DataStepContent extends Component {
   render() {
     const {
       onDismiss, onSuccess,
-      workspaceId, entityMetadata,
+      workspaceId, entityMetadata, rootEntityType,
       workspace: { attributes: { 'workspace-column-defaults': columnDefaults } }
     } = this.props
-    const { entitySelectionModel, entitySelectionModel: { type, selectedEntities, newSetName }, rootEntityType } = this.state
+    const { newSelectionModel, newSelectionModel: { type, selectedEntities, newSetName } } = this.state
 
-    const count = rootEntityType && entityMetadata[rootEntityType].count
+    const count = entityMetadata[rootEntityType].count
 
     const isSet = _.endsWith('_set', rootEntityType)
     const setType = `${rootEntityType}_set`
@@ -76,14 +75,14 @@ export default class DataStepContent extends Component {
       okButton: h(ButtonPrimary, {
         tooltip: isChooseSets && _.size(selectedEntities) > 10 && 'Please select 10 or fewer sets',
         disabled: !this.isValidSelectionModel(),
-        onClick: () => onSuccess(entitySelectionModel)
+        onClick: () => onSuccess(newSelectionModel)
       }, 'OK'),
       onDismiss,
       width: 'calc(100% - 2rem)'
     }, [
       div({ style: { ...Style.elements.sectionHeader, marginBottom: '1rem' } },
         [`Select ${(isSet ? 'up to 10 ' : '') + rootEntityType}s to process${isSet ? ' in parallel' : ''}`]),
-      rootEntityType && div({
+      div({
         style: {
           padding: '1rem 0.5rem', lineHeight: '1.5rem'
         }
@@ -94,7 +93,7 @@ export default class DataStepContent extends Component {
               text: `Process all ${count} rows`,
               name: 'process-rows',
               checked: isProcessAll,
-              onChange: () => this.setEntitySelectionModel({ type: processAll, selectedEntities: {} }),
+              onChange: () => this.setNewSelectionModel({ type: processAll, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
@@ -103,7 +102,7 @@ export default class DataStepContent extends Component {
               text: 'Choose specific rows to process',
               name: 'process-rows',
               checked: isChooseRows,
-              onChange: () => this.setEntitySelectionModel({ type: chooseRows, selectedEntities: {} }),
+              onChange: () => this.setNewSelectionModel({ type: chooseRows, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
@@ -112,7 +111,7 @@ export default class DataStepContent extends Component {
               text: 'Choose existing sets',
               name: 'process-rows',
               checked: isProcessMergedSet,
-              onChange: () => this.setEntitySelectionModel({ type: processMergedSet, selectedEntities: {} }),
+              onChange: () => this.setNewSelectionModel({ type: processMergedSet, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ])
@@ -129,7 +128,7 @@ export default class DataStepContent extends Component {
             entityMetadata, workspaceId, columnDefaults,
             selectionModel: {
               type: 'multiple',
-              selected: selectedEntities, setSelected: e => this.setEntitySelectionModel({ selectedEntities: e })
+              selected: selectedEntities, setSelected: e => this.setNewSelectionModel({ selectedEntities: e })
             }
           })
         ]),
@@ -142,7 +141,7 @@ export default class DataStepContent extends Component {
             id,
             style: { width: 500, marginLeft: '0.25rem' },
             value: newSetName,
-            onChange: v => this.setEntitySelectionModel({ newSetName: v })
+            onChange: v => this.setNewSelectionModel({ newSetName: v })
           })
         ])])
       ])

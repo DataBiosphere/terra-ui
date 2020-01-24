@@ -102,7 +102,7 @@ const DropDownSection = ({ titleIcon, title, isOpened, onClick, children }) => {
   ])
 }
 
-const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Component {
+const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends Component {
   static propTypes = {
     title: PropTypes.node,
     href: PropTypes.string, // link destination
@@ -305,10 +305,10 @@ const TopBar = Utils.connectAtom(authStore, 'authState')(class TopBar extends Co
             div({ style: { color: colors.dark(0.3), fontSize: 10, fontWeight: 600, marginTop: '0.5rem' } }, [
               'Built on: ',
               h(Clickable, {
-                href: `https://github.com/DataBiosphere/terra-ui/commits/${SATURN_VERSION}`,
+                href: `https://github.com/DataBiosphere/terra-ui/commits/${process.env.REACT_APP_VERSION}`,
                 ...Utils.newTabLinkProps,
                 style: { textDecoration: 'underline', marginLeft: '0.25rem' }
-              }, [new Date(SATURN_BUILD_TIMESTAMP).toLocaleString()])
+              }, [new Date(parseInt(process.env.REACT_APP_BUILD_TIMESTAMP, 10)).toLocaleString()])
             ])
           ])
         ])
@@ -395,7 +395,7 @@ const PreferFirecloudModal = ({ onDismiss }) => {
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const { profile: { email, firstName, lastName } } = Utils.useAtom(authStore)
+  const { profile: { email, firstName, lastName } } = Utils.useStore(authStore)
   const currUrl = window.location.href
 
   const returnToLegacyFC = _.flow(

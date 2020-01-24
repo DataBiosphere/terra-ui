@@ -143,7 +143,7 @@ const useClusterPolling = namespace => {
   }
   const loadClusters = async () => {
     try {
-      const newClusters = await Ajax(signal).Jupyter.clustersList({ googleProject: namespace, creator: getUser().email })
+      const newClusters = await Ajax(signal).Clusters.list({ googleProject: namespace, creator: getUser().email })
       setClusters(newClusters)
       const cluster = currentCluster(newClusters)
       reschedule(_.includes(cluster && cluster.status, ['Creating', 'Starting', 'Stopping']) ? 10000 : 120000)
@@ -168,7 +168,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const signal = Utils.useCancellation()
     const [accessError, setAccessError] = useState(false)
     const accessNotificationId = useRef()
-    const cachedWorkspace = Utils.useAtom(workspaceStore)
+    const cachedWorkspace = Utils.useStore(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
     const { clusters, refreshClusters } = useClusterPolling(namespace)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?

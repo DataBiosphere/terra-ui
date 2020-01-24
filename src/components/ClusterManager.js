@@ -3,17 +3,19 @@ import { isAfter } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
-import { div, h, p, span } from 'react-hyperscript-helpers'
+import { div, h, img, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
+import { clearNotification } from 'src/components/Notifications'
 import { notify } from 'src/components/Notifications.js'
 import { Popup } from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import rLogo from 'src/images/r-logo.svg'
+import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
-import { clusterCost, currentCluster, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
+import { clusterCost, currentCluster, deleteText, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -61,7 +63,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
     withErrorReporting('Error loading notebook runtime details'),
     Utils.withBusyState(setLoadingClusterDetails)
   )(async () => {
-    const { errors: clusterErrors } = await Ajax().Jupyter.cluster(cluster.googleProject, cluster.clusterName).details()
+    const { errors: clusterErrors } = await Ajax().Clusters.cluster(cluster.googleProject, cluster.clusterName).details()
     if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), clusterErrors)) {
       setError(
         await Ajax().Buckets.getObjectPreview(cluster.stagingBucket, `userscript_output.txt`, cluster.googleProject, true).then(res => res.text()))
@@ -74,7 +76,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   Utils.useOnMount(() => { loadClusterError() })
 
   return h(Modal, {
-    title: userscriptError ? 'Notebook Runtime Creation Failed due to Userscript Error' : 'Notebook Runtime Creation Failed',
+    title: `Notebook Runtime Creation Failed${userscriptError ? ' due to Userscript Error' : ''}`,
     showCancel: false,
     onDismiss
   }, [
@@ -89,21 +91,15 @@ export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, on
     Utils.withBusyState(setDeleting),
     withErrorReporting('Error deleting notebook runtime')
   )(async () => {
-    await Ajax().Jupyter.cluster(googleProject, clusterName).delete()
+    await Ajax().Clusters.cluster(googleProject, clusterName).delete()
     onSuccess()
   })
   return h(Modal, {
-    title: 'Delete notebook runtime?',
+    title: 'Delete Notebook Runtime?',
     onDismiss,
     okButton: deleteCluster
   }, [
-    p(['Deleting your notebook runtime will stop all running notebooks and associated costs. You can recreate it later, which will take several minutes.']),
-    span({ style: { fontWeight: 'bold' } }, 'NOTE: '),
-    'Deleting your runtime will also delete any files on the associated hard disk (e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
-    h(Link, {
-      href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-      ...Utils.newTabLinkProps
-    }, ['move them to the workspace bucket.']),
+    h(deleteText),
     deleting && spinnerOverlay
   ])
 }
@@ -127,7 +123,7 @@ const ClusterErrorNotification = ({ cluster }) => {
   ])
 }
 
-export default ajaxCaller(class ClusterManager extends PureComponent {
+export default class ClusterManager extends PureComponent {
   static propTypes = {
     namespace: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
@@ -140,24 +136,35 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     super(props)
     this.state = {
       createModalDrawerOpen: false,
-      busy: false,
-      deleteModalOpen: false
+      busy: false
     }
   }
 
   componentDidUpdate(prevProps) {
+    const { namespace, name } = this.props
     const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
     const cluster = this.getCurrentCluster() || {}
     const twoMonthsAgo = _.tap(d => d.setMonth(d.getMonth() - 2), new Date())
     const welderCutOff = new Date('2019-08-01')
     const createdDate = new Date(cluster.createdDate)
     const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`) || {}
+    const rStudioLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: 'RStudio' })
 
     if (cluster.status === 'Error' && prevCluster.status !== 'Error' && !_.includes(cluster.id, errorNotifiedClusters.get())) {
       notify('error', 'Error Creating Notebook Runtime', {
         message: h(ClusterErrorNotification, { cluster })
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
+    } else if (
+      cluster.status === 'Running' && prevCluster.status && prevCluster.status !== 'Running' &&
+      cluster.labels.tool === 'RStudio' && window.location.hash !== rStudioLaunchLink
+    ) {
+      const rStudioNotificationId = notify('info', 'Your runtime is ready.', {
+        message: h(ButtonPrimary, {
+          href: rStudioLaunchLink,
+          onClick: () => clearNotification(rStudioNotificationId)
+        }, 'Launch Runtime')
+      })
     } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) { // TODO: remove this notification some time after the data syncing release
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
       notify('warn', 'Please Update Your Runtime', {
@@ -202,38 +209,35 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   }
 
   createDefaultCluster() {
-    const { ajax: { Jupyter }, namespace } = this.props
+    const { namespace } = this.props
     this.executeAndRefresh(
-      Jupyter.cluster(namespace, Utils.generateClusterName()).create({
+      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         machineConfig: normalizeMachineConfig({})
       })
     )
   }
 
   destroyClusters(keepIndex) {
-    const { ajax: { Jupyter } } = this.props
     const activeClusters = this.getActiveClustersOldestFirst()
     this.executeAndRefresh(
       Promise.all(_.map(
-        ({ googleProject, clusterName }) => Jupyter.cluster(googleProject, clusterName).delete(),
+        ({ googleProject, clusterName }) => Ajax().Clusters.cluster(googleProject, clusterName).delete(),
         _.without([_.nth(keepIndex, activeClusters)], activeClusters)
       ))
     )
   }
 
   startCluster() {
-    const { ajax: { Jupyter } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Jupyter.cluster(googleProject, clusterName).start()
+      Ajax().Clusters.cluster(googleProject, clusterName).start()
     )
   }
 
   stopCluster() {
-    const { ajax: { Jupyter } } = this.props
     const { googleProject, clusterName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Jupyter.cluster(googleProject, clusterName).stop()
+      Ajax().Clusters.cluster(googleProject, clusterName).stop()
     )
   }
 
@@ -258,13 +262,14 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, clusters, canCompute, refreshClusters } = this.props
-    const { busy, createModalDrawerOpen, deleteModalOpen, errorModalOpen, pendingNav } = this.state
+    const { namespace, name, clusters, canCompute } = this.props
+    const { busy, createModalDrawerOpen, errorModalOpen } = this.state
     if (!clusters) {
       return null
     }
     const currentCluster = this.getCurrentCluster()
-    const currentStatus = currentCluster && currentCluster.status
+    const currentStatus = currentCluster?.status
+
     const renderIcon = () => {
       switch (currentStatus) {
         case 'Stopped':
@@ -317,28 +322,21 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
     const multiple = !creating && activeClusters.length > 1 && currentStatus !== 'Error'
     const isDisabled = !canCompute || creating || multiple || busy
 
+    const isRStudioImage = currentCluster?.labels.tool === 'RStudio'
+    const appName = isRStudioImage ? 'RStudio' : 'terminal'
+    const appLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: appName })
+
     return div({ style: styles.container }, [
       h(Link, {
-        href: Nav.getLink('workspace-terminal-launch', { namespace, name }),
-        tooltip: Utils.cond(
-          [!canCompute, () => noCompute],
-          [!currentCluster, () => 'Create a basic notebook runtime and open its terminal'],
-          () => 'Open terminal'
-        ),
-        'aria-label': 'Open terminal',
+        href: appLaunchLink,
+        onClick: window.location.hash === appLaunchLink && currentStatus === 'Stopped' ? () => this.startCluster() : undefined,
+        tooltip: canCompute ? `Open ${appName}` : noCompute,
+        'aria-label': `Open ${appName}`,
         disabled: !canCompute,
         style: { marginRight: '2rem', ...styles.verticalCenter },
-        ...Utils.newTabLinkProps
-      }, [icon('terminal', { size: 24 })]),
+        ...(isRStudioImage ? {} : Utils.newTabLinkProps)
+      }, [isRStudioImage ? img({ src: rLogo, style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
       renderIcon(),
-      h(ClusterIcon, {
-        shape: 'trash',
-        onClick: () => this.setState({ deleteModalOpen: true }),
-        disabled: busy || !canCompute || !_.includes(currentStatus, ['Stopped', 'Running', 'Error', 'Stopping', 'Starting']),
-        tooltip: 'Delete notebook runtime',
-        'aria-label': 'Delete notebook runtime',
-        style: { marginLeft: '0.5rem' }
-      }),
       h(IdContainer, [id => h(Fragment, [
         h(Clickable, {
           id,
@@ -356,21 +354,13 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
             div({ style: { fontSize: 10 } }, [
               span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
-              ` (${Utils.formatUSD(totalCost)} hr)`
+              currentStatus && ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
           icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
         ]),
         multiple && h(Popup, { side: 'bottom', target: id, handleClickOutside: _.noop }, [this.renderDestroyForm()])
       ])]),
-      deleteModalOpen && h(DeleteClusterModal, {
-        cluster: this.getCurrentCluster(),
-        onDismiss: () => this.setState({ deleteModalOpen: false }),
-        onSuccess: () => {
-          this.setState({ deleteModalOpen: false })
-          refreshClusters()
-        }
-      }),
       h(NewClusterModal, {
         isOpen: createModalDrawerOpen,
         namespace,
@@ -384,8 +374,7 @@ export default ajaxCaller(class ClusterManager extends PureComponent {
       errorModalOpen && h(ClusterErrorModal, {
         cluster: currentCluster,
         onDismiss: () => this.setState({ errorModalOpen: false })
-      }),
-      pendingNav && spinnerOverlay
+      })
     ])
   }
-})
+}

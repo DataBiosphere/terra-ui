@@ -13,7 +13,7 @@ import * as Utils from 'src/libs/utils'
 export const useWorkspaces = () => {
   const signal = Utils.useCancellation()
   const [loading, setLoading] = useState(false)
-  const workspaces = Utils.useAtom(workspacesStore)
+  const workspaces = Utils.useStore(workspacesStore)
   const refresh = _.flow(
     withErrorReporting('Error loading workspace list'),
     Utils.withBusyState(setLoading)
@@ -59,7 +59,7 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, ...props }) => 
 export const WorkspaceImporter = _.flow(
   Utils.withDisplayName('WorkspaceImporter'),
   withWorkspaces
-)(({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs }) => {
+)(({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs, additionalErrors }) => {
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(initialWs)
   const [creatingWorkspace, setCreatingWorkspace] = useState(false)
 
@@ -69,18 +69,23 @@ export const WorkspaceImporter = _.flow(
     h(WorkspaceSelector, {
       workspaces: _.filter(ws => {
         return Utils.canWrite(ws.accessLevel) &&
-            (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
+          (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
       }, workspaces),
       value: selectedWorkspaceId,
       onChange: setSelectedWorkspaceId
     }),
     div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
       h(ButtonPrimary, {
-        disabled: !selectedWorkspace,
+        disabled: !selectedWorkspace || additionalErrors,
+        tooltip: Utils.cond([!selectedWorkspace, 'Select valid a workspace to import'],
+          [additionalErrors, Utils.summarizeErrors(additionalErrors)],
+          'Import workflow to workspace'
+        ),
         onClick: () => onImport(selectedWorkspace.workspace)
       }, ['Import']),
       div({ style: { marginLeft: '1rem', whiteSpace: 'pre' } }, ['Or ']),
       h(Link, {
+        disabled: additionalErrors,
         onClick: () => setCreatingWorkspace(true)
       }, ['create a new workspace'])
     ]),

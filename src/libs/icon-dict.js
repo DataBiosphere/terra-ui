@@ -2,34 +2,35 @@ import {
   faClipboard, faClock, faClone, faEye, faFolder, faFolderOpen, faListAlt, faSquare as faSquareRegular, faTimesCircle
 } from '@fortawesome/free-regular-svg-icons'
 import {
-  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCheckSquare, faCloud, faCog, faCreditCard, faDownload, faEllipsisV,
-  faExclamationCircle,
-  faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faPause, faPen,
-  faPlay, faPlus, faPlusCircle, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid, faTerminal, faTrashAlt
+  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCheckSquare, faCloud, faCog, faCreditCard, faDownload,
+  faEllipsisV, faExclamationCircle, faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown,
+  faLongArrowAltUp, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid,
+  faTerminal, faTrashAlt
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
-import angleDoubleUp from 'src/icons/angle-double-up-regular.svg'
-import angleUp from 'src/icons/angle-up-regular.svg'
-import bars from 'src/icons/bars-light.svg'
-import books from 'src/icons/books-solid.svg'
-import cardMenuIcon from 'src/icons/card-menu-icon.svg'
-import cloudUpload from 'src/icons/cloud-upload-solid.svg'
-import columnGrabber from 'src/icons/column_grabber.svg'
-import downloadRegular from 'src/icons/download-regular.svg'
-import externalLinkAlt from 'src/icons/external-link-alt-regular.svg'
-import fileExport from 'src/icons/file-export-regular.svg'
-import list from 'src/icons/list-regular.svg'
-import loadingSpinner from 'src/icons/loading-spinner.svg'
-import renameIcon from 'src/icons/rename-icon.svg'
-import syncAlt from 'src/icons/sync-alt-regular.svg'
-import times from 'src/icons/times-light.svg'
+import { ReactComponent as angleDoubleUp } from 'src/icons/angle-double-up-regular.svg'
+import { ReactComponent as angleUp } from 'src/icons/angle-up-regular.svg'
+import { ReactComponent as arrowLeftRegular } from 'src/icons/arrow-left-regular.svg'
+import { ReactComponent as bars } from 'src/icons/bars-light.svg'
+import { ReactComponent as books } from 'src/icons/books-solid.svg'
+import { ReactComponent as cardMenuIcon } from 'src/icons/card-menu-icon.svg'
+import { ReactComponent as cloudUpload } from 'src/icons/cloud-upload-solid.svg'
+import { ReactComponent as columnGrabber } from 'src/icons/column_grabber.svg'
+import { ReactComponent as downloadRegular } from 'src/icons/download-regular.svg'
+import { ReactComponent as externalLinkAlt } from 'src/icons/external-link-alt-regular.svg'
+import { ReactComponent as fileExport } from 'src/icons/file-export-regular.svg'
+import { ReactComponent as list } from 'src/icons/list-regular.svg'
+import { ReactComponent as loadingSpinner } from 'src/icons/loading-spinner.svg'
+import { ReactComponent as renameIcon } from 'src/icons/rename-icon.svg'
+import { ReactComponent as syncAlt } from 'src/icons/sync-alt-regular.svg'
+import { ReactComponent as times } from 'src/icons/times-light.svg'
 
 
 const fa = _.curry((shape, { size, ...props }) => h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props)))
-const custom = _.curry((shape, { size, className = '', ...props }) => h(shape,
-  _.merge({ className: `svg-inline--fa ${className}`, 'aria-hidden': true, focusable: false, style: { height: size, width: size } }, props)))
+const custom = _.curry((shape, { size, ...props }) => h(shape,
+  _.merge({ 'aria-hidden': true, focusable: false, style: { height: size, width: size } }, props)))
 
 const rotate = _.curry((rotation, shape, props) => shape(_.merge({ style: { transform: `rotate(${rotation}deg)` } }, props)))
 
@@ -83,6 +84,7 @@ const iconDict = {
   'warning-standard': fa(faExclamationTriangle),
   'ellipsis-v': fa(faEllipsisV),
   arrowLeft: fa(faArrowLeft),
+  arrowLeftRegular: custom(arrowLeftRegular),
   arrowRight: fa(faArrowRight),
   cardMenuIcon: custom(cardMenuIcon),
   caretDown: fa(faCaretDown),

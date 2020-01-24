@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, RadioButton, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
@@ -20,7 +20,8 @@ const constraints = {
   name: { presence: { allowEmpty: false } },
   subject: { presence: { allowEmpty: false } },
   description: { presence: { allowEmpty: false } },
-  email: { email: true, presence: { allowEmpty: false } }
+  email: { email: true, presence: { allowEmpty: false } },
+  clinicalUser: { presence: { allowEmpty: false } }
 }
 
 const styles = {
@@ -37,8 +38,8 @@ const styles = {
 // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
 
 const SupportRequest = _.flow(
-  Utils.connectAtom(contactUsActive, 'isActive'),
-  Utils.connectAtom(authStore, 'authState')
+  Utils.connectStore(contactUsActive, 'isActive'),
+  Utils.connectStore(authStore, 'authState')
 )(class SupportRequest extends Component {
   constructor(props) {
     super(props)
@@ -61,7 +62,8 @@ const SupportRequest = _.flow(
       nameEntered: '',
       attachmentToken: '',
       uploadingFile: false,
-      attachmentName: ''
+      attachmentName: '',
+      clinicalUser: undefined
     }
   }
 
@@ -85,7 +87,7 @@ const SupportRequest = _.flow(
 
   getRequest() {
     const { authState: { profile: { firstName, lastName } } } = this.props
-    const { nameEntered, email, description, subject, type, attachmentToken } = this.state
+    const { nameEntered, email, description, subject, type, attachmentToken, clinicalUser } = this.state
 
     return {
       name: this.hasName() ? `${firstName} ${lastName}` : nameEntered,
@@ -93,13 +95,14 @@ const SupportRequest = _.flow(
       description,
       subject,
       type,
-      attachmentToken
+      attachmentToken,
+      clinicalUser
     }
   }
 
   render() {
     const { isActive, authState: { profile: { firstName } } } = this.props
-    const { submitting, submitError, subject, description, type, email, nameEntered, uploadingFile, attachmentToken, attachmentName } = this.state
+    const { submitting, submitError, subject, description, type, email, nameEntered, uploadingFile, attachmentToken, attachmentName, clinicalUser } = this.state
     const greetUser = this.hasName() ? `, ${firstName}` : ''
     const errors = validate(this.getRequest(), constraints)
 
@@ -208,6 +211,17 @@ const SupportRequest = _.flow(
             onChange: v => this.setState({ email: v })
           })
         ])]),
+        h(FormLabel, { required: true }, ['Are you a clinical user?']),
+        h(RadioButton, {
+          text: 'Yes', name: 'is-clinical-user', checked: clinicalUser === true,
+          labelStyle: { margin: '0 2rem 0 0.25rem' },
+          onChange: () => this.setState({ clinicalUser: true })
+        }),
+        h(RadioButton, {
+          text: 'No', name: 'is-clinical-user', checked: clinicalUser === false,
+          labelStyle: { margin: '0 2rem 0 0.25rem' },
+          onChange: () => this.setState({ clinicalUser: false })
+        }),
         submitError && div({ style: { marginTop: '0.5rem', textAlign: 'right', color: colors.danger() } }, [submitError]),
         submitting && spinnerOverlay,
         div({ style: styles.buttonRow }, [
@@ -230,7 +244,7 @@ const SupportRequest = _.flow(
   }
 
   submit = Utils.withBusyState(v => this.setState({ submitting: v }), async () => {
-    const { type, email, subject, description, attachmentToken } = this.state
+    const { type, email, subject, description, attachmentToken, clinicalUser } = this.state
     const currUrl = window.location.href
     const hasAttachment = attachmentToken !== ''
 
@@ -243,7 +257,7 @@ const SupportRequest = _.flow(
           style: { fontWeight: 800, color: 'white' },
           hover: { color: 'white', textDecoration: 'underline' },
           href: `mailto:terra-support@broadinstitute.zendesk.org?subject=${type}%3A%20${subject}&body=Original%20support%20request%3A%0A` +
-            `------------------------------------%0AContact email%3A%20${email}%0A%0A${description}%0A%0A------------------------------------` +
+            `------------------------------------%0AContact email%3A%20${email}%0AIs clinical user%3A%20${clinicalUser}%0A%0A${description}%0A%0A------------------------------------` +
             `%0AError%20reported%20from%20Zendesk%3A%0A%0A${JSON.stringify(error)}`,
           ...Utils.newTabLinkProps
         }, 'Click here to email support'), hasAttachment && ' and make sure to add your attachment to the email.']

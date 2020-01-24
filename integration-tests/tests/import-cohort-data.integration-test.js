@@ -17,6 +17,7 @@ test('import cohort data', withWorkspace(async ({ workspaceName }) => {
   await fillIn(frame, input({ placeholder: 'cohort name' }), cohortName)
   await click(frame, clickable({ text: 'Save' }))
 
+  await click(page, clickable({ textContains: 'an existing workspace' }))
   await select(page, 'Select a workspace', workspaceName)
   await click(page, clickable({ text: 'Import' }))
   await click(page, clickable({ textContains: 'cohort' }))

@@ -1,20 +1,6 @@
 module.exports = {
   'plugins': ['lodash-fp', 'react', 'react-hooks', 'simple-import-sort', 'import'],
   'extends': 'react-app',
-  'globals': {
-    'SATURN_VERSION': false,
-    'SATURN_BUILD_TIMESTAMP': false
-  },
-  'parserOptions': {
-    'ecmaFeatures': {
-      'jsx': false
-    }
-  },
-  'settings': {
-    'react': {
-      'version': 'detect'
-    }
-  },
   'rules': {
     // Best Practices
     'no-multi-spaces': 'warn',

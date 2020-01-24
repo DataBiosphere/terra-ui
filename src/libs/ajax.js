@@ -228,7 +228,7 @@ const User = signal => ({
   // 2. Check the tickets are generated on Zendesk
   // 3. Reply internally (as a Light Agent) and make sure an email is not sent
   // 4. Reply externally (ask one of the Comms team with Full Agent access) and make sure you receive an email
-  createSupportRequest: ({ name, email, currUrl, subject, type, description, attachmentToken, emailAgreed }) => {
+  createSupportRequest: ({ name, email, currUrl, subject, type, description, attachmentToken, emailAgreed, clinicalUser }) => {
     return fetchOk(
       `https://support.terra.bio/api/v2/requests.json`,
       _.merge({ signal, method: 'POST' }, jsonBody({
@@ -241,7 +241,8 @@ const User = signal => ({
             { id: 360007369412, value: description },
             { id: 360012744292, value: name },
             { id: 360012782111, value: email },
-            { id: 360018545031, value: emailAgreed }
+            { id: 360018545031, value: emailAgreed },
+            { id: 360027463271, value: clinicalUser }
           ],
           comment: {
             body: `${description}\n\n------------------\nSubmitted from: ${currUrl}`,
@@ -953,8 +954,8 @@ const Submissions = signal => ({
 })
 
 
-const Jupyter = signal => ({
-  clustersList: async (labels = {}) => {
+const Clusters = signal => ({
+  list: async (labels = {}) => {
     const res = await fetchLeo(`api/clusters?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
@@ -1004,11 +1005,10 @@ const Jupyter = signal => ({
 
   notebooks: (project, name) => {
     const root = `proxy/${project}/${name}`
-    const oldRoot = `notebooks/${project}/${name}` // TODO: remove once Leo bug for setCookie is fixed: https://broadworkbench.atlassian.net/browse/IA-1269
 
     return {
       oldLocalize: files => {
-        return fetchLeo(`${oldRoot}/api/localize`,
+        return fetchLeo(`notebooks/${project}/${name}/api/localize`, // this is the old root url
           _.mergeAll([authOpts(), jsonBody(files), { signal, method: 'POST' }]))
       },
 
@@ -1019,8 +1019,7 @@ const Jupyter = signal => ({
       },
 
       setCookie: () => {
-        return fetchLeo(`${oldRoot}/setCookie`,
-          _.merge(authOpts(), { signal, credentials: 'include' }))
+        return fetchLeo(`${root}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
       },
 
       setStorageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {
@@ -1095,7 +1094,7 @@ export const Ajax = signal => {
     GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),
     Submissions: Submissions(signal),
-    Jupyter: Jupyter(signal),
+    Clusters: Clusters(signal),
     Dockstore: Dockstore(signal),
     Martha: Martha(signal),
     Duos: Duos(signal),

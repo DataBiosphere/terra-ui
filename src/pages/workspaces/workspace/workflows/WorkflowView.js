@@ -383,7 +383,7 @@ const WorkflowView = _.flow(
     // savedConfig: unmodified copy of config for checking for unsaved edits
     // modifiedConfig: active data, potentially unsaved
     const {
-      isFreshData, savedConfig, launching, activeTab, useCallCache,
+      isFreshData, savedConfig, entityMetadata, launching, activeTab, useCallCache,
       entitySelectionModel, variableSelected, modifiedConfig, updatingConfig
     } = this.state
     const { namespace, name, workspace } = this.props
@@ -397,7 +397,7 @@ const WorkflowView = _.flow(
           ['outputs', () => this.renderIOTable('outputs')]
         ),
         launching && h(LaunchAnalysisModal, {
-          workspaceId, config: savedConfig,
+          workspaceId, config: savedConfig, entityMetadata,
           accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache,
           onDismiss: () => this.setState({ launching: false }),
@@ -679,7 +679,7 @@ const WorkflowView = _.flow(
                 options: _.keys(entityMetadata)
               }),
               h(Link, {
-                disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !!Utils.editWorkspaceError(ws),
+                disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !entityMetadata[rootEntityType] || !!Utils.editWorkspaceError(ws),
                 tooltip: Utils.editWorkspaceError(ws),
                 onClick: () => this.setState({ selectingData: true }),
                 style: { marginLeft: '1rem' }
@@ -872,11 +872,13 @@ const WorkflowView = _.flow(
           errors,
           onBrowse: name => this.setState({ variableSelected: name }),
           onChange: (name, v) => this.setState(_.set(['modifiedConfig', key, name], v)),
-          onSetDefaults: () => {
-            this.setState(_.set(['modifiedConfig', 'outputs'], _.fromPairs(_.map(({ name }) => {
-              return [name, `this.${_.last(name.split('.'))}`]
-            }, modifiedInputsOutputs.outputs))))
-          },
+          onSetDefaults: () => this.setState(oldState => {
+            return _.set(
+              ['modifiedConfig', 'outputs'],
+              _.fromPairs(_.map(({ name }) => [name, `this.${_.last(name.split('.'))}`], oldState.modifiedInputsOutputs.outputs)),
+              oldState
+            )
+          }),
           suggestions
         })
       ])
