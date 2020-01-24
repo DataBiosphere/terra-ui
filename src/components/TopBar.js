@@ -109,9 +109,9 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
 
   static propTypes = {
     title: PropTypes.node,
-    href: PropTypes.string,  // link destination
+    href: PropTypes.string, // link destination
     children: PropTypes.node,
-    showMenu: PropTypes.bool,
+    showMenu: PropTypes.bool
   }
 
   constructor(props) {
