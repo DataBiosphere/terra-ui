@@ -2,19 +2,22 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
-import { div, h, img, input, label, span } from 'react-hyperscript-helpers'
+import { b, div, h, img, input, label, span } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import TopBar from 'src/components/TopBar'
 import hexButton from 'src/images/hex-button.svg'
+import landingPageHero from 'src/images/landing-page-hero.jpg'
 import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
-import { getConfig, isTerra } from 'src/libs/config'
-import { returnParam } from 'src/libs/logos'
+import { getConfig, isFirecloud, isTerra } from 'src/libs/config'
+import { getAppName, returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -447,4 +450,34 @@ export const Switch = ({ onChange, ...props }) => {
     width: 80,
     ...props
   })
+}
+
+export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) => {
+  const heavyWrapper = text => bigSubhead ? b({ style: { whiteSpace: 'nowrap' } }, [text]) : text
+
+  return h(FooterWrapper, [
+    h(TopBar, { showMenu }),
+    div({
+      role: 'main',
+      style: {
+        flexGrow: 1,
+        color: colors.dark(),
+        padding: '3rem 5rem',
+        backgroundImage: `url(${landingPageHero})`,
+        backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
+      }
+    }, [
+      div({ style: { fontSize: 54 } }, `Welcome to ${getAppName()}`),
+      div({ style: { margin: '1rem 0', width: 575, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
+        `${getAppName(true)} is a ${Utils.cond(
+          [isTerra(), 'cloud-native platform'],
+          [isFirecloud(), 'NCI Cloud Resource project powered by Terra'],
+          'project powered by Terra'
+        )} for biomedical researchers to `,
+        heavyWrapper('access data'), ', ', heavyWrapper('run analysis tools'), ', ',
+        span({ style: { whiteSpace: 'nowrap' } }, ['and', heavyWrapper(' collaborate'), '.'])
+      ]),
+      children
+    ])
+  ])
 }

@@ -15,7 +15,7 @@ import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { Ajax } from 'src/libs/ajax'
 import { refreshTerraProfile, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig, isFirecloud, isTerra } from 'src/libs/config'
+import { getConfig, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import { topBarLogo } from 'src/libs/logos'
@@ -103,10 +103,16 @@ const DropDownSection = ({ titleIcon, title, isOpened, onClick, children }) => {
 }
 
 const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends Component {
+  static defaultProps = {
+    showMenu: true
+  }
+
   static propTypes = {
-    title: PropTypes.node,
-    href: PropTypes.string, // link destination
-    children: PropTypes.node
+    authState: PropTypes.any,
+    children: PropTypes.node,
+    href: PropTypes.string,
+    showMenu: PropTypes.bool,
+    title: PropTypes.node
   }
 
   constructor(props) {
@@ -180,14 +186,23 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
               }, ['Sign Out'])
             ]) :
             div({ style: { flex: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 95 } }, [
-              div([
+              isDatastage() ?
                 h(Clickable, {
-                  hover: { textDecoration: 'underline' },
-                  style: { color: 'white', marginLeft: '9rem', fontWeight: 600 },
-                  onClick: () => this.setState({ openCookiesModal: true })
-                }, ['Cookies policy']),
-                h(SignInButton)
-              ])
+                  href: Nav.getLink('workspaces'),
+                  style: {
+                    backgroundColor: 'white', fontSize: 18, fontWeight: 500, color: colors.accent(),
+                    borderRadius: 5, boxShadow: '0 2px 4px 0 rgba(0,0,0,.25)',
+                    width: 250, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                  }
+                }, ['SIGN IN']) :
+                div([
+                  h(Clickable, {
+                    hover: { textDecoration: 'underline' },
+                    style: { color: 'white', marginLeft: '9rem', fontWeight: 600 },
+                    onClick: () => this.setState({ openCookiesModal: true })
+                  }, ['Cookies policy']),
+                  h(SignInButton)
+                ])
             ]),
           h(NavSection, {
             href: Nav.getLink('workspaces'),
@@ -317,7 +332,7 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
   }
 
   render() {
-    const { title, href, children, authState } = this.props
+    const { title, href, children, showMenu, authState } = this.props
     const { navShown, finalizeTrial, openCookiesModal, openFirecloudModal } = this.state
 
     return h(Fragment, [
@@ -336,19 +351,21 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
             colors.light()
         }
       }, [
-        h(Clickable, {
-          'aria-label': 'Toggle main menu',
-          style: { alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: '0 1rem', margin: '2px 1rem 0 2px' },
-          onClick: () => navShown ? this.hideNav() : this.showNav()
-        }, [
-          icon('bars', {
-            size: 36,
-            style: {
-              color: isTerra() ? 'white' : colors.accent(), flex: 'none', cursor: 'pointer',
-              transform: navShown ? 'rotate(90deg)' : undefined, transition: 'transform 0.1s ease-out'
-            }
-          })
-        ]),
+        showMenu ?
+          h(Clickable, {
+            'aria-label': 'Toggle main menu',
+            style: { alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: '0 1rem', margin: '2px 1rem 0 2px' },
+            onClick: () => navShown ? this.hideNav() : this.showNav()
+          }, [
+            icon('bars', {
+              size: 36,
+              style: {
+                color: isTerra() ? 'white' : colors.accent(), flex: 'none',
+                transform: navShown ? 'rotate(90deg)' : undefined, transition: 'transform 0.1s ease-out'
+              }
+            })
+          ]) :
+          div({ style: { width: `calc(1rem + 1rem + 1rem + 2px + 36px)` } }), // padding (l+r) + margin (l+r) + icon size
         a({
           style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
           href: href || Nav.getLink('root')
