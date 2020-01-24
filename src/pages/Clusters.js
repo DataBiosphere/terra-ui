@@ -119,11 +119,12 @@ const Clusters = () => {
                 size: { basis: 50, grow: 0 },
                 headerRenderer: () => null,
                 cellRenderer: ({ rowIndex }) => {
-                  const cluster = filteredClusters[rowIndex]
-                  return h(Link, {
+                  const { id, status } = filteredClusters[rowIndex]
+                  return status !== 'Deleting' && h(Link, {
+                    disabled: status === 'Creating',
                     'aria-label': 'Delete notebook runtime',
-                    tooltip: 'Delete notebook runtime',
-                    onClick: () => setDeleteClusterId(cluster.id)
+                    tooltip: status === 'Creating' ? 'Cannot delete a runtime while it is being created' : 'Delete notebook runtime',
+                    onClick: () => setDeleteClusterId(id)
                   }, [icon('trash')])
                 }
               }
