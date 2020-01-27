@@ -243,8 +243,6 @@ export const WorkspaceList = () => {
   const initialFiltered = _.filter(ws => includePublic || !ws.public || Utils.canWrite(ws.accessLevel), workspaces)
   const noWorkspaces = _.isEmpty(initialFiltered) && !loadingWorkspaces
 
-  const returnTags = _.getOr([], ['tag:tags', 'items'])
-
   const noWorkspacesMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
     div([
       'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Workspace'])
@@ -259,12 +257,12 @@ export const WorkspaceList = () => {
 
   const filteredWorkspaces = _.flow(
     _.filter(ws => {
-      const { workspace: { namespace, name } } = ws
+      const { workspace: { namespace, name, attributes } } = ws
       return Utils.textMatch(filter, `${namespace}/${name}`) &&
         (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
         (_.isEmpty(projectsFilter) || projectsFilter === namespace) &&
         (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
-        (_.isEmpty(tagsFilter) || _.every(_.identity, _.map(a => returnTags(ws.workspace.attributes).includes(a), tagsFilter)))
+        _.every(a => _.includes(a, _.get(['tag:tags', 'items'], attributes)), tagsFilter)
     }),
     _.sortBy('workspace.name')
   )(initialFiltered)
