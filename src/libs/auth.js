@@ -112,6 +112,7 @@ window.forceSignIn = async token => {
       ...state,
       isSignedIn: true,
       registrationStatus: undefined,
+      isClinicalUser: undefined,
       profile: {},
       user: {
         token,
@@ -150,6 +151,13 @@ authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldSt
   if (!oldState.isSignedIn && state.isSignedIn) {
     const acceptedTos = await Ajax().User.getTosAccepted()
     authStore.update(state => ({ ...state, acceptedTos }))
+  }
+}))
+
+authStore.subscribe(withErrorReporting('Error checking clinical user status', async (state, oldState) => {
+  if (!oldState.registrationStatus && state.registrationStatus) {
+    const isClinicalUser = _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list())
+    authStore.update(state => ({ ...state, isClinicalUser }))
   }
 }))
 

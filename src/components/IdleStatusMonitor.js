@@ -34,21 +34,12 @@ const getIdleData = ({ currentTime, lastRecordedActivity, timeout, countdownStar
 }
 
 const IdleStatusMonitor = ({
-  timeout = Utils.durationToMillis({ minutes: 15 }),
-  countdownStart = Utils.durationToMillis({ minutes: 3 })
+  timeout = Utils.durationToMillis({ seconds: 10 }),
+  countdownStart = Utils.durationToMillis({ seconds: 7 })
 }) => {
-  const signal = Utils.useCancellation()
-  const [isClinicalUser, setIsClinicalUser] = useState()
-  const { isSignedIn, registrationStatus, user: { id } } = Utils.useStore(authStore)
+  const { isSignedIn, isClinicalUser, user: { id } } = Utils.useStore(authStore)
   const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore)
   const { timedOut } = getIdleData({ currentTime: Date.now(), lastRecordedActivity, timeout, countdownStart })
-
-  useEffect(() => {
-    const setClinicalStatus = withErrorReporting('Error loading group list', async () => {
-      setIsClinicalUser(_.some({ groupName: 'session_timeout' }, await Ajax(signal).Groups.list()))
-    })
-    isSignedIn && registrationStatus === 'registered' ? setClinicalStatus() : setIsClinicalUser()
-  }, [isSignedIn, signal, registrationStatus])
 
   useEffect(() => { timedOut && !isSignedIn && setLastActive('expired') }, [isSignedIn, timedOut])
 
