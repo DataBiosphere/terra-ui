@@ -18,16 +18,16 @@ import { ReactComponent as books } from 'src/icons/books-solid.svg'
 import { ReactComponent as cardMenuIcon } from 'src/icons/card-menu-icon.svg'
 import { ReactComponent as cloudUpload } from 'src/icons/cloud-upload-solid.svg'
 import { ReactComponent as columnGrabber } from 'src/icons/column_grabber.svg'
+import { ReactComponent as copySolid } from 'src/icons/copy-solid.svg'
 import { ReactComponent as downloadRegular } from 'src/icons/download-regular.svg'
 import { ReactComponent as externalLinkAlt } from 'src/icons/external-link-alt-regular.svg'
 import { ReactComponent as fileExport } from 'src/icons/file-export-regular.svg'
+import { ReactComponent as fileSearchSolid } from 'src/icons/file-search-solid.svg'
 import { ReactComponent as list } from 'src/icons/list-regular.svg'
 import { ReactComponent as loadingSpinner } from 'src/icons/loading-spinner.svg'
 import { ReactComponent as renameIcon } from 'src/icons/rename-icon.svg'
 import { ReactComponent as syncAlt } from 'src/icons/sync-alt-regular.svg'
 import { ReactComponent as times } from 'src/icons/times-light.svg'
-import copySolid from 'src/icons/copy-solid.svg'
-import fileSearchSolid from 'src/icons/file-search-solid.svg'
 
 
 const fa = _.curry((shape, { size, ...props }) => h(FontAwesomeIcon, _.merge({ icon: shape, style: { height: size, width: size } }, props)))

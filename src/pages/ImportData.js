@@ -2,9 +2,9 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, img, p } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
+import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable, RadioButton, spinnerOverlay } from 'src/components/common'
 import { icon, wdlIcon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable, RadioButton, spinnerOverlay } from 'src/components/common'
 import { notify } from 'src/components/Notifications'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
@@ -13,7 +13,6 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
-import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { pfbImportJobStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -34,9 +33,10 @@ const styles = {
   }
 }
 
-const ChoiceButton = ({ onClick, iconName, title, detail }) => {
+const ChoiceButton = ({ onClick, iconName, title, detail, tooltip }) => {
   return h(Clickable, {
     onClick,
+    tooltip,
     style: {
       padding: '1rem', marginTop: '1rem',
       display: 'flex', alignItems: 'center',
@@ -56,7 +56,7 @@ const ChoiceButton = ({ onClick, iconName, title, detail }) => {
 const ImportData = () => {
   const { workspaces, refresh: refreshWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
-  const { query: { url, format, ad, wid } } = Nav.useRoute()
+  const { query: { url, format, ad, wid, template } } = Nav.useRoute()
   const [mode, setMode] = useState(wid ? 'existing' : undefined)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCloneOpen, setIsCloneOpen] = useState(false)
@@ -69,11 +69,23 @@ const ImportData = () => {
 
   const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
 
+  const getTemplates = fileContents => {
+    let temporaryList = []
+
+    !(_.isArray(template)) ? temporaryList = fileContents[template] :
+      _.forEach(currentTemplate => {
+        fileContents[currentTemplate] &&
+        temporaryList.push(fileContents[currentTemplate])
+      }, template)
+
+    return !temporaryList ? null : _.flatten(temporaryList)
+  }
+
   Utils.useOnMount(() => {
     const loadTemplateWorkspaces = async () => {
       try {
         const allTemplates = await fetch(`${getConfig().firecloudBucketRoot}/template-workspaces.json`).then(res => res.json())
-        setTemplateWorkspaces(allTemplates[getAppName()] || null)
+        setTemplateWorkspaces(getTemplates(allTemplates))
       } catch (e) {
         setTemplateWorkspaces(null)
       }
@@ -149,7 +161,7 @@ const ImportData = () => {
                 value: selectedWorkspaceId,
                 onChange: setSelectedWorkspaceId
               }),
-              div({ style: { marginTop: '0.5rem' } },
+              div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } },
                 [noteMessage]),
               div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
                 h(ButtonSecondary, { onClick: () => setMode(), style: { marginLeft: 'auto' } }, ['Back']),
@@ -164,7 +176,7 @@ const ImportData = () => {
           ['template', () => {
             return h(Fragment, [
               div({ style: styles.title }, ['Start with a template']),
-              div({ style: { marginBottom: '1rem' } }, [
+              div({ style: { marginBottom: '1rem', lineHeight: '1.5' } }, [
                 noteMessage
               ]),
               div({ style: { overflow: 'auto', maxHeight: '25rem' } }, [
@@ -176,7 +188,7 @@ const ImportData = () => {
                     key: `${name}/${namespace}`,
                     style: {
                       display: 'flex', alignItems: 'baseline',
-                      marginBottom: '1rem',
+                      marginBottom: '1rem', paddingLeft: '0.25rem',
                       ...(i > 0 ? { borderTop: Style.standardLine, paddingTop: '1rem' } : {})
                     }
                   }, [
@@ -215,6 +227,7 @@ const ImportData = () => {
               div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
               !!templateWorkspaces && h(ChoiceButton, {
                 onClick: () => setMode('template'),
+                tooltip: 'Cloning a template workspace that covers the research tasks you want to do that has workflow and notebook attributes set up.',
                 iconName: 'copySolid',
                 title: 'Start with a template',
                 detail: 'Clone from one of our template workspaces that has analyses ready for use'
@@ -248,7 +261,8 @@ const ImportData = () => {
         ),
         isCloneOpen && h(NewWorkspaceModal, {
           cloneWorkspace: selectedTemplateWorkspace,
-          title: `Clone ${selectedTemplateWorkspace.workspace.name} and Import Data`,
+          customCloneTitle: `Clone ${selectedTemplateWorkspace.workspace.name} and Import Data`,
+          customCloneButtonText: 'Clone and Import',
           customMessage: noteMessage,
           onDismiss: () => setIsCloneOpen(false),
           onSuccess: w => {
