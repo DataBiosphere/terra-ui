@@ -49,17 +49,14 @@ const Container = ({ modal }) => {
   agree && authStore.set(auth)
 
   useEffect(() => {
-    setOverrides({ isClinicalUser })
-    return clearOverrides
-  }, [isClinicalUser])
-
-  useEffect(() => {
     authTest.set({
       user: { id: 'foo-123' },
       registrationStatus: 'registered',
       isClinicalUser,
       isisSignedIn: false
     })
+    setOverrides({ isClinicalUser })
+    return clearOverrides
   }, [isClinicalUser])
 
   Utils.useOnMount(() => {
