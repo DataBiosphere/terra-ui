@@ -13,11 +13,11 @@ import * as Utils from 'src/libs/utils'
 
 const clearOverrides = () => ajaxOverridesStore.set([])
 
-const setOverrides = ({ isClinical }) => {
+const setOverrides = ({ isTimeoutEnabled }) => {
   ajaxOverridesStore.set([{
     filter: /api\/groups\/v1/,
     fn: () => () => {
-      return !isClinical ? new Response(
+      return !isTimeoutEnabled ? new Response(
         JSON.stringify([{ groupName: 'session_timeout' }]), { status: 200 }) :
         new Response(null, { status: 404 })
     }
@@ -40,7 +40,7 @@ authTest.update(v => v || {})
 const agreeTest = dynamicStorageSlot(localStorage, 'terra-timeout-agree')
 
 const Container = ({ modal }) => {
-  const isClinicalUser = boolean('Is Clinical User', false)
+  const isTimeoutEnabled = boolean('Timeout Enabled', false)
   const agree = Utils.useStore(agreeTest)
   const auth = Utils.useStore(authTest)
   const { isSignedIn } = auth
@@ -52,12 +52,12 @@ const Container = ({ modal }) => {
     authTest.set({
       user: { id: 'foo-123' },
       registrationStatus: 'registered',
-      isClinicalUser,
+      isTimeoutEnabled,
       isisSignedIn: false
     })
-    setOverrides({ isClinicalUser })
+    setOverrides({ isTimeoutEnabled })
     return clearOverrides
-  }, [isClinicalUser])
+  }, [isTimeoutEnabled])
 
   Utils.useOnMount(() => {
     agreeTest.set(false)

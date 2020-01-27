@@ -35,14 +35,14 @@ const IdleStatusMonitor = ({
   timeout = Utils.durationToMillis({ minutes: 15 }),
   countdownStart = Utils.durationToMillis({ minutes: 3 })
 }) => {
-  const { isSignedIn, isClinicalUser, user: { id } } = Utils.useStore(authStore)
+  const { isSignedIn, isTimeoutEnabled, user: { id } } = Utils.useStore(authStore)
   const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore)
   const { timedOut } = getIdleData({ currentTime: Date.now(), lastRecordedActivity, timeout, countdownStart })
 
   useEffect(() => { timedOut && !isSignedIn && setLastActive('expired') }, [isSignedIn, timedOut])
 
   return Utils.cond(
-    [isSignedIn && isClinicalUser, h(InactivityTimer, { id, timeout, countdownStart })],
+    [isSignedIn && isTimeoutEnabled, h(InactivityTimer, { id, timeout, countdownStart })],
     [lastRecordedActivity === 'expired' && !isSignedIn, () => h(Modal, {
       title: 'Session Expired',
       showCancel: false,
