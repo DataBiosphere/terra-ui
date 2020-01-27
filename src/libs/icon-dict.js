@@ -2,10 +2,10 @@ import {
   faClipboard, faClock, faClone, faEye, faFolder, faFolderOpen, faListAlt, faSquare as faSquareRegular, faTimesCircle
 } from '@fortawesome/free-regular-svg-icons'
 import {
-  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCheckSquare, faCloud, faCog, faCreditCard, faDownload,
-  faEllipsisV, faExclamationCircle, faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown,
-  faLongArrowAltUp, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid,
-  faTerminal, faTrashAlt
+  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCheckSquare, faCircle, faCloud, faCog, faCreditCard,
+  faDownload, faEllipsisV, faExclamationCircle, faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock,
+  faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestionCircle, faSearch, faShareAlt,
+  faSquare as faSquareSolid, faTerminal, faTrashAlt
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
@@ -89,6 +89,7 @@ const iconDict = {
   arrowLeftRegular: custom(arrowLeftRegular),
   arrowRight: fa(faArrowRight),
   cardMenuIcon: custom(cardMenuIcon),
+  'ellipsis-v-circle': props => fa(faEllipsisV, { mask: faCircle, transform: 'shrink-8', ...props }),
   caretDown: fa(faCaretDown),
   checkSquare: fa(faCheckSquare),
   columnGrabber: custom(columnGrabber),

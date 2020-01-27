@@ -275,7 +275,6 @@ const commonSelectProps = {
     }),
     singleValue: base => ({ ...base, color: colors.dark() }),
     option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
-      overflowWrap: 'break-word',
       fontWeight: isSelected ? 600 : undefined,
       backgroundColor: isFocused ? colors.dark(0.15) : 'white',
       color: isDisabled ? undefined : colors.dark(),
@@ -290,8 +289,8 @@ const commonSelectProps = {
   components: {
     Option: ({ children, ...props }) => {
       return h(RSelectComponents.Option, props, [
-        div({ style: { display: 'flex', alignItems: 'center', height: 25 } }, [
-          div({ style: { flexGrow: 1 } }, children),
+        div({ style: { display: 'flex', alignItems: 'center', minHeight: 25 } }, [
+          div({ style: { flex: 1, minWidth: 0, overflowWrap: 'break-word' } }, children),
           props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
         ])
       ])
