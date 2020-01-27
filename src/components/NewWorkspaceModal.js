@@ -39,8 +39,8 @@ export default _.flow(
     cloneWorkspace: PropTypes.object,
     onDismiss: PropTypes.func.isRequired,
     customMessage: PropTypes.string,
-    customCloneTitle: PropTypes.string,
-    customCloneButtonText: PropTypes.string
+    title: PropTypes.string,
+    buttonText: PropTypes.string
   }
 
   constructor(props) {
@@ -111,7 +111,7 @@ export default _.flow(
   })
 
   render() {
-    const { onDismiss, cloneWorkspace, authState: { profile }, customCloneTitle, customMessage, customCloneButtonText } = this.props
+    const { onDismiss, cloneWorkspace, authState: { profile }, title, customMessage, buttonText } = this.props
     const { trialState } = profile
     const { namespace, name, billingProjects, allGroups, groups, description, nameModified, loading, createError, creating } = this.state
     const existingGroups = this.getRequiredGroups()
@@ -125,7 +125,7 @@ export default _.flow(
       [loading, spinnerOverlay],
       [hasBillingProjects, () => h(Modal, {
         title: Utils.cond(
-          [cloneWorkspace && customCloneTitle, customCloneTitle],
+          [title, title],
           [cloneWorkspace, 'Clone a workspace'],
           [Utils.DEFAULT, 'Create a New Workspace']
         ),
@@ -135,7 +135,7 @@ export default _.flow(
           tooltip: Utils.summarizeErrors(errors),
           onClick: () => this.create()
         }, Utils.cond(
-          [cloneWorkspace && customCloneButtonText, customCloneButtonText],
+          [buttonText, buttonText],
           [cloneWorkspace, 'Clone Workspace'],
           [Utils.DEFAULT, 'Create Workspace']
         ))
@@ -202,7 +202,7 @@ export default _.flow(
             options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()
           })
         ])]),
-        div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
+        customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
         createError && div({
           style: { marginTop: '1rem', color: colors.danger() }
         }, [createError]),

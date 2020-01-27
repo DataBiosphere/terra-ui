@@ -33,16 +33,16 @@ const styles = {
   }
 }
 
-const ChoiceButton = ({ onClick, iconName, title, detail, tooltip }) => {
+const ChoiceButton = ({ iconName, title, detail, style, ...props }) => {
   return h(Clickable, {
-    onClick,
-    tooltip,
     style: {
+      ...style,
       padding: '1rem', marginTop: '1rem',
       display: 'flex', alignItems: 'center',
       border: `1px solid ${colors.accent(1)}`, borderRadius: 4
     },
-    hover: { backgroundColor: colors.accent(0.1) }
+    hover: { backgroundColor: colors.accent(0.1) },
+    ...props
   }, [
     icon(iconName, { size: 29, style: { flex: 'none', marginRight: '1rem', color: colors.accent(1) } }),
     div({ style: { flex: 1 } }, [
@@ -54,62 +54,35 @@ const ChoiceButton = ({ onClick, iconName, title, detail, tooltip }) => {
 }
 
 const ImportData = () => {
-  const { workspaces, refresh: refreshWorkspaces } = useWorkspaces()
+  const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
   const { query: { url, format, ad, wid, template } } = Nav.useRoute()
   const [mode, setMode] = useState(wid ? 'existing' : undefined)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCloneOpen, setIsCloneOpen] = useState(false)
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(wid)
-  const [selectedTemplateWorkspace, setSelectedTemplateWorkspace] = useState()
-  const [radioButtonSelected, setRadioButtonSelected] = useState()
-  const [templateWorkspaces, setTemplateWorkspaces] = useState()
+  const [selectedTemplateWorkspaceKey, setSelectedTemplateWorkspaceKey] = useState()
+  const [allTemplates, setAllTemplates] = useState()
 
   const noteMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.'
 
   const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
 
-  const getTemplates = fileContents => {
-    let temporaryList = []
-
-    !(_.isArray(template)) ? temporaryList = fileContents[template] :
-      _.forEach(currentTemplate => {
-        fileContents[currentTemplate] &&
-        temporaryList.push(fileContents[currentTemplate])
-      }, template)
-
-    return !temporaryList ? null : _.flatten(temporaryList)
-  }
+  const filteredTemplates =
+    _.flow(
+      _.flatMap(id => (allTemplates && allTemplates[id]) || []),
+      _.filter(({ name, namespace }) => _.some({ workspace: { namespace, name } }, workspaces))
+    )(_.isArray(template) ? template : Array.of(template))
 
   Utils.useOnMount(() => {
-    const loadTemplateWorkspaces = async () => {
-      try {
-        const allTemplates = await fetch(`${getConfig().firecloudBucketRoot}/template-workspaces.json`).then(res => res.json())
-        setTemplateWorkspaces(getTemplates(allTemplates))
-      } catch (e) {
-        setTemplateWorkspaces(null)
-      }
-    }
-
-    loadTemplateWorkspaces()
-  })
-
-  const setSelectionInList = ws => {
-    setRadioButtonSelected(ws)
-    setSelectedTemplateWorkspace(ws)
-  }
-
-  const setSelectedTempWorkSpaceWithDetails =
-    _.flow(
+    const loadTemplateWorkspaces = _.flow(
       Utils.withBusyState(setIsImporting),
       withErrorReporting('Import Error')
     )(async () => {
-      const workspace = await Ajax().Workspaces.workspace(selectedTemplateWorkspace.namespace, selectedTemplateWorkspace.name).details([
-        'workspace', 'workspace.attributes'
-      ])
-      setSelectedTemplateWorkspace(workspace)
-      setIsCloneOpen(true)
+      setAllTemplates(await fetch(`${getConfig().firecloudBucketRoot}/template-workspaces.json`).then(res => res.json()))
     })
+    loadTemplateWorkspaces()
+  })
 
   const onImport = _.flow(
     Utils.withBusyState(setIsImporting),
@@ -182,7 +155,7 @@ const ImportData = () => {
               div({ style: { overflow: 'auto', maxHeight: '25rem' } }, [
                 _.map(([i, ws]) => {
                   const { name, namespace, description, hasNotebooks, hasWorkflows } = ws
-                  const isSelected = _.isEqual(ws, radioButtonSelected)
+                  const isSelected = _.isEqual({ name, namespace }, selectedTemplateWorkspaceKey)
 
                   return div({
                     key: `${name}/${namespace}`,
@@ -195,7 +168,7 @@ const ImportData = () => {
                     h(RadioButton, {
                       name: 'select-template',
                       checked: isSelected,
-                      onChange: () => setSelectionInList(ws),
+                      onChange: () => setSelectedTemplateWorkspaceKey({ namespace, name }),
                       text: h(Collapse, {
                         buttonStyle: { color: colors.dark(), fontWeight: 600 },
                         style: { fontSize: 14, marginLeft: '0.5rem' },
@@ -209,14 +182,14 @@ const ImportData = () => {
                     })
                   ]
                   )
-                }, Utils.toIndexPairs(templateWorkspaces))
+                }, Utils.toIndexPairs(filteredTemplates))
               ]),
               div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
                 h(ButtonSecondary, { style: { marginLeft: 'auto' }, onClick: () => setMode() }, ['Back']),
                 h(ButtonPrimary, {
                   style: { marginLeft: '3rem' },
-                  disabled: !selectedTemplateWorkspace,
-                  onClick: () => setSelectedTempWorkSpaceWithDetails()
+                  disabled: !selectedTemplateWorkspaceKey,
+                  onClick: () => setIsCloneOpen(true)
                 }, ['Import'])
               ])
             ])
@@ -225,7 +198,7 @@ const ImportData = () => {
             return h(Fragment, [
               div({ style: styles.title }, ['Destination Workspace']),
               div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
-              !!templateWorkspaces && h(ChoiceButton, {
+              !!filteredTemplates.length && h(ChoiceButton, {
                 onClick: () => setMode('template'),
                 tooltip: 'Cloning a template workspace that covers the research tasks you want to do that has workflow and notebook attributes set up.',
                 iconName: 'copySolid',
@@ -260,20 +233,20 @@ const ImportData = () => {
           }]
         ),
         isCloneOpen && h(NewWorkspaceModal, {
-          cloneWorkspace: selectedTemplateWorkspace,
-          customCloneTitle: `Clone ${selectedTemplateWorkspace.workspace.name} and Import Data`,
-          customCloneButtonText: 'Clone and Import',
+          cloneWorkspace: _.find({ workspace: selectedTemplateWorkspaceKey }, workspaces),
+          title: `Clone ${selectedTemplateWorkspaceKey.name} and Import Data`,
+          buttonText: 'Clone and Import',
           customMessage: noteMessage,
           onDismiss: () => setIsCloneOpen(false),
           onSuccess: w => {
-            setMode('template')
+            setMode('existing')
             setIsCloneOpen(false)
             setSelectedWorkspaceId(w.workspaceId)
             refreshWorkspaces()
             onImport(w)
           }
         }),
-        (isImporting || templateWorkspaces === undefined) && spinnerOverlay
+        (isImporting || loadingWorkspaces) && spinnerOverlay
       ])
     ])
   ])
