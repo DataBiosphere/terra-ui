@@ -151,9 +151,10 @@ export default class DataStepContent extends Component {
             h(FormLabel, { htmlFor: id }, [`Selected rows will ${isProcessMergedSet ? 'have their membership combined into' : 'be saved as'} a new set named:`]),
             h(ValidatedInput, {
               inputProps: {
-                id, value: newSetName, style: { width: 500, marginLeft: '0.25rem' },
+                id, value: newSetName, style: { marginLeft: '0.25rem' },
                 onChange: v => this.setNewSelectionModel({ newSetName: v })
               },
+              width: 500,
               error: Utils.summarizeErrors(errors && errors.newSetName)
             })
           ])])
