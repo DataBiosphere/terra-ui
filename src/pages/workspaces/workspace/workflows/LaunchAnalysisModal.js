@@ -6,6 +6,7 @@ import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { createEntitySet } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
@@ -144,33 +145,19 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
 
   async createSetAndLaunch(entities) {
     const {
-      workspaceId: { namespace, name },
+      workspaceId,
       entitySelectionModel: { newSetName },
       config: { rootEntityType }
     } = this.props
 
-    const setType = `${rootEntityType}_set`
-
-    this.setState({ message: 'Creating data set...' })
-    const newSet = {
-      name: newSetName,
-      entityType: setType,
-      attributes: {
-        [`${rootEntityType}s`]: {
-          itemsType: 'EntityReference',
-          items: _.map(entityName => ({ entityName, entityType: rootEntityType }), entities)
-        }
-      }
-    }
-
     try {
-      await Ajax().Workspaces.workspace(namespace, name).createEntity(newSet)
+      await createEntitySet({ entities, rootEntityType, newSetName, workspaceId })
     } catch (error) {
       this.setState({ launchError: await error.text(), message: undefined })
       return
     }
 
-    await this.launch(setType, newSetName, `this.${rootEntityType}s`)
+    await this.launch(`${rootEntityType}_set`, newSetName, `this.${rootEntityType}s`)
   }
 
   baseLaunch(entityType, entityName, expression) {
