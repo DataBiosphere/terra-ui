@@ -32,8 +32,8 @@ const getIdleData = ({ currentTime, lastRecordedActivity, timeout, countdownStar
 }
 
 const IdleStatusMonitor = ({
-  timeout = Utils.durationToMillis({ seconds: 10 }),
-  countdownStart = Utils.durationToMillis({ seconds: 7 })
+  timeout = Utils.durationToMillis({ minutes: 15 }),
+  countdownStart = Utils.durationToMillis({ minutes: 3 })
 }) => {
   const { isSignedIn, isClinicalUser, user: { id } } = Utils.useStore(authStore)
   const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore)
