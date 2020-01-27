@@ -156,7 +156,7 @@ authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldSt
 
 authStore.subscribe(withErrorReporting('Error checking groups for timeout status', async (state, oldState) => {
   if (oldState.registrationStatus !== state.registrationStatus) {
-    const isTimeoutEnabled = state.registrationStatus ?
+    const isTimeoutEnabled = state.registrationStatus === 'registered' ?
       _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list()) : false
     authStore.update(state => ({ ...state, isTimeoutEnabled }))
   }
