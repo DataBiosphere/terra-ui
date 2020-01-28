@@ -82,6 +82,7 @@ export const initializeAuth = _.memoize(async () => {
         acceptedTos: isSignedIn ? state.acceptedTos : undefined,
         profile: isSignedIn ? state.profile : {},
         nihStatus: isSignedIn ? state.nihStatus : undefined,
+        isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
         user: {
           token: authResponse && authResponse.access_token,
           id: user.getId(),
@@ -155,9 +156,8 @@ authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldSt
 }))
 
 authStore.subscribe(withErrorReporting('Error checking groups for timeout status', async (state, oldState) => {
-  if (oldState.registrationStatus !== state.registrationStatus) {
-    const isTimeoutEnabled = state.registrationStatus === 'registered' ?
-      _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list()) : false
+  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
+    const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list())
     authStore.update(state => ({ ...state, isTimeoutEnabled }))
   }
 }))
