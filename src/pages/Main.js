@@ -1,6 +1,5 @@
 import 'src/libs/routes'
 
-import { useInstrumentation } from 'libs/analytics'
 import { hot } from 'react-hot-loader/root'
 import { h } from 'react-hyperscript-helpers'
 import AuthContainer from 'src/components/AuthContainer'
@@ -19,7 +18,6 @@ import { LocationProvider, Router, TitleManager } from 'src/libs/nav'
 
 
 const Main = () => {
-  useInstrumentation()
   return h(LocationProvider, [
     h(Notifications),
     h(ImportStatus),

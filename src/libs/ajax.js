@@ -116,7 +116,7 @@ const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlR
 const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
-const fetchMixPanel = withUrlPrefix('https://api.mixpanel.com/track', fetchOk)
+const fetchMetrics = withUrlPrefix(`${getConfig()}.metricsRoot`, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
@@ -881,10 +881,6 @@ const GoogleBilling = signal => ({
   }
 })
 
-const MixPanel = signal => ({
-  track: event => fetchMixPanel(`?data=${btoa(JSON.stringify(event))}`, { signal })
-})
-
 const Methods = signal => ({
   list: async params => {
     const res = await fetchAgora(`methods?${qs.stringify(params)}`, _.merge(authOpts(), { signal }))
@@ -1083,6 +1079,9 @@ const Duos = signal => ({
   }
 })
 
+const Metrics = signal => ({
+  captureEvent: (event, data) => fetchMetrics('api/event', _.mergeAll([authOpts(), jsonBody({ event, data }), { signal, method: 'POST' }]))
+})
 
 export const Ajax = signal => {
   return {
@@ -1098,7 +1097,7 @@ export const Ajax = signal => {
     Dockstore: Dockstore(signal),
     Martha: Martha(signal),
     Duos: Duos(signal),
-    MixPanel: MixPanel(signal)
+    Metrics: Metrics(signal)
   }
 }
 
