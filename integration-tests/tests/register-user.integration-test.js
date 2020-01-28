@@ -15,7 +15,7 @@ const testRegisterUserFn = withUser(async ({ context, token }) => {
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Accept' }))
   await click(page, clickable({ textContains: 'View Workspaces' }))
-  await findText(page, 'To get started, click Create a New Workspaceeee')
+  await findText(page, 'To get started, click Create a New Workspace')
 })
 
 const testRegisterUser = {
