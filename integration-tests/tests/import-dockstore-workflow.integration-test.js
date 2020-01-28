@@ -6,9 +6,7 @@ const { click, clickable, findText, select, signIntoTerra } = require('../utils/
 
 const testWorkflowIdentifier = 'github.com/DataBiosphere/topmed-workflows/UM_variant_caller_wdl:1.32.0'
 
-const testImportDockstoreWorkflowFn = async ({ context }) => {
-  const page = await context.newPage()
-
+const testImportDockstoreWorkflowFn = async ({ context, page }) => {
   const { dockstoreUrlRoot } = await fetch(`${testUrl}/config.json`).then(res => res.json())
 
   if (await fetch(`${dockstoreUrlRoot}/api/api/ga4gh/v1/metadata`).then(res => res.status !== 200)) {

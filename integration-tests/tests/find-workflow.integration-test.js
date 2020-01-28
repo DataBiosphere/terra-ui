@@ -4,9 +4,7 @@ const { withWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, findElement, findText, signIntoTerra } = require('../utils/integration-utils')
 
 
-const testFindWorkflowFn = withWorkspace(async ({ context, workspaceName }) => {
-  const page = await context.newPage()
-
+const testFindWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
   await page.goto(testUrl)
   await signIntoTerra(page)
   await click(page, clickable({ textContains: 'View Examples' }))

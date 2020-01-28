@@ -3,9 +3,7 @@ const { withUser } = require('../utils/integration-helpers')
 const { findText, click, clickable, fillIn, input, signIntoTerra, waitForNoSpinners } = require('../utils/integration-utils')
 
 
-const testRegisterUserFn = withUser(async ({ context, token }) => {
-  const page = await context.newPage()
-
+const testRegisterUserFn = withUser(async ({ page, token }) => {
   page.setDefaultTimeout(7000)
   await page.goto(testUrl)
   await signIntoTerra(page, token)

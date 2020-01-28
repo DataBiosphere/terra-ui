@@ -5,9 +5,7 @@ const { findInGrid, click, clickable, fillIn, findIframe, input, signIntoTerra, 
 
 const cohortName = `terra-ui-test-cohort`
 
-const testImportCohortDataFn = withWorkspace(async ({ context, workspaceName }) => {
-  const page = await context.newPage()
-
+const testImportCohortDataFn = withWorkspace(async ({ page, workspaceName }) => {
   await page.goto(testUrl)
   await signIntoTerra(page)
   await click(page, clickable({ textContains: 'Browse Data' }))

@@ -39,17 +39,11 @@ const deleteWorkspace = async ({ context, workspaceName }) => {
   await ajaxPage.close()
 }
 
-const withWorkspace = test => async ({ context }) => {
+const withWorkspace = test => async ({ context, page }) => {
   const workspaceName = await makeWorkspace({ context })
 
   try {
-    await test({ context, workspaceName })
-  } catch (e) {
-    if (screenshotDir) {
-      // TODO: get access to page
-      await page.screenshot({ path: `${screenshotDir}/failure-${workspaceName}.png`, fullPage: true })
-    }
-    throw e
+    await test({ context, page, workspaceName })
   } finally {
     await deleteWorkspace({ context, workspaceName })
   }
@@ -68,23 +62,30 @@ const makeUser = async () => {
   return { email, token }
 }
 
-const withUser = test => async ({ context }) => {
+const withUser = test => async args => {
   const { email, token } = await makeUser()
 
   try {
-    await test({ context, email, token })
-  } catch (e) {
-    if (screenshotDir) {
-      await page.screenshot({ path: `${screenshotDir}/failure-${email}.png`, fullPage: true })
-    }
-    throw e
+    await test({ ...args, email, token })
   } finally {
     await fetchLyle('delete', email)
   }
 }
 
+const withScreenshot = (testName, fn) => async ({ context, page }) => {
+  try {
+    await fn({ context, page })
+  } catch (e) {
+    if (screenshotDir) {
+      await page.screenshot({ path: `${screenshotDir}/failure-${Date.now()}-${testName}.png`, fullPage: true })
+    }
+    throw e
+  }
+}
+
 module.exports = {
-  withWorkspace,
   createEntityInWorkspace,
-  withUser
+  withScreenshot,
+  withUser,
+  withWorkspace
 }

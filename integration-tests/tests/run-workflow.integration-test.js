@@ -7,9 +7,7 @@ const { click, clickable, findElement, input, signIntoTerra, waitForNoSpinners, 
 const testEntity = { name: 'test_entity_1', entityType: 'test_entity', attributes: { input: 'foo' } }
 const findWorkflowButton = clickable({ textContains: 'Find a Workflow' })
 
-const testRunWorkflowFn = withWorkspace(async ({ context, workspaceName }) => {
-  const page = await context.newPage()
-
+const testRunWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
   await page.goto(testUrl)
   await signIntoTerra(page)
 
