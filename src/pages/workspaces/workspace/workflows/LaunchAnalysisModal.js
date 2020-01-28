@@ -132,6 +132,17 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       } else {
         this.createSetAndLaunch(entities)
       }
+    } else if (type === EntitySelectionType.chooseSetComponents) {
+      // if (entities.length === 1) {
+      //   this.launch(rootEntityType, entities[0])
+      // } else {
+      this.createSetAndLaunchOne(entities)
+      // eslint-disable-next-line no-restricted-globals
+      // this.setState({
+      //   message: undefined,
+      //   launchError: 'Made It!'
+      // })
+      // }
     } else if (type === EntitySelectionType.processMergedSet) {
       this.createSetAndLaunch(entities)
     } else if (type === EntitySelectionType.chooseSets) {
@@ -158,6 +169,23 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     }
 
     await this.launch(`${rootEntityType}_set`, newSetName, `this.${rootEntityType}s`)
+  }
+
+  async createSetAndLaunchOne(entities) {
+    const {
+      workspaceId,
+      entitySelectionModel: { newSetName },
+      config: { rootEntityType }
+    } = this.props
+
+    try {
+      await createEntitySet({ entities, rootEntityType, newSetName, workspaceId })
+    } catch (error) {
+      this.setState({ launchError: await error.text(), message: undefined })
+      return
+    }
+
+    await this.launch(`${rootEntityType}_set`, newSetName, 'Null')
   }
 
   baseLaunch(entityType, entityName, expression) {

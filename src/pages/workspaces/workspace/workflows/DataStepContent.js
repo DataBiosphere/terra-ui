@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, RadioButton } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, IdContainer, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -13,7 +13,7 @@ import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/Entity
 import validate from 'validate.js'
 
 
-const { processAll, processMergedSet, chooseRows, chooseSets } = EntitySelectionType
+const { processAll, processMergedSet, chooseRows, chooseSets, chooseSetComponents } = EntitySelectionType
 
 export default class DataStepContent extends Component {
   static propTypes = {
@@ -50,6 +50,7 @@ export default class DataStepContent extends Component {
     return selectionSize === 1 ||
       (type === processAll && !!newSetName) ||
       (type === chooseRows && !!newSetName && selectionSize > 1) ||
+      (type === chooseSetComponents && !!newSetName && selectionSize > 1) ||
       (type === chooseSets && selectionSize > 1 && selectionSize <= 10) ||
       (type === processMergedSet && !!newSetName && selectionSize > 1)
   }
@@ -72,6 +73,7 @@ export default class DataStepContent extends Component {
     const isProcessMergedSet = type === processMergedSet
     const isChooseRows = type === chooseRows
     const isChooseSets = type === chooseSets
+    const isChooseSetComponents = type === chooseSetComponents
 
     const errors = validate({ newSetName }, {
       newSetName: {
@@ -119,6 +121,17 @@ export default class DataStepContent extends Component {
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
+          //newCodeAdded->
+          div([
+            h(RadioButton, {
+              text: 'Create a new set from entities',
+              name: 'choose-set-components',
+              checked: isChooseSetComponents,
+              onChange: () => this.setNewSelectionModel({ type: chooseSetComponents, selectedEntities: {} }),
+              labelStyle: { marginLeft: '0.75rem' }
+            })
+          ]),
+          //newCodeAdded<-
           hasSet && div([
             h(RadioButton, {
               text: 'Choose existing sets',
@@ -146,7 +159,7 @@ export default class DataStepContent extends Component {
           })
         ]),
         (isProcessAll ||
-          ((isChooseRows || isProcessMergedSet) && _.size(selectedEntities) > 1)) && h(IdContainer,
+          ((isChooseRows || isChooseSetComponents || isProcessMergedSet) && _.size(selectedEntities) > 1)) && h(IdContainer,
           [id => div({ style: { marginTop: '1rem' } }, [
             h(FormLabel, { htmlFor: id }, [`Selected rows will ${isProcessMergedSet ? 'have their membership combined into' : 'be saved as'} a new set named:`]),
             h(ValidatedInput, {
@@ -160,5 +173,7 @@ export default class DataStepContent extends Component {
           ])])
       ])
     ])
+
+
   }
 }

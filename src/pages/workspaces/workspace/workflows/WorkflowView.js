@@ -527,6 +527,7 @@ const WorkflowView = _.flow(
         ${rootEntityType}s ${newSetMessage}`],
       [type === EntitySelectionType.processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
       [type === EntitySelectionType.chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
+      [type === EntitySelectionType.chooseSetComponents, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
       [type === EntitySelectionType.chooseSets, () => `${count} selected ${rootEntityType}s`]
     )
   }
@@ -656,6 +657,38 @@ const WorkflowView = _.flow(
                 labelStyle: { marginLeft: '0.5rem' }
               })
             ]),
+            //newCodeAdded->
+            div([
+              h(RadioButton, {
+                disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
+                text: `Create a Set entity type from:`,
+                // change name
+                name: 'process-workflows',
+                checked: this.isMultiple(),
+                onChange: () => this.selectMultiple(),
+                labelStyle: { marginLeft: '0.5rem' }
+              }),
+              h(Select, {
+                'aria-label': 'Entity type selector',
+                isClearable: false, isDisabled: currentSnapRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws), isSearchable: false,
+                placeholder: 'Select data type...',
+                styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
+                getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
+                value: selectedEntityType,
+                onChange: selection => {
+                  const value = this.updateEntityType(selection)
+                  this.setState({ entitySelectionModel: this.resetSelectionModel(value) })
+                },
+                options: _.keys(entityMetadata)
+              }),
+              h(Link, {
+                disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !entityMetadata[rootEntityType] || !!Utils.editWorkspaceError(ws),
+                tooltip: Utils.editWorkspaceError(ws),
+                onClick: () => this.setState({ selectingData: true }),
+                style: { marginLeft: '1rem' }
+              }, ['Select Enities'])
+            ]),
+            //newCodeAdded<-
             div([
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
