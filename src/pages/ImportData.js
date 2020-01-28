@@ -72,12 +72,12 @@ const ImportData = () => {
     _.flow(
       _.flatMap(id => (allTemplates && allTemplates[id]) || []),
       _.filter(({ name, namespace }) => _.some({ workspace: { namespace, name } }, workspaces))
-    )(_.isArray(template) ? template : Array.of(template))
+    )(_.castArray(template))
 
   Utils.useOnMount(() => {
     const loadTemplateWorkspaces = _.flow(
       Utils.withBusyState(setIsImporting),
-      withErrorReporting('Import Error')
+      withErrorReporting('Error loading templates')
     )(async () => {
       setAllTemplates(await fetch(`${getConfig().firecloudBucketRoot}/template-workspaces.json`).then(res => res.json()))
     })
@@ -178,7 +178,7 @@ const ImportData = () => {
                           hasWorkflows &&
                             wdlIcon({ style: { height: 23, width: 23, marginLeft: '0.5rem', borderRadius: 3, padding: '8px 4px 7px 4px' } })
                         ])
-                      }, [p({ style: { fontSize: 14, lineHeight: '1.5', marginRight: '1rem' } }, description)])
+                      }, [p({ style: { fontSize: 14, lineHeight: '1.5', marginRight: '1rem' } }, [description])])
                     })
                   ]
                   )
@@ -187,7 +187,7 @@ const ImportData = () => {
               div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
                 h(ButtonSecondary, { style: { marginLeft: 'auto' }, onClick: () => setMode() }, ['Back']),
                 h(ButtonPrimary, {
-                  style: { marginLeft: '3rem' },
+                  style: { marginLeft: '2rem' },
                   disabled: !selectedTemplateWorkspaceKey,
                   onClick: () => setIsCloneOpen(true)
                 }, ['Import'])
