@@ -478,7 +478,7 @@ const ToolDrawer = _.flow(
           await Buckets.notebook(namespace, bucketName, notebookName).create(JSON.parse(contents))
           Nav.goToPath('workspace-notebook-launch', { namespace, name: wsName, notebookName: `${notebookName}.ipynb` })
         },
-        onDismiss: setToolMode,
+        onDismiss: () => setToolMode(undefined),
         reloadList: _.noop
       })
     })
