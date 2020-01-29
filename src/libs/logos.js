@@ -24,7 +24,6 @@ export const getAppName = (longName = false) => Utils.cond(
 
 export const returnParam = () => getAppName().toLowerCase()
 
-// do io add here is Terra
 const pickBrandLogo = (color = false) => Utils.cond(
   [isFirecloud(), color ? fcLogo : fcLogoWhite],
   [isDatastage(), color ? datastageLogo : datastageLogoWhite],
