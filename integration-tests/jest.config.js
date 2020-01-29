@@ -1,4 +1,4 @@
 module.exports = {
   preset: 'jest-puppeteer',
-  testRegex: 'all-tests\\.js$'
+  testRegex: '\\.integration-test\\.js$'
 }

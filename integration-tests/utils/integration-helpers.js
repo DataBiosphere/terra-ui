@@ -1,4 +1,4 @@
-const { billingProject, testUrl, screenshotDir } = require('./integration-config')
+const { billingProject, testUrl } = require('./integration-config')
 const { delay, signIntoTerra } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 
@@ -72,20 +72,8 @@ const withUser = test => async args => {
   }
 }
 
-const withScreenshot = (testName, fn) => async ({ context, page }) => {
-  try {
-    await fn({ context, page })
-  } catch (e) {
-    if (screenshotDir) {
-      await page.screenshot({ path: `${screenshotDir}/failure-${Date.now()}-${testName}.png`, fullPage: true })
-    }
-    throw e
-  }
-}
-
 module.exports = {
   createEntityInWorkspace,
-  withScreenshot,
   withUser,
   withWorkspace
 }
