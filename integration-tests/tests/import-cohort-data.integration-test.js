@@ -1,6 +1,6 @@
 const { testUrl } = require('../utils/integration-config')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { findInGrid, click, clickable, fillIn, findIframe, input, signIntoTerra, select, svgText } = require('../utils/integration-utils')
+const { findInGrid, click, clickable, fillIn, findIframe, input, signIntoTerra, select, svgText, waitForNoSpinners } = require('../utils/integration-utils')
 
 
 const cohortName = `terra-ui-test-cohort`
@@ -17,6 +17,7 @@ test('import cohort data', withWorkspace(async ({ workspaceName }) => {
   await fillIn(frame, input({ placeholder: 'cohort name' }), cohortName)
   await click(frame, clickable({ text: 'Save' }))
 
+  await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'an existing workspace' }))
   await select(page, 'Select a workspace', workspaceName)
   await click(page, clickable({ text: 'Import' }))

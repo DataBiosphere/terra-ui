@@ -57,7 +57,7 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
     ...props
   }, [
     title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
-      div({ id: titleId, style: { fontSize: 18, fontWeight: 600 } }, [title]),
+      div({ id: titleId, style: { fontSize: 18, fontWeight: 600, ...Style.noWrapEllipsis } }, [title]),
       titleExtras,
       showX && h(Clickable, {
         'aria-label': 'Close modal',
