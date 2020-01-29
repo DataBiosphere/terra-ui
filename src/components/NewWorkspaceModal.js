@@ -37,7 +37,10 @@ export default _.flow(
 )(class NewWorkspaceModal extends Component {
   static propTypes = {
     cloneWorkspace: PropTypes.object,
-    onDismiss: PropTypes.func.isRequired
+    onDismiss: PropTypes.func.isRequired,
+    customMessage: PropTypes.string,
+    title: PropTypes.string,
+    buttonText: PropTypes.string
   }
 
   constructor(props) {
@@ -108,7 +111,7 @@ export default _.flow(
   })
 
   render() {
-    const { onDismiss, cloneWorkspace, authState: { profile } } = this.props
+    const { onDismiss, cloneWorkspace, authState: { profile }, title, customMessage, buttonText } = this.props
     const { trialState } = profile
     const { namespace, name, billingProjects, allGroups, groups, description, nameModified, loading, createError, creating } = this.state
     const existingGroups = this.getRequiredGroups()
@@ -121,13 +124,21 @@ export default _.flow(
     return Utils.cond(
       [loading, spinnerOverlay],
       [hasBillingProjects, () => h(Modal, {
-        title: cloneWorkspace ? 'Clone a Workspace' : 'Create a New Workspace',
+        title: Utils.cond(
+          [title, title],
+          [cloneWorkspace, 'Clone a workspace'],
+          [Utils.DEFAULT, 'Create a New Workspace']
+        ),
         onDismiss,
         okButton: h(ButtonPrimary, {
           disabled: errors,
           tooltip: Utils.summarizeErrors(errors),
           onClick: () => this.create()
-        }, cloneWorkspace ? 'Clone Workspace' : 'Create Workspace')
+        }, Utils.cond(
+          [buttonText, buttonText],
+          [cloneWorkspace, 'Clone Workspace'],
+          [Utils.DEFAULT, 'Create Workspace']
+        ))
       }, [
         h(IdContainer, [id => h(Fragment, [
           h(FormLabel, { htmlFor: id, required: true }, ['Workspace name']),
@@ -191,6 +202,7 @@ export default _.flow(
             options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()
           })
         ])]),
+        customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
         createError && div({
           style: { marginTop: '1rem', color: colors.danger() }
         }, [createError]),

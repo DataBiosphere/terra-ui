@@ -226,7 +226,7 @@ export const RadioButton = ({ text, name, labelStyle, ...props }) => {
       name,
       ...props
     }),
-    text && label({ htmlFor: id, style: labelStyle }, text)
+    text && label({ htmlFor: id, style: labelStyle }, [text])
   ])])
 }
 
