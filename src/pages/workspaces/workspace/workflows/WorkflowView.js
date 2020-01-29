@@ -6,7 +6,8 @@ import { b, div, h, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select,
+  ButtonPrimary, ButtonSecondary, Clickable, GroupedSelect, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton,
+  Select,
   spinnerOverlay
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
@@ -305,6 +306,23 @@ class TextCollapse extends Component {
   }
 }
 
+const findNewSets = listOfExistingEntities => {
+  return _.reduce((acc, entityType) => {
+    return _.endsWith('_set', entityType) || _.includes(`${entityType}_set`, listOfExistingEntities) ?
+      acc :
+      Utils.append(`${entityType}_set`, acc)
+  }, [], listOfExistingEntities)
+
+  /*// const listOfExistingEntities = _.keys(entityMetadata)
+   for (let i = 0; i < listOfExistingEntities.length; i++) { // loop through each item in listOfExistingEntities
+   const key = listOfExistingEntities[i]
+   if (!(key.includes('_set'))) { // if this item isn't a set
+   if (!(listOfExistingEntities.includes(`${key}_set`))) { // and if the set version of this entity is not in listOfExistingEntities
+   newSetList.push(`${key}_set`) // add the set version of this entity to the new list
+   }
+   }
+   }*/
+}
 
 const WorkflowView = _.flow(
   wrapWorkspace({
@@ -318,6 +336,7 @@ const WorkflowView = _.flow(
       type: Utils.cond(
         [_.endsWith('_set', value), () => EntitySelectionType.chooseSets],
         [_.isEmpty(selectedEntities), () => EntitySelectionType.processAll],
+        // () => EntitySelectionType.chooseSetComponents
         () => EntitySelectionType.chooseRows
       ),
       selectedEntities,
@@ -562,6 +581,8 @@ const WorkflowView = _.flow(
       selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
+    const entityTypes = _.keys(entityMetadata)
+    const potentialEntityTypes = findNewSets(entityTypes)
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
@@ -659,15 +680,17 @@ const WorkflowView = _.flow(
             div([
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
-                text: `Process multiple workflows from:`,
+                text: `Process workflow(s) via data model:`,
                 name: 'process-workflows',
                 checked: this.isMultiple(),
                 onChange: () => this.selectMultiple(),
                 labelStyle: { marginLeft: '0.5rem' }
               }),
-              h(Select, {
+              h(GroupedSelect, {
                 'aria-label': 'Entity type selector',
-                isClearable: false, isDisabled: currentSnapRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws), isSearchable: false,
+                isClearable: false,
+                isDisabled: currentSnapRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws),
+                isSearchable: false,
                 placeholder: 'Select data type...',
                 styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
                 getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
@@ -676,10 +699,16 @@ const WorkflowView = _.flow(
                   const value = this.updateEntityType(selection)
                   this.setState({ entitySelectionModel: this.resetSelectionModel(value) })
                 },
-                options: _.keys(entityMetadata)
+                options: [{
+                  label: 'EXISTING ENTITIES',
+                  options: _.map(value => ({ value }), entityTypes)
+                }, {
+                  label: 'POSSIBLE NEW SETS',
+                  options: _.map(value => ({ value }), potentialEntityTypes)
+                }]
               }),
               h(Link, {
-                disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !entityMetadata[rootEntityType] || !!Utils.editWorkspaceError(ws),
+                disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !_.includes(selectedEntityType, [...entityTypes, ...potentialEntityTypes]) || !!Utils.editWorkspaceError(ws),
                 tooltip: Utils.editWorkspaceError(ws),
                 onClick: () => this.setState({ selectingData: true }),
                 style: { marginLeft: '1rem' }

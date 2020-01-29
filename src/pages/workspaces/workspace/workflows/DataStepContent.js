@@ -13,7 +13,7 @@ import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/Entity
 import validate from 'validate.js'
 
 
-const { processAll, processMergedSet, chooseRows, chooseSets } = EntitySelectionType
+const { processAll, processMergedSet, chooseRows, chooseSets, chooseSetComponents } = EntitySelectionType
 
 export default class DataStepContent extends Component {
   static propTypes = {
@@ -72,6 +72,7 @@ export default class DataStepContent extends Component {
     const isProcessMergedSet = type === processMergedSet
     const isChooseRows = type === chooseRows
     const isChooseSets = type === chooseSets
+    const isChooseSetComponents = type === chooseSetComponents
 
     const errors = validate({ newSetName }, {
       newSetName: {
@@ -144,6 +145,26 @@ export default class DataStepContent extends Component {
               selected: selectedEntities, setSelected: e => this.setNewSelectionModel({ selectedEntities: e })
             }
           })
+        ]),
+        isSet && h(div, { role: 'radiogroup', 'aria-label': 'Select sets' }, [
+          div([
+            h(RadioButton, {
+              text: 'Create a new set',
+              name: 'choose-set-components',
+              checked: isChooseSetComponents,
+              onChange: () => this.setNewSelectionModel({ type: chooseSetComponents, selectedEntities: {} }),
+              labelStyle: { marginLeft: '0.75rem' }
+            })
+          ]),
+          hasSet && div([
+            h(RadioButton, {
+              text: 'Choose existing sets',
+              name: 'process-rows',
+              checked: isProcessMergedSet,
+              onChange: () => this.setNewSelectionModel({ type: processMergedSet, selectedEntities: {} }),
+              labelStyle: { marginLeft: '0.75rem' }
+            })
+          ])
         ]),
         (isProcessAll ||
           ((isChooseRows || isProcessMergedSet) && _.size(selectedEntities) > 1)) && h(IdContainer,
