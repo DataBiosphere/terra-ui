@@ -200,7 +200,6 @@ const ImportData = () => {
               div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
               !!filteredTemplates.length && h(ChoiceButton, {
                 onClick: () => setMode('template'),
-                tooltip: 'Cloning a template workspace that covers the research tasks you want to do that has workflow and notebook attributes set up.',
                 iconName: 'copySolid',
                 title: 'Start with a template',
                 detail: 'Clone from one of our template workspaces that has analyses ready for use'
