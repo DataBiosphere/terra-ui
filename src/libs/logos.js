@@ -18,7 +18,7 @@ export const getAppName = (longName = false) => Utils.cond(
   [isFirecloud(), 'FireCloud'],
   [isDatastage(), 'DataStage'],
   [isAnvil(), longName ? 'The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space)' : 'AnVIL'],
-  [isBioDataCatalyst(), 'NHLBI BioData CATALYST'],
+  [isBioDataCatalyst(), 'NHLBI BioData Catalyst'],
   'Terra'
 )
 
