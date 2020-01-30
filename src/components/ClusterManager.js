@@ -140,7 +140,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   componentDidUpdate(prevProps) {
-    const { namespace, name, refreshClusters } = this.props
+    const { namespace, name } = this.props
     const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
     const cluster = this.getCurrentCluster() || {}
     const twoMonthsAgo = _.tap(d => d.setMonth(d.getMonth() - 2), new Date())

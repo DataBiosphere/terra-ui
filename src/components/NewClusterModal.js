@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
-import { b, div, h, label, p, pre, span } from 'react-hyperscript-helpers'
+import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
@@ -455,7 +455,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])],
       [ 'update', () => h(Fragment, [
         isStopRequired()
-          ? p(['Changing the machine type (increasing or decreasing the # of CPUs or Mem) results in an update that requires a restart of your runtime. This may take a few minutes.  Would you like to proceed? ',
+          ? p(['Changing the machine type (increasing or decreasing the # of CPUs or Mem) results in an update that requires a ',
+            b(['restart']),
+            ' of your runtime. This may take a few minutes.  Would you like to proceed? ',
             b(['(You will not lose any files.)'])
           ])
           : p(['Increasing the disk size or changing the number of workers (when the number of workers is >2) results in a real-time update to your runtime. ',
