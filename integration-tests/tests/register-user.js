@@ -4,7 +4,6 @@ const { findText, click, clickable, fillIn, input, signIntoTerra, waitForNoSpinn
 
 
 const testRegisterUserFn = withUser(async ({ page, token }) => {
-  page.setDefaultTimeout(7000)
   await page.goto(testUrl)
   await signIntoTerra(page, token)
   await fillIn(page, input({ labelContains: 'First Name' }), 'Integration')
