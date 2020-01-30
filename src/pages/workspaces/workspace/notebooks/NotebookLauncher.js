@@ -50,7 +50,7 @@ const NotebookLauncher = _.flow(
     const { mode } = queryParams
 
     return h(Fragment, [
-      (Utils.canWrite(accessLevel) && canCompute && !!mode && status === 'Running' && labels.tool === 'Jupyter') ?
+      (Utils.canWrite(accessLevel) && canCompute && !!mode && (status === 'Running' || status === 'Updating') && labels.tool === 'Jupyter') ?
         h(labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : NotebookEditorFrame,
           { key: clusterName, workspace, cluster, notebookName, mode }) :
         h(Fragment, [
@@ -385,7 +385,7 @@ const copyingNotebookMessage = div({ style: { paddingTop: '2rem' } }, [
 ])
 
 const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
-  console.assert(status === 'Running', 'Expected notebook runtime to be running')
+  console.assert(status === 'Running' || status === 'Updating', 'Expected notebook runtime to be running or updating')
   console.assert(!labels.welderInstallFailed, 'Expected cluster to have Welder')
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)
