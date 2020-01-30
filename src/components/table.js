@@ -411,8 +411,8 @@ export const SimpleTable = ({ columns, rows }) => {
   ])
 }
 
-export const TextCell = props => {
-  return div(_.merge({ style: Style.noWrapEllipsis }, props))
+export const TextCell = ({ children, ...props }) => {
+  return div(_.merge({ style: Style.noWrapEllipsis }, props), [children])
 }
 
 export const TooltipCell = ({ children, tooltip, ...props }) => h(TooltipTrigger, {
