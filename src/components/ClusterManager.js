@@ -140,7 +140,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   componentDidUpdate(prevProps) {
-    const { namespace, name } = this.props
+    const { namespace, name, refreshClusters } = this.props
     const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
     const cluster = this.getCurrentCluster() || {}
     const twoMonthsAgo = _.tap(d => d.setMonth(d.getMonth() - 2), new Date())
@@ -181,8 +181,10 @@ export default class ClusterManager extends PureComponent {
       notify('warn', 'Outdated Notebook Runtime', {
         message: 'Your notebook runtime is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'
       })
+    } else if (cluster.status === 'Running' && prevCluster.status === 'Updating') {
+      notify('success', 'Your runtime update has completed successfully.', { timeout: 3000 })
     }
-  }
+   }
 
   getActiveClustersOldestFirst() {
     const { clusters } = this.props
@@ -259,6 +261,7 @@ export default class ClusterManager extends PureComponent {
           })
         case 'Starting':
         case 'Stopping':
+        case 'Updating':
         case 'Creating':
           return h(ClusterIcon, {
             shape: 'sync',
@@ -288,7 +291,8 @@ export default class ClusterManager extends PureComponent {
     const totalCost = _.sum(_.map(clusterCost, clusters))
     const activeClusters = this.getActiveClustersOldestFirst()
     const creating = _.some({ status: 'Creating' }, activeClusters)
-    const isDisabled = !canCompute || creating || busy
+    const updating = _.some({ status: 'Updating' }, activeClusters)
+    const isDisabled = !canCompute || creating || busy || updating
 
     const isRStudioImage = currentCluster?.labels.tool === 'RStudio'
     const appName = isRStudioImage ? 'RStudio' : 'terminal'

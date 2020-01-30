@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
-import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
+import { b, div, h, label, p, pre, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
@@ -149,6 +149,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ]))
   }
 
+  updateCluster() {
+    const { currentCluster } = this.props
+    const { googleProject, clusterName } = currentCluster
+
+    return Ajax().Clusters.cluster(googleProject, clusterName).update({
+        machineConfig: this.getMachineConfig()
+    })
+  }
+
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
     const { currentCluster, namespace } = this.props
 
@@ -230,14 +239,53 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             if (isSelectedImageInputted) {
               this.setState({ viewMode: 'warning' })
             } else if (!!currentCluster) {
-              this.setState({ viewMode: 'replace' })
+              this.setState({ viewMode: _.lowerCase(getUpdateOrReplace()) })
             } else {
               this.createCluster()
             }
           }
-        }, !!currentCluster ? 'Replace' : 'Create')
+        }, !!currentCluster ? getUpdateOrReplace() : 'Create')
       ])
     ])
+
+    //determines whether the changes are applicable for a call to the leo patch endpoint
+    //see this for a diagram of the conditional this implements https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
+    //this function returns true for cases 2 & 3 in this diagram
+    const canUpdate = () => {
+      const currentClusterConfig = currentCluster.machineConfig
+      const userSelectedConfig = this.getMachineConfig()
+
+      const workersCantUpdate = currentClusterConfig.numberOfWorkers != userSelectedConfig.numberOfWorkers &&
+        (currentClusterConfig.numberOfWorkers < 2 || userSelectedConfig.numberOfWorkers < 2)
+
+      const hasUnUpdateableResourceChanged =
+        currentClusterConfig.workerDiskSize != userSelectedConfig.workerDiskSize ||
+        currentClusterConfig.workerMachineType != userSelectedConfig.workerMachineType ||
+        currentClusterConfig.numberOfWorkerLocalSSDs != userSelectedConfig.numberOfWorkerLocalSSDs
+
+      const hasWorkers = currentClusterConfig.numberOfWorkers >= 2 || currentClusterConfig.numberOfPreemptibleWorkers >= 2
+
+      const workersResourceChanged = hasWorkers && hasUnUpdateableResourceChanged
+
+      const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
+
+      const cantUpdate = workersCantUpdate || workersResourceChanged || hasDiskSizeDecreased
+      return !cantUpdate
+    }
+
+    //returns true for case 3 in this diagram: https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
+    const isStopRequired = () => {
+      const currentClusterConfig = currentCluster.machineConfig
+      const userSelectedConfig = this.getMachineConfig()
+
+      const isMasterMachineTypeChanged = currentClusterConfig.masterMachineType != userSelectedConfig.masterMachineType
+
+      const isClusterRunning = currentCluster.status == 'Running'
+
+      return canUpdate() && isMasterMachineTypeChanged && isClusterRunning
+    }
+
+    const getUpdateOrReplace = () => canUpdate() ? "Update" : "Replace"
 
     const machineConfig = () => h(Fragment, [
       div({
@@ -405,6 +453,21 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(ButtonPrimary, { onClick: () => this.createCluster() }, ['REPLACE'])
         ])
       ])],
+      [ 'update', () => h(Fragment, [
+        isStopRequired()
+          ? p(['Changing the machine type (increasing or decreasing the # of CPUs or Mem) results in an update that requires a restart of your runtime. This may take a few minutes.  Would you like to proceed? ',
+            b(['(You will not lose any files.)'])
+          ])
+          : p(['Increasing the disk size or changing the number of workers (when the number of workers is >2) results in a real-time update to your runtime. ',
+            'During this update, you can continue to work']),
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          h(ButtonSecondary, {
+            style: { marginRight: '2rem' },
+            onClick: () => this.setState({ viewMode: undefined })
+          }, ['BACK']),
+          h(ButtonPrimary, { onClick: () => onSuccess(this.updateCluster()) }, ['UPDATE'])
+        ])
+      ])],
       [Utils.DEFAULT, () => h(Fragment, [
         div({ style: { marginBottom: '1rem' } }, [
           'Create a cloud compute instance to launch Jupyter Notebooks or a Project-Specific software application.'
@@ -488,6 +551,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ['packages', () => 'INSTALLED PACKAGES'],
           ['warning', () => 'WARNING!'],
           ['delete', () => 'DELETE RUNTIME?'],
+          ['update', () => 'UPDATE RUNTIME?'],
           [Utils.DEFAULT, () => 'RUNTIME CONFIGURATION']
         ),
         onDismiss,

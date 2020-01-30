@@ -146,7 +146,7 @@ const useClusterPolling = namespace => {
       const newClusters = await Ajax(signal).Clusters.list({ googleProject: namespace, creator: getUser().email })
       setClusters(newClusters)
       const cluster = currentCluster(newClusters)
-      reschedule(_.includes(cluster && cluster.status, ['Creating', 'Starting', 'Stopping']) ? 10000 : 120000)
+      reschedule(_.includes(cluster && cluster.status, ['Creating', 'Starting', 'Stopping', 'Updating']) ? 10000 : 120000)
     } catch (error) {
       reschedule(30000)
       throw error
