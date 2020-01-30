@@ -197,7 +197,7 @@ const WorkflowWdl = () => {
 }
 
 const WorkflowConfigs = () => {
-  const { namespace, name, snapshotId } = Utils.useStore(snapshotStore)
+  // const { namespace, name, snapshotId } = Utils.useStore(snapshotStore)
 
   return null
 }
