@@ -77,7 +77,7 @@ const ImportData = () => {
   Utils.useOnMount(() => {
     const loadTemplateWorkspaces = _.flow(
       Utils.withBusyState(setIsImporting),
-      withErrorReporting('Error loading templates')
+      withErrorReporting('Error Loading Templates')
     )(async () => {
       setAllTemplates(await fetch(`${getConfig().firecloudBucketRoot}/template-workspaces.json`).then(res => res.json()))
     })
