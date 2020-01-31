@@ -1,6 +1,8 @@
 import { div, img } from 'react-hyperscript-helpers'
 import anvilLogoWhite from 'src/images/brands/anvil/ANVIL-Logo-White.svg'
 import anvilLogo from 'src/images/brands/anvil/ANVIL-Logo.svg'
+import bioDataCatalystLogo from 'src/images/brands/bioDataCatalyst/bioDataCatalyst-Logo-color.svg'
+import bioDataCatalystLogoWhite from 'src/images/brands/bioDataCatalyst/bioDataCatalyst-Logo-white.svg'
 import datastageLogoWhite from 'src/images/brands/datastage/DataSTAGE-Logo-White.svg'
 import datastageLogo from 'src/images/brands/datastage/DataSTAGE-Logo.svg'
 import fcLogoWhite from 'src/images/brands/firecloud/FireCloud-Logo-White.svg'
@@ -8,7 +10,7 @@ import fcLogo from 'src/images/brands/firecloud/FireCloud-Logo.svg'
 import terraLogoWhite from 'src/images/brands/terra/logo-grey.svg'
 import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg'
 import terraLogo from 'src/images/brands/terra/logo.svg'
-import { isAnvil, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
+import { isAnvil, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
@@ -16,6 +18,7 @@ export const getAppName = (longName = false) => Utils.cond(
   [isFirecloud(), 'FireCloud'],
   [isDatastage(), 'DataStage'],
   [isAnvil(), longName ? 'The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space)' : 'AnVIL'],
+  [isBioDataCatalyst(), 'NHLBI BioData Catalyst'],
   'Terra'
 )
 
@@ -24,7 +27,8 @@ export const returnParam = () => getAppName().toLowerCase()
 const pickBrandLogo = (color = false) => Utils.cond(
   [isFirecloud(), color ? fcLogo : fcLogoWhite],
   [isDatastage(), color ? datastageLogo : datastageLogoWhite],
-  [isAnvil(), color ? anvilLogo : anvilLogoWhite]
+  [isAnvil(), color ? anvilLogo : anvilLogoWhite],
+  [isBioDataCatalyst(), color ? bioDataCatalystLogo : bioDataCatalystLogoWhite]
 )
 
 export const terraLogoMaker = (logoVariant, style) => img({ alt: 'Terra logo', role: 'img', src: logoVariant, style })
