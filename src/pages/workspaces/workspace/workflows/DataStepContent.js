@@ -52,7 +52,7 @@ export default class DataStepContent extends Component {
       (type === chooseRows && !!newSetName && selectionSize > 1) ||
       (type === chooseSets && selectionSize > 1 && selectionSize <= 10) ||
       (type === processMergedSet && !!newSetName && selectionSize > 1) ||
-      (type === chooseSetComponents && !!newSetName && selectionSize > 1)
+      (type === chooseSetComponents && selectionSize > 1)
   }
 
   render() {
@@ -164,8 +164,8 @@ export default class DataStepContent extends Component {
             h(RadioButton, {
               text: 'Choose existing sets',
               name: 'choose-set-components',
-              checked: isProcessMergedSet,
-              onChange: () => this.setNewSelectionModel({ type: processMergedSet, selectedEntities: {} }),
+              checked: isChooseRows,
+              onChange: () => this.setNewSelectionModel({ type: chooseRows, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
           ])
