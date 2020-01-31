@@ -335,9 +335,8 @@ const WorkflowView = _.flow(
   resetSelectionModel(value, selectedEntities = {}) {
     return {
       type: Utils.cond(
-        [_.endsWith('_set', value), () => EntitySelectionType.chooseSets],
+        [_.endsWith('_set', value), () => EntitySelectionType.chooseSetComponents], // [_.endsWith('_set', value), () => EntitySelectionType.chooseSets],
         [_.isEmpty(selectedEntities), () => EntitySelectionType.processAll],
-        // () => EntitySelectionType.chooseSetComponents
         () => EntitySelectionType.chooseRows
       ),
       selectedEntities,
@@ -540,13 +539,15 @@ const WorkflowView = _.flow(
   describeSelectionModel() {
     const { modifiedConfig: { rootEntityType }, entityMetadata, entitySelectionModel: { newSetName, selectedEntities, type } } = this.state
     const count = _.size(selectedEntities)
-    const newSetMessage = (type === EntitySelectionType.processAll || count > 1) ? `(will create a new set named "${newSetName}")` : ''
+    // const newSetMessage = (type === EntitySelectionType.processAll || count > 1) ? `(will create a new set named "${newSetName}")` : ''
+    const newSetMessage = (type === EntitySelectionType.processAll || type === EntitySelectionType.chooseSetComponents || count > 1) ? `(will create a new set named "${newSetName}")` : ''
     return Utils.cond(
       [this.isSingle() || !rootEntityType, ''],
       [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType] ? entityMetadata[rootEntityType].count : 0}
         ${rootEntityType}s ${newSetMessage}`],
       [type === EntitySelectionType.processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
       [type === EntitySelectionType.chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
+      [type === EntitySelectionType.chooseSetComponents, () => `${count} selected ${rootEntityType}s ${newSetMessage}`], // this is wrong TODO fix it
       [type === EntitySelectionType.chooseSets, () => `${count} selected ${rootEntityType}s`]
     )
   }

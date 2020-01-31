@@ -150,10 +150,10 @@ export default class DataStepContent extends Component {
             }
           })
         ]),
-        isSet && h(div, { role: 'radiogroup', 'aria-label': 'Select sets' }, [
+        isSet && h(div, { role: 'radiogroup', 'aria-label': 'Select entities' }, [
           div([
             h(RadioButton, {
-              text: 'Create a new set',
+              text: `Create a new set from ${setBaseEntityType}s`,
               name: 'choose-set-components',
               checked: isChooseSetComponents,
               onChange: () => this.setNewSelectionModel({ type: chooseSetComponents, selectedEntities: {} }),
@@ -167,23 +167,24 @@ export default class DataStepContent extends Component {
               checked: isProcessMergedSet,
               onChange: () => this.setNewSelectionModel({ type: processMergedSet, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
-            }), div({
-              style: {
-                display: 'flex', flexDirection: 'column',
-                height: 500, marginTop: '1rem'
-              }
-            }, [
-              h(DataTable, {
-                key: type.description,
-                entityType: isChooseSetComponents ? setBaseEntityType : rootEntityType,
-                entityMetadata, workspaceId, columnDefaults,
-                selectionModel: {
-                  type: 'multiple',
-                  selected: selectedEntities, setSelected: e => this.setNewSelectionModel({ selectedEntities: e })
-                }
-              })
-            ])
+            })
           ])
+        ]),
+        isSet && div({
+          style: {
+            display: 'flex', flexDirection: 'column',
+            height: 500, marginTop: '1rem'
+          }
+        }, [
+          h(DataTable, {
+            key: type.description,
+            entityType: isChooseSetComponents ? setBaseEntityType : rootEntityType, // rootEntityType : rootEntityType, //
+            entityMetadata, workspaceId, columnDefaults,
+            selectionModel: {
+              type: 'multiple',
+              selected: selectedEntities, setSelected: e => this.setNewSelectionModel({ selectedEntities: e })
+            }
+          })
         ]),
         (isProcessAll ||
           ((isChooseRows || isProcessMergedSet || isChooseSetComponents) && _.size(selectedEntities) > 1)) && h(IdContainer,
