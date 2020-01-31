@@ -45,6 +45,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     if (!processSingle) {
       return Utils.switchCase(type,
         [EntitySelectionType.chooseRows, () => _.keys(selectedEntities)],
+        [EntitySelectionType.chooseSetComponents, () => _.keys(selectedEntities)],
         [EntitySelectionType.processMergedSet, () => _.flow(
           _.flatMap(`attributes.${rootEntityType}s.items`),
           _.map('entityName')

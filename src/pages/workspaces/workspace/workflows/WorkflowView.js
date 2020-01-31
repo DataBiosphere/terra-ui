@@ -306,9 +306,10 @@ class TextCollapse extends Component {
   }
 }
 
-const findNewSets = listOfExistingEntities => {
+const findPossibleSets = listOfExistingEntities => {
   return _.reduce((acc, entityType) => {
-    return _.endsWith('_set', entityType) || _.includes(`${entityType}_set`, listOfExistingEntities) ?
+    // return _.endsWith('_set', entityType) || _.includes(`${entityType}_set`, listOfExistingEntities) ?
+    return _.endsWith('_set', entityType) ?
       acc :
       Utils.append(`${entityType}_set`, acc)
   }, [], listOfExistingEntities)
@@ -582,7 +583,7 @@ const WorkflowView = _.flow(
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
     const entityTypes = _.keys(entityMetadata)
-    const potentialEntityTypes = findNewSets(entityTypes)
+    const possibleSetTypes = findPossibleSets(entityTypes)
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
@@ -703,16 +704,16 @@ const WorkflowView = _.flow(
                   label: 'EXISTING ENTITIES',
                   options: _.map(value => ({ value }), entityTypes)
                 }, {
-                  label: 'POSSIBLE NEW SETS',
-                  options: _.map(value => ({ value }), potentialEntityTypes)
+                  label: 'CREATE NEW SET',
+                  options: _.map(value => ({ value }), possibleSetTypes)
                 }]
               }),
               h(Link, {
-                disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !_.includes(selectedEntityType, [...entityTypes, ...potentialEntityTypes]) || !!Utils.editWorkspaceError(ws),
+                disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
                 tooltip: Utils.editWorkspaceError(ws),
                 onClick: () => this.setState({ selectingData: true }),
                 style: { marginLeft: '1rem' }
-              }, ['Select Data'])
+              }, ['Select Data']) // TODO: find where auto selection is set
             ]),
             div({ style: { marginLeft: '2rem', height: '1.5rem' } }, [`${this.describeSelectionModel()}`])
           ]),

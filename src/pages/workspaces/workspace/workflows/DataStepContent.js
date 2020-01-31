@@ -51,7 +51,8 @@ export default class DataStepContent extends Component {
       (type === processAll && !!newSetName) ||
       (type === chooseRows && !!newSetName && selectionSize > 1) ||
       (type === chooseSets && selectionSize > 1 && selectionSize <= 10) ||
-      (type === processMergedSet && !!newSetName && selectionSize > 1)
+      (type === processMergedSet && !!newSetName && selectionSize > 1) ||
+      (type === chooseSetComponents && !!newSetName && selectionSize > 1)
   }
 
   render() {
@@ -62,11 +63,14 @@ export default class DataStepContent extends Component {
     } = this.props
     const { newSelectionModel, newSelectionModel: { type, selectedEntities, newSetName } } = this.state
 
-    const count = entityMetadata[rootEntityType].count
+    const count = _.includes(rootEntityType, _.keys(entityMetadata)) ? entityMetadata[rootEntityType].count : 0
+    // const count = entityMetadata[rootEntityType].count
 
     const isSet = _.endsWith('_set', rootEntityType)
     const setType = `${rootEntityType}_set`
     const hasSet = _.has(setType, entityMetadata)
+    const hasEntityType = _.has(rootEntityType, entityMetadata)
+    const setBaseEntityType = isSet ? rootEntityType.substring(0, rootEntityType.length-4) : rootEntityType
 
     const isProcessAll = type === processAll
     const isProcessMergedSet = type === processMergedSet
@@ -130,7 +134,7 @@ export default class DataStepContent extends Component {
             })
           ])
         ]),
-        !isProcessAll && div({
+        (!isProcessAll && !isSet) && div({
           style: {
             display: 'flex', flexDirection: 'column',
             height: 500, marginTop: '1rem'
@@ -156,18 +160,33 @@ export default class DataStepContent extends Component {
               labelStyle: { marginLeft: '0.75rem' }
             })
           ]),
-          hasSet && div([
+          hasEntityType && div([
             h(RadioButton, {
               text: 'Choose existing sets',
-              name: 'process-rows',
+              name: 'choose-set-components',
               checked: isProcessMergedSet,
               onChange: () => this.setNewSelectionModel({ type: processMergedSet, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
-            })
+            }), div({
+              style: {
+                display: 'flex', flexDirection: 'column',
+                height: 500, marginTop: '1rem'
+              }
+            }, [
+              h(DataTable, {
+                key: type.description,
+                entityType: isChooseSetComponents ? setBaseEntityType : rootEntityType,
+                entityMetadata, workspaceId, columnDefaults,
+                selectionModel: {
+                  type: 'multiple',
+                  selected: selectedEntities, setSelected: e => this.setNewSelectionModel({ selectedEntities: e })
+                }
+              })
+            ])
           ])
         ]),
         (isProcessAll ||
-          ((isChooseRows || isProcessMergedSet) && _.size(selectedEntities) > 1)) && h(IdContainer,
+          ((isChooseRows || isProcessMergedSet || isChooseSetComponents) && _.size(selectedEntities) > 1)) && h(IdContainer,
           [id => div({ style: { marginTop: '1rem' } }, [
             h(FormLabel, { htmlFor: id }, [`Selected rows will ${isProcessMergedSet ? 'have their membership combined into' : 'be saved as'} a new set named:`]),
             h(ValidatedInput, {
