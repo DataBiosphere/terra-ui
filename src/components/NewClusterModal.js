@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
-import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
+import { b, div, h, image, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
@@ -150,6 +150,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   updateCluster() {
+    console.log('in update cluster')
     const { currentCluster } = this.props
     const { googleProject, clusterName } = currentCluster
 
@@ -166,16 +167,18 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
     ])
 
+    console.log("Current cluster details: ", currentClusterDetails)
+
     this.setState({ leoImages: newLeoImages })
     if (currentClusterDetails) {
       const { clusterImages, jupyterUserScriptUri } = currentClusterDetails
       const { imageUrl } = _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), clusterImages)
       if (_.find({ image: imageUrl }, newLeoImages)) {
-        this.setState({ selectedLeoImage: imageUrl })
+        this.setState({ selectedLeoImage: imageUrl, originalImageUrl: imageUrl })
       } else if (currentClusterDetails.labels.saturnIsProjectSpecific === 'true') {
-        this.setState({ selectedLeoImage: PROJECT_SPECIFIC_MODE, customEnvImage: imageUrl })
+        this.setState({ selectedLeoImage: PROJECT_SPECIFIC_MODE, customEnvImage: imageUrl, originalImageUrl: imageUrl})
       } else {
-        this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl })
+        this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl, originalImageUrl: imageUrl })
       }
       if (jupyterUserScriptUri) {
         this.setState({ jupyterUserScriptUri, profile: 'custom' })
@@ -189,7 +192,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, onDismiss, onSuccess } = this.props
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, originalImageUrl
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
@@ -255,6 +258,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       const currentClusterConfig = currentCluster.machineConfig
       const userSelectedConfig = this.getMachineConfig()
 
+      const hasImageChanged = !_.includes(originalImageUrl, [selectedLeoImage, customEnvImage])
+
       const workersCantUpdate = currentClusterConfig.numberOfWorkers != userSelectedConfig.numberOfWorkers &&
         (currentClusterConfig.numberOfWorkers < 2 || userSelectedConfig.numberOfWorkers < 2)
 
@@ -265,11 +270,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
       const hasWorkers = currentClusterConfig.numberOfWorkers >= 2 || currentClusterConfig.numberOfPreemptibleWorkers >= 2
 
-      const workersResourceChanged = hasWorkers && hasUnUpdateableResourceChanged
+      const hasWorkersResourceChanged = hasWorkers && hasUnUpdateableResourceChanged
 
       const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
 
-      const cantUpdate = workersCantUpdate || workersResourceChanged || hasDiskSizeDecreased
+      const cantUpdate = workersCantUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || hasImageChanged
       return !cantUpdate
     }
 

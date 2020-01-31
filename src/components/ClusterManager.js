@@ -184,7 +184,7 @@ export default class ClusterManager extends PureComponent {
     } else if (cluster.status === 'Running' && prevCluster.status === 'Updating') {
       notify('success', 'Your runtime update has completed successfully.', { timeout: 3000 })
     }
-   }
+  }
 
   getActiveClustersOldestFirst() {
     const { clusters } = this.props
