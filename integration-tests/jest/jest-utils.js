@@ -1,7 +1,6 @@
 const { screenshotDir } = require('../utils/integration-config')
+const { defaultTimeout } = require('../utils/integration-helpers')
 
-
-const defaultTimeout = 5 * 60 * 1000
 
 const withGlobalJestPuppeteerContext = fn => () => fn({ context, page })
 

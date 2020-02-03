@@ -3,6 +3,8 @@ const { delay, signIntoTerra } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 
 
+const defaultTimeout = 5 * 60 * 1000
+
 const makeWorkspace = async ({ context }) => {
   const ajaxPage = await context.newPage()
 
@@ -74,6 +76,7 @@ const withUser = test => async args => {
 
 module.exports = {
   createEntityInWorkspace,
+  defaultTimeout,
   withUser,
   withWorkspace
 }
