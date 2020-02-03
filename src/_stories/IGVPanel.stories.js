@@ -4,7 +4,7 @@ import { storiesOf } from '@storybook/react'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { IGVFileSelector } from 'src/components/IGVFileSelector'
+import IGVFileSelector from 'src/components/IGVFileSelector'
 
 
 const DEFAULT_ENTITIES = 3
@@ -13,8 +13,9 @@ const withUniqueEntities = numElements => {
   return _.times(iteration => {
     const bamName = 'gs://cancer-exome-pipeline-demo-data/HCC1143.100_gene_250bp_pad'
     const bam = `${bamName}-${iteration}.bam`
+    const bai = `${bamName}-${iteration}.bai`
     return {
-      attributes: { bam }
+      attributes: { bam, bai }
     }
   }, numElements)
 }
