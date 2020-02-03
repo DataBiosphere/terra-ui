@@ -332,7 +332,7 @@ const WorkflowView = _.flow(
   }),
   ajaxCaller
 )(class WorkflowView extends Component {
-  resetSelectionModel(value, selectedEntities = {}) {
+  resetSelectionModel(value, selectedEntities = {}, isNew) {
     return {
       type: Utils.cond(
         [_.endsWith('_set', value), () => EntitySelectionType.chooseSetComponents], // [_.endsWith('_set', value), () => EntitySelectionType.chooseSets],
@@ -540,14 +540,14 @@ const WorkflowView = _.flow(
     const { modifiedConfig: { rootEntityType }, entityMetadata, entitySelectionModel: { newSetName, selectedEntities, type } } = this.state
     const count = _.size(selectedEntities)
     // const newSetMessage = (type === EntitySelectionType.processAll || count > 1) ? `(will create a new set named "${newSetName}")` : ''
-    const newSetMessage = (type === EntitySelectionType.processAll || type === EntitySelectionType.chooseSetComponents || count > 1) ? `(will create a new set named "${newSetName}")` : ''
+    const newSetMessage = (type === EntitySelectionType.processAll || (type === EntitySelectionType.chooseSetComponents && count > 0) || count > 1) ? `(will create a new set named "${newSetName}")` : ''
     return Utils.cond(
       [this.isSingle() || !rootEntityType, ''],
       [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType] ? entityMetadata[rootEntityType].count : 0}
         ${rootEntityType}s ${newSetMessage}`],
       [type === EntitySelectionType.processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
       [type === EntitySelectionType.chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
-      [type === EntitySelectionType.chooseSetComponents, () => `${count} selected ${rootEntityType}s ${newSetMessage}`], // this is wrong TODO fix it
+      [type === EntitySelectionType.chooseSetComponents, () => `${count} selected ${rootEntityType.slice(0, -4)}s ${newSetMessage}`], // this is wrong TODO fix it
       [type === EntitySelectionType.chooseSets, () => `${count} selected ${rootEntityType}s`]
     )
   }
@@ -586,12 +586,13 @@ const WorkflowView = _.flow(
     const entityTypes = _.keys(entityMetadata)
     const possibleSetTypes = findPossibleSets(entityTypes)
     const modified = !_.isEqual(modifiedConfig, savedConfig)
+    // const count = _.size(entitySelectionModel.selectedEntities)
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
-      [this.isMultiple() && !entityMetadata[rootEntityType], () => `There are no ${selectedEntityType}s in this workspace.`],
-      [this.isMultiple() && entitySelectionModel.type === EntitySelectionType.chooseSets && !_.size(entitySelectionModel.selectedEntities),
-        () => 'Select a set']
+      // [this.isMultiple() && !entityMetadata[rootEntityType], () => `There are no ${selectedEntityType}s in this workspace.`], // TODO: how do we handle this?
+      [this.isMultiple() && (entitySelectionModel.type === EntitySelectionType.chooseSets || entitySelectionModel.type === EntitySelectionType.chooseSetComponents) && !_.size(entitySelectionModel.selectedEntities),
+        () => 'Select or create a set']
     )
 
     const inputsValid = _.isEmpty(errors.inputs)
@@ -672,7 +673,7 @@ const WorkflowView = _.flow(
             div([
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
-                text: 'Process single workflow from files',
+                text: 'Run workflow with inputs defined by file paths',
                 name: 'process-workflows',
                 checked: this.isSingle(),
                 onChange: () => this.selectSingle(),
@@ -682,7 +683,7 @@ const WorkflowView = _.flow(
             div([
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
-                text: `Process workflow(s) via data model:`,
+                text: `Run workflow(s) with inputs defined by:`,
                 name: 'process-workflows',
                 checked: this.isMultiple(),
                 onChange: () => this.selectMultiple(),
@@ -699,14 +700,15 @@ const WorkflowView = _.flow(
                 value: selectedEntityType,
                 onChange: selection => {
                   const value = this.updateEntityType(selection)
-                  this.setState({ entitySelectionModel: this.resetSelectionModel(value) })
+                  this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}, selection.isNew) })
+                  selection.isNew && this.setState({ selectingData: true })
                 },
                 options: [{
-                  label: 'EXISTING ENTITIES',
+                  label: 'CHOOSE EXISTING',
                   options: _.map(value => ({ value }), entityTypes)
                 }, {
-                  label: 'CREATE NEW SET',
-                  options: _.map(value => ({ value }), possibleSetTypes)
+                  label: 'CREATE NEW',
+                  options: _.map(value => ({ value, isNew: true }), possibleSetTypes)
                 }]
               }),
               h(Link, {
@@ -714,7 +716,7 @@ const WorkflowView = _.flow(
                 tooltip: Utils.editWorkspaceError(ws),
                 onClick: () => this.setState({ selectingData: true }),
                 style: { marginLeft: '1rem' }
-              }, ['Select Data']) // TODO: find where auto selection is set
+              }, ['Select Data'])
             ]),
             div({ style: { marginLeft: '2rem', height: '1.5rem' } }, [`${this.describeSelectionModel()}`])
           ]),

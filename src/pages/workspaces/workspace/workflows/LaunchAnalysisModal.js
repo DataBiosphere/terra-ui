@@ -62,6 +62,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     const entityCount = Utils.cond(
       [processSingle, () => 1],
       [type === EntitySelectionType.processAll, () => entityMetadata[rootEntityType].count],
+      [type === EntitySelectionType.chooseSetComponents, () => 1], // TODO: can we handle this better?
       [_.isArray(entities), () => _.uniq(entities).length],
       () => _.size(entities)
     )
@@ -135,6 +136,8 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       }
     } else if (type === EntitySelectionType.processMergedSet) {
       this.createSetAndLaunch(entities)
+    } else if (type === EntitySelectionType.chooseSetComponents) {
+      this.createSetAndLaunchOne(entities)
     } else if (type === EntitySelectionType.chooseSets) {
       if (_.size(entities) === 1) {
         this.launch(rootEntityType, _.values(entities)[0].name)
@@ -159,6 +162,23 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     }
 
     await this.launch(`${rootEntityType}_set`, newSetName, `this.${rootEntityType}s`)
+  }
+
+  async createSetAndLaunchOne(entities) {
+    const {
+      workspaceId,
+      entitySelectionModel: { newSetName },
+      config: { rootEntityType }
+    } = this.props
+
+    try {
+      await createEntitySet({ entities, rootEntityType: rootEntityType.slice(0, -4), newSetName, workspaceId })
+    } catch (error) {
+      this.setState({ launchError: await error.text(), message: undefined })
+      return
+    }
+
+    await this.launch(rootEntityType, newSetName)
   }
 
   baseLaunch(entityType, entityName, expression) {

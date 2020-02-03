@@ -70,7 +70,7 @@ export default class DataStepContent extends Component {
     const setType = `${rootEntityType}_set`
     const hasSet = _.has(setType, entityMetadata)
     const hasEntityType = _.has(rootEntityType, entityMetadata)
-    const setBaseEntityType = isSet ? rootEntityType.substring(0, rootEntityType.length-4) : rootEntityType
+    const setBaseEntityType = isSet ? rootEntityType.slice(0, -4) : rootEntityType
 
     const isProcessAll = type === processAll
     const isProcessMergedSet = type === processMergedSet
@@ -164,7 +164,7 @@ export default class DataStepContent extends Component {
             h(RadioButton, {
               text: 'Choose existing sets',
               name: 'choose-set-components',
-              checked: isChooseRows,
+              checked: isChooseRows, //isChooseSets, // TODO: prevent sets of sets
               onChange: () => this.setNewSelectionModel({ type: chooseRows, selectedEntities: {} }),
               labelStyle: { marginLeft: '0.75rem' }
             })
