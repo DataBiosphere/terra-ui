@@ -7,7 +7,7 @@ const { click, clickable, findElement, input, signIntoTerra, waitForNoSpinners, 
 const testEntity = { name: 'test_entity_1', entityType: 'test_entity', attributes: { input: 'foo' } }
 const findWorkflowButton = clickable({ textContains: 'Find a Workflow' })
 
-test('run workflow', withWorkspace(async ({ workspaceName }) => {
+const testRunWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
   await page.goto(testUrl)
   await signIntoTerra(page)
 
@@ -53,4 +53,12 @@ test('run workflow', withWorkspace(async ({ workspaceName }) => {
   await click(page, navChild('data'))
   await click(page, clickable({ textContains: 'test_entity' }))
   await findInDataTableRow(page, testEntity.name, testEntity.attributes.input)
-}), 10 * 60 * 1000)
+})
+
+const testRunWorkflow = {
+  name: 'run workflow',
+  fn: testRunWorkflowFn,
+  timeout: 10 * 60 * 1000
+}
+
+module.exports = { testRunWorkflow }

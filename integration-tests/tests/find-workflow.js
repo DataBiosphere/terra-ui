@@ -4,7 +4,7 @@ const { withWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, findElement, findText, signIntoTerra } = require('../utils/integration-utils')
 
 
-test('find workflow', withWorkspace(async ({ workspaceName }) => {
+const testFindWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
   await page.goto(testUrl)
   await signIntoTerra(page)
   await click(page, clickable({ textContains: 'View Examples' }))
@@ -43,4 +43,11 @@ test('find workflow', withWorkspace(async ({ workspaceName }) => {
   await signIntoTerra(page)
   await findText(page, `${workflowName}-configured`)
   await findText(page, 'inputs')
-}), 5 * 60 * 1000)
+})
+
+const testFindWorkflow = {
+  name: 'find workflow',
+  fn: testFindWorkflowFn
+}
+
+module.exports = { testFindWorkflow }
