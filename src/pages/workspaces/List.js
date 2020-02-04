@@ -309,6 +309,7 @@ export const WorkspaceList = () => {
             value: _.map(tag => ({ label: tag, value: tag }), tagsFilter),
             placeholder: 'Tags',
             'aria-label': 'Filter by tags',
+            'aria-selected': 'true',
             onChange: data => setTagsFilter(_.map('value', data))
           })
         ]),
@@ -319,6 +320,7 @@ export const WorkspaceList = () => {
             isSearchable: false,
             placeholder: 'Access levels',
             'aria-label': 'Filter by access levels',
+            'aria-selected': 'true',
             value: accessLevelsFilter,
             onChange: data => setAccessLevelsFilter(_.map('value', data)),
             options: Utils.workspaceAccessLevels,
@@ -331,6 +333,7 @@ export const WorkspaceList = () => {
             isMulti: false,
             placeholder: 'Billing project',
             'aria-label': 'Filter by billing project',
+            'aria-selected': 'true',
             value: projectsFilter,
             hideSelectedOptions: true,
             onChange: data => setProjectsFilter(!!data ? data.value : undefined),
@@ -348,6 +351,7 @@ export const WorkspaceList = () => {
             isSearchable: false,
             placeholder: 'Submission status',
             'aria-label': 'Filter by submission status',
+            'aria-selected': 'true',
             value: submissionsFilter,
             hideSelectedOptions: true,
             onChange: data => setSubmissionsFilter(_.map('value', data)),
