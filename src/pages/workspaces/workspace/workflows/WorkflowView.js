@@ -586,7 +586,7 @@ const WorkflowView = _.flow(
     const entityTypes = _.keys(entityMetadata)
     const possibleSetTypes = findPossibleSets(entityTypes)
     const modified = !_.isEqual(modifiedConfig, savedConfig)
-    // const count = _.size(entitySelectionModel.selectedEntities)
+    const count = _.size(entitySelectionModel.selectedEntities)
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
@@ -696,15 +696,14 @@ const WorkflowView = _.flow(
                 isSearchable: false,
                 placeholder: 'Select data type...',
                 styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
-                // getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
                 value: selectedEntityType,
                 onChange: selection => {
                   const value = this.updateEntityType(selection)
                   this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}, selection.isNew) })
                   selection.isNew && this.setState({ selectingData: true })
                 },
-                options: [..._.map(value => ({ label: Utils.normalizeLabel(value), value }), entityTypes),
-                  ..._.map(value => ({ label: div({ style: { fontStyle: 'italic' } }, [`${Utils.normalizeLabel(value)} (new)`]), value, isNew: true }), possibleSetTypes)]
+                options: [..._.map(value => ({ value }), entityTypes),
+                  ..._.map(value => ({ label: selectedEntityType === value ? value : div({ style: { fontStyle: 'italic' } }, [`${value} (new)`]), value, isNew: true }), possibleSetTypes)]
               }),
               h(Link, {
                 disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
@@ -786,6 +785,10 @@ const WorkflowView = _.flow(
         entitySelectionModel,
         onDismiss: () => {
           this.setState({ selectingData: false })
+          if (_.includes(modifiedConfig.rootEntityType, possibleSetTypes) && count === 0) {
+            this.setState({ selectedEntityType: savedConfig.rootEntityType })
+            this.setState(_.set(['modifiedConfig', 'rootEntityType'], savedConfig.rootEntityType))
+          }
         },
         onSuccess: model => this.setState({ entitySelectionModel: model, selectingData: false }),
         workspace,
