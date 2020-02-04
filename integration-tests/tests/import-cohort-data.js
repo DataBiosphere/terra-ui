@@ -1,11 +1,12 @@
-const { testUrl } = require('../utils/integration-config')
 const { withWorkspace } = require('../utils/integration-helpers')
 const { findInGrid, click, clickable, fillIn, findIframe, input, signIntoTerra, select, svgText, waitForNoSpinners, findElement } = require('../utils/integration-utils')
 
 
 const cohortName = `terra-ui-test-cohort`
 
-const testImportCohortDataFn = withWorkspace(async ({ page, workspaceName }) => {
+const testImportCohortDataFn = withWorkspace(async ({ config, page, workspaceName }) => {
+  const { testUrl } = config
+
   await page.goto(testUrl)
   await signIntoTerra(page)
   await click(page, clickable({ textContains: 'Browse Data' }))

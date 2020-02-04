@@ -1,11 +1,11 @@
-const { billingProject, testUrl } = require('./integration-config')
 const { delay, signIntoTerra } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 
 
 const defaultTimeout = 5 * 60 * 1000
 
-const makeWorkspace = async ({ context }) => {
+const makeWorkspace = async ({ config, context }) => {
+  const { billingProject, testUrl } = config
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
@@ -26,7 +26,8 @@ const makeWorkspace = async ({ context }) => {
   return workspaceName
 }
 
-const deleteWorkspace = async ({ context, workspaceName }) => {
+const deleteWorkspace = async ({ config, context, workspaceName }) => {
+  const { billingProject, testUrl } = config
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
@@ -41,13 +42,13 @@ const deleteWorkspace = async ({ context, workspaceName }) => {
   await ajaxPage.close()
 }
 
-const withWorkspace = test => async ({ context, ...args }) => {
-  const workspaceName = await makeWorkspace({ context })
+const withWorkspace = testFn => async options => {
+  const workspaceName = await makeWorkspace(options)
 
   try {
-    await test({ context, ...args, workspaceName })
+    await testFn({ ...options, workspaceName })
   } finally {
-    await deleteWorkspace({ context, workspaceName })
+    await deleteWorkspace({ ...options, workspaceName })
   }
 }
 
@@ -64,11 +65,11 @@ const makeUser = async () => {
   return { email, token }
 }
 
-const withUser = test => async args => {
+const withUser = test => async options => {
   const { email, token } = await makeUser()
 
   try {
-    await test({ ...args, email, token })
+    await test({ ...options, email, token })
   } finally {
     await fetchLyle('delete', email)
   }

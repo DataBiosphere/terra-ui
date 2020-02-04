@@ -1,14 +1,14 @@
 const fetch = require('node-fetch')
-const { testUrl } = require('../utils/integration-config')
 const { withWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, findText, select, signIntoTerra } = require('../utils/integration-utils')
 
 
 const testWorkflowIdentifier = 'github.com/DataBiosphere/topmed-workflows/UM_variant_caller_wdl:1.32.0'
 
-const testImportDockstoreWorkflowFn = async ({ context, page }) => {
-  const { dockstoreUrlRoot } = await fetch(`${testUrl}/config.json`).then(res => res.json())
+const testImportDockstoreWorkflowFn = async options => {
+  const { config: { testUrl }, page } = options
 
+  const { dockstoreUrlRoot } = await fetch(`${testUrl}/config.json`).then(res => res.json())
   if (await fetch(`${dockstoreUrlRoot}/api/api/ga4gh/v1/metadata`).then(res => res.status !== 200)) {
     console.error('Skipping dockstore test, API appears to be down')
   } else {
@@ -19,7 +19,7 @@ const testImportDockstoreWorkflowFn = async ({ context, page }) => {
       await select(page, 'Select a workspace', workspaceName)
       await click(page, clickable({ text: 'Import' }))
       await findText(page, testWorkflowIdentifier)
-    })({ context })
+    })(options)
   }
 }
 
