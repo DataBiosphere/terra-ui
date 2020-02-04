@@ -6,7 +6,7 @@ import { b, div, h, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  ButtonPrimary, ButtonSecondary, Clickable, GroupedSelect, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton,
+  ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton,
   Select,
   spinnerOverlay
 } from 'src/components/common'
@@ -308,8 +308,8 @@ class TextCollapse extends Component {
 
 const findPossibleSets = listOfExistingEntities => {
   return _.reduce((acc, entityType) => {
-    // return _.endsWith('_set', entityType) || _.includes(`${entityType}_set`, listOfExistingEntities) ?
-    return _.endsWith('_set', entityType) ?
+    return _.endsWith('_set', entityType) || _.includes(`${entityType}_set`, listOfExistingEntities) ?
+    // return _.endsWith('_set', entityType) ?
       acc :
       Utils.append(`${entityType}_set`, acc)
   }, [], listOfExistingEntities)
@@ -689,27 +689,22 @@ const WorkflowView = _.flow(
                 onChange: () => this.selectMultiple(),
                 labelStyle: { marginLeft: '0.5rem' }
               }),
-              h(GroupedSelect, {
+              h(Select, {
                 'aria-label': 'Entity type selector',
                 isClearable: false,
                 isDisabled: currentSnapRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws),
                 isSearchable: false,
                 placeholder: 'Select data type...',
                 styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
-                getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
+                // getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
                 value: selectedEntityType,
                 onChange: selection => {
                   const value = this.updateEntityType(selection)
                   this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}, selection.isNew) })
                   selection.isNew && this.setState({ selectingData: true })
                 },
-                options: [{
-                  label: 'CHOOSE EXISTING',
-                  options: _.map(value => ({ value }), entityTypes)
-                }, {
-                  label: 'CREATE NEW',
-                  options: _.map(value => ({ value, isNew: true }), possibleSetTypes)
-                }]
+                options: [..._.map(value => ({ label: Utils.normalizeLabel(value), value }), entityTypes),
+                  ..._.map(value => ({ label: div({ style: { fontStyle: 'italic' } }, [`${Utils.normalizeLabel(value)} (new)`]), value, isNew: true }), possibleSetTypes)]
               }),
               h(Link, {
                 disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),

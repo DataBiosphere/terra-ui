@@ -98,43 +98,61 @@ export default class DataStepContent extends Component {
       onDismiss,
       width: 'calc(100% - 2rem)'
     }, [
-      div({ style: { ...Style.elements.sectionHeader, marginBottom: '1rem' } },
-        [`Select ${(isSet ? 'up to 10 ' : '') + rootEntityType}s to process${isSet ? ' in parallel' : ''}`]),
       div({
         style: {
           padding: '1rem 0.5rem', lineHeight: '1.5rem'
         }
       }, [
-        !isSet && h(div, { role: 'radiogroup', 'aria-label': 'Select entities' }, [
-          div([
-            h(RadioButton, {
-              text: `Process all ${count} rows`,
-              name: 'process-rows',
-              checked: isProcessAll,
-              onChange: () => this.setNewSelectionModel({ type: processAll, selectedEntities: {} }),
-              labelStyle: { marginLeft: '0.75rem' }
-            })
+        div({ role: 'radiogroup', 'aria-label': 'Select entities' }, isSet ?
+          [
+            div([
+              h(RadioButton, {
+                text: `Create a new set from ${setBaseEntityType}s`,
+                name: 'choose-set-components',
+                checked: isChooseSetComponents,
+                onChange: () => this.setNewSelectionModel({ type: chooseSetComponents, selectedEntities: {} }),
+                labelStyle: { marginLeft: '0.75rem' }
+              })
+            ]),
+            hasEntityType && div([
+              h(RadioButton, {
+                text: 'Choose existing sets',
+                name: 'choose-set-components',
+                checked: isChooseSets,
+                onChange: () => this.setNewSelectionModel({ type: chooseSets, selectedEntities: {} }),
+                labelStyle: { marginLeft: '0.75rem' }
+              })
+            ])
+          ] : [
+            div([
+              h(RadioButton, {
+                text: `Process all ${count} rows`,
+                name: 'process-rows',
+                checked: isProcessAll,
+                onChange: () => this.setNewSelectionModel({ type: processAll, selectedEntities: {} }),
+                labelStyle: { marginLeft: '0.75rem' }
+              })
+            ]),
+            div([
+              h(RadioButton, {
+                text: 'Choose specific rows to process',
+                name: 'process-rows',
+                checked: isChooseRows,
+                onChange: () => this.setNewSelectionModel({ type: chooseRows, selectedEntities: {} }),
+                labelStyle: { marginLeft: '0.75rem' }
+              })
+            ]),
+            hasSet && div([
+              h(RadioButton, {
+                text: 'Choose existing sets',
+                name: 'process-rows',
+                checked: isProcessMergedSet,
+                onChange: () => this.setNewSelectionModel({ type: processMergedSet, selectedEntities: {} }),
+                labelStyle: { marginLeft: '0.75rem' }
+              })
+            ])
           ]),
-          div([
-            h(RadioButton, {
-              text: 'Choose specific rows to process',
-              name: 'process-rows',
-              checked: isChooseRows,
-              onChange: () => this.setNewSelectionModel({ type: chooseRows, selectedEntities: {} }),
-              labelStyle: { marginLeft: '0.75rem' }
-            })
-          ]),
-          hasSet && div([
-            h(RadioButton, {
-              text: 'Choose existing sets',
-              name: 'process-rows',
-              checked: isProcessMergedSet,
-              onChange: () => this.setNewSelectionModel({ type: processMergedSet, selectedEntities: {} }),
-              labelStyle: { marginLeft: '0.75rem' }
-            })
-          ])
-        ]),
-        (!isProcessAll && !isSet) && div({
+        !isProcessAll && div({
           style: {
             display: 'flex', flexDirection: 'column',
             height: 500, marginTop: '1rem'
@@ -142,43 +160,15 @@ export default class DataStepContent extends Component {
         }, [
           h(DataTable, {
             key: type.description,
-            entityType: isProcessMergedSet ? setType : rootEntityType,
-            entityMetadata, workspaceId, columnDefaults,
-            selectionModel: {
-              type: 'multiple',
-              selected: selectedEntities, setSelected: e => this.setNewSelectionModel({ selectedEntities: e })
-            }
-          })
-        ]),
-        isSet && h(div, { role: 'radiogroup', 'aria-label': 'Select entities' }, [
-          div([
-            h(RadioButton, {
-              text: `Create a new set from ${setBaseEntityType}s`,
-              name: 'choose-set-components',
-              checked: isChooseSetComponents,
-              onChange: () => this.setNewSelectionModel({ type: chooseSetComponents, selectedEntities: {} }),
-              labelStyle: { marginLeft: '0.75rem' }
-            })
-          ]),
-          hasEntityType && div([
-            h(RadioButton, {
-              text: 'Choose existing sets',
-              name: 'choose-set-components',
-              checked: isChooseRows, //isChooseSets, // TODO: prevent sets of sets
-              onChange: () => this.setNewSelectionModel({ type: chooseRows, selectedEntities: {} }),
-              labelStyle: { marginLeft: '0.75rem' }
-            })
-          ])
-        ]),
-        isSet && div({
-          style: {
-            display: 'flex', flexDirection: 'column',
-            height: 500, marginTop: '1rem'
-          }
-        }, [
-          h(DataTable, {
-            key: type.description,
-            entityType: isChooseSetComponents ? setBaseEntityType : rootEntityType, // rootEntityType : rootEntityType, //
+            childrenBefore: () => div({ style: Style.elements.sectionHeader }, [
+              Utils.cond(
+                [isProcessMergedSet, () => 'Select one or more sets to combine and process'],
+                [isChooseRows, () => `Select ${rootEntityType}s to process`],
+                [isChooseSetComponents, () => `Select ${rootEntityType.slice(0, -4)}s to create a new set to process`],
+                [isChooseSets, () => `Select up to 10 ${rootEntityType}s to process in parallel`]
+              )
+            ]),
+            entityType: isChooseSetComponents ? setBaseEntityType : isProcessMergedSet ? setType : rootEntityType,
             entityMetadata, workspaceId, columnDefaults,
             selectionModel: {
               type: 'multiple',
