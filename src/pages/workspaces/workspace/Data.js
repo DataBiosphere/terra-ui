@@ -520,8 +520,9 @@ const ToolDrawer = _.flow(
               onClick: () => setToolMode('Notebook'),
               disabled: !notebookButtonEnabled,
               tooltip: Utils.cond(
+                [!entityMetadata.cohort, () => 'Unable to open with notebooks. See the "Making custom cohorts with Data Explorer" help article for more details.'],
                 [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in notebook'],
-                [!isCohort || !entityMetadata.cohort, () => 'Only cohorts can be opened with notebooks'],
+                [!isCohort, () => 'Only cohorts can be opened with notebooks'],
                 [notebookButtonEnabled, () => 'Create a Python 2 or 3 notebook with this cohort']
               ),
               icon: jupyterLogo,
