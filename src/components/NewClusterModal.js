@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
-import { b, div, h, image, label, p, span } from 'react-hyperscript-helpers'
+import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
@@ -155,7 +155,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { googleProject, clusterName } = currentCluster
 
     return Ajax().Clusters.cluster(googleProject, clusterName).update({
-        machineConfig: this.getMachineConfig()
+      machineConfig: this.getMachineConfig()
     })
   }
 
@@ -167,7 +167,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
     ])
 
-    console.log("Current cluster details: ", currentClusterDetails)
+    console.log('Current cluster details: ', currentClusterDetails)
 
     this.setState({ leoImages: newLeoImages })
     if (currentClusterDetails) {
@@ -176,12 +176,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl, originalImageUrl: imageUrl })
       } else if (currentClusterDetails.labels.saturnIsProjectSpecific === 'true') {
-        this.setState({ selectedLeoImage: PROJECT_SPECIFIC_MODE, customEnvImage: imageUrl, originalImageUrl: imageUrl})
+        this.setState({ selectedLeoImage: PROJECT_SPECIFIC_MODE, customEnvImage: imageUrl, originalImageUrl: imageUrl })
       } else {
         this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl, originalImageUrl: imageUrl })
       }
       if (jupyterUserScriptUri) {
-        this.setState({ jupyterUserScriptUri, profile: 'custom', originalJupyterUserScriptUri: jupyterUserScriptUri  })
+        this.setState({ jupyterUserScriptUri, profile: 'custom', originalJupyterUserScriptUri: jupyterUserScriptUri })
       }
     } else {
       this.setState({ selectedLeoImage: _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image })
@@ -258,17 +258,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       const currentClusterConfig = currentCluster.machineConfig
       const userSelectedConfig = this.getMachineConfig()
 
-      const hasStartupScriptChanged = jupyterUserScriptUri != originalStartupScript
+      const hasStartupScriptChanged = jupyterUserScriptUri !== originalStartupScript
 
       const hasImageChanged = !_.includes(originalImageUrl, [selectedLeoImage, customEnvImage])
 
-      const workersCantUpdate = currentClusterConfig.numberOfWorkers != userSelectedConfig.numberOfWorkers &&
+      const workersCantUpdate = currentClusterConfig.numberOfWorkers !== userSelectedConfig.numberOfWorkers &&
         (currentClusterConfig.numberOfWorkers < 2 || userSelectedConfig.numberOfWorkers < 2)
 
       const hasUnUpdateableResourceChanged =
-        currentClusterConfig.workerDiskSize != userSelectedConfig.workerDiskSize ||
-        currentClusterConfig.workerMachineType != userSelectedConfig.workerMachineType ||
-        currentClusterConfig.numberOfWorkerLocalSSDs != userSelectedConfig.numberOfWorkerLocalSSDs
+        currentClusterConfig.workerDiskSize !== userSelectedConfig.workerDiskSize ||
+        currentClusterConfig.workerMachineType !== userSelectedConfig.workerMachineType ||
+        currentClusterConfig.numberOfWorkerLocalSSDs !== userSelectedConfig.numberOfWorkerLocalSSDs
 
       const hasWorkers = currentClusterConfig.numberOfWorkers >= 2 || currentClusterConfig.numberOfPreemptibleWorkers >= 2
 
@@ -285,14 +285,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       const currentClusterConfig = currentCluster.machineConfig
       const userSelectedConfig = this.getMachineConfig()
 
-      const isMasterMachineTypeChanged = currentClusterConfig.masterMachineType != userSelectedConfig.masterMachineType
+      const isMasterMachineTypeChanged = currentClusterConfig.masterMachineType !== userSelectedConfig.masterMachineType
 
-      const isClusterRunning = currentCluster.status == 'Running'
+      const isClusterRunning = currentCluster.status === 'Running'
 
       return canUpdate() && isMasterMachineTypeChanged && isClusterRunning
     }
 
-    const getUpdateOrReplace = () => canUpdate() ? "Update" : "Replace"
+    const getUpdateOrReplace = () => canUpdate() ? 'Update' : 'Replace'
 
     const machineConfig = () => h(Fragment, [
       div({
@@ -460,13 +460,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(ButtonPrimary, { onClick: () => this.createCluster() }, ['REPLACE'])
         ])
       ])],
-      [ 'update', () => h(Fragment, [
+      ['update', () => h(Fragment, [
         isStopRequired()
           ? p(['Changing the machine type (increasing or decreasing the # of CPUs or Mem) results in an update that requires a ',
             b(['restart']),
             ' of your runtime. This may take a few minutes.  Would you like to proceed? ',
-            b(['(You will not lose any files.)'])
-          ])
+            b(['(You will not lose any files.)'])])
           : p(['Increasing the disk size or changing the number of workers (when the number of workers is >2) results in a real-time update to your runtime. ',
             'During this update, you can continue to work']),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
