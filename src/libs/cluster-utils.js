@@ -6,6 +6,8 @@ import { machineTypes, storagePrice } from 'src/data/clusters'
 import * as Utils from 'src/libs/utils'
 
 
+export const usableStatuses = ['Updating','Running']
+
 export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
   return {
     masterMachineType: masterMachineType || 'n1-standard-4',
