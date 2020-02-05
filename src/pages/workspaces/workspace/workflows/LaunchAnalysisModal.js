@@ -62,7 +62,8 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     const entityCount = Utils.cond(
       [processSingle, () => 1],
       [type === EntitySelectionType.processAll, () => entityMetadata[rootEntityType].count],
-      [type === EntitySelectionType.chooseSetComponents, () => 1], // TODO: can we handle this better?
+      [type === EntitySelectionType.processAllSetComponents, () => 1],
+      [type === EntitySelectionType.chooseSetComponents, () => 1],
       [_.isArray(entities), () => _.uniq(entities).length],
       () => _.size(entities)
     )
@@ -138,6 +139,10 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       this.createSetAndLaunch(entities)
     } else if (type === EntitySelectionType.chooseSetComponents) {
       this.createSetAndLaunchOne(entities)
+    } else if (type === EntitySelectionType.processAllSetComponents) {
+      const baseEntityType = rootEntityType.slice(0, -4)
+      const allBaseEntities = _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(baseEntityType))
+      this.createSetAndLaunchOne(allBaseEntities)
     } else if (type === EntitySelectionType.chooseSets) {
       if (_.size(entities) === 1) {
         this.launch(rootEntityType, _.values(entities)[0].name)

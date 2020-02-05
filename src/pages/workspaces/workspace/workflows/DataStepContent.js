@@ -13,7 +13,7 @@ import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/Entity
 import validate from 'validate.js'
 
 
-const { processAll, processMergedSet, chooseRows, chooseSets, chooseSetComponents } = EntitySelectionType
+const { processAll, processMergedSet, chooseRows, chooseSets, chooseSetComponents, processAllSetComponents } = EntitySelectionType
 
 export default class DataStepContent extends Component {
   static propTypes = {
@@ -52,7 +52,8 @@ export default class DataStepContent extends Component {
       (type === chooseRows && !!newSetName && selectionSize > 1) ||
       (type === chooseSets && selectionSize > 1 && selectionSize <= 10) ||
       (type === processMergedSet && !!newSetName && selectionSize > 1) ||
-      (type === chooseSetComponents && selectionSize > 1)
+      (type === chooseSetComponents && selectionSize > 1) ||
+      (type === processAllSetComponents && !!newSetName)
   }
 
   render() {
@@ -63,20 +64,22 @@ export default class DataStepContent extends Component {
     } = this.props
     const { newSelectionModel, newSelectionModel: { type, selectedEntities, newSetName } } = this.state
 
-    const count = _.includes(rootEntityType, _.keys(entityMetadata)) ? entityMetadata[rootEntityType].count : 0
-    // const count = entityMetadata[rootEntityType].count
+    const rootEntityTypeCount = _.includes(rootEntityType, _.keys(entityMetadata)) ? entityMetadata[rootEntityType].count : 0
 
     const isSet = _.endsWith('_set', rootEntityType)
     const setType = `${rootEntityType}_set`
     const hasSet = _.has(setType, entityMetadata)
     const hasEntityType = _.has(rootEntityType, entityMetadata)
-    const setBaseEntityType = isSet ? rootEntityType.slice(0, -4) : rootEntityType
+    const baseEntityType = isSet ? rootEntityType.slice(0, -4) : rootEntityType
+
+    const baseEntityTypeCount = _.includes(baseEntityType, _.keys(entityMetadata)) ? entityMetadata[baseEntityType].count : 0
 
     const isProcessAll = type === processAll
     const isProcessMergedSet = type === processMergedSet
     const isChooseRows = type === chooseRows
     const isChooseSets = type === chooseSets
     const isChooseSetComponents = type === chooseSetComponents
+    const isProcessAllSetComponents = type === processAllSetComponents
 
     const errors = validate({ newSetName }, {
       newSetName: {
@@ -107,10 +110,19 @@ export default class DataStepContent extends Component {
           [
             div([
               h(RadioButton, {
-                text: `Create a new set from ${setBaseEntityType}s`,
+                text: `Create a new set from selected ${baseEntityType}s`,
                 name: 'choose-set-components',
                 checked: isChooseSetComponents,
                 onChange: () => this.setNewSelectionModel({ type: chooseSetComponents, selectedEntities: {} }),
+                labelStyle: { marginLeft: '0.75rem' }
+              })
+            ]),
+            div([
+              h(RadioButton, {
+                text: `Create a new set from all ${baseEntityTypeCount} ${baseEntityType}s`,
+                name: 'choose-set-components',
+                checked: isProcessAllSetComponents,
+                onChange: () => this.setNewSelectionModel({ type: processAllSetComponents, selectedEntities: {} }),
                 labelStyle: { marginLeft: '0.75rem' }
               })
             ]),
@@ -126,7 +138,7 @@ export default class DataStepContent extends Component {
           ] : [
             div([
               h(RadioButton, {
-                text: `Process all ${count} rows`,
+                text: `Process all ${rootEntityTypeCount} rows`,
                 name: 'process-rows',
                 checked: isProcessAll,
                 onChange: () => this.setNewSelectionModel({ type: processAll, selectedEntities: {} }),
@@ -152,7 +164,7 @@ export default class DataStepContent extends Component {
               })
             ])
           ]),
-        !isProcessAll && div({
+        (!isProcessAll && !isProcessAllSetComponents) && div({
           style: {
             display: 'flex', flexDirection: 'column',
             height: 500, marginTop: '1rem'
@@ -168,7 +180,7 @@ export default class DataStepContent extends Component {
                 [isChooseSets, () => `Select up to 10 ${rootEntityType}s to process in parallel`]
               )
             ]),
-            entityType: isChooseSetComponents ? setBaseEntityType : isProcessMergedSet ? setType : rootEntityType,
+            entityType: isChooseSetComponents ? baseEntityType : isProcessMergedSet ? setType : rootEntityType,
             entityMetadata, workspaceId, columnDefaults,
             selectionModel: {
               type: 'multiple',
@@ -176,10 +188,18 @@ export default class DataStepContent extends Component {
             }
           })
         ]),
-        (isProcessAll ||
+        (isProcessAll || isProcessAllSetComponents ||
           ((isChooseRows || isProcessMergedSet || isChooseSetComponents) && _.size(selectedEntities) > 1)) && h(IdContainer,
           [id => div({ style: { marginTop: '1rem' } }, [
-            h(FormLabel, { htmlFor: id }, [`Selected rows will ${isProcessMergedSet ? 'have their membership combined into' : 'be saved as'} a new set named:`]),
+            h(FormLabel, { htmlFor: id }, [
+              Utils.cond(
+                [isProcessAll, () => `All ${rootEntityTypeCount} ${rootEntityType}s will be saved as a new set named:`],
+                [isProcessAllSetComponents, () => `All ${baseEntityTypeCount} ${baseEntityType}s will be saved as a new set named:`],
+                [isProcessMergedSet, () => `Selected ${rootEntityType}s will have their membership combined into a new set named:`],
+                [isChooseSetComponents, () => `Selected ${baseEntityType}s will be saved as a new set named:`],
+                [isChooseRows, () => `Selected ${rootEntityType}s will be saved as a new set named:`]
+              )
+            ]),
             h(ValidatedInput, {
               inputProps: {
                 id, value: newSetName, style: { marginLeft: '0.25rem' },
