@@ -17,6 +17,7 @@ import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
 import { Ajax } from 'src/libs/ajax'
+import { usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -25,7 +26,6 @@ import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-import { usableStatuses } from 'src/libs/cluster-utils'
 
 
 const chooseMode = mode => {
