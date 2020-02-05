@@ -46,7 +46,7 @@ const SubmissionDetails = _.flow(
   useEffect(() => {
     const initialize = withErrorReporting('Unable to fetch submission details',
       async () => {
-        if (_.isEmpty(submission) || _.some(({ status }) => collapseStatus(status) === 'running', submission.workflows)) {
+        if (_.isEmpty(submission) || _.some(({ status }) => _.includes(collapseStatus(status), ['running', 'submitted']), submission.workflows)) {
           if (!_.isEmpty(submission)) {
             await Utils.delay(60000)
           }
