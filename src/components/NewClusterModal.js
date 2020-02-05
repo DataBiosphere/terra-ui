@@ -181,7 +181,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl, originalImageUrl: imageUrl })
       }
       if (jupyterUserScriptUri) {
-        this.setState({ jupyterUserScriptUri, profile: 'custom' })
+        this.setState({ jupyterUserScriptUri, profile: 'custom', originalJupyterUserScriptUri: jupyterUserScriptUri  })
       }
     } else {
       this.setState({ selectedLeoImage: _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image })
@@ -192,7 +192,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, onDismiss, onSuccess } = this.props
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, originalImageUrl
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, originalImageUrl, originalStartupScript
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
@@ -258,6 +258,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       const currentClusterConfig = currentCluster.machineConfig
       const userSelectedConfig = this.getMachineConfig()
 
+      const hasStartupScriptChanged = jupyterUserScriptUri != originalStartupScript
+
       const hasImageChanged = !_.includes(originalImageUrl, [selectedLeoImage, customEnvImage])
 
       const workersCantUpdate = currentClusterConfig.numberOfWorkers != userSelectedConfig.numberOfWorkers &&
@@ -274,7 +276,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
       const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
 
-      const cantUpdate = workersCantUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || hasImageChanged
+      const cantUpdate = workersCantUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || hasImageChanged || hasStartupScriptChanged
       return !cantUpdate
     }
 

@@ -7,6 +7,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
+import { usableStatuses } from 'src/libs/cluster-utils'
 
 
 export const StatusMessage = ({ hideSpinner, children }) => {
@@ -77,10 +78,9 @@ export const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning = _.noop
   const prevStatus = Utils.usePrevious(currentStatus)
 
   useEffect(() => {
-    const runningStatuses = ['Running', 'Updating']
-    if (prevStatus === 'Running' && !_.includes(currentStatus, runningStatuses)) {
+    if (prevStatus === 'Running' && !_.includes(currentStatus, usableStatuses)) {
       onClusterStoppedRunning()
-    } else if (prevStatus !== 'Running' && !_.includes(currentStatus, runningStatuses)) {
+    } else if (prevStatus !== 'Running' && !_.includes(currentStatus, usableStatuses)) {
       onClusterStartedRunning()
     }
   }, [currentStatus, onClusterStartedRunning, onClusterStoppedRunning, prevStatus])
