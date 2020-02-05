@@ -8,39 +8,26 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
-
-export const IGVBrowser = ({ selectedFiles, refGenome, namespace, onDismiss }) => {
+// format for selectedFiles prop: [{ filePath, indexFilePath } }]
+const IGVBrowser = ({ selectedFiles, refGenome, namespace, onDismiss }) => {
   const containerRef = useRef()
   const [loadingIgv, setLoadingIgv] = useState(true)
 
   Utils.useOnMount(() => {
-    const getTrack = filePath => {
-      const fileTypeToTrack = {
-        bam: 'alignment',
-        cram: 'alignment',
-        bed: 'annotation',
-        vcf: 'variant'
-      }
-
-      return {
-        type: fileTypeToTrack[_.last(filePath.split('.'))],
-        name: filePath,
-        url: filePath,
-        // igv.js will automatically find the index file, but not for crams
-        indexURL: filePath.endsWith('cram') ? `${filePath}.crai` : ''
-      }
-    }
-
     const options = {
       genome: refGenome,
-      tracks: _.map(getTrack, selectedFiles)
+      tracks: _.map(({ filePath, indexFilePath }) => ({
+        name: `${_.last(filePath.split('/'))} (${filePath})`,
+        url: filePath,
+        indexURL: indexFilePath
+      }), selectedFiles)
     }
 
     const igvSetup = async () => {
       try {
         const { default: igv } = await import('igv')
 
-        igv.oauth.google.setToken(saToken(namespace))
+        igv.setGoogleOauthToken(() => saToken(namespace))
         igv.createBrowser(containerRef.current, options)
       } catch (e) {
         reportError('Error loading IGV.js', e)
@@ -69,3 +56,5 @@ export const IGVBrowser = ({ selectedFiles, refGenome, namespace, onDismiss }) =
     })
   ])
 }
+
+export default IGVBrowser
