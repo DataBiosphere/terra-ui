@@ -21,33 +21,33 @@ const MAX_CONCURRENT_IGV_FILES = 10
 const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
   const [refGenome, setRefGenome] = useState('hg38')
   const [selections, setSelections] = useState(() => {
-    const allFiles = _.flow(
+    const allAttributeStrings = _.flow(
       _.flatMap(row => _.flatMap(getStrings, row.attributes)),
       _.uniq
     )(selectedEntities)
 
-    return _.reduce((acc, filePath) => {
-      const [, base, extension] = /(.+)\.([^.]+)$/.exec(filePath) || []
+    return _.flatMap(filePath => {
+      const possibleFile = /(.+)\.([^.]+)$/.exec(filePath)
 
-      if (!base) return acc
+      if (!possibleFile) return []
 
-      const matchingIndex = Utils.switchCase(extension,
-        ['cram', () => _.find(v => _.includes(v, [`${base}.crai`, `${base}.cram.crai`]), allFiles)],
-        ['bam', () => _.find(v => _.includes(v, [`${base}.bai`, `${base}.bam.bai`]), allFiles)],
-        ['vcf', () => _.find(v => _.includes(v, [`${base}.idx`, `${base}.vcf.idx`, `${base}.tbi`, `${base}.vcf.tbi`]), allFiles)],
-        ['bed', () => undefined],
-        [Utils.DEFAULT, () => false]
+      const [, base, extension] = possibleFile
+
+      const matchingIndexFilePath = Utils.switchCase(extension,
+        ['cram', () => _.find(v => _.includes(v, [`${base}.crai`, `${base}.cram.crai`]), allAttributeStrings)],
+        ['bam', () => _.find(v => _.includes(v, [`${base}.bai`, `${base}.bam.bai`]), allAttributeStrings)],
+        ['vcf', () => _.find(v => _.includes(v, [`${base}.idx`, `${base}.vcf.idx`, `${base}.tbi`, `${base}.vcf.tbi`]), allAttributeStrings)],
+        ['bed', () => false],
+        [Utils.DEFAULT, () => undefined]
       )
 
-      return matchingIndex !== false ? _.set([filePath, 'indexFile'], matchingIndex, acc) : acc
-    }, {}, allFiles)
+      return matchingIndexFilePath !== undefined ? [{ filePath, indexFilePath: matchingIndexFilePath }] : []
+    }, allAttributeStrings)
   })
 
-  const toggleSelected = filePath => setSelections(_.set([filePath, 'isSelected'], !selections[filePath].isSelected))
+  const toggleSelected = index => setSelections(_.update([index, 'isSelected'], v => !v))
   const numSelected = _.countBy('isSelected', selections).true
   const isSelectionValid = !!numSelected && numSelected <= MAX_CONCURRENT_IGV_FILES
-
-  const validFiles = _.keys(selections)
 
   return div({ style: Style.modalDrawer.content }, [
     h(IdContainer, [id => div({ style: { fontWeight: 500 } }, [
@@ -57,15 +57,15 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
           id,
           options: ['hg38', 'hg19', 'hg18', 'mm10', 'panTro4', 'panPan2', 'susScr11', 'bosTau8', 'canFam3', 'rn6', 'danRer10', 'dm6', 'sacCer3'],
           value: refGenome,
-          onChange: setRefGenome
+          onChange: ({ value }) => setRefGenome(value)
         })
       ])
     ])]),
     div({ style: { marginBottom: '1rem', display: 'flex' } }, [
       div({ style: { fontWeight: 500 } }, ['Select:']),
-      h(Link, { style: { padding: '0 0.5rem' }, onClick: () => setSelections(_.mapValues(_.set('isSelected', true))) }, ['all']),
+      h(Link, { style: { padding: '0 0.5rem' }, onClick: () => setSelections(_.map(_.set('isSelected', true))) }, ['all']),
       '|',
-      h(Link, { style: { padding: '0 0.5rem' }, onClick: () => setSelections(_.mapValues(_.set('isSelected', false))) }, ['none'])
+      h(Link, { style: { padding: '0 0.5rem' }, onClick: () => setSelections(_.map(_.set('isSelected', false))) }, ['none'])
     ]),
     div({ style: { flex: 1, marginBottom: '3rem' } }, [
       h(AutoSizer, [
@@ -73,15 +73,15 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
           return h(List, {
             height,
             width,
-            rowCount: validFiles.length,
+            rowCount: selections.length,
             rowHeight: 30,
             noRowsRenderer: () => 'No valid files with indices found',
             rowRenderer: ({ index, style, key }) => {
-              const filePath = validFiles[index]
+              const { filePath, isSelected } = selections[index]
               return div({ key, style: { ...style, display: 'flex' } }, [
                 h(LabeledCheckbox, {
-                  checked: selections[filePath].isSelected,
-                  onChange: () => toggleSelected(filePath)
+                  checked: isSelected,
+                  onChange: () => toggleSelected(index)
                 }, [
                   div({ style: { paddingLeft: '0.25rem', flex: 1, ...Style.noWrapEllipsis } }, [_.last(filePath.split('/'))])
                 ])
@@ -96,7 +96,7 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
       okButton: h(ButtonPrimary, {
         disabled: !isSelectionValid,
         tooltip: !isSelectionValid && `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files`,
-        onClick: () => onSuccess({ selectedFiles: _.pickBy('isSelected', selections), refGenome })
+        onClick: () => onSuccess({ selectedFiles: _.filter('isSelected', selections), refGenome })
       }, ['Launch IGV'])
     })
   ])

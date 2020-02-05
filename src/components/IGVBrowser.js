@@ -8,7 +8,7 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 
-// format for selectedFiles prop: { filePath: { indexFile } }
+// format for selectedFiles prop: [{ filePath, indexFilePath } }]
 const IGVBrowser = ({ selectedFiles, refGenome, namespace, onDismiss }) => {
   const containerRef = useRef()
   const [loadingIgv, setLoadingIgv] = useState(true)
@@ -16,11 +16,11 @@ const IGVBrowser = ({ selectedFiles, refGenome, namespace, onDismiss }) => {
   Utils.useOnMount(() => {
     const options = {
       genome: refGenome,
-      tracks: _.map(filePath => ({
+      tracks: _.map(({ filePath, indexFilePath }) => ({
         name: `${_.last(filePath.split('/'))} (${filePath})`,
         url: filePath,
-        indexURL: selectedFiles[filePath].indexFile
-      }), _.keys(selectedFiles))
+        indexURL: indexFilePath
+      }), selectedFiles)
     }
 
     const igvSetup = async () => {
