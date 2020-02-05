@@ -17,11 +17,9 @@ const makeWorkspace = async ({ context }) => {
     return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
   }, workspaceName, billingProject)
 
-  console.info(`created ${workspaceName}, waiting 60s to make sure all SAM instances know about it`)
+  console.info(`created ${workspaceName}`)
 
   await ajaxPage.close()
-
-  await delay(60 * 1000)
 
   return workspaceName
 }
