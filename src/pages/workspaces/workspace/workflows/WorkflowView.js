@@ -698,9 +698,8 @@ const WorkflowView = _.flow(
                 styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
                 value: selectedEntityType,
                 onChange: selection => {
-                  const value = this.updateEntityType(Utils.log(selection))
-                  this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}, selection.isNew) })
-                  selection.isNew && this.setState({ selectingData: true })
+                  const value = this.updateEntityType(selection)
+                  this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}) })
                 },
                 options: [..._.map(value => ({ value }), entityTypes),
                   ..._.map(value => ({ value }), possibleSetTypes)]
@@ -710,13 +709,7 @@ const WorkflowView = _.flow(
                 tooltip: Utils.editWorkspaceError(ws),
                 onClick: () => this.setState({ selectingData: true }),
                 style: { marginLeft: '1rem' }
-              }, [
-                _.includes('_set', selectedEntityType) ?
-                  (_.includes(selectedEntityType, entityTypes) ?
-                    `Select or Create New Set` :
-                    `Create New Set`) :
-                  `Select Data`
-              ])
+              }, ['Select Data'])
             ]),
             div({ style: { marginLeft: '2rem', height: '1.5rem' } }, [`${this.describeSelectionModel()}`])
           ]),
