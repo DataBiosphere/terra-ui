@@ -717,7 +717,7 @@ const WorkflowView = _.flow(
                   disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
                   tooltip: Utils.editWorkspaceError(ws),
                   onClick: () => this.setState({ selectingData: true })
-                }, ['Select data']),
+                }, ['Select Data']),
                 label({ style: { marginLeft: '1rem' } },
                   [`${this.describeSelectionModel()}`])
               ])
