@@ -37,17 +37,13 @@ const testRunWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
     click(page, clickable({ text: 'Launch' }))
   ])
 
-  page.setDefaultTimeout(65 * 1000) // long enough for the submission details to refresh
-
   await pRetry(async () => {
     try {
-      await findInGrid(page, 'Succeeded')
+      await findInGrid(page, 'Succeeded', { timeout: 65 * 1000 }) // long enough for the submission details to refresh
     } catch (e) {
       throw new Error(e)
     }
   }, { retries: 5, factor: 1 })
-
-  page.setDefaultTimeout(30 * 1000) // back to normal
 
   await click(page, navChild('data'))
   await click(page, clickable({ textContains: 'test_entity' }))
