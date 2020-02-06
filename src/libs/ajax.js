@@ -911,6 +911,11 @@ const Methods = signal => ({
         return res.json()
       },
 
+      allConfigs: async () => {
+        const res = await fetchAgora(`methods/${namespace}/${name}/configurations`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
       toWorkspace: async (workspace, config = {}) => {
         const res = await fetchRawls(`workspaces/${workspace.namespace}/${workspace.name}/methodconfigs`,
           _.mergeAll([authOpts(), jsonBody(_.merge({

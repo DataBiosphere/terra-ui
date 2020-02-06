@@ -8,6 +8,8 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonSecondary, Link, Select, TabBar } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
+import { FlexTable, HeaderCell } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
@@ -197,9 +199,75 @@ const WorkflowWdl = () => {
 }
 
 const WorkflowConfigs = () => {
-  // const { namespace, name, snapshotId } = Utils.useStore(snapshotStore)
+  const signal = Utils.useCancellation()
+  const { namespace, name, snapshotId } = Utils.useStore(snapshotStore)
+  const [allConfigs, setAllConfigs] = useState()
+  const [snapshotConfigs, setSnapshotConfigs] = useState()
 
-  return null
+  Utils.useOnMount(() => {
+    const loadConfigs = async () => {
+      const [allConfigs, snapshotConfigs] = await Promise.all([
+        Ajax(signal).Methods.method(namespace, name, snapshotId).allConfigs(),
+        Ajax(signal).Methods.method(namespace, name, snapshotId).configs()
+      ])
+
+      setAllConfigs(allConfigs)
+      setSnapshotConfigs(snapshotConfigs)
+    }
+
+    loadConfigs()
+  })
+
+  return div({ style: { flex: 1, padding: '1rem' } }, [
+    !allConfigs ?
+      centeredSpinner() :
+      h(AutoSizer, [
+        ({ width, height }) => h(FlexTable, {
+          width, height,
+          rowCount: allConfigs.length,
+          columns: [
+            {
+              headerRenderer: () => {},
+              cellRenderer: ({ rowIndex }) => {
+                const config = allConfigs[rowIndex]
+
+                return !_.find(_.isEqual(config), snapshotConfigs) && h(TooltipTrigger, {
+                  content: `This configuration is not fully compatible with snapshot ${snapshotId}`
+                }, [icon('warning-standard', { style: { color: colors.warning() } })])
+              },
+              size: { basis: 45, grow: 0, shrink: 0 }
+            },
+            {
+              headerRenderer: () => h(HeaderCell, ['Configuration']),
+              cellRenderer: ({ rowIndex }) => {
+                const { namespace, name, snapshotId } = allConfigs[rowIndex]
+
+                return h(Link, [`${namespace}/${name} Snapshot ID: ${snapshotId}`])
+              },
+              size: { basis: 400, grow: 0, shrink: 0 }
+            },
+            {
+              headerRenderer: () => h(HeaderCell, ['Workflow Snapshot']),
+              cellRenderer: ({ rowIndex }) => {
+                const { payloadObject: { methodRepoMethod: { methodVersion } } } = allConfigs[rowIndex]
+
+                return methodVersion
+              },
+              size: { basis: 200, grow: 0, shrink: 0 }
+            },
+            {
+              headerRenderer: () => h(HeaderCell, ['Synopsis']),
+              cellRenderer: ({ rowIndex }) => {
+                const { synopsis } = allConfigs[rowIndex]
+
+                return synopsis
+              },
+              size: { grow: 2 }
+            }
+          ]
+        })
+      ])
+  ])
 }
 
 const WorkflowDetails = props => {
