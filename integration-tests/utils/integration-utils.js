@@ -25,8 +25,8 @@ const findIframe = async page => {
   return hasFrame() || await waitForFn({ fn: hasFrame })
 }
 
-const findInGrid = (page, textContains) => {
-  return page.waitForXPath(`//*[@role="grid"][contains(normalize-space(.),"${textContains}")]`)
+const findInGrid = (page, textContains, options) => {
+  return page.waitForXPath(`//*[@role="grid"][contains(normalize-space(.),"${textContains}")]`, options)
 }
 
 const clickable = ({ text, textContains }) => {
