@@ -591,7 +591,6 @@ const WorkflowView = _.flow(
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
-      // [this.isMultiple() && !entityMetadata[rootEntityType], () => `There are no ${selectedEntityType}s in this workspace.`], // TODO: how do we handle this?
       [this.isMultiple() && (entitySelectionModel.type === EntitySelectionType.chooseSets || entitySelectionModel.type === EntitySelectionType.chooseSetComponents) && !_.size(entitySelectionModel.selectedEntities),
         () => 'Select or create a set']
     )
@@ -699,19 +698,25 @@ const WorkflowView = _.flow(
                 styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
                 value: selectedEntityType,
                 onChange: selection => {
-                  const value = this.updateEntityType(selection)
+                  const value = this.updateEntityType(Utils.log(selection))
                   this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}, selection.isNew) })
                   selection.isNew && this.setState({ selectingData: true })
                 },
                 options: [..._.map(value => ({ value }), entityTypes),
-                  ..._.map(value => ({ label: selectedEntityType === value ? value : div({ style: { fontStyle: 'italic' } }, [`${value} (new)`]), value, isNew: true }), possibleSetTypes)]
+                  ..._.map(value => ({ value }), possibleSetTypes)]
               }),
               h(Link, {
                 disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
                 tooltip: Utils.editWorkspaceError(ws),
                 onClick: () => this.setState({ selectingData: true }),
                 style: { marginLeft: '1rem' }
-              }, ['Select Data'])
+              }, [
+                _.includes('_set', selectedEntityType) ?
+                  (_.includes(selectedEntityType, entityTypes) ?
+                    `Select or Create New Set` :
+                    `Create New Set`) :
+                  `Select Data`
+              ])
             ]),
             div({ style: { marginLeft: '2rem', height: '1.5rem' } }, [`${this.describeSelectionModel()}`])
           ]),

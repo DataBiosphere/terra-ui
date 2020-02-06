@@ -52,7 +52,7 @@ export default class DataStepContent extends Component {
       (type === chooseRows && !!newSetName && selectionSize > 1) ||
       (type === chooseSets && selectionSize > 1 && selectionSize <= 10) ||
       (type === processMergedSet && !!newSetName && selectionSize > 1) ||
-      (type === chooseSetComponents && selectionSize > 1) ||
+      (type === chooseSetComponents && !!newSetName && selectionSize > 0) ||
       (type === processAllSetComponents && !!newSetName)
   }
 
@@ -94,7 +94,10 @@ export default class DataStepContent extends Component {
     return h(Modal, {
       title: 'Select Data',
       okButton: h(ButtonPrimary, {
-        tooltip: isChooseSets && _.size(selectedEntities) > 10 && 'Please select 10 or fewer sets',
+        tooltip: Utils.cond(
+          [isChooseSets && _.size(selectedEntities) > 10, () => 'Please select 10 or fewer sets'],
+          [!_.size(selectedEntities), () => 'Please select data']
+        ),
         disabled: !!errors || !this.isValidSelectionModel(),
         onClick: () => onSuccess(newSelectionModel)
       }, 'OK'),
@@ -188,8 +191,8 @@ export default class DataStepContent extends Component {
             }
           })
         ]),
-        (isProcessAll || isProcessAllSetComponents ||
-          ((isChooseRows || isProcessMergedSet || isChooseSetComponents) && _.size(selectedEntities) > 1)) && h(IdContainer,
+        (isProcessAll || isProcessAllSetComponents || (isChooseSetComponents && _.size(selectedEntities) > 0) ||
+          ((isChooseRows || isProcessMergedSet) && _.size(selectedEntities) > 1)) && h(IdContainer,
           [id => div({ style: { marginTop: '1rem' } }, [
             h(FormLabel, { htmlFor: id }, [
               Utils.cond(
