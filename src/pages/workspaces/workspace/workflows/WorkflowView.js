@@ -704,8 +704,7 @@ const WorkflowView = _.flow(
                   value: selectedEntityType,
                   onChange: selection => {
                     const value = this.updateEntityType(selection)
-                    this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}, selection.isNew) })
-                    selection.isNew && this.setState({ selectingData: true })
+                    this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}) })
                   },
                   options: [..._.map(value => ({ value }), entityTypes),
                     ..._.map(value => ({ value }), possibleSetTypes)]
