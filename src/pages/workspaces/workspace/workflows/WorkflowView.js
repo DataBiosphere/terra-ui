@@ -683,40 +683,41 @@ const WorkflowView = _.flow(
             div([
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
-                text: `Run workflow(s) with inputs defined by:`,
+                text: `Run workflow(s) with inputs defined by entites:`,
                 name: 'process-workflows',
                 checked: this.isMultiple(),
                 onChange: () => this.selectMultiple(),
                 labelStyle: { marginLeft: '0.5rem' }
-              }),
-              h(Select, {
-                'aria-label': 'Entity type selector',
-                isClearable: false,
-                isDisabled: currentSnapRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws),
-                isSearchable: false,
-                placeholder: 'Select data type...',
-                styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
-                value: selectedEntityType,
-                onChange: selection => {
-                  const value = this.updateEntityType(Utils.log(selection))
-                  this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}, selection.isNew) })
-                  selection.isNew && this.setState({ selectingData: true })
-                },
-                options: [..._.map(value => ({ value }), entityTypes),
-                  ..._.map(value => ({ value }), possibleSetTypes)]
-              }),
-              h(Link, {
-                disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
-                tooltip: Utils.editWorkspaceError(ws),
-                onClick: () => this.setState({ selectingData: true }),
-                style: { marginLeft: '1rem' }
-              }, [
-                _.includes('_set', selectedEntityType) ?
-                  (_.includes(selectedEntityType, entityTypes) ?
-                    `Select or Create New Set` :
-                    `Create New Set`) :
-                  `Select Data`
-              ])
+              })
+            ]),
+            
+            h(Select, {
+              'aria-label': 'Entity type selector',
+              isClearable: false,
+              isDisabled: currentSnapRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws),
+              isSearchable: false,
+              placeholder: 'Select data type...',
+              styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
+              value: selectedEntityType,
+              onChange: selection => {
+                const value = this.updateEntityType(Utils.log(selection))
+                this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}, selection.isNew) })
+                selection.isNew && this.setState({ selectingData: true })
+              },
+              options: [..._.map(value => ({ value }), entityTypes),
+                ..._.map(value => ({ value }), possibleSetTypes)]
+            }),
+            h(Link, {
+              disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
+              tooltip: Utils.editWorkspaceError(ws),
+              onClick: () => this.setState({ selectingData: true }),
+              style: { marginLeft: '1rem' }
+            }, [
+              _.includes('_set', selectedEntityType) ?
+                (_.includes(selectedEntityType, entityTypes) ?
+                  `Select or Create New Set` :
+                  `Create New Set`) :
+                `Select Data`
             ]),
             div({ style: { marginLeft: '2rem', height: '1.5rem' } }, [`${this.describeSelectionModel()}`])
           ]),
