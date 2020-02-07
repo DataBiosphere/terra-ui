@@ -82,7 +82,7 @@ const ExportDataModal = withWorkspaces(class ExportDataModal extends Component {
 
     return h(Modal, {
       onDismiss,
-      title: 'Copy Data to Workspace',
+      title: 'Export Data to Workspace',
       okButton: h(ButtonPrimary, {
         tooltip: (hardConflicts.length !== 0) ? 'Are you sure you want to override existing data?' : Utils.summarizeErrors(errors),
         disabled: !!errors || copying,

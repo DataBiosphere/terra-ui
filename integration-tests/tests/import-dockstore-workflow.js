@@ -6,7 +6,7 @@ const { click, clickable, findText, select, signIntoTerra } = require('../utils/
 
 const testWorkflowIdentifier = 'github.com/DataBiosphere/topmed-workflows/UM_variant_caller_wdl:1.32.0'
 
-test('import workflow from dockstore', async () => {
+const testImportDockstoreWorkflowFn = async ({ context, page }) => {
   const { dockstoreUrlRoot } = await fetch(`${testUrl}/config.json`).then(res => res.json())
 
   if (await fetch(`${dockstoreUrlRoot}/api/api/ga4gh/v1/metadata`).then(res => res.status !== 200)) {
@@ -19,6 +19,13 @@ test('import workflow from dockstore', async () => {
       await select(page, 'Select a workspace', workspaceName)
       await click(page, clickable({ text: 'Import' }))
       await findText(page, testWorkflowIdentifier)
-    })()
+    })({ context })
   }
-}, 5 * 60 * 1000)
+}
+
+const testImportDockstoreWorkflow = {
+  name: 'import workflow from dockstore',
+  fn: testImportDockstoreWorkflowFn
+}
+
+module.exports = { testImportDockstoreWorkflow }

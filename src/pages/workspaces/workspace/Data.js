@@ -9,19 +9,20 @@ import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { ButtonPrimary, Clickable, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, Link, MenuButton, Select, spinnerOverlay } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import Dropzone from 'src/components/Dropzone'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
-import { IGVBrowser } from 'src/components/IGVBrowser'
-import { IGVFileSelector } from 'src/components/IGVFileSelector'
+import IGVBrowser from 'src/components/IGVBrowser'
+import IGVFileSelector from 'src/components/IGVFileSelector'
 import { DelayedSearchInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { cohortNotebook, NotebookCreator } from 'src/components/notebook-utils'
 import { notify } from 'src/components/Notifications'
+import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TitleBar from 'src/components/TitleBar'
 import UriViewer from 'src/components/UriViewer'
@@ -477,7 +478,7 @@ const ToolDrawer = _.flow(
           await Buckets.notebook(namespace, bucketName, notebookName).create(JSON.parse(contents))
           Nav.goToPath('workspace-notebook-launch', { namespace, name: wsName, notebookName: `${notebookName}.ipynb` })
         },
-        onDismiss: setToolMode,
+        onDismiss: () => setToolMode(undefined),
         reloadList: _.noop
       })
     })
@@ -519,7 +520,7 @@ const ToolDrawer = _.flow(
               onClick: () => setToolMode('Notebook'),
               disabled: !notebookButtonEnabled,
               tooltip: Utils.cond(
-                [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
+                [!entityMetadata.cohort, () => 'Unable to open with notebooks. See the "Making custom cohorts with Data Explorer" help article for more details.'],
                 [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in notebook'],
                 [!isCohort, () => 'Only cohorts can be opened with notebooks'],
                 [notebookButtonEnabled, () => 'Create a Python 2 or 3 notebook with this cohort']
@@ -572,8 +573,6 @@ class EntitiesContent extends Component {
 
   renderDownloadButton(columnSettings) {
     const { workspace: { workspace: { namespace, name } }, entityKey } = this.props
-    const { selectedEntities } = this.state
-    const isSet = _.endsWith('_set', entityKey)
     return h(Fragment, [
       form({
         ref: this.downloadForm,
@@ -584,37 +583,24 @@ class EntitiesContent extends Component {
         input({ type: 'hidden', name: 'attributeNames', value: _.map('name', _.filter('visible', columnSettings)).join(',') }),
         input({ type: 'hidden', name: 'model', value: 'flexible' })
       ]),
-      _.isEmpty(selectedEntities) ? h(ButtonPrimary, {
-        style: { marginRight: '1rem' },
-        tooltip: 'Download all data as a file',
+      h(ButtonPrimary, {
+        tooltip: `Download a .tsv file containing all the ${entityKey}s in this table`,
         onClick: () => this.downloadForm.current.submit()
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
-        'Download Table TSV'
-      ]) : h(ButtonPrimary, {
-        style: { marginRight: '1rem' },
-        disabled: _.isEmpty(selectedEntities),
-        tooltip: 'Download selected data as a file',
-        onClick: async () => {
-          const tsv = this.buildTSV(columnSettings, selectedEntities)
-          isSet ?
-            FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
-            FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
-        }
-      }, [
-        icon('download', { style: { marginRight: '0.5rem' } }),
-        `Download Selected TSV (${_.size(selectedEntities)})`
+        'Download all Rows'
       ])
     ])
   }
 
   renderCopyButton(entities, columnSettings) {
+    const { entityKey } = this.props
     const { copying } = this.state
 
     return h(Fragment, [
       h(ButtonPrimary, {
-        style: { marginRight: '1rem' },
-        tooltip: 'Copy only the current page to the clipboard',
+        style: { marginLeft: '1rem' },
+        tooltip: `Copy only the ${entityKey}s visible on the current page to the clipboard in .tsv format`,
         onClick: _.flow(
           withErrorReporting('Error copying to clipboard'),
           Utils.withBusyState(v => this.setState({ copying: v }))
@@ -625,23 +611,48 @@ class EntitiesContent extends Component {
         })
       }, [
         icon('copy-to-clipboard', { style: { marginRight: '0.5rem' } }),
-        'Copy to Clipboard'
+        'Copy Page to Clipboard'
       ]),
       copying && spinner()
     ])
   }
 
-  renderToolButton() {
+  renderSelectedRowsMenu(columnSettings) {
+    const { workspace, entityKey } = this.props
     const { selectedEntities } = this.state
+    const isSet = _.endsWith('_set', entityKey)
+    const noEdit = Utils.editWorkspaceError(workspace)
 
-    return h(ButtonPrimary, {
-      style: { marginRight: '1rem' },
-      disabled: _.isEmpty(selectedEntities),
-      tooltip: 'Open the selected data',
-      onClick: () => this.setState({ showToolSelector: true })
-    }, [
-      'Open with...'
-    ])
+    return !_.isEmpty(selectedEntities) && h(PopupTrigger, {
+      side: 'bottom',
+      closeOnClick: true,
+      content: h(Fragment, [
+        h(MenuButton, {
+          tooltip: `Download the selected data as a file`,
+          onClick: async () => {
+            const tsv = this.buildTSV(columnSettings, selectedEntities)
+            isSet ?
+              FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
+              FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
+          }
+        }, ['Download as TSV']),
+        h(MenuButton, {
+          tooltip: 'Open the selected data to work with it',
+          onClick: () => this.setState({ showToolSelector: true })
+        }, ['Open with...']),
+        h(MenuButton, {
+          tooltip: 'Send the selected data to another workspace',
+          onClick: () => this.setState({ copyingEntities: true })
+        }, ['Export to Workspace']),
+        h(MenuButton, {
+          tooltip: noEdit ? 'You don\'t have permission to modify this workspace' : 'Permanently delete the selected data',
+          disabled: noEdit,
+          onClick: () => this.setState({ deletingEntities: true })
+        }, ['Delete Data'])
+      ])
+    }, [h(Link, { style: { marginRight: '1rem' } }, [
+      icon('ellipsis-v-circle', { size: 24 })
+    ])])
   }
 
   buildTSV(columnSettings, entities) {
@@ -688,6 +699,8 @@ class EntitiesContent extends Component {
     const { selectedEntities, deletingEntities, copyingEntities, refreshKey, showToolSelector, igvData: { selectedFiles, refGenome } } = this.state
 
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
+    const selectedKeys = _.keys(selectedEntities)
+    const selectedLength = selectedKeys.length
 
     return selectedFiles ?
       h(IGVBrowser, { selectedFiles, refGenome, namespace, onDismiss: () => this.setState(_.set(['igvData', 'selectedFiles'], undefined)) }) :
@@ -706,19 +719,10 @@ class EntitiesContent extends Component {
           }, [
             this.renderDownloadButton(columnSettings),
             !_.endsWith('_set', entityKey) && this.renderCopyButton(entities, columnSettings),
-            this.renderToolButton()
+            div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
+            div({ style: { marginRight: '0.5rem' } }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
+            this.renderSelectedRowsMenu(columnSettings)
           ])
-        }),
-        !_.isEmpty(selectedEntities) && h(FloatingActionButton, {
-          label: 'COPY DATA',
-          iconShape: 'copy',
-          bottom: 80,
-          onClick: () => this.setState({ copyingEntities: true })
-        }),
-        !_.isEmpty(selectedEntities) && !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
-          label: 'DELETE DATA',
-          iconShape: 'trash',
-          onClick: () => this.setState({ deletingEntities: true })
         }),
         deletingEntities && h(EntityDeleter, {
           onDismiss: () => this.setState({ deletingEntities: false }),
@@ -727,12 +731,12 @@ class EntitiesContent extends Component {
             loadMetadata()
           },
           namespace, name,
-          selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
+          selectedEntities: selectedKeys, selectedDataType: entityKey, runningSubmissionsCount
         }),
         copyingEntities && h(ExportDataModal, {
           onDismiss: () => this.setState({ copyingEntities: false }),
           workspace,
-          selectedEntities: _.keys(selectedEntities), selectedDataType: entityKey, runningSubmissionsCount
+          selectedEntities: selectedKeys, selectedDataType: entityKey, runningSubmissionsCount
         }),
         h(ToolDrawer, {
           workspace,

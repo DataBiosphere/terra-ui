@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { img } from 'react-hyperscript-helpers'
+import { div, img } from 'react-hyperscript-helpers'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import iconDict from 'src/libs/icon-dict'
@@ -23,3 +23,13 @@ export const profilePic = ({ size, style, ...props } = {}) => img({
   style: { borderRadius: '100%', ...style },
   ...props
 })
+
+export const wdlIcon = ({ style = {}, ...props } = {}) => div({
+  style: {
+    color: 'white', fontSize: 6, fontWeight: 'bold',
+    backgroundColor: colors.dark(),
+    padding: '10px 2px 3px 2px',
+    ...style
+  },
+  ...props
+}, ['WDL'])

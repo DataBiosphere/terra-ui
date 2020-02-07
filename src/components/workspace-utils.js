@@ -19,7 +19,7 @@ export const useWorkspaces = () => {
     Utils.withBusyState(setLoading)
   )(async () => {
     const ws = await Ajax(signal).Workspaces.list([
-      'accessLevel', 'public', 'workspace', 'workspaceSubmissionStats', 'workspace.attributes.description'
+      'accessLevel', 'public', 'workspace', 'workspaceSubmissionStats', 'workspace.attributes.description', 'workspace.attributes.tag:tags'
     ])
     workspacesStore.set(ws)
   })
@@ -49,7 +49,7 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, ...props }) => 
     value,
     onChange: ({ value }) => onChange(value),
     options: _.flow(
-      _.sortBy('workspace.name'),
+      _.sortBy(ws => ws.workspace.name.toLowerCase()),
       _.map(({ workspace: { workspaceId, name } }) => ({ value: workspaceId, label: name }))
     )(workspaces),
     ...props

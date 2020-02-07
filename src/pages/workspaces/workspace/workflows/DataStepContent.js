@@ -1,13 +1,16 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component } from 'react'
-import { div, h, label } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
-import { TextInput } from 'src/components/input'
+import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { FormLabel } from 'src/libs/forms'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
+import validate from 'validate.js'
 
 
 const { processAll, processMergedSet, chooseRows, chooseSets } = EntitySelectionType
@@ -70,11 +73,21 @@ export default class DataStepContent extends Component {
     const isChooseRows = type === chooseRows
     const isChooseSets = type === chooseSets
 
+    const errors = validate({ newSetName }, {
+      newSetName: {
+        presence: { allowEmpty: false },
+        format: {
+          pattern: /^[A-Za-z0-9_\-.]*$/,
+          message: 'can only contain letters, numbers, underscores, dashes, and periods'
+        }
+      }
+    })
+
     return h(Modal, {
       title: 'Select Data',
       okButton: h(ButtonPrimary, {
         tooltip: isChooseSets && _.size(selectedEntities) > 10 && 'Please select 10 or fewer sets',
-        disabled: !this.isValidSelectionModel(),
+        disabled: !!errors || !this.isValidSelectionModel(),
         onClick: () => onSuccess(newSelectionModel)
       }, 'OK'),
       onDismiss,
@@ -133,17 +146,18 @@ export default class DataStepContent extends Component {
           })
         ]),
         (isProcessAll ||
-          ((isChooseRows || isProcessMergedSet) && _.size(selectedEntities) > 1)) && h(IdContainer, [id => div({
-          style: { marginTop: '1rem' }
-        }, [
-          label({ htmlFor: id }, [`Selected rows will ${isProcessMergedSet ? 'have their membership combined into' : 'be saved as'} a new set named:`]),
-          h(TextInput, {
-            id,
-            style: { width: 500, marginLeft: '0.25rem' },
-            value: newSetName,
-            onChange: v => this.setNewSelectionModel({ newSetName: v })
-          })
-        ])])
+          ((isChooseRows || isProcessMergedSet) && _.size(selectedEntities) > 1)) && h(IdContainer,
+          [id => div({ style: { marginTop: '1rem' } }, [
+            h(FormLabel, { htmlFor: id }, [`Selected rows will ${isProcessMergedSet ? 'have their membership combined into' : 'be saved as'} a new set named:`]),
+            h(ValidatedInput, {
+              inputProps: {
+                id, value: newSetName, style: { marginLeft: '0.25rem' },
+                onChange: v => this.setNewSelectionModel({ newSetName: v })
+              },
+              width: 500,
+              error: Utils.summarizeErrors(errors && errors.newSetName)
+            })
+          ])])
       ])
     ])
   }

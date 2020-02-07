@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Clickable, Link } from 'src/components/common'
-import { centeredSpinner } from 'src/components/icons'
+import { centeredSpinner, wdlIcon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import broadSquare from 'src/images/library/code/broad-square.svg'
 import dockstoreLogo from 'src/images/library/code/dockstore.svg'
@@ -39,14 +39,7 @@ export const MethodCard = ({ method: { name, synopsis }, ...props }) => {
       div({ style: { color: colors.accent(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
       div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [synopsis])
     ]),
-    div({
-      style: {
-        position: 'absolute', top: 0, right: 8,
-        color: 'white', fontSize: 6, fontWeight: 'bold',
-        backgroundColor: colors.dark(),
-        padding: '10px 2px 3px 2px'
-      }
-    }, ['WDL'])
+    wdlIcon({ style: { position: 'absolute', top: 0, right: 8 } })
   ])
 }
 
