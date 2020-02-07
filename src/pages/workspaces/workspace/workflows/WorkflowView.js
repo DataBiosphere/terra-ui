@@ -540,15 +540,16 @@ const WorkflowView = _.flow(
     const { modifiedConfig: { rootEntityType }, entityMetadata, entitySelectionModel: { newSetName, selectedEntities, type } } = this.state
     const count = _.size(selectedEntities)
     const newSetMessage = (type === EntitySelectionType.processAll || type === EntitySelectionType.processAllSetComponents || (type === EntitySelectionType.chooseSetComponents && count > 0) || count > 1) ? `(will create a new set named "${newSetName}")` : ''
+    const baseEntityType = _.endsWith('_set', rootEntityType) ? rootEntityType.slice(0, -4) : rootEntityType
     return Utils.cond(
       [this.isSingle() || !rootEntityType, ''],
       [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType] ? entityMetadata[rootEntityType].count : 0} ${rootEntityType}s ${newSetMessage}`],
       [type === EntitySelectionType.processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
       [type === EntitySelectionType.chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
       [type === EntitySelectionType.chooseSetComponents, () => (count > 0) ?
-        `1 ${rootEntityType} containing ${count} ${rootEntityType.slice(0, -4)}s ${newSetMessage}` :
+        `1 ${rootEntityType} containing ${count} ${baseEntityType}s ${newSetMessage}` :
         `${count} selected ${rootEntityType}s`],
-      [type === EntitySelectionType.processAllSetComponents, () => `1 ${rootEntityType} containing all ${entityMetadata[rootEntityType.slice(0, -4)].count} ${rootEntityType.slice(0, -4)}s ${newSetMessage}`],
+      [type === EntitySelectionType.processAllSetComponents, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType].count} ${baseEntityType}s ${newSetMessage}`],
       [type === EntitySelectionType.chooseSets, () => `${count} selected ${rootEntityType}s`]
     )
   }
@@ -683,7 +684,7 @@ const WorkflowView = _.flow(
             div([
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
-                text: `Run workflow(s) with inputs defined by entities`,
+                text: `Run workflow(s) with inputs defined by data table`,
                 name: 'process-workflows',
                 checked: this.isMultiple(),
                 onChange: () => this.selectMultiple(),
