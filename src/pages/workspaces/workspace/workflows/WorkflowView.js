@@ -692,13 +692,13 @@ const WorkflowView = _.flow(
             ]),
             !!this.isMultiple() && div({ style: { columns: 'auto', divider: true, ...styles.description, margin: '0.5rem 0 0 2rem' } }, [
               div({ style: { marginRight: '2rem' } }, [
-                div({ style: { height: '1.5rem', fontWeight: 'bold' } }, ['Step 1']),
+                div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 1']),
                 label(['Select root entity type:']),
                 h(Select, {
                   'aria-label': 'Entity type selector',
                   isClearable: false,
                   isDisabled: currentSnapRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws),
-                  // isSearchable: false,
+                  isSearchable: true,
                   placeholder: 'Select data type...',
                   styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
                   value: selectedEntityType,
@@ -706,14 +706,12 @@ const WorkflowView = _.flow(
                     const value = this.updateEntityType(selection)
                     this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}) })
                   },
-                  options: [..._.map(value => ({ value }), entityTypes),
-                    ..._.map(value => ({ value }), possibleSetTypes)]
+                  options: [..._.map(value => ({ value }), [...entityTypes, ...possibleSetTypes])]
                 })
               ]),
               div({ style: { paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}` } }, [
-                div({ style: { height: '1.5rem', fontWeight: 'bold' } }, ['Step 2']),
+                div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 2']),
                 h(ButtonPrimary, {
-                  // style: { marginLeft: '1rem' },
                   disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
                   tooltip: Utils.editWorkspaceError(ws),
                   onClick: () => this.setState({ selectingData: true })
