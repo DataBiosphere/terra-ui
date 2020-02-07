@@ -15,8 +15,8 @@ import Dropzone from 'src/components/Dropzone'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
-import { IGVBrowser } from 'src/components/IGVBrowser'
-import { IGVFileSelector } from 'src/components/IGVFileSelector'
+import IGVBrowser from 'src/components/IGVBrowser'
+import IGVFileSelector from 'src/components/IGVFileSelector'
 import { DelayedSearchInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -520,7 +520,7 @@ const ToolDrawer = _.flow(
               onClick: () => setToolMode('Notebook'),
               disabled: !notebookButtonEnabled,
               tooltip: Utils.cond(
-                [!entityMetadata.cohort, () => 'Talk to your dataset owner about setting up a Data Explorer. See the "Making custom cohorts with Data Explorer" help article.'],
+                [!entityMetadata.cohort, () => 'Unable to open with notebooks. See the "Making custom cohorts with Data Explorer" help article for more details.'],
                 [isCohort && entitiesCount > 1, () => 'Select exactly one cohort to open in notebook'],
                 [!isCohort, () => 'Only cohorts can be opened with notebooks'],
                 [notebookButtonEnabled, () => 'Create a Python 2 or 3 notebook with this cohort']

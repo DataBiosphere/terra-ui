@@ -39,16 +39,11 @@ const testRunWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
 
   await pRetry(async () => {
     try {
-      await findInGrid(page, 'Succeeded')
+      await findInGrid(page, 'Succeeded', { timeout: 65 * 1000 }) // long enough for the submission details to refresh
     } catch (e) {
       throw new Error(e)
     }
-  }, {
-    onFailedAttempt: async () => {
-      await page.reload()
-      await signIntoTerra(page)
-    }
-  })
+  }, { retries: 5, factor: 1 })
 
   await click(page, navChild('data'))
   await click(page, clickable({ textContains: 'test_entity' }))
