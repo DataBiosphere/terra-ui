@@ -678,7 +678,8 @@ const WorkflowView = _.flow(
                 labelStyle: { marginLeft: '0.5rem' }
               })
             ]),
-            !!this.isMultiple() && div({ style: { columns: 'auto', divider: true, ...styles.description, margin: '0.5rem 0 0 2rem' } }, [
+            // !!this.isMultiple() && div({ style: { columns: 'auto', divider: true, ...styles.description, margin: '0.5rem 0 0 2rem' } }, [
+            !!this.isMultiple() && div({ style: { display: 'flex', margin: '0.5rem 0 0 2rem' } }, [
               div({ style: { marginRight: '2rem' } }, [
                 div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 1']),
                 label(['Select root entity type:']),
@@ -705,7 +706,7 @@ const WorkflowView = _.flow(
                     tooltip: Utils.editWorkspaceError(ws),
                     onClick: () => this.setState({ selectingData: true })
                   }, ['Select Data']),
-                  label({ style: { marginLeft: '1rem' } },
+                  label({ style: { marginLeft: '1rem', alignSelf: 'center' } },
                     [`${this.describeSelectionModel()}`])
                 ])
               ])
