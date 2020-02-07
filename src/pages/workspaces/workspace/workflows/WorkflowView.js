@@ -793,10 +793,6 @@ const WorkflowView = _.flow(
         entitySelectionModel,
         onDismiss: () => {
           this.setState({ selectingData: false })
-          if (_.includes(modifiedConfig.rootEntityType, possibleSetTypes) && count === 0) {
-            this.setState({ selectedEntityType: savedConfig.rootEntityType })
-            this.setState(_.set(['modifiedConfig', 'rootEntityType'], savedConfig.rootEntityType))
-          }
         },
         onSuccess: model => this.setState({ entitySelectionModel: model, selectingData: false }),
         workspace,
