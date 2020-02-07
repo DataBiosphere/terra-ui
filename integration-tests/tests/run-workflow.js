@@ -43,7 +43,7 @@ const testRunWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
     } catch (e) {
       throw new Error(e)
     }
-  }, { retries: 5, factor: 1 })
+  }, { retries: 10, factor: 1 })
 
   await click(page, navChild('data'))
   await click(page, clickable({ textContains: 'test_entity' }))
@@ -53,7 +53,7 @@ const testRunWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
 const testRunWorkflow = {
   name: 'run workflow',
   fn: testRunWorkflowFn,
-  timeout: 10 * 60 * 1000
+  timeout: 15 * 60 * 1000
 }
 
 module.exports = { testRunWorkflow }
