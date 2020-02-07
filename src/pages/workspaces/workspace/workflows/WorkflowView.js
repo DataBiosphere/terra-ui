@@ -588,7 +588,6 @@ const WorkflowView = _.flow(
     const entityTypes = _.keys(entityMetadata)
     const possibleSetTypes = findPossibleSets(entityTypes)
     const modified = !_.isEqual(modifiedConfig, savedConfig)
-    const count = _.size(entitySelectionModel.selectedEntities)
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
