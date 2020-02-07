@@ -4,11 +4,13 @@ import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
-import { ajaxAnalyticsStore, ajaxOverridesStore, requesterPaysBuckets, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
+import { ajaxOverridesStore, requesterPaysBuckets, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
-export const ajaxOverrideUtils = {
+const metricsEnabled = false
+
+window.ajaxOverrideUtils = {
   mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
     const res = await wrappedFetch(...args)
     return new Response(JSON.stringify(fn(await res.json())), res)
@@ -17,14 +19,8 @@ export const ajaxOverrideUtils = {
     return Math.random() < frequency ?
       Promise.resolve(new Response('Instrumented error', { status })) :
       wrappedFetch(...args)
-  }),
-  passThroughEffect: _.curry((fn, wrappedFetch) => async (...args) => {
-    fn()
-    return await wrappedFetch(...args)
   })
 }
-
-window.ajaxOverrideUtils = ajaxOverrideUtils
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
@@ -33,8 +29,7 @@ const tosData = { appid: 'Saturn', tosversion: 5 }
 
 const withInstrumentation = wrappedFetch => (...args) => {
   return _.flow(
-    ..._.map('fn', _.filter(({ filter }) => args[0].match(filter), ajaxOverridesStore.get())),
-    ..._.map('fn', _.filter(({ filter, filterFn }) => filterFn ? filterFn(...args) : args[0].match(filter), ajaxAnalyticsStore.get()))
+    ..._.map('fn', _.filter(({ filter }) => args[0].match(filter), ajaxOverridesStore.get()))
   )(wrappedFetch)(...args)
 }
 
@@ -1080,7 +1075,8 @@ const Duos = signal => ({
 })
 
 const Metrics = signal => ({
-  captureEvent: (event, data) => fetchMetrics('api/event', _.mergeAll([authOpts(), jsonBody({ event, data }), { signal, method: 'POST' }]))
+  // Remove the metricsEnabled feature flag once TOS and all metrics projects are setup
+  captureEvent: (event, data) => metricsEnabled && fetchMetrics('api/event', _.mergeAll([authOpts(), jsonBody({ event, data }), { signal, method: 'POST' }]))
 })
 
 export const Ajax = signal => {
