@@ -177,11 +177,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       } else {
         this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl, originalImageUrl: imageUrl })
       }
+
       if (jupyterUserScriptUri) {
         this.setState({ jupyterUserScriptUri, profile: 'custom', originalJupyterUserScriptUri: jupyterUserScriptUri })
+      } else {
+        this.setState({ originalJupyterUserScriptUri: '' })
       }
     } else {
-      this.setState({ selectedLeoImage: _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image })
+      this.setState({ selectedLeoImage: _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image , originalImageUrl: '', originalJupyterUserScriptUri: '' })
     }
   })
 
@@ -189,7 +192,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, onDismiss, onSuccess } = this.props
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, originalImageUrl, originalStartupScript
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, originalImageUrl, originalJupyterUserScriptUri
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
@@ -255,7 +258,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       const currentClusterConfig = currentCluster.machineConfig
       const userSelectedConfig = this.getMachineConfig()
 
-      const hasStartupScriptChanged = jupyterUserScriptUri !== originalStartupScript
+      const hasStartupScriptChanged = jupyterUserScriptUri !== originalJupyterUserScriptUri
+      console.log(`curr: ${jupyterUserScriptUri}, original:${originalJupyterUserScriptUri}`)
 
       const hasImageChanged = !_.includes(originalImageUrl, [selectedLeoImage, customEnvImage])
 
@@ -274,6 +278,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
 
       const cantUpdate = workersCantUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || hasImageChanged || hasStartupScriptChanged
+      console.log('update constituents: ', workersCantUpdate, hasWorkersResourceChanged, hasDiskSizeDecreased, hasImageChanged, hasStartupScriptChanged)
       return !cantUpdate
     }
 
