@@ -699,13 +699,15 @@ const WorkflowView = _.flow(
               ]),
               div({ style: { paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, maxWidth: '50%' } }, [
                 div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 2']),
-                h(ButtonPrimary, {
-                  disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
-                  tooltip: Utils.editWorkspaceError(ws),
-                  onClick: () => this.setState({ selectingData: true })
-                }, ['Select Data']),
-                label({ style: { marginLeft: '1rem', height: '2rem' } },
-                  [`${this.describeSelectionModel()}`])
+                div({ style: { display: 'flex' } }, [
+                  h(ButtonPrimary, {
+                    disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
+                    tooltip: Utils.editWorkspaceError(ws),
+                    onClick: () => this.setState({ selectingData: true })
+                  }, ['Select Data']),
+                  label({ style: { marginLeft: '1rem' } },
+                    [`${this.describeSelectionModel()}`])
+                ])
               ])
             ])
           ]),
