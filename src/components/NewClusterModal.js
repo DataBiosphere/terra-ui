@@ -150,7 +150,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   updateCluster() {
-    console.log('in update cluster')
     const { currentCluster } = this.props
     const { googleProject, clusterName } = currentCluster
 
@@ -166,8 +165,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.clusterName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
     ])
-
-    console.log('Current cluster details: ', currentClusterDetails)
 
     this.setState({ leoImages: newLeoImages })
     if (currentClusterDetails) {
