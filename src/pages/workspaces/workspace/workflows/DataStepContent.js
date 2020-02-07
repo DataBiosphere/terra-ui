@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
@@ -96,7 +96,7 @@ export default class DataStepContent extends Component {
       okButton: h(ButtonPrimary, {
         tooltip: Utils.cond(
           [isChooseSets && _.size(selectedEntities) > 10, () => 'Please select 10 or fewer sets'],
-          [!_.size(selectedEntities), () => 'Please select data']
+          [_.isEmpty(selectedEntities), () => 'Please select data']
         ),
         disabled: !!errors || !this.isValidSelectionModel(),
         onClick: () => onSuccess(newSelectionModel)
@@ -109,8 +109,8 @@ export default class DataStepContent extends Component {
           padding: '1rem 0.5rem', lineHeight: '1.5rem'
         }
       }, [
-        div({ role: 'radiogroup', 'aria-label': 'Select entities' }, isSet ?
-          [
+        div({ role: 'radiogroup', 'aria-label': 'Select entities' }, [isSet ?
+          h(Fragment, [
             div([
               h(RadioButton, {
                 text: `Create a new set from selected ${baseEntityType}s`,
@@ -138,7 +138,9 @@ export default class DataStepContent extends Component {
                 labelStyle: { marginLeft: '0.75rem' }
               })
             ])
-          ] : [
+          ]
+          ) :
+          h(Fragment, [
             div([
               h(RadioButton, {
                 text: `Process all ${rootEntityTypeCount} rows`,
@@ -166,8 +168,8 @@ export default class DataStepContent extends Component {
                 labelStyle: { marginLeft: '0.75rem' }
               })
             ])
-          ]),
-        (!isProcessAll && !isProcessAllSetComponents) && div({
+          ])]),
+        !isProcessAll && !isProcessAllSetComponents && div({
           style: {
             display: 'flex', flexDirection: 'column',
             height: 500, marginTop: '1rem'
@@ -191,7 +193,7 @@ export default class DataStepContent extends Component {
             }
           })
         ]),
-        (isProcessAll || isProcessAllSetComponents || (isChooseSetComponents && _.size(selectedEntities) > 0) ||
+        (isProcessAll || isProcessAllSetComponents || (isChooseSetComponents && !_.isEmpty(selectedEntities)) ||
           ((isChooseRows || isProcessMergedSet) && _.size(selectedEntities) > 1)) && h(IdContainer,
           [id => div({ style: { marginTop: '1rem' } }, [
             h(FormLabel, { htmlFor: id }, [

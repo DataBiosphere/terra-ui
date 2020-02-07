@@ -7,8 +7,7 @@ import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
   ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton,
-  Select,
-  spinnerOverlay
+  Select, spinnerOverlay
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -309,20 +308,9 @@ class TextCollapse extends Component {
 const findPossibleSets = listOfExistingEntities => {
   return _.reduce((acc, entityType) => {
     return _.endsWith('_set', entityType) || _.includes(`${entityType}_set`, listOfExistingEntities) ?
-    // return _.endsWith('_set', entityType) ?
       acc :
       Utils.append(`${entityType}_set`, acc)
   }, [], listOfExistingEntities)
-
-  /*// const listOfExistingEntities = _.keys(entityMetadata)
-   for (let i = 0; i < listOfExistingEntities.length; i++) { // loop through each item in listOfExistingEntities
-   const key = listOfExistingEntities[i]
-   if (!(key.includes('_set'))) { // if this item isn't a set
-   if (!(listOfExistingEntities.includes(`${key}_set`))) { // and if the set version of this entity is not in listOfExistingEntities
-   newSetList.push(`${key}_set`) // add the set version of this entity to the new list
-   }
-   }
-   }*/
 }
 
 const WorkflowView = _.flow(
@@ -546,7 +534,7 @@ const WorkflowView = _.flow(
       [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType] ? entityMetadata[rootEntityType].count : 0} ${rootEntityType}s ${newSetMessage}`],
       [type === EntitySelectionType.processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
       [type === EntitySelectionType.chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
-      [type === EntitySelectionType.chooseSetComponents, () => (count > 0) ?
+      [type === EntitySelectionType.chooseSetComponents, () => !!count ?
         `1 ${rootEntityType} containing ${count} ${baseEntityType}s ${newSetMessage}` :
         `${count} selected ${rootEntityType}s`],
       [type === EntitySelectionType.processAllSetComponents, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType].count} ${baseEntityType}s ${newSetMessage}`],
@@ -706,17 +694,17 @@ const WorkflowView = _.flow(
                     const value = this.updateEntityType(selection)
                     this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}) })
                   },
-                  options: [..._.map(value => ({ value }), [...entityTypes, ...possibleSetTypes])]
+                  options: _.map(value => ({ value }), [...entityTypes, ...possibleSetTypes])
                 })
               ]),
-              div({ style: { paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}` } }, [
+              div({ style: { paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, maxWidth: '50%' } }, [
                 div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 2']),
                 h(ButtonPrimary, {
                   disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
                   tooltip: Utils.editWorkspaceError(ws),
                   onClick: () => this.setState({ selectingData: true })
                 }, ['Select Data']),
-                label({ style: { marginLeft: '1rem' } },
+                label({ style: { marginLeft: '1rem', height: '2rem' } },
                   [`${this.describeSelectionModel()}`])
               ])
             ])
