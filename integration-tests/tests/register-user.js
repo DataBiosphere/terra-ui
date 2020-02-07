@@ -1,11 +1,12 @@
 const { testUrl } = require('../utils/integration-config')
 const { withUser } = require('../utils/integration-helpers')
-const { findText, click, clickable, fillIn, input, signIntoTerra, waitForNoSpinners } = require('../utils/integration-utils')
+const { findText, click, clickable, dismissNotifications, fillIn, input, signIntoTerra, waitForNoSpinners } = require('../utils/integration-utils')
 
 
 const testRegisterUserFn = withUser(async ({ page, token }) => {
   await page.goto(testUrl)
   await signIntoTerra(page, token)
+  await dismissNotifications(page)
   await fillIn(page, input({ labelContains: 'First Name' }), 'Integration')
   await fillIn(page, input({ labelContains: 'Last Name' }), 'Test')
   await click(page, clickable({ textContains: 'Register' }))

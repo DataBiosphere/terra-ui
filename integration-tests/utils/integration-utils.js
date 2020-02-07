@@ -72,10 +72,21 @@ const delay = ms => {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+const dismissNotifications = async page => {
+  await delay(3000) // delayed for any alerts to show
+  const notificationCloseButtons = await page.$x(clickable({ text: 'Dismiss notification' }))
+
+  await Promise.all(
+    notificationCloseButtons.map(handle => handle.click())
+  )
+
+  return !!notificationCloseButtons.length && delay(1000) // delayed for alerts to animate off
+}
+
 const signIntoTerra = async (page, token = bearerToken) => {
   await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true })
   await waitForNoSpinners(page)
-  return page.evaluate(token => window.forceSignIn(token), token)
+  await page.evaluate(token => window.forceSignIn(token), token)
 }
 
 const findElement = (page, xpath) => {
@@ -97,6 +108,7 @@ const findInDataTableRow = (page, entityName, text) => {
 module.exports = {
   click,
   clickable,
+  dismissNotifications,
   findIframe,
   findInGrid,
   findElement,
