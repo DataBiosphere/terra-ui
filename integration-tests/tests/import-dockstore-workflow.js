@@ -1,7 +1,7 @@
 const fetch = require('node-fetch')
 const { testUrl } = require('../utils/integration-config')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, findText, select, signIntoTerra } = require('../utils/integration-utils')
+const { click, clickable, dismissNotifications, findText, select, signIntoTerra } = require('../utils/integration-utils')
 
 
 const testWorkflowIdentifier = 'github.com/DataBiosphere/topmed-workflows/UM_variant_caller_wdl:1.32.0'
@@ -15,6 +15,7 @@ const testImportDockstoreWorkflowFn = async ({ context, page }) => {
     await withWorkspace(async ({ workspaceName }) => {
       await page.goto(`${testUrl}/#import-tool/dockstore/${testWorkflowIdentifier}`)
       await signIntoTerra(page)
+      await dismissNotifications(page)
       await findText(page, 'workflow TopMedVariantCaller')
       await select(page, 'Select a workspace', workspaceName)
       await click(page, clickable({ text: 'Import' }))

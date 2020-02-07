@@ -73,20 +73,20 @@ const delay = ms => {
 }
 
 const dismissNotifications = async page => {
+  await delay(3000) // delayed for any alerts to show
   const notificationCloseButtons = await page.$x(clickable({ text: 'Dismiss notification' }))
 
-  return Promise.all(
+  await Promise.all(
     notificationCloseButtons.map(handle => handle.click())
   )
+
+  return !!notificationCloseButtons.length && delay(1000) // delayed for alerts to animate off
 }
 
 const signIntoTerra = async (page, token = bearerToken) => {
   await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true })
   await waitForNoSpinners(page)
   await page.evaluate(token => window.forceSignIn(token), token)
-  await delay(3000) // delayed for any alerts to show
-  await dismissNotifications(page)
-  return delay(1000) // delayed for alerts to animate off
 }
 
 const findElement = (page, xpath) => {

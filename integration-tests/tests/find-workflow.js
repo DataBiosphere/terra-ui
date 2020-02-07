@@ -1,12 +1,13 @@
 const firecloud = require('../utils/firecloud-utils')
 const { billingProject, testUrl, workflowName } = require('../utils/integration-config')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, findElement, findText, signIntoTerra } = require('../utils/integration-utils')
+const { click, clickable, dismissNotifications, findElement, findText, signIntoTerra } = require('../utils/integration-utils')
 
 
 const testFindWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
   await page.goto(testUrl)
   await signIntoTerra(page)
+  await dismissNotifications(page)
   await click(page, clickable({ textContains: 'View Examples' }))
   await click(page, clickable({ textContains: 'code & workflows' }))
   await click(page, clickable({ textContains: workflowName }))
