@@ -1,7 +1,7 @@
 const pRetry = require('p-retry')
 const { testUrl, workflowName, billingProject } = require('../utils/integration-config')
 const { withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, findElement, input, signIntoTerra, waitForNoSpinners, findInGrid, navChild, findInDataTableRow } = require('../utils/integration-utils')
+const { click, clickable, dismissNotifications, findElement, input, signIntoTerra, waitForNoSpinners, findInGrid, navChild, findInDataTableRow } = require('../utils/integration-utils')
 
 
 const testEntity = { name: 'test_entity_1', entityType: 'test_entity', attributes: { input: 'foo' } }
@@ -10,6 +10,7 @@ const findWorkflowButton = clickable({ textContains: 'Find a Workflow' })
 const testRunWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
   await page.goto(testUrl)
   await signIntoTerra(page)
+  await dismissNotifications(page)
 
   await createEntityInWorkspace(page, billingProject, workspaceName, testEntity)
 
@@ -43,7 +44,7 @@ const testRunWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
     } catch (e) {
       throw new Error(e)
     }
-  }, { retries: 5, factor: 1 })
+  }, { retries: 10, factor: 1 })
 
   await click(page, navChild('data'))
   await click(page, clickable({ textContains: 'test_entity' }))
@@ -53,7 +54,7 @@ const testRunWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
 const testRunWorkflow = {
   name: 'run workflow',
   fn: testRunWorkflowFn,
-  timeout: 10 * 60 * 1000
+  timeout: 15 * 60 * 1000
 }
 
 module.exports = { testRunWorkflow }
