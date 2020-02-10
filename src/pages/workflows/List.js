@@ -78,7 +78,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
       tabNames: ['mine', 'public', 'featured'],
       displayNames: { mine: 'my workflows', public: 'public workflows', featured: 'featured workflows' },
       getHref: currentTab => `${Nav.getLink('workflows')}${getUpdatedQuery({ newTab: currentTab })}`,
-      getClick: currentTab => e => {
+      getOnClick: currentTab => e => {
         e.preventDefault()
         updateQuery({ newTab: currentTab })
       }
@@ -136,7 +136,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
 
                   return div({ style: { textAlign: 'end', flex: 1 } }, [numConfigurations])
                 },
-                size: { basis: 140, grow: 0, shrink: 0 }
+                size: { basis: 145, grow: 0, shrink: 0 }
               }
             ]
           })

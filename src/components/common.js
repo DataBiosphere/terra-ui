@@ -131,7 +131,7 @@ export const makeIconButton = (shape, { disabled, size, iconProps = {}, ...props
   ])
 }
 
-export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref, getClick = _.noop, children }) => {
+export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref, getOnClick = _.noop, children }) => {
   const navTab = currentTab => {
     const selected = currentTab === activeTab
     const href = getHref(currentTab)
@@ -139,7 +139,7 @@ export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noo
     return h(Clickable, {
       style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
       hover: selected ? {} : Style.tabBar.hover,
-      onClick: href === window.location.hash ? refresh : getClick(currentTab),
+      onClick: href === window.location.hash ? refresh : getOnClick(currentTab),
       href
     }, [
       div({ style: { marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined } }, displayNames[currentTab] || currentTab)

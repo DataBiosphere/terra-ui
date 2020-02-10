@@ -22,30 +22,9 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-const styles = {
-  leftBox: {
-    flex: 1, padding: '0 2rem 2rem 2rem'
-  },
-  rightBox: {
-    flex: 'none', width: 350, backgroundColor: colors.light(0.4),
-    padding: '0 1rem 2rem'
-  },
-  header: {
-    ...Style.elements.sectionHeader, textTransform: 'uppercase',
-    margin: '2.5rem 0 1rem 0', display: 'flex'
-  },
-  infoTile: {
-    backgroundColor: colors.dark(0.15), color: 'black',
-    width: 125, padding: 7, margin: 4
-  },
-  tinyCaps: {
-    fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase', color: colors.dark()
-  }
-}
-
 const InfoTile = ({ title, children }) => {
-  return div({ style: styles.infoTile }, [
-    div({ style: styles.tinyCaps }, [title]),
+  return div({ style: Style.dashboard.infoTile }, [
+    div({ style: Style.dashboard.tinyCaps }, [title]),
     div({ style: { fontSize: 12 } }, [children])
   ])
 }
@@ -137,23 +116,23 @@ const WorkflowSummary = () => {
   const importUrl = `${getConfig().orchestrationUrlRoot}/ga4gh/v1/tools/${namespace}:${name}/versions/${snapshotId}/plain-WDL/descriptor`
 
   return div({ style: { flex: 1, display: 'flex' } }, [
-    div({ style: styles.leftBox }, [
+    div({ style: Style.dashboard.leftBox }, [
       synopsis && h(Fragment, [
-        div({ style: styles.header }, ['Synopsis']),
+        div({ style: Style.dashboard.header }, ['Synopsis']),
         div({ style: { fontSize: 16 } }, [synopsis])
       ]),
-      div({ style: styles.header }, ['Documentation']),
+      div({ style: Style.dashboard.header }, ['Documentation']),
       !!documentation ?
         h(MarkdownViewer, { renderers: { link: newWindowLinkRenderer } }, [documentation]) :
         div({ style: { fontStyle: 'italic' } }, ['No documentation provided'])
     ]),
-    div({ style: styles.rightBox }, [
-      div({ style: styles.header }, ['Snapshot information']),
+    div({ style: Style.dashboard.rightBox }, [
+      div({ style: Style.dashboard.header }, ['Snapshot information']),
       div({ style: { display: 'flex', flexWrap: 'wrap', margin: -4 } }, [
         h(InfoTile, { title: 'Creation date' }, [new Date(createDate).toLocaleDateString()]),
         h(InfoTile, { title: 'Public' }, [_.startCase(isPublic)])
       ]),
-      div({ style: styles.header }, ['Owners']),
+      div({ style: Style.dashboard.header }, ['Owners']),
       _.map(email => {
         return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [
           h(Link, { href: `mailto:${email}` }, [email])

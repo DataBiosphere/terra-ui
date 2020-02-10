@@ -23,32 +23,10 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 
 const styles = {
-  leftBox: {
-    flex: 1, padding: '0 2rem 2rem 2rem'
-  },
-  rightBox: {
-    flex: 'none', width: 350, backgroundColor: colors.light(0.4),
-    padding: '0 1rem 2rem'
-  },
-  header: {
-    ...Style.elements.sectionHeader, textTransform: 'uppercase',
-    margin: '2.5rem 0 1rem 0', display: 'flex'
-  },
-  infoTile: {
-    backgroundColor: colors.dark(0.15), color: 'black',
-    width: 125, padding: 7, margin: 4
-  },
-  tinyCaps: {
-    fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase', color: colors.dark()
-  },
   authDomain: {
     padding: '0.5rem 0.25rem', marginBottom: '0.25rem',
     backgroundColor: colors.dark(0.15),
     ...Style.noWrapEllipsis
-  },
-  label: {
-    ...Style.elements.sectionHeader,
-    marginTop: '1rem', marginBottom: '0.25rem'
   },
   tag: {
     padding: '0.25rem', margin: '0.15rem',
@@ -65,8 +43,8 @@ const roleString = {
 }
 
 const InfoTile = ({ title, children }) => {
-  return div({ style: styles.infoTile }, [
-    div({ style: styles.tinyCaps }, [title]),
+  return div({ style: Style.dashboard.infoTile }, [
+    div({ style: Style.dashboard.tinyCaps }, [title]),
     div({ style: { fontSize: 12 } }, [children])
   ])
 }
@@ -204,8 +182,8 @@ export const WorkspaceDashboard = _.flow(
     const isEditing = _.isString(editDescription)
 
     return div({ style: { flex: 1, display: 'flex' } }, [
-      div({ style: styles.leftBox }, [
-        div({ style: styles.header }, [
+      div({ style: Style.dashboard.leftBox }, [
+        div({ style: Style.dashboard.header }, [
           'About the workspace',
           !isEditing && h(Link, {
             style: { marginLeft: '0.5rem' },
@@ -242,7 +220,7 @@ export const WorkspaceDashboard = _.flow(
           [!!description, () => h(MarkdownViewer, [description])],
           () => div({ style: { fontStyle: 'italic' } }, ['No description added'])),
         _.some(_.startsWith('library:'), _.keys(attributes)) && h(Fragment, [
-          div({ style: styles.header }, ['Dataset Attributes']),
+          div({ style: Style.dashboard.header }, ['Dataset Attributes']),
           h(SimpleTable, {
             rows: _.flow(
               _.map(({ key, title }) => ({ name: title, value: displayAttributeValue(attributes[key]) })),
@@ -259,8 +237,8 @@ export const WorkspaceDashboard = _.flow(
           })
         ])
       ]),
-      div({ style: styles.rightBox }, [
-        div({ style: styles.header }, ['Workspace information']),
+      div({ style: Style.dashboard.rightBox }, [
+        div({ style: Style.dashboard.header }, ['Workspace information']),
         div({ style: { display: 'flex', flexWrap: 'wrap', margin: -4 } }, [
           h(InfoTile, { title: 'Creation date' }, [new Date(createdDate).toLocaleDateString()]),
           h(InfoTile, { title: 'Last updated' }, [new Date(lastModified).toLocaleDateString()]),
@@ -270,13 +248,13 @@ export const WorkspaceDashboard = _.flow(
             storageCostEstimate || '$ ...'
           ])
         ]),
-        div({ style: styles.header }, ['Owners']),
+        div({ style: Style.dashboard.header }, ['Owners']),
         _.map(email => {
           return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [
             h(Link, { href: `mailto:${email}` }, [email])
           ])
         }, owners),
-        div({ style: styles.header }, [
+        div({ style: Style.dashboard.header }, [
           'Tags',
           h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
             `${getAppName()} is not intended to host personally identifiable information. Do not use any patient identifier including name,
@@ -308,7 +286,7 @@ export const WorkspaceDashboard = _.flow(
           !!tagsList && tagsList.length === 0 && i(['No tags yet'])
         ]),
         !_.isEmpty(authorizationDomain) && h(Fragment, [
-          div({ style: styles.header }, ['Authorization Domain']),
+          div({ style: Style.dashboard.header }, ['Authorization Domain']),
           div({ style: { marginBottom: '0.5rem' } }, [
             'Collaborators must be a member of all of these ',
             h(Link, {
