@@ -14,6 +14,7 @@ import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 
 
+// TODO: add error handling, consider wrapping query updates in useEffect
 const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
   const signal = Utils.useCancellation()
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })

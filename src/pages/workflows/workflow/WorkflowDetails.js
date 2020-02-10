@@ -22,6 +22,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
+// TODO: add error handling, dedupe
 const InfoTile = ({ title, children }) => {
   return div({ style: Style.dashboard.infoTile }, [
     div({ style: Style.dashboard.tinyCaps }, [title]),
