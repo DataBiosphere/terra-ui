@@ -880,6 +880,11 @@ const Methods = signal => ({
     return res.json()
   },
 
+  definitions: async () => {
+    const res = await fetchAgora(`methods/definitions`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
   configInputsOutputs: async loadedConfig => {
     const res = await fetchRawls('methodconfigs/inputsOutputs',
       _.mergeAll([authOpts(), jsonBody(loadedConfig.methodRepoMethod), { signal, method: 'POST' }]))
@@ -903,6 +908,11 @@ const Methods = signal => ({
 
       configs: async () => {
         const res = await fetchAgora(`${root}/configurations`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      allConfigs: async () => {
+        const res = await fetchAgora(`methods/${namespace}/${name}/configurations`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
