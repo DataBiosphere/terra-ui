@@ -5,13 +5,12 @@ const { findText, click, clickable, fillIn, input, signIntoTerra, waitForNoSpinn
 
 const testRegisterUserFn = withUser(async ({ page, token }) => {
   await page.goto(testUrl)
+  await click(page, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(page, token)
   await fillIn(page, input({ labelContains: 'First Name' }), 'Integration')
   await fillIn(page, input({ labelContains: 'Last Name' }), 'Test')
   await click(page, clickable({ textContains: 'Register' }))
-  await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'Accept' }))
-  await click(page, clickable({ textContains: 'View Workspaces' }))
   await findText(page, 'To get started, click Create a New Workspace')
 })
 
