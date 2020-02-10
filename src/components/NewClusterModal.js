@@ -6,6 +6,7 @@ import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledChec
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
+import { notify } from 'src/components/Notifications'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/clusters'
@@ -149,13 +150,64 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ]))
   }
 
-  updateCluster() {
-    const { currentCluster } = this.props
+  updateCluster(isStopRequired = false) {
+    const { currentCluster, onSuccess } = this.props
     const { googleProject, clusterName } = currentCluster
 
-    return Ajax().Clusters.cluster(googleProject, clusterName).update({
-      machineConfig: this.getMachineConfig()
-    })
+    if (isStopRequired) {
+      notify('success', 'To be updated, your runtime will now stop, and then start.', { timeout: 3000 })
+    }
+
+    return onSuccess(
+      Ajax().Clusters.cluster(googleProject, clusterName).update({
+        machineConfig: this.getMachineConfig()
+      }),
+      5000)
+  }
+
+  //determines whether the changes are applicable for a call to the leo patch endpoint
+  //see this for a diagram of the conditional this implements https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
+  //this function returns true for cases 2 & 3 in this diagram
+  canUpdate() {
+    const { currentCluster } = this.props
+    const { jupyterUserScriptUri, originalJupyterUserScriptUri, originalImageUrl, selectedLeoImage, customEnvImage } = this.state
+    const currentClusterConfig = currentCluster.machineConfig
+    const userSelectedConfig = this.getMachineConfig()
+
+    const hasStartupScriptChanged = jupyterUserScriptUri !== originalJupyterUserScriptUri
+
+    const hasImageChanged = !_.includes(originalImageUrl, [selectedLeoImage, customEnvImage])
+
+    const workersCantUpdate = currentClusterConfig.numberOfWorkers !== userSelectedConfig.numberOfWorkers &&
+      (currentClusterConfig.numberOfWorkers < 2 || userSelectedConfig.numberOfWorkers < 2)
+
+    const hasUnUpdateableResourceChanged =
+      currentClusterConfig.workerDiskSize !== userSelectedConfig.workerDiskSize ||
+      currentClusterConfig.workerMachineType !== userSelectedConfig.workerMachineType ||
+      currentClusterConfig.numberOfWorkerLocalSSDs !== userSelectedConfig.numberOfWorkerLocalSSDs
+
+    const hasWorkers = currentClusterConfig.numberOfWorkers >= 2 || currentClusterConfig.numberOfPreemptibleWorkers >= 2
+
+    const hasWorkersResourceChanged = hasWorkers && hasUnUpdateableResourceChanged
+
+    const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
+
+    const cantUpdate = workersCantUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || hasImageChanged || hasStartupScriptChanged
+    return !cantUpdate
+  }
+
+  //returns true for case 3 in this diagram: https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
+  isStopRequired() {
+    const { currentCluster } = this.props
+
+    const currentClusterConfig = currentCluster.machineConfig
+    const userSelectedConfig = this.getMachineConfig()
+
+    const isMasterMachineTypeChanged = currentClusterConfig.masterMachineType !== userSelectedConfig.masterMachineType
+
+    const isClusterRunning = currentCluster.status === 'Running'
+
+    return this.canUpdate() && isMasterMachineTypeChanged && isClusterRunning
   }
 
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
@@ -184,7 +236,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         this.setState({ originalJupyterUserScriptUri: '' })
       }
     } else {
-      this.setState({ selectedLeoImage: _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image , originalImageUrl: '', originalJupyterUserScriptUri: '' })
+      this.setState({ selectedLeoImage: _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image, originalImageUrl: '', originalJupyterUserScriptUri: '' })
     }
   })
 
@@ -192,10 +244,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, onDismiss, onSuccess } = this.props
     const {
       profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, originalImageUrl, originalJupyterUserScriptUri
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
-
 
     const makeEnvSelect = id => h(Select, {
       id,
@@ -251,50 +302,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])
     ])
 
-    //determines whether the changes are applicable for a call to the leo patch endpoint
-    //see this for a diagram of the conditional this implements https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
-    //this function returns true for cases 2 & 3 in this diagram
-    const canUpdate = () => {
-      const currentClusterConfig = currentCluster.machineConfig
-      const userSelectedConfig = this.getMachineConfig()
-
-      const hasStartupScriptChanged = jupyterUserScriptUri !== originalJupyterUserScriptUri
-      console.log(`curr: ${jupyterUserScriptUri}, original:${originalJupyterUserScriptUri}`)
-
-      const hasImageChanged = !_.includes(originalImageUrl, [selectedLeoImage, customEnvImage])
-
-      const workersCantUpdate = currentClusterConfig.numberOfWorkers !== userSelectedConfig.numberOfWorkers &&
-        (currentClusterConfig.numberOfWorkers < 2 || userSelectedConfig.numberOfWorkers < 2)
-
-      const hasUnUpdateableResourceChanged =
-        currentClusterConfig.workerDiskSize !== userSelectedConfig.workerDiskSize ||
-        currentClusterConfig.workerMachineType !== userSelectedConfig.workerMachineType ||
-        currentClusterConfig.numberOfWorkerLocalSSDs !== userSelectedConfig.numberOfWorkerLocalSSDs
-
-      const hasWorkers = currentClusterConfig.numberOfWorkers >= 2 || currentClusterConfig.numberOfPreemptibleWorkers >= 2
-
-      const hasWorkersResourceChanged = hasWorkers && hasUnUpdateableResourceChanged
-
-      const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
-
-      const cantUpdate = workersCantUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || hasImageChanged || hasStartupScriptChanged
-      console.log('update constituents: ', workersCantUpdate, hasWorkersResourceChanged, hasDiskSizeDecreased, hasImageChanged, hasStartupScriptChanged)
-      return !cantUpdate
-    }
-
-    //returns true for case 3 in this diagram: https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
-    const isStopRequired = () => {
-      const currentClusterConfig = currentCluster.machineConfig
-      const userSelectedConfig = this.getMachineConfig()
-
-      const isMasterMachineTypeChanged = currentClusterConfig.masterMachineType !== userSelectedConfig.masterMachineType
-
-      const isClusterRunning = currentCluster.status === 'Running'
-
-      return canUpdate() && isMasterMachineTypeChanged && isClusterRunning
-    }
-
-    const getUpdateOrReplace = () => canUpdate() ? 'Update' : 'Replace'
+    const getUpdateOrReplace = () => this.canUpdate() ? 'Update' : 'Replace'
 
     const machineConfig = () => h(Fragment, [
       div({
@@ -463,7 +471,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])],
       ['update', () => h(Fragment, [
-        isStopRequired()
+        this.isStopRequired()
           ? p(['Changing the machine type (increasing or decreasing the # of CPUs or Mem) results in an update that requires a ',
             b(['restart']),
             ' of your runtime. This may take a few minutes.  Would you like to proceed? ',
@@ -472,10 +480,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             'During this update, you can continue to work']),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, {
-            style: { marginRight: '2rem' },
-            onClick: () => this.setState({ viewMode: undefined })
+            style: { marginRight: '2rem' }
           }, ['BACK']),
-          h(ButtonPrimary, { onClick: () => onSuccess(this.updateCluster()) }, ['UPDATE'])
+          h(ButtonPrimary, { onClick: () => this.updateCluster(this.isStopRequired()) }, ['UPDATE'])
         ])
       ])],
       [Utils.DEFAULT, () => h(Fragment, [

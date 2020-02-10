@@ -196,17 +196,19 @@ export default class ClusterManager extends PureComponent {
     return currentCluster(clusters)
   }
 
-  async executeAndRefresh(promise) {
-    try {
-      const { refreshClusters } = this.props
-      this.setState({ busy: true })
-      await promise
-      await refreshClusters()
-    } catch (error) {
-      reportError('Notebook Runtime Error', error)
-    } finally {
-      this.setState({ busy: false })
-    }
+  async executeAndRefresh(promise, waitBeforeRefreshMillis = 0) {
+    await setTimeout(async () => {
+      try {
+        const { refreshClusters } = this.props
+        this.setState({ busy: true })
+        await promise
+        await refreshClusters()
+      } catch (error) {
+        reportError('Notebook Runtime Error', error)
+      } finally {
+        this.setState({ busy: false })
+      }
+    }, waitBeforeRefreshMillis)
   }
 
   createDefaultCluster() {
@@ -341,9 +343,9 @@ export default class ClusterManager extends PureComponent {
         namespace,
         currentCluster,
         onDismiss: () => this.setState({ createModalDrawerOpen: false }),
-        onSuccess: promise => {
+        onSuccess: (promise, waitBeforeRefreshMillis = 0) => {
           this.setState({ createModalDrawerOpen: false })
-          this.executeAndRefresh(promise)
+          this.executeAndRefresh(promise, waitBeforeRefreshMillis)
         }
       }),
       errorModalOpen && h(ClusterErrorModal, {
