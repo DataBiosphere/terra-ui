@@ -162,7 +162,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       Ajax().Clusters.cluster(googleProject, clusterName).update({
         machineConfig: this.getMachineConfig()
       }),
-      5000)
+      isStopRequired ? 5000 : 0)
   }
 
   //determines whether the changes are applicable for a call to the leo patch endpoint
