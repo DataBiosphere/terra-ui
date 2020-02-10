@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { backgroundLogo, ButtonPrimary, ButtonSecondary } from 'src/components/common'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
 import { Ajax } from 'src/libs/ajax'
@@ -295,12 +295,13 @@ including attorneys' fees and costs, arising out of or relating to your
 uploading, storing, or transferring of PHI without having fully
 implemented the Clinical Features.
 
-Terms as of February 10, 2020.
+Terms as of February 11, 2020.
 `
 
 const TermsOfServicePage = () => {
   const [busy, setBusy] = useState()
   const { isSignedIn, acceptedTos } = authStore.get() // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
+  const needToAccept = isSignedIn && !acceptedTos
 
   const accept = async () => {
     try {
@@ -315,10 +316,9 @@ const TermsOfServicePage = () => {
 
   return div({ style: { padding: '1rem', minHeight: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' } }, [
     backgroundLogo,
-    div({ style: { backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 5, width: 800, padding: '2rem', boxShadow: Style.standardShadow } }, [
-      div({ style: { color: colors.dark(), fontWeight: 600 } }, [
-        span({ style: { fontSize: 36 } }, ['TERRA ']), span({ style: { fontSize: 24 } }, ['Terms of Service'])
-      ]),
+    div({ style: { backgroundColor: 'white', borderRadius: 5, width: 800, padding: '2rem', boxShadow: Style.standardShadow } }, [
+      div({ style: { color: colors.dark(), fontSize: 38 } }, ['Terra Terms of Service']),
+      needToAccept && div({ style: { fontSize: 18, fontWeight: 600 } }, ['Please accept the Terms of Service to continue.']),
       div({ style: { maxHeight: 400, overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' } }, [
         h(MarkdownViewer, {
           renderers: {
@@ -327,8 +327,8 @@ const TermsOfServicePage = () => {
           }
         }, [termsOfService])
       ]),
-      isSignedIn && !acceptedTos && div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
-        h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Sign Out'),
+      needToAccept && div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
+        h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
         h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept'])
       ])
     ])
