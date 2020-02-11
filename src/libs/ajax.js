@@ -111,7 +111,7 @@ const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlR
 const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
-const fetchMetrics = withUrlPrefix(`${getConfig()}.metricsRoot`, fetchOk)
+const fetchMetrics = withUrlPrefix(`${getConfig().metricsRoot}/`, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
@@ -875,7 +875,6 @@ const GoogleBilling = signal => ({
     return response.json()
   }
 })
-
 const Methods = signal => ({
   list: async params => {
     const res = await fetchAgora(`methods?${qs.stringify(params)}`, _.merge(authOpts(), { signal }))
