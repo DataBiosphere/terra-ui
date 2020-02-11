@@ -295,7 +295,7 @@ including attorneys' fees and costs, arising out of or relating to your
 uploading, storing, or transferring of PHI without having fully
 implemented the Clinical Features.
 
-Terms as of February 11, 2020.
+Terms as of February 12, 2020.
 `
 
 const TermsOfServicePage = () => {
