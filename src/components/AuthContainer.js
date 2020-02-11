@@ -20,7 +20,7 @@ const AuthContainer = ({ children }) => {
     [registrationStatus === 'unregistered', h(Register)],
     [registrationStatus === 'disabled', () => h(Disabled)],
     [acceptedTos === undefined && !isPublic, centeredSpinner],
-    [acceptedTos === false, () => h(TermsOfService)],
+    [acceptedTos === false && !isPublic, () => h(TermsOfService)],
     [_.isEmpty(profile) && !isPublic, centeredSpinner],
     children
   )
