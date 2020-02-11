@@ -153,8 +153,8 @@ export const NotebookCreator = class NotebookCreator extends Component {
       h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id, required: true }, ['Language']),
         h(Select, {
-          id, isSearchable: false,
-          placeholder: 'Select a language',
+          id, isSearchable: true,
+          placeholder: 'Select a language', 'aria-label': 'Select a language',
           getOptionLabel: ({ value }) => _.startCase(value),
           value: notebookKernel,
           onChange: ({ value: notebookKernel }) => this.setState({ notebookKernel }),
