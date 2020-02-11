@@ -11,7 +11,7 @@ export const getConfig = () => {
 export const isFirecloud = () => (window.location.hostname === 'firecloud.terra.bio') || getConfig().isFirecloud
 export const isDatastage = () => (window.location.hostname === 'datastage.terra.bio') || getConfig().isDatastage
 export const isAnvil = () => (window.location.hostname === 'anvil.terra.bio') || getConfig().isAnvil
-export const isBioDataCatalyst = () => (window.location.hostname.endsWith('.terra.biodatacatalyst.nhlbi.nih.gov')) || getConfig().isBioDataCatalyst
+export const isBioDataCatalyst = () => /^https:\/\/(\w+\.)?terra\.biodatacatalyst\.nhlbi\.nih\.gov/.test(window.location.hostname) || getConfig().isBioDataCatalyst
 export const isTerra = () => !isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst()
 
 
