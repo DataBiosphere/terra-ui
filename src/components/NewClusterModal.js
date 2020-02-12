@@ -195,7 +195,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
 
-    const cantUpdate = workersCantUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || hasImageChanged || hasStartupScriptChanged
+    const cantUpdate = workersCantUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || hasImageChanged || hasStartupScriptChanged || !currentCluster
     return !cantUpdate
   }
 
@@ -303,7 +303,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           disabled: !!errors,
           tooltip: Utils.summarizeErrors(errors),
           onClick: () => {
-            if (isSelectedImageInputted) {
+            if (isSelectedImageInputted && !this.canUpdate()) {
               this.setState({ viewMode: 'warning' })
             } else if (!!currentCluster) {
               this.setState({ viewMode: _.lowerCase(getUpdateOrReplace()) })
@@ -493,7 +493,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             'During this update, you can continue to work']),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, {
-            style: { marginRight: '2rem' }
+            style: { marginRight: '2rem' },
+            onClick: () => this.setState({ viewMode: undefined })
           }, ['BACK']),
           h(ButtonPrimary, { onClick: () => this.updateCluster(this.isStopRequired()) }, ['UPDATE'])
         ])
