@@ -457,7 +457,7 @@ export const createEntitySet = ({ entities, rootEntityType, newSetName, workspac
     }
   }
 
-  return Ajax().Workspaces.workspace(namespace, name).createEntity(newSet) // all Ajax calls are promises
+  return Ajax().Workspaces.workspace(namespace, name).createEntity(newSet)
 }
 
 export const EntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {

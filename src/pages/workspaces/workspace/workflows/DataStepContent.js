@@ -64,7 +64,7 @@ export default class DataStepContent extends Component {
     } = this.props
     const { newSelectionModel, newSelectionModel: { type, selectedEntities, newSetName } } = this.state
 
-    const rootEntityTypeCount = _.includes(rootEntityType, _.keys(entityMetadata)) ? entityMetadata[rootEntityType].count : 0
+    const rootEntityTypeCount = entityMetadata[rootEntityType]?.count || 0
 
     const isSet = _.endsWith('_set', rootEntityType)
     const setType = `${rootEntityType}_set`
@@ -72,7 +72,7 @@ export default class DataStepContent extends Component {
     const hasEntityType = _.has(rootEntityType, entityMetadata)
     const baseEntityType = isSet ? rootEntityType.slice(0, -4) : rootEntityType
 
-    const baseEntityTypeCount = _.includes(baseEntityType, _.keys(entityMetadata)) ? entityMetadata[baseEntityType].count : 0
+    const baseEntityTypeCount = entityMetadata[baseEntityType]?.count || 0
 
     const isProcessAll = type === processAll
     const isProcessMergedSet = type === processMergedSet
@@ -181,7 +181,7 @@ export default class DataStepContent extends Component {
               Utils.cond(
                 [isProcessMergedSet, () => 'Select one or more sets to combine and process'],
                 [isChooseRows, () => `Select ${rootEntityType}s to process`],
-                [isChooseSetComponents, () => `Select ${rootEntityType.slice(0, -4)}s to create a new set to process`],
+                [isChooseSetComponents, () => `Select ${baseEntityType}s to create a new set to process`],
                 [isChooseSets, () => `Select up to 10 ${rootEntityType}s to process in parallel`]
               )
             ]),

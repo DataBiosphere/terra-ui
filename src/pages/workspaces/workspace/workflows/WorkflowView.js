@@ -531,7 +531,7 @@ const WorkflowView = _.flow(
     const baseEntityType = _.endsWith('_set', rootEntityType) ? rootEntityType.slice(0, -4) : rootEntityType
     return Utils.cond(
       [this.isSingle() || !rootEntityType, ''],
-      [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType] ? entityMetadata[rootEntityType].count : 0} ${rootEntityType}s ${newSetMessage}`],
+      [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType]?.count || 0} ${rootEntityType}s ${newSetMessage}`],
       [type === EntitySelectionType.processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
       [type === EntitySelectionType.chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
       [type === EntitySelectionType.chooseSetComponents, () => !!count ?
@@ -671,15 +671,14 @@ const WorkflowView = _.flow(
             div([
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
-                text: `Run workflow(s) with inputs defined by data table`,
+                text: 'Run workflow(s) with inputs defined by data table',
                 name: 'process-workflows',
                 checked: this.isMultiple(),
                 onChange: () => this.selectMultiple(),
                 labelStyle: { marginLeft: '0.5rem' }
               })
             ]),
-            // !!this.isMultiple() && div({ style: { columns: 'auto', divider: true, ...styles.description, margin: '0.5rem 0 0 2rem' } }, [
-            !!this.isMultiple() && div({ style: { display: 'flex', margin: '0.5rem 0 0 2rem' } }, [
+            this.isMultiple() && div({ style: { display: 'flex', margin: '0.5rem 0 0 2rem' } }, [
               div({ style: { marginRight: '2rem' } }, [
                 div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 1']),
                 label(['Select root entity type:']),
@@ -695,7 +694,7 @@ const WorkflowView = _.flow(
                     const value = this.updateEntityType(selection)
                     this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}) })
                   },
-                  options: _.map(value => ({ value }), [...entityTypes, ...possibleSetTypes])
+                  options: [...entityTypes, ...possibleSetTypes]
                 })
               ]),
               div({ style: { paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, maxWidth: '50%' } }, [
