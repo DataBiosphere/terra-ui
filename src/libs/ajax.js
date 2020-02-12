@@ -853,6 +853,8 @@ const Buckets = signal => ({
     }
   }
 })
+
+
 const GoogleBilling = signal => ({
   listProjectNames: async billingAccountName => {
     const response = await fetchGoogleBilling(`${billingAccountName}/projects`, _.merge(authOpts(), { signal }))
@@ -873,6 +875,8 @@ const GoogleBilling = signal => ({
     return response.json()
   }
 })
+
+
 const Methods = signal => ({
   list: async params => {
     const res = await fetchAgora(`methods?${qs.stringify(params)}`, _.merge(authOpts(), { signal }))
