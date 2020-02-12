@@ -1,6 +1,6 @@
 const { testUrl } = require('../utils/integration-config')
 const { withUser } = require('../utils/integration-helpers')
-const { findText, click, clickable, dismissNotifications, fillIn, input, signIntoTerra, waitForNoSpinners } = require('../utils/integration-utils')
+const { findText, click, clickable, dismissNotifications, fillIn, input, signIntoTerra } = require('../utils/integration-utils')
 
 
 const testRegisterUserFn = withUser(async ({ page, token }) => {
