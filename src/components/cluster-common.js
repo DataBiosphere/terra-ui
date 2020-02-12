@@ -80,7 +80,7 @@ export const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning = _.noop
   useEffect(() => {
     if (prevStatus === 'Running' && !_.includes(currentStatus, usableStatuses)) {
       onClusterStoppedRunning()
-    } else if (prevStatus !== 'Running' && !_.includes(currentStatus, usableStatuses)) {
+    } else if (prevStatus !== 'Running' && _.includes(currentStatus, usableStatuses)) {
       onClusterStartedRunning()
     }
   }, [currentStatus, onClusterStartedRunning, onClusterStoppedRunning, prevStatus])

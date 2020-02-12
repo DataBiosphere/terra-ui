@@ -292,8 +292,7 @@ export default class ClusterManager extends PureComponent {
     }
     const totalCost = _.sum(_.map(clusterCost, clusters))
     const activeClusters = this.getActiveClustersOldestFirst()
-    const creating = _.some({ status: 'Creating' }, activeClusters)
-    const updating = _.some({ status: 'Updating' }, activeClusters)
+    const { Creating: creating, Updating: updating } = _.countBy('status', activeClusters)
     const isDisabled = !canCompute || creating || busy || updating
 
     const isRStudioImage = currentCluster?.labels.tool === 'RStudio'

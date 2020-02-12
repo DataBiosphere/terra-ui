@@ -994,9 +994,7 @@ const Clusters = signal => ({
       },
 
       update: clusterOptions => {
-        const body = _.merge(clusterOptions, {
-          allowStop: true
-        })
+        const body = { ...clusterOptions, allowStop: true }
         return fetchLeo(`api/cluster/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PATCH' }, appIdentifier]))
       },
 
