@@ -320,10 +320,12 @@ const WorkflowView = _.flow(
   }),
   ajaxCaller
 )(class WorkflowView extends Component {
-  resetSelectionModel(value, selectedEntities = {}, isNew) {
+  resetSelectionModel(value, selectedEntities = {}) {
+    const { entityMetadata } = this.state
     return {
       type: Utils.cond(
-        [_.endsWith('_set', value), () => EntitySelectionType.chooseSetComponents],
+        [_.endsWith('_set', value) && Utils.log(_.includes(value, _.keys(entityMetadata))), () => EntitySelectionType.chooseSets], // TODO fix - this reads wrong on first load from Workflows page
+        [_.endsWith('_set', value), () => EntitySelectionType.processAllAsSet],
         [_.isEmpty(selectedEntities), () => EntitySelectionType.processAll],
         () => EntitySelectionType.chooseRows
       ),
@@ -527,7 +529,7 @@ const WorkflowView = _.flow(
   describeSelectionModel() {
     const { modifiedConfig: { rootEntityType }, entityMetadata, entitySelectionModel: { newSetName, selectedEntities, type } } = this.state
     const count = _.size(selectedEntities)
-    const newSetMessage = (type === EntitySelectionType.processAll || type === EntitySelectionType.processAllSetComponents || (type === EntitySelectionType.chooseSetComponents && count > 0) || count > 1) ? `(will create a new set named "${newSetName}")` : ''
+    const newSetMessage = (type === EntitySelectionType.processAll || type === EntitySelectionType.processAllAsSet || (type === EntitySelectionType.chooseSetComponents && count > 0) || count > 1) ? `(will create a new set named "${newSetName}")` : ''
     const baseEntityType = _.endsWith('_set', rootEntityType) ? rootEntityType.slice(0, -4) : rootEntityType
     return Utils.cond(
       [this.isSingle() || !rootEntityType, ''],
@@ -537,7 +539,7 @@ const WorkflowView = _.flow(
       [type === EntitySelectionType.chooseSetComponents, () => !!count ?
         `1 ${rootEntityType} containing ${count} ${baseEntityType}s ${newSetMessage}` :
         `${count} selected ${rootEntityType}s`],
-      [type === EntitySelectionType.processAllSetComponents, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType].count} ${baseEntityType}s ${newSetMessage}`],
+      [type === EntitySelectionType.processAllAsSet, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType].count} ${baseEntityType}s ${newSetMessage}`],
       [type === EntitySelectionType.chooseSets, () => `${count} selected ${rootEntityType}s`]
     )
   }
@@ -579,6 +581,7 @@ const WorkflowView = _.flow(
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
+      [this.isMultiple() && (!entityMetadata[rootEntityType] && !_.includes(rootEntityType, possibleSetTypes)), () => `There are no ${selectedEntityType}s in this workspace.`],
       [this.isMultiple() && (entitySelectionModel.type === EntitySelectionType.chooseSets || entitySelectionModel.type === EntitySelectionType.chooseSetComponents) && !_.size(entitySelectionModel.selectedEntities),
         () => 'Select or create a set']
     )
@@ -679,7 +682,7 @@ const WorkflowView = _.flow(
               })
             ]),
             this.isMultiple() && div({ style: { display: 'flex', margin: '0.5rem 0 0 2rem' } }, [
-              div({ style: { marginRight: '2rem' } }, [
+              div([
                 div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 1']),
                 label(['Select root entity type:']),
                 h(Select, {
@@ -697,16 +700,15 @@ const WorkflowView = _.flow(
                   options: [...entityTypes, ...possibleSetTypes]
                 })
               ]),
-              div({ style: { paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, maxWidth: '50%' } }, [
+              div({ style: { marginLeft: '2rem', paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, flex: 1 } }, [
                 div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 2']),
-                div({ style: { display: 'flex' } }, [
+                div({ style: { display: 'flex', alignItems: 'center' } }, [
                   h(ButtonPrimary, {
                     disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
                     tooltip: Utils.editWorkspaceError(ws),
                     onClick: () => this.setState({ selectingData: true })
                   }, ['Select Data']),
-                  label({ style: { marginLeft: '1rem', alignSelf: 'center' } },
-                    [`${this.describeSelectionModel()}`])
+                  label({ style: { marginLeft: '1rem' } }, [`${this.describeSelectionModel()}`])
                 ])
               ])
             ])

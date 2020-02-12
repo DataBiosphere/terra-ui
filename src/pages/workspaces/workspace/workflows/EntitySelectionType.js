@@ -4,5 +4,5 @@ export default {
   chooseRows: Symbol('choose rows'),
   chooseSets: Symbol('choose sets'),
   chooseSetComponents: Symbol('choose set components'),
-  processAllSetComponents: Symbol('process all set components')
+  processAllAsSet: Symbol('process all set components')
 }
