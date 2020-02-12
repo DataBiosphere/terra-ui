@@ -853,8 +853,6 @@ const Buckets = signal => ({
     }
   }
 })
-
-
 const GoogleBilling = signal => ({
   listProjectNames: async billingAccountName => {
     const response = await fetchGoogleBilling(`${billingAccountName}/projects`, _.merge(authOpts(), { signal }))
