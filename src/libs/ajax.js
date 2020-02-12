@@ -23,7 +23,7 @@ window.ajaxOverrideUtils = {
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
-const tosData = { appid: 'Saturn', tosversion: 5 }
+const tosData = { appid: 'Saturn', tosversion: 6 }
 
 const withInstrumentation = wrappedFetch => (...args) => {
   return _.flow(
@@ -880,6 +880,11 @@ const Methods = signal => ({
     return res.json()
   },
 
+  definitions: async () => {
+    const res = await fetchAgora(`methods/definitions`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
   configInputsOutputs: async loadedConfig => {
     const res = await fetchRawls('methodconfigs/inputsOutputs',
       _.mergeAll([authOpts(), jsonBody(loadedConfig.methodRepoMethod), { signal, method: 'POST' }]))
@@ -903,6 +908,11 @@ const Methods = signal => ({
 
       configs: async () => {
         const res = await fetchAgora(`${root}/configurations`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      allConfigs: async () => {
+        const res = await fetchAgora(`methods/${namespace}/${name}/configurations`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 

@@ -15,7 +15,7 @@ import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { Ajax } from 'src/libs/ajax'
 import { refreshTerraProfile, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
+import { getConfig, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import { topBarLogo } from 'src/libs/logos'
@@ -185,7 +185,7 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
               }, ['Sign Out'])
             ]) :
             div({ style: { flex: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 95 } }, [
-              isDatastage() ?
+              isDatastage() || isBioDataCatalyst() ?
                 h(Clickable, {
                   href: Nav.getLink('workspaces'),
                   style: {

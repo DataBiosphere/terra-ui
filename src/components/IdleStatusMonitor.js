@@ -36,7 +36,7 @@ const IdleStatusMonitor = ({
   countdownStart = Utils.durationToMillis({ minutes: 3 })
 }) => {
   const { isSignedIn, isTimeoutEnabled, user: { id } } = Utils.useStore(authStore)
-  const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore)
+  const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore) || {}
   const { timedOut } = getIdleData({ currentTime: Date.now(), lastRecordedActivity, timeout, countdownStart })
 
   useEffect(() => { timedOut && !isSignedIn && setLastActive('expired') }, [isSignedIn, timedOut])
@@ -73,7 +73,7 @@ const CountdownModal = ({ onCancel, countdown }) => {
 }
 
 const InactivityTimer = ({ id, timeout, countdownStart }) => {
-  const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore)
+  const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore) || {}
   const [logoutRequested, setLogoutRequested] = useState()
   const [currentTime, setDelay] = Utils.useCurrentTime()
   const { timedOut, showCountdown, countdown } = getIdleData({ currentTime, lastRecordedActivity, timeout, countdownStart })

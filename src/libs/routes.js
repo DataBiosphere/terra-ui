@@ -18,6 +18,8 @@ import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
 import * as Profile from 'src/pages/Profile'
 import * as TermsOfService from 'src/pages/TermsOfService'
 import * as TestLogin from 'src/pages/TestLogin'
+import * as WorkflowsList from 'src/pages/workflows/List'
+import * as WorkflowDashboard from 'src/pages/workflows/workflow/WorkflowDetails'
 import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as AppLauncher from 'src/pages/workspaces/workspace/applications/AppLauncher'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
@@ -57,6 +59,8 @@ const routes = _.flatten([
   Projects.navPaths,
   HoF.navPaths,
   Clusters.navPaths,
+  WorkflowsList.navPaths,
+  WorkflowDashboard.navPaths,
   NotFound.navPaths // must be last
 ])
 

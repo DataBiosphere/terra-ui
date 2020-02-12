@@ -1,0 +1,157 @@
+import _ from 'lodash/fp'
+import * as qs from 'qs'
+import { Fragment, useState } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
+import { AutoSizer } from 'react-virtualized'
+import { Link, TabBar } from 'src/components/common'
+import { DelayedSearchInput } from 'src/components/input'
+import { FlexTable, HeaderCell, Sortable, TooltipCell } from 'src/components/table'
+import TopBar from 'src/components/TopBar'
+import { Ajax } from 'src/libs/ajax'
+import { getUser } from 'src/libs/auth'
+import { getConfig } from 'src/libs/config'
+import * as Nav from 'src/libs/nav'
+import * as Utils from 'src/libs/utils'
+
+
+// TODO: add error handling, consider wrapping query updates in useEffect
+const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
+  const signal = Utils.useCancellation()
+  const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
+  const [workflows, setWorkflows] = useState()
+
+  const getTabQueryName = newTab => newTab === 'mine' ? undefined : newTab
+
+  const getUpdatedQuery = ({ newTab = tab, newFilter = filter }) => {
+    // Note: setting undefined so that falsy values don't show up at all
+    return qs.stringify({ ...query, tab: getTabQueryName(newTab), filter: newFilter || undefined }, { addQueryPrefix: true })
+  }
+
+  const updateQuery = newParams => {
+    const newSearch = getUpdatedQuery(newParams)
+
+    if (newSearch !== Nav.history.location.search) {
+      Nav.history.replace({ search: newSearch })
+    }
+  }
+
+  const tabName = tab || 'mine'
+
+  Utils.useOnMount(() => {
+    const isMine = ({ public: isPublic, managers }) => !isPublic || _.includes(getUser().email, managers)
+
+    const loadWorkflows = async () => {
+      const [allWorkflows, featuredList] = await Promise.all([
+        Ajax(signal).Methods.definitions(),
+        fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`, { signal }).then(res => res.json())
+      ])
+
+      setWorkflows({
+        mine: _.filter(isMine, allWorkflows),
+        featured: _.flow(
+          _.map(featuredWf => _.find(featuredWf, allWorkflows)),
+          _.compact
+        )(featuredList),
+        public: _.filter('public', allWorkflows)
+      })
+    }
+
+    loadWorkflows()
+  })
+
+  const sortedWorkflows = _.flow(
+    _.filter(({ namespace, name }) => Utils.textMatch(filter, `${namespace}/${name}`)),
+    _.orderBy([({ [sort.field]: field }) => _.lowerCase(field)], [sort.direction])
+  )(workflows?.[tabName])
+
+  return h(Fragment, [
+    h(TopBar, { title: 'Workflows' }, [
+      h(DelayedSearchInput, {
+        style: { marginLeft: '2rem', width: 500 },
+        placeholder: 'SEARCH WORKFLOWS',
+        'aria-label': 'Search workflows',
+        onChange: val => updateQuery({ newFilter: val }),
+        value: filter
+      })
+    ]),
+    h(TabBar, {
+      activeTab: tabName,
+      tabNames: ['mine', 'public', 'featured'],
+      displayNames: { mine: 'my workflows', public: 'public workflows', featured: 'featured workflows' },
+      getHref: currentTab => `${Nav.getLink('workflows')}${getUpdatedQuery({ newTab: currentTab })}`,
+      getOnClick: currentTab => e => {
+        e.preventDefault()
+        updateQuery({ newTab: currentTab })
+      }
+    }),
+    div({ role: 'main', style: { padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
+      div({ style: { flex: 1 } }, [
+        workflows && h(AutoSizer, [
+          ({ width, height }) => h(FlexTable, {
+            width, height,
+            rowCount: sortedWorkflows.length,
+            columns: [
+              {
+                headerRenderer: () => h(Sortable, { sort, field: 'name', onSort: setSort }, [h(HeaderCell, ['Workflow'])]),
+                cellRenderer: ({ rowIndex }) => {
+                  const { namespace, name } = sortedWorkflows[rowIndex]
+
+                  return h(TooltipCell, { tooltip: `${namespace}/${name}` }, [
+                    div({ style: { fontSize: 12 } }, [namespace]),
+                    h(Link, { style: { fontWeight: 600 }, href: Nav.getLink('workflow-dashboard', { namespace, name }) }, [name])
+                  ])
+                },
+                size: { basis: 300 }
+              },
+              {
+                headerRenderer: () => h(Sortable, { sort, field: 'synopsis', onSort: setSort }, [h(HeaderCell, ['Synopsis'])]),
+                cellRenderer: ({ rowIndex }) => {
+                  const { synopsis } = sortedWorkflows[rowIndex]
+
+                  return h(TooltipCell, [synopsis])
+                },
+                size: { basis: 475 }
+              },
+              {
+                headerRenderer: () => h(Sortable, { sort, field: 'managers', onSort: setSort }, [h(HeaderCell, ['Owners'])]),
+                cellRenderer: ({ rowIndex }) => {
+                  const { managers } = sortedWorkflows[rowIndex]
+
+                  return h(TooltipCell, [managers?.join(', ')])
+                },
+                size: { basis: 225 }
+              },
+              {
+                headerRenderer: () => h(Sortable, { sort, field: 'numSnapshots', onSort: setSort }, [h(HeaderCell, ['Snapshots'])]),
+                cellRenderer: ({ rowIndex }) => {
+                  const { numSnapshots } = sortedWorkflows[rowIndex]
+
+                  return div({ style: { textAlign: 'end', flex: 1 } }, [numSnapshots])
+                },
+                size: { basis: 108, grow: 0, shrink: 0 }
+              },
+              {
+                headerRenderer: () => h(Sortable, { sort, field: 'numConfigurations', onSort: setSort }, [h(HeaderCell, ['Configurations'])]),
+                cellRenderer: ({ rowIndex }) => {
+                  const { numConfigurations } = sortedWorkflows[rowIndex]
+
+                  return div({ style: { textAlign: 'end', flex: 1 } }, [numConfigurations])
+                },
+                size: { basis: 145, grow: 0, shrink: 0 }
+              }
+            ]
+          })
+        ])
+      ])
+    ])
+  ])
+}
+
+export const navPaths = [
+  {
+    name: 'workflows',
+    path: '/workflows',
+    component: WorkflowList,
+    title: 'Workflows'
+  }
+]
