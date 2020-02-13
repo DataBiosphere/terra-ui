@@ -543,7 +543,7 @@ const WorkflowView = _.flow(
       [type === chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
       [type === chooseSetComponents, () => !!count ?
         `1 ${rootEntityType} containing ${count} ${baseEntityType}s ${newSetMessage}` :
-        `${count} selected ${rootEntityType}s`],
+        `No ${rootEntityType}s selected`],
       [type === processAllAsSet, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType].count} ${baseEntityType}s ${newSetMessage}`],
       [type === chooseSets, () => `${count} selected ${rootEntityType}s`]
     )
@@ -702,7 +702,7 @@ const WorkflowView = _.flow(
                     const value = this.updateEntityType(selection)
                     this.setState({ entitySelectionModel: this.resetSelectionModel(value) })
                   },
-                  options: [...entityTypes, ...possibleSetTypes]
+                  options: [...entityTypes, ...possibleSetTypes].sort()
                 })
               ]),
               div({ style: { marginLeft: '2rem', paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, flex: 1 } }, [
