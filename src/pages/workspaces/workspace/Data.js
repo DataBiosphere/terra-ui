@@ -971,7 +971,7 @@ const WorkspaceData = _.flow(
     const { namespace, name, workspace, workspace: { workspace: { attributes } }, refreshWorkspace, pfbImportJobs } = this.props
     const { selectedDataType, entityMetadata, importingReference, deletingReference, firstRender, refreshKey, uploadingFile } = this.state
     const referenceData = getReferenceData(attributes)
-    const sortedEntityPairs = _.flow(_.toPairs, _.sortBy('0'))(entityMetadata)
+    const sortedEntityPairs = _.flow(_.toPairs, _.sortBy(_.first))(entityMetadata)
 
     return div({ style: styles.tableContainer }, [
       !entityMetadata ? spinnerOverlay : h(Fragment, [
