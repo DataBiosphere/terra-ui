@@ -541,11 +541,11 @@ const WorkflowView = _.flow(
       [type === processAll, () => `all ${entityMetadata[rootEntityType]?.count || 0} ${rootEntityType}s ${newSetMessage}`],
       [type === processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
       [type === chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
-      [type === chooseSetComponents, () => !!count ?
-        `1 ${rootEntityType} containing ${count} ${baseEntityType}s ${newSetMessage}` :
-        `No ${rootEntityType}s selected`],
+      [type === chooseSetComponents, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}s ${newSetMessage}`],
       [type === processAllAsSet, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType].count} ${baseEntityType}s ${newSetMessage}`],
-      [type === chooseSets, () => `${count} selected ${rootEntityType}s`]
+      [type === chooseSets, () => !!count ?
+        `${count} selected ${rootEntityType}s` :
+        `No ${rootEntityType}s selected`]
     )
   }
 
