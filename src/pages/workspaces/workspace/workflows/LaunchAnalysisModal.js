@@ -177,11 +177,11 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     const {
       workspaceId: { namespace, name },
       config: { namespace: configNamespace, name: configName },
-      useCallCache
+      useCallCache, deleteIntermediateOutputFiles
     } = this.props
 
     return Ajax().Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
-      entityType, entityName, expression, useCallCache
+      entityType, entityName, expression, useCallCache, deleteIntermediateOutputFiles
     })
   }
 

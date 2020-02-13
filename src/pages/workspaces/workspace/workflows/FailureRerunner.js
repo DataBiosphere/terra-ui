@@ -32,7 +32,7 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
     const workspace = Ajax().Workspaces.workspace(namespace, name)
     const methodConfig = workspace.methodConfig(configNamespace, configName)
 
-    const [{ workflows, useCallCache }, { rootEntityType }] = await Promise.all([
+    const [{ workflows, useCallCache, deleteIntermediateOutputFiles }, { rootEntityType }] = await Promise.all([
       workspace.submission(submissionId).get(),
       methodConfig.get()
     ])
@@ -48,7 +48,7 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
       workspaceNamespace: namespace, workspaceName: name,
       config: { namespace: configNamespace, name: configName, rootEntityType },
       entityType: rootEntityType, entityNames: _.map('entityName', failedEntities),
-      newSetName, useCallCache,
+      newSetName, useCallCache, deleteIntermediateOutputFiles,
       onCreateSet: () => rerunFailuresStatus.set({ text: 'Creating set from failures...' }),
       onLaunch: () => rerunFailuresStatus.set({ text: 'Launching new job...' }),
       onSuccess: () => {

@@ -13,7 +13,7 @@ import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedAutocompleteTextInput, DelayedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import PopupTrigger from 'src/components/PopupTrigger'
+import PopupTrigger, { InfoBox } from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
 import { FlexTable, HeaderCell, SimpleTable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -332,6 +332,7 @@ const WorkflowView = _.flow(
       activeTab: 'inputs',
       entitySelectionModel: { selectedEntities: {} },
       useCallCache: true,
+      deleteIntermediateOutputFiles: false,
       includeOptionalInputs: true,
       filter: '',
       errors: { inputs: {}, outputs: {} },
@@ -383,7 +384,7 @@ const WorkflowView = _.flow(
     // savedConfig: unmodified copy of config for checking for unsaved edits
     // modifiedConfig: active data, potentially unsaved
     const {
-      isFreshData, savedConfig, entityMetadata, launching, activeTab, useCallCache,
+      isFreshData, savedConfig, entityMetadata, launching, activeTab, useCallCache, deleteIntermediateOutputFiles,
       entitySelectionModel, variableSelected, modifiedConfig, updatingConfig
     } = this.state
     const { namespace, name, workspace } = this.props
@@ -399,7 +400,7 @@ const WorkflowView = _.flow(
         launching && h(LaunchAnalysisModal, {
           workspaceId, config: savedConfig, entityMetadata,
           accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
-          processSingle: this.isSingle(), entitySelectionModel, useCallCache,
+          processSingle: this.isSingle(), entitySelectionModel, useCallCache, deleteIntermediateOutputFiles,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId }),
           onSuccessMulti: () => Nav.goToPath('workspace-job-history', workspaceId)
@@ -559,7 +560,7 @@ const WorkflowView = _.flow(
     const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted, wdl
+      selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, deleteIntermediateOutputFiles, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
     const modified = !_.isEqual(modifiedConfig, savedConfig)
@@ -692,7 +693,17 @@ const WorkflowView = _.flow(
               disabled: currentSnapRedacted || !!Utils.computeWorkspaceError(ws),
               checked: useCallCache,
               onChange: v => this.setState({ useCallCache: v })
-            }, [' Use call caching'])
+            }, [' Use call caching']),
+            span({ style: { marginLeft: '1rem', marginRight: '0.5rem' } }, [
+              h(LabeledCheckbox, {
+                checked: deleteIntermediateOutputFiles,
+                onChange: v => this.setState({ deleteIntermediateOutputFiles: v }),
+                style: { marginLeft: '1rem' }
+              }, [' Delete intermediate outputs'])
+            ]),
+            h(InfoBox, [
+              'If the workflow succeeds, only the final output files will be saved.'
+            ])
           ]),
           h(StepButtons, {
             tabs: [
