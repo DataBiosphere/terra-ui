@@ -36,3 +36,11 @@ TERRA_TOKEN=$(gcloud auth print-access-token) \
 LYLE_SA_KEY=$(vault read --format=json secret/dsde/terra/envs/common/lyle-user-service-account-key | jq .data) \
 yarn test
 ```
+
+#### Debugging
+
+To open a debug port into the jest tests run the following in the integration-tests folder
+
+```sh
+TERRA_TOKEN=$(gcloud auth print-access-token) LYLE_SA_KEY=$(vault read --format=json secret/dsde/terra/envs/common/lyle-user-service-account-key | jq .data) node --inspect-brk node_modules/.bin/jest [test name] --runInBand
+```
