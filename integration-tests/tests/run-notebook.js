@@ -21,7 +21,15 @@ const testRunNotebookFn = withWorkspace(async ({ page, workspaceName }) => {
   await click(page, clickable({ text: 'Create Notebook' }))
   await click(page, clickable({ textContains: notebookName }))
   await click(page, clickable({ textContains: 'Notebook Runtime' }))
-  await select(page, 'Select Environment', 'Hail')
+
+  try {
+    await select(page, 'Select Environment', 'Hail')
+  } catch {
+    await delay(300000) //if runtime configuration is in Creating state wait for it to complete
+    await findElement(page, clickable({ textContains: 'Running' }))
+    await click(page, clickable({ textContains: 'Notebook Runtime' }))
+    await select(page, 'Select Environment', 'Hail')
+  }
 
   try {
     await click(page, clickable({ text: 'Create' }), { timeout: 1000 }) //If no runtime exists currently
