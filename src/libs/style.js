@@ -111,3 +111,24 @@ export const modalDrawer = {
     display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline'
   }
 }
+
+export const dashboard = {
+  leftBox: {
+    flex: 1, padding: '0 2rem 2rem 2rem'
+  },
+  rightBox: {
+    flex: 'none', width: 350, backgroundColor: colors.light(0.4),
+    padding: '0 1rem 2rem'
+  },
+  header: {
+    ...elements.sectionHeader, textTransform: 'uppercase',
+    margin: '2.5rem 0 1rem 0', display: 'flex'
+  },
+  infoTile: {
+    backgroundColor: colors.dark(0.15), color: 'black',
+    width: 125, padding: 7, margin: 4
+  },
+  tinyCaps: {
+    fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase', color: colors.dark()
+  }
+}

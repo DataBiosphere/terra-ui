@@ -8,6 +8,8 @@ import { ajaxOverridesStore, requesterPaysBuckets, requesterPaysProjectStore, wo
 import * as Utils from 'src/libs/utils'
 
 
+const metricsEnabled = false
+
 window.ajaxOverrideUtils = {
   mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
     const res = await wrappedFetch(...args)
@@ -23,7 +25,7 @@ window.ajaxOverrideUtils = {
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
-const tosData = { appid: 'Saturn', tosversion: 5 }
+const tosData = { appid: 'Saturn', tosversion: 6 }
 
 const withInstrumentation = wrappedFetch => (...args) => {
   return _.flow(
@@ -109,6 +111,7 @@ const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlR
 const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
+const fetchMetrics = withUrlPrefix(`${getConfig().metricsRoot}/`, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
@@ -880,6 +883,11 @@ const Methods = signal => ({
     return res.json()
   },
 
+  definitions: async () => {
+    const res = await fetchAgora(`methods/definitions`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
   configInputsOutputs: async loadedConfig => {
     const res = await fetchRawls('methodconfigs/inputsOutputs',
       _.mergeAll([authOpts(), jsonBody(loadedConfig.methodRepoMethod), { signal, method: 'POST' }]))
@@ -903,6 +911,11 @@ const Methods = signal => ({
 
       configs: async () => {
         const res = await fetchAgora(`${root}/configurations`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      allConfigs: async () => {
+        const res = await fetchAgora(`methods/${namespace}/${name}/configurations`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
@@ -1072,6 +1085,10 @@ const Duos = signal => ({
   }
 })
 
+const Metrics = signal => ({
+  // Remove the metricsEnabled feature flag once TOS and all metrics projects are setup
+  captureEvent: (event, data) => metricsEnabled && fetchMetrics('api/event', _.mergeAll([authOpts(), jsonBody({ event, data }), { signal, method: 'POST' }]))
+})
 
 export const Ajax = signal => {
   return {
@@ -1086,7 +1103,8 @@ export const Ajax = signal => {
     Clusters: Clusters(signal),
     Dockstore: Dockstore(signal),
     Martha: Martha(signal),
-    Duos: Duos(signal)
+    Duos: Duos(signal),
+    Metrics: Metrics(signal)
   }
 }
 

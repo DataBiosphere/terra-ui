@@ -1,4 +1,4 @@
-import { number, text, withKnobs } from '@storybook/addon-knobs'
+import { boolean, number, withKnobs } from '@storybook/addon-knobs'
 import { storiesOf } from '@storybook/react'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef } from 'react'
@@ -7,9 +7,22 @@ import { ButtonPrimary } from 'src/components/common'
 import IdleTimeoutModal from 'src/components/IdleStatusMonitor'
 import Modal from 'src/components/Modal'
 import { getDynamic, listenDynamic, setDynamic } from 'src/libs/browser-storage'
-import { authStore } from 'src/libs/state'
+import { ajaxOverridesStore, authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
+
+const clearOverrides = () => ajaxOverridesStore.set([])
+
+const setOverrides = ({ isTimeoutEnabled }) => {
+  ajaxOverridesStore.set([{
+    filter: /api\/groups\/v1/,
+    fn: () => () => {
+      return !isTimeoutEnabled ? new Response(
+        JSON.stringify([{ groupName: 'session_timeout' }]), { status: 200 }) :
+        new Response(null, { status: 404 })
+    }
+  }])
+}
 
 const dynamicStorageSlot = (storage, key) => {
   const { subscribe, next } = Utils.subscribable()
@@ -27,7 +40,7 @@ authTest.update(v => v || {})
 const agreeTest = dynamicStorageSlot(localStorage, 'terra-timeout-agree')
 
 const Container = ({ modal }) => {
-  const userEmail = text('User email domain', 'foo.com')
+  const isTimeoutEnabled = boolean('Timeout Enabled', false)
   const agree = Utils.useStore(agreeTest)
   const auth = Utils.useStore(authTest)
   const { isSignedIn } = auth
@@ -36,8 +49,15 @@ const Container = ({ modal }) => {
   agree && authStore.set(auth)
 
   useEffect(() => {
-    authTest.set({ user: { id: `${userEmail.replace('.', '')}-123`, email: `user@${userEmail}` }, isSignedIn: false })
-  }, [userEmail])
+    authTest.set({
+      user: { id: 'foo-123' },
+      registrationStatus: 'registered',
+      isTimeoutEnabled,
+      isisSignedIn: false
+    })
+    setOverrides({ isTimeoutEnabled })
+    return clearOverrides
+  }, [isTimeoutEnabled])
 
   Utils.useOnMount(() => {
     agreeTest.set(false)
@@ -79,7 +99,6 @@ const Container = ({ modal }) => {
     modal ? h(Modal, { title: 'Test', onDismiss: () => undefined, showCancel: false }, [agreement]) :
       div({ style: { margin: '1rem' } }, [agreement]),
     !!agree && h(IdleTimeoutModal, {
-      emailDomain: text(`Email domain that will be timed out`, 'foo.com'),
       timeout: number('Timeout (seconds)', 5) * 1000,
       countdownStart: number('Timeout Start (seconds)', 3) * 1000
     })

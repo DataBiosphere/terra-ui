@@ -116,13 +116,6 @@ class Participant extends Component {
 const browseTooltip = 'Look for the Export to Terra icon to export data from this provider.'
 
 
-const NIHCommonsButtons = () => h(ButtonPrimary, {
-  style: { margin: '0.25rem 0' },
-  href: 'https://gen3.datastage.io/explorer',
-  ...Utils.newTabLinkProps,
-  tooltip: browseTooltip
-}, ['Browse STAGE Repository'])
-
 const thousandGenomesHighCoverage = () => h(Participant, {
   logo: { src: thousandGenomesAnvil, alt: '1000 Genomes and AnVIL', height: '55%' },
   title: '1000 Genomes High Coverage presented by NHGRI AnVIL',
@@ -362,13 +355,17 @@ const tcga = () => h(Participant, {
 
 const topMed = () => h(Participant, {
   logo: { src: topMedLogo, alt: 'TopMed logo' },
-  title: 'TopMed presented by NHLBI Data STAGE',
+  title: 'TopMed presented by NHLBI BioData Catalyst',
   description: `Trans-Omics for Precision Medicine (TOPMed), sponsored by the National Institutes of Health's National
   Heart, Lung, and Blood Institute (NHLBI), is a program to generate scientific resources to enhance our understanding
   of fundamental biological processes that underlie heart, lung, blood, and sleep disorders (HLBS).`,
   sizeText: h(TooltipTrigger, { content: 'As of November 2016' }, [span('Participants: > 54,000')])
 }, [
-  h(NIHCommonsButtons)
+  h(ButtonPrimary, {
+    href: 'https://gen3.datastage.io/explorer',
+    ...Utils.newTabLinkProps,
+    tooltip: browseTooltip
+  }, ['Browse Data'])
 ])
 
 const ukb = () => h(Participant, {

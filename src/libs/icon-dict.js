@@ -18,9 +18,11 @@ import { ReactComponent as books } from 'src/icons/books-solid.svg'
 import { ReactComponent as cardMenuIcon } from 'src/icons/card-menu-icon.svg'
 import { ReactComponent as cloudUpload } from 'src/icons/cloud-upload-solid.svg'
 import { ReactComponent as columnGrabber } from 'src/icons/column_grabber.svg'
+import { ReactComponent as copySolid } from 'src/icons/copy-solid.svg'
 import { ReactComponent as downloadRegular } from 'src/icons/download-regular.svg'
 import { ReactComponent as externalLinkAlt } from 'src/icons/external-link-alt-regular.svg'
 import { ReactComponent as fileExport } from 'src/icons/file-export-regular.svg'
+import { ReactComponent as fileSearchSolid } from 'src/icons/file-search-solid.svg'
 import { ReactComponent as list } from 'src/icons/list-regular.svg'
 import { ReactComponent as loadingSpinner } from 'src/icons/loading-spinner.svg'
 import { ReactComponent as renameIcon } from 'src/icons/rename-icon.svg'
@@ -41,26 +43,40 @@ const iconDict = {
   'angle-up': custom(angleUp),
   'angle-double-left': rotate(-90, custom(angleDoubleUp)),
   'angle-double-right': rotate(90, custom(angleDoubleUp)),
+  arrowLeft: fa(faArrowLeft),
+  arrowLeftRegular: custom(arrowLeftRegular),
+  arrowRight: fa(faArrowRight),
   ban: fa(faBan),
   bars: custom(bars),
+  cardMenuIcon: custom(cardMenuIcon),
+  caretDown: fa(faCaretDown),
   chalkboard: fa(faChalkboard),
   check: fa(faCheck),
+  checkSquare: fa(faCheckSquare),
   clock: fa(faClock),
   cloud: fa(faCloud),
   cog: fa(faCog),
+  columnGrabber: custom(columnGrabber),
   copy: fa(faClone),
+  copySolid: custom(copySolid),
   'copy-to-clipboard': fa(faClipboard),
+  creditCard: fa(faCreditCard),
   download: fa(faDownload),
   downloadRegular: custom(downloadRegular),
   edit: fa(faPen),
+  'ellipsis-v': fa(faEllipsisV),
+  'ellipsis-v-circle': props => fa(faEllipsisV, { mask: faCircle, transform: 'shrink-8', ...props }),
   'error-standard': fa(faExclamationCircle),
   export: custom(fileExport),
   eye: fa(faEye),
+  fileSearchSolid: custom(fileSearchSolid),
   folder: fa(faFolder),
   'folder-open': fa(faFolderOpen),
   help: fa(faQuestionCircle),
   'info-circle': fa(faInfoCircle),
   library: custom(books),
+  listAlt: fa(faListAlt),
+  loadingSpinner: custom(loadingSpinner),
   lock: fa(faLock),
   'long-arrow-alt-down': fa(faLongArrowAltDown),
   'long-arrow-alt-up': fa(faLongArrowAltUp),
@@ -70,8 +86,11 @@ const iconDict = {
   plus: fa(faPlus),
   'plus-circle': fa(faPlusCircle),
   'pop-out': custom(externalLinkAlt),
+  purchaseOrder: fa(faFileInvoiceDollar),
+  renameIcon: custom(renameIcon),
   search: fa(faSearch),
   share: fa(faShareAlt),
+  square: fa(faSquareRegular),
   'success-standard': fa(faCheckCircle),
   sync: custom(syncAlt),
   terminal: props => fa(faTerminal, { mask: faSquareSolid, transform: 'shrink-8', ...props }),
@@ -81,22 +100,7 @@ const iconDict = {
   'upload-cloud': custom(cloudUpload),
   'view-cards': fa(faGripHorizontal),
   'view-list': custom(list),
-  'warning-standard': fa(faExclamationTriangle),
-  'ellipsis-v': fa(faEllipsisV),
-  arrowLeft: fa(faArrowLeft),
-  arrowLeftRegular: custom(arrowLeftRegular),
-  arrowRight: fa(faArrowRight),
-  cardMenuIcon: custom(cardMenuIcon),
-  'ellipsis-v-circle': props => fa(faEllipsisV, { mask: faCircle, transform: 'shrink-8', ...props }),
-  caretDown: fa(faCaretDown),
-  checkSquare: fa(faCheckSquare),
-  columnGrabber: custom(columnGrabber),
-  creditCard: fa(faCreditCard),
-  listAlt: fa(faListAlt),
-  loadingSpinner: custom(loadingSpinner),
-  purchaseOrder: fa(faFileInvoiceDollar),
-  renameIcon: custom(renameIcon),
-  square: fa(faSquareRegular)
+  'warning-standard': fa(faExclamationTriangle)
 }
 
 export default iconDict

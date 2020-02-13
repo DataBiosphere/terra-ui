@@ -33,19 +33,16 @@ const getIdleData = ({ currentTime, lastRecordedActivity, timeout, countdownStar
 
 const IdleStatusMonitor = ({
   timeout = Utils.durationToMillis({ minutes: 15 }),
-  countdownStart = Utils.durationToMillis({ minutes: 3 }), emailDomain = ''
+  countdownStart = Utils.durationToMillis({ minutes: 3 })
 }) => {
-  const { isSignedIn, user: { id, email } } = Utils.useStore(authStore)
-  // Placeholder code until the clinical user information is available in the user's profile.
-  // This will likely be a boolean property in the profile
-  const isClinicalDomain = email && emailDomain && email.endsWith(`@${emailDomain}`)
-  const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore)
+  const { isSignedIn, isTimeoutEnabled, user: { id } } = Utils.useStore(authStore)
+  const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore) || {}
   const { timedOut } = getIdleData({ currentTime: Date.now(), lastRecordedActivity, timeout, countdownStart })
 
   useEffect(() => { timedOut && !isSignedIn && setLastActive('expired') }, [isSignedIn, timedOut])
 
   return Utils.cond(
-    [isSignedIn && isClinicalDomain, h(InactivityTimer, { id, timeout, countdownStart })],
+    [isSignedIn && isTimeoutEnabled, h(InactivityTimer, { id, timeout, countdownStart })],
     [lastRecordedActivity === 'expired' && !isSignedIn, () => h(Modal, {
       title: 'Session Expired',
       showCancel: false,
@@ -76,7 +73,7 @@ const CountdownModal = ({ onCancel, countdown }) => {
 }
 
 const InactivityTimer = ({ id, timeout, countdownStart }) => {
-  const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore)
+  const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore) || {}
   const [logoutRequested, setLogoutRequested] = useState()
   const [currentTime, setDelay] = Utils.useCurrentTime()
   const { timedOut, showCountdown, countdown } = getIdleData({ currentTime, lastRecordedActivity, timeout, countdownStart })
