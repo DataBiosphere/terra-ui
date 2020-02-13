@@ -74,6 +74,10 @@ export const LocationProvider = ({ children }) => {
   return h(locationContext.Provider, { value: location }, [children])
 }
 
+export const getCurrentRoute = () => {
+  return parseRoute(routeHandlersStore.get(), history.location)
+}
+
 export const useRoute = () => {
   const location = useContext(locationContext)
   const handlers = useStore(routeHandlersStore)
