@@ -6,8 +6,8 @@ import { b, div, h, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton,
-  Select, spinnerOverlay
+  ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select,
+  spinnerOverlay
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -28,7 +28,9 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent'
 import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
-import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
+import {
+  chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet
+} from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -305,9 +307,11 @@ class TextCollapse extends Component {
   }
 }
 
+const isSet = _.endsWith('_set')
+
 const findPossibleSets = listOfExistingEntities => {
   return _.reduce((acc, entityType) => {
-    return _.endsWith('_set', entityType) || _.includes(`${entityType}_set`, listOfExistingEntities) ?
+    return isSet(entityType) || _.includes(`${entityType}_set`, listOfExistingEntities) ?
       acc :
       Utils.append(`${entityType}_set`, acc)
   }, [], listOfExistingEntities)
@@ -320,17 +324,17 @@ const WorkflowView = _.flow(
   }),
   ajaxCaller
 )(class WorkflowView extends Component {
-  resetSelectionModel(value, selectedEntities = {}) {
-    const { entityMetadata } = this.state
+  resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata) {
+    const { workflowName } = this.props
+
     return {
       type: Utils.cond(
-        [_.endsWith('_set', value) && Utils.log(_.includes(value, _.keys(entityMetadata))), () => EntitySelectionType.chooseSets], // TODO fix - this reads wrong on first load from Workflows page
-        [_.endsWith('_set', value), () => EntitySelectionType.processAllAsSet],
-        [_.isEmpty(selectedEntities), () => EntitySelectionType.processAll],
-        () => EntitySelectionType.chooseRows
+        [isSet(value), () => _.includes(value, _.keys(entityMetadata)) ? chooseSets : processAllAsSet],
+        [_.isEmpty(selectedEntities), () => processAll],
+        () => chooseRows
       ),
       selectedEntities,
-      newSetName: Utils.sanitizeEntityName(`${this.props.workflowName}_${new Date().toISOString().slice(0, -5)}`)
+      newSetName: Utils.sanitizeEntityName(`${workflowName}_${new Date().toISOString().slice(0, -5)}`)
     }
   }
 
@@ -469,7 +473,7 @@ const WorkflowView = _.flow(
         savedInputsOutputs: inputsOutputs,
         modifiedInputsOutputs: inputsOutputs,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
-        entitySelectionModel: this.resetSelectionModel(modifiedConfig.rootEntityType, readSelection ? selection.entities : {}),
+        entitySelectionModel: this.resetSelectionModel(modifiedConfig.rootEntityType, readSelection ? selection.entities : {}, entityMetadata),
         workspaceAttributes: _.flow(
           _.without(['description']),
           _.remove(s => s.includes(':'))
@@ -529,18 +533,19 @@ const WorkflowView = _.flow(
   describeSelectionModel() {
     const { modifiedConfig: { rootEntityType }, entityMetadata, entitySelectionModel: { newSetName, selectedEntities, type } } = this.state
     const count = _.size(selectedEntities)
-    const newSetMessage = (type === EntitySelectionType.processAll || type === EntitySelectionType.processAllAsSet || (type === EntitySelectionType.chooseSetComponents && count > 0) || count > 1) ? `(will create a new set named "${newSetName}")` : ''
-    const baseEntityType = _.endsWith('_set', rootEntityType) ? rootEntityType.slice(0, -4) : rootEntityType
+    const newSetMessage = (type === processAll || type === processAllAsSet ||
+      (type === chooseSetComponents && count > 0) || count > 1) ? `(will create a new set named "${newSetName}")` : ''
+    const baseEntityType = isSet(rootEntityType) ? rootEntityType.slice(0, -4) : rootEntityType
     return Utils.cond(
       [this.isSingle() || !rootEntityType, ''],
-      [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType]?.count || 0} ${rootEntityType}s ${newSetMessage}`],
-      [type === EntitySelectionType.processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
-      [type === EntitySelectionType.chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
-      [type === EntitySelectionType.chooseSetComponents, () => !!count ?
+      [type === processAll, () => `all ${entityMetadata[rootEntityType]?.count || 0} ${rootEntityType}s ${newSetMessage}`],
+      [type === processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
+      [type === chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
+      [type === chooseSetComponents, () => !!count ?
         `1 ${rootEntityType} containing ${count} ${baseEntityType}s ${newSetMessage}` :
         `${count} selected ${rootEntityType}s`],
-      [type === EntitySelectionType.processAllAsSet, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType].count} ${baseEntityType}s ${newSetMessage}`],
-      [type === EntitySelectionType.chooseSets, () => `${count} selected ${rootEntityType}s`]
+      [type === processAllAsSet, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType].count} ${baseEntityType}s ${newSetMessage}`],
+      [type === chooseSets, () => `${count} selected ${rootEntityType}s`]
     )
   }
 
@@ -582,7 +587,7 @@ const WorkflowView = _.flow(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
       [this.isMultiple() && (!entityMetadata[rootEntityType] && !_.includes(rootEntityType, possibleSetTypes)), () => `There are no ${selectedEntityType}s in this workspace.`],
-      [this.isMultiple() && (entitySelectionModel.type === EntitySelectionType.chooseSets || entitySelectionModel.type === EntitySelectionType.chooseSetComponents) && !_.size(entitySelectionModel.selectedEntities),
+      [this.isMultiple() && (entitySelectionModel.type === chooseSets || entitySelectionModel.type === chooseSetComponents) && !_.size(entitySelectionModel.selectedEntities),
         () => 'Select or create a set']
     )
 
@@ -695,7 +700,7 @@ const WorkflowView = _.flow(
                   value: selectedEntityType,
                   onChange: selection => {
                     const value = this.updateEntityType(selection)
-                    this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}) })
+                    this.setState({ entitySelectionModel: this.resetSelectionModel(value) })
                   },
                   options: [...entityTypes, ...possibleSetTypes]
                 })
@@ -704,7 +709,8 @@ const WorkflowView = _.flow(
                 div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 2']),
                 div({ style: { display: 'flex', alignItems: 'center' } }, [
                   h(ButtonPrimary, {
-                    disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
+                    disabled: currentSnapRedacted || this.isSingle() || !rootEntityType ||
+                      !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
                     tooltip: Utils.editWorkspaceError(ws),
                     onClick: () => this.setState({ selectingData: true })
                   }, ['Select Data']),

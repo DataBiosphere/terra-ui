@@ -9,11 +9,11 @@ import Modal from 'src/components/Modal'
 import { FormLabel } from 'src/libs/forms'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
+import {
+  chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet
+} from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 import validate from 'validate.js'
 
-
-const { processAll, processMergedSet, chooseRows, chooseSets, chooseSetComponents, processAllAsSet } = EntitySelectionType
 
 export default class DataStepContent extends Component {
   static propTypes = {
@@ -23,7 +23,7 @@ export default class DataStepContent extends Component {
     entitySelectionModel: PropTypes.shape({
       newSetName: PropTypes.string.isRequired,
       selectedElements: PropTypes.array,
-      type: PropTypes.oneOf(_.values(EntitySelectionType))
+      type: PropTypes.oneOf([processAll, processMergedSet, chooseRows, chooseSets, chooseSetComponents, processAllAsSet])
     }),
     onDismiss: PropTypes.func,
     onSuccess: PropTypes.func,

@@ -9,7 +9,9 @@ import colors from 'src/libs/colors'
 import { createEntitySet } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
-import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
+import {
+  chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet
+} from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
 export default ajaxCaller(class LaunchAnalysisModal extends Component {
@@ -44,9 +46,9 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
 
     if (!processSingle) {
       return Utils.switchCase(type,
-        [EntitySelectionType.chooseRows, () => _.keys(selectedEntities)],
-        [EntitySelectionType.chooseSetComponents, () => _.keys(selectedEntities)],
-        [EntitySelectionType.processMergedSet, () => _.flow(
+        [chooseRows, () => _.keys(selectedEntities)],
+        [chooseSetComponents, () => _.keys(selectedEntities)],
+        [processMergedSet, () => _.flow(
           _.flatMap(`attributes.${rootEntityType}s.items`),
           _.map('entityName')
         )(selectedEntities)],
@@ -61,9 +63,9 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     const entities = this.getEntities()
     const entityCount = Utils.cond(
       [processSingle, () => 1],
-      [type === EntitySelectionType.processAll, () => entityMetadata[rootEntityType].count],
-      [type === EntitySelectionType.processAllAsSet, () => 1],
-      [type === EntitySelectionType.chooseSetComponents, () => 1],
+      [type === processAll, () => entityMetadata[rootEntityType].count],
+      [type === processAllAsSet, () => 1],
+      [type === chooseSetComponents, () => 1],
       [_.isArray(entities), () => _.uniq(entities).length],
       () => _.size(entities)
     )
@@ -85,9 +87,9 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       div({ style: { margin: '1rem 0' } }, ['This analysis will be run by ', h(CromwellVersionLink), '.']),
       (!entities && !processSingle) ? spinner() : div({ style: { margin: '1rem 0' } }, [
         'This will launch ', b([entityCount]), ` analys${entityCount === 1 ? 'is' : 'es'}`,
-        type === EntitySelectionType.chooseSets && entityCount > 1 && ' simultaneously',
+        type === chooseSets && entityCount > 1 && ' simultaneously',
         '.',
-        !processSingle && type !== EntitySelectionType.chooseSets && type !== EntitySelectionType.processAll && entityCount !== entities.length && div({
+        !processSingle && type !== chooseSets && type !== processAll && entityCount !== entities.length && div({
           style: { fontStyle: 'italic', marginTop: '0.5rem' }
         }, ['(Duplicate entities are only processed once.)'])
       ]),
@@ -125,25 +127,25 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       })
     } else if (processSingle) {
       this.launch()
-    } else if (type === EntitySelectionType.processAll) {
+    } else if (type === processAll) {
       this.setState({ message: 'Fetching data...' })
       const allEntities = _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(rootEntityType))
       this.createSetAndLaunch(allEntities)
-    } else if (type === EntitySelectionType.chooseRows) {
+    } else if (type === chooseRows) {
       if (entities.length === 1) {
         this.launch(rootEntityType, entities[0])
       } else {
         this.createSetAndLaunch(entities)
       }
-    } else if (type === EntitySelectionType.processMergedSet) {
+    } else if (type === processMergedSet) {
       this.createSetAndLaunch(entities)
-    } else if (type === EntitySelectionType.chooseSetComponents) {
+    } else if (type === chooseSetComponents) {
       this.createSetAndLaunchOne(entities)
-    } else if (type === EntitySelectionType.processAllAsSet) {
+    } else if (type === processAllAsSet) {
       const baseEntityType = rootEntityType.slice(0, -4)
       const allBaseEntities = _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(baseEntityType))
       this.createSetAndLaunchOne(allBaseEntities)
-    } else if (type === EntitySelectionType.chooseSets) {
+    } else if (type === chooseSets) {
       if (_.size(entities) === 1) {
         this.launch(rootEntityType, _.values(entities)[0].name)
       } else {
