@@ -197,18 +197,17 @@ export default class ClusterManager extends PureComponent {
   }
 
   async executeAndRefresh(promise, waitBeforeRefreshMillis = 0) {
-    await setTimeout(async () => {
-      try {
-        const { refreshClusters } = this.props
-        this.setState({ busy: true })
-        await promise
-        await refreshClusters()
-      } catch (error) {
-        reportError('Notebook Runtime Error', error)
-      } finally {
-        this.setState({ busy: false })
-      }
-    }, waitBeforeRefreshMillis)
+    try {
+      const { refreshClusters } = this.props
+      this.setState({ busy: true })
+      await promise
+      waitBeforeRefreshMillis && await Utils.delay(waitBeforeRefreshMillis)
+      await refreshClusters()
+    } catch (error) {
+      reportError('Notebook Runtime Error', error)
+    } finally {
+      this.setState({ busy: false })
+    }
   }
 
   createDefaultCluster() {
