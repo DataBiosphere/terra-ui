@@ -38,8 +38,8 @@ const clickable = ({ text, textContains }) => {
   }
 }
 
-const click = async (page, xpath) => {
-  return (await page.waitForXPath(xpath)).click()
+const click = async (page, xpath, options) => {
+  return (await page.waitForXPath(xpath, options)).click()
 }
 
 const findText = (page, textContains) => {
