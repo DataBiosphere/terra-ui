@@ -194,7 +194,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       const { submissionId } = await this.baseLaunch(entityType, entityName, expression)
       onSuccess(submissionId)
     } catch (error) {
-      this.setState({ launchError: JSON.parse(await error.text()).message, message: undefined })
+      this.setState({ launchError: await error.text(), message: undefined })
     }
   }
 
