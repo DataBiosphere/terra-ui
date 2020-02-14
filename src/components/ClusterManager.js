@@ -182,7 +182,7 @@ export default class ClusterManager extends PureComponent {
         message: 'Your notebook runtime is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'
       })
     } else if (cluster.status === 'Running' && prevCluster.status === 'Updating') {
-      notify('success', 'Your runtime update has completed successfully.', { timeout: 3000 })
+      notify('success', 'Your runtime update has completed successfully.', { timeout: 5000 })
     }
   }
 

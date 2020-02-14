@@ -386,7 +386,7 @@ const copyingNotebookMessage = div({ style: { paddingTop: '2rem' } }, [
 ])
 
 const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
-  console.assert(_.includes(status, usableStatuses), 'Expected notebook runtime to be running or updating')
+  console.assert(_.includes(status, usableStatuses), `Expected notebook runtime to be one of: [${usableStatuses}]`)
   console.assert(!labels.welderInstallFailed, 'Expected cluster to have Welder')
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)
