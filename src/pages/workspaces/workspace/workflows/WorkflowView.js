@@ -28,7 +28,9 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent'
 import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
-import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
+import {
+  chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet
+} from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -305,6 +307,15 @@ class TextCollapse extends Component {
   }
 }
 
+const isSet = _.endsWith('_set')
+
+const findPossibleSets = listOfExistingEntities => {
+  return _.reduce((acc, entityType) => {
+    return isSet(entityType) || _.includes(`${entityType}_set`, listOfExistingEntities) ?
+      acc :
+      Utils.append(`${entityType}_set`, acc)
+  }, [], listOfExistingEntities)
+}
 
 const WorkflowView = _.flow(
   wrapWorkspace({
@@ -313,15 +324,17 @@ const WorkflowView = _.flow(
   }),
   ajaxCaller
 )(class WorkflowView extends Component {
-  resetSelectionModel(value, selectedEntities = {}) {
+  resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata) {
+    const { workflowName } = this.props
+
     return {
       type: Utils.cond(
-        [_.endsWith('_set', value), () => EntitySelectionType.chooseSets],
-        [_.isEmpty(selectedEntities), () => EntitySelectionType.processAll],
-        () => EntitySelectionType.chooseRows
+        [isSet(value), () => _.includes(value, _.keys(entityMetadata)) ? chooseSets : processAllAsSet],
+        [_.isEmpty(selectedEntities), () => processAll],
+        () => chooseRows
       ),
       selectedEntities,
-      newSetName: Utils.sanitizeEntityName(`${this.props.workflowName}_${new Date().toISOString().slice(0, -5)}`)
+      newSetName: Utils.sanitizeEntityName(`${workflowName}_${new Date().toISOString().slice(0, -5)}`)
     }
   }
 
@@ -460,7 +473,7 @@ const WorkflowView = _.flow(
         savedInputsOutputs: inputsOutputs,
         modifiedInputsOutputs: inputsOutputs,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
-        entitySelectionModel: this.resetSelectionModel(modifiedConfig.rootEntityType, readSelection ? selection.entities : {}),
+        entitySelectionModel: this.resetSelectionModel(modifiedConfig.rootEntityType, readSelection ? selection.entities : {}, entityMetadata),
         workspaceAttributes: _.flow(
           _.without(['description']),
           _.remove(s => s.includes(':'))
@@ -520,14 +533,19 @@ const WorkflowView = _.flow(
   describeSelectionModel() {
     const { modifiedConfig: { rootEntityType }, entityMetadata, entitySelectionModel: { newSetName, selectedEntities, type } } = this.state
     const count = _.size(selectedEntities)
-    const newSetMessage = (type === EntitySelectionType.processAll || count > 1) ? `(will create a new set named "${newSetName}")` : ''
+    const newSetMessage = (type === processAll || type === processAllAsSet ||
+      (type === chooseSetComponents && count > 0) || count > 1) ? `(will create a new set named "${newSetName}")` : ''
+    const baseEntityType = isSet(rootEntityType) ? rootEntityType.slice(0, -4) : rootEntityType
     return Utils.cond(
       [this.isSingle() || !rootEntityType, ''],
-      [type === EntitySelectionType.processAll, () => `all ${entityMetadata[rootEntityType] ? entityMetadata[rootEntityType].count : 0}
-        ${rootEntityType}s ${newSetMessage}`],
-      [type === EntitySelectionType.processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
-      [type === EntitySelectionType.chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
-      [type === EntitySelectionType.chooseSets, () => `${count} selected ${rootEntityType}s`]
+      [type === processAll, () => `all ${entityMetadata[rootEntityType]?.count || 0} ${rootEntityType}s ${newSetMessage}`],
+      [type === processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
+      [type === chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
+      [type === chooseSetComponents, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}s ${newSetMessage}`],
+      [type === processAllAsSet, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType].count} ${baseEntityType}s ${newSetMessage}`],
+      [type === chooseSets, () => !!count ?
+        `${count} selected ${rootEntityType}s` :
+        `No ${rootEntityType}s selected`]
     )
   }
 
@@ -562,13 +580,15 @@ const WorkflowView = _.flow(
       selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
+    const entityTypes = _.keys(entityMetadata)
+    const possibleSetTypes = findPossibleSets(entityTypes)
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
-      [this.isMultiple() && !entityMetadata[rootEntityType], () => `There are no ${selectedEntityType}s in this workspace.`],
-      [this.isMultiple() && entitySelectionModel.type === EntitySelectionType.chooseSets && !_.size(entitySelectionModel.selectedEntities),
-        () => 'Select a set']
+      [this.isMultiple() && (!entityMetadata[rootEntityType] && !_.includes(rootEntityType, possibleSetTypes)), () => `There are no ${selectedEntityType}s in this workspace.`],
+      [this.isMultiple() && (entitySelectionModel.type === chooseSets || entitySelectionModel.type === chooseSetComponents) && !_.size(entitySelectionModel.selectedEntities),
+        () => 'Select or create a set']
     )
 
     const inputsValid = _.isEmpty(errors.inputs)
@@ -649,7 +669,7 @@ const WorkflowView = _.flow(
             div([
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
-                text: 'Process single workflow from files',
+                text: 'Run workflow with inputs defined by file paths',
                 name: 'process-workflows',
                 checked: this.isSingle(),
                 onChange: () => this.selectSingle(),
@@ -659,33 +679,45 @@ const WorkflowView = _.flow(
             div([
               h(RadioButton, {
                 disabled: !!Utils.editWorkspaceError(ws) || currentSnapRedacted,
-                text: `Process multiple workflows from:`,
+                text: 'Run workflow(s) with inputs defined by data table',
                 name: 'process-workflows',
                 checked: this.isMultiple(),
                 onChange: () => this.selectMultiple(),
                 labelStyle: { marginLeft: '0.5rem' }
-              }),
-              h(Select, {
-                'aria-label': 'Entity type selector',
-                isClearable: false, isDisabled: currentSnapRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws), isSearchable: false,
-                placeholder: 'Select data type...',
-                styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
-                getOptionLabel: ({ value }) => Utils.normalizeLabel(value),
-                value: selectedEntityType,
-                onChange: selection => {
-                  const value = this.updateEntityType(selection)
-                  this.setState({ entitySelectionModel: this.resetSelectionModel(value) })
-                },
-                options: _.keys(entityMetadata)
-              }),
-              h(Link, {
-                disabled: currentSnapRedacted || this.isSingle() || !rootEntityType || !entityMetadata[rootEntityType] || !!Utils.editWorkspaceError(ws),
-                tooltip: Utils.editWorkspaceError(ws),
-                onClick: () => this.setState({ selectingData: true }),
-                style: { marginLeft: '1rem' }
-              }, ['Select Data'])
+              })
             ]),
-            div({ style: { marginLeft: '2rem', height: '1.5rem' } }, [`${this.describeSelectionModel()}`])
+            this.isMultiple() && div({ style: { display: 'flex', margin: '0.5rem 0 0 2rem' } }, [
+              div([
+                div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 1']),
+                label(['Select root entity type:']),
+                h(Select, {
+                  'aria-label': 'Entity type selector',
+                  isClearable: false,
+                  isDisabled: currentSnapRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws),
+                  isSearchable: true,
+                  placeholder: 'Select data type...',
+                  styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
+                  value: selectedEntityType,
+                  onChange: selection => {
+                    const value = this.updateEntityType(selection)
+                    this.setState({ entitySelectionModel: this.resetSelectionModel(value) })
+                  },
+                  options: [...entityTypes, ...possibleSetTypes].sort()
+                })
+              ]),
+              div({ style: { marginLeft: '2rem', paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, flex: 1 } }, [
+                div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 2']),
+                div({ style: { display: 'flex', alignItems: 'center' } }, [
+                  h(ButtonPrimary, {
+                    disabled: currentSnapRedacted || this.isSingle() || !rootEntityType ||
+                      !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
+                    tooltip: Utils.editWorkspaceError(ws),
+                    onClick: () => this.setState({ selectingData: true })
+                  }, ['Select Data']),
+                  label({ style: { marginLeft: '1rem' } }, [`${this.describeSelectionModel()}`])
+                ])
+              ])
+            ])
           ]),
           div({ style: { marginTop: '1rem' } }, [
             h(LabeledCheckbox, {

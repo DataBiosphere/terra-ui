@@ -445,6 +445,21 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
   ])
 }
 
+export const createEntitySet = ({ entities, rootEntityType, newSetName, workspaceId: { namespace, name } }) => {
+  const newSet = {
+    name: newSetName,
+    entityType: `${rootEntityType}_set`, // this will be e.g. if rootEntityType is Sample, Sample_set
+    attributes: {
+      [`${rootEntityType}s`]: {
+        itemsType: 'EntityReference',
+        items: _.map(entityName => ({ entityName, entityType: rootEntityType }), entities)
+      }
+    }
+  }
+
+  return Ajax().Workspaces.workspace(namespace, name).createEntity(newSet)
+}
+
 export const EntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const initialIsReference = _.isObject(attributeValue) && (attributeValue.entityType || attributeValue.itemsType === 'EntityReference')
   const initialIsList = _.isObject(attributeValue) && attributeValue.items
