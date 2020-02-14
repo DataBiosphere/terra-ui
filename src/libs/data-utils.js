@@ -49,7 +49,7 @@ export const renderDataCell = (data, namespace) => {
 
   return Utils.cond(
     [_.isArray(data), () => renderArray(data)],
-    [_.isObject(data) && !!data.itemsType && _.isArray(data.items), () => renderArray(data.items)],
+    [_.isObject(data), () => renderArray(data.items)],
     () => renderCell(data && data.toString())
   )
 }
