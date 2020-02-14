@@ -176,7 +176,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   hasImageChanged() {
     const { selectedLeoImage, customEnvImage, currentClusterDetails } = this.state
-    const { imageUrl } =  currentClusterDetails ? this.getImageUrl(currentClusterDetails) : ''
+    const { imageUrl } = currentClusterDetails ? this.getImageUrl(currentClusterDetails) : ''
     return !_.includes(imageUrl, [selectedLeoImage, customEnvImage])
   }
 
@@ -197,7 +197,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       currentClusterConfig.numberOfWorkerLocalSSDs !== userSelectedConfig.numberOfWorkerLocalSSDs
 
     const hasWorkers = currentClusterConfig.numberOfWorkers >= 2 || currentClusterConfig.numberOfPreemptibleWorkers >= 2
-
     const hasWorkersResourceChanged = hasWorkers && hasUnUpdateableResourceChanged
 
     const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
@@ -233,7 +232,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
     ])
 
-    this.setState({ leoImages: newLeoImages, currentClusterDetails: currentClusterDetails })
+    this.setState({ leoImages: newLeoImages, currentClusterDetails })
     if (currentClusterDetails) {
       const { jupyterUserScriptUri } = currentClusterDetails
       const { imageUrl } = this.getImageUrl(currentClusterDetails)
