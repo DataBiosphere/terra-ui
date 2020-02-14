@@ -42,9 +42,9 @@ export const renderDataCell = (data, namespace) => {
   }
 
   const renderArray = items => {
-    return _.map((v, i) => h(Fragment, { key: i }, [
+    return _.map(([i, v]) => h(Fragment, { key: i }, [
       renderCell(v.toString()), i < (items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
-    ]), items)
+    ]), Utils.toIndexPairs(items))
   }
 
   return Utils.cond(
