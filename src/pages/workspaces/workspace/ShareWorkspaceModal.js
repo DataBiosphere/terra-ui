@@ -9,6 +9,7 @@ import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -211,6 +212,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
 
     const aclEmails = _.map('email', acl)
     const needsDelete = _.remove(entry => aclEmails.includes(entry.email), originalAcl)
+    const numAdditions = _.filter(({ email }) => !_.some({ email }, originalAcl), acl).length
 
     const aclUpdates = [
       ..._.flow(
@@ -223,8 +225,10 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
     try {
       this.setState({ working: true })
       await Ajax().Workspaces.workspace(namespace, name).updateAcl(aclUpdates)
+      !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { numAdditions, success: true })
       onDismiss()
     } catch (error) {
+      !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { numAdditions, success: false })
       this.setState({ updateError: await error.text(), working: false })
     }
   }

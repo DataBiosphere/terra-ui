@@ -8,6 +8,8 @@ import { ajaxOverridesStore, requesterPaysBuckets, requesterPaysProjectStore, wo
 import * as Utils from 'src/libs/utils'
 
 
+const metricsEnabled = false
+
 window.ajaxOverrideUtils = {
   mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
     const res = await wrappedFetch(...args)
@@ -109,6 +111,7 @@ const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlR
 const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
+const fetchMetrics = withUrlPrefix(`${getConfig().metricsRoot}/`, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
@@ -1082,6 +1085,10 @@ const Duos = signal => ({
   }
 })
 
+const Metrics = signal => ({
+  // Remove the metricsEnabled feature flag once TOS and all metrics projects are setup
+  captureEvent: (event, data) => metricsEnabled && fetchMetrics('api/event', _.mergeAll([authOpts(), jsonBody({ event, data }), { signal, method: 'POST' }]))
+})
 
 export const Ajax = signal => {
   return {
@@ -1096,7 +1103,8 @@ export const Ajax = signal => {
     Clusters: Clusters(signal),
     Dockstore: Dockstore(signal),
     Martha: Martha(signal),
-    Duos: Duos(signal)
+    Duos: Duos(signal),
+    Metrics: Metrics(signal)
   }
 }
 
