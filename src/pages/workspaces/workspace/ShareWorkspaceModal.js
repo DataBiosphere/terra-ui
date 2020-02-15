@@ -1,9 +1,8 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, CreatableSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
@@ -18,8 +17,8 @@ import validate from 'validate.js'
 
 const styles = {
   currentCollaboratorsArea: {
-    margin: '2rem -1.25rem 0rem',
-    padding: '0.75rem 1.25rem',
+    margin: '0.5rem -1.25rem 0',
+    padding: '1rem 1.25rem',
     maxHeight: 550,
     overflowY: 'auto',
     borderBottom: Style.standardLine,
@@ -82,7 +81,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       originalAcl: [],
       acl: [],
       loaded: false,
-      searchValue: '',
+      enteredEmails: [],
       accessLevel: 'READER',
       canShare: false,
       canCompute: false
@@ -91,13 +90,14 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
 
   render() {
     const { workspace, onDismiss } = this.props
-    const { acl, shareSuggestions, groups, loaded, searchValue, working, updateError, accessLevel, canShare, canCompute } = this.state
-    const searchValueInvalid = !!validate({ searchValue }, { searchValue: { email: true } })
+    const { acl, shareSuggestions, groups, loaded, enteredEmails, working, updateError, accessLevel, canShare, canCompute } = this.state
 
     const suggestions = _.flow(
       _.map('groupEmail'),
       _.concat(shareSuggestions),
-      _.uniq
+      list => _.difference(list, _.map('email', acl)),
+      _.uniq,
+      _.map(value => ({ label: value, value }))
     )(groups)
 
     return h(Modal, {
@@ -108,61 +108,52 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
     }, [
       h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, ['User email']),
-        h(AutocompleteTextInput, {
+        h(CreatableSelect, {
           id,
+          isLoading: !loaded,
           placeholder: 'Add people or groups',
-          value: searchValue,
-          onChange: v => this.setState({ searchValue: v }),
-          suggestions: _.difference(suggestions, _.map('email', acl)),
-          style: { fontSize: 16 }
+          'aria-label': 'Enter an email address of a person or group',
+          isValidNewOption: val => !validate.single(val, { email: true }),
+          noOptionsMessage: () => 'Enter an email address',
+          allowCreateWhileLoading: true,
+          options: suggestions,
+          isClearable: true,
+          formatCreateLabel: _.identity,
+          value: null,
+          onChange: ({ value }) => this.setState(_.update('acl', Utils.append({ email: value, accessLevel: 'READER' }))),
+          components: { DropdownIndicator: () => null }
         })
       ])]),
-      h(FormLabel, ['Role']),
-      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
-        h(AclInput, {
-          value: { accessLevel, canShare, canCompute },
-          onChange: v => this.setState(v),
-          maxAccessLevel: workspace.accessLevel
-        }),
-        h(ButtonPrimary, {
-          onClick: () => this.addAcl(searchValue),
-          disabled: searchValueInvalid,
-          tooltip: searchValueInvalid && 'Not a valid email address'
-        }, ['Add User'])
-      ]),
+      div({ style: { ...Style.elements.sectionHeader, marginTop: '1rem' } }, ['Current Collaborators']),
       div({ style: styles.currentCollaboratorsArea }, [
-        div({ style: Style.elements.sectionHeader }, ['Current Collaborators']),
-        ...acl.map(this.renderCollaborator),
+        h(Fragment, _.map(this.renderCollaborator, Utils.toIndexPairs(acl))),
         !loaded && centeredSpinner()
       ]),
       updateError && div({ style: { marginTop: '1rem' } }, [
-        div({}, ['An error occurred:']),
+        div(['An error occurred:']),
         updateError
       ]),
       working && spinnerOverlay
     ])
   }
 
-  addAcl(email) {
-    const { acl, accessLevel, canShare, canCompute } = this.state
-    this.setState({ acl: Utils.append({ email, accessLevel, canShare, canCompute, pending: false }, acl), searchValue: '' })
-  }
-
-  renderCollaborator = (aclItem, index) => {
+  renderCollaborator = ([index, aclItem]) => {
     const { email, accessLevel, pending } = aclItem
     const POAccessLevel = 'PROJECT_OWNER'
     const isPO = accessLevel === POAccessLevel
     const isMe = email === getUser().email
     const { workspace } = this.props
-    const { acl } = this.state
+    const { acl, originalAcl } = this.state
 
     return div({
-      style: { display: 'flex', padding: '0.5rem', borderTop: index && `1px solid ${colors.dark(0.4)}` }
+      style: {
+        display: 'flex', alignItems: 'center', borderRadius: 5,
+        padding: '0.5rem 0.75rem', marginBottom: 10,
+        backgroundColor: _.find({ email }, originalAcl) ? colors.light(0.65) : colors.success(0.15)
+      }
     }, [
-      div({
-        style: { flex: 1 }
-      }, [
-        div({}, [email]),
+      div({ style: { flex: 1 } }, [
+        email,
         pending && div({ style: styles.pending }, ['Pending']),
         h(AclInput, {
           value: aclItem,
@@ -173,7 +164,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       ]),
       !isPO && !isMe && h(Link, {
         onClick: () => this.setState({ acl: _.remove({ email }, acl) })
-      }, [icon('minus-circle', { size: 24 })])
+      }, [icon('times', { size: 24, style: { marginRight: '0.5rem' } })])
     ])
   }
 

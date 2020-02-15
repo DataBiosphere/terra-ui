@@ -5,6 +5,7 @@ import FocusLock from 'react-focus-lock'
 import { b, div, h, img, input, label, span } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
+import RCreatableSelect from 'react-select/creatable'
 import RSwitch from 'react-switch'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -262,7 +263,15 @@ export const comingSoon = span({
   }
 }, ['coming soon'])
 
-const commonSelectProps = {
+const standardizeSelectProps = ({ value, id, findValue, isMulti, ...props }) => _.merge({
+  inputId: id,
+  getOptionLabel: ({ value, label }) => label || value.toString(),
+  isMulti,
+  value: Utils.cond(
+    [!findValue, () => value],
+    [isMulti, () => _.map(findValue, value)],
+    () => findValue(value)
+  ) ?? null, // need null instead of undefined to clear the select
   theme: base => _.merge(base, {
     colors: {
       primary: colors.accent(),
@@ -299,41 +308,18 @@ const commonSelectProps = {
       ])
     }
   }
-}
-const formatGroupLabel = group => (
-  div({
-    style: {
-      color: colors.dark(),
-      fontSize: 14,
-      height: 30,
-      fontWeight: 600,
-      borderBottom: `1px solid ${colors.dark(0.25)}`
-    }
-  }, [group.label]))
-
-const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) => {
-  const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
-
-  return h(RSelect, _.merge({
-    inputId: id,
-    ...commonSelectProps,
-    getOptionLabel: ({ value, label }) => label || value.toString(),
-    value: newValue || null, // need null instead of undefined to clear the select
-    options: newOptions,
-    formatGroupLabel
-  }, props))
-}
+}, props)
 
 /**
  * @param {Object} props - see {@link https://react-select.com/props#select-props}
  * @param props.value - a member of options
  * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
  */
-export const Select = ({ value, options, id, ...props }) => {
+export const Select = ({ options, ...props }) => {
   const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
   const findValue = target => _.find({ value: target }, newOptions)
 
-  return h(BaseSelect, { value, newOptions, id, findValue, ...props })
+  return h(RSelect, standardizeSelectProps({ options: newOptions, findValue, ...props }))
 }
 
 /**
@@ -341,15 +327,31 @@ export const Select = ({ value, options, id, ...props }) => {
  * @param props.value - a member of an inner options object
  * @param {Array} props.options - an object with toplevel pairs of label:options where label is a group label and options is an array of objects containing value:label pairs
  */
-export const GroupedSelect = ({ value, options, id, ...props }) => {
+export const GroupedSelect = ({ options, ...props }) => {
   const flattenedOptions = _.flatMap('options', options)
   const findValue = target => _.find({ value: target }, flattenedOptions)
 
-  return h(BaseSelect, { value, newOptions: options, id, findValue, ...props })
+  return h(RSelect, standardizeSelectProps({
+    options, findValue,
+    formatGroupLabel: group => div({
+      style: {
+        color: colors.dark(),
+        fontSize: 14,
+        height: 30,
+        fontWeight: 600,
+        borderBottom: `1px solid ${colors.dark(0.25)}`
+      }
+    }, [group.label]),
+    ...props
+  }))
+}
+
+export const CreatableSelect = props => {
+  return h(RCreatableSelect, standardizeSelectProps(props))
 }
 
 export const AsyncCreatableSelect = props => {
-  return h(RAsyncCreatableSelect, _.merge(commonSelectProps, props))
+  return h(RAsyncCreatableSelect, standardizeSelectProps(props))
 }
 
 export const PageBox = ({ children, style = {}, ...props }) => {
