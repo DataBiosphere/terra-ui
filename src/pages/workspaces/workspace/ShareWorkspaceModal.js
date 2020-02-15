@@ -80,17 +80,13 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       groups: [],
       originalAcl: [],
       acl: [],
-      loaded: false,
-      enteredEmails: [],
-      accessLevel: 'READER',
-      canShare: false,
-      canCompute: false
+      loaded: false
     }
   }
 
   render() {
-    const { workspace, onDismiss } = this.props
-    const { acl, shareSuggestions, groups, loaded, enteredEmails, working, updateError, accessLevel, canShare, canCompute } = this.state
+    const { onDismiss } = this.props
+    const { acl, shareSuggestions, groups, loaded, working, updateError } = this.state
 
     const suggestions = _.flow(
       _.map('groupEmail'),
