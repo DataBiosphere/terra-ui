@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component } from 'react'
+import { Component, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, RadioButton } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
@@ -9,11 +9,11 @@ import Modal from 'src/components/Modal'
 import { FormLabel } from 'src/libs/forms'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import EntitySelectionType from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
+import {
+  chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet
+} from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 import validate from 'validate.js'
 
-
-const { processAll, processMergedSet, chooseRows, chooseSets } = EntitySelectionType
 
 export default class DataStepContent extends Component {
   static propTypes = {
@@ -23,7 +23,7 @@ export default class DataStepContent extends Component {
     entitySelectionModel: PropTypes.shape({
       newSetName: PropTypes.string.isRequired,
       selectedElements: PropTypes.array,
-      type: PropTypes.oneOf(_.values(EntitySelectionType))
+      type: PropTypes.oneOf([processAll, processMergedSet, chooseRows, chooseSets, chooseSetComponents, processAllAsSet])
     }),
     onDismiss: PropTypes.func,
     onSuccess: PropTypes.func,
@@ -51,7 +51,9 @@ export default class DataStepContent extends Component {
       (type === processAll && !!newSetName) ||
       (type === chooseRows && !!newSetName && selectionSize > 1) ||
       (type === chooseSets && selectionSize > 1 && selectionSize <= 10) ||
-      (type === processMergedSet && !!newSetName && selectionSize > 1)
+      (type === processMergedSet && !!newSetName && selectionSize > 1) ||
+      (type === chooseSetComponents && !!newSetName && selectionSize > 0) ||
+      (type === processAllAsSet && !!newSetName)
   }
 
   render() {
@@ -62,16 +64,22 @@ export default class DataStepContent extends Component {
     } = this.props
     const { newSelectionModel, newSelectionModel: { type, selectedEntities, newSetName } } = this.state
 
-    const count = entityMetadata[rootEntityType].count
+    const rootEntityTypeCount = entityMetadata[rootEntityType]?.count || 0
 
     const isSet = _.endsWith('_set', rootEntityType)
     const setType = `${rootEntityType}_set`
     const hasSet = _.has(setType, entityMetadata)
+    const hasEntityType = _.has(rootEntityType, entityMetadata)
+    const baseEntityType = isSet ? rootEntityType.slice(0, -4) : rootEntityType
+
+    const baseEntityTypeCount = entityMetadata[baseEntityType]?.count || 0
 
     const isProcessAll = type === processAll
     const isProcessMergedSet = type === processMergedSet
     const isChooseRows = type === chooseRows
     const isChooseSets = type === chooseSets
+    const isChooseSetComponents = type === chooseSetComponents
+    const isProcessAllAsSet = type === processAllAsSet
 
     const errors = validate({ newSetName }, {
       newSetName: {
@@ -86,50 +94,81 @@ export default class DataStepContent extends Component {
     return h(Modal, {
       title: 'Select Data',
       okButton: h(ButtonPrimary, {
-        tooltip: isChooseSets && _.size(selectedEntities) > 10 && 'Please select 10 or fewer sets',
+        tooltip: Utils.cond(
+          [isChooseSets && _.size(selectedEntities) > 10, () => 'Please select 10 or fewer sets'],
+          [_.isEmpty(selectedEntities), () => 'Please select data']
+        ),
         disabled: !!errors || !this.isValidSelectionModel(),
         onClick: () => onSuccess(newSelectionModel)
       }, 'OK'),
       onDismiss,
       width: 'calc(100% - 2rem)'
     }, [
-      div({ style: { ...Style.elements.sectionHeader, marginBottom: '1rem' } },
-        [`Select ${(isSet ? 'up to 10 ' : '') + rootEntityType}s to process${isSet ? ' in parallel' : ''}`]),
       div({
         style: {
           padding: '1rem 0.5rem', lineHeight: '1.5rem'
         }
       }, [
-        !isSet && h(div, { role: 'radiogroup', 'aria-label': 'Select entities' }, [
-          div([
-            h(RadioButton, {
-              text: `Process all ${count} rows`,
-              name: 'process-rows',
-              checked: isProcessAll,
-              onChange: () => this.setNewSelectionModel({ type: processAll, selectedEntities: {} }),
-              labelStyle: { marginLeft: '0.75rem' }
-            })
-          ]),
-          div([
-            h(RadioButton, {
-              text: 'Choose specific rows to process',
-              name: 'process-rows',
-              checked: isChooseRows,
-              onChange: () => this.setNewSelectionModel({ type: chooseRows, selectedEntities: {} }),
-              labelStyle: { marginLeft: '0.75rem' }
-            })
-          ]),
-          hasSet && div([
-            h(RadioButton, {
-              text: 'Choose existing sets',
-              name: 'process-rows',
-              checked: isProcessMergedSet,
-              onChange: () => this.setNewSelectionModel({ type: processMergedSet, selectedEntities: {} }),
-              labelStyle: { marginLeft: '0.75rem' }
-            })
-          ])
-        ]),
-        !isProcessAll && div({
+        div({ role: 'radiogroup', 'aria-label': 'Select entities' }, [isSet ?
+          h(Fragment, [
+            div([
+              h(RadioButton, {
+                text: `Create a new set from all ${baseEntityTypeCount} ${baseEntityType}s`,
+                name: 'choose-set-components',
+                checked: isProcessAllAsSet,
+                onChange: () => this.setNewSelectionModel({ type: processAllAsSet, selectedEntities: {} }),
+                labelStyle: { marginLeft: '0.75rem' }
+              })
+            ]),
+            div([
+              h(RadioButton, {
+                text: `Create a new set from selected ${baseEntityType}s`,
+                name: 'choose-set-components',
+                checked: isChooseSetComponents,
+                onChange: () => this.setNewSelectionModel({ type: chooseSetComponents, selectedEntities: {} }),
+                labelStyle: { marginLeft: '0.75rem' }
+              })
+            ]),
+            hasEntityType && div([
+              h(RadioButton, {
+                text: 'Choose existing sets',
+                name: 'choose-set-components',
+                checked: isChooseSets,
+                onChange: () => this.setNewSelectionModel({ type: chooseSets, selectedEntities: {} }),
+                labelStyle: { marginLeft: '0.75rem' }
+              })
+            ])
+          ]) :
+          h(Fragment, [
+            div([
+              h(RadioButton, {
+                text: `Process all ${rootEntityTypeCount} rows`,
+                name: 'process-rows',
+                checked: isProcessAll,
+                onChange: () => this.setNewSelectionModel({ type: processAll, selectedEntities: {} }),
+                labelStyle: { marginLeft: '0.75rem' }
+              })
+            ]),
+            div([
+              h(RadioButton, {
+                text: 'Choose specific rows to process',
+                name: 'process-rows',
+                checked: isChooseRows,
+                onChange: () => this.setNewSelectionModel({ type: chooseRows, selectedEntities: {} }),
+                labelStyle: { marginLeft: '0.75rem' }
+              })
+            ]),
+            hasSet && div([
+              h(RadioButton, {
+                text: 'Choose existing sets',
+                name: 'process-rows',
+                checked: isProcessMergedSet,
+                onChange: () => this.setNewSelectionModel({ type: processMergedSet, selectedEntities: {} }),
+                labelStyle: { marginLeft: '0.75rem' }
+              })
+            ])
+          ])]),
+        !isProcessAll && !isProcessAllAsSet && div({
           style: {
             display: 'flex', flexDirection: 'column',
             height: 500, marginTop: '1rem'
@@ -137,7 +176,15 @@ export default class DataStepContent extends Component {
         }, [
           h(DataTable, {
             key: type.description,
-            entityType: isProcessMergedSet ? setType : rootEntityType,
+            childrenBefore: () => div({ style: Style.elements.sectionHeader }, [
+              Utils.cond(
+                [isProcessMergedSet, () => 'Select one or more sets to combine and process'],
+                [isChooseRows, () => `Select ${rootEntityType}s to process`],
+                [isChooseSetComponents, () => `Select ${baseEntityType}s to create a new set to process`],
+                [isChooseSets, () => `Select up to 10 ${rootEntityType}s to process in parallel`]
+              )
+            ]),
+            entityType: (isChooseSetComponents && baseEntityType) || (isProcessMergedSet && setType) || rootEntityType,
             entityMetadata, workspaceId, columnDefaults,
             selectionModel: {
               type: 'multiple',
@@ -145,10 +192,18 @@ export default class DataStepContent extends Component {
             }
           })
         ]),
-        (isProcessAll ||
+        (isProcessAll || isProcessAllAsSet || (isChooseSetComponents && !_.isEmpty(selectedEntities)) ||
           ((isChooseRows || isProcessMergedSet) && _.size(selectedEntities) > 1)) && h(IdContainer,
           [id => div({ style: { marginTop: '1rem' } }, [
-            h(FormLabel, { htmlFor: id }, [`Selected rows will ${isProcessMergedSet ? 'have their membership combined into' : 'be saved as'} a new set named:`]),
+            h(FormLabel, { htmlFor: id }, [
+              Utils.cond(
+                [isProcessAll, () => `All ${rootEntityTypeCount} ${rootEntityType}s will be saved as a new set named:`],
+                [isProcessAllAsSet, () => `All ${baseEntityTypeCount} ${baseEntityType}s will be saved as a new set named:`],
+                [isProcessMergedSet, () => `Selected ${rootEntityType}s will have their membership combined into a new set named:`],
+                [isChooseSetComponents, () => `Selected ${baseEntityType}s will be saved as a new set named:`],
+                [isChooseRows, () => `Selected ${rootEntityType}s will be saved as a new set named:`]
+              )
+            ]),
             h(ValidatedInput, {
               inputProps: {
                 id, value: newSetName, style: { marginLeft: '0.25rem' },

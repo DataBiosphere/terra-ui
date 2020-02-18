@@ -4,9 +4,13 @@ import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
-import { ajaxOverridesStore, requesterPaysBuckets, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
+import { withErrorIgnoring } from 'src/libs/error'
+import * as Nav from 'src/libs/nav'
+import { ajaxOverridesStore, authStore, requesterPaysBuckets, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
+
+const metricsEnabled = false
 
 window.ajaxOverrideUtils = {
   mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
@@ -109,6 +113,7 @@ const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlR
 const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
+const fetchMetrics = withUrlPrefix(`${getConfig().metricsRoot}/`, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
@@ -1082,6 +1087,22 @@ const Duos = signal => ({
   }
 })
 
+const Metrics = signal => ({
+  captureEvent: withErrorIgnoring((event, details) => {
+    const body = {
+      event,
+      data: {
+        ...details,
+        userId: authStore.get().profile.anonymousGroup,
+        appId: window.location.hostname,
+        appPath: Nav.getCurrentRoute().name,
+        timestamp: Date.now()
+      }
+    }
+    // Remove the metricsEnabled feature flag once TOS and all metrics projects are setup
+    return metricsEnabled && fetchMetrics('api/event', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+  })
+})
 
 export const Ajax = signal => {
   return {
@@ -1096,7 +1117,8 @@ export const Ajax = signal => {
     Clusters: Clusters(signal),
     Dockstore: Dockstore(signal),
     Martha: Martha(signal),
-    Duos: Duos(signal)
+    Duos: Duos(signal),
+    Metrics: Metrics(signal)
   }
 }
 
