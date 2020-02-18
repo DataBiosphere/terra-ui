@@ -17,7 +17,6 @@ import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
 import { Ajax } from 'src/libs/ajax'
-import { usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -51,7 +50,7 @@ const NotebookLauncher = _.flow(
     const { mode } = queryParams
 
     return h(Fragment, [
-      (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && labels.tool === 'Jupyter') ?
+      (Utils.canWrite(accessLevel) && canCompute && !!mode && status === 'Running' && labels.tool === 'Jupyter') ?
         h(labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : NotebookEditorFrame,
           { key: clusterName, workspace, cluster, notebookName, mode }) :
         h(Fragment, [
@@ -386,7 +385,7 @@ const copyingNotebookMessage = div({ style: { paddingTop: '2rem' } }, [
 ])
 
 const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
-  console.assert(_.includes(status, usableStatuses), `Expected notebook runtime to be one of: [${usableStatuses}]`)
+  console.assert(status === 'Running', 'Expected notebook runtime to be running')
   console.assert(!labels.welderInstallFailed, 'Expected cluster to have Welder')
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)
