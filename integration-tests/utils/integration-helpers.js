@@ -1,15 +1,15 @@
 const { billingProject, testUrl } = require('./integration-config')
-const { signIntoTerra } = require('./integration-utils')
+const { signIntoTerra, delay } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 
 
 const defaultTimeout = 5 * 60 * 1000
 
-const makeWorkspace = async ({ context }) => {
+const makeWorkspace = async ({ context, token }) => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
-  await signIntoTerra(ajaxPage)
+  await signIntoTerra(ajaxPage, token)
 
   const workspaceName = `test-workspace-${Math.floor(Math.random() * 100000)}`
 
@@ -24,11 +24,11 @@ const makeWorkspace = async ({ context }) => {
   return workspaceName
 }
 
-const deleteWorkspace = async ({ context, workspaceName }) => {
+const deleteWorkspace = async ({ context, workspaceName, token }) => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
-  await signIntoTerra(ajaxPage)
+  await signIntoTerra(ajaxPage, token)
 
   await ajaxPage.evaluate((name, billingProject) => {
     return window.Ajax().Workspaces.workspace(billingProject, name).delete()
@@ -39,13 +39,13 @@ const deleteWorkspace = async ({ context, workspaceName }) => {
   await ajaxPage.close()
 }
 
-const withWorkspace = test => async ({ context, ...args }) => {
-  const workspaceName = await makeWorkspace({ context })
+const withWorkspace = test => async ({ context, token, ...args }) => {
+  const workspaceName = await makeWorkspace({ context, token })
 
   try {
-    await test({ context, ...args, workspaceName })
+    await test({ context, token, ...args, workspaceName })
   } finally {
-    await deleteWorkspace({ context, workspaceName })
+    await deleteWorkspace({ context, token, workspaceName })
   }
 }
 
@@ -72,9 +72,44 @@ const withUser = test => async args => {
   }
 }
 
+const addUserToBilling = async ({ email }) => {
+  const ajaxPage = await context.newPage()
+
+  await ajaxPage.goto(testUrl)
+  await signIntoTerra(ajaxPage)
+
+  await ajaxPage.evaluate((email, billingProject) => {
+    return window.Ajax().Billing.project(billingProject).addUser(['User'], email)
+  }, email, billingProject)
+  await ajaxPage.close()
+}
+
+const removeUserFromBilling = async ({ email }) => {
+  const ajaxPage = await context.newPage()
+
+  await ajaxPage.goto(testUrl)
+  await signIntoTerra(ajaxPage)
+
+  await ajaxPage.evaluate((email, billingProject) => {
+    return window.Ajax().Billing.project(billingProject).removeUser(['User'], email)
+  }, email, billingProject)
+  await ajaxPage.close()
+}
+
+const withBilling = test => async ({ email, ...args }) => {
+  await addUserToBilling({ email })
+
+  try {
+    await test({ ...args, email })
+  } finally {
+    await removeUserFromBilling({ email })
+  }
+}
+
 module.exports = {
   createEntityInWorkspace,
   defaultTimeout,
   withUser,
-  withWorkspace
+  withWorkspace,
+  withBilling
 }

@@ -65,7 +65,7 @@ commands:
         default: "http://localhost:3000"
       billing_project:
         type: string
-        default: "general-dev-billing-account"
+        default: "saturn-integration-test-dev"
     steps:
       - checkout
       - attach_workspace:
@@ -201,14 +201,14 @@ jobs:
     executor: puppeteer
     steps:
       - integration-tests:
-          billing_project: "broad-dsde-alpha-two"
+          billing_project: "saturn-integration-test-alpha"
           test_url: "https://bvdp-saturn-alpha.appspot.com"
       - notify-qa
   integration-tests-staging:
     executor: puppeteer
     steps:
       - integration-tests:
-          billing_project: "bartholomew"
+          billing_project: "saturn-integration-test-stage"
           test_url: "https://bvdp-saturn-staging.appspot.com"
       - notify-qa
 

@@ -1,5 +1,5 @@
 const {
-  BILLING_PROJECT: billingProject = 'general-dev-billing-account',
+  BILLING_PROJECT: billingProject = 'saturn-integration-test-dev',
   LYLE_SA_KEY: lyleKey,
   LYLE_URL: lyleUrl = 'https://terra-lyle.appspot.com',
   SCREENSHOT_DIR: screenshotDir,
