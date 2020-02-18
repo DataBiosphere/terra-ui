@@ -21,7 +21,7 @@ const testRunNotebookFn = withRegisteredUser(async ({ page, context, email, toke
     await click(page, clickable({ textContains: notebookName }))
     await click(page, clickable({ text: 'Edit' }))
     await select(page, 'Select Environment', 'Hail')
-    await click(page, clickable({ text: 'Create' }), { timeout: 1000 })
+    await click(page, clickable({ text: 'Create' }))
     await findElement(page, clickable({ textContains: 'Creating' }))
     await delay(300000) //creation takes about 5 minutes
     await findElement(page, clickable({ textContains: 'Running' }))
