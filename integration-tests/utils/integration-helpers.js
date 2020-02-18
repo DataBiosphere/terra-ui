@@ -1,5 +1,5 @@
 const { billingProject, testUrl } = require('./integration-config')
-const { signIntoTerra, delay } = require('./integration-utils')
+const { signIntoTerra, clickable, click, dismissNotifications, fillIn, input } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 
 
@@ -106,10 +106,23 @@ const withBilling = test => async ({ email, ...args }) => {
   }
 }
 
+const withRegisteredUser = test => withUser(async ({ page, token, ...args }) => {
+  await page.goto(testUrl)
+  await click(page, clickable({ textContains: 'View Workspaces' }))
+  await signIntoTerra(page, token)
+  await dismissNotifications(page)
+  await fillIn(page, input({ labelContains: 'First Name' }), 'Integration')
+  await fillIn(page, input({ labelContains: 'Last Name' }), 'Test')
+  await click(page, clickable({ textContains: 'Register' }))
+  await click(page, clickable({ textContains: 'Accept' }))
+
+  await test({ page, token, ...args })
+})
+
 module.exports = {
   createEntityInWorkspace,
   defaultTimeout,
-  withUser,
   withWorkspace,
-  withBilling
+  withBilling,
+  withRegisteredUser
 }

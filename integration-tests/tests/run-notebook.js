@@ -1,21 +1,11 @@
-const { testUrl } = require('../utils/integration-config')
-const { withUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
+const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, signIntoTerra, findElement, waitForNoSpinners, select, delay, fillIn, input, findIframe, findText, dismissNotifications } = require(
   '../utils/integration-utils')
 
 
 const notebookName = 'TestNotebook'
 
-const testRunNotebookFn = withUser(async ({ page, context, email, token }) => {
-  await page.goto(testUrl)
-  await click(page, clickable({ textContains: 'View Workspaces' }))
-  await signIntoTerra(page, token)
-  await dismissNotifications(page)
-  await fillIn(page, input({ labelContains: 'First Name' }), 'Integration')
-  await fillIn(page, input({ labelContains: 'Last Name' }), 'Test')
-  await click(page, clickable({ textContains: 'Register' }))
-  await click(page, clickable({ textContains: 'Accept' }))
-
+const testRunNotebookFn = withRegisteredUser(async ({ page, context, email, token }) => {
   await withBilling(withWorkspace(async ({ workspaceName }) => {
     await page.reload()
     await signIntoTerra(page, token)
