@@ -20,5 +20,8 @@
     "suiteName": "Integration tests",
     "addFileAttribute": true,
     "includeConsoleOutput": true
+  },
+  "dependencies": {
+    "lodash": "^4.17.15"
   }
 }

@@ -5,11 +5,11 @@ const { fetchLyle } = require('./lyle-utils')
 
 const defaultTimeout = 5 * 60 * 1000
 
-const makeWorkspace = async ({ context }) => {
+const makeWorkspace = async ({ context, token }) => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
-  await signIntoTerra(ajaxPage)
+  await signIntoTerra(ajaxPage, token)
 
   const workspaceName = `test-workspace-${Math.floor(Math.random() * 100000)}`
 
@@ -24,11 +24,11 @@ const makeWorkspace = async ({ context }) => {
   return workspaceName
 }
 
-const deleteWorkspace = async ({ context, workspaceName }) => {
+const deleteWorkspace = async (workspaceName, { context, token }) => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
-  await signIntoTerra(ajaxPage)
+  await signIntoTerra(ajaxPage, token)
 
   await ajaxPage.evaluate((name, billingProject) => {
     return window.Ajax().Workspaces.workspace(billingProject, name).delete()
@@ -39,13 +39,13 @@ const deleteWorkspace = async ({ context, workspaceName }) => {
   await ajaxPage.close()
 }
 
-const withWorkspace = test => async ({ context, ...args }) => {
-  const workspaceName = await makeWorkspace({ context })
+const withWorkspace = test => async options => {
+  const workspaceName = await makeWorkspace(options)
 
   try {
-    await test({ context, ...args, workspaceName })
+    await test({ ...options, workspaceName })
   } finally {
-    await deleteWorkspace({ context, workspaceName })
+    await deleteWorkspace(workspaceName, options)
   }
 }
 

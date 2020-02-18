@@ -1,19 +1,11 @@
-const { JWT } = require('google-auth-library')
+const { getToken } = require('../utils/terra-sa-utils')
 
 
-const getToken = async () => {
+const main = async () => {
+  const [subject, keyJson] = process.argv.slice(2)
+  const key = JSON.parse(keyJson)
   try {
-    const [subject, keyString] = process.argv.slice(2)
-    const { client_email: email, private_key: key } = JSON.parse(keyString)
-
-    const authClient = new JWT({
-      email,
-      scopes: ['profile', 'email', 'openid'],
-      subject,
-      key
-    })
-
-    const { token } = await authClient.getAccessToken()
+    const token = await getToken(subject, key)
     console.log(token)
     process.exit(0)
   } catch (err) {
@@ -22,4 +14,4 @@ const getToken = async () => {
   }
 }
 
-getToken()
+main()
