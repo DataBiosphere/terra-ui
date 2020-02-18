@@ -447,7 +447,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                         value: customEnvImage,
                         onChange: customEnvImage => this.setState({ customEnvImage })
                       },
-                      error: Utils.summarizeErrors(customEnvImage && errors && errors.customEnvImage)
+                      error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
                     })
                   ])
                 ])
