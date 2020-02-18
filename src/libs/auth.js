@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import { ShibbolethLink } from 'src/components/common'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/components/Notifications'
-import { Ajax } from 'src/libs/ajax'
+import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
@@ -102,8 +102,8 @@ export const initializeAuth = _.memoize(async () => {
 })
 
 // This is intended for tests to short circuit the login flow
-window.forceSignIn = async token => {
-  const res = await fetch(
+window.forceSignIn = withErrorReporting('Error forcing sign in', async token => {
+  const res = await fetchOk(
     'https://www.googleapis.com/oauth2/v3/userinfo',
     { headers: { Authorization: `Bearer ${token}` } }
   )
@@ -126,7 +126,7 @@ window.forceSignIn = async token => {
       }
     }
   })
-}
+})
 
 authStore.subscribe(withErrorReporting('Error checking registration', async (state, oldState) => {
   const getRegistrationStatus = async () => {
