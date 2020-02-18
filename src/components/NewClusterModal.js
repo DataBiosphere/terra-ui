@@ -185,6 +185,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   //this function returns true for cases 2 & 3 in this diagram
   canUpdate() {
     const { currentCluster } = this.props
+
+    if (!currentCluster) return false
+
     const currentClusterConfig = currentCluster.machineConfig
     const userSelectedConfig = this.getMachineConfig()
 
@@ -201,7 +204,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
 
-    const cantUpdate = cantWorkersUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || this.hasImageChanged() || this.hasStartUpScriptChanged() || !currentCluster
+    const cantUpdate = cantWorkersUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || this.hasImageChanged() || this.hasStartUpScriptChanged()
     return !cantUpdate
   }
 
