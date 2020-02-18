@@ -160,7 +160,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       ]),
       !isPO && !isMe && h(Link, {
         onClick: () => this.setState({ acl: _.remove({ email }, acl) })
-      }, [icon('times', { size: 24, style: { marginRight: '0.5rem' } })])
+      }, [icon('times', { size: 20, style: { marginRight: '0.5rem' } })])
     ])
   }
 

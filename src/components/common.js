@@ -187,20 +187,20 @@ export const MenuButton = ({ disabled, children, ...props }) => {
 }
 
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
+  const getStateColor = (ifDisabled, ifChecked, ifDefault) => disabled ? ifDisabled : checked ? ifChecked : ifDefault
+
   return h(Interactive, _.merge({
     as: 'span',
+    className: 'fa-layers fa-fw',
     role: 'checkbox',
     'aria-checked': checked,
     onClick: () => onChange && !disabled && onChange(!checked),
-    style: {
-      display: 'inline-flex',
-      verticalAlign: 'middle',
-      color: disabled ? colors.dark(0.4) : checked ? colors.accent() : colors.dark(0.55)
-    },
-    hover: disabled ? undefined : { color: colors.accent(0.8) },
+    style: { verticalAlign: 'middle' },
     disabled
   }, props), [
-    icon(checked ? 'checkSquare' : 'square', { size: 16 })
+    icon('squareSolid', { style: { color: getStateColor(colors.light(0.4), colors.accent(), 'white') } }), // bg
+    icon('square', { style: { color: getStateColor(colors.light(), colors.accent(1.2), colors.dark(0.25)) } }), // border
+    checked && icon('check', { size: 8, style: { color: getStateColor(colors.dark(0.2), 'white') } }) // check
   ])
 }
 
