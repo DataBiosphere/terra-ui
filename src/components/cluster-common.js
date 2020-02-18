@@ -4,7 +4,6 @@ import { b, div, h } from 'react-hyperscript-helpers'
 import { spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
-import { usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -78,9 +77,9 @@ export const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning = _.noop
   const prevStatus = Utils.usePrevious(currentStatus)
 
   useEffect(() => {
-    if (prevStatus === 'Running' && !_.includes(currentStatus, usableStatuses)) {
+    if (prevStatus === 'Running' && currentStatus !== 'Running') {
       onClusterStoppedRunning()
-    } else if (prevStatus !== 'Running' && _.includes(currentStatus, usableStatuses)) {
+    } else if (prevStatus !== 'Running' && currentStatus === 'Running') {
       onClusterStartedRunning()
     }
   }, [currentStatus, onClusterStartedRunning, onClusterStoppedRunning, prevStatus])
