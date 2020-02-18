@@ -4,7 +4,9 @@ import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/clusters'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
-import { ajaxOverridesStore, requesterPaysBuckets, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
+import { withErrorIgnoring } from 'src/libs/error'
+import * as Nav from 'src/libs/nav'
+import { ajaxOverridesStore, authStore, requesterPaysBuckets, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -1086,8 +1088,20 @@ const Duos = signal => ({
 })
 
 const Metrics = signal => ({
-  // Remove the metricsEnabled feature flag once TOS and all metrics projects are setup
-  captureEvent: (event, data) => metricsEnabled && fetchMetrics('api/event', _.mergeAll([authOpts(), jsonBody({ event, data }), { signal, method: 'POST' }]))
+  captureEvent: withErrorIgnoring((event, details) => {
+    const body = {
+      event,
+      data: {
+        ...details,
+        userId: authStore.get().profile.anonymousGroup,
+        appId: window.location.hostname,
+        appPath: Nav.getCurrentRoute().name,
+        timestamp: Date.now()
+      }
+    }
+    // Remove the metricsEnabled feature flag once TOS and all metrics projects are setup
+    return metricsEnabled && fetchMetrics('api/event', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+  })
 })
 
 export const Ajax = signal => {

@@ -42,15 +42,16 @@ export const renderDataCell = (data, namespace) => {
   }
 
   const renderArray = items => {
-    return items.map((v, i) => h(Fragment, { key: i }, [
+    return _.map(([i, v]) => h(Fragment, { key: i }, [
       renderCell(v.toString()), i < (items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
-    ]))
+    ]), Utils.toIndexPairs(items))
   }
 
   return Utils.cond(
     [_.isArray(data), () => renderArray(data)],
-    [_.isObject(data), () => renderArray(data.items)],
-    () => renderCell(data && data.toString())
+    [_.isObject(data) && !!data.itemsType && _.isArray(data.items), () => renderArray(data.items)],
+    [_.isObject(data), () => JSON.stringify(data, undefined, 1)],
+    () => renderCell(data?.toString())
   )
 }
 
@@ -443,6 +444,21 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
     ])]),
     isBusy && spinnerOverlay
   ])
+}
+
+export const createEntitySet = ({ entities, rootEntityType, newSetName, workspaceId: { namespace, name } }) => {
+  const newSet = {
+    name: newSetName,
+    entityType: `${rootEntityType}_set`, // this will be e.g. if rootEntityType is Sample, Sample_set
+    attributes: {
+      [`${rootEntityType}s`]: {
+        itemsType: 'EntityReference',
+        items: _.map(entityName => ({ entityName, entityType: rootEntityType }), entities)
+      }
+    }
+  }
+
+  return Ajax().Workspaces.workspace(namespace, name).createEntity(newSet)
 }
 
 export const EntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
