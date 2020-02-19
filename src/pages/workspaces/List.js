@@ -3,14 +3,15 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { useViewToggle, ViewToggleButtons } from 'src/components/CardsListToggle'
+import { AutoSizer } from 'react-virtualized'
 import {
-  Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
+  ButtonPrimary, LabeledCheckbox, Link, makeMenuIcon, MenuButton, Select, TabBar, topSpinnerOverlay, transparentSpinnerOverlay
 } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { DelayedSearchInput } from 'src/components/input'
+import { SearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
+import { List, Sortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
@@ -78,7 +79,7 @@ const styles = {
     lineHeight: '1.5rem', textAlign: 'center',
     backgroundColor: colors.dark(), color: 'white'
   },
-  filter: { marginLeft: '1rem', flex: '0 0 300px' },
+  filter: { marginRight: '1rem', flex: '1 0 300px' },
   submissionIndicator: {
     position: 'absolute', top: 0, right: 0,
     color: 'white', display: 'flex', padding: 2, borderRadius: '0 5px'
@@ -128,94 +129,7 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
   ])
 }
 
-const SubmissionIndicator = ({ shape, color }) => {
-  return div({ style: { ...styles.submissionIndicator, backgroundColor: color } }, [
-    icon(shape, { size: 14, style: { color: 'white' } })
-  ])
-}
-
-const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({
-  listView, onClone, onDelete, onShare, onRequestAccess,
-  workspace, workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
-}) => {
-  const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
-  const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
-  const canView = Utils.canRead(accessLevel)
-  const workspaceMenu = h(PopupTrigger, {
-    side: 'right',
-    closeOnClick: true,
-    content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
-  }, [
-    h(Link, { 'aria-label': 'Workspace menu', onClick: e => e.preventDefault(), disabled: !canView }, [
-      icon('cardMenuIcon', {
-        size: listView ? 18 : 24
-      })
-    ])
-  ])
-  const descText = description ?
-    listView ? description.split('\n')[0] : description :
-    span({ style: { color: colors.dark(0.85) } }, ['No description added'])
-  const titleOverrides = !canView ? { color: colors.dark(0.7) } : {}
-
-  return h(TooltipTrigger, {
-    content: !canView && `
-      You cannot access this workspace because it is protected by an Authorization Domain.
-      Click to learn about gaining access.
-    `,
-    side: 'top'
-  }, [
-    h(Clickable, {
-      href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
-      onClick: !canView ? onRequestAccess : undefined,
-      style: listView ? styles.longCard : styles.shortCard
-    }, [
-      Utils.switchCase(workspaceSubmissionStatus(workspace),
-        ['success', () => h(SubmissionIndicator, { shape: 'success-standard', color: colors.success() })],
-        ['failure', () => h(SubmissionIndicator, { shape: 'error-standard', color: colors.danger(0.85) })],
-        ['running', () => h(SubmissionIndicator, { shape: 'sync', color: colors.success() })]
-      ),
-      listView ? h(Fragment, [
-        workspaceMenu,
-        div({ style: { ...styles.longCardTextContainer } }, [
-          div({ style: { display: 'flex', alignItems: 'center' } }, [
-            div({ style: { ...styles.longTitle, ...titleOverrides } }, [name]),
-            h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-              div({ style: { flex: 'none' } }, [lastChanged])
-            ])
-          ]),
-          div({ style: { display: 'flex', alignItems: 'center' } }, [
-            div({ style: { ...styles.longDescription } }, [descText]),
-            div({ style: { flex: 'none' } }, [badge])
-          ])
-        ])
-      ]) : h(Fragment, [
-        div({ style: { ...styles.shortTitle, ...titleOverrides } }, [name]),
-        div({ style: styles.shortDescription }, [descText]),
-        div({ style: { display: 'flex', marginLeft: 'auto' } }, [badge]),
-        div({ style: { display: 'flex', alignItems: 'center' } }, [
-          h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-            div({ style: { flex: 1 } }, [lastChanged])
-          ]),
-          workspaceMenu
-        ])
-      ])
-    ])
-  ])
-})
-
-const NewWorkspaceCard = ({ onClick }) => {
-  return h(Clickable, {
-    style: { ...styles.shortCard, ...styles.shortCreateCard },
-    onClick
-  }, [
-    div(['Create a']),
-    div(['New Workspace']),
-    icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 32 })
-  ])
-}
-
 export const WorkspaceList = () => {
-  const [listView, setListView] = useViewToggle('workspaceList')
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const { query } = Nav.useRoute()
   const [filter, setFilter] = useState(query.filter || '')
@@ -229,10 +143,15 @@ export const WorkspaceList = () => {
   const [submissionsFilter, setSubmissionsFilter] = useState(query.submissionsFilter || [])
   const [includePublic, setIncludePublic] = useState(!!query.includePublic)
   const [tagsFilter, setTagsFilter] = useState(query.tagsFilter || [])
+  const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
+  const [scrollbarSize, setScrollbarSize] = useState(0)
 
   useEffect(() => {
     // Note: setting undefined so that falsy values don't show up at all
-    const newSearch = qs.stringify({ ...query, filter: filter || undefined, accessLevelsFilter, projectsFilter, includePublic: includePublic || undefined, tagsFilter, submissionsFilter }, { addQueryPrefix: true })
+    const newSearch = qs.stringify({
+      ...query, filter: filter || undefined, accessLevelsFilter, projectsFilter, includePublic: includePublic || undefined, tagsFilter,
+      submissionsFilter
+    }, { addQueryPrefix: true })
     if (newSearch !== Nav.history.location.search) {
       Nav.history.replace({ search: newSearch })
     }
@@ -241,11 +160,10 @@ export const WorkspaceList = () => {
   const getWorkspace = id => _.find({ workspace: { workspaceId: id } }, workspaces)
 
   const initialFiltered = _.filter(ws => includePublic || !ws.public || Utils.canWrite(ws.accessLevel), workspaces)
-  const noWorkspaces = _.isEmpty(initialFiltered) && !loadingWorkspaces
 
   const noWorkspacesMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
     div([
-      'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Workspace'])
+      'To get started, ', h(Link, { onClick: () => setCreatingNewWorkspace(true), style: { fontWeight: 600 } }, ['Create a New Workspace'])
     ]),
     div({ style: { marginTop: '1rem', fontSize: 16 } }, [
       h(Link, {
@@ -264,23 +182,95 @@ export const WorkspaceList = () => {
         (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
         _.every(a => _.includes(a, _.get(['tag:tags', 'items'], attributes)), tagsFilter)
     }),
-    _.sortBy('workspace.name')
+    _.orderBy([`workspace.${sort.field}`], [sort.direction])
   )(initialFiltered)
 
-  const renderedWorkspaces = noWorkspaces ? noWorkspacesMessage : _.map(workspace => {
-    return h(WorkspaceCard, {
-      listView,
-      onClone: () => setCloningWorkspaceId(workspace.workspace.workspaceId),
-      onDelete: () => setDeletingWorkspaceId(workspace.workspace.workspaceId),
-      onShare: () => setSharingWorkspaceId(workspace.workspace.workspaceId),
-      onRequestAccess: () => setRequestingAccessWorkspaceId(workspace.workspace.workspaceId),
-      workspace, key: workspace.workspace.workspaceId
-    })
-  }, filteredWorkspaces)
+  const columnSizes = [{ flex: '2 0 300px' }, { flex: '1 0 150px' }, { flex: '1 0 150px' }, { flex: '0 0 30px' }]
+
+  const renderedWorkspaces = h(Fragment, [
+    div({ style: { display: 'flex', margin: '1rem 0 0.5rem', marginRight: scrollbarSize } }, _.map(([index, name]) => {
+      return div({ style: { ...columnSizes[index] } }, [
+        name && h(Sortable, { sort, field: name, onSort: setSort }, [Utils.normalizeLabel(name)])
+      ])
+    }, Utils.toIndexPairs(['name', 'lastModified', 'createdBy', undefined]))),
+    h(AutoSizer, [
+      ({ width, height }) => h(List, {
+        width, height,
+        onScrollbarPresenceChange: ({ vertical, size }) => setScrollbarSize(vertical ? size : 0),
+        rowCount: filteredWorkspaces.length,
+        noRowsRenderer: () => Utils.cond(
+          [loadingWorkspaces, () => null],
+          [_.isEmpty(initialFiltered), () => noWorkspacesMessage],
+          () => div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
+        ),
+        rowHeight: 70,
+        rowRenderer: index => {
+          const { accessLevel, workspace: { workspaceId, namespace, name, createdBy, lastModified, attributes: { description } }, ...workspace } = filteredWorkspaces[index]
+
+          const onClone = () => setCloningWorkspaceId(workspaceId)
+          const onDelete = () => setDeletingWorkspaceId(workspaceId)
+          const onShare = () => setSharingWorkspaceId(workspaceId)
+          const onRequestAccess = () => setRequestingAccessWorkspaceId(workspaceId)
+
+          const canView = Utils.canRead(accessLevel)
+          return div({
+            style: {
+              height: '100%', display: 'flex', flexDirection: 'column',
+              padding: '0.5rem 0',
+              borderTop: `1px solid ${colors.light()}`
+            }
+          }, [
+            div({ style: { display: 'flex', flex: 1, alignItems: 'center' } }, [
+              div({ style: { ...columnSizes[0], ...Style.noWrapEllipsis, marginRight: '1rem' } }, [
+                h(Link, {
+                  style: { color: canView ? undefined : colors.dark(0.7), fontWeight: 600 },
+                  href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
+                  onClick: !canView ? onRequestAccess : undefined,
+                  tooltip: !canView &&
+                    'You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.'
+                }, [name])
+              ]),
+              div({ style: columnSizes[1] }, [
+                h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [span([Utils.makeStandardDate(lastModified)])])
+              ]),
+              div({ style: columnSizes[2] }, [createdBy]),
+              div({ style: columnSizes[3] }, [h(PopupTrigger, {
+                side: 'left',
+                closeOnClick: true,
+                content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
+              }, [
+                h(Link, { 'aria-label': 'Workspace menu', onClick: e => e.preventDefault(), disabled: !canView }, [
+                  icon('cardMenuIcon', { size: 20 })
+                ])
+              ])])
+            ]),
+            div({ style: { display: 'flex', flex: 1, alignItems: 'center' } }, [
+              h(TooltipTrigger, {
+                content: description && div({ style: { whiteSpace: 'pre-line' } }, [description])
+              }, [
+                div({ style: { color: description ? undefined : colors.dark(0.75) } }, [
+                  description ? description.split('\n')[0] : 'No description added'
+                ])
+              ]),
+              div({ style: { flex: 1 } }),
+              div({ style: columnSizes[3] }, [
+                Utils.switchCase(workspaceSubmissionStatus(workspace),
+                  ['success', () => icon('success-standard', { size: 20, style: { color: colors.success() } })],
+                  ['failure', () => icon('error-standard', { size: 20, style: { color: colors.danger(0.85) } })],
+                  ['running', () => icon('sync', { size: 20, style: { color: colors.success() } })]
+                )
+              ])
+            ])
+          ])
+        }
+      })
+    ])
+  ])
+
 
   return h(Fragment, [
     h(TopBar, { title: 'Workspaces' }, [
-      h(DelayedSearchInput, {
+      h(SearchInput, {
         style: { marginLeft: '2rem', width: 500 },
         placeholder: 'SEARCH WORKSPACES',
         'aria-label': 'Search workspaces',
@@ -288,19 +278,32 @@ export const WorkspaceList = () => {
         value: filter
       })
     ]),
-    h(PageBox, { role: 'main', style: { position: 'relative' } }, [
-      div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-        div({ style: { marginLeft: 'auto', marginRight: '1rem' } }, [
+    h(TabBar, {
+      // activeTab: tabName,
+      tabNames: ['mine', 'public', 'featured'],
+      displayNames: { mine: 'my workspaces', public: 'public workspaces', featured: 'featured workspaces' },
+      getHref: currentTab => `${Nav.getLink('workspaces')}${/*getUpdatedQuery({ newTab: currentTab })*/''}`,
+      getOnClick: currentTab => e => {
+        e.preventDefault()
+        // updateQuery({ newTab: currentTab })
+      }
+    }, [
+      h(ButtonPrimary, { onClick: () => setCreatingNewWorkspace(true) }, [
+        icon('plus-circle', { style: { marginRight: '0.5rem' } }),
+        'Create a New Workspace'
+      ])
+    ]),
+    div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'white' } }, [
+      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
+        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Filter Workspaces']),
+        div([
           h(LabeledCheckbox, {
             checked: !!includePublic,
             onChange: setIncludePublic
           }, ' Show public workspaces')
-        ]),
-        h(ViewToggleButtons, { listView, setListView })
+        ])
       ]),
       div({ style: { display: 'flex', marginBottom: '1rem' } }, [
-        div({ style: { display: 'flex', alignItems: 'center', fontSize: '1rem' } }, ['Filter by']),
         div({ style: styles.filter }, [
           h(WorkspaceTagSelect, {
             isClearable: true,
@@ -312,7 +315,7 @@ export const WorkspaceList = () => {
             onChange: data => setTagsFilter(_.map('value', data))
           })
         ]),
-        div({ style: { ...styles.filter, flexBasis: '250px', minWidth: 0 } }, [
+        div({ style: { ...styles.filter, flexBasis: '250px' } }, [
           h(Select, {
             isClearable: true,
             isMulti: true,
@@ -341,7 +344,7 @@ export const WorkspaceList = () => {
             )(initialFiltered)
           })
         ]),
-        div({ style: { ...styles.filter, flexBasis: '250px', minWidth: 0 } }, [
+        div({ style: { ...styles.filter, flexBasis: '220px' } }, [
           h(Select, {
             isClearable: true,
             isMulti: true,
@@ -356,19 +359,7 @@ export const WorkspaceList = () => {
           })
         ])
       ]),
-      div({ style: styles.cardContainer(listView) }, [
-        h(NewWorkspaceCard, {
-          onClick: () => setCreatingNewWorkspace(true)
-        }),
-        Utils.cond(
-          [workspaces && _.isEmpty(initialFiltered), () => noWorkspacesMessage],
-          [!_.isEmpty(initialFiltered) && _.isEmpty(filteredWorkspaces), () => {
-            return div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
-          }],
-          [listView, () => div({ style: { flex: 1, minWidth: 0 } }, [renderedWorkspaces])],
-          () => renderedWorkspaces
-        )
-      ]),
+      div({ style: { flex: 1 } }, [renderedWorkspaces]),
       creatingNewWorkspace && h(NewWorkspaceModal, {
         onDismiss: () => setCreatingNewWorkspace(false),
         onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })

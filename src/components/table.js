@@ -6,7 +6,7 @@ import Draggable from 'react-draggable'
 import { button, div, h, label, option, select } from 'react-hyperscript-helpers'
 import Pagination from 'react-paginating'
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
-import { AutoSizer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
+import { AutoSizer, Grid as RVGrid, List as RVList, ScrollSync as RVScrollSync } from 'react-virtualized'
 import { ButtonPrimary, Checkbox, Clickable, IdContainer, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
@@ -480,7 +480,7 @@ export class Resizable extends Component {
 }
 
 const SortableDiv = SortableElement(props => div(props))
-const SortableList = SortableContainer(props => h(List, props))
+const SortableList = SortableContainer(props => h(RVList, props))
 const SortableHandleDiv = SortableHandle(props => div(props))
 
 /**
@@ -574,4 +574,11 @@ export class ColumnSelector extends Component {
       ])
     ])
   }
+}
+
+export const List = ({ rowRenderer, ...props }) => {
+  return h(RVList, {
+    rowRenderer: ({ key, style, index }) => div({ key, style }, [rowRenderer(index)]),
+    ...props
+  })
 }
