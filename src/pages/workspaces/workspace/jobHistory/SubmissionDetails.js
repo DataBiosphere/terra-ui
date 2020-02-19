@@ -169,7 +169,7 @@ const SubmissionDetails = _.flow(
             submissionId
           )]),
           makeSection('Call Caching', [useCallCache ? 'Enabled' : 'Disabled']),
-          makeSection('Delete Intermediate Outputs', [deleteIntermediateOutputFiles ? 'Enabled' : 'Disabled']),
+          makeSection('Delete Intermediate Outputs', [deleteIntermediateOutputFiles ? 'Enabled' : 'Disabled'])
         ])
       ]),
       div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
