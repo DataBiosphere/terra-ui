@@ -22,10 +22,14 @@ const machineStorageCost = config => {
   return (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice
 }
 
+export const findMachineType = name => {
+  return _.find({ name }, machineTypes) || { name, cpu: '?', memory: '?', price: NaN, preemptiblePrice: NaN }
+}
+
 export const machineConfigCost = config => {
   const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = normalizeMachineConfig(config)
-  const { price: masterPrice } = _.find({ name: masterMachineType }, machineTypes)
-  const { price: workerPrice, preemptiblePrice } = _.find({ name: workerMachineType }, machineTypes)
+  const { price: masterPrice } = findMachineType(masterMachineType)
+  const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
   return _.sum([
     masterPrice,
     (numberOfWorkers - numberOfPreemptibleWorkers) * workerPrice,
