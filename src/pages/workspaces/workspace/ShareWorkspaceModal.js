@@ -54,7 +54,7 @@ const AclInput = ({ value, onChange, disabled, maxAccessLevel }) => {
       })
     ]),
     div({ style: { marginLeft: '1rem' } }, [
-      div([
+      div({ style: { marginBottom: '0.2rem' } }, [
         h(LabeledCheckbox, {
           disabled: disabled || accessLevel === 'OWNER',
           checked: canShare,
@@ -136,16 +136,17 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
   renderCollaborator = ([index, aclItem]) => {
     const { email, accessLevel, pending } = aclItem
     const POAccessLevel = 'PROJECT_OWNER'
-    const isPO = accessLevel === POAccessLevel
-    const isMe = email === getUser().email
+    const disabled = accessLevel === POAccessLevel || email === getUser().email
     const { workspace } = this.props
     const { acl, originalAcl } = this.state
+    const isOld = _.find({ email }, originalAcl)
 
     return div({
       style: {
         display: 'flex', alignItems: 'center', borderRadius: 5,
         padding: '0.5rem 0.75rem', marginBottom: 10,
-        backgroundColor: _.find({ email }, originalAcl) ? colors.light(0.65) : colors.success(0.15)
+        border: `1px solid ${isOld ? colors.dark(0.5) : colors.success()}`,
+        backgroundColor: isOld ? colors.light(0.2) : colors.success(0.05)
       }
     }, [
       div({ style: { flex: 1 } }, [
@@ -154,11 +155,11 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
         h(AclInput, {
           value: aclItem,
           onChange: v => this.setState(_.set(['acl', index], v)),
-          disabled: isPO || isMe,
+          disabled,
           maxAccessLevel: workspace.accessLevel
         })
       ]),
-      !isPO && !isMe && h(Link, {
+      !disabled && h(Link, {
         onClick: () => this.setState({ acl: _.remove({ email }, acl) })
       }, [icon('times', { size: 20, style: { marginRight: '0.5rem' } })])
     ])

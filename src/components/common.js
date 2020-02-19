@@ -194,13 +194,13 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     className: 'fa-layers fa-fw',
     role: 'checkbox',
     'aria-checked': checked,
-    onClick: () => onChange && !disabled && onChange(!checked),
+    onClick: () => !disabled && onChange?.(!checked),
     style: { verticalAlign: 'middle' },
     disabled
   }, props), [
-    icon('squareSolid', { style: { color: getStateColor(colors.light(0.4), colors.accent(), 'white') } }), // bg
-    icon('square', { style: { color: getStateColor(colors.light(), colors.accent(1.2), colors.dark(0.25)) } }), // border
-    checked && icon('check', { size: 8, style: { color: getStateColor(colors.dark(0.2), 'white') } }) // check
+    icon('squareSolid', { style: { color: getStateColor(colors.light(1.2), colors.accent(), 'white') } }), // bg
+    !disabled && icon('squareLight', { style: { color: getStateColor(undefined, colors.accent(1.2), colors.dark(0.75)) } }), // border
+    checked && icon('check', { size: 8, style: { color: getStateColor(colors.dark(0.75), 'white') } }) // check
   ])
 }
 
@@ -214,7 +214,7 @@ export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...prop
         color: disabled ? colors.dark(0.7) : undefined,
         cursor: disabled ? 'default' : 'pointer'
       },
-      onClick: () => onChange && !disabled && onChange(!checked),
+      onClick: () => !disabled && onChange?.(!checked),
       disabled
     }, [children])
   ])])
