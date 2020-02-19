@@ -207,7 +207,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         workerMachineType: machineTypeConstraints,
         customEnvImage: isSelectedImageInputted ? { format: { pattern: imageValidationRegexp } } : {}
       },
-      { prettify: v => ({ customEnvImage: 'Container image' }[v] || validate.prettify(v)) }
+      { prettify: v => ({ customEnvImage: 'Container image', masterMachineType: 'Main CPU/memory', workerMachineType: 'Worker CPU/memory' }[v] || validate.prettify(v)) }
     )
 
     const makeGroupedEnvSelect = id => h(GroupedSelect, {
