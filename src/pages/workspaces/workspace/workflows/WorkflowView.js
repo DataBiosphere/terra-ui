@@ -734,7 +734,7 @@ const WorkflowView = _.flow(
               }, [' Delete intermediate outputs'])
             ]),
             h(InfoBox, [
-              'If the workflow succeeds, only the final output will be saved. Subsequently, you will not be able to use  call caching as the intermediate steps will be not available.'
+              'If the workflow succeeds, only the final output will be saved. Subsequently, call caching cannot be used as the intermediate steps will be not available.'
             ])
           ]),
           h(StepButtons, {
