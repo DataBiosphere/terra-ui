@@ -42,8 +42,8 @@ const click = async (page, xpath, options) => {
   return (await page.waitForXPath(xpath, options)).click()
 }
 
-const findText = (page, textContains) => {
-  return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`)
+const findText = (page, textContains, options) => {
+  return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, options)
 }
 
 const input = ({ labelContains, placeholder }) => {

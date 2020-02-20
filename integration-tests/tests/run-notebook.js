@@ -1,6 +1,5 @@
 const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
 const { testUrl } = require('../utils/integration-config')
-
 const { click, clickable, signIntoTerra, findElement, waitForNoSpinners, select, delay, fillIn, input, findIframe, findText, dismissNotifications } = require(
   '../utils/integration-utils')
 
@@ -20,7 +19,7 @@ const testRunNotebookFn = withRegisteredUser(async ({ page, context, email, toke
     await click(page, clickable({ text: 'notebooks' }))
     await click(page, clickable({ textContains: 'Create a' }))
     await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
-    await select(page, 'Select a language', 'Python 2')
+    await select(page, 'Language', 'Python 2')
     await click(page, clickable({ text: 'Create Notebook' }))
     await click(page, clickable({ textContains: notebookName }))
     await click(page, clickable({ text: 'Edit' }))
@@ -31,6 +30,7 @@ const testRunNotebookFn = withRegisteredUser(async ({ page, context, email, toke
     await delay(5000) //wait for copy over or change of status
 
     const frame = await findIframe(page)
+    await findText(frame, '27', { hidden: true })
     await fillIn(frame, '//textarea', 'print(23+4)')
     await click(frame, clickable({ text: 'Run' }))
     await findText(frame, '27')
