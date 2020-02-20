@@ -437,6 +437,20 @@ export const Sortable = ({ sort, field, onSort, children }) => {
   ])
 }
 
+export const MiniSortable = ({ sort, field, onSort, children }) => {
+  return div({
+    style: { display: 'flex', alignItems: 'center', cursor: 'pointer', height: '100%' },
+    onClick: () => onSort(Utils.nextSort(sort, field))
+  }, [
+    children,
+    sort.field === field && div({
+      style: { color: colors.accent(), marginLeft: '1rem' }
+    }, [
+      icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
+    ])
+  ])
+}
+
 export class Resizable extends Component {
   constructor(props) {
     super(props)

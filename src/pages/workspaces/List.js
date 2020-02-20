@@ -11,7 +11,7 @@ import { icon } from 'src/components/icons'
 import { SearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
-import { List, Sortable } from 'src/components/table'
+import { List, MiniSortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
@@ -182,18 +182,26 @@ export const WorkspaceList = () => {
         (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
         _.every(a => _.includes(a, _.get(['tag:tags', 'items'], attributes)), tagsFilter)
     }),
-    _.orderBy([`workspace.${sort.field}`], [sort.direction])
+    _.orderBy([ws => sort.field === 'accessLevel' ? Utils.workspaceAccessLevels.indexOf(ws.accessLevel) : ws[sort.field]], [sort.direction])
   )(initialFiltered)
 
-  const columnSizes = [{ flex: '2 0 300px' }, { flex: '1 0 150px' }, { flex: '1 0 150px' }, { flex: '0 0 30px' }]
+  const columnSizes = [
+    { flex: '2 0 400px', marginRight: '2rem' },
+    { flex: '1 0 100px', marginRight: '2rem' },
+    { flex: '1 0 200px', marginRight: '2rem' },
+    { flex: '1 0 120px', marginRight: '2rem' },
+    { flex: '0 0 30px' }
+  ]
+
+  const makeColumnDiv = (index, children) => div({ style: { ...columnSizes[index], ...Style.noWrapEllipsis } }, children)
 
   const renderedWorkspaces = h(Fragment, [
     div({ style: { display: 'flex', margin: '1rem 0 0.5rem', marginRight: scrollbarSize } }, _.map(([index, name]) => {
       return div({ style: { ...columnSizes[index] } }, [
-        name && h(Sortable, { sort, field: name, onSort: setSort }, [Utils.normalizeLabel(name)])
+        name && h(MiniSortable, { sort, field: name, onSort: setSort }, [div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])])
       ])
-    }, Utils.toIndexPairs(['name', 'lastModified', 'createdBy', undefined]))),
-    h(AutoSizer, [
+    }, Utils.toIndexPairs(['name', 'lastModified', 'createdBy', 'accessLevel', undefined]))),
+    div({ style: { flex: 1 } }, [h(AutoSizer, [
       ({ width, height }) => h(List, {
         width, height,
         onScrollbarPresenceChange: ({ vertical, size }) => setScrollbarSize(vertical ? size : 0),
@@ -221,7 +229,7 @@ export const WorkspaceList = () => {
             }
           }, [
             div({ style: { display: 'flex', flex: 1, alignItems: 'center' } }, [
-              div({ style: { ...columnSizes[0], ...Style.noWrapEllipsis, marginRight: '1rem' } }, [
+              makeColumnDiv(0, [
                 h(Link, {
                   style: { color: canView ? undefined : colors.dark(0.7), fontWeight: 600 },
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
@@ -230,11 +238,12 @@ export const WorkspaceList = () => {
                     'You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.'
                 }, [name])
               ]),
-              div({ style: columnSizes[1] }, [
+              makeColumnDiv(1, [
                 h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [span([Utils.makeStandardDate(lastModified)])])
               ]),
-              div({ style: columnSizes[2] }, [createdBy]),
-              div({ style: columnSizes[3] }, [h(PopupTrigger, {
+              makeColumnDiv(2, [createdBy]),
+              makeColumnDiv(3, [Utils.normalizeLabel(accessLevel)]),
+              makeColumnDiv(4, [h(PopupTrigger, {
                 side: 'left',
                 closeOnClick: true,
                 content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
@@ -248,12 +257,12 @@ export const WorkspaceList = () => {
               h(TooltipTrigger, {
                 content: description && div({ style: { whiteSpace: 'pre-line' } }, [description])
               }, [
-                div({ style: { color: description ? undefined : colors.dark(0.75) } }, [
+                div({ style: { color: description ? undefined : colors.dark(0.75), ...Style.noWrapEllipsis } }, [
                   description ? description.split('\n')[0] : 'No description added'
                 ])
               ]),
               div({ style: { flex: 1 } }),
-              div({ style: columnSizes[3] }, [
+              makeColumnDiv(4, [
                 Utils.switchCase(workspaceSubmissionStatus(workspace),
                   ['success', () => icon('success-standard', { size: 20, style: { color: colors.success() } })],
                   ['failure', () => icon('error-standard', { size: 20, style: { color: colors.danger(0.85) } })],
@@ -264,7 +273,7 @@ export const WorkspaceList = () => {
           ])
         }
       })
-    ])
+    ])])
   ])
 
 
@@ -359,7 +368,7 @@ export const WorkspaceList = () => {
           })
         ])
       ]),
-      div({ style: { flex: 1 } }, [renderedWorkspaces]),
+      renderedWorkspaces,
       creatingNewWorkspace && h(NewWorkspaceModal, {
         onDismiss: () => setCreatingNewWorkspace(false),
         onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
