@@ -305,7 +305,7 @@ export const WorkspaceList = () => {
             )(workspaces)
           })
         ]),
-        div({ style: { ...styles.filter, flexBasis: '220px' } }, [
+        div({ style: { ...styles.filter, flexBasis: '220px', marginRight: '' } }, [
           h(Select, {
             isClearable: true,
             isMulti: true,
