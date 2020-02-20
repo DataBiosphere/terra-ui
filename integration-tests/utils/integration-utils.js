@@ -38,8 +38,8 @@ const clickable = ({ text, textContains }) => {
   }
 }
 
-const click = async (page, xpath) => {
-  return (await page.waitForXPath(xpath)).click()
+const click = async (page, xpath, options) => {
+  return (await page.waitForXPath(xpath, options)).click()
 }
 
 const findText = (page, textContains) => {
@@ -89,8 +89,8 @@ const signIntoTerra = async (page, token = bearerToken) => {
   return page.evaluate(token => window.forceSignIn(token), token)
 }
 
-const findElement = (page, xpath) => {
-  return page.waitForXPath(xpath)
+const findElement = (page, xpath, options) => {
+  return page.waitForXPath(xpath, options)
 }
 
 const svgText = ({ textContains }) => {

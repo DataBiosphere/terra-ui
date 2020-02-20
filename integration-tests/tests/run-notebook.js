@@ -23,14 +23,20 @@ const testRunNotebookFn = withRegisteredUser(async ({ page, context, email, toke
     await select(page, 'Select Environment', 'Hail')
     await click(page, clickable({ text: 'Create' }))
     await findElement(page, clickable({ textContains: 'Creating' }))
-    await delay(300000) //creation takes about 5 minutes
-    await findElement(page, clickable({ textContains: 'Running' }))
+    await findElement(page, clickable({ textContains: 'Running' }), { timeout: 3000000 })
     await delay(5000) //wait for copy over or change of status
 
     const frame = await findIframe(page)
     await fillIn(frame, '//textarea', 'print(23+4)')
     await click(frame, clickable({ text: 'Run' }))
     await findText(frame, '27')
+    await click(page, clickable({ textContains: 'Notebook Runtime' }))
+
+    //Clean up TODO: Add failsafe sweep up script
+    await click(page, clickable({ textContains: 'Delete Runtime' }))
+    await click(page, clickable({ textContains: 'DELETE' }))
+    await findElement(page, clickable({ textContains: 'None' }))
+    await findText(page, 'PREVIEW (READ-ONLY)')
   }))({ context, email, token })
 })
 const testRunNotebook = {
