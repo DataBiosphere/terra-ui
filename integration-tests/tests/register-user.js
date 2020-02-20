@@ -1,8 +1,16 @@
 const { withRegisteredUser } = require('../utils/integration-helpers')
-const { findText } = require('../utils/integration-utils')
+const { testUrl } = require('../utils/integration-config')
+
+const { findText, click, clickable, signIntoTerra, dismissNotifications } = require('../utils/integration-utils')
 
 
-const testRegisterUserFn = withRegisteredUser(async ({ page }) => {
+const testRegisterUserFn = withRegisteredUser(async ({ page, token }) => {
+  await page.goto(testUrl)
+  await click(page, clickable({ textContains: 'View Workspaces' }))
+  await signIntoTerra(page, token)
+  await dismissNotifications(page)
+  await click(page, clickable({ textContains: 'Accept' }))
+  await dismissNotifications(page)
   await findText(page, 'To get started, click Create a New Workspace')
 })
 

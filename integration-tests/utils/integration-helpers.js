@@ -1,5 +1,5 @@
 const { billingProject, testUrl } = require('./integration-config')
-const { signIntoTerra, clickable, click, dismissNotifications, fillIn, input } = require('./integration-utils')
+const { signIntoTerra, clickable, click, dismissNotifications, fillIn, input, delay } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 
 
@@ -107,14 +107,17 @@ const withBilling = test => async ({ email, ...args }) => {
 }
 
 const withRegisteredUser = test => withUser(async ({ page, token, ...args }) => {
-  await page.goto(testUrl)
-  await click(page, clickable({ textContains: 'View Workspaces' }))
-  await signIntoTerra(page, token)
-  await dismissNotifications(page)
-  await fillIn(page, input({ labelContains: 'First Name' }), 'Integration')
-  await fillIn(page, input({ labelContains: 'Last Name' }), 'Test')
-  await click(page, clickable({ textContains: 'Register' }))
-  await click(page, clickable({ textContains: 'Accept' }))
+  const ajaxPage = await context.newPage()
+
+  await ajaxPage.goto(testUrl)
+  await click(ajaxPage, clickable({ textContains: 'View Workspaces' }))
+  await signIntoTerra(ajaxPage, token)
+  await dismissNotifications(ajaxPage)
+  await fillIn(ajaxPage, input({ labelContains: 'First Name' }), 'Integration')
+  await fillIn(ajaxPage, input({ labelContains: 'Last Name' }), 'Test')
+  await click(ajaxPage, clickable({ textContains: 'Register' }))
+  await click(ajaxPage, clickable({ textContains: 'Accept' }))
+  await ajaxPage.close()
 
   await test({ page, token, ...args })
 })
