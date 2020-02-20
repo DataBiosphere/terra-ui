@@ -1,5 +1,5 @@
 const { billingProject, testUrl } = require('./integration-config')
-const { signIntoTerra, clickable, click, dismissNotifications, fillIn, input, delay } = require('./integration-utils')
+const { signIntoTerra, clickable, click, dismissNotifications, fillIn, input } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 
 
