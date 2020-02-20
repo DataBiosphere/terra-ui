@@ -158,7 +158,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { googleProject, clusterName } = currentCluster
 
     if (isStopRequired) {
-      notify('success', 'To be updated, your runtime will now stop, and then start.')
+      notify('info', 'To be updated, your runtime will now stop, and then start. This will take 3-5 minutes.')
     }
 
     return onSuccess(
@@ -208,6 +208,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return !cantUpdate
   }
 
+  hasChanges() {
+    const { currentCluster } = this.props
+    if (!currentCluster) return true
+
+    //TODO: this _.pickBy will need to change if the UI-side machineConfig starts tracking the cloud service (which it will once Leo exposes the ability to create GCE runtimes)
+    const currentClusterWithoutService = _.pickBy((v, k) => k !== 'cloudService', currentCluster.machineConfig)
+    const hasMachineConfigChanges = !_.isMatch(currentClusterWithoutService, this.getMachineConfig())
+
+    return hasMachineConfigChanges || this.hasImageChanged() || this.hasStartUpScriptChanged()
+  }
+
   //returns true for case 3 in this diagram: https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
   isStopRequired() {
     const { currentCluster } = this.props
@@ -220,6 +231,21 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const isClusterRunning = currentCluster.status === 'Running'
 
     return this.canUpdate() && isMasterMachineTypeChanged && isClusterRunning
+  }
+
+  getRunningUpdateText() {
+    return this.isStopRequired() ?
+      p([
+        'Changing the machine type (increasing or decreasing the # of CPUs or Mem) results in an update that requires a ',
+        b(['restart']),
+        ' of your runtime. This may take a 3-5 minutes. Would you like to proceed? ',
+        b(['(You will not lose any files.)'])
+      ]) :
+      p([
+        'Increasing the disk size or changing the number of workers (when the number of workers is >2) results in a real-time update to your runtime. ',
+        'Updating the number of workers can take around 2 minutes. ',
+        'During this update, you can continue to work.'
+      ])
   }
 
   getImageUrl(clusterDetails) {
@@ -306,13 +332,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       div(['Version: ', version || null])
     ])
 
+    const getDisabledMessage = () => {
+      return isSelectedImageInputted && isCustomImageInvalid ? 'Enter a valid docker image to use' : 'There are no changes'
+    }
+
     const bottomButtons = () => h(Fragment, [
       div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
         !!currentCluster && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'delete' }) }, 'Delete Runtime'),
         div({ style: { flex: 1 } }),
         h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: onDismiss }, 'Cancel'),
         h(ButtonPrimary, {
-          disabled: !!errors,
+          disabled: !this.hasChanges() || !!errors,
           tooltip: Utils.summarizeErrors(errors),
           onClick: () => {
             if (isSelectedImageInputted && !this.canUpdate()) {
@@ -496,17 +526,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])],
       ['update', () => h(Fragment, [
-        this.isStopRequired() ?
+        currentCluster.status === 'Running' ?
+          this.getRunningUpdateText() :
           p([
-            'Changing the machine type (increasing or decreasing the # of CPUs or Mem) results in an update that requires a ',
-            b(['restart']),
-            ' of your runtime. This may take a few minutes.  Would you like to proceed? ',
-            b(['(You will not lose any files.)'])
-          ]) :
-          p([
-            'Increasing the disk size or changing the number of workers (when the number of workers is >2) results in a real-time update to your runtime. ',
-            'During this update, you can continue to work'
-          ]),
+            'This will update your existing runtime. You will not lose any files. ',
+            'After the update is finished you will be able to start your runtime. ',
+            'Note that updating the number of workers requires your runtime to already be started.']),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, {
             style: { marginRight: '2rem' },
