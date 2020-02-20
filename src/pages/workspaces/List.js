@@ -175,7 +175,7 @@ export const WorkspaceList = () => {
         rowCount: sortedWorkspaces.length,
         noRowsRenderer: () => Utils.cond(
           [loadingWorkspaces, () => null],
-          [_.isEmpty(workspaces), () => noWorkspacesMessage],
+          [_.isEmpty(initialFiltered.my) && tab === 'my', () => noWorkspacesMessage],
           () => div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
         ),
         rowHeight: 70,
