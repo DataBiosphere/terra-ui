@@ -221,6 +221,8 @@ export const WorkspaceList = () => {
           const onRequestAccess = () => setRequestingAccessWorkspaceId(workspaceId)
 
           const canView = Utils.canRead(accessLevel)
+          const lastRunStatus = workspaceSubmissionStatus(workspace)
+
           return div({
             style: {
               height: '100%', display: 'flex', flexDirection: 'column',
@@ -263,11 +265,13 @@ export const WorkspaceList = () => {
               ]),
               div({ style: { flex: 1 } }),
               makeColumnDiv(4, [
-                Utils.switchCase(workspaceSubmissionStatus(workspace),
-                  ['success', () => icon('success-standard', { size: 20, style: { color: colors.success() } })],
-                  ['failure', () => icon('error-standard', { size: 20, style: { color: colors.danger(0.85) } })],
-                  ['running', () => icon('sync', { size: 20, style: { color: colors.success() } })]
-                )
+                !!lastRunStatus && h(TooltipTrigger, { content: `Last workflow submission status: ${lastRunStatus}` }, [
+                  Utils.switchCase(lastRunStatus,
+                    ['success', () => icon('success-standard', { size: 20, style: { color: colors.success() } })],
+                    ['failure', () => icon('error-standard', { size: 20, style: { color: colors.danger(0.85) } })],
+                    ['running', () => icon('sync', { size: 20, style: { color: colors.success() } })]
+                  )
+                ])
               ])
             ])
           ])
