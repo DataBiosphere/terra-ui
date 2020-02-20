@@ -736,9 +736,9 @@ const WorkflowView = _.flow(
             h(InfoBox, [
               'If the workflow succeeds, only the final output will be saved. Subsequently, call caching cannot be used as the intermediate steps will be not available. ',
               h(Link, {
-                href: 'http://google.com',
+                href: '',
                 target: 'blank'
-              }, ['You can find additional information about this feature here.'])
+              }, ['Click here to learn more.'])
             ])
           ]),
           h(StepButtons, {
