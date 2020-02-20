@@ -30,10 +30,9 @@ const testRunNotebookFn = withRegisteredUser(async ({ page, context, email, toke
     await delay(5000) //wait for copy over or change of status
 
     const frame = await findIframe(page)
-    await findText(frame, '27', { hidden: true })
-    await fillIn(frame, '//textarea', 'print(23+4)')
+    await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
     await click(frame, clickable({ text: 'Run' }))
-    await findText(frame, '27')
+    await findText(frame, '123456789099886419754209')
     await click(page, clickable({ textContains: 'Notebook Runtime' }))
 
     //Clean up TODO: Add failsafe sweep up script
