@@ -12,7 +12,7 @@ const testRegisterUserFn = withUser(async ({ page, token }) => {
   await fillIn(page, input({ labelContains: 'Last Name' }), 'Test')
   await click(page, clickable({ textContains: 'Register' }))
   await click(page, clickable({ textContains: 'Accept' }))
-  await findText(page, 'To get started, click Create a New Workspace')
+  await findText(page, 'To get started, Create a New Workspace')
 })
 
 const testRegisterUser = {
