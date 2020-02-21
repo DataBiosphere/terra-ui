@@ -531,7 +531,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           p([
             'This will update your existing runtime. You will not lose any files. ',
             'After the update is finished you will be able to start your runtime. ',
-            'Note that updating the number of workers requires your runtime to already be started.']),
+            'Note that updating the number of workers requires your runtime to already be started.'
+          ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, {
             style: { marginRight: '2rem' },
