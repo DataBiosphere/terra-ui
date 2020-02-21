@@ -102,13 +102,13 @@ export const WorkspaceList = () => {
   })
 
   const getTabQuery = newTab => qs.stringify({
-    ...query, filter: filter || undefined, accessLevelsFilter, projectsFilter, tab: newTab === 'my' ? undefined : newTab, tagsFilter,
-    submissionsFilter
+    // Note: setting undefined so that falsy values don't show up at all
+    ...query, filter: filter || undefined, accessLevelsFilter, projectsFilter, tagsFilter, submissionsFilter,
+    tab: newTab === 'my' ? undefined : newTab
   }, { addQueryPrefix: true })
 
 
   useEffect(() => {
-    // Note: setting undefined so that falsy values don't show up at all
     const newSearch = getTabQuery(tab)
     if (newSearch !== Nav.history.location.search) {
       Nav.history.replace({ search: newSearch })
@@ -137,7 +137,7 @@ export const WorkspaceList = () => {
     }),
     initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, submissionsFilter, tagsFilter])
 
-  const sortedWorkspaces = _.orderBy([ws => sort.field === 'accessLevel' ? Utils.workspaceAccessLevels.indexOf(ws.accessLevel) : ws[sort.field]],
+  const sortedWorkspaces = _.orderBy([sort.field === 'accessLevel' ? ws => -Utils.workspaceAccessLevels.indexOf(ws.accessLevel) : `workspace.${sort.field}`],
     [sort.direction], filteredWorkspaces[tab])
 
   const noWorkspacesMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
@@ -222,10 +222,12 @@ export const WorkspaceList = () => {
               ])])
             ]),
             div({ style: { display: 'flex', flex: 1, alignItems: 'center' } }, [
-              div({ style: { color: description ? undefined : colors.dark(0.75), marginRight: '1rem', ...Style.noWrapEllipsis } }, [
-                description ? description.split('\n')[0] : 'No description added'
+              makeColumnDiv(0, [
+                description ? description.split('\n')[0] : span({ style: { color: colors.dark(0.75) } }, ['No description added'])
               ]),
-              div({ style: { flex: 1 } }),
+              makeColumnDiv(1),
+              makeColumnDiv(2),
+              makeColumnDiv(3),
               makeColumnDiv(4, [
                 !!lastRunStatus && h(TooltipTrigger, {
                   content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(lastRunStatus)])]),
