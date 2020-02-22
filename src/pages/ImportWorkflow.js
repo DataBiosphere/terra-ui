@@ -116,11 +116,11 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
           methodVersion: version
         }
       })
-      Ajax().Metrics.captureEvent(Events.workflowImportDockstore, { success: true })
+      Ajax().Metrics.captureEvent(Events.workflowImport, { success: true, source: 'dockstore' })
       Nav.goToPath('workflow', { namespace, name, workflowNamespace: namespace, workflowName })
     } catch (error) {
       reportError('Error importing workflow', error)
-      Ajax().Metrics.captureEvent(Events.workflowImportDockstore, { success: false })
+      Ajax().Metrics.captureEvent(Events.workflowImport, { success: false, source: 'dockstore' })
     } finally {
       this.setState({ isImporting: false })
     }

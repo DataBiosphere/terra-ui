@@ -1,5 +1,8 @@
 export default {
-  workspaceShare: 'workspace:share',
-  workflowImportDockstore: 'workflow:import:dockstore',
-  workflowImportWorkspace: 'workflow:import:workspace'
+  applicationLaunch: 'application:launch',
+  notebookLaunch: 'notebook:launch',
+  workflowImport: 'workflow:import',
+  workflowLaunch: 'workflow:launch',
+  workspaceDataImport: 'workspace:data:import',
+  workspaceShare: 'workspace:share'
 }

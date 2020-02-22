@@ -262,11 +262,11 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
       const { namespace: workflowNamespace, name: workflowName } = config || selectedWorkflow
 
-      Ajax().Metrics.captureEvent(Events.workflowImportWorkspace, { success: true })
+      Ajax().Metrics.captureEvent(Events.workflowImport, { success: true, source: 'repo' })
       Nav.goToPath('workflow', { namespace, name, workflowNamespace, workflowName })
     } catch (error) {
       reportError('Error importing workflow', error)
-      Ajax().Metrics.captureEvent(Events.workflowImportWorkspace, { success: false })
+      Ajax().Metrics.captureEvent(Events.workflowImport, { success: false, source: 'repo' })
       this.setState({ exporting: false })
     }
   }
