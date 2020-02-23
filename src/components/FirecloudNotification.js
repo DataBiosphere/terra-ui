@@ -2,8 +2,8 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonOutline } from 'src/components/common'
-import { notify } from 'src/components/Notifications'
 import * as Nav from 'src/libs/nav'
+import { notify } from 'src/libs/notifications'
 import * as Utils from 'src/libs/utils'
 
 

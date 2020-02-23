@@ -2,9 +2,9 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
-import { clearNotification, notify } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorIgnoring } from 'src/libs/error'
+import { clearNotification, notify } from 'src/libs/notifications'
 import * as Utils from 'src/libs/utils'
 
 
