@@ -148,7 +148,7 @@ export default class ClusterManager extends PureComponent {
     const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`) || {}
     const rStudioLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: 'RStudio' })
 
-    if (true) {
+    if (cluster.status === 'Error' && prevCluster.status !== 'Error' && !_.includes(cluster.id, errorNotifiedClusters.get())) {
       notify('error', 'Error Creating Notebook Runtime', {
         message: h(ClusterErrorNotification, { cluster })
       })
