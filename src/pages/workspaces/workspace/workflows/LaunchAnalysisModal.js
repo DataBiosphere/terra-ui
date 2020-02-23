@@ -108,10 +108,10 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         })])
       ]),
       div({ style: { color: colors.danger(), overflowWrap: 'break-word' } }, [
-        wrappableOnPeriods(launchError),
+        h(Fragment, wrappableOnPeriods(launchError)),
         multiLaunchErrors && h(Fragment, _.map(({ name, message }) => div({
           style: { marginTop: '1rem' }
-        }, [`Error launching with set ${name}: `, wrappableOnPeriods(message)]),
+        }, [`Error launching with set ${name}: `, h(Fragment, wrappableOnPeriods(message))]),
         multiLaunchErrors))
       ])
     ])
