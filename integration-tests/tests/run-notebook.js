@@ -1,7 +1,6 @@
 const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
 const { testUrl } = require('../utils/integration-config')
-const { click, clickable, signIntoTerra, findElement, waitForNoSpinners, select, delay, fillIn, input, findIframe, findText, dismissNotifications } = require(
-  '../utils/integration-utils')
+const { click, clickable, signIntoTerra, findElement, waitForNoSpinners, select, delay, fillIn, input, findIframe, findText, dismissNotifications } = require('../utils/integration-utils')
 
 
 const notebookName = 'TestNotebook'
@@ -26,8 +25,7 @@ const testRunNotebookFn = withRegisteredUser(async ({ page, context, email, toke
     await select(page, 'Select Environment', 'Hail')
     await click(page, clickable({ text: 'Create' }))
     await findElement(page, clickable({ textContains: 'Creating' }))
-    await findElement(page, clickable({ textContains: 'Running' }), { timeout: 3000000 })
-    await delay(5000) //wait for copy over or change of status
+    await findElement(page, clickable({ textContains: 'Running' }), { timeout: 5 * 60 * 1000 })
 
     const frame = await findIframe(page)
     await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
