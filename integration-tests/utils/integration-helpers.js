@@ -24,7 +24,7 @@ const makeWorkspace = async ({ context, token }) => {
   return workspaceName
 }
 
-const deleteWorkspace = async ({ context, workspaceName, token }) => {
+const deleteWorkspace = async (workspaceName, { context, token }) => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
@@ -39,13 +39,13 @@ const deleteWorkspace = async ({ context, workspaceName, token }) => {
   await ajaxPage.close()
 }
 
-const withWorkspace = test => async ({ context, token, ...args }) => {
-  const workspaceName = await makeWorkspace({ context, token })
+const withWorkspace = test => async options => {
+  const workspaceName = await makeWorkspace(options)
 
   try {
-    await test({ context, token, ...args, workspaceName })
+    await test({ ...options, workspaceName })
   } finally {
-    await deleteWorkspace({ context, token, workspaceName })
+    await deleteWorkspace(workspaceName, options)
   }
 }
 
