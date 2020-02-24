@@ -332,10 +332,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       div(['Version: ', version || null])
     ])
 
-    const getDisabledMessage = () => {
-      return isSelectedImageInputted && isCustomImageInvalid ? 'Enter a valid docker image to use' : 'There are no changes'
-    }
-
     const bottomButtons = () => h(Fragment, [
       div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
         !!currentCluster && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'delete' }) }, 'Delete Runtime'),
