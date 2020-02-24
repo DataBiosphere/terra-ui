@@ -1,11 +1,10 @@
-const { billingProject, testUrl } = require('./integration-config')
 const { signIntoTerra } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 
 
 const defaultTimeout = 5 * 60 * 1000
 
-const makeWorkspace = async ({ context, token }) => {
+const makeWorkspace = async ({ billingProject, context, testUrl, token }) => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
@@ -24,7 +23,7 @@ const makeWorkspace = async ({ context, token }) => {
   return workspaceName
 }
 
-const deleteWorkspace = async (workspaceName, { context, token }) => {
+const deleteWorkspace = async (workspaceName, { billingProject, context, testUrl, token }) => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)

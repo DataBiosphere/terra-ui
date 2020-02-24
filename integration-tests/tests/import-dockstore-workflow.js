@@ -1,5 +1,4 @@
 const fetch = require('node-fetch')
-const { testUrl } = require('../utils/integration-config')
 const { withWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, dismissNotifications, findText, select, signIntoTerra } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -8,7 +7,7 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 const testWorkflowIdentifier = 'github.com/DataBiosphere/topmed-workflows/UM_variant_caller_wdl:1.32.0'
 
 const testImportDockstoreWorkflowFn = withUserToken(async options => {
-  const { page } = options
+  const { page, testUrl } = options
   const { dockstoreUrlRoot } = await fetch(`${testUrl}/config.json`).then(res => res.json())
 
   if (await fetch(`${dockstoreUrlRoot}/api/api/ga4gh/v1/metadata`).then(res => res.status !== 200)) {
