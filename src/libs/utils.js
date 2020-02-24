@@ -95,7 +95,8 @@ export const makeStandardDate = dateString => dateFormat.format(new Date(dateStr
 
 export const makeCompleteDate = dateString => completeDateFormat.format(new Date(dateString))
 
-export const formatUSD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format
+const usdFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+export const formatUSD = v => _.isNaN(v) ? 'unknown' : usdFormatter.format(v)
 
 export const formatNumber = new Intl.NumberFormat('en-US').format
 

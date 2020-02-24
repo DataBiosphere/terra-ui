@@ -10,11 +10,12 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/clusters'
 import { Ajax } from 'src/libs/ajax'
-import { deleteText, machineConfigCost, normalizeMachineConfig } from 'src/libs/cluster-utils'
+import { deleteText, findMachineType, machineConfigCost, normalizeMachineConfig } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import validate from 'validate.js'
 
 
 const styles = {
@@ -41,8 +42,10 @@ const machineConfigsEqual = (a, b) => {
 // distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
 
+const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
+
 const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly }) => {
-  const { cpu: currentCpu, memory: currentMemory } = _.find({ name: machineType }, machineTypes)
+  const { cpu: currentCpu, memory: currentMemory } = findMachineType(machineType)
   return h(Fragment, [
     h(IdContainer, [
       id => h(Fragment, [
@@ -53,8 +56,8 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
               id,
               isSearchable: false,
               value: currentCpu,
-              onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, machineTypes).name),
-              options: _.uniq(_.map('cpu', machineTypes))
+              onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, validMachineTypes)?.name || machineType),
+              options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validMachineTypes)
             })
           ])
       ])
@@ -68,8 +71,8 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
               id,
               isSearchable: false,
               value: currentMemory,
-              onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, machineTypes).name),
-              options: _.map('memory', _.sortBy('memory', _.filter({ cpu: currentCpu }, machineTypes)))
+              onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, validMachineTypes)?.name || machineType),
+              options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
             })
           ])
       ])
@@ -195,8 +198,18 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
     })
 
-    const isCustomImageInvalid = !imageValidationRegexp.test(customEnvImage)
     const isSelectedImageInputted = selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE
+
+    const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
+    const errors = validate(
+      { masterMachineType, workerMachineType, customEnvImage },
+      {
+        masterMachineType: machineTypeConstraints,
+        workerMachineType: machineTypeConstraints,
+        customEnvImage: isSelectedImageInputted ? { format: { pattern: imageValidationRegexp } } : {}
+      },
+      { prettify: v => ({ customEnvImage: 'Container image', masterMachineType: 'Main CPU/memory', workerMachineType: 'Worker CPU/memory' }[v] || validate.prettify(v)) }
+    )
 
     const makeGroupedEnvSelect = id => h(GroupedSelect, {
       id,
@@ -226,8 +239,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({ style: { flex: 1 } }),
         h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: onDismiss }, 'Cancel'),
         h(ButtonPrimary, {
-          disabled: isSelectedImageInputted && isCustomImageInvalid,
-          tooltip: isSelectedImageInputted && isCustomImageInvalid && 'Enter a valid docker image to use',
+          disabled: !!errors,
+          tooltip: Utils.summarizeErrors(errors),
           onClick: () => {
             if (isSelectedImageInputted) {
               this.setState({ viewMode: 'warning' })
@@ -436,7 +449,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                         value: customEnvImage,
                         onChange: customEnvImage => this.setState({ customEnvImage })
                       },
-                      error: customEnvImage && isCustomImageInvalid && 'Not a valid image'
+                      error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
                     })
                   ])
                 ])
@@ -467,7 +480,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   value: customEnvImage,
                   onChange: customEnvImage => this.setState({ customEnvImage })
                 },
-                error: customEnvImage && isCustomImageInvalid && 'Not a valid image'
+                error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
               })
             ])
           }],

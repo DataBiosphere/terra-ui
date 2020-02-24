@@ -1,6 +1,3 @@
-const { bearerToken } = require('./integration-config')
-
-
 const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
   const readyState = new Promise(resolve => {
     const start = Date.now()
@@ -83,7 +80,7 @@ const dismissNotifications = async page => {
   return !!notificationCloseButtons.length && delay(1000) // delayed for alerts to animate off
 }
 
-const signIntoTerra = async (page, token = bearerToken) => {
+const signIntoTerra = async (page, token) => {
   await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true })
   await waitForNoSpinners(page)
   return page.evaluate(token => window.forceSignIn(token), token)
