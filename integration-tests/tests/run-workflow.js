@@ -2,14 +2,15 @@ const pRetry = require('p-retry')
 const { testUrl, workflowName, billingProject } = require('../utils/integration-config')
 const { withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, dismissNotifications, findElement, fillIn, input, signIntoTerra, waitForNoSpinners, findInGrid, navChild, findInDataTableRow } = require('../utils/integration-utils')
+const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const testEntity = { name: 'test_entity_1', entityType: 'test_entity', attributes: { input: 'foo' } }
 const findWorkflowButton = clickable({ textContains: 'Find a Workflow' })
 
-const testRunWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
+const testRunWorkflowFn = withUserToken(withWorkspace(async ({ page, token, workspaceName }) => {
   await page.goto(testUrl)
-  await signIntoTerra(page)
+  await signIntoTerra(page, token)
   await dismissNotifications(page)
 
   await createEntityInWorkspace(page, billingProject, workspaceName, testEntity)
@@ -50,7 +51,7 @@ const testRunWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
   await click(page, navChild('data'))
   await click(page, clickable({ textContains: 'test_entity' }))
   await findInDataTableRow(page, testEntity.name, testEntity.attributes.input)
-})
+}))
 
 const testRunWorkflow = {
   name: 'run workflow',
