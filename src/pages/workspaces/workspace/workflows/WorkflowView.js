@@ -736,7 +736,7 @@ const WorkflowView = _.flow(
             h(InfoBox, [
               'If the workflow succeeds, only the final output will be saved. Subsequently, call caching cannot be used as the intermediate steps will be not available. ',
               h(Link, {
-                href: '',
+                href: 'https://support.terra.bio/hc/en-us/articles/360039681632',
                 target: 'blank'
               }, ['Click here to learn more.'])
             ])
