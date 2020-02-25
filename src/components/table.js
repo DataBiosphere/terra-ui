@@ -263,10 +263,10 @@ export class FlexTable extends Component {
 
 /**
  * A basic table with a header and flexible column widths. Intended for small amounts of data,
- * since it does not provide scrolling.
+ * since it does not provide scrolling. See FlexTable for prop types.
  */
 export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHighlight }) => {
-  return div([
+  return h(Fragment, [
     div({ style: { height: 48, display: 'flex' } }, [
       _.map(([i, { size, headerRenderer }]) => {
         return div({
