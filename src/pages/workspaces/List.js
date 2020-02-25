@@ -27,7 +27,7 @@ import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccess
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 
 
-const styles = { filter: { marginRight: '1rem', flex: '1 0 300px' } }
+const styles = { filter: { marginRight: '1rem', flex: '1 0 300px', minWidth: 0 } }
 
 const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissionsCount, lastSuccessDate, lastFailureDate } }) => {
   return Utils.cond(
