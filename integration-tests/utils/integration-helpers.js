@@ -1,6 +1,8 @@
 const { billingProject, testUrl } = require('./integration-config')
 const { signIntoTerra, clickable, click, dismissNotifications, fillIn, input } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
+const { bearerToken } = require('../utils/integration-config')
+
 
 
 const defaultTimeout = 5 * 60 * 1000
@@ -76,7 +78,7 @@ const addUserToBilling = async ({ email }) => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
-  await signIntoTerra(ajaxPage)
+  await signIntoTerra(ajaxPage, bearerToken)
 
   await ajaxPage.evaluate((email, billingProject) => {
     return window.Ajax().Billing.project(billingProject).addUser(['User'], email)
@@ -88,7 +90,7 @@ const removeUserFromBilling = async ({ email }) => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
-  await signIntoTerra(ajaxPage)
+  await signIntoTerra(ajaxPage, bearerToken)
 
   await ajaxPage.evaluate((email, billingProject) => {
     return window.Ajax().Billing.project(billingProject).removeUser(['User'], email)
@@ -96,13 +98,13 @@ const removeUserFromBilling = async ({ email }) => {
   await ajaxPage.close()
 }
 
-const withBilling = test => async ({ email, ...args }) => {
-  await addUserToBilling({ email })
+const withBilling = test => async options => {
+  await addUserToBilling(options)
 
   try {
-    await test({ ...args, email })
+    await test({ ...options })
   } finally {
-    await removeUserFromBilling({ email })
+    await removeUserFromBilling(options)
   }
 }
 

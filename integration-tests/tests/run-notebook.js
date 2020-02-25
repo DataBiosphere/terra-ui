@@ -1,6 +1,6 @@
 const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
 const { testUrl } = require('../utils/integration-config')
-const { click, clickable, signIntoTerra, findElement, waitForNoSpinners, select, delay, fillIn, input, findIframe, findText, dismissNotifications } = require('../utils/integration-utils')
+const { click, clickable, signIntoTerra, findElement, waitForNoSpinners, select, fillIn, input, findIframe, findText, dismissNotifications } = require('../utils/integration-utils')
 
 
 const notebookName = 'TestNotebook'
