@@ -8,7 +8,7 @@ import {
   ButtonPrimary, Link, makeMenuIcon, MenuButton, Select, SimpleTabBar, topSpinnerOverlay, transparentSpinnerOverlay
 } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { SearchInput } from 'src/components/input'
+import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { List, MiniSortable } from 'src/components/table'
@@ -135,8 +135,11 @@ export const WorkspaceList = () => {
     }),
     initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, submissionsFilter, tagsFilter])
 
-  const sortedWorkspaces = _.orderBy([sort.field === 'accessLevel' ? ws => -Utils.workspaceAccessLevels.indexOf(ws.accessLevel) : `workspace.${sort.field}`],
-    [sort.direction], filteredWorkspaces[tab])
+  const sortedWorkspaces = _.orderBy(
+    [sort.field === 'accessLevel' ? ws => -Utils.workspaceAccessLevels.indexOf(ws.accessLevel) : `workspace.${sort.field}`],
+    [sort.direction],
+    filteredWorkspaces[tab]
+  )
 
   const noWorkspacesMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
     div([
@@ -248,7 +251,7 @@ export const WorkspaceList = () => {
 
   return h(Fragment, [
     h(TopBar, { title: 'Workspaces' }, [
-      h(SearchInput, {
+      h(DelayedSearchInput, {
         style: { marginLeft: '2rem', width: 500 },
         placeholder: 'SEARCH WORKSPACES',
         'aria-label': 'Search workspaces',
