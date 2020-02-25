@@ -101,15 +101,13 @@ export const WorkspaceList = () => {
     loadFeatured()
   })
 
-  const getTabQuery = newTab => qs.stringify({
-    // Note: setting undefined so that falsy values don't show up at all
-    ...query, filter: filter || undefined, accessLevelsFilter, projectsFilter, tagsFilter, submissionsFilter,
-    tab: newTab === 'my' ? undefined : newTab
-  }, { addQueryPrefix: true })
-
-
   useEffect(() => {
-    const newSearch = getTabQuery(tab)
+    // Note: setting undefined so that falsy values don't show up at all
+    const newSearch = qs.stringify({
+      ...query, filter: filter || undefined, accessLevelsFilter, projectsFilter, tagsFilter, submissionsFilter,
+      tab: tab === 'my' ? undefined : tab
+    }, { addQueryPrefix: true })
+
     if (newSearch !== Nav.history.location.search) {
       Nav.history.replace({ search: newSearch })
     }
