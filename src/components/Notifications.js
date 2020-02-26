@@ -99,7 +99,7 @@ const NotificationDisplay = Utils.connectStore(notificationStore, 'notificationS
           }, ['Details'])
         ]),
         h(Clickable, {
-          'aria-label': 'Dismiss notification',
+          'aria-label': `Dismiss ${type} notification`,
           title: 'Dismiss notification',
           onClick: () => store.removeNotification(id)
         }, [icon('times', { size: 20 })])

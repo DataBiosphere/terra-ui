@@ -71,7 +71,7 @@ const delay = ms => {
 
 const dismissNotifications = async page => {
   await delay(3000) // delayed for any alerts to show
-  const notificationCloseButtons = await page.$x(clickable({ text: 'Dismiss notification' }))
+  const notificationCloseButtons = await page.$x('(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]')
 
   await Promise.all(
     notificationCloseButtons.map(handle => handle.click())
