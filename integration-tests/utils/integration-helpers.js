@@ -20,6 +20,8 @@ const makeWorkspace = async ({ billingProject, context, testUrl, token }) => {
 
   await ajaxPage.close()
 
+  console.info(`done waiting for ${workspaceName}`)
+
   return workspaceName
 }
 

@@ -26,6 +26,7 @@ const testImportDockstoreWorkflowFn = withUserToken(async options => {
 })
 
 const testImportDockstoreWorkflow = {
+  id: 'import-dockstore-workflow',
   name: 'import workflow from dockstore',
   fn: testImportDockstoreWorkflowFn
 }

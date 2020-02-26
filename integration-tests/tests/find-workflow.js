@@ -6,6 +6,7 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const testFindWorkflowFn = withUserToken(withWorkspace(async ({ billingProject, page, testUrl, token, workspaceName }) => {
+  // page.setDefaultTimeout(7000)
   await page.goto(testUrl)
   await signIntoTerra(page, token)
   await dismissNotifications(page)
@@ -48,6 +49,7 @@ const testFindWorkflowFn = withUserToken(withWorkspace(async ({ billingProject, 
 }))
 
 const testFindWorkflow = {
+  id: 'find-workflow',
   name: 'find workflow',
   fn: testFindWorkflowFn
 }

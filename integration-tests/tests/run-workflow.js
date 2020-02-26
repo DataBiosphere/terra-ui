@@ -53,6 +53,7 @@ const testRunWorkflowFn = withUserToken(withWorkspace(async ({ billingProject, p
 }))
 
 const testRunWorkflow = {
+  id: 'run-workflow',
   name: 'run workflow',
   fn: testRunWorkflowFn,
   timeout: 15 * 60 * 1000
