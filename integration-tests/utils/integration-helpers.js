@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 
 const { billingProject, testUrl } = require('./integration-config')
-const { signIntoTerra, clickable, click, dismissNotifications, fillIn, input } = require('./integration-utils')
+const { signIntoTerra, clickable, click, dismissNotifications, fillIn, input, delay } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -154,6 +154,7 @@ const withRegisteredUser = test => withUser(async ({ page, token, ...args }) => 
   await fillIn(ajaxPage, input({ labelContains: 'Last Name' }), 'Test')
   await click(ajaxPage, clickable({ textContains: 'Register' }))
   await click(ajaxPage, clickable({ textContains: 'Accept' }))
+  await delay(1000)
   await ajaxPage.close()
 
   await test({ page, token, ...args })

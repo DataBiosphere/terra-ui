@@ -9,7 +9,6 @@ const testRegisterUserFn = withRegisteredUser(async ({ page, token }) => {
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(page, token)
   await dismissNotifications(page)
-  await click(page, clickable({ textContains: 'Accept' }))
   await dismissNotifications(page)
   await findText(page, 'To get started, click Create a New Workspace')
 })

@@ -11,7 +11,6 @@ const testRunNotebookFn = withRegisteredUser(async ({ page, context, email, toke
     await click(page, clickable({ textContains: 'View Workspaces' }))
     await signIntoTerra(page, token)
     await dismissNotifications(page)
-    await click(page, clickable({ textContains: 'Accept' }))
     await findElement(page, clickable({ textContains: workspaceName }))
     await waitForNoSpinners(page)
     await click(page, clickable({ textContains: workspaceName }))
