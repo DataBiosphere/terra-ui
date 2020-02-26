@@ -31,13 +31,6 @@ const testRunNotebookFn = withRegisteredUser(async ({ page, context, email, toke
     await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
     await click(frame, clickable({ text: 'Run' }))
     await findText(frame, '123456789099886419754209')
-    await click(page, clickable({ textContains: 'Notebook Runtime' }))
-
-    //Clean up TODO: Add failsafe sweep up script
-    await click(page, clickable({ textContains: 'Delete Runtime' }))
-    await click(page, clickable({ textContains: 'DELETE' }))
-    await findElement(page, clickable({ textContains: 'None' }))
-    await findText(page, 'PREVIEW (READ-ONLY)')
   }))({ context, email, token })
 })
 const testRunNotebook = {

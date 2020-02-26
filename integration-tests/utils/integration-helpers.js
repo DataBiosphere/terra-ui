@@ -1,3 +1,5 @@
+const _ = require('lodash/fp')
+
 const { billingProject, testUrl } = require('./integration-config')
 const { signIntoTerra, clickable, click, dismissNotifications, fillIn, input } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
@@ -103,9 +105,43 @@ const withBilling = test => async options => {
   try {
     await test({ ...options })
   } finally {
+    await deleteCluster(options)
     await removeUserFromBilling(options)
   }
 }
+
+const trimClustersOldestFirst = _.flow(
+  _.remove({ status: 'Deleting' }),
+  _.sortBy('createdDate')
+)
+
+const currentCluster = _.flow(trimClustersOldestFirst, _.last)
+
+const getCurrentCluster = withUserToken(async ({ email, token }) => {
+  const ajaxPage = await context.newPage()
+  await ajaxPage.goto(testUrl)
+  await signIntoTerra(ajaxPage, token)
+
+  const clusters = await ajaxPage.evaluate((email, billingProject) => {
+    return window.Ajax().Clusters.list({ googleProject: billingProject })
+  }, billingProject, email)
+
+  await ajaxPage.close()
+  return currentCluster(clusters)
+})
+
+const deleteCluster = withUserToken(async ({ email, token }) => {
+  const ajaxPage = await context.newPage()
+  await ajaxPage.goto(testUrl)
+  await signIntoTerra(ajaxPage, token)
+
+  const currentC = await getCurrentCluster()
+  await ajaxPage.evaluate((currentC, email, billingProject) => {
+    return window.Ajax().Clusters.cluster(billingProject, currentC.clusterName).delete()
+  }, currentC, email, billingProject)
+
+  await ajaxPage.close()
+})
 
 const withRegisteredUser = test => withUser(async ({ page, token, ...args }) => {
   const ajaxPage = await context.newPage()
