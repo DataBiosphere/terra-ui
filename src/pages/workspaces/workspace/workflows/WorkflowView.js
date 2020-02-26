@@ -10,7 +10,7 @@ import {
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { DelayedAutocompleteTextInput, DelayedSearchInput } from 'src/components/input'
+import { DelayedAutocompleteTextArea, DelayedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
@@ -144,7 +144,8 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
           const isFile = (inputType === 'File') || (inputType === 'File?')
           return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
             div({ style: { flex: 1, display: 'flex', position: 'relative', minWidth: 0 } }, [
-              !readOnly ? h(DelayedAutocompleteTextInput, {
+              !readOnly ? h(DelayedAutocompleteTextArea, {
+                autosize: true,
                 'aria-label': name,
                 placeholder: optional ? 'Optional' : 'Required',
                 value,
@@ -158,6 +159,16 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                 tooltip: 'Browse bucket files'
               }, [icon('folder-open', { size: 20 })])
             ]),
+            !readOnly && h(Link, {
+              style: { marginLeft: '0.25rem' },
+              onClick: () => {
+                const json = Utils.maybeParseJSON(value)
+                if (json !== undefined) {
+                  onChange(name, JSON.stringify(json, null, 2))
+                }
+              },
+              tooltip: 'Format'
+            }, ['{…}']),
             error && h(TooltipTrigger, { content: error }, [
               icon('error-standard', {
                 size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
