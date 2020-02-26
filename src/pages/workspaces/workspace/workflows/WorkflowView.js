@@ -20,6 +20,7 @@ import WDLViewer from 'src/components/WDLViewer'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { workflowSelectionStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -399,8 +400,14 @@ const WorkflowView = _.flow(
           accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache,
           onDismiss: () => this.setState({ launching: false }),
-          onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId }),
-          onSuccessMulti: () => Nav.goToPath('workspace-job-history', workspaceId)
+          onSuccess: submissionId => {
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, { multi: false })
+            Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
+          },
+          onSuccessMulti: () => {
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, { multi: true })
+            Nav.goToPath('workspace-job-history', workspaceId)
+          }
         }),
         variableSelected && h(BucketContentModal, {
           workspace,
