@@ -216,7 +216,11 @@ export const AutocompleteTextInput = ({ value, onChange, suggestions: rawSuggest
 
   return h(Downshift, {
     selectedItem: value,
-    onInputValueChange: onChange,
+    onInputValueChange: newValue => {
+      if (newValue !== value) {
+        onChange(newValue)
+      }
+    },
     inputId: id
   }, [
     ({ getInputProps, getMenuProps, getItemProps, isOpen, openMenu, toggleMenu, highlightedIndex }) => {

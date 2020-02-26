@@ -33,6 +33,7 @@ module.exports = {
     'object-curly-newline': ['warn', { 'multiline': true, 'consistent': true }],
     'object-curly-spacing': ['warn', 'always'],
     'one-var': ['warn', 'never'],
+    'operator-linebreak': ['warn', 'after'],
     'padded-blocks': ['warn', 'never'],
     'quote-props': ['warn', 'as-needed'],
     'quotes': ['warn', 'single', { 'allowTemplateLiterals': true }],

@@ -232,7 +232,7 @@ const JobHistory = _.flow(
                 headerRenderer: () => h(HeaderCell, ['Actions']),
                 cellRenderer: ({ rowIndex }) => {
                   const {
-                    methodConfigurationNamespace, methodConfigurationName, submissionId, workflowStatuses,
+                    methodConfigurationNamespace, methodConfigurationName, methodConfigurationDeleted, submissionId, workflowStatuses,
                     status, submissionEntity
                   } = filteredSubmissions[rowIndex]
                   return h(Fragment, [
@@ -240,7 +240,7 @@ const JobHistory = _.flow(
                       onClick: () => this.setState({ aborting: submissionId })
                     }, ['Abort workflows']),
                     isTerminal(status) && (workflowStatuses['Failed'] || workflowStatuses['Aborted']) &&
-                    submissionEntity && h(ButtonPrimary, {
+                    submissionEntity && !methodConfigurationDeleted && h(ButtonPrimary, {
                       onClick: () => rerunFailures({
                         namespace,
                         name,
