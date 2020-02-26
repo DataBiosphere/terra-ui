@@ -6,7 +6,7 @@ import Draggable from 'react-draggable'
 import { button, div, h, label, option, select } from 'react-hyperscript-helpers'
 import Pagination from 'react-paginating'
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
-import { AutoSizer, Grid as RVGrid, List as RVList, ScrollSync as RVScrollSync } from 'react-virtualized'
+import { AutoSizer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
 import { ButtonPrimary, Checkbox, Clickable, IdContainer, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
@@ -169,7 +169,7 @@ export class FlexTable extends Component {
     height: PropTypes.number.isRequired,
     initialY: PropTypes.number,
     rowCount: PropTypes.number.isRequired,
-    styleRow: PropTypes.func,
+    variant: PropTypes.oneOf(['light']),
     noContentMessage: PropTypes.node,
     columns: PropTypes.arrayOf(PropTypes.shape({
       headerRenderer: PropTypes.func.isRequired,
@@ -188,7 +188,6 @@ export class FlexTable extends Component {
 
   static defaultProps = {
     initialY: 0,
-    styleRow: () => ({}),
     columns: [],
     hoverHighlight: false,
     onScroll: _.noop,
@@ -207,7 +206,7 @@ export class FlexTable extends Component {
   }
 
   render() {
-    const { width, height, rowCount, styleRow, columns, hoverHighlight, onScroll, noContentMessage } = this.props
+    const { width, height, rowCount, variant, columns, hoverHighlight, onScroll, noContentMessage, ...props } = this.props
     const { scrollbarSize } = this.state
 
     return div([
@@ -221,7 +220,7 @@ export class FlexTable extends Component {
         ..._.map(([i, { size, headerRenderer }]) => {
           return div({
             key: i,
-            style: { ...styles.flexCell(size), ...styles.header(i * 1, columns.length) }
+            style: { ...styles.flexCell(size), ...(variant === 'light' ? {} : styles.header(i * 1, columns.length)) }
           }, [headerRenderer()])
         }, _.toPairs(columns))
       ]),
@@ -241,21 +240,22 @@ export class FlexTable extends Component {
             key: data.key,
             as: 'div',
             className: 'table-row',
-            style: { ...data.style, backgroundColor: 'white', display: 'flex', ...styleRow(data.rowIndex) },
+            style: { ...data.style, backgroundColor: 'white', display: 'flex' },
             hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
           }, [
-            ..._.map(([i, { size, cellRenderer }]) => {
+            _.map(([i, { size, cellRenderer }]) => {
               return div({
                 key: i,
                 className: 'table-cell',
-                style: { ...styles.flexCell(size), ...styles.cell(i * 1, columns.length) }
+                style: { ...styles.flexCell(size), ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length)) }
               }, [cellRenderer(data)])
             }, _.toPairs(columns))
           ])
         },
         style: { outline: 'none' },
         onScroll: ({ scrollTop }) => onScroll(scrollTop),
-        noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage])
+        noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage]),
+        ...props
       })
     ])
   }
@@ -494,7 +494,7 @@ export class Resizable extends Component {
 }
 
 const SortableDiv = SortableElement(props => div(props))
-const SortableList = SortableContainer(props => h(RVList, props))
+const SortableList = SortableContainer(props => h(List, props))
 const SortableHandleDiv = SortableHandle(props => div(props))
 
 /**
@@ -588,11 +588,4 @@ export class ColumnSelector extends Component {
       ])
     ])
   }
-}
-
-export const List = ({ rowRenderer, ...props }) => {
-  return h(RVList, {
-    rowRenderer: ({ key, style, index }) => div({ key, style }, [rowRenderer(index)]),
-    ...props
-  })
 }

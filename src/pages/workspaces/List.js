@@ -11,7 +11,7 @@ import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
-import { List, MiniSortable } from 'src/components/table'
+import { FlexTable, MiniSortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
@@ -27,7 +27,16 @@ import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccess
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 
 
-const styles = { filter: { marginRight: '1rem', flex: '1 0 300px', minWidth: 0 } }
+const styles = {
+  tableCellContainer: {
+    height: '100%', padding: '0.5rem 0', paddingRight: '2rem',
+    borderTop: `1px solid ${colors.light()}`
+  },
+  tableCellContent: {
+    height: '50%', display: 'flex', alignItems: 'center'
+  },
+  filter: { marginRight: '1rem', flex: '1 0 300px', minWidth: 0 }
+}
 
 const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissionsCount, lastSuccessDate, lastFailureDate } }) => {
   return Utils.cond(
@@ -91,7 +100,6 @@ export const WorkspaceList = () => {
   const [requestingAccessWorkspaceId, setRequestingAccessWorkspaceId] = useState()
 
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
-  const [scrollbarSize, setScrollbarSize] = useState(0)
 
   Utils.useOnMount(() => {
     const loadFeatured = async () => {
@@ -153,83 +161,101 @@ export const WorkspaceList = () => {
     ])
   ])
 
-  const columnSizes = [
-    { flex: '2 0 400px', marginRight: '2rem' },
-    { flex: '1 0 100px', marginRight: '2rem' },
-    { flex: '1 0 200px', marginRight: '2rem' },
-    { flex: '1 0 120px', marginRight: '2rem' },
-    { flex: '0 0 30px' }
-  ]
+  const makeHeaderRenderer = name => () => h(MiniSortable, { sort, field: name, onSort: setSort }, [
+    div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
+  ])
 
-  const makeColumnDiv = (index, children) => div({ style: { ...columnSizes[index], ...Style.noWrapEllipsis } }, children)
+  const renderedWorkspaces = div({ style: { flex: 1, backgroundColor: 'white', padding: '0 1rem' } }, [h(AutoSizer, [
+    ({ width, height }) => h(FlexTable, {
+      width, height,
+      rowCount: sortedWorkspaces.length,
+      noContentRenderer: () => Utils.cond(
+        [loadingWorkspaces, () => null],
+        [_.isEmpty(initialFiltered.my) && tab === 'my', () => noWorkspacesMessage],
+        () => div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
+      ),
+      variant: 'light',
+      rowHeight: 70,
+      columns: [
+        {
+          headerRenderer: makeHeaderRenderer('name'),
+          cellRenderer: ({ rowIndex }) => {
+            const { accessLevel, workspace: { workspaceId, namespace, name, attributes: { description } } } = sortedWorkspaces[rowIndex]
+            const canView = Utils.canRead(accessLevel)
 
-  const renderedWorkspaces = div({ style: { padding: '0 1rem', backgroundColor: 'white', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-    div({ style: { display: 'flex', margin: '1rem 0 0.5rem', marginRight: scrollbarSize } }, _.map(([index, name]) => {
-      return div({ style: { ...columnSizes[index] } }, [
-        name && h(MiniSortable, { sort, field: name, onSort: setSort }, [div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])])
-      ])
-    }, Utils.toIndexPairs(['name', 'lastModified', 'createdBy', 'accessLevel', undefined]))),
-    div({ style: { flex: 1 } }, [h(AutoSizer, [
-      ({ width, height }) => h(List, {
-        width, height,
-        onScrollbarPresenceChange: ({ vertical, size }) => setScrollbarSize(vertical ? size : 0),
-        rowCount: sortedWorkspaces.length,
-        noRowsRenderer: () => Utils.cond(
-          [loadingWorkspaces, () => null],
-          [_.isEmpty(initialFiltered.my) && tab === 'my', () => noWorkspacesMessage],
-          () => div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
-        ),
-        rowHeight: 70,
-        rowRenderer: index => {
-          const { accessLevel, workspace: { workspaceId, namespace, name, createdBy, lastModified, attributes: { description } }, ...workspace } = sortedWorkspaces[index]
-
-          const onClone = () => setCloningWorkspaceId(workspaceId)
-          const onDelete = () => setDeletingWorkspaceId(workspaceId)
-          const onShare = () => setSharingWorkspaceId(workspaceId)
-          const onRequestAccess = () => setRequestingAccessWorkspaceId(workspaceId)
-
-          const canView = Utils.canRead(accessLevel)
-          const lastRunStatus = workspaceSubmissionStatus(workspace)
-
-          return div({
-            style: {
-              height: '100%', display: 'flex', flexDirection: 'column',
-              padding: '0.5rem 0',
-              borderTop: `1px solid ${colors.light()}`
-            }
-          }, [
-            div({ style: { display: 'flex', flex: 1, alignItems: 'center' } }, [
-              makeColumnDiv(0, [
+            return div({ style: styles.tableCellContainer }, [
+              div({ style: styles.tableCellContent }, [
                 h(Link, {
-                  style: { color: canView ? undefined : colors.dark(0.7), fontWeight: 600 },
+                  style: { color: canView ? undefined : colors.dark(0.7), fontWeight: 600, ...Style.noWrapEllipsis },
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
-                  onClick: !canView ? onRequestAccess : undefined,
+                  onClick: !canView ? () => setRequestingAccessWorkspaceId(workspaceId) : undefined,
                   tooltip: !canView &&
                     'You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.',
                   tooltipSide: 'right'
                 }, [name])
               ]),
-              makeColumnDiv(1, [
-                h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [span([Utils.makeStandardDate(lastModified)])])
+              div({ style: styles.tableCellContent }, [
+                span({ style: { ...Style.noWrapEllipsis, color: !!description ? undefined : colors.dark(0.75) } }, [
+                  description?.split('\n')[0] || 'No description added'
+                ])
+              ])
+            ])
+          },
+          size: { basis: 400, grow: 2, shrink: 0 }
+        }, {
+          headerRenderer: makeHeaderRenderer('lastModified'),
+          cellRenderer: ({ rowIndex }) => {
+            const { workspace: { lastModified } } = sortedWorkspaces[rowIndex]
+
+            return div({ style: styles.tableCellContainer }, [
+              div({ style: styles.tableCellContent }, [
+                h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [div([Utils.makeStandardDate(lastModified)])])
+              ])
+            ])
+          },
+          size: { basis: 100, grow: 1, shrink: 0 }
+        }, {
+          headerRenderer: makeHeaderRenderer('createdBy'),
+          cellRenderer: ({ rowIndex }) => {
+            const { workspace: { createdBy } } = sortedWorkspaces[rowIndex]
+
+            return div({ style: styles.tableCellContainer }, [
+              div({ style: styles.tableCellContent }, [span({ style: Style.noWrapEllipsis }, [createdBy])])
+            ])
+          },
+          size: { basis: 200, grow: 1, shrink: 0 }
+        }, {
+          headerRenderer: makeHeaderRenderer('accessLevel'),
+          cellRenderer: ({ rowIndex }) => {
+            const { accessLevel } = sortedWorkspaces[rowIndex]
+
+            return div({ style: styles.tableCellContainer }, [
+              div({ style: styles.tableCellContent }, [Utils.normalizeLabel(accessLevel)])
+            ])
+          },
+          size: { basis: 120, grow: 1, shrink: 0 }
+        }, {
+          headerRenderer: () => null,
+          cellRenderer: ({ rowIndex }) => {
+            const { accessLevel, workspace: { workspaceId, namespace, name }, ...workspace } = sortedWorkspaces[rowIndex]
+            const onClone = () => setCloningWorkspaceId(workspaceId)
+            const onDelete = () => setDeletingWorkspaceId(workspaceId)
+            const onShare = () => setSharingWorkspaceId(workspaceId)
+            const canView = Utils.canRead(accessLevel)
+            const lastRunStatus = workspaceSubmissionStatus(workspace)
+
+
+            return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
+              div({ style: styles.tableCellContent }, [
+                h(PopupTrigger, {
+                  side: 'left',
+                  closeOnClick: true,
+                  content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
+                }, [
+                  h(Link, { 'aria-label': 'Workspace menu', disabled: !canView }, [icon('cardMenuIcon', { size: 20 })])
+                ])
               ]),
-              makeColumnDiv(2, [createdBy]),
-              makeColumnDiv(3, [Utils.normalizeLabel(accessLevel)]),
-              makeColumnDiv(4, [h(PopupTrigger, {
-                side: 'left',
-                closeOnClick: true,
-                content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
-              }, [
-                h(Link, { 'aria-label': 'Workspace menu', disabled: !canView }, [icon('cardMenuIcon', { size: 20 })])
-              ])])
-            ]),
-            div({ style: { display: 'flex', flex: 1, alignItems: 'center' } }, [
-              makeColumnDiv(0, [
-                description ? description.split('\n')[0] : span({ style: { color: colors.dark(0.75) } }, ['No description added'])
-              ]),
-              makeColumnDiv(1),
-              makeColumnDiv(2),
-              makeColumnDiv(3),
-              makeColumnDiv(4, [
+              div({ style: styles.tableCellContent }, [
                 !!lastRunStatus && h(TooltipTrigger, {
                   content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(lastRunStatus)])]),
                   side: 'left'
@@ -242,11 +268,12 @@ export const WorkspaceList = () => {
                 ])
               ])
             ])
-          ])
+          },
+          size: { basis: 30, grow: 0, shrink: 0 }
         }
-      })
-    ])])
-  ])
+      ]
+    })
+  ])])
 
 
   return h(Fragment, [
