@@ -60,12 +60,9 @@ commands:
       local:
         type: boolean
         default: false
-      test_url:
+      env:
         type: string
-        default: "http://localhost:3000"
-      billing_project:
-        type: string
-        default: "general-dev-billing-account"
+        default: local
     steps:
       - checkout
       - attach_workspace:
@@ -96,8 +93,7 @@ commands:
           environment:
             JEST_JUNIT_OUTPUT_DIR: "/tmp/test-results/integration-test-results.xml"
             SCREENSHOT_DIR: "/tmp/failure-screenshots"
-            TEST_URL: << parameters.test_url >>
-            BILLING_PROJECT: << parameters.billing_project >>
+            ENVIRONMENT: << parameters.env >>
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             yarn test --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
@@ -196,19 +192,18 @@ jobs:
     steps:
       - integration-tests:
           local: true
+          env: local
   integration-tests-alpha:
     executor: puppeteer
     steps:
       - integration-tests:
-          billing_project: "broad-dsde-alpha-two"
-          test_url: "https://bvdp-saturn-alpha.appspot.com"
+          env: alpha
       - notify-qa
   integration-tests-staging:
     executor: puppeteer
     steps:
       - integration-tests:
-          billing_project: "bartholomew"
-          test_url: "https://bvdp-saturn-staging.appspot.com"
+          env: staging
       - notify-qa
 
 workflows:

@@ -13,8 +13,8 @@ const {
 
 const targetEnvParams = _.merge({ ...envs[environment] }, { billingProject, testUrl, workflowName })
 
-const registerTest = ({ id, name, fn, timeout = defaultTimeout }) => {
-  return test(name, () => withScreenshot(id)(fn)({ context, page, ...targetEnvParams }), timeout)
+const registerTest = ({ fn, name, timeout = defaultTimeout }) => {
+  return test(name, () => withScreenshot(name)(fn)({ context, page, ...targetEnvParams }), timeout)
 }
 
 module.exports = { registerTest }

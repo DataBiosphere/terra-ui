@@ -29,8 +29,7 @@ const testImportCohortDataFn = withUserToken(withWorkspace(async ({ page, testUr
 }))
 
 const testImportCohortData = {
-  id: 'import-cohort-data',
-  name: 'import cohort data',
+  name: 'import-cohort-data',
   fn: testImportCohortDataFn
 }
 

@@ -26,8 +26,8 @@ const testTimeout = async (context, timeout) => {
   throw new Error(`Test timeout after ${timeout}ms`)
 }
 
-const registerTestEndpoint = ({ id, fn, timeout = defaultTimeout }) => {
-  const path = `/test/${id}`
+const registerTestEndpoint = ({ fn, name, timeout = defaultTimeout }) => {
+  const path = `/test/${name}`
   console.info(`=> ${path}`)
   app.post(path, promiseHandler(async req => {
     const targetEnvParams = { ...envs[req.query.targetEnv] }
@@ -35,7 +35,7 @@ const registerTestEndpoint = ({ id, fn, timeout = defaultTimeout }) => {
     const page = await context.newPage()
     try {
       const result = await Promise.race([
-        withScreenshot(id)(fn)({ context, page, ...targetEnvParams }),
+        withScreenshot(name)(fn)({ context, page, ...targetEnvParams }),
         testTimeout(context, timeout)
       ])
       return new Response(200, result)

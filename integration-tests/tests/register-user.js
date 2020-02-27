@@ -3,7 +3,6 @@ const { findText, click, clickable, dismissNotifications, fillIn, input, signInt
 
 
 const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
-  // page.setDefaultTimeout(7000)
   await page.goto(testUrl)
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(page, token)
@@ -16,8 +15,7 @@ const testRegisterUserFn = withUser(async ({ page, testUrl, token }) => {
 })
 
 const testRegisterUser = {
-  id: 'register-user',
-  name: 'register user',
+  name: 'register-user',
   fn: testRegisterUserFn
 }
 

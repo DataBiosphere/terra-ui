@@ -113,7 +113,11 @@ const withScreenshot = _.curry((testName, fn) => async options => {
     return await fn(options)
   } catch (e) {
     if (screenshotDir) {
-      await page.screenshot({ path: `${screenshotDir}/failure-${Date.now()}-${testName}.png`, fullPage: true })
+      try {
+        await page.screenshot({ path: `${screenshotDir}/failure-${Date.now()}-${testName}.png`, fullPage: true })
+      } catch (e) {
+        console.error('Failed to capture screenshot', e)
+      }
     }
     throw e
   }
