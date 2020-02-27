@@ -21,7 +21,7 @@ const testRunNotebookFn = withRegisteredUser(async ({ page, context, email, toke
     await click(page, clickable({ text: 'Create Notebook' }))
     await click(page, clickable({ textContains: notebookName }))
     await click(page, clickable({ text: 'Edit' }))
-    await select(page, 'Select Environment', 'Hail')
+    await select(page, 'ENVIRONMENT', 'Hail')
     await click(page, clickable({ text: 'Create' }))
     await findElement(page, clickable({ textContains: 'Creating' }))
     await findElement(page, clickable({ textContains: 'Running' }), { timeout: 5 * 60 * 1000 })
