@@ -7,9 +7,8 @@ const { testImportCohortData } = require('../tests/import-cohort-data')
 const { testImportDockstoreWorkflow } = require('../tests/import-dockstore-workflow')
 const { testRegisterUser } = require('../tests/register-user')
 const { testRunWorkflow } = require('../tests/run-workflow')
-const config = require('../utils/integration-config')
 const { defaultTimeout } = require('../utils/integration-helpers')
-const { delay } = require('../utils/integration-utils')
+const { delay, withScreenshot } = require('../utils/integration-utils')
 const envs = require('../utils/terra-envs')
 
 
@@ -21,23 +20,10 @@ const getContext = async () => {
   return browser.createIncognitoBrowserContext()
 }
 
-const testTimeout = async (page, ms) => {
-  await delay(ms)
-  page.close()
-  throw new Error(`Test timeout after ${ms}ms`)
-}
-
-const withScreenshot = (testName, fn) => async options => {
-  const { page } = options
-  try {
-    await fn(options)
-  } catch (e) {
-    const { screenshotDir } = config
-    if (screenshotDir) {
-      await page.screenshot({ path: `${screenshotDir}/failure-${Date.now()}-${testName}.png`, fullPage: true })
-    }
-    throw e
-  }
+const testTimeout = async (context, timeout) => {
+  await delay(timeout)
+  context.close()
+  throw new Error(`Test timeout after ${timeout}ms`)
 }
 
 const registerTestEndpoint = ({ id, fn, timeout = defaultTimeout }) => {
@@ -48,7 +34,10 @@ const registerTestEndpoint = ({ id, fn, timeout = defaultTimeout }) => {
     const context = await getContext()
     const page = await context.newPage()
     try {
-      const result = await Promise.race([fn({ ...config, ...targetEnvParams, context, page }), testTimeout(page, timeout)])
+      const result = await Promise.race([
+        withScreenshot(id)(fn)({ context, page, ...targetEnvParams }),
+        testTimeout(context, timeout)
+      ])
       return new Response(200, result)
     } catch (e) {
       return new Response(200, JSON.stringify({

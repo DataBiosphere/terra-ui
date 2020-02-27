@@ -1,35 +1,20 @@
 const _ = require('lodash/fp')
-const config = require('../utils/integration-config')
 const { defaultTimeout } = require('../utils/integration-helpers')
+const { withScreenshot } = require('../utils/integration-utils')
 const envs = require('../utils/terra-envs')
 
 
 const {
   BILLING_PROJECT: billingProject,
   ENVIRONMENT: environment = 'local',
-  TEST_URL: testUrl
+  TEST_URL: testUrl,
+  WORKFLOW_NAME: workflowName = 'echo_to_file'
 } = process.env
 
-const targetEnvParams = _.merge({ ...envs[environment] }, { billingProject, testUrl })
-console.info(targetEnvParams)
+const targetEnvParams = _.merge({ ...envs[environment] }, { billingProject, testUrl, workflowName })
 
-const withGlobalJestPuppeteerContext = fn => () => fn({ context, page })
-
-const withGlobalConfig = fn => options => fn({ ...config, ...targetEnvParams, ...options })
-
-const withScreenshot = (testName, fn) => async options => {
-  const { page } = options
-  try {
-    await fn(options)
-  } catch (e) {
-    const { screenshotDir } = config
-    if (screenshotDir) {
-      await page.screenshot({ path: `${screenshotDir}/failure-${Date.now()}-${testName}.png`, fullPage: true })
-    }
-    throw e
-  }
+const registerTest = ({ id, name, fn, timeout = defaultTimeout }) => {
+  return test(name, () => withScreenshot(id)(fn)({ context, page, ...targetEnvParams }), timeout)
 }
-
-const registerTest = ({ name, fn, timeout = defaultTimeout }) => test(name, withGlobalJestPuppeteerContext(withGlobalConfig(withScreenshot(name, fn))), timeout)
 
 module.exports = { registerTest }
