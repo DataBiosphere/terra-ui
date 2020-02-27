@@ -6,8 +6,13 @@ import * as Utils from 'src/libs/utils'
 
 
 const eventsList = {
-  workspaceShare: 'workspace:share',
-  pageView: 'page:view'
+  applicationLaunch: 'application:launch',
+  notebookLaunch: 'notebook:launch',
+  pageView: 'page:view',
+  workflowImport: 'workflow:import',
+  workflowLaunch: 'workflow:launch',
+  workspaceDataImport: 'workspace:data:import',
+  workspaceShare: 'workspace:share'
 }
 
 export const PageViewReporter = () => {

@@ -21,7 +21,7 @@ const FirecloudNotification = () => {
         ]),
         h(ButtonOutline, {
           ...Utils.newTabLinkProps,
-          href: 'https://support.terra.bio/hc/en-us/sections/360004482892',
+          href: 'https://support.terra.bio/hc/en-us/articles/360022506932-Uniquely-Terra-What-s-new-and-coming-soon',
           style: { marginTop: '1rem' }
         }, ['Learn what\'s new and different'])
       ]))

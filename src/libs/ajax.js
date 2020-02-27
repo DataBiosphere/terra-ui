@@ -993,6 +993,11 @@ const Clusters = signal => ({
         return fetchLeo(`api/cluster/v2/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
       },
 
+      update: clusterOptions => {
+        const body = { ...clusterOptions, allowStop: true }
+        return fetchLeo(`api/cluster/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PATCH' }, appIdentifier]))
+      },
+
       start: () => {
         return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
       },
@@ -1088,7 +1093,7 @@ const Duos = signal => ({
 })
 
 const Metrics = signal => ({
-  captureEvent: withErrorIgnoring((event, details) => {
+  captureEvent: withErrorIgnoring((event, details = {}) => {
     const body = {
       event,
       data: {
