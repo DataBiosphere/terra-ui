@@ -69,7 +69,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       [_.isArray(entities), () => _.uniq(entities).length],
       () => _.size(entities)
     )
-    const wrappableOnPeriods = _.flow(str => str.split(/(\.)/), _.flatMap(sub => sub === '.' ? [wbr(), '.'] : sub))
+    const wrappableOnPeriods = _.flow(str => str?.split(/(\.)/), _.flatMap(sub => sub === '.' ? [wbr(), '.'] : sub))
 
     return h(Modal, {
       title: !launching ? 'Confirm launch' : 'Launching Analysis',
