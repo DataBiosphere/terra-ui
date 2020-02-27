@@ -7,6 +7,7 @@ import { Link, spinnerOverlay } from 'src/components/common'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -32,6 +33,7 @@ const AppLauncher = _.flow(
       onClusterStartedRunning: async () => {
         await Ajax().Clusters.notebooks(namespace, clusterName).setCookie()
         setCookieReady(true)
+        Ajax().Metrics.captureEvent(Events.applicationLaunch, { app })
       },
       onClusterStoppedRunning: () => setCookieReady(false)
     }),

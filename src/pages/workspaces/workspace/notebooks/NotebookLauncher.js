@@ -17,8 +17,10 @@ import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
 import { Ajax } from 'src/libs/ajax'
+import { usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { authStore } from 'src/libs/state'
@@ -50,7 +52,7 @@ const NotebookLauncher = _.flow(
     const { mode } = queryParams
 
     return h(Fragment, [
-      (Utils.canWrite(accessLevel) && canCompute && !!mode && status === 'Running' && labels.tool === 'Jupyter') ?
+      (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && labels.tool === 'Jupyter') ?
         h(labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : NotebookEditorFrame,
           { key: clusterName, workspace, cluster, notebookName, mode }) :
         h(Fragment, [
@@ -343,6 +345,8 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
 
 const JupyterFrameManager = ({ onClose, frameRef }) => {
   Utils.useOnMount(() => {
+    Ajax().Metrics.captureEvent(Events.notebookLaunch)
+
     const isSaved = Utils.atom(true)
     const onMessage = e => {
       switch (e.data) {
@@ -385,7 +389,7 @@ const copyingNotebookMessage = div({ style: { paddingTop: '2rem' } }, [
 ])
 
 const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
-  console.assert(status === 'Running', 'Expected notebook runtime to be running')
+  console.assert(_.includes(status, usableStatuses), `Expected notebook runtime to be one of: [${usableStatuses}]`)
   console.assert(!labels.welderInstallFailed, 'Expected cluster to have Welder')
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)

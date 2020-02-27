@@ -2,17 +2,18 @@ const firecloud = require('../utils/firecloud-utils')
 const { billingProject, testUrl, workflowName } = require('../utils/integration-config')
 const { withWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, dismissNotifications, findElement, findText, signIntoTerra } = require('../utils/integration-utils')
+const { withUserToken } = require('../utils/terra-sa-utils')
 
 
-const testFindWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
+const testFindWorkflowFn = withUserToken(withWorkspace(async ({ page, token, workspaceName }) => {
   await page.goto(testUrl)
-  await signIntoTerra(page)
+  await signIntoTerra(page, token)
   await dismissNotifications(page)
   await click(page, clickable({ textContains: 'View Examples' }))
   await click(page, clickable({ textContains: 'code & workflows' }))
   await click(page, clickable({ textContains: workflowName }))
 
-  await firecloud.signIntoFirecloud(page)
+  await firecloud.signIntoFirecloud(page, token)
   await findText(page, workflowName)
   await click(page, clickable({ textContains: 'Export to Workspace...' }))
   await click(page, clickable({ textContains: `${workflowName}-configured` }))
@@ -41,10 +42,10 @@ const testFindWorkflowFn = withWorkspace(async ({ page, workspaceName }) => {
     backToTerra()
   ])
 
-  await signIntoTerra(page)
+  await signIntoTerra(page, token)
   await findText(page, `${workflowName}-configured`)
   await findText(page, 'inputs')
-})
+}))
 
 const testFindWorkflow = {
   name: 'find workflow',

@@ -13,6 +13,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { pfbImportJobStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -106,6 +107,7 @@ const ImportData = () => {
         notify('success', 'Data imported successfully.', { timeout: 3000 })
       }]
     )
+    Ajax().Metrics.captureEvent(Events.workspaceDataImport)
     Nav.goToPath('workspace-data', { namespace, name })
   })
 
