@@ -12,13 +12,13 @@ const eventsList = {
 
 export const PageViewReporter = () => {
   const { name } = useRoute()
-  const { isSignedIn } = Utils.useStore(authStore)
+  const { isSignedIn, registrationStatus } = Utils.useStore(authStore)
 
   useEffect(() => {
-    if (isSignedIn) {
+    if (isSignedIn && registrationStatus === 'registered') {
       Ajax().Metrics.captureEvent(eventsList.pageView)
     }
-  }, [isSignedIn, name])
+  }, [isSignedIn, name, registrationStatus])
 
   return null
 }
