@@ -1,6 +1,7 @@
 const express = require('express')
-const _ = require('lodash/fp')
+const http = require('http')
 const puppeteer = require('puppeteer')
+const _ = require('lodash/fp')
 const { promiseHandler, Response } = require('./utils')
 const { testFindWorkflow } = require('../tests/find-workflow')
 const { testImportCohortData } = require('../tests/import-cohort-data')
@@ -13,6 +14,8 @@ const envs = require('../utils/terra-envs')
 
 
 const app = express()
+const server = http.createServer(app)
+server.setTimeout(defaultTimeout + 60 * 1000) // allow an extra minute for teardown
 
 const getBrowser = _.once(() => puppeteer.launch())
 const getContext = async () => {
@@ -58,4 +61,4 @@ _.forEach(registerTestEndpoint, [
 ])
 console.info('Ready')
 
-app.listen(process.env.PORT || 8080)
+server.listen(process.env.PORT || 8080)
