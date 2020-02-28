@@ -291,9 +291,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const makeEnvSelect = id => h(Select, {
       id,
+      'aria-label': 'Select Environment',
       value: selectedLeoImage,
       onChange: ({ value }) => this.setState({ selectedLeoImage: value }),
-      isSearchable: false,
+      isSearchable: true,
       isClearable: false,
       options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
     })
@@ -318,7 +319,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       onChange: ({ value }) => {
         this.setState({ selectedLeoImage: value, customEnvImage: '' })
       },
-      isSearchable: false,
+      isSearchable: true,
       isClearable: false,
       options: [{ label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
         {
