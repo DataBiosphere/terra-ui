@@ -15,12 +15,13 @@ TERRA_TOKEN=[bearer token] LYLE_SA_KEY=[full key json] yarn test
 #### Configuration
 The following environment variables are parsed by the tests:
 
-- `TERRA_SA_KEY` **(required\*)**: service account key for creating access tokens for test user.
-- `TERRA_TOKEN` **(required\*)**: bearer token used to log into Terra.
-- `TEST_URL`: URL for the ui.
-    * _Default `localhost:3000`_
-- `BILLING_PROJECT`: used for workspace creation.
-    * _Default `general-dev-billing-account`_
+- `TERRA_SA_KEY` **(required)**: service account key for creating access tokens for test user.
+- `ENVIRONMENT`: Terra UI instance to test. Options: `local`, `dev`, `alpha`, `perf`, `staging`
+    * _Default `local`_
+        - `TEST_URL`: URL for the ui.
+            * _Default `localhost:3000`_
+        - `BILLING_PROJECT`: used for workspace creation.
+            * _Default `general-dev-billing-account`_
 - `WORKFLOW_NAME`: workflow/method used for tests. Expects published config named `[name]-configured`.
     * _Default `echo_to_file`_
 -  `LYLE_SA_KEY` **(required)**: service account key to access Lyle.  
@@ -28,8 +29,6 @@ The following environment variables are parsed by the tests:
 -  `LYLE_URL`: URL for the service account allocator.
     * _Default `https://terra-lyle.appspot.com`_
 - `SCREENSHOT_DIR`: without this, screenshots won't be saved on test failure.
-
-\* One of either `TERRA_SA_KEY` or `TERRA_TOKEN` is required
 
 #### Convenient one-liner:
 _(make sure you're `gcloud auth`ed as a user registered on Terra on your environment, with access to the billing project)_
