@@ -47,7 +47,7 @@ define([
 
     // frequent autosave
     promises.notebook_loaded.then(function() {
-      Jupyter.notebook.set_autosave_interval(5000);
+      Jupyter.notebook.set_autosave_interval(0);
     });
 
     // listen for explicit save command
@@ -58,8 +58,11 @@ define([
     })
 
     // report save status up
-    Jupyter.notebook.save_widget.events.on('set_dirty.Notebook', function (event, data) {
+    Jupyter.notebook.save_widget.events.on('set_dirty.Notebook', function(event, data) {
       window.parent.postMessage(data.value ? 'dirty' : 'saved', '*')
+      if (data.value) {
+        setTimeout(function() { Jupyter.notebook.save_notebook() }, 5000)
+      }
     })
 
   }
