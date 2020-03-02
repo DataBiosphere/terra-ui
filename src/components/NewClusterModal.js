@@ -13,6 +13,7 @@ import { Ajax } from 'src/libs/ajax'
 import { deleteText, findMachineType, machineConfigCost, normalizeMachineConfig } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import { notify } from 'src/libs/notifications'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -152,6 +153,107 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ]))
   }
 
+  updateCluster(isStopRequired = false) {
+    const { currentCluster, onSuccess } = this.props
+    const { googleProject, clusterName } = currentCluster
+
+    if (isStopRequired) {
+      notify('info', 'To be updated, your runtime will now stop, and then start. This will take 3-5 minutes.')
+    }
+
+    return onSuccess(
+      Ajax().Clusters.cluster(googleProject, clusterName).update({
+        machineConfig: this.getMachineConfig()
+      }),
+      isStopRequired ? 5000 : 0)
+  }
+
+  hasStartUpScriptChanged() {
+    const { jupyterUserScriptUri, currentClusterDetails } = this.state
+    const originalJupyterUserScriptUri = currentClusterDetails?.jupyterUserScriptUri || ''
+    return jupyterUserScriptUri !== originalJupyterUserScriptUri
+  }
+
+  hasImageChanged() {
+    const { selectedLeoImage, customEnvImage, currentClusterDetails } = this.state
+    const { imageUrl } = currentClusterDetails ? this.getImageUrl(currentClusterDetails) : ''
+    return !_.includes(imageUrl, [selectedLeoImage, customEnvImage])
+  }
+
+  //determines whether the changes are applicable for a call to the leo patch endpoint
+  //see this for a diagram of the conditional this implements https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
+  //this function returns true for cases 2 & 3 in this diagram
+  canUpdate() {
+    const { currentCluster } = this.props
+
+    if (!currentCluster) return false
+
+    const currentClusterConfig = currentCluster.machineConfig
+    const userSelectedConfig = this.getMachineConfig()
+
+    const cantWorkersUpdate = currentClusterConfig.numberOfWorkers !== userSelectedConfig.numberOfWorkers &&
+      (currentClusterConfig.numberOfWorkers < 2 || userSelectedConfig.numberOfWorkers < 2)
+
+    const hasUnUpdateableResourceChanged =
+      currentClusterConfig.workerDiskSize !== userSelectedConfig.workerDiskSize ||
+      currentClusterConfig.workerMachineType !== userSelectedConfig.workerMachineType ||
+      currentClusterConfig.numberOfWorkerLocalSSDs !== userSelectedConfig.numberOfWorkerLocalSSDs
+
+    const hasWorkers = currentClusterConfig.numberOfWorkers >= 2 || currentClusterConfig.numberOfPreemptibleWorkers >= 2
+    const hasWorkersResourceChanged = hasWorkers && hasUnUpdateableResourceChanged
+
+    const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
+
+    const cantUpdate = cantWorkersUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || this.hasImageChanged() ||
+      this.hasStartUpScriptChanged()
+    return !cantUpdate
+  }
+
+  hasChanges() {
+    const { currentCluster } = this.props
+    if (!currentCluster) return true
+
+    //TODO: this _.pickBy will need to change if the UI-side machineConfig starts tracking the cloud service (which it will once Leo exposes the ability to create GCE runtimes)
+    const currentClusterWithoutService = _.pickBy((v, k) => k !== 'cloudService', currentCluster.machineConfig)
+    const hasMachineConfigChanges = !_.isMatch(currentClusterWithoutService, this.getMachineConfig())
+
+    return hasMachineConfigChanges || this.hasImageChanged() || this.hasStartUpScriptChanged()
+  }
+
+  //returns true for case 3 in this diagram: https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
+  isStopRequired() {
+    const { currentCluster } = this.props
+
+    const currentClusterConfig = currentCluster.machineConfig
+    const userSelectedConfig = this.getMachineConfig()
+
+    const isMasterMachineTypeChanged = currentClusterConfig.masterMachineType !== userSelectedConfig.masterMachineType
+
+    const isClusterRunning = currentCluster.status === 'Running'
+
+    return this.canUpdate() && isMasterMachineTypeChanged && isClusterRunning
+  }
+
+  getRunningUpdateText() {
+    return this.isStopRequired() ?
+      p([
+        'Changing the machine type (increasing or decreasing the # of CPUs or Mem) results in an update that requires a ',
+        b(['restart']),
+        ' of your runtime. This may take a 3-5 minutes. Would you like to proceed? ',
+        b(['(You will not lose any files.)'])
+      ]) :
+      p([
+        'Increasing the disk size or changing the number of workers (when the number of workers is >2) results in a real-time update to your runtime. ',
+        'Updating the number of workers can take around 2 minutes. ',
+        'During this update, you can continue to work.'
+      ])
+  }
+
+  getImageUrl(clusterDetails) {
+    const { clusterImages } = clusterDetails
+    return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), clusterImages)
+  }
+
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
     const { currentCluster, namespace } = this.props
 
@@ -160,10 +262,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
     ])
 
-    this.setState({ leoImages: newLeoImages })
+    this.setState({ leoImages: newLeoImages, currentClusterDetails })
     if (currentClusterDetails) {
-      const { clusterImages, jupyterUserScriptUri } = currentClusterDetails
-      const { imageUrl } = _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), clusterImages)
+      const { jupyterUserScriptUri } = currentClusterDetails
+      const { imageUrl } = this.getImageUrl(currentClusterDetails)
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
       } else if (currentClusterDetails.labels.saturnIsProjectSpecific === 'true') {
@@ -171,6 +273,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       } else {
         this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl })
       }
+
       if (jupyterUserScriptUri) {
         this.setState({ jupyterUserScriptUri, profile: 'custom' })
       }
@@ -187,12 +290,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
-
     const makeEnvSelect = id => h(Select, {
       id,
+      'aria-label': 'Select Environment',
       value: selectedLeoImage,
       onChange: ({ value }) => this.setState({ selectedLeoImage: value }),
-      isSearchable: false,
+      isSearchable: true,
       isClearable: false,
       options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
     })
@@ -207,7 +310,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         workerMachineType: machineTypeConstraints,
         customEnvImage: isSelectedImageInputted ? { format: { pattern: imageValidationRegexp } } : {}
       },
-      { prettify: v => ({ customEnvImage: 'Container image', masterMachineType: 'Main CPU/memory', workerMachineType: 'Worker CPU/memory' }[v] || validate.prettify(v)) }
+      {
+        prettify: v => ({ customEnvImage: 'Container image', masterMachineType: 'Main CPU/memory', workerMachineType: 'Worker CPU/memory' }[v] ||
+          validate.prettify(v))
+      }
     )
 
     const makeGroupedEnvSelect = id => h(GroupedSelect, {
@@ -217,7 +323,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       onChange: ({ value }) => {
         this.setState({ selectedLeoImage: value, customEnvImage: '' })
       },
-      isSearchable: false,
+      isSearchable: true,
       isClearable: false,
       options: [{ label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
         {
@@ -237,20 +343,22 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({ style: { flex: 1 } }),
         h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: onDismiss }, 'Cancel'),
         h(ButtonPrimary, {
-          disabled: !!errors,
+          disabled: !this.hasChanges() || !!errors,
           tooltip: Utils.summarizeErrors(errors),
           onClick: () => {
-            if (isSelectedImageInputted) {
+            if (isSelectedImageInputted && !this.canUpdate()) {
               this.setState({ viewMode: 'warning' })
             } else if (!!currentCluster) {
-              this.setState({ viewMode: 'replace' })
+              this.setState({ viewMode: getUpdateOrReplace() })
             } else {
               this.createCluster()
             }
           }
-        }, !!currentCluster ? 'Replace' : 'Create')
+        }, !!currentCluster ? _.startCase(getUpdateOrReplace()) : 'Create')
       ])
     ])
+
+    const getUpdateOrReplace = () => this.canUpdate() ? 'update' : 'replace'
 
     const machineConfig = () => h(Fragment, [
       div({
@@ -418,6 +526,22 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(ButtonPrimary, { onClick: () => this.createCluster() }, ['REPLACE'])
         ])
       ])],
+      ['update', () => h(Fragment, [
+        currentCluster.status === 'Running' ?
+          this.getRunningUpdateText() :
+          p([
+            'This will update your existing runtime. You will not lose any files. ',
+            'After the update is finished you will be able to start your runtime. ',
+            'Note that updating the number of workers requires your runtime to already be started.'
+          ]),
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          h(ButtonSecondary, {
+            style: { marginRight: '2rem' },
+            onClick: () => this.setState({ viewMode: undefined })
+          }, ['BACK']),
+          h(ButtonPrimary, { onClick: () => this.updateCluster(this.isStopRequired()) }, ['UPDATE'])
+        ])
+      ])],
       [Utils.DEFAULT, () => h(Fragment, [
         div({ style: { marginBottom: '1rem' } }, [
           'Create a cloud compute instance to launch Jupyter Notebooks or a Project-Specific software application.'
@@ -501,6 +625,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ['packages', () => 'INSTALLED PACKAGES'],
           ['warning', () => 'WARNING!'],
           ['delete', () => 'DELETE RUNTIME?'],
+          ['update', () => 'UPDATE RUNTIME?'],
           [Utils.DEFAULT, () => 'RUNTIME CONFIGURATION']
         ),
         onDismiss,

@@ -180,6 +180,8 @@ export default class ClusterManager extends PureComponent {
       notify('warn', 'Outdated Notebook Runtime', {
         message: 'Your notebook runtime is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'
       })
+    } else if (cluster.status === 'Running' && prevCluster.status === 'Updating') {
+      notify('success', 'Number of workers has updated successfully.')
     }
   }
 
@@ -193,11 +195,12 @@ export default class ClusterManager extends PureComponent {
     return currentCluster(clusters)
   }
 
-  async executeAndRefresh(promise) {
+  async executeAndRefresh(promise, waitBeforeRefreshMillis = 0) {
     try {
       const { refreshClusters } = this.props
       this.setState({ busy: true })
       await promise
+      waitBeforeRefreshMillis && await Utils.delay(waitBeforeRefreshMillis)
       await refreshClusters()
     } catch (error) {
       reportError('Notebook Runtime Error', error)
@@ -258,6 +261,7 @@ export default class ClusterManager extends PureComponent {
           })
         case 'Starting':
         case 'Stopping':
+        case 'Updating':
         case 'Creating':
           return h(ClusterIcon, {
             shape: 'sync',
@@ -286,8 +290,8 @@ export default class ClusterManager extends PureComponent {
     }
     const totalCost = _.sum(_.map(clusterCost, clusters))
     const activeClusters = this.getActiveClustersOldestFirst()
-    const creating = _.some({ status: 'Creating' }, activeClusters)
-    const isDisabled = !canCompute || creating || busy
+    const { Creating: creating, Updating: updating } = _.countBy('status', activeClusters)
+    const isDisabled = !canCompute || creating || busy || updating
 
     const isRStudioImage = currentCluster?.labels.tool === 'RStudio'
     const appName = isRStudioImage ? 'RStudio' : 'terminal'
@@ -336,9 +340,9 @@ export default class ClusterManager extends PureComponent {
         namespace,
         currentCluster,
         onDismiss: () => this.setState({ createModalDrawerOpen: false }),
-        onSuccess: promise => {
+        onSuccess: (promise, waitBeforeRefreshMillis = 0) => {
           this.setState({ createModalDrawerOpen: false })
-          this.executeAndRefresh(promise)
+          this.executeAndRefresh(promise, waitBeforeRefreshMillis)
         }
       }),
       errorModalOpen && h(ClusterErrorModal, {

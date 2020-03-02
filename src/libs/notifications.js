@@ -92,7 +92,7 @@ const NotificationDisplay = Utils.connectStore(notificationStore, 'notificationS
         ]),
         h(Link, {
           style: { alignSelf: 'start' },
-          'aria-label': 'Dismiss notification',
+          'aria-label': type ? `Dismiss ${type} notification` : 'Dismiss notification',
           title: 'Dismiss notification',
           onClick: () => store.removeNotification(id)
         }, [icon('times', { size: 20 })])

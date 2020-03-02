@@ -14,6 +14,7 @@ import { NpsSurvey } from 'src/components/NpsSurvey'
 import ServiceAlerts from 'src/components/ServiceAlerts'
 import SupportRequest from 'src/components/SupportRequest'
 import { TrialBanner } from 'src/components/TrialBanner'
+import { PageViewReporter } from 'src/libs/events'
 import { LocationProvider, Router, TitleManager } from 'src/libs/nav'
 
 
@@ -30,6 +31,7 @@ const Main = () => {
       h(TrialBanner),
       h(AuthContainer, [h(Router)])
     ]),
+    h(PageViewReporter),
     h(SupportRequest),
     h(NpsSurvey),
     h(ConfigOverridesWarning)

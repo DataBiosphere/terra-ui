@@ -1,13 +1,14 @@
 const { testUrl } = require('../utils/integration-config')
 const { withWorkspace } = require('../utils/integration-helpers')
 const { findInGrid, click, clickable, dismissNotifications, fillIn, findIframe, input, signIntoTerra, select, svgText, waitForNoSpinners, findElement } = require('../utils/integration-utils')
+const { withUserToken } = require('../utils/terra-sa-utils')
 
 
 const cohortName = `terra-ui-test-cohort`
 
-const testImportCohortDataFn = withWorkspace(async ({ page, workspaceName }) => {
+const testImportCohortDataFn = withUserToken(withWorkspace(async ({ page, token, workspaceName }) => {
   await page.goto(testUrl)
-  await signIntoTerra(page)
+  await signIntoTerra(page, token)
   await dismissNotifications(page)
   await click(page, clickable({ textContains: 'Browse Data' }))
   await click(page, clickable({ textContains: '1000 Genomes Low Coverage' }))
@@ -26,7 +27,7 @@ const testImportCohortDataFn = withWorkspace(async ({ page, workspaceName }) => 
   await click(page, clickable({ textContains: 'cohort' }))
   await findInGrid(page, '1000 Genomes')
   await findInGrid(page, cohortName)
-})
+}))
 
 const testImportCohortData = {
   name: 'import cohort data',

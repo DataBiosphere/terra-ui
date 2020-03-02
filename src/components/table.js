@@ -262,6 +262,41 @@ export class FlexTable extends Component {
 }
 
 /**
+ * A basic table with a header and flexible column widths. Intended for small amounts of data,
+ * since it does not provide scrolling. See FlexTable for prop types.
+ */
+export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHighlight }) => {
+  return h(Fragment, [
+    div({ style: { height: 48, display: 'flex' } }, [
+      _.map(([i, { size, headerRenderer }]) => {
+        return div({
+          key: i,
+          style: { ...styles.flexCell(size), ...styles.header(i * 1, columns.length) }
+        }, [headerRenderer()])
+      }, Utils.toIndexPairs(columns))
+    ]),
+    _.map(rowIndex => {
+      return h(Interactive, {
+        key: rowIndex,
+        as: 'div',
+        className: 'table-row',
+        style: { backgroundColor: 'white', display: 'flex', minHeight: 48 },
+        hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
+      }, [
+        _.map(([i, { size, cellRenderer }]) => {
+          return div({
+            key: i,
+            className: 'table-cell',
+            style: { ...styles.flexCell(size), ...styles.cell(i * 1, columns.length) }
+          }, [cellRenderer({ rowIndex })])
+        }, Utils.toIndexPairs(columns))
+      ])
+    }, _.range(0, rowCount)),
+    !rowCount && div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage])
+  ])
+}
+
+/**
  * A virtual table with a fixed header and explicit column widths. Intended for displaying large
  * datasets which may require horizontal scrolling.
  */
