@@ -461,11 +461,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
       notify('error', 'Cannot Edit Notebook', {
         message: h(Fragment, [
           p(['Recent updates to Terra are not compatible with the older notebook runtime in this workspace. Please recreate your runtime in order to access Edit Mode for this notebook.']),
-          h(Link, {
-            variant: 'light',
-            href: dataSyncingDocUrl,
-            ...Utils.newTabLinkProps
-          }, ['Read here for more details.'])
+          h(Link, { href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
         ])
       })
       chooseMode(undefined)

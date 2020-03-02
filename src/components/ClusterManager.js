@@ -168,11 +168,7 @@ export default class ClusterManager extends PureComponent {
       notify('warn', 'Please Update Your Runtime', {
         message: h(Fragment, [
           p(['On Sunday Oct 20th at 10am, we are introducing important updates to Terra, which are not compatible with the older notebook runtime in this workspace. After this date, you will no longer be able to save new changes to notebooks in one of these older runtimes.']),
-          h(Link, {
-            variant: 'light',
-            href: dataSyncingDocUrl,
-            ...Utils.newTabLinkProps
-          }, ['Read here for more details.'])
+          h(Link, { href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
         ])
       })
     } else if (isAfter(createdDate, twoMonthsAgo) && !isToday(dateNotified)) {

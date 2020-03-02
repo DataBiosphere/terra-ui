@@ -200,7 +200,6 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
             message: h(Fragment, [
               'It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.',
               div({ style: { marginTop: '1rem' } }, [h(Link, {
-                variant: 'light',
                 onClick: () => {
                   refreshWorkspace()
                   clearNotification(accessNotificationId.current)

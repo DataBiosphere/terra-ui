@@ -218,7 +218,7 @@ authStore.subscribe((state, oldState) => {
     if (expireStatus) {
       notify('info', div({}, [
         `Your access to NIH Controlled Access workspaces and data ${expireStatus}. To regain access, `,
-        h(ShibbolethLink, { variant: 'light' }, ['re-link']),
+        h(ShibbolethLink, ['re-link']),
         ` your eRA Commons / NIH account (${state.nihStatus.linkedNihUsername}) with ${getAppName()}.`
       ]), { id: notificationId })
     } else {

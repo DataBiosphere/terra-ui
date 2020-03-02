@@ -32,7 +32,7 @@ export const notify = (type, title, props) => {
   return notification.id
 }
 
-export const clearNotification = store.removeNotification
+export const clearNotification = id => store.removeNotification(id)
 
 const NotificationDisplay = Utils.connectStore(notificationStore, 'notificationState')(class NotificationDisplay extends Component {
   constructor(props) {
