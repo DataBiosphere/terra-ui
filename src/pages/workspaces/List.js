@@ -4,9 +4,7 @@ import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import {
-  ButtonPrimary, Link, makeMenuIcon, MenuButton, Select, SimpleTabBar, topSpinnerOverlay, transparentSpinnerOverlay
-} from 'src/components/common'
+import { Link, makeMenuIcon, MenuButton, Select, SimpleTabBar, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -186,7 +184,7 @@ export const WorkspaceList = () => {
             return div({ style: styles.tableCellContainer }, [
               div({ style: styles.tableCellContent }, [
                 h(Link, {
-                  style: { color: canView ? undefined : colors.dark(0.7), fontWeight: 600, ...Style.noWrapEllipsis },
+                  style: { color: canView ? undefined : colors.dark(0.7), fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
                   onClick: !canView ? () => setRequestingAccessWorkspaceId(workspaceId) : undefined,
                   tooltip: !canView &&
@@ -287,12 +285,9 @@ export const WorkspaceList = () => {
       })
     ]),
     div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
+      div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-        h(ButtonPrimary, { onClick: () => setCreatingNewWorkspace(true) }, [
-          icon('plus-circle', { style: { marginRight: '0.5rem' } }),
-          'Create a New Workspace'
-        ])
+        h(Link, { onClick: () => setCreatingNewWorkspace(true), style: { marginLeft: '0.5rem' } }, [icon('lighter-plus-circle', { size: 24 })])
       ]),
       div({ style: { display: 'flex', marginBottom: '1rem' } }, [
         div({ style: styles.filter }, [
