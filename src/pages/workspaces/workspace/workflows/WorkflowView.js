@@ -3,7 +3,6 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment, useState } from 'react'
 import { b, div, h, label, span } from 'react-hyperscript-helpers'
-import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
   ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select,
@@ -15,12 +14,13 @@ import { DelayedAutocompleteTextInput, DelayedSearchInput } from 'src/components
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
-import { FlexTable, HeaderCell, SimpleTable, Sortable, TextCell } from 'src/components/table'
+import { HeaderCell, SimpleFlexTable, SimpleTable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { workflowSelectionStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -99,89 +99,75 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
     data
   )
 
-  return h(AutoSizer, [
-    ({ width, height }) => {
-      return h(FlexTable, {
-        width, height,
-        rowCount: sortedData.length,
-        noContentMessage: `No matching ${which}.`,
-        columns: [
-          {
-            size: { basis: 350, grow: 0 },
-            headerRenderer: () => h(Sortable, { sort, field: 'taskVariable', onSort: setSort }, [h(HeaderCell, ['Task name'])]),
-            cellRenderer: ({ rowIndex }) => {
-              const io = sortedData[rowIndex]
-              return h(TextCell, { style: { fontWeight: 500 } }, [
-                ioTask(io)
-              ])
-            }
-          },
-          {
-            size: { basis: 360, grow: 0 },
-            headerRenderer: () => h(Sortable, { sort, field: 'workflowVariable', onSort: setSort }, ['Variable']),
-            cellRenderer: ({ rowIndex }) => {
-              const io = sortedData[rowIndex]
-              return h(TextCell, { style: styles.cell(io.optional) }, [ioVariable(io)])
-            }
-          },
-          {
-            size: { basis: 160, grow: 0 },
-            headerRenderer: () => h(HeaderCell, ['Type']),
-            cellRenderer: ({ rowIndex }) => {
-              const io = sortedData[rowIndex]
-              return h(TextCell, { style: styles.cell(io.optional) }, [ioType(io)])
-            }
-          },
-          {
-            headerRenderer: () => h(Fragment, [
-              div({ style: { fontWeight: 'bold' } }, ['Attribute']),
-              !readOnly && which === 'outputs' && h(Fragment, [
-                div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
-                h(Link, { onClick: onSetDefaults }, ['Use defaults'])
-              ])
+  return h(SimpleFlexTable, {
+    rowCount: sortedData.length,
+    noContentMessage: `No matching ${which}.`,
+    columns: [
+      {
+        size: { basis: 350, grow: 0 },
+        headerRenderer: () => h(Sortable, { sort, field: 'taskVariable', onSort: setSort }, [h(HeaderCell, ['Task name'])]),
+        cellRenderer: ({ rowIndex }) => {
+          const io = sortedData[rowIndex]
+          return h(TextCell, { style: { fontWeight: 500 } }, [
+            ioTask(io)
+          ])
+        }
+      },
+      {
+        size: { basis: 360, grow: 0 },
+        headerRenderer: () => h(Sortable, { sort, field: 'workflowVariable', onSort: setSort }, ['Variable']),
+        cellRenderer: ({ rowIndex }) => {
+          const io = sortedData[rowIndex]
+          return h(TextCell, { style: styles.cell(io.optional) }, [ioVariable(io)])
+        }
+      },
+      {
+        size: { basis: 160, grow: 0 },
+        headerRenderer: () => h(HeaderCell, ['Type']),
+        cellRenderer: ({ rowIndex }) => {
+          const io = sortedData[rowIndex]
+          return h(TextCell, { style: styles.cell(io.optional) }, [ioType(io)])
+        }
+      },
+      {
+        headerRenderer: () => h(Fragment, [
+          div({ style: { fontWeight: 'bold' } }, ['Attribute']),
+          !readOnly && which === 'outputs' && h(Fragment, [
+            div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
+            h(Link, { onClick: onSetDefaults }, ['Use defaults'])
+          ])
+        ]),
+        cellRenderer: ({ rowIndex }) => {
+          const { name, optional, inputType } = sortedData[rowIndex]
+          const value = config[which][name] || ''
+          const error = errors[which][name]
+          const isFile = (inputType === 'File') || (inputType === 'File?')
+          return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
+            div({ style: { flex: 1, display: 'flex', position: 'relative', minWidth: 0 } }, [
+              !readOnly ? h(DelayedAutocompleteTextInput, {
+                'aria-label': name,
+                placeholder: optional ? 'Optional' : 'Required',
+                value,
+                style: isFile ? { paddingRight: '2rem' } : undefined,
+                onChange: v => onChange(name, v),
+                suggestions
+              }) : h(TextCell, { style: { flex: 1 } }, [value]),
+              !readOnly && isFile && h(Clickable, {
+                style: { position: 'absolute', right: '0.5rem', top: 0, bottom: 0, display: 'flex', alignItems: 'center' },
+                onClick: () => onBrowse(name),
+                tooltip: 'Browse bucket files'
+              }, [icon('folder-open', { size: 20 })])
             ]),
-            cellRenderer: ({ rowIndex }) => {
-              const { name, optional, inputType } = sortedData[rowIndex]
-              const value = config[which][name] || ''
-              const error = errors[which][name]
-              const isFile = (inputType === 'File') || (inputType === 'File?')
-              return div({ style: { display: 'flex', alignItems: 'center', width: '100%' } }, [
-                !readOnly ? h(DelayedAutocompleteTextInput, {
-                  'aria-label': name,
-                  placeholder: optional ? 'Optional' : 'Required',
-                  value,
-                  style: isFile ? { borderRadius: '4px 0px 0px 4px', borderRight: 'white' } : undefined,
-                  onChange: v => onChange(name, v),
-                  suggestions
-                }) : h(TextCell, { style: { flex: 1, borderRadius: '4px 0px 0px 4px', borderRight: 'white' } }, value),
-                !readOnly && isFile && h(Clickable, {
-                  style: {
-                    height: '2.25rem',
-                    border: `1px solid ${colors.dark(0.2)}`, borderRadius: '0px 4px 4px 0px',
-                    borderLeft: 'none'
-                  },
-                  onClick: () => onBrowse(name),
-                  tooltip: 'Browse bucket files'
-                }, [
-                  icon('folder-open', {
-                    size: 20, style: {
-                      height: '2.25rem',
-                      marginRight: '0.5rem'
-                    }
-                  })
-                ]),
-                error && h(TooltipTrigger, { content: error }, [
-                  icon('error-standard', {
-                    size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
-                  })
-                ])
-              ])
-            }
-          }
-        ]
-      })
-    }
-  ])
+            error && h(TooltipTrigger, { content: error }, [
+              icon('error-standard', {
+                size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
+              })
+            ])
+          ])
+        }
+      }
+    ]
+  })
 }
 
 const BucketContentModal = ajaxCaller(class BucketContentModal extends Component {
@@ -414,8 +400,14 @@ const WorkflowView = _.flow(
           accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache,
           onDismiss: () => this.setState({ launching: false }),
-          onSuccess: submissionId => Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId }),
-          onSuccessMulti: () => Nav.goToPath('workspace-job-history', workspaceId)
+          onSuccess: submissionId => {
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, { multi: false })
+            Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
+          },
+          onSuccessMulti: () => {
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, { multi: true })
+            Nav.goToPath('workspace-job-history', workspaceId)
+          }
         }),
         variableSelected && h(BucketContentModal, {
           workspace,
@@ -542,7 +534,7 @@ const WorkflowView = _.flow(
       [type === processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
       [type === chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
       [type === chooseSetComponents, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}s ${newSetMessage}`],
-      [type === processAllAsSet, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType].count} ${baseEntityType}s ${newSetMessage}`],
+      [type === processAllAsSet, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType]?.count || 0} ${baseEntityType}s ${newSetMessage}`],
       [type === chooseSets, () => !!count ?
         `${count} selected ${rootEntityType}s` :
         `No ${rootEntityType}s selected`]
@@ -895,7 +887,7 @@ const WorkflowView = _.flow(
           onChange: filter => this.setState({ filter })
         })
       ]),
-      div({ style: { flex: '1 0 500px' } }, [
+      div({ style: { flex: '1 0 auto' } }, [
         h(WorkflowIOTable, {
           readOnly: !isEditable,
           which: key,

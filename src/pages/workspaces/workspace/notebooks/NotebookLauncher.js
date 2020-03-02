@@ -20,6 +20,7 @@ import { Ajax } from 'src/libs/ajax'
 import { usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { authStore } from 'src/libs/state'
@@ -344,6 +345,8 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
 
 const JupyterFrameManager = ({ onClose, frameRef }) => {
   Utils.useOnMount(() => {
+    Ajax().Metrics.captureEvent(Events.notebookLaunch)
+
     const isSaved = Utils.atom(true)
     const onMessage = e => {
       switch (e.data) {

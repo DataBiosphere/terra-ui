@@ -47,7 +47,7 @@ define([
 
     // frequent autosave
     promises.notebook_loaded.then(function() {
-      Jupyter.notebook.set_autosave_interval(5000);
+      Jupyter.notebook.set_autosave_interval(15000);
     });
 
     // listen for explicit save command
