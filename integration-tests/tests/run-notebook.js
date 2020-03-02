@@ -24,7 +24,7 @@ const testRunNotebookFn = withRegisteredUser(async ({ page, context, email, toke
     await select(page, 'ENVIRONMENT', 'Hail')
     await click(page, clickable({ text: 'Create' }))
     await findElement(page, clickable({ textContains: 'Creating' }))
-    await findElement(page, clickable({ textContains: 'Running' }), { timeout: 5 * 60 * 1000 })
+    await findElement(page, clickable({ textContains: 'Running' }), { timeout: 7 * 60 * 1000 })
 
     const frame = await findIframe(page)
     await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
