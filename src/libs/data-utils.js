@@ -42,15 +42,16 @@ export const renderDataCell = (data, namespace) => {
   }
 
   const renderArray = items => {
-    return items.map((v, i) => h(Fragment, { key: i }, [
+    return _.map(([i, v]) => h(Fragment, { key: i }, [
       renderCell(v.toString()), i < (items.length - 1) && div({ style: { marginRight: '0.5rem', color: colors.dark(0.85) } }, ',')
-    ]))
+    ]), Utils.toIndexPairs(items))
   }
 
   return Utils.cond(
     [_.isArray(data), () => renderArray(data)],
-    [_.isObject(data), () => renderArray(data.items)],
-    () => renderCell(data && data.toString())
+    [_.isObject(data) && !!data.itemsType && _.isArray(data.items), () => renderArray(data.items)],
+    [_.isObject(data), () => JSON.stringify(data, undefined, 1)],
+    () => renderCell(data?.toString())
   )
 }
 
