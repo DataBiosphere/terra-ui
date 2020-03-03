@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Component, createRef, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, CreatableSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -82,16 +82,20 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       acl: [],
       loaded: false
     }
+
+    this.list = createRef()
   }
 
   render() {
     const { onDismiss } = this.props
     const { acl, shareSuggestions, groups, loaded, working, updateError } = this.state
 
+    const aclEmails = _.map('email', acl)
+
     const suggestions = _.flow(
       _.map('groupEmail'),
       _.concat(shareSuggestions),
-      list => _.difference(list, _.map('email', acl)),
+      list => _.difference(list, aclEmails),
       _.uniq,
       _.map(value => ({ label: value, value }))
     )(groups)
@@ -109,19 +113,24 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
           isLoading: !loaded,
           placeholder: 'Add people or groups',
           'aria-label': 'Enter an email address of a person or group',
-          isValidNewOption: val => !validate.single(val, { email: true }),
-          noOptionsMessage: () => 'Enter an email address',
+          isValidNewOption: val => !validate.single(val, { email: true, exclusion: aclEmails }),
+          noOptionsMessage: ({ inputValue }) => _.includes(inputValue, aclEmails) ?
+            'This email has already been added to the list' :
+            'Enter an email address',
           allowCreateWhileLoading: true,
           options: suggestions,
           isClearable: true,
           formatCreateLabel: _.identity,
           value: null,
-          onChange: ({ value }) => this.setState(_.update('acl', Utils.append({ email: value, accessLevel: 'READER' }))),
+          onChange: ({ value }) => this.setState(
+            _.update('acl', Utils.append({ email: value, accessLevel: 'READER' })),
+            () => this.list.current.scrollTo({ top: this.list.current.scrollHeight, behavior: 'smooth' })
+          ),
           components: { DropdownIndicator: () => null }
         })
       ])]),
       div({ style: { ...Style.elements.sectionHeader, marginTop: '1rem' } }, ['Current Collaborators']),
-      div({ style: styles.currentCollaboratorsArea }, [
+      div({ ref: this.list, style: styles.currentCollaboratorsArea }, [
         h(Fragment, _.map(this.renderCollaborator, Utils.toIndexPairs(acl))),
         !loaded && centeredSpinner()
       ]),
