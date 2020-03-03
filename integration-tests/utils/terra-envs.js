@@ -1,16 +1,16 @@
 module.exports = {
   local: {
-    billingProject: 'general-dev-billing-account',
+    billingProject: 'saturn-integration-test-dev',
     testUrl: 'http://localhost:3000',
     workflowName: 'echo_to_file'
   },
   dev: {
-    billingProject: 'general-dev-billing-account',
+    billingProject: 'saturn-integration-test-dev',
     testUrl: 'https://bvdp-saturn-dev.appspot.com',
     workflowName: 'echo_to_file'
   },
   alpha: {
-    billingProject: 'broad-dsde-alpha-two',
+    billingProject: 'saturn-integration-test-alpha',
     testUrl: 'https://bvdp-saturn-alpha.appspot.com',
     workflowName: 'echo_to_file'
   },
@@ -20,7 +20,7 @@ module.exports = {
     workflowName: 'echo_to_file'
   },
   staging: {
-    billingProject: 'bartholomew',
+    billingProject: 'saturn-integration-test-stage',
     testUrl: 'https://bvdp-saturn-staging.appspot.com',
     workflowName: 'echo_to_file'
   }

@@ -39,12 +39,12 @@ const clickable = ({ text, textContains }) => {
   }
 }
 
-const click = async (page, xpath) => {
-  return (await page.waitForXPath(xpath)).click()
+const click = async (page, xpath, options) => {
+  return (await page.waitForXPath(xpath, options)).click()
 }
 
-const findText = (page, textContains) => {
-  return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`)
+const findText = (page, textContains, options) => {
+  return page.waitForXPath(`//*[contains(normalize-space(.),"${textContains}")]`, options)
 }
 
 const input = ({ labelContains, placeholder }) => {
@@ -75,7 +75,7 @@ const delay = ms => {
 
 const dismissNotifications = async page => {
   await delay(3000) // delayed for any alerts to show
-  const notificationCloseButtons = await page.$x(clickable({ text: 'Dismiss notification' }))
+  const notificationCloseButtons = await page.$x('(//a | //*[@role="button"] | //button)[contains(@aria-label,"Dismiss") and not(contains(@aria-label,"error"))]')
 
   await Promise.all(
     notificationCloseButtons.map(handle => handle.click())
@@ -87,11 +87,11 @@ const dismissNotifications = async page => {
 const signIntoTerra = async (page, token) => {
   await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true })
   await waitForNoSpinners(page)
-  await page.evaluate(token => window.forceSignIn(token), token)
+  return page.evaluate(token => window.forceSignIn(token), token)
 }
 
-const findElement = (page, xpath) => {
-  return page.waitForXPath(xpath)
+const findElement = (page, xpath, options) => {
+  return page.waitForXPath(xpath, options)
 }
 
 const svgText = ({ textContains }) => {
