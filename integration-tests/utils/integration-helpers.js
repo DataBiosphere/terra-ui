@@ -118,6 +118,7 @@ const withBilling = test => async options => {
 
 const trimClustersOldestFirst = _.flow(
   _.remove({ status: 'Deleting' }),
+  _.remove({ status: 'Creating' }),
   _.sortBy('createdDate')
 )
 
