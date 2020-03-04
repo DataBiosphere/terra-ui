@@ -209,7 +209,7 @@ export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...prop
       id,
       style: {
         verticalAlign: 'middle',
-        color: disabled ? colors.dark(0.7) : undefined,
+        color: disabled ? colors.dark(0.8) : undefined,
         cursor: disabled ? 'default' : 'pointer'
       },
       onClick: () => !disabled && onChange?.(!checked),
@@ -280,7 +280,8 @@ const standardizeSelectProps = ({ value, id, findValue, isMulti, ...props }) => 
   }),
   styles: {
     control: (base, { isDisabled }) => _.merge(base, {
-      backgroundColor: isDisabled ? colors.dark(0.25) : 'white',
+      backgroundColor: isDisabled ? colors.dark(0.15) : 'white',
+      color: isDisabled ? colors.dark(0.8) : undefined,
       boxShadow: 'none'
     }),
     singleValue: base => ({ ...base, color: colors.dark() }),

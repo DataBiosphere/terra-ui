@@ -154,7 +154,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       style: {
         display: 'flex', alignItems: 'center', borderRadius: 5,
         padding: '0.5rem 0.75rem', marginBottom: 10,
-        border: `1px solid ${isOld ? colors.dark(0.5) : colors.success()}`,
+        border: `1px solid ${isOld ? colors.dark(0.25) : colors.success(0.5)}`,
         backgroundColor: isOld ? colors.light(0.2) : colors.success(0.05)
       }
     }, [
