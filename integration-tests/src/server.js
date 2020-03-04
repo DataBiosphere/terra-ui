@@ -23,9 +23,8 @@ const getContext = async () => {
   return browser.createIncognitoBrowserContext()
 }
 
-const testTimeout = async (context, timeout) => {
+const testTimeout = async timeout => {
   await delay(timeout)
-  context.close()
   throw new Error(`Test timeout after ${timeout}ms`)
 }
 
@@ -39,15 +38,17 @@ const registerTestEndpoint = ({ fn, name, timeout = defaultTimeout }) => {
     try {
       const result = await Promise.race([
         withScreenshot(name)(fn)({ context, page, ...targetEnvParams }),
-        testTimeout(context, timeout)
+        testTimeout(timeout)
       ])
       return new Response(200, result)
     } catch (e) {
-      return new Response(200, JSON.stringify({
+      return new Response(200, {
         name: e.name,
         message: e.message,
         stack: e.stack
-      }))
+      })
+    } finally {
+      context.close()
     }
   }))
 }
