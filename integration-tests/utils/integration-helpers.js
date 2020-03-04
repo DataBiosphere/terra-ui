@@ -136,7 +136,7 @@ const deleteCluster = withUserToken(async ({ email, token }) => {
   await signIntoTerra(ajaxPage, token)
 
   const currentC = await getCurrentCluster()
-  await ajaxPage.evaluate((currentC, email, billingProject) => {
+  currentC && await ajaxPage.evaluate((currentC, email, billingProject) => {
     return window.Ajax().Clusters.cluster(billingProject, currentC.clusterName).delete()
   }, currentC, email, billingProject)
 
