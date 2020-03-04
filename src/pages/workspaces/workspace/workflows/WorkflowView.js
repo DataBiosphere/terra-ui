@@ -142,6 +142,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
           const value = config[which][name] || ''
           const error = errors[which][name]
           const isFile = (inputType === 'File') || (inputType === 'File?')
+          const formattedValue = JSON.stringify(Utils.maybeParseJSON(value), null, 2)
           return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
             div({ style: { flex: 1, display: 'flex', position: 'relative', minWidth: 0 } }, [
               !readOnly ? h(DelayedAutocompleteTextArea, {
@@ -161,13 +162,13 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
             ]),
             !readOnly && h(Link, {
               style: { marginLeft: '0.25rem' },
-              onClick: () => {
-                const json = Utils.maybeParseJSON(value)
-                if (json !== undefined) {
-                  onChange(name, JSON.stringify(json, null, 2))
-                }
-              },
-              tooltip: 'Format'
+              disabled: formattedValue === undefined || formattedValue === value,
+              onClick: () => onChange(name, formattedValue),
+              tooltip: Utils.cond(
+                [formattedValue === undefined, () => 'Cannot format this value'],
+                [formattedValue === value, () => 'Already formatted'],
+                () => 'Reformat'
+              )
             }, ['{…}']),
             error && h(TooltipTrigger, { content: error }, [
               icon('error-standard', {
