@@ -17,6 +17,7 @@ RModal.setAppElement(appRoot)
 window.SATURN_VERSION = process.env.REACT_APP_VERSION
 marked.setOptions({ sanitize: true, sanitizer: _.escape })
 
+window._ = _
 
 ReactDOM.render(h(Main), appRoot)
 initializeAuth()
