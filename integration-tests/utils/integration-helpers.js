@@ -20,7 +20,7 @@ const makeWorkspace = async ({ context, token }) => {
     return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
   }, workspaceName, billingProject)
 
-  console.info(`created ${workspaceName}`)
+  console.info(`created workspace: ${workspaceName}`)
 
   await ajaxPage.close()
 
@@ -37,7 +37,7 @@ const deleteWorkspace = async (workspaceName, { context, token }) => {
     return window.Ajax().Workspaces.workspace(billingProject, name).delete()
   }, workspaceName, billingProject)
 
-  console.info(`deleted ${workspaceName}`)
+  console.info(`deleted workspace: ${workspaceName}`)
 
   await ajaxPage.close()
 }
@@ -84,6 +84,9 @@ const addUserToBilling = withUserToken(async ({ email, token }) => {
   await ajaxPage.evaluate((email, billingProject) => {
     return window.Ajax().Billing.project(billingProject).addUser(['User'], email)
   }, email, billingProject)
+
+  console.info(`added user to: ${billingProject}`)
+
   await ajaxPage.close()
 })
 
@@ -96,6 +99,9 @@ const removeUserFromBilling = withUserToken(async ({ email, token }) => {
   await ajaxPage.evaluate((email, billingProject) => {
     return window.Ajax().Billing.project(billingProject).removeUser(['User'], email)
   }, email, billingProject)
+
+  console.info(`removed user from: ${billingProject}`)
+
   await ajaxPage.close()
 })
 
@@ -139,6 +145,8 @@ const deleteCluster = withUserToken(async ({ email, token }) => {
   currentC && await ajaxPage.evaluate((currentC, email, billingProject) => {
     return window.Ajax().Clusters.cluster(billingProject, currentC.clusterName).delete()
   }, currentC, email, billingProject)
+
+  currentC && console.info(`deleted cluster: ${currentC.clusterName}`)
 
   await ajaxPage.close()
 })
