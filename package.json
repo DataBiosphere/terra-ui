@@ -6,7 +6,7 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.27",
     "@fortawesome/free-regular-svg-icons": "^5.12.1",
     "@fortawesome/free-solid-svg-icons": "^5.12.1",
-    "@fortawesome/react-fontawesome": "^0.1.8",
+    "@fortawesome/react-fontawesome": "^0.1.9",
     "animate.css": "^3.7.2",
     "array-move": "^2.2.1",
     "clipboard-polyfill": "^2.8.6",
@@ -19,7 +19,7 @@
     "github-markdown-css": "^4.0.0",
     "history": "^4.10.1",
     "iframe-resizer": "^4.2.10",
-    "igv": "^2.3.5",
+    "igv": "^2.4.0",
     "jszip": "^3.2.2",
     "lodash": "^4.17.15",
     "marked": "^0.6.3",
@@ -46,7 +46,7 @@
     "react-switch": "^5.0.1",
     "react-transition-group": "^4.3.0",
     "react-virtualized": "^9.21.2",
-    "uuid": "^7.0.1",
+    "uuid": "^7.0.2",
     "validate.js": "^0.13.1"
   },
   "scripts": {
