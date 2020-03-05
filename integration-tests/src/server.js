@@ -7,15 +7,19 @@ const { testFindWorkflow } = require('../tests/find-workflow')
 const { testImportCohortData } = require('../tests/import-cohort-data')
 const { testImportDockstoreWorkflow } = require('../tests/import-dockstore-workflow')
 const { testRegisterUser } = require('../tests/register-user')
+const { testRunNotebook } = require('../tests/run-notebook')
 const { testRunWorkflow } = require('../tests/run-workflow')
 const { defaultTimeout } = require('../utils/integration-helpers')
 const { delay, withScreenshot } = require('../utils/integration-utils')
 const envs = require('../utils/terra-envs')
 
 
+// Sane-ish max runtime for a test. Mainly to extend the default 2-minute timeout.
+const serverTimeout = 21 * 60 * 1000
+
 const app = express()
 const server = http.createServer(app)
-server.setTimeout(defaultTimeout + 60 * 1000) // allow an extra minute for teardown
+server.setTimeout(serverTimeout) // allow an extra minute for teardown
 
 const getBrowser = _.once(() => puppeteer.launch())
 const getContext = async () => {
@@ -29,6 +33,9 @@ const testTimeout = async timeout => {
 }
 
 const registerTestEndpoint = ({ fn, name, timeout = defaultTimeout }) => {
+  if (timeout > serverTimeout) {
+    console.warn(`${name} timeout of ${timeout} is greater than the server timeout of ${serverTimeout}`)
+  }
   const path = `/test/${name}`
   console.info(`=> ${path}`)
   app.post(path, promiseHandler(async req => {
@@ -58,6 +65,7 @@ _.forEach(registerTestEndpoint, [
   testImportCohortData,
   testImportDockstoreWorkflow,
   testRegisterUser,
+  testRunNotebook,
   testRunWorkflow
 ])
 console.info('Ready')
