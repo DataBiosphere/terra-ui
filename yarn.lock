@@ -12302,7 +12302,7 @@ react-test-renderer@~16.11.0:
     react-is "^16.8.6"
     scheduler "^0.17.0"
 
-react-textarea-autosize@^7.1.0:
+react-textarea-autosize@^7.1.0, react-textarea-autosize@^7.1.2:
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/react-textarea-autosize/-/react-textarea-autosize-7.1.2.tgz#70fdb333ef86bcca72717e25e623e90c336e2cda"
   integrity sha512-uH3ORCsCa3C6LHxExExhF4jHoXYCQwE5oECmrRsunlspaDAbS4mGKNlWZqjLfInWtFQcf0o1n1jC/NGXFdUBCg==
