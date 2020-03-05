@@ -26,7 +26,7 @@ import validate from 'validate.js'
 const warningBoxStyle = {
   backgroundColor: colors.warning(0.15),
   padding: '1rem 1.25rem',
-  color: colors.dark(), fontWeight: 'bold', fontSize: 12
+  color: colors.dark(1) , fontWeight: 'bold', fontSize: 12
 }
 
 const errorTextStyle = { color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
