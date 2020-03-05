@@ -26,7 +26,7 @@ import validate from 'validate.js'
 const warningBoxStyle = {
   backgroundColor: colors.warning(0.15),
   padding: '1rem 1.25rem',
-  color: colors.dark(1) , fontWeight: 'bold', fontSize: 12
+  color: colors.dark(), fontWeight: 'bold', fontSize: 12
 }
 
 const errorTextStyle = { color: colors.danger(), fontWeight: 'bold', fontSize: 12, marginTop: '0.5rem' }
@@ -365,7 +365,7 @@ export const EntityUploader = class EntityUploader extends Component {
           currentFile && _.includes(_.toLower(newEntityType), entityTypes) && div({
             style: { ...warningBoxStyle, margin: '1rem 0 0.5rem', display: 'flex', alignItems: 'center' }
           }, [
-            icon('warning-standard', { size: 19, style: { color: colors.light(.1), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+            icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
             `Data with the type '${newEntityType}' already exists in this workspace. `,
             'Uploading more data for the same type may overwrite some entries.'
           ]),
