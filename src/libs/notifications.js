@@ -50,13 +50,13 @@ const NotificationDisplay = Utils.connectStore(notificationStore, 'notificationS
     const onLast = notificationNumber + 1 === notifications.length
 
     const { title, message, detail, type } = notifications[notificationNumber]
-    const baseColor = Utils.cond(
-      [type === 'success', () => colors.success],
-      [type === 'info', () => colors.accent],
-      [type === 'welcome', () => colors.accent],
-      [type === 'warn', () => colors.warning],
-      [type === 'error', () => colors.danger],
-      () => colors.accent
+    const baseColor = Utils.switchCase(type,
+      ['success', () => colors.success],
+      ['info', () => colors.accent],
+      ['welcome', () => colors.accent],
+      ['warn', () => colors.warning],
+      ['error', () => colors.danger],
+      [Utils.DEFAULT, () => colors.accent]
     )
     const iconType = Utils.switchCase(type,
       ['success', () => 'success-standard'],
