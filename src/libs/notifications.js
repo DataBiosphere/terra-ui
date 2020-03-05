@@ -58,10 +58,10 @@ const NotificationDisplay = Utils.connectStore(notificationStore, 'notificationS
       [type === 'error', () => colors.danger],
       () => colors.accent
     )
-    const iconType = Utils.cond(
-      [type === 'success', 'success-standard'],
-      [type === 'warn' || type === 'error', 'warning-standard'],
-      undefined
+    const iconType = Utils.switchCase(type,
+      ['success', () => 'success-standard'],
+      ['warn', () => 'warning-standard'],
+      ['error', () => 'error-standard']
     )
 
     return div({

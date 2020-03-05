@@ -31,8 +31,7 @@ export const ServiceAlerts = () => {
                 h(Link, {
                   ...Utils.newTabLinkProps,
                   href: readMoreLink,
-                  style: { fontWeight: 700, color: 'white' },
-                  hover: { color: 'white', textDecoration: 'underline' }
+                  style: { fontWeight: 700 }
                 }, linkTitle || 'Read more')
               ])
             ])
