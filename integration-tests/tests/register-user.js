@@ -1,6 +1,5 @@
 const { withRegisteredUser } = require('../utils/integration-helpers')
 const { testUrl } = require('../utils/integration-config')
-
 const { findText, click, clickable, signIntoTerra, dismissNotifications } = require('../utils/integration-utils')
 
 
@@ -10,7 +9,7 @@ const testRegisterUserFn = withRegisteredUser(async ({ page, token }) => {
   await signIntoTerra(page, token)
   await dismissNotifications(page)
   await dismissNotifications(page)
-  await findText(page, 'To get started, click Create a New Workspace')
+  await findText(page, 'To get started, Create a New Workspace')
 })
 
 const testRegisterUser = {
