@@ -11,7 +11,7 @@ import { notificationStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import uuid from 'uuid/v4'
+import { v4 as uuid } from 'uuid'
 
 
 // documentation: https://github.com/teodosii/react-notifications-component

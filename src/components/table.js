@@ -20,7 +20,7 @@ import * as Utils from 'src/libs/utils'
 const paginatorButton = (props, label) => button(_.merge({
   style: {
     margin: '0 2px', padding: '0.25rem 0.5rem',
-    display: 'flex', justifyContent: 'center',
+    display: 'flex', justifyContent: 'center', alignItems: 'center',
     border: '1px solid #ccc', borderRadius: 3,
     color: props.disabled ? colors.dark(0.7) : colors.accent(), backgroundColor: 'white',
     cursor: props.disabled ? 'not-allowed' : 'pointer'
