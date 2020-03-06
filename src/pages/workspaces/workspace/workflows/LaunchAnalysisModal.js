@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { b, div, h } from 'react-hyperscript-helpers'
+import { b, div, h, wbr } from 'react-hyperscript-helpers'
 import { ButtonPrimary, CromwellVersionLink } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -69,6 +69,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       [_.isArray(entities), () => _.uniq(entities).length],
       () => _.size(entities)
     )
+    const wrappableOnPeriods = _.flow(str => str?.split(/(\.)/), _.flatMap(sub => sub === '.' ? [wbr(), '.'] : sub))
 
     return h(Modal, {
       title: !launching ? 'Confirm launch' : 'Launching Analysis',
@@ -106,11 +107,13 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
           }
         })])
       ]),
-      launchError && div({ style: { color: colors.danger() } }, [launchError]),
-      multiLaunchErrors && h(Fragment, _.map(({ name, message }) => div({
-        style: { color: colors.danger(), marginTop: '1rem' }
-      }, [`Error launching with set ${name}: `, message]),
-      multiLaunchErrors))
+      div({ style: { color: colors.danger(), overflowWrap: 'break-word' } }, [
+        h(Fragment, wrappableOnPeriods(launchError)),
+        multiLaunchErrors && h(Fragment, _.map(({ name, message }) => div({
+          style: { marginTop: '1rem' }
+        }, [`Error launching with set ${name}: `, h(Fragment, wrappableOnPeriods(message))]),
+        multiLaunchErrors))
+      ])
     ])
   }
 
