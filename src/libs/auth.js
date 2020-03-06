@@ -2,11 +2,11 @@ import { parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
 import { ShibbolethLink } from 'src/components/common'
-import { clearNotification, notify, sessionTimeoutProps } from 'src/components/Notifications'
 import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
+import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { authStore, pfbImportJobStore, requesterPaysProjectStore, workspacesStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -218,7 +218,7 @@ authStore.subscribe((state, oldState) => {
     if (expireStatus) {
       notify('info', div({}, [
         `Your access to NIH Controlled Access workspaces and data ${expireStatus}. To regain access, `,
-        h(ShibbolethLink, { variant: 'light' }, ['re-link']),
+        h(ShibbolethLink, ['re-link']),
         ` your eRA Commons / NIH account (${state.nihStatus.linkedNihUsername}) with ${getAppName()}.`
       ]), { id: notificationId })
     } else {

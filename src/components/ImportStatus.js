@@ -1,9 +1,9 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { h } from 'react-hyperscript-helpers'
-import { clearNotification, notify } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
+import { clearNotification, notify } from 'src/libs/notifications'
 import { pfbImportJobStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 

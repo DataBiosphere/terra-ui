@@ -1,15 +1,14 @@
 import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import ReactNotification, { store } from 'react-notifications-component'
-import { ButtonPrimary, Clickable } from 'src/components/common'
+import { store } from 'react-notifications-component'
+import { ButtonPrimary, Clickable, Link } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
 import { notificationStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { v4 as uuid } from 'uuid'
 
@@ -21,14 +20,7 @@ export const sessionTimeoutProps = {
   detail: 'You have been signed out due to inactivity'
 }
 
-const makeNotification = props => {
-  const { id = uuid() } = props
-  return {
-    ...props,
-    id,
-    onRemoval: () => notificationStore.update(_.reject({ id }))
-  }
-}
+const makeNotification = props => _.defaults({ id: uuid() }, props)
 
 export const notify = (type, title, props) => {
   const notification = makeNotification({ type, title, ...props })
@@ -58,25 +50,25 @@ const NotificationDisplay = Utils.connectStore(notificationStore, 'notificationS
     const onLast = notificationNumber + 1 === notifications.length
 
     const { title, message, detail, type } = notifications[notificationNumber]
-    const color = Utils.cond(
-      [type === 'success', colors.success(1.5)],
-      [type === 'info', colors.dark()],
-      [type === 'welcome', colors.accent()],
-      [type === 'warn', colors.warning(1.2)],
-      [type === 'error', colors.danger()]
-    ) || colors.dark()
-    const iconType = Utils.cond(
-      [type === 'success', 'success-standard'],
-      [type === 'warn' || type === 'error', 'warning-standard'],
-      undefined
+    const baseColor = Utils.switchCase(type,
+      ['success', () => colors.success],
+      ['info', () => colors.accent],
+      ['welcome', () => colors.accent],
+      ['warn', () => colors.warning],
+      ['error', () => colors.danger],
+      [Utils.DEFAULT, () => colors.accent]
+    )
+    const iconType = Utils.switchCase(type,
+      ['success', () => 'success-standard'],
+      ['warn', () => 'warning-standard'],
+      ['error', () => 'error-standard']
     )
 
     return div({
       style: {
-        backgroundColor: color,
+        backgroundColor: baseColor(0.15),
         borderRadius: '4px',
-        boxShadow: Style.standardShadow,
-        color: 'white',
+        boxShadow: '0 0 4px 0 rgba(0,0,0,0.5)',
         cursor: 'auto',
         display: 'flex',
         flexDirection: 'column',
@@ -89,7 +81,7 @@ const NotificationDisplay = Utils.connectStore(notificationStore, 'notificationS
         div({ style: { display: 'flex', flex: 1, flexDirection: 'column' } }, [
           // icon and title
           div({ style: { display: 'flex' } }, [
-            !!iconType && icon(iconType, { size: 26, style: { flexShrink: 0, marginRight: '0.5rem' } }),
+            !!iconType && icon(iconType, { size: 26, style: { color: baseColor(), flexShrink: 0, marginRight: '0.5rem' } }),
             div({ style: { fontWeight: 600 } }, [title])
           ]),
           !!message && div({ style: { marginTop: '0.5rem' } }, [message]),
@@ -98,32 +90,32 @@ const NotificationDisplay = Utils.connectStore(notificationStore, 'notificationS
             onClick: () => this.setState({ modal: true })
           }, ['Details'])
         ]),
-        h(Clickable, {
+        h(Link, {
+          style: { alignSelf: 'start' },
           'aria-label': type ? `Dismiss ${type} notification` : 'Dismiss notification',
           title: 'Dismiss notification',
           onClick: () => store.removeNotification(id)
         }, [icon('times', { size: 20 })])
       ]),
       notifications.length > 1 && div({
-        style: { alignItems: 'center', borderTop: `1px solid ${color[1]}`, display: 'flex', fontSize: 10, padding: '0.75rem 1rem' }
+        style: { alignItems: 'center', borderTop: `1px solid ${baseColor()}`, display: 'flex', fontSize: 10, padding: '0.75rem 1rem' }
       }, [
-        h(Clickable, {
+        h(Link, {
           disabled: onFirst,
-          style: { color: onFirst ? color[1] : null },
           onClick: () => this.setState({ notificationNumber: notificationNumber - 1 })
         }, [icon('angle-left', { size: 12 })]),
         div({
           style: {
-            backgroundColor: color[1],
+            backgroundColor: colors.accent(), color: 'white',
+            fontWeight: 600,
             borderRadius: 10,
             padding: '0.2rem 0.5rem'
           }
         }, [
           notificationNumber + 1, '/', notifications.length
         ]),
-        h(Clickable, {
+        h(Link, {
           disabled: onLast,
-          style: { color: onLast ? color[1] : null },
           onClick: () => this.setState({ notificationNumber: notificationNumber + 1 })
         }, [icon('angle-right', { size: 12 })])
       ]),
@@ -148,17 +140,15 @@ const refreshPage = () => {
 
 const showNotification = ({ id, timeout }) => {
   store.addNotification({
-    type: 'success',
-    container: 'top-right',
-    animationIn: ['animated', 'slideInRight'],
-    animationOut: ['animated', 'slideOutRight'],
     id,
+    onRemoval: () => notificationStore.update(_.reject({ id })),
     content: div({ style: { width: '100%' } }, [
       h(NotificationDisplay, { id })
     ]),
+    container: 'top-right',
     dismiss: { duration: !!timeout ? timeout : 0, click: false, touch: false },
+    animationIn: ['animated', 'slideInRight'],
+    animationOut: ['animated', 'slideOutRight'],
     width: 350
   })
 }
-
-export default Utils.connectStore(notificationStore, 'notificationState')(ReactNotification)

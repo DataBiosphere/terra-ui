@@ -6,7 +6,6 @@ import ClusterManager from 'src/components/ClusterManager'
 import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, spinnerOverlay, TabBar } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import { clearNotification, notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax, saToken } from 'src/libs/ajax'
@@ -15,6 +14,7 @@ import { currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { clearNotification, notify } from 'src/libs/notifications'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -200,7 +200,6 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
             message: h(Fragment, [
               'It looks like you just created this workspace. It may take up to a minute before you have access to modify it. Refresh at any time to re-check.',
               div({ style: { marginTop: '1rem' } }, [h(Link, {
-                variant: 'light',
                 onClick: () => {
                   refreshWorkspace()
                   clearNotification(accessNotificationId.current)
