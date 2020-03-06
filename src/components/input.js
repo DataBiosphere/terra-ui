@@ -2,6 +2,7 @@ import Downshift from 'downshift'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { div, h, input, textarea } from 'react-hyperscript-helpers'
+import TextAreaAutosize from 'react-textarea-autosize'
 import { ButtonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
@@ -211,7 +212,7 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
   ])
 }
 
-export const AutocompleteTextInput = ({ value, onChange, suggestions: rawSuggestions, style, id, renderSuggestion = _.identity, openOnFocus = true, ...props }) => {
+const withAutocomplete = WrappedComponent => ({ value, onChange, suggestions: rawSuggestions, style, id, renderSuggestion = _.identity, openOnFocus = true, ...props }) => {
   const suggestions = _.filter(Utils.textMatch(value), rawSuggestions)
 
   return h(Downshift, {
@@ -224,8 +225,8 @@ export const AutocompleteTextInput = ({ value, onChange, suggestions: rawSuggest
     inputId: id
   }, [
     ({ getInputProps, getMenuProps, getItemProps, isOpen, openMenu, toggleMenu, highlightedIndex }) => {
-      return div({ style: { width: '100%' } }, [
-        h(TextInput, getInputProps({
+      return div({ style: { width: '100%', display: 'inline-flex' } }, [
+        h(WrappedComponent, getInputProps({
           style,
           type: 'search',
           onFocus: openOnFocus ? openMenu : undefined,
@@ -237,6 +238,8 @@ export const AutocompleteTextInput = ({ value, onChange, suggestions: rawSuggest
                 e.preventDefault()
               }
               toggleMenu()
+            } else if (_.includes(e.key, ['ArrowUp', 'ArrowDown']) && !suggestions.length) {
+              e.nativeEvent.preventDownshiftDefault = true
             }
           },
           nativeOnChange: true,
@@ -256,17 +259,19 @@ export const AutocompleteTextInput = ({ value, onChange, suggestions: rawSuggest
   ])
 }
 
-export const DelayedAutocompleteTextInput = withDebouncedChange(AutocompleteTextInput)
+export const AutocompleteTextInput = withAutocomplete(TextInput)
 
-export const TextArea = ({ onChange, ...props }) => {
+export const TextArea = ({ onChange, autosize = false, nativeOnChange = false, ...props }) => {
   Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, TextArea needs a label')
 
-  return textarea(_.merge({
+  return h(autosize ? TextAreaAutosize : 'textarea', _.merge({
     className: 'focus-style',
     style: styles.textarea,
-    onChange: onChange ? (e => onChange(e.target.value)) : undefined
+    onChange: onChange ? (e => onChange(nativeOnChange ? e : e.target.value)) : undefined
   }, props))
 }
+
+export const DelayedAutocompleteTextArea = withDebouncedChange(withAutocomplete(TextArea))
 
 export const PasteOnlyInput = ({ onPaste, ...props }) => {
   Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, PasteOnlyInput needs a label')
