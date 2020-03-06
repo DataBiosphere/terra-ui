@@ -85,6 +85,7 @@ const iconDict = {
   play: fa(faPlay),
   plus: fa(faPlus),
   'plus-circle': fa(faPlusCircle),
+  'lighter-plus-circle': props => fa(faPlus, { mask: faCircle, transform: 'shrink-6', ...props }),
   'pop-out': custom(externalLinkAlt),
   purchaseOrder: fa(faFileInvoiceDollar),
   renameIcon: custom(renameIcon),
