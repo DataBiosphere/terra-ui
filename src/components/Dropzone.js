@@ -9,6 +9,9 @@ const Dropzone = ({ disabled = false, onDragOver, onDrop, onDragLeave, style = {
 
   const { getRootProps, getInputProps, open: openUploader, ...dropProps } = useDropzone({
     noClick: true,
+    // Due to some sloppy internal state management, the keyboard handlers cause
+    // re-renders on every focus/blur, which causes performance problems on some pages.
+    noKeyboard: true,
     disabled,
     onDragOver: e => {
       setDragging(true)

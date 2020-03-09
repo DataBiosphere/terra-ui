@@ -362,7 +362,7 @@ const topMed = () => h(Participant, {
   sizeText: h(TooltipTrigger, { content: 'As of November 2016' }, [span('Participants: > 54,000')])
 }, [
   h(ButtonPrimary, {
-    href: 'https://gen3.datastage.io/explorer',
+    href: 'https://gen3.biodatacatalyst.nhlbi.nih.gov/explorer',
     ...Utils.newTabLinkProps,
     tooltip: browseTooltip
   }, ['Browse Data'])

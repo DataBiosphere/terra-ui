@@ -22,7 +22,7 @@ const Interactive = Utils.forwardRefWithName('Interactive', ({
 
   const computedTabIndex = Utils.cond(
     [_.isNumber(tabIndex), tabIndex],
-    [disabled, undefined],
+    [disabled, -1],
     [onClick, 0],
     undefined)
 

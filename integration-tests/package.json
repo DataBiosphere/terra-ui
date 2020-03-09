@@ -7,13 +7,13 @@
     "test": "jest"
   },
   "devDependencies": {
-    "google-auth-library": "^5.9.2",
+    "google-auth-library": "^5.10.1",
     "jest": "^25.1.0",
     "jest-junit": "^10.0.0",
     "jest-puppeteer": "^4.4.0",
     "node-fetch": "^2.6.0",
     "p-retry": "^4.2.0",
-    "prompts": "^2.3.0",
+    "prompts": "^2.3.1",
     "puppeteer": "^2.1.1"
   },
   "jest-junit": {

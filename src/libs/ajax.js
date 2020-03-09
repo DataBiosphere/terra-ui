@@ -1093,7 +1093,7 @@ const Duos = signal => ({
 })
 
 const Metrics = signal => ({
-  captureEvent: withErrorIgnoring((event, details) => {
+  captureEvent: withErrorIgnoring((event, details = {}) => {
     const body = {
       event,
       data: {

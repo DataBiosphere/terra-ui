@@ -13,14 +13,15 @@ import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { findPotentialNotebookLockers, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
-import { notify } from 'src/components/Notifications'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/clusters'
 import { Ajax } from 'src/libs/ajax'
 import { usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -344,6 +345,8 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
 
 const JupyterFrameManager = ({ onClose, frameRef }) => {
   Utils.useOnMount(() => {
+    Ajax().Metrics.captureEvent(Events.notebookLaunch)
+
     const isSaved = Utils.atom(true)
     const onMessage = e => {
       switch (e.data) {
@@ -458,11 +461,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
       notify('error', 'Cannot Edit Notebook', {
         message: h(Fragment, [
           p(['Recent updates to Terra are not compatible with the older notebook runtime in this workspace. Please recreate your runtime in order to access Edit Mode for this notebook.']),
-          h(Link, {
-            variant: 'light',
-            href: dataSyncingDocUrl,
-            ...Utils.newTabLinkProps
-          }, ['Read here for more details.'])
+          h(Link, { href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
         ])
       })
       chooseMode(undefined)

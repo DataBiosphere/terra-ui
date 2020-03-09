@@ -6,7 +6,6 @@ import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledChec
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { notify } from 'src/components/Notifications'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/clusters'
@@ -14,6 +13,7 @@ import { Ajax } from 'src/libs/ajax'
 import { deleteText, findMachineType, machineConfigCost, normalizeMachineConfig } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import { notify } from 'src/libs/notifications'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -204,7 +204,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
 
-    const cantUpdate = cantWorkersUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || this.hasImageChanged() || this.hasStartUpScriptChanged()
+    const cantUpdate = cantWorkersUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || this.hasImageChanged() ||
+      this.hasStartUpScriptChanged()
     return !cantUpdate
   }
 
@@ -291,9 +292,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const makeEnvSelect = id => h(Select, {
       id,
+      'aria-label': 'Select Environment',
       value: selectedLeoImage,
       onChange: ({ value }) => this.setState({ selectedLeoImage: value }),
-      isSearchable: false,
+      isSearchable: true,
       isClearable: false,
       options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
     })
@@ -308,7 +310,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         workerMachineType: machineTypeConstraints,
         customEnvImage: isSelectedImageInputted ? { format: { pattern: imageValidationRegexp } } : {}
       },
-      { prettify: v => ({ customEnvImage: 'Container image', masterMachineType: 'Main CPU/memory', workerMachineType: 'Worker CPU/memory' }[v] || validate.prettify(v)) }
+      {
+        prettify: v => ({ customEnvImage: 'Container image', masterMachineType: 'Main CPU/memory', workerMachineType: 'Worker CPU/memory' }[v] ||
+          validate.prettify(v))
+      }
     )
 
     const makeGroupedEnvSelect = id => h(GroupedSelect, {
@@ -318,7 +323,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       onChange: ({ value }) => {
         this.setState({ selectedLeoImage: value, customEnvImage: '' })
       },
-      isSearchable: false,
+      isSearchable: true,
       isClearable: false,
       options: [{ label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
         {

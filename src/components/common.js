@@ -373,10 +373,9 @@ export const methodLink = config => {
     `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}:${methodVersion}`
 }
 
-export const ShibbolethLink = ({ children, ...props }) => {
+export const ShibbolethLink = ({ children }) => {
   const nihRedirectUrl = `${window.location.origin}/${Nav.getLink('profile')}?nih-username-token={token}`
   return h(Link, {
-    ...props,
     href: `${getConfig().shibbolethUrlRoot}/link-nih-account?${qs.stringify({ 'redirect-url': nihRedirectUrl })}`,
     style: { display: 'inline-flex', alignItems: 'center' },
     ...Utils.newTabLinkProps

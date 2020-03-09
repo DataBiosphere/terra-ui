@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
-import { notify, sessionTimeoutProps } from 'src/components/Notifications'
 import { reloadAuthToken, signOut } from 'src/libs/auth'
+import { notify, sessionTimeoutProps } from 'src/libs/notifications'
 
 
 export const reportError = async (title, obj) => {
