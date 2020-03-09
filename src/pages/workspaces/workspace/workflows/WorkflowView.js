@@ -730,7 +730,7 @@ const WorkflowView = _.flow(
               checked: useCallCache,
               onChange: v => this.setState({ useCallCache: v })
             }, [' Use call caching']),
-            span({ style: { marginLeft: '1rem', marginRight: '0.5rem' } }, [
+            span({ style: { margin: '0 0.5rem 0 1rem' } }, [
               h(LabeledCheckbox, {
                 checked: deleteIntermediateOutputFiles,
                 onChange: v => this.setState({ deleteIntermediateOutputFiles: v }),
@@ -741,7 +741,7 @@ const WorkflowView = _.flow(
               'If the workflow succeeds, only the final output will be saved. Subsequently, call caching cannot be used as the intermediate steps will be not available. ',
               h(Link, {
                 href: 'https://support.terra.bio/hc/en-us/articles/360039681632',
-                target: 'blank'
+                ...Utils.newTabLinkProps
               }, ['Click here to learn more.'])
             ])
           ]),
