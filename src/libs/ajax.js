@@ -10,8 +10,6 @@ import { ajaxOverridesStore, authStore, requesterPaysBuckets, requesterPaysProje
 import * as Utils from 'src/libs/utils'
 
 
-const metricsEnabled = true
-
 window.ajaxOverrideUtils = {
   mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
     const res = await wrappedFetch(...args)
@@ -1104,8 +1102,7 @@ const Metrics = signal => ({
         timestamp: Date.now()
       }
     }
-    // Remove the metricsEnabled feature flag once TOS and all metrics projects are setup
-    return metricsEnabled && fetchMetrics('api/event', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+    return fetchMetrics('api/event', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
   })
 })
 
