@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
-import uuid from 'uuid/v4'
+import { v4 as uuid } from 'uuid'
 
 
 const getKey = () => {

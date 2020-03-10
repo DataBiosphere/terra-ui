@@ -1,21 +1,21 @@
 import { isAfter, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { useViewToggle, ViewToggleButtons } from 'src/components/CardsListToggle'
-import {
-  Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, PageBox, Select, topSpinnerOverlay, transparentSpinnerOverlay
-} from 'src/components/common'
+import { AutoSizer } from 'react-virtualized'
+import { Link, makeMenuIcon, MenuButton, Select, SimpleTabBar, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
+import { FlexTable, MiniSortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -26,63 +26,14 @@ import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceMo
 
 
 const styles = {
-  cardContainer: listView => ({
-    position: 'relative',
-    display: 'flex', flexWrap: listView ? undefined : 'wrap',
-    marginRight: listView ? undefined : '-1rem'
-  }),
-  shortCard: {
-    ...Style.elements.card.container,
-    width: 280, height: 260, position: 'relative',
-    margin: '0 1rem 2rem 0'
+  tableCellContainer: {
+    height: '100%', padding: '0.5rem 0', paddingRight: '2rem',
+    borderTop: `1px solid ${colors.light()}`
   },
-  shortTitle: {
-    ...Style.elements.card.title,
-    flex: 'none',
-    fontWeight: 500,
-    lineHeight: '20px', height: '40px',
-    wordWrap: 'break-word'
+  tableCellContent: {
+    height: '50%', display: 'flex', alignItems: 'center'
   },
-  shortDescription: {
-    flex: 'none',
-    whiteSpace: 'pre-wrap',
-    lineHeight: '18px', height: '90px',
-    overflow: 'hidden'
-  },
-  shortCreateCard: {
-    display: 'flex', flexDirection: 'column', justifyContent: 'center',
-    color: colors.accent(), fontSize: 20, fontWeight: 500, lineHeight: '28px'
-  },
-  longCard: {
-    ...Style.elements.card.container,
-    flexDirection: 'row',
-    height: 80, position: 'relative',
-    marginBottom: '0.5rem'
-  },
-  longCardTextContainer: {
-    flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
-    width: '100%', minWidth: 0,
-    marginLeft: '1rem'
-  },
-  longTitle: {
-    ...Style.elements.card.title,
-    ...Style.noWrapEllipsis, flex: 1
-  },
-  longDescription: {
-    flex: 1,
-    paddingRight: '1rem',
-    ...Style.noWrapEllipsis
-  },
-  badge: {
-    height: '1.5rem', width: '1.5rem', borderRadius: '1.5rem',
-    lineHeight: '1.5rem', textAlign: 'center',
-    backgroundColor: colors.dark(), color: 'white'
-  },
-  filter: { marginLeft: '1rem', flex: '0 0 300px' },
-  submissionIndicator: {
-    position: 'absolute', top: 0, right: 0,
-    color: 'white', display: 'flex', padding: 2, borderRadius: '0 5px'
-  }
+  filter: { marginRight: '1rem', flex: '1 0 300px', minWidth: 0 }
 }
 
 const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissionsCount, lastSuccessDate, lastFailureDate } }) => {
@@ -128,111 +79,41 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
   ])
 }
 
-const SubmissionIndicator = ({ shape, color }) => {
-  return div({ style: { ...styles.submissionIndicator, backgroundColor: color } }, [
-    icon(shape, { size: 14, style: { color: 'white' } })
-  ])
-}
-
-const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({
-  listView, onClone, onDelete, onShare, onRequestAccess,
-  workspace, workspace: { accessLevel, workspace: { namespace, name, createdBy, lastModified, attributes: { description } } }
-}) => {
-  const lastChanged = `Last changed: ${Utils.makePrettyDate(lastModified)}`
-  const badge = div({ title: createdBy, style: styles.badge }, [createdBy[0].toUpperCase()])
-  const canView = Utils.canRead(accessLevel)
-  const workspaceMenu = h(PopupTrigger, {
-    side: 'right',
-    closeOnClick: true,
-    content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
-  }, [
-    h(Link, { 'aria-label': 'Workspace menu', onClick: e => e.preventDefault(), disabled: !canView }, [
-      icon('cardMenuIcon', {
-        size: listView ? 18 : 24
-      })
-    ])
-  ])
-  const descText = description ?
-    listView ? description.split('\n')[0] : description :
-    span({ style: { color: colors.dark(0.85) } }, ['No description added'])
-  const titleOverrides = !canView ? { color: colors.dark(0.7) } : {}
-
-  return h(TooltipTrigger, {
-    content: !canView && `
-      You cannot access this workspace because it is protected by an Authorization Domain.
-      Click to learn about gaining access.
-    `,
-    side: 'top'
-  }, [
-    h(Clickable, {
-      href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
-      onClick: !canView ? onRequestAccess : undefined,
-      style: listView ? styles.longCard : styles.shortCard
-    }, [
-      Utils.switchCase(workspaceSubmissionStatus(workspace),
-        ['success', () => h(SubmissionIndicator, { shape: 'success-standard', color: colors.success() })],
-        ['failure', () => h(SubmissionIndicator, { shape: 'error-standard', color: colors.danger(0.85) })],
-        ['running', () => h(SubmissionIndicator, { shape: 'sync', color: colors.success() })]
-      ),
-      listView ? h(Fragment, [
-        workspaceMenu,
-        div({ style: { ...styles.longCardTextContainer } }, [
-          div({ style: { display: 'flex', alignItems: 'center' } }, [
-            div({ style: { ...styles.longTitle, ...titleOverrides } }, [name]),
-            h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-              div({ style: { flex: 'none' } }, [lastChanged])
-            ])
-          ]),
-          div({ style: { display: 'flex', alignItems: 'center' } }, [
-            div({ style: { ...styles.longDescription } }, [descText]),
-            div({ style: { flex: 'none' } }, [badge])
-          ])
-        ])
-      ]) : h(Fragment, [
-        div({ style: { ...styles.shortTitle, ...titleOverrides } }, [name]),
-        div({ style: styles.shortDescription }, [descText]),
-        div({ style: { display: 'flex', marginLeft: 'auto' } }, [badge]),
-        div({ style: { display: 'flex', alignItems: 'center' } }, [
-          h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-            div({ style: { flex: 1 } }, [lastChanged])
-          ]),
-          workspaceMenu
-        ])
-      ])
-    ])
-  ])
-})
-
-const NewWorkspaceCard = ({ onClick }) => {
-  return h(Clickable, {
-    style: { ...styles.shortCard, ...styles.shortCreateCard },
-    onClick
-  }, [
-    div(['Create a']),
-    div(['New Workspace']),
-    icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 32 })
-  ])
-}
-
 export const WorkspaceList = () => {
-  const [listView, setListView] = useViewToggle('workspaceList')
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
+  const [featuredList, setFeaturedList] = useState()
+
   const { query } = Nav.useRoute()
   const [filter, setFilter] = useState(query.filter || '')
+  const [accessLevelsFilter, setAccessLevelsFilter] = useState(query.accessLevelsFilter || [])
+  const [projectsFilter, setProjectsFilter] = useState(query.projectsFilter || undefined)
+  const [submissionsFilter, setSubmissionsFilter] = useState(query.submissionsFilter || [])
+  const [tab, setTab] = useState(query.tab || 'my')
+  const [tagsFilter, setTagsFilter] = useState(query.tagsFilter || [])
+
   const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false)
   const [cloningWorkspaceId, setCloningWorkspaceId] = useState()
   const [deletingWorkspaceId, setDeletingWorkspaceId] = useState()
   const [sharingWorkspaceId, setSharingWorkspaceId] = useState()
   const [requestingAccessWorkspaceId, setRequestingAccessWorkspaceId] = useState()
-  const [accessLevelsFilter, setAccessLevelsFilter] = useState(query.accessLevelsFilter || [])
-  const [projectsFilter, setProjectsFilter] = useState(query.projectsFilter || undefined)
-  const [submissionsFilter, setSubmissionsFilter] = useState(query.submissionsFilter || [])
-  const [includePublic, setIncludePublic] = useState(!!query.includePublic)
-  const [tagsFilter, setTagsFilter] = useState(query.tagsFilter || [])
+
+  const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
+
+  Utils.useOnMount(() => {
+    const loadFeatured = async () => {
+      setFeaturedList(await fetch(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`).then(res => res.json()))
+    }
+
+    loadFeatured()
+  })
 
   useEffect(() => {
     // Note: setting undefined so that falsy values don't show up at all
-    const newSearch = qs.stringify({ ...query, filter: filter || undefined, accessLevelsFilter, projectsFilter, includePublic: includePublic || undefined, tagsFilter, submissionsFilter }, { addQueryPrefix: true })
+    const newSearch = qs.stringify({
+      ...query, filter: filter || undefined, accessLevelsFilter, projectsFilter, tagsFilter, submissionsFilter,
+      tab: tab === 'my' ? undefined : tab
+    }, { addQueryPrefix: true })
+
     if (newSearch !== Nav.history.location.search) {
       Nav.history.replace({ search: newSearch })
     }
@@ -240,12 +121,35 @@ export const WorkspaceList = () => {
 
   const getWorkspace = id => _.find({ workspace: { workspaceId: id } }, workspaces)
 
-  const initialFiltered = _.filter(ws => includePublic || !ws.public || Utils.canWrite(ws.accessLevel), workspaces)
-  const noWorkspaces = _.isEmpty(initialFiltered) && !loadingWorkspaces
+  const initialFiltered = useMemo(() => ({
+    my: _.filter(ws => !ws.public || Utils.canWrite(ws.accessLevel), workspaces),
+    public: _.filter('public', workspaces),
+    featured: _.flow(
+      _.map(featuredWs => _.find({ workspace: featuredWs }, workspaces)),
+      _.compact
+    )(featuredList)
+  }), [workspaces, featuredList])
+
+  const filteredWorkspaces = useMemo(() => _.mapValues(
+    _.filter(ws => {
+      const { workspace: { namespace, name, attributes } } = ws
+      return Utils.textMatch(filter, `${namespace}/${name}`) &&
+        (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
+        (_.isEmpty(projectsFilter) || projectsFilter === namespace) &&
+        (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
+        _.every(a => _.includes(a, _.get(['tag:tags', 'items'], attributes)), tagsFilter)
+    }),
+    initialFiltered), [accessLevelsFilter, filter, initialFiltered, projectsFilter, submissionsFilter, tagsFilter])
+
+  const sortedWorkspaces = _.orderBy(
+    [sort.field === 'accessLevel' ? ws => -Utils.workspaceAccessLevels.indexOf(ws.accessLevel) : `workspace.${sort.field}`],
+    [sort.direction],
+    filteredWorkspaces[tab]
+  )
 
   const noWorkspacesMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
     div([
-      'To get started, click ', span({ style: { fontWeight: 600 } }, ['Create a New Workspace'])
+      'To get started, ', h(Link, { onClick: () => setCreatingNewWorkspace(true), style: { fontWeight: 600 } }, ['Create a New Workspace'])
     ]),
     div({ style: { marginTop: '1rem', fontSize: 16 } }, [
       h(Link, {
@@ -255,28 +159,120 @@ export const WorkspaceList = () => {
     ])
   ])
 
-  const filteredWorkspaces = _.flow(
-    _.filter(ws => {
-      const { workspace: { namespace, name, attributes } } = ws
-      return Utils.textMatch(filter, `${namespace}/${name}`) &&
-        (_.isEmpty(accessLevelsFilter) || accessLevelsFilter.includes(ws.accessLevel)) &&
-        (_.isEmpty(projectsFilter) || projectsFilter === namespace) &&
-        (_.isEmpty(submissionsFilter) || submissionsFilter.includes(workspaceSubmissionStatus(ws))) &&
-        _.every(a => _.includes(a, _.get(['tag:tags', 'items'], attributes)), tagsFilter)
-    }),
-    _.sortBy('workspace.name')
-  )(initialFiltered)
+  const makeHeaderRenderer = name => () => h(MiniSortable, { sort, field: name, onSort: setSort }, [
+    div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
+  ])
 
-  const renderedWorkspaces = noWorkspaces ? noWorkspacesMessage : _.map(workspace => {
-    return h(WorkspaceCard, {
-      listView,
-      onClone: () => setCloningWorkspaceId(workspace.workspace.workspaceId),
-      onDelete: () => setDeletingWorkspaceId(workspace.workspace.workspaceId),
-      onShare: () => setSharingWorkspaceId(workspace.workspace.workspaceId),
-      onRequestAccess: () => setRequestingAccessWorkspaceId(workspace.workspace.workspaceId),
-      workspace, key: workspace.workspace.workspaceId
+  const renderedWorkspaces = div({ style: { flex: 1, backgroundColor: 'white', padding: '0 1rem' } }, [h(AutoSizer, [
+    ({ width, height }) => h(FlexTable, {
+      width, height,
+      rowCount: sortedWorkspaces.length,
+      noContentRenderer: () => Utils.cond(
+        [loadingWorkspaces, () => null],
+        [_.isEmpty(initialFiltered.my) && tab === 'my', () => noWorkspacesMessage],
+        () => div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
+      ),
+      variant: 'light',
+      rowHeight: 70,
+      columns: [
+        {
+          headerRenderer: makeHeaderRenderer('name'),
+          cellRenderer: ({ rowIndex }) => {
+            const { accessLevel, workspace: { workspaceId, namespace, name, attributes: { description } } } = sortedWorkspaces[rowIndex]
+            const canView = Utils.canRead(accessLevel)
+
+            return div({ style: styles.tableCellContainer }, [
+              div({ style: styles.tableCellContent }, [
+                h(Link, {
+                  style: { color: canView ? undefined : colors.dark(0.7), fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
+                  href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
+                  onClick: !canView ? () => setRequestingAccessWorkspaceId(workspaceId) : undefined,
+                  tooltip: !canView &&
+                    'You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.',
+                  tooltipSide: 'right'
+                }, [name])
+              ]),
+              div({ style: styles.tableCellContent }, [
+                span({ style: { ...Style.noWrapEllipsis, color: !!description ? undefined : colors.dark(0.75) } }, [
+                  description?.split('\n')[0] || 'No description added'
+                ])
+              ])
+            ])
+          },
+          size: { basis: 400, grow: 2, shrink: 0 }
+        }, {
+          headerRenderer: makeHeaderRenderer('lastModified'),
+          cellRenderer: ({ rowIndex }) => {
+            const { workspace: { lastModified } } = sortedWorkspaces[rowIndex]
+
+            return div({ style: styles.tableCellContainer }, [
+              div({ style: styles.tableCellContent }, [
+                h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [div([Utils.makeStandardDate(lastModified)])])
+              ])
+            ])
+          },
+          size: { basis: 100, grow: 1, shrink: 0 }
+        }, {
+          headerRenderer: makeHeaderRenderer('createdBy'),
+          cellRenderer: ({ rowIndex }) => {
+            const { workspace: { createdBy } } = sortedWorkspaces[rowIndex]
+
+            return div({ style: styles.tableCellContainer }, [
+              div({ style: styles.tableCellContent }, [span({ style: Style.noWrapEllipsis }, [createdBy])])
+            ])
+          },
+          size: { basis: 200, grow: 1, shrink: 0 }
+        }, {
+          headerRenderer: makeHeaderRenderer('accessLevel'),
+          cellRenderer: ({ rowIndex }) => {
+            const { accessLevel } = sortedWorkspaces[rowIndex]
+
+            return div({ style: styles.tableCellContainer }, [
+              div({ style: styles.tableCellContent }, [Utils.normalizeLabel(accessLevel)])
+            ])
+          },
+          size: { basis: 120, grow: 1, shrink: 0 }
+        }, {
+          headerRenderer: () => null,
+          cellRenderer: ({ rowIndex }) => {
+            const { accessLevel, workspace: { workspaceId, namespace, name }, ...workspace } = sortedWorkspaces[rowIndex]
+            const onClone = () => setCloningWorkspaceId(workspaceId)
+            const onDelete = () => setDeletingWorkspaceId(workspaceId)
+            const onShare = () => setSharingWorkspaceId(workspaceId)
+            const canView = Utils.canRead(accessLevel)
+            const lastRunStatus = workspaceSubmissionStatus(workspace)
+
+
+            return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
+              div({ style: styles.tableCellContent }, [
+                h(PopupTrigger, {
+                  side: 'left',
+                  closeOnClick: true,
+                  content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
+                }, [
+                  h(Link, { 'aria-label': 'Workspace menu', disabled: !canView }, [icon('cardMenuIcon', { size: 20 })])
+                ])
+              ]),
+              div({ style: styles.tableCellContent }, [
+                !!lastRunStatus && h(TooltipTrigger, {
+                  content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(lastRunStatus)])]),
+                  side: 'left'
+                }, [
+                  Utils.switchCase(lastRunStatus,
+                    ['success', () => icon('success-standard', { size: 20, style: { color: colors.success() } })],
+                    ['failure', () => icon('error-standard', { size: 20, style: { color: colors.danger(0.85) } })],
+                    ['running', () => icon('sync', { size: 20, style: { color: colors.success() } })]
+                  )
+                ])
+              ])
+            ])
+          },
+          size: { basis: 30, grow: 0, shrink: 0 }
+        }
+      ]
     })
-  }, filteredWorkspaces)
+  ])])
+
 
   return h(Fragment, [
     h(TopBar, { title: 'Workspaces' }, [
@@ -288,19 +284,12 @@ export const WorkspaceList = () => {
         value: filter
       })
     ]),
-    h(PageBox, { role: 'main', style: { position: 'relative' } }, [
+    div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-        div({ style: { marginLeft: 'auto', marginRight: '1rem' } }, [
-          h(LabeledCheckbox, {
-            checked: !!includePublic,
-            onChange: setIncludePublic
-          }, ' Show public workspaces')
-        ]),
-        h(ViewToggleButtons, { listView, setListView })
+        h(Link, { onClick: () => setCreatingNewWorkspace(true), style: { marginLeft: '0.5rem' } }, [icon('lighter-plus-circle', { size: 24 })])
       ]),
       div({ style: { display: 'flex', marginBottom: '1rem' } }, [
-        div({ style: { display: 'flex', alignItems: 'center', fontSize: '1rem' } }, ['Filter by']),
         div({ style: styles.filter }, [
           h(WorkspaceTagSelect, {
             isClearable: true,
@@ -312,7 +301,7 @@ export const WorkspaceList = () => {
             onChange: data => setTagsFilter(_.map('value', data))
           })
         ]),
-        div({ style: { ...styles.filter, flexBasis: '250px', minWidth: 0 } }, [
+        div({ style: { ...styles.filter, flexBasis: '250px' } }, [
           h(Select, {
             isClearable: true,
             isMulti: true,
@@ -338,10 +327,10 @@ export const WorkspaceList = () => {
               _.map('workspace.namespace'),
               _.uniq,
               _.sortBy(_.identity)
-            )(initialFiltered)
+            )(workspaces)
           })
         ]),
-        div({ style: { ...styles.filter, flexBasis: '250px', minWidth: 0 } }, [
+        div({ style: { ...styles.filter, flexBasis: '220px', marginRight: '' } }, [
           h(Select, {
             isClearable: true,
             isMulti: true,
@@ -356,19 +345,23 @@ export const WorkspaceList = () => {
           })
         ])
       ]),
-      div({ style: styles.cardContainer(listView) }, [
-        h(NewWorkspaceCard, {
-          onClick: () => setCreatingNewWorkspace(true)
-        }),
-        Utils.cond(
-          [workspaces && _.isEmpty(initialFiltered), () => noWorkspacesMessage],
-          [!_.isEmpty(initialFiltered) && _.isEmpty(filteredWorkspaces), () => {
-            return div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
-          }],
-          [listView, () => div({ style: { flex: 1, minWidth: 0 } }, [renderedWorkspaces])],
-          () => renderedWorkspaces
-        )
-      ]),
+      h(SimpleTabBar, {
+        value: tab,
+        onChange: newTab => {
+          if (newTab === tab) {
+            refreshWorkspaces()
+          } else {
+            setTab(newTab)
+          }
+        },
+        tabs: _.map(key => ({
+          key,
+          title: span({ style: { padding: '0 1rem' } }, [
+            _.upperCase(`${key} workspaces`), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`
+          ])
+        }), ['my', 'public', 'featured'])
+      }),
+      renderedWorkspaces,
       creatingNewWorkspace && h(NewWorkspaceModal, {
         onDismiss: () => setCreatingNewWorkspace(false),
         onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })

@@ -8,7 +8,7 @@ const testRegisterUserFn = withRegisteredUser(async ({ page, testUrl, token }) =
   await signIntoTerra(page, token)
   await dismissNotifications(page)
   await dismissNotifications(page)
-  await findText(page, 'To get started, click Create a New Workspace')
+  await findText(page, 'To get started, Create a New Workspace')
 })
 
 const testRegisterUser = {

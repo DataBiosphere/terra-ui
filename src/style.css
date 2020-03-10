@@ -94,38 +94,13 @@ a {
 }
 
 /* Overrides for toast notifications library (react-notifications-component) */
-.notification-default {
-  background-color: #525c6C;
-  border-left: 8px solid #333f52;
+.notification-item {
+  box-shadow: unset;
+  border-radius: unset;
 }
 
-.notification-success {
-  background-color: #74ae43;
-  border-left: 8px solid #5d9033;
-}
-
-.notification-danger {
-  background-color: #db3214;
-  border-left: 8px solid #ba250A;
-}
-
-.notification-info {
-  background-color: #5aa6da;
-  border-left: 8px solid #2691d0;
-}
-
-.notification-warning {
-  background-color: #f7981C;
-  border-left: 8px solid #dc8412;
-}
-
-.notification-awesome {
-  background-color: #a180a9;
-  border-left: 8px solid #8a6194;
-}
-
-.notification-item, .notification-item-root, .notification-message, .notification-title {
-  font-family: unset;
+.notification-container-bottom-center, .notification-container-bottom-left, .notification-container-bottom-right, .notification-container-top-center, .notification-container-top-left, .notification-container-top-right {
+  width: 350px;
 }
 
 /* Styles for content rendered by marked (also used by react-simplemde-editor) */

@@ -19,7 +19,7 @@ const makeWorkspace = async ({ billingProject, context, testUrl, token }) => {
     return window.Ajax().Workspaces.create({ namespace: billingProject, name, attributes: {} })
   }, workspaceName, billingProject)
 
-  console.info(`created ${workspaceName}`)
+  console.info(`created workspace: ${workspaceName}`)
 
   await ajaxPage.close()
 
@@ -36,7 +36,7 @@ const deleteWorkspace = async (workspaceName, { billingProject, context, testUrl
     return window.Ajax().Workspaces.workspace(billingProject, name).delete()
   }, workspaceName, billingProject)
 
-  console.info(`deleted ${workspaceName}`)
+  console.info(`deleted workspace: ${workspaceName}`)
 
   await ajaxPage.close()
 }
@@ -80,10 +80,12 @@ const addUserToBilling = withUserToken(async ({ billingProject, email, testUrl, 
   await ajaxPage.goto(testUrl)
   await signIntoTerra(ajaxPage, token)
 
-  console.log(billingProject)
   await ajaxPage.evaluate((email, billingProject) => {
     return window.Ajax().Billing.project(billingProject).addUser(['User'], email)
   }, email, billingProject)
+
+  console.info(`added user to: ${billingProject}`)
+
   await ajaxPage.close()
 })
 
@@ -96,6 +98,9 @@ const removeUserFromBilling = withUserToken(async ({ billingProject, email, test
   await ajaxPage.evaluate((email, billingProject) => {
     return window.Ajax().Billing.project(billingProject).removeUser(['User'], email)
   }, email, billingProject)
+
+  console.info(`removed user from: ${billingProject}`)
+
   await ajaxPage.close()
 })
 
@@ -112,6 +117,7 @@ const withBilling = test => async options => {
 
 const trimClustersOldestFirst = _.flow(
   _.remove({ status: 'Deleting' }),
+  _.remove({ status: 'Creating' }),
   _.sortBy('createdDate')
 )
 
@@ -136,9 +142,11 @@ const deleteCluster = withUserToken(async ({ billingProject, testUrl, token }) =
   await signIntoTerra(ajaxPage, token)
 
   const currentC = await getCurrentCluster({ billingProject, testUrl })
-  await ajaxPage.evaluate((currentC, billingProject) => {
+  currentC && await ajaxPage.evaluate((currentC, billingProject) => {
     return window.Ajax().Clusters.cluster(billingProject, currentC.clusterName).delete()
   }, currentC, billingProject)
+
+  currentC && console.info(`deleted cluster: ${currentC.clusterName}`)
 
   await ajaxPage.close()
 })

@@ -4,7 +4,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { forwardRef, memo, useEffect, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import uuid from 'uuid/v4'
+import { v4 as uuid } from 'uuid'
 
 
 export const subscribable = () => {
