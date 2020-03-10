@@ -10,7 +10,7 @@ import { ajaxOverridesStore, authStore, requesterPaysBuckets, requesterPaysProje
 import * as Utils from 'src/libs/utils'
 
 
-const metricsEnabled = false
+const metricsEnabled = true
 
 window.ajaxOverrideUtils = {
   mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
@@ -113,7 +113,7 @@ const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlR
 const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
-const fetchMetrics = withUrlPrefix(`${getConfig().metricsRoot}/`, fetchOk)
+const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
@@ -1105,7 +1105,7 @@ const Metrics = signal => ({
       }
     }
     // Remove the metricsEnabled feature flag once TOS and all metrics projects are setup
-    return metricsEnabled && fetchMetrics('api/event', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+    return metricsEnabled && fetchBard('api/event', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
   })
 })
 
