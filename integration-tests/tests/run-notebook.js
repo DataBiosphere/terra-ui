@@ -32,7 +32,7 @@ const testRunNotebookFn = withRegisteredUser(async ({ billingProject, page, cont
   }))({ billingProject, context, email, testUrl, token })
 })
 const testRunNotebook = {
-  name: 'run notebook',
+  name: 'run-notebook',
   fn: testRunNotebookFn,
   timeout: 15 * 60 * 1000
 

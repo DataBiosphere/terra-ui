@@ -74,7 +74,7 @@ const withUser = test => async args => {
   }
 }
 
-const addUserToBilling = withUserToken(async ({ billingProject, email, testUrl, token }) => {
+const addUserToBilling = withUserToken(async ({ billingProject, context, email, testUrl, token }) => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
@@ -89,7 +89,7 @@ const addUserToBilling = withUserToken(async ({ billingProject, email, testUrl, 
   await ajaxPage.close()
 })
 
-const removeUserFromBilling = withUserToken(async ({ billingProject, email, testUrl, token }) => {
+const removeUserFromBilling = withUserToken(async ({ billingProject, context, email, testUrl, token }) => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
@@ -123,7 +123,7 @@ const trimClustersOldestFirst = _.flow(
 
 const currentCluster = _.flow(trimClustersOldestFirst, _.last)
 
-const getCurrentCluster = withUserToken(async ({ billingProject, testUrl, token }) => {
+const getCurrentCluster = withUserToken(async ({ billingProject, context, testUrl, token }) => {
   const ajaxPage = await context.newPage()
   await ajaxPage.goto(testUrl)
   await signIntoTerra(ajaxPage, token)
@@ -136,12 +136,12 @@ const getCurrentCluster = withUserToken(async ({ billingProject, testUrl, token 
   return currentCluster(clusters)
 })
 
-const deleteCluster = withUserToken(async ({ billingProject, testUrl, token }) => {
+const deleteCluster = withUserToken(async ({ billingProject, context, testUrl, token }) => {
   const ajaxPage = await context.newPage()
   await ajaxPage.goto(testUrl)
   await signIntoTerra(ajaxPage, token)
 
-  const currentC = await getCurrentCluster({ billingProject, testUrl })
+  const currentC = await getCurrentCluster({ billingProject, context, testUrl })
   currentC && await ajaxPage.evaluate((currentC, billingProject) => {
     return window.Ajax().Clusters.cluster(billingProject, currentC.clusterName).delete()
   }, currentC, billingProject)
@@ -151,7 +151,8 @@ const deleteCluster = withUserToken(async ({ billingProject, testUrl, token }) =
   await ajaxPage.close()
 })
 
-const withRegisteredUser = test => withUser(async ({ page, testUrl, token, ...args }) => {
+const withRegisteredUser = test => withUser(async args => {
+  const { context, testUrl, token } = args
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
@@ -165,7 +166,7 @@ const withRegisteredUser = test => withUser(async ({ page, testUrl, token, ...ar
   await delay(1000)
   await ajaxPage.close()
 
-  await test({ page, testUrl, token, ...args })
+  await test(args)
 })
 
 module.exports = {
