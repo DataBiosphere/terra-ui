@@ -10,7 +10,7 @@ import { ajaxOverridesStore, authStore, requesterPaysBuckets, requesterPaysProje
 import * as Utils from 'src/libs/utils'
 
 
-const metricsEnabled = true
+const metricsEnabled = false
 
 window.ajaxOverrideUtils = {
   mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
