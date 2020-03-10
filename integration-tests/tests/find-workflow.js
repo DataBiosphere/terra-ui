@@ -1,11 +1,10 @@
 const firecloud = require('../utils/firecloud-utils')
-const { billingProject, testUrl, workflowName } = require('../utils/integration-config')
 const { withWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, dismissNotifications, findElement, findText, signIntoTerra } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
-const testFindWorkflowFn = withUserToken(withWorkspace(async ({ page, token, workspaceName }) => {
+const testFindWorkflowFn = withUserToken(withWorkspace(async ({ billingProject, page, testUrl, token, workflowName, workspaceName }) => {
   await page.goto(testUrl)
   await signIntoTerra(page, token)
   await dismissNotifications(page)
@@ -48,7 +47,7 @@ const testFindWorkflowFn = withUserToken(withWorkspace(async ({ page, token, wor
 }))
 
 const testFindWorkflow = {
-  name: 'find workflow',
+  name: 'find-workflow',
   fn: testFindWorkflowFn
 }
 

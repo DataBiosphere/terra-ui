@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "preinstall": "node ../.hooks/check-engine-light.js",
-    "test": "jest"
+    "test": "jest",
+    "start": "node src/server.js",
+    "start-dev": "nodemon"
   },
   "devDependencies": {
     "google-auth-library": "^5.10.1",
@@ -22,6 +24,7 @@
     "includeConsoleOutput": true
   },
   "dependencies": {
+    "express": "^4.17.1",
     "lodash": "^4.17.15"
   }
 }

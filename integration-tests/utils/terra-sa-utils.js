@@ -1,6 +1,6 @@
 const _ = require('lodash/fp')
 const { JWT } = require('google-auth-library')
-const { bearerToken, userEmail, terraSaKeyJson } = require('../utils/integration-config')
+const { userEmail, terraSaKeyJson } = require('../utils/integration-config')
 
 
 const makeAuthClient = _.memoize((subject, { client_email, private_key }) => {
@@ -18,7 +18,7 @@ const getToken = async (subject, key) => {
 }
 
 const withUserToken = testFn => async options => {
-  const token = bearerToken || await getToken(userEmail, JSON.parse(terraSaKeyJson))
+  const token = await getToken(userEmail, JSON.parse(terraSaKeyJson))
   return testFn({ ...options, token })
 }
 
