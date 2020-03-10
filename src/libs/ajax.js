@@ -1096,7 +1096,7 @@ const Metrics = signal => ({
   captureEvent: withErrorIgnoring((event, details = {}) => {
     const body = {
       event,
-      data: {
+      properties: {
         ...details,
         userId: authStore.get().profile.anonymousGroup,
         appId: window.location.hostname,
