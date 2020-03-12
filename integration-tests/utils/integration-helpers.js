@@ -123,7 +123,6 @@ const trimClustersOldestFirst = _.flow(
 
 const currentCluster = _.flow(trimClustersOldestFirst, _.last)
 
-// TODO: inline this?
 const getCurrentCluster = withUserToken(async ({ billingProject, context, testUrl, token }) => {
   const ajaxPage = await context.newPage()
   await ajaxPage.goto(testUrl)

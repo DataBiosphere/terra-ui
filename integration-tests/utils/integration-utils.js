@@ -120,7 +120,6 @@ const withScreenshot = _.curry((testName, fn) => async options => {
           const storage = new Storage()
           await storage.bucket(screenshotBucket).upload(path)
         }
-        // TODO: return something?
       } catch (e) {
         console.error('Failed to capture screenshot', e)
       }

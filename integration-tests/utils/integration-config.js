@@ -2,7 +2,6 @@ const _ = require('lodash/fp')
 const { SecretManagerServiceClient } = require('@google-cloud/secret-manager')
 
 
-// TODO: move this to a utils module
 const getSecret = async ({ project, secretName }) => {
   const client = new SecretManagerServiceClient()
   const name = `projects/${project}/secrets/${secretName}/versions/latest`

@@ -47,7 +47,7 @@ const withAuth = wrappedFn => async (req, ...args) => {
   return wrappedFn(req, ...args)
 }
 
-const getBrowser = _.once(() => puppeteer.launch({ headless: true, defaultViewport: { width: 1200, height: 800 } }))
+const getBrowser = _.once(() => puppeteer.launch({ defaultViewport: { width: 1200, height: 800 } }))
 
 const withPuppeteer = fn => async options => {
   const browser = await getBrowser()
@@ -56,7 +56,7 @@ const withPuppeteer = fn => async options => {
   try {
     return await fn({ browser, context, page, ...options })
   } finally {
-    await context.close() // TODO: return something?
+    await context.close()
   }
 }
 
