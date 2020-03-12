@@ -1,5 +1,6 @@
 {
   "agoraUrlRoot": "https://agora.dsde-dev.broadinstitute.org",
+  "bardRoot": "https://terra-bard-dev.appspot.com",
   "bondUrlRoot": "https://broad-bond-dev.appspot.com",
   "calhounUrlRoot": "https://terra-calhoun-dev.appspot.com",
   "devUrlRoot": "https://bvdp-saturn-dev.appspot.com",
@@ -10,7 +11,6 @@
   "jobManagerUrlRoot": "https://job-manager.dsde-dev.broadinstitute.org/jobs",
   "leoUrlRoot": "https://leonardo.dsde-dev.broadinstitute.org",
   "marthaUrlRoot": "https://us-central1-broad-dsde-dev.cloudfunctions.net",
-  "metricsRoot": "https://terra-metrics-dev.appspot.com",
   "orchestrationUrlRoot": "https://firecloud-orchestration.dsde-dev.broadinstitute.org",
   "rawlsUrlRoot": "https://rawls.dsde-dev.broadinstitute.org",
   "rexUrlRoot": "https://terra-rex-dev.appspot.com",
