@@ -9,7 +9,19 @@ const selectWorkspace = async (page, billingAccount, workspace) => {
 const signIntoFirecloud = async (page, token) => {
   await waitForNoSpinners(page)
   await findText(page, 'content you are looking for is currently only accessible')
-  await delay(500) // wait half a second for full load not accounted for by spinners
+  /*
+   * The FireCloud not-signed-in page renders the sign-in button while it is still doing some
+   * initialization. If you log the status of the App components state for user-status and auth2
+   * with each render, you see the following sequence:
+   *   '#{}' ''
+   *   '#{}' '[object Object]'
+   *   '#{:refresh-token-saved}' '[object Object]'
+   * If the page is used before this is complete (for example window.forceSignedIn adding
+   * :signed-in to user-status), bad things happen (for example :signed-in being dropped from
+   * user-status). Instead of reworking the sign-in logic for a case that (for the most part) only
+   * a computer will operate fast enough to encounter, we'll just slow the computer down a little.
+   */
+  await delay(1000) // wait a second for full load not accounted for by spinners
   await page.evaluate(token => window.forceSignedIn(token), token) // Note: function for Fire Cloud is forceSignedIn() while Terra is forceSignIn()
 }
 
