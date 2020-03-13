@@ -1,3 +1,7 @@
+const _ = require('lodash/fp')
+const config = require('../utils/integration-config')
+
+
 const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
   const readyState = new Promise(resolve => {
     const start = Date.now()
@@ -102,6 +106,23 @@ const findInDataTableRow = (page, entityName, text) => {
   return findElement(page, `//*[@role="grid"]//*[contains(.,"${entityName}")]/following-sibling::*[contains(.,"${text}")]`)
 }
 
+const withScreenshot = _.curry((testName, fn) => async options => {
+  const { page } = options
+  const { screenshotDir } = config
+  try {
+    return await fn(options)
+  } catch (e) {
+    if (screenshotDir) {
+      try {
+        await page.screenshot({ path: `${screenshotDir}/failure-${Date.now()}-${testName}.png`, fullPage: true })
+      } catch (e) {
+        console.error('Failed to capture screenshot', e)
+      }
+    }
+    throw e
+  }
+})
+
 module.exports = {
   click,
   clickable,
@@ -118,5 +139,6 @@ module.exports = {
   delay,
   signIntoTerra,
   navChild,
-  findInDataTableRow
+  findInDataTableRow,
+  withScreenshot
 }

@@ -60,29 +60,25 @@ commands:
       local:
         type: boolean
         default: false
-      test_url:
+      env:
         type: string
-        default: "http://localhost:3000"
-      billing_project:
-        type: string
-        default: "saturn-integration-test-dev"
+        default: local
     steps:
       - checkout
       - attach_workspace:
           at: .
       - restore_cache:
           keys:
-            - test-deps3-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
-            - test-deps3-{{ checksum "integration-tests/package.json" }}-
-            - test-deps3-
+            - test-deps4-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
+            - test-deps4-{{ checksum "integration-tests/package.json" }}-
+            - test-deps4-
       - run:
           working_directory: integration-tests
           command: yarn install --frozen-lockfile
       - save_cache:
-          key: test-deps3-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
+          key: test-deps4-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
           paths:
             - integration-tests/node_modules
-            - ~/.cache/yarn
       - when:
           condition: << parameters.local >>
           steps:
@@ -96,8 +92,7 @@ commands:
           environment:
             JEST_JUNIT_OUTPUT_DIR: "/tmp/test-results/integration-test-results.xml"
             SCREENSHOT_DIR: "/tmp/failure-screenshots"
-            TEST_URL: << parameters.test_url >>
-            BILLING_PROJECT: << parameters.billing_project >>
+            ENVIRONMENT: << parameters.env >>
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             yarn test --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
@@ -120,15 +115,14 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps3-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
-            - deps3-{{ checksum "package.json" }}-
-            - deps3-
+            - deps4-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
+            - deps4-{{ checksum "package.json" }}-
+            - deps4-
       - run: yarn install --frozen-lockfile
       - save_cache:
-          key: deps3-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
+          key: deps4-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
-            - ~/.cache/yarn
       - run: yarn test
   build:
     executor: node
@@ -136,9 +130,9 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps3-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
-            - deps3-{{ checksum "package.json" }}-
-            - deps3-
+            - deps4-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
+            - deps4-{{ checksum "package.json" }}-
+            - deps4-
       - run: yarn install --frozen-lockfile
       - run: yarn build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
@@ -196,19 +190,18 @@ jobs:
     steps:
       - integration-tests:
           local: true
+          env: local
   integration-tests-alpha:
     executor: puppeteer
     steps:
       - integration-tests:
-          billing_project: "saturn-integration-test-alpha"
-          test_url: "https://bvdp-saturn-alpha.appspot.com"
+          env: alpha
       - notify-qa
   integration-tests-staging:
     executor: puppeteer
     steps:
       - integration-tests:
-          billing_project: "saturn-integration-test-stage"
-          test_url: "https://bvdp-saturn-staging.appspot.com"
+          env: staging
       - notify-qa
 
 workflows:

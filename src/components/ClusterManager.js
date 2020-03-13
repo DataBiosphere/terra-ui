@@ -8,8 +8,6 @@ import { ButtonPrimary, Clickable, IdContainer, Link, spinnerOverlay } from 'src
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
-import { clearNotification } from 'src/components/Notifications'
-import { notify } from 'src/components/Notifications.js'
 import { dataSyncingDocUrl } from 'src/data/clusters'
 import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
@@ -18,7 +16,8 @@ import { clusterCost, currentCluster, deleteText, normalizeMachineConfig, trimCl
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { errorNotifiedClusters } from 'src/libs/state.js'
+import { clearNotification, notify } from 'src/libs/notifications'
+import { errorNotifiedClusters } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -169,11 +168,7 @@ export default class ClusterManager extends PureComponent {
       notify('warn', 'Please Update Your Runtime', {
         message: h(Fragment, [
           p(['On Sunday Oct 20th at 10am, we are introducing important updates to Terra, which are not compatible with the older notebook runtime in this workspace. After this date, you will no longer be able to save new changes to notebooks in one of these older runtimes.']),
-          h(Link, {
-            variant: 'light',
-            href: dataSyncingDocUrl,
-            ...Utils.newTabLinkProps
-          }, ['Read here for more details.'])
+          h(Link, { href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
         ])
       })
     } else if (isAfter(createdDate, twoMonthsAgo) && !isToday(dateNotified)) {

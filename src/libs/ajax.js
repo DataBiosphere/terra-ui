@@ -113,7 +113,7 @@ const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlR
 const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
-const fetchMetrics = withUrlPrefix(`${getConfig().metricsRoot}/`, fetchOk)
+const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
@@ -1096,7 +1096,7 @@ const Metrics = signal => ({
   captureEvent: withErrorIgnoring((event, details = {}) => {
     const body = {
       event,
-      data: {
+      properties: {
         ...details,
         userId: authStore.get().profile.anonymousGroup,
         appId: window.location.hostname,
@@ -1105,7 +1105,7 @@ const Metrics = signal => ({
       }
     }
     // Remove the metricsEnabled feature flag once TOS and all metrics projects are setup
-    return metricsEnabled && fetchMetrics('api/event', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+    return metricsEnabled && fetchBard('api/event', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
   })
 })
 

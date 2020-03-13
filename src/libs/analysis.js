@@ -32,7 +32,7 @@ const isSet = entityType => _.endsWith('_set', entityType)
 export const launch = async ({
   workspaceNamespace, workspaceName,
   config: { namespace: configNamespace, name: configName, rootEntityType },
-  entityType, entityNames, newSetName, expression, useCallCache = true,
+  entityType, entityNames, newSetName, expression, useCallCache = true, deleteIntermediateOutputFiles,
   onCreateSet, onLaunch, onSuccess, onFailure
 }) => {
   const workspace = Ajax().Workspaces.workspace(workspaceNamespace, workspaceName)
@@ -42,7 +42,7 @@ export const launch = async ({
   if (!!launchParams) {
     try {
       !!onLaunch && onLaunch()
-      const { submissionId } = await methodConfig.launch({ ...launchParams, useCallCache })
+      const { submissionId } = await methodConfig.launch({ ...launchParams, useCallCache, deleteIntermediateOutputFiles })
       onSuccess(submissionId)
     } catch (error) {
       onFailure(error)

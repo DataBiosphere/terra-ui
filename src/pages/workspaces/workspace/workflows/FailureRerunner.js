@@ -2,12 +2,12 @@ import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
-import { clearNotification, notify } from 'src/components/Notifications'
 import { Ajax } from 'src/libs/ajax'
 import { launch } from 'src/libs/analysis'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
+import { clearNotification, notify } from 'src/libs/notifications'
 import { rerunFailuresStatus } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -33,7 +33,7 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
     const workspace = Ajax().Workspaces.workspace(namespace, name)
     const methodConfig = workspace.methodConfig(configNamespace, configName)
 
-    const [{ workflows, useCallCache }, { rootEntityType }] = await Promise.all([
+    const [{ workflows, useCallCache, deleteIntermediateOutputFiles }, { rootEntityType }] = await Promise.all([
       workspace.submission(submissionId).get(),
       methodConfig.get()
     ])
@@ -49,7 +49,7 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
       workspaceNamespace: namespace, workspaceName: name,
       config: { namespace: configNamespace, name: configName, rootEntityType },
       entityType: rootEntityType, entityNames: _.map('entityName', failedEntities),
-      newSetName, useCallCache,
+      newSetName, useCallCache, deleteIntermediateOutputFiles,
       onCreateSet: () => rerunFailuresStatus.set({ text: 'Creating set from failures...' }),
       onLaunch: () => rerunFailuresStatus.set({ text: 'Launching new job...' }),
       onSuccess: () => {

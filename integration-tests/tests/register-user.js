@@ -1,9 +1,8 @@
 const { withRegisteredUser } = require('../utils/integration-helpers')
-const { testUrl } = require('../utils/integration-config')
 const { findText, click, clickable, signIntoTerra, dismissNotifications } = require('../utils/integration-utils')
 
 
-const testRegisterUserFn = withRegisteredUser(async ({ page, token }) => {
+const testRegisterUserFn = withRegisteredUser(async ({ page, testUrl, token }) => {
   await page.goto(testUrl)
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(page, token)
@@ -13,7 +12,7 @@ const testRegisterUserFn = withRegisteredUser(async ({ page, token }) => {
 })
 
 const testRegisterUser = {
-  name: 'register user',
+  name: 'register-user',
   fn: testRegisterUserFn
 }
 
