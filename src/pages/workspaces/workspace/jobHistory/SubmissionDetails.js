@@ -107,7 +107,7 @@ const SubmissionDetails = _.flow(
    */
   const {
     cost, methodConfigurationName: workflowName, methodConfigurationNamespace: workflowNamespace, submissionDate,
-    submissionEntity: { entityType, entityName } = {}, submitter, useCallCache, workflows = []
+    submissionEntity: { entityType, entityName } = {}, submitter, useCallCache, deleteIntermediateOutputFiles, workflows = []
   } = submission
 
   const filteredWorkflows = _.flow(
@@ -168,7 +168,8 @@ const SubmissionDetails = _.flow(
             { href: bucketBrowserUrl(`${bucketName}/${submissionId}`), ...Utils.newTabLinkProps },
             submissionId
           )]),
-          makeSection('Call Caching', [useCallCache ? 'Enabled' : 'Disabled'])
+          makeSection('Call Caching', [useCallCache ? 'Enabled' : 'Disabled']),
+          makeSection('Delete Intermediate Outputs', [deleteIntermediateOutputFiles ? 'Enabled' : 'Disabled'])
         ])
       ]),
       div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
