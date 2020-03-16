@@ -114,7 +114,6 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
         h(FormLabel, { htmlFor: id }, ['User email']),
         h(AutocompleteTextInput, {
           id,
-          instructions: 'test',
           openOnFocus: true,
           placeholderText: _.includes(searchValue, aclEmails) ?
             'This email has already been added to the list' :
