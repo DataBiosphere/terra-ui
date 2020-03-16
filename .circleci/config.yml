@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  slack: circleci/slack@3.4.1
+  slack: circleci/slack@3.4.2
 
 executors:
   node:
@@ -101,8 +101,13 @@ commands:
       - store_artifacts:
           path: /tmp/failure-screenshots
   notify-qa:
+    parameters:
+      channel:
+        type: string
+        default: ""
     steps:
       - slack/status:
+          channel: << parameters.channel >>
           include_job_number_field: false
           include_project_field: false
           failure_message: ":sadpanda: $CIRCLE_JOB failed."
@@ -160,6 +165,8 @@ jobs:
       - deploy-env:
           sa_key_var: "ALPHA_SA_KEY_JSON"
           env: "alpha"
+      - notify-qa:
+          channel: "C7H40L71D" # dsde-qa-notify
   deploy-perf:
     executor: gcloud
     steps:
@@ -172,6 +179,8 @@ jobs:
       - deploy-env:
           sa_key_var: "STAGING_SA_KEY_JSON"
           env: "staging"
+      - notify-qa:
+          channel: "C7H40L71D" # dsde-qa-notify
   run-dev-security-scans:
     executor: security-scanner
     steps:
