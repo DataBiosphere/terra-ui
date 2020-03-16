@@ -1,9 +1,10 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
-import { withWorkspaces } from 'src/components/workspace-utils'
+import { useWorkspaces } from 'src/components/workspace-utils'
+import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
 import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
 import colors from 'src/libs/colors'
@@ -11,6 +12,7 @@ import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 
 
 const styles = {
@@ -20,7 +22,7 @@ const styles = {
   }
 }
 
-const makeCard = isGATK => ({ workspace: { namespace, name, attributes: { description } } }) => {
+const makeCard = variant => ({ workspace: { namespace, name, attributes: { description } } }) => {
   return a({
     href: Nav.getLink('workspace-dashboard', { namespace, name }),
     style: {
@@ -38,61 +40,71 @@ const makeCard = isGATK => ({ workspace: { namespace, name, attributes: { descri
     ]),
     div({
       style: {
-        backgroundRepeat: 'no-repeat', backgroundPosition: 'center', borderRadius: '0 5px 5px 0',
+        backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: 'auto 100%', borderRadius: '0 5px 5px 0',
         width: 87,
-        ...(isGATK ?
-          { backgroundColor: '#333', backgroundImage: `url(${gatkLogo})` } :
-          { backgroundImage: `url(${featuredBg})`, opacity: 0.75, backgroundSize: 'auto 176px' })
+        ...Utils.switchCase(variant,
+          ['new', () => ({ backgroundImage: `url(${covidBg})` })],
+          ['gatk', () => ({ backgroundColor: '#333', backgroundImage: `url(${gatkLogo})`, backgroundSize: undefined })],
+          [Utils.DEFAULT, () => ({ backgroundImage: `url(${featuredBg})`, opacity: 0.75 })]
+        )
       }
     })
   ])
 }
 
 
-const Showcase = withWorkspaces(class Showcase extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { featuredList: StateHistory.get().featuredList }
-  }
+const Showcase = () => {
+  const { workspaces } = useWorkspaces()
+  const stateHistory = StateHistory.get()
+  const [featuredList, setFeaturedList] = useState(stateHistory.featuredList)
 
-  async componentDidMount() {
-    const featuredList = await fetch(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`).then(res => res.json())
+  Utils.useOnMount(() => {
+    const loadData = async () => {
+      const featuredList = await fetch(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`).then(res => res.json())
 
-    this.setState({ featuredList })
-    StateHistory.update({ featuredList })
-  }
+      setFeaturedList(featuredList)
+      StateHistory.update({ featuredList })
+    }
 
-  render() {
-    const { workspaces } = this.props
-    const { featuredList } = this.state
+    loadData()
+  })
 
-    const allFeatured = _.intersectionWith(
-      ({ workspace }, featured) => workspace.namespace === featured.namespace && workspace.name === featured.name,
-      workspaces,
-      featuredList)
+  const allFeatured = _.intersectionWith(
+    ({ workspace }, featured) => workspace.namespace === featured.namespace && workspace.name === featured.name,
+    workspaces,
+    featuredList)
 
-    const [bestPractices, featured] = _.partition(
-      ({ workspace: { attributes: { description } } }) => description && description.startsWith('### GATK Best Practices'), allFeatured)
+  const { bestPractices, newAndInteresting, featured } = _.groupBy(
+    ({ workspace: { namespace, name, attributes: { description } } }) => Utils.cond(
+      [description?.startsWith('### GATK Best Practices'), () => 'bestPractices'],
+      [_.find({ namespace, name }, featuredList)?.isNew, () => 'newAndInteresting'],
+      () => 'featured'
+    ),
+    allFeatured
+  )
 
-    return h(Fragment, [
-      libraryTopMatter('showcase & tutorials'),
-      div({ role: 'main' }, [
-        !(featuredList && workspaces) ?
-          centeredSpinner() :
-          div({ style: { display: 'flex', margin: '2.5rem' } }, [
-            div({ style: { marginRight: '2rem' } }, [
-              div({ style: styles.header }, 'GATK4 example workspaces'),
-              ..._.map(makeCard(true), bestPractices)
-            ]),
-            div([
-              div({ style: styles.header }, 'Featured workspaces'),
-              ..._.map(makeCard(false), featured)
-            ])
+  return h(Fragment, [
+    libraryTopMatter('showcase & tutorials'),
+    div({ role: 'main', style: { margin: '2.5rem' } }, [
+      !(featuredList && workspaces) ?
+        centeredSpinner() :
+        div({ style: { display: 'flex' } }, [
+          div({ style: { marginRight: '2rem' } }, [
+            div({ style: styles.header }, 'New and interesting'),
+            ..._.map(makeCard('new'), newAndInteresting)
+          ]),
+          div({ style: { marginRight: '2rem' } }, [
+            div({ style: styles.header }, 'GATK4 example workspaces'),
+            ..._.map(makeCard('gatk'), bestPractices)
+          ]),
+          div([
+            div({ style: styles.header }, 'Featured workspaces'),
+            ..._.map(makeCard(), featured)
           ])
-      ])
+        ])
     ])
-  }
-})
+  ])
+}
 
 
 export const navPaths = [
