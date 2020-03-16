@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Component, createRef, Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -18,8 +18,8 @@ import validate from 'validate.js'
 
 const styles = {
   currentCollaboratorsArea: {
-    margin: '2rem -1.25rem 0rem',
-    padding: '0.75rem 1.25rem',
+    margin: '0.5rem -1.25rem 0',
+    padding: '1rem 1.25rem',
     maxHeight: 550,
     overflowY: 'auto',
     borderBottom: Style.standardLine,
@@ -55,7 +55,7 @@ const AclInput = ({ value, onChange, disabled, maxAccessLevel }) => {
       })
     ]),
     div({ style: { marginLeft: '1rem' } }, [
-      div([
+      div({ style: { marginBottom: '0.2rem' } }, [
         h(LabeledCheckbox, {
           disabled: disabled || accessLevel === 'OWNER',
           checked: canShare,
@@ -80,25 +80,29 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
       shareSuggestions: [],
       groups: [],
       originalAcl: [],
-      acl: [],
-      loaded: false,
       searchValue: '',
-      accessLevel: 'READER',
-      canShare: false,
-      canCompute: false
+      acl: [],
+      loaded: false
     }
+
+    this.list = createRef()
   }
 
   render() {
-    const { workspace, onDismiss } = this.props
-    const { acl, shareSuggestions, groups, loaded, searchValue, working, updateError, accessLevel, canShare, canCompute } = this.state
-    const searchValueInvalid = !!validate({ searchValue }, { searchValue: { email: true } })
+    const { onDismiss } = this.props
+    const { acl, shareSuggestions, groups, loaded, searchValue, working, updateError } = this.state
+    const searchValueValid = !validate({ searchValue }, { searchValue: { email: true } })
+
+    const aclEmails = _.map('email', acl)
 
     const suggestions = _.flow(
       _.map('groupEmail'),
       _.concat(shareSuggestions),
+      list => _.difference(list, aclEmails),
       _.uniq
     )(groups)
+
+    const remainingSuggestions = _.difference(suggestions, _.map('email', acl))
 
     return h(Modal, {
       title: 'Share Workspace',
@@ -110,70 +114,74 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
         h(FormLabel, { htmlFor: id }, ['User email']),
         h(AutocompleteTextInput, {
           id,
+          instructions: 'test',
+          openOnFocus: true,
+          placeholderText: _.includes(searchValue, aclEmails) ?
+            'This email has already been added to the list' :
+            'Enter an email address',
+          onPick: value => {
+            !validate.single(value, { email: true, exclusion: aclEmails }) &&
+              this.setState(
+                _.flow(
+                  _.update('acl', Utils.append({ email: value, accessLevel: 'READER' })),
+                  _.update('searchValue', () => '')
+                ),
+                () => this.list.current.scrollTo({ top: this.list.current.scrollHeight, behavior: 'smooth' })
+              )
+          },
           placeholder: 'Add people or groups',
           value: searchValue,
           onChange: v => this.setState({ searchValue: v }),
-          suggestions: _.difference(suggestions, _.map('email', acl)),
+          suggestions: Utils.cond(
+            [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
+            [remainingSuggestions.length, () => remainingSuggestions],
+            []
+          ),
           style: { fontSize: 16 }
         })
       ])]),
-      h(FormLabel, ['Role']),
-      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
-        h(AclInput, {
-          value: { accessLevel, canShare, canCompute },
-          onChange: v => this.setState(v),
-          maxAccessLevel: workspace.accessLevel
-        }),
-        h(ButtonPrimary, {
-          onClick: () => this.addAcl(searchValue),
-          disabled: searchValueInvalid,
-          tooltip: searchValueInvalid && 'Not a valid email address'
-        }, ['Add User'])
-      ]),
-      div({ style: styles.currentCollaboratorsArea }, [
-        div({ style: Style.elements.sectionHeader }, ['Current Collaborators']),
-        ...acl.map(this.renderCollaborator),
+      div({ style: { ...Style.elements.sectionHeader, marginTop: '1rem' } }, ['Current Collaborators']),
+      div({ ref: this.list, style: styles.currentCollaboratorsArea }, [
+        h(Fragment, _.map(this.renderCollaborator, Utils.toIndexPairs(acl))),
         !loaded && centeredSpinner()
       ]),
       updateError && div({ style: { marginTop: '1rem' } }, [
-        div({}, ['An error occurred:']),
+        div(['An error occurred:']),
         updateError
       ]),
       working && spinnerOverlay
     ])
   }
 
-  addAcl(email) {
-    const { acl, accessLevel, canShare, canCompute } = this.state
-    this.setState({ acl: Utils.append({ email, accessLevel, canShare, canCompute, pending: false }, acl), searchValue: '' })
-  }
-
-  renderCollaborator = (aclItem, index) => {
+  renderCollaborator = ([index, aclItem]) => {
     const { email, accessLevel, pending } = aclItem
     const POAccessLevel = 'PROJECT_OWNER'
-    const isPO = accessLevel === POAccessLevel
-    const isMe = email === getUser().email
+    const disabled = accessLevel === POAccessLevel || email === getUser().email
     const { workspace } = this.props
-    const { acl } = this.state
+    const { acl, originalAcl } = this.state
+    const isOld = _.find({ email }, originalAcl)
 
     return div({
-      style: { display: 'flex', padding: '0.5rem', borderTop: index && `1px solid ${colors.dark(0.4)}` }
+      style: {
+        display: 'flex', alignItems: 'center', borderRadius: 5,
+        padding: '0.5rem 0.75rem', marginBottom: 10,
+        border: `1px solid ${isOld ? colors.dark(0.25) : colors.success(0.5)}`,
+        backgroundColor: isOld ? colors.light(0.2) : colors.success(0.05)
+      }
     }, [
-      div({
-        style: { flex: 1 }
-      }, [
-        div({}, [email]),
+      div({ style: { flex: 1 } }, [
+        email,
         pending && div({ style: styles.pending }, ['Pending']),
         h(AclInput, {
           value: aclItem,
           onChange: v => this.setState(_.set(['acl', index], v)),
-          disabled: isPO || isMe,
+          disabled,
           maxAccessLevel: workspace.accessLevel
         })
       ]),
-      !isPO && !isMe && h(Link, {
+      !disabled && h(Link, {
         onClick: () => this.setState({ acl: _.remove({ email }, acl) })
-      }, [icon('minus-circle', { size: 24 })])
+      }, [icon('times', { size: 20, style: { marginRight: '0.5rem' } })])
     ])
   }
 
