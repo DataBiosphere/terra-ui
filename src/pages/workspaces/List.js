@@ -88,7 +88,7 @@ export const WorkspaceList = () => {
   const [accessLevelsFilter, setAccessLevelsFilter] = useState(query.accessLevelsFilter || [])
   const [projectsFilter, setProjectsFilter] = useState(query.projectsFilter || undefined)
   const [submissionsFilter, setSubmissionsFilter] = useState(query.submissionsFilter || [])
-  const [tab, setTab] = useState(query.tab || 'my')
+  const [tab, setTab] = useState(query.tab || 'myWorkspaces')
   const [tagsFilter, setTagsFilter] = useState(query.tagsFilter || [])
 
   const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false)
@@ -111,7 +111,7 @@ export const WorkspaceList = () => {
     // Note: setting undefined so that falsy values don't show up at all
     const newSearch = qs.stringify({
       ...query, filter: filter || undefined, accessLevelsFilter, projectsFilter, tagsFilter, submissionsFilter,
-      tab: tab === 'my' ? undefined : tab
+      tab: tab === 'myWorkspaces' ? undefined : tab
     }, { addQueryPrefix: true })
 
     if (newSearch !== Nav.history.location.search) {
@@ -121,14 +121,22 @@ export const WorkspaceList = () => {
 
   const getWorkspace = id => _.find({ workspace: { workspaceId: id } }, workspaces)
 
-  const initialFiltered = useMemo(() => ({
-    my: _.filter(ws => !ws.public || Utils.canWrite(ws.accessLevel), workspaces),
-    public: _.filter('public', workspaces),
-    featured: _.flow(
-      _.map(featuredWs => _.find({ workspace: featuredWs }, workspaces)),
-      _.compact
-    )(featuredList)
-  }), [workspaces, featuredList])
+  const initialFiltered = useMemo(() => {
+    const [newWsList, featuredWsList] = _.partition('isNew', featuredList)
+
+    return {
+      myWorkspaces: _.filter(ws => !ws.public || Utils.canWrite(ws.accessLevel), workspaces),
+      public: _.filter('public', workspaces),
+      newAndInteresting: _.flow(
+        _.map(({ namespace, name }) => _.find({ workspace: { namespace, name } }, workspaces)),
+        _.compact
+      )(newWsList),
+      featured: _.flow(
+        _.map(({ namespace, name }) => _.find({ workspace: { namespace, name } }, workspaces)),
+        _.compact
+      )(featuredWsList)
+    }
+  }, [workspaces, featuredList])
 
   const filteredWorkspaces = useMemo(() => _.mapValues(
     _.filter(ws => {
@@ -169,7 +177,7 @@ export const WorkspaceList = () => {
       rowCount: sortedWorkspaces.length,
       noContentRenderer: () => Utils.cond(
         [loadingWorkspaces, () => null],
-        [_.isEmpty(initialFiltered.my) && tab === 'my', () => noWorkspacesMessage],
+        [_.isEmpty(initialFiltered.myWorkspaces) && tab === 'myWorkspaces', () => noWorkspacesMessage],
         () => div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
       ),
       variant: 'light',
@@ -357,9 +365,9 @@ export const WorkspaceList = () => {
         tabs: _.map(key => ({
           key,
           title: span({ style: { padding: '0 1rem' } }, [
-            _.upperCase(`${key} workspaces`), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`
+            _.upperCase(key), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`
           ])
-        }), ['my', 'public', 'featured'])
+        }), ['myWorkspaces', 'newAndInteresting', 'featured', 'public'])
       }),
       renderedWorkspaces,
       creatingNewWorkspace && h(NewWorkspaceModal, {
