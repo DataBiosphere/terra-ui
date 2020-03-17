@@ -16,6 +16,7 @@ import * as Utils from 'src/libs/utils'
 
 
 const styles = {
+  column: { marginRight: '1.5rem', flex: '1 1 0px', maxWidth: 415 },
   header: {
     fontSize: 22, color: colors.dark(), fontWeight: 500,
     marginBottom: '1rem'
@@ -27,7 +28,7 @@ const makeCard = variant => ({ workspace: { namespace, name, attributes: { descr
     href: Nav.getLink('workspace-dashboard', { namespace, name }),
     style: {
       backgroundColor: 'white',
-      width: 400, height: 175,
+      height: 175,
       borderRadius: 5,
       display: 'flex',
       marginBottom: 20,
@@ -85,19 +86,19 @@ const Showcase = () => {
 
   return h(Fragment, [
     libraryTopMatter('showcase & tutorials'),
-    div({ role: 'main', style: { margin: '2.5rem' } }, [
+    div({ role: 'main', style: { margin: '2.5rem 2rem' } }, [
       !(featuredList && workspaces) ?
         centeredSpinner() :
         div({ style: { display: 'flex' } }, [
-          !_.isEmpty(newAndInteresting) && div({ style: { marginRight: '2rem' } }, [
+          !_.isEmpty(newAndInteresting) && div({ style: styles.column }, [
             div({ style: styles.header }, 'New and interesting'),
             ..._.map(makeCard('new'), newAndInteresting)
           ]),
-          div({ style: { marginRight: '2rem' } }, [
+          div({ style: styles.column }, [
             div({ style: styles.header }, 'GATK4 example workspaces'),
             ..._.map(makeCard('gatk'), bestPractices)
           ]),
-          div([
+          div({ style: { ...styles.column, marginRight: undefined } }, [
             div({ style: styles.header }, 'Featured workspaces'),
             ..._.map(makeCard(), featured)
           ])
