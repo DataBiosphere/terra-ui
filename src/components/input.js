@@ -213,7 +213,7 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
 }
 
 const withAutocomplete = WrappedComponent => ({
-  instructions, value, onChange, onPick,
+  instructions, value, onChange, onPick, onClick,
   suggestions: rawSuggestions, style, id, renderSuggestion = _.identity, openOnFocus = true, placeholderText, ...props
 }) => {
   const suggestions = _.filter(Utils.textMatch(value), rawSuggestions)
@@ -236,6 +236,10 @@ const withAutocomplete = WrappedComponent => ({
         h(WrappedComponent, getInputProps({
           style,
           type: 'search',
+          onClick: evt => {
+            openOnFocus && openMenu()
+            onClick && onClick(evt)
+          },
           onKeyDown: e => {
             if (e.key === 'Escape') {
               (value || isOpen) && e.stopPropagation() // prevent e.g. closing a modal
@@ -253,24 +257,20 @@ const withAutocomplete = WrappedComponent => ({
           nativeOnChange: true,
           ...props
         })),
-        isOpen && Utils.cond(
-          [!suggestions.length && placeholderText, () => h(AutocompleteSuggestions, {
-            target: getInputProps().id,
-            containerProps: getMenuProps()
-          }, [
-            div({
-              style: { textAlign: 'center', paddingTop: '0.75rem', height: '2.5rem', color: colors.dark(0.8) }
-            }, [placeholderText])
-          ])],
-          [!!suggestions.length, () => h(AutocompleteSuggestions, {
-            target: getInputProps().id,
-            containerProps: getMenuProps()
-          }, _.map(([index, item]) => {
+        isOpen && h(AutocompleteSuggestions, {
+          target: getInputProps().id,
+          containerProps: getMenuProps()
+        },
+        Utils.cond(
+          [!suggestions.length && placeholderText, () => [div({
+            style: { textAlign: 'center', paddingTop: '0.75rem', height: '2.5rem', color: colors.dark(0.8) }
+          }, [placeholderText])]],
+          [!!suggestions.length, () => _.map(([index, item]) => {
             return div(getItemProps({
               item, key: item,
               style: styles.suggestion(highlightedIndex === index)
             }), [renderSuggestion(item)])
-          }, Utils.toIndexPairs(suggestions)))]
+          }, Utils.toIndexPairs(suggestions))])
         )
       ])
     }
