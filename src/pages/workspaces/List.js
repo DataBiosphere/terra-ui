@@ -128,11 +128,11 @@ export const WorkspaceList = () => {
       myWorkspaces: _.filter(ws => !ws.public || Utils.canWrite(ws.accessLevel), workspaces),
       public: _.filter('public', workspaces),
       newAndInteresting: _.flow(
-        _.map(({ isNew, ...featuredWs }) => _.find({ workspace: featuredWs }, workspaces)),
+        _.map(({ namespace, name }) => _.find({ workspace: { namespace, name } }, workspaces)),
         _.compact
       )(newWsList),
       featured: _.flow(
-        _.map(featuredWs => _.find({ workspace: featuredWs }, workspaces)),
+        _.map(({ namespace, name }) => _.find({ workspace: { namespace, name } }, workspaces)),
         _.compact
       )(featuredWsList)
     }
