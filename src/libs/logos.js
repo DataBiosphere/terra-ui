@@ -10,7 +10,9 @@ import fcLogo from 'src/images/brands/firecloud/FireCloud-Logo.svg'
 import terraLogoWhite from 'src/images/brands/terra/logo-grey.svg'
 import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg'
 import terraLogo from 'src/images/brands/terra/logo.svg'
-import { isAnvil, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
+import ukbLogo from 'src/images/brands/ukbiobank/uk-biobank-logo-color.svg'
+import ukbLogoWhite from 'src/images/brands/ukbiobank/uk-biobank-logo-white.svg'
+import { isAnvil, isBioDataCatalyst, isDatastage, isFirecloud, isTerra, isUKBiobank } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
@@ -19,6 +21,7 @@ export const getAppName = (longName = false) => Utils.cond(
   [isDatastage(), 'DataStage'],
   [isAnvil(), longName ? 'The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space)' : 'AnVIL'],
   [isBioDataCatalyst(), 'NHLBI BioData Catalyst'],
+  [isUKBiobank(), 'UK Biobank'],
   'Terra'
 )
 
@@ -28,7 +31,8 @@ const pickBrandLogo = (color = false) => Utils.cond(
   [isFirecloud(), color ? fcLogo : fcLogoWhite],
   [isDatastage(), color ? datastageLogo : datastageLogoWhite],
   [isAnvil(), color ? anvilLogo : anvilLogoWhite],
-  [isBioDataCatalyst(), color ? bioDataCatalystLogo : bioDataCatalystLogoWhite]
+  [isBioDataCatalyst(), color ? bioDataCatalystLogo : bioDataCatalystLogoWhite],
+  [isUKBiobank(), color ? ukbLogo : ukbLogoWhite]
 )
 
 export const terraLogoMaker = (logoVariant, style) => img({ alt: 'Terra logo', role: 'img', src: logoVariant, style })
