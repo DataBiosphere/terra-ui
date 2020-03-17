@@ -89,7 +89,7 @@ const Showcase = () => {
       !(featuredList && workspaces) ?
         centeredSpinner() :
         div({ style: { display: 'flex' } }, [
-          div({ style: { marginRight: '2rem' } }, [
+          !_.isEmpty(newAndInteresting) && div({ style: { marginRight: '2rem' } }, [
             div({ style: styles.header }, 'New and interesting'),
             ..._.map(makeCard('new'), newAndInteresting)
           ]),
