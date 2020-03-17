@@ -95,12 +95,12 @@ const Showcase = () => {
             ..._.map(makeCard('new'), newAndInteresting)
           ]),
           div({ style: styles.column }, [
-            div({ style: styles.header }, 'GATK4 example workspaces'),
-            ..._.map(makeCard('gatk'), bestPractices)
-          ]),
-          div({ style: { ...styles.column, marginRight: undefined } }, [
             div({ style: styles.header }, 'Featured workspaces'),
             ..._.map(makeCard(), featured)
+          ]),
+          div({ style: { ...styles.column, marginRight: undefined } }, [
+            div({ style: styles.header }, 'GATK4 example workspaces'),
+            ..._.map(makeCard('gatk'), bestPractices)
           ])
         ])
     ])
