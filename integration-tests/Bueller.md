@@ -12,7 +12,7 @@ Requires an OpenID Connect ID token for the service account `bueller-user@terra-
 
 To generate a token, create a JWT with the additional claim `target_audience: 'https://terra-bueller.appspot.com'`, sign it with the private key, and pass it to Google's OAuth2 `token` endpoint. Using one of Google's client libraries will make this easier.
 
-Pass the token in a header with every call: `Authentication: Bearer <token>`
+Pass the token in a header with every call: `Authorization: Bearer <token>`
 
 ## Developing
 
