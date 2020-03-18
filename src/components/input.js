@@ -19,7 +19,10 @@ const styles = {
     position: 'fixed', top: 0, left: 0,
     maxHeight: 36 * 8 + 2, overflowY: 'auto',
     backgroundColor: 'white',
-    border: `1px solid ${colors.light()}`
+    border: `1px solid ${colors.light()}`,
+    margin: '8px 0',
+    borderRadius: '4px',
+    boxShadow: '0 0 1px 0 rgba(0,0,0,0.12), 0 8px 8px 0 rgba(0,0,0,0.24)'
   },
   suggestion: isSelected => ({
     display: 'block', lineHeight: '2.25rem',
@@ -213,8 +216,8 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
 }
 
 const withAutocomplete = WrappedComponent => ({
-  instructions, value, onChange, onPick, onClick,
-  suggestions: rawSuggestions, style, id, renderSuggestion = _.identity, openOnFocus = true, placeholderText, ...props
+  instructions, value, onChange, onPick, suggestions: rawSuggestions, style, id,
+  renderSuggestion = _.identity, openOnFocus = true, placeholderText, ...props
 }) => {
   const suggestions = _.filter(Utils.textMatch(value), rawSuggestions)
 
@@ -236,10 +239,6 @@ const withAutocomplete = WrappedComponent => ({
         h(WrappedComponent, getInputProps({
           style,
           type: 'search',
-          onClick: evt => {
-            openOnFocus && openMenu()
-            onClick && onClick(evt)
-          },
           onKeyDown: e => {
             if (e.key === 'Escape') {
               (value || isOpen) && e.stopPropagation() // prevent e.g. closing a modal

@@ -31,11 +31,12 @@ const styles = {
   }
 }
 
-const AclInput = ({ value, onChange, disabled, maxAccessLevel }) => {
+const AclInput = ({ value, onChange, disabled, maxAccessLevel, autoFocus }) => {
   const { accessLevel, canShare, canCompute } = value
   return div({ style: { display: 'flex', marginTop: '0.25rem' } }, [
     div({ style: { width: 200 } }, [
       h(Select, {
+        autoFocus,
         isSearchable: false,
         isDisabled: disabled,
         getOptionLabel: o => Utils.normalizeLabel(o.value),
@@ -159,6 +160,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
     const { workspace } = this.props
     const { acl, originalAcl } = this.state
     const isOld = _.find({ email }, originalAcl)
+    const numAdditions = _.filter(({ email }) => !_.some({ email }, originalAcl), acl).length
 
     return div({
       style: {
@@ -172,6 +174,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
         email,
         pending && div({ style: styles.pending }, ['Pending']),
         h(AclInput, {
+          autoFocus: !!numAdditions,
           value: aclItem,
           onChange: v => this.setState(_.set(['acl', index], v)),
           disabled,
