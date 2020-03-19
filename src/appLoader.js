@@ -19,6 +19,17 @@ marked.setOptions({ sanitize: true, sanitizer: _.escape })
 
 window._ = _
 
+if (process.env.NODE_ENV !== 'production') {
+  const axe = require('react-axe')
+  const React = require('react')
+  axe(React, ReactDOM, 500, {
+    runOnly: {
+      type: 'tag',
+      values: ['section508']
+    }
+  })
+}
+
 ReactDOM.render(h(Main), appRoot)
 initializeAuth()
 initializeTCell()
