@@ -261,10 +261,10 @@ const withAutocomplete = WrappedComponent => ({
           containerProps: getMenuProps()
         },
         Utils.cond(
-          [!suggestions.length && placeholderText, () => [div({
+          [_.isEmpty(suggestions) && placeholderText, () => [div({
             style: { textAlign: 'center', paddingTop: '0.75rem', height: '2.5rem', color: colors.dark(0.8) }
           }, [placeholderText])]],
-          [!!suggestions.length, () => _.map(([index, item]) => {
+          [!_.isEmpty(suggestions), () => _.map(([index, item]) => {
             return div(getItemProps({
               item, key: item,
               style: styles.suggestion(highlightedIndex === index)

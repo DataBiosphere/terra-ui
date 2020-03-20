@@ -124,7 +124,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
               this.setState(
                 _.flow(
                   _.update('acl', Utils.append({ email: value, accessLevel: 'READER' })),
-                  _.update('searchValue', () => '')
+                  _.set('searchValue', '')
                 ),
                 () => this.list.current.scrollTo({ top: this.list.current.scrollHeight, behavior: 'smooth' })
               )
@@ -135,7 +135,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
           suggestions: Utils.cond(
             [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
             [remainingSuggestions.length, () => remainingSuggestions],
-            []
+            () => []
           ),
           style: { fontSize: 16 }
         })
