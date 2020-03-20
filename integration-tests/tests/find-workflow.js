@@ -14,6 +14,7 @@ const testFindWorkflowFn = withUserToken(withWorkspace(async ({ billingProject, 
 
   await firecloud.signIntoFirecloud(page, token)
   await findText(page, workflowName)
+  await findText(page, 'Synopsis') // wait for spinner overlay
   await click(page, clickable({ textContains: 'Export to Workspace...' }))
   await click(page, clickable({ textContains: `${workflowName}-configured` }))
   await click(page, clickable({ textContains: 'Use Selected Configuration' }))

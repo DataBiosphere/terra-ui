@@ -1,3 +1,8 @@
+const _ = require('lodash/fp')
+const { google } = require('googleapis')
+const puppeteer = require('puppeteer')
+
+
 class Response {
   constructor(status, data) {
     this.status = status
@@ -24,8 +29,41 @@ const validateInput = (value, schema) => {
   }
 }
 
+const getAuthClient = _.once(() => {
+  const auth = new google.auth.GoogleAuth({
+    scopes: ['https://www.googleapis.com/auth/cloud-platform']
+  })
+  return auth.getClient()
+})
+
+const withAuth = wrappedFn => async (req, ...args) => {
+  const idToken = (req.headers.authorization || '').split(' ')[1]
+  const authClient = await getAuthClient()
+  const ticket = await authClient.verifyIdToken({ idToken, audience: 'https://terra-bueller.appspot.com' })
+  const { email } = ticket.getPayload()
+  if (email !== 'bueller-user@terra-bueller.iam.gserviceaccount.com') {
+    throw new Response(403)
+  }
+  return wrappedFn(req, ...args)
+}
+
+const getBrowser = _.once(() => puppeteer.launch({ defaultViewport: { width: 1200, height: 800 } }))
+
+const withPuppeteer = fn => async options => {
+  const browser = await getBrowser()
+  const context = await browser.createIncognitoBrowserContext()
+  const page = await context.newPage()
+  try {
+    return await fn({ browser, context, page, ...options })
+  } finally {
+    await context.close()
+  }
+}
+
 module.exports = {
   Response,
   promiseHandler,
-  validateInput
+  validateInput,
+  withAuth,
+  withPuppeteer
 }
