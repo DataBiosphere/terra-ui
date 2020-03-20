@@ -20,8 +20,8 @@ const styles = {
     maxHeight: 36 * 8 + 2, overflowY: 'auto',
     backgroundColor: 'white',
     border: `1px solid ${colors.light()}`,
-    margin: '8px 0',
-    borderRadius: '4px',
+    margin: '0.5rem 0',
+    borderRadius: 4,
     boxShadow: '0 0 1px 0 rgba(0,0,0,0.12), 0 8px 8px 0 rgba(0,0,0,0.24)'
   },
   suggestion: isSelected => ({
