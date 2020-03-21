@@ -4,7 +4,7 @@ const { click, clickable, dismissNotifications, findText, select, signIntoTerra 
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
-const testWorkflowIdentifier = 'github.com/DataBiosphere/topmed-workflows/UM_variant_caller_wdl:1.32.0'
+const testWorkflowIdentifier = 'github.com/DataBiosphere/topmed-workflows/UM_variant_caller_wdl:1.31.0'
 
 const testImportDockstoreWorkflowFn = withUserToken(async options => {
   const { page, testUrl } = options
