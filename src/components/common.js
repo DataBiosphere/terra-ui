@@ -7,7 +7,7 @@ import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner, icon } from 'src/components/icons'
+import { icon, viewportSpinner } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
@@ -240,7 +240,7 @@ const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
       ...outerStyles
     }
   }, [
-    centeredSpinner({
+    viewportSpinner({
       size: 64,
       style: { backgroundColor: 'rgba(255, 255, 255, 0.85)', padding: '1rem', borderRadius: '0.5rem', ...innerStyles }
     })

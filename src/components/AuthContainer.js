@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
-import { centeredSpinner } from 'src/components/icons'
+import { viewportSpinner } from 'src/components/icons'
 import { useRoute } from 'src/libs/nav'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -13,15 +13,16 @@ import TermsOfService from 'src/pages/TermsOfService'
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute()
   const { isSignedIn, registrationStatus, acceptedTos, profile } = Utils.useStore(authStore)
+
   return Utils.cond(
-    [isSignedIn === undefined && !isPublic, centeredSpinner],
+    [isSignedIn === undefined && !isPublic, viewportSpinner],
     [isSignedIn === false && !isPublic, h(SignIn)],
-    [registrationStatus === undefined && !isPublic, centeredSpinner],
+    [registrationStatus === undefined && !isPublic, viewportSpinner],
     [registrationStatus === 'unregistered', h(Register)],
     [registrationStatus === 'disabled', () => h(Disabled)],
-    [acceptedTos === undefined && !isPublic, centeredSpinner],
+    [acceptedTos === undefined && !isPublic, viewportSpinner],
     [acceptedTos === false && name !== 'privacy', () => h(TermsOfService)],
-    [_.isEmpty(profile) && !isPublic, centeredSpinner],
+    [_.isEmpty(profile) && !isPublic, viewportSpinner],
     children
   )
 }

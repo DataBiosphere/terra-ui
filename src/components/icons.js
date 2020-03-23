@@ -33,3 +33,13 @@ export const wdlIcon = ({ style = {}, ...props } = {}) => div({
   },
   ...props
 }, ['WDL'])
+
+
+export const viewportSpinner = ({ size = 48, ...props } = {}) => spinner(_.merge({
+  size, style: {
+    display: 'block',
+    position: 'fixed',
+    top: `calc(50vh - ${size / 2}px)`,
+    left: `calc(50vw - ${size / 2}px)`
+  }
+}, props))
