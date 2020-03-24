@@ -25,7 +25,6 @@ export const centeredSpinner = ({ size = 48, ...props } = {}) => spinner(_.merge
   }
 }, props))
 
-
 export const profilePic = ({ size, style, ...props } = {}) => img({
   alt: 'Google profile image',
   src: getUser().imageUrl,
