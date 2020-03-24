@@ -43,5 +43,3 @@ export const wdlIcon = ({ style = {}, ...props } = {}) => div({
   },
   ...props
 }, ['WDL'])
-
-
