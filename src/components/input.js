@@ -19,7 +19,10 @@ const styles = {
     position: 'fixed', top: 0, left: 0,
     maxHeight: 36 * 8 + 2, overflowY: 'auto',
     backgroundColor: 'white',
-    border: `1px solid ${colors.light()}`
+    border: `1px solid ${colors.light()}`,
+    margin: '0.5rem 0',
+    borderRadius: 4,
+    boxShadow: '0 0 1px 0 rgba(0,0,0,0.12), 0 8px 8px 0 rgba(0,0,0,0.24)'
   },
   suggestion: isSelected => ({
     display: 'block', lineHeight: '2.25rem',
@@ -212,11 +215,15 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
   ])
 }
 
-const withAutocomplete = WrappedComponent => ({ value, onChange, suggestions: rawSuggestions, style, id, renderSuggestion = _.identity, openOnFocus = true, ...props }) => {
+const withAutocomplete = WrappedComponent => ({
+  instructions, value, onChange, onPick, suggestions: rawSuggestions, style, id,
+  renderSuggestion = _.identity, openOnFocus = true, placeholderText, ...props
+}) => {
   const suggestions = _.filter(Utils.textMatch(value), rawSuggestions)
 
   return h(Downshift, {
     selectedItem: value,
+    onChange: onPick,
     onInputValueChange: newValue => {
       if (newValue !== value) {
         onChange(newValue)
@@ -225,11 +232,13 @@ const withAutocomplete = WrappedComponent => ({ value, onChange, suggestions: ra
     inputId: id
   }, [
     ({ getInputProps, getMenuProps, getItemProps, isOpen, openMenu, toggleMenu, highlightedIndex }) => {
-      return div({ style: { width: '100%', display: 'inline-flex' } }, [
+      return div({
+        onFocus: openOnFocus ? openMenu : undefined,
+        style: { width: '100%', display: 'inline-flex' }
+      }, [
         h(WrappedComponent, getInputProps({
           style,
           type: 'search',
-          onFocus: openOnFocus ? openMenu : undefined,
           onKeyDown: e => {
             if (e.key === 'Escape') {
               (value || isOpen) && e.stopPropagation() // prevent e.g. closing a modal
@@ -240,20 +249,28 @@ const withAutocomplete = WrappedComponent => ({ value, onChange, suggestions: ra
               toggleMenu()
             } else if (_.includes(e.key, ['ArrowUp', 'ArrowDown']) && !suggestions.length) {
               e.nativeEvent.preventDownshiftDefault = true
+            } else if (e.key === 'Enter') {
+              onPick && onPick(value)
             }
           },
           nativeOnChange: true,
           ...props
         })),
-        isOpen && !!suggestions.length && h(AutocompleteSuggestions, {
+        isOpen && h(AutocompleteSuggestions, {
           target: getInputProps().id,
           containerProps: getMenuProps()
-        }, _.map(([index, item]) => {
-          return div(getItemProps({
-            item, key: item,
-            style: styles.suggestion(highlightedIndex === index)
-          }), [renderSuggestion(item)])
-        }, Utils.toIndexPairs(suggestions)))
+        },
+        Utils.cond(
+          [_.isEmpty(suggestions) && placeholderText, () => [div({
+            style: { textAlign: 'center', paddingTop: '0.75rem', height: '2.5rem', color: colors.dark(0.8) }
+          }, [placeholderText])]],
+          [!_.isEmpty(suggestions), () => _.map(([index, item]) => {
+            return div(getItemProps({
+              item, key: item,
+              style: styles.suggestion(highlightedIndex === index)
+            }), [renderSuggestion(item)])
+          }, Utils.toIndexPairs(suggestions))])
+        )
       ])
     }
   ])

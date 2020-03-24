@@ -1,5 +1,6 @@
 const _ = require('lodash/fp')
-const config = require('../utils/integration-config')
+const { Storage } = require('@google-cloud/storage')
+const { screenshotBucket, screenshotDir } = require('../utils/integration-config')
 
 
 const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
@@ -108,13 +109,17 @@ const findInDataTableRow = (page, entityName, text) => {
 
 const withScreenshot = _.curry((testName, fn) => async options => {
   const { page } = options
-  const { screenshotDir } = config
   try {
     return await fn(options)
   } catch (e) {
     if (screenshotDir) {
       try {
-        await page.screenshot({ path: `${screenshotDir}/failure-${Date.now()}-${testName}.png`, fullPage: true })
+        const path = `${screenshotDir}/failure-${Date.now()}-${testName}.png`
+        await page.screenshot({ path, fullPage: true })
+        if (screenshotBucket) {
+          const storage = new Storage()
+          await storage.bucket(screenshotBucket).upload(path)
+        }
       } catch (e) {
         console.error('Failed to capture screenshot', e)
       }
