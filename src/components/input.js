@@ -223,7 +223,7 @@ const withAutocomplete = WrappedComponent => ({
 
   return h(Downshift, {
     selectedItem: value,
-    onSelect: v => !!v && onPick(v),
+    onSelect: v => !!v && onPick?.(v),
     onInputValueChange: newValue => {
       if (newValue !== value) {
         onChange(newValue)
