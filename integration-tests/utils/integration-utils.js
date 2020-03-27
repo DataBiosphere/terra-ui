@@ -107,6 +107,19 @@ const findInDataTableRow = (page, entityName, text) => {
   return findElement(page, `//*[@role="grid"]//*[contains(.,"${entityName}")]/following-sibling::*[contains(.,"${text}")]`)
 }
 
+const openNotification = async page => {
+  //close out any non-error notifications first
+  await dismissNotifications(page)
+
+  const errorDetails = await page.$x('(//a | //*[@role="button"] | //button)[contains(normalize-space(.),"Details")]')
+
+  await Promise.all(
+    errorDetails.map(handle => handle.click())
+  )
+
+  return errorDetails.length
+}
+
 const withScreenshot = _.curry((testName, fn) => async options => {
   const { page } = options
   try {
@@ -115,10 +128,22 @@ const withScreenshot = _.curry((testName, fn) => async options => {
     if (screenshotDir) {
       try {
         const path = `${screenshotDir}/failure-${Date.now()}-${testName}.png`
+        const failureNotificationDetailsPath = `${screenshotDir}/failureDetails-${Date.now()}-${testName}.png`
+
         await page.screenshot({ path, fullPage: true })
+
+        const notificationsPresent = await openNotification(page)
+
+        if (!!notificationsPresent) {
+          await page.screenshot({ path: failureNotificationDetailsPath, fullPage: true })
+        }
+
         if (screenshotBucket) {
           const storage = new Storage()
           await storage.bucket(screenshotBucket).upload(path)
+          if (notificationsPresent) {
+            await storage.bucket(screenshotBucket).upload({ path: failureNotificationDetailsPath })
+          }
         }
       } catch (e) {
         console.error('Failed to capture screenshot', e)
@@ -145,5 +170,6 @@ module.exports = {
   signIntoTerra,
   navChild,
   findInDataTableRow,
-  withScreenshot
+  withScreenshot,
+  openNotification
 }
