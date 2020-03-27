@@ -14,7 +14,16 @@ export const icon = (shape, { size = 16, ...props } = {}) => _.invokeArgs(shape,
 
 export const spinner = props => icon('loadingSpinner', _.merge({ size: 24, style: { color: colors.primary() } }, props))
 
-export const centeredSpinner = props => spinner(_.merge({ size: 48, style: { display: 'block', margin: 'auto' } }, props))
+export const centeredSpinner = ({ size = 48, ...props } = {}) => spinner(_.merge({
+  size, style: {
+    display: 'block',
+    position: 'sticky',
+    top: `calc(min(50%, 50vh) - ${size / 2}px)`,
+    bottom: `calc(min(50%, 50vh) - ${size / 2}px)`,
+    left: `calc(min(50%, 50vw) - ${size / 2}px)`,
+    right: `calc(min(50%, 50vw) - ${size / 2}px)`
+  }
+}, props))
 
 export const profilePic = ({ size, style, ...props } = {}) => img({
   alt: 'Google profile image',

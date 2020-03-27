@@ -49,7 +49,7 @@ body {
   position: absolute;
   width: 100%;
   min-width: 1200px;
-  overflow-x: auto;
+  overflow: auto;
 }
 
 table {
@@ -62,7 +62,6 @@ a {
 }
 
 #root {
-  overflow: auto;
   height: 100%;
   position: relative;
   z-index: 0;
