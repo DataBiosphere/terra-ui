@@ -1,6 +1,5 @@
 const _ = require('lodash/fp')
 
-const { billingProject, testUrl } = require('./integration-config')
 const { signIntoTerra, clickable, click, dismissNotifications, fillIn, input, delay } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -8,7 +7,7 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 
 const defaultTimeout = 5 * 60 * 1000
 
-const makeWorkspace = async ({ context, token }) => {
+const makeWorkspace = async ({ billingProject, context, testUrl, token }) => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
@@ -27,7 +26,7 @@ const makeWorkspace = async ({ context, token }) => {
   return workspaceName
 }
 
-const deleteWorkspace = async (workspaceName, { context, token }) => {
+const deleteWorkspace = async (workspaceName, { billingProject, context, testUrl, token }) => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
@@ -75,7 +74,7 @@ const withUser = test => async args => {
   }
 }
 
-const addUserToBilling = withUserToken(async ({ email, token }) => {
+const addUserToBilling = withUserToken(async ({ billingProject, context, email, testUrl, token }) => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
@@ -90,7 +89,7 @@ const addUserToBilling = withUserToken(async ({ email, token }) => {
   await ajaxPage.close()
 })
 
-const removeUserFromBilling = withUserToken(async ({ email, token }) => {
+const removeUserFromBilling = withUserToken(async ({ billingProject, context, email, testUrl, token }) => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
@@ -124,35 +123,36 @@ const trimClustersOldestFirst = _.flow(
 
 const currentCluster = _.flow(trimClustersOldestFirst, _.last)
 
-const getCurrentCluster = withUserToken(async ({ email, token }) => {
+const getCurrentCluster = withUserToken(async ({ billingProject, context, testUrl, token }) => {
   const ajaxPage = await context.newPage()
   await ajaxPage.goto(testUrl)
   await signIntoTerra(ajaxPage, token)
 
-  const clusters = await ajaxPage.evaluate((email, billingProject) => {
+  const clusters = await ajaxPage.evaluate(billingProject => {
     return window.Ajax().Clusters.list({ googleProject: billingProject })
-  }, billingProject, email)
+  }, billingProject)
 
   await ajaxPage.close()
   return currentCluster(clusters)
 })
 
-const deleteCluster = withUserToken(async ({ email, token }) => {
+const deleteCluster = withUserToken(async ({ billingProject, context, testUrl, token }) => {
   const ajaxPage = await context.newPage()
   await ajaxPage.goto(testUrl)
   await signIntoTerra(ajaxPage, token)
 
-  const currentC = await getCurrentCluster()
-  currentC && await ajaxPage.evaluate((currentC, email, billingProject) => {
+  const currentC = await getCurrentCluster({ billingProject, context, testUrl })
+  currentC && await ajaxPage.evaluate((currentC, billingProject) => {
     return window.Ajax().Clusters.cluster(billingProject, currentC.clusterName).delete()
-  }, currentC, email, billingProject)
+  }, currentC, billingProject)
 
   currentC && console.info(`deleted cluster: ${currentC.clusterName}`)
 
   await ajaxPage.close()
 })
 
-const withRegisteredUser = test => withUser(async ({ page, token, ...args }) => {
+const withRegisteredUser = test => withUser(async args => {
+  const { context, testUrl, token } = args
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
@@ -166,7 +166,7 @@ const withRegisteredUser = test => withUser(async ({ page, token, ...args }) => 
   await delay(1000)
   await ajaxPage.close()
 
-  await test({ page, token, ...args })
+  await test(args)
 })
 
 module.exports = {

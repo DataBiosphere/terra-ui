@@ -1,3 +1,8 @@
+const _ = require('lodash/fp')
+const { Storage } = require('@google-cloud/storage')
+const { screenshotBucket, screenshotDir } = require('../utils/integration-config')
+
+
 const waitForFn = async ({ fn, interval = 2000, timeout = 10000 }) => {
   const readyState = new Promise(resolve => {
     const start = Date.now()
@@ -102,6 +107,27 @@ const findInDataTableRow = (page, entityName, text) => {
   return findElement(page, `//*[@role="grid"]//*[contains(.,"${entityName}")]/following-sibling::*[contains(.,"${text}")]`)
 }
 
+const withScreenshot = _.curry((testName, fn) => async options => {
+  const { page } = options
+  try {
+    return await fn(options)
+  } catch (e) {
+    if (screenshotDir) {
+      try {
+        const path = `${screenshotDir}/failure-${Date.now()}-${testName}.png`
+        await page.screenshot({ path, fullPage: true })
+        if (screenshotBucket) {
+          const storage = new Storage()
+          await storage.bucket(screenshotBucket).upload(path)
+        }
+      } catch (e) {
+        console.error('Failed to capture screenshot', e)
+      }
+    }
+    throw e
+  }
+})
+
 module.exports = {
   click,
   clickable,
@@ -118,5 +144,6 @@ module.exports = {
   delay,
   signIntoTerra,
   navChild,
-  findInDataTableRow
+  findInDataTableRow,
+  withScreenshot
 }

@@ -1,11 +1,9 @@
+import { faClipboard, faClock, faClone, faEye, faFolder, faFolderOpen, faListAlt, faTimesCircle } from '@fortawesome/free-regular-svg-icons'
 import {
-  faClipboard, faClock, faClone, faEye, faFolder, faFolderOpen, faListAlt, faSquare as faSquareRegular, faTimesCircle
-} from '@fortawesome/free-regular-svg-icons'
-import {
-  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCheckSquare, faCircle, faCloud, faCog, faCreditCard,
-  faDownload, faEllipsisV, faExclamationCircle, faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock,
-  faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestionCircle, faSearch, faShareAlt,
-  faSquare as faSquareSolid, faTerminal, faTrashAlt
+  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faCloud, faCog, faCreditCard, faDownload,
+  faEllipsisV, faExclamationCircle, faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown,
+  faLongArrowAltUp, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid,
+  faTerminal, faTrashAlt
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
@@ -26,6 +24,7 @@ import { ReactComponent as fileSearchSolid } from 'src/icons/file-search-solid.s
 import { ReactComponent as list } from 'src/icons/list-regular.svg'
 import { ReactComponent as loadingSpinner } from 'src/icons/loading-spinner.svg'
 import { ReactComponent as renameIcon } from 'src/icons/rename-icon.svg'
+import { ReactComponent as squareLight } from 'src/icons/square-light.svg'
 import { ReactComponent as syncAlt } from 'src/icons/sync-alt-regular.svg'
 import { ReactComponent as times } from 'src/icons/times-light.svg'
 
@@ -52,7 +51,6 @@ const iconDict = {
   caretDown: fa(faCaretDown),
   chalkboard: fa(faChalkboard),
   check: fa(faCheck),
-  checkSquare: fa(faCheckSquare),
   clock: fa(faClock),
   cloud: fa(faCloud),
   cog: fa(faCog),
@@ -91,7 +89,8 @@ const iconDict = {
   renameIcon: custom(renameIcon),
   search: fa(faSearch),
   share: fa(faShareAlt),
-  square: fa(faSquareRegular),
+  squareLight: custom(squareLight),
+  squareSolid: fa(faSquareSolid),
   'success-standard': fa(faCheckCircle),
   sync: custom(syncAlt),
   terminal: props => fa(faTerminal, { mask: faSquareSolid, transform: 'shrink-8', ...props }),

@@ -1,5 +1,7 @@
 # Terra UI Integration Tests
 
+See also: [Bueller](Bueller.md) - service for invoking tests
+
 ### Setup
 
 1. Start by making sure you're running the correct versions of Node and Yarn, as described in the [root README](../README.md).
@@ -9,30 +11,38 @@
 ### Running the tests
 
 ```sh
-TERRA_TOKEN=[bearer token] LYLE_SA_KEY=[full key json] yarn test
+TERRA_SA_KEY=[full key json] LYLE_SA_KEY=[full key json] yarn test
 ```
 
 #### Configuration
 The following environment variables are parsed by the tests:
 
-- `TERRA_SA_KEY` **(required\*)**: service account key for creating access tokens for test user.
-- `TERRA_TOKEN` **(required\*)**: bearer token used to log into Terra.
-- `TEST_URL`: URL for the ui.
-    * _Default `localhost:3000`_
-- `BILLING_PROJECT`: used for workspace creation.
-    * _Default `general-dev-billing-account`_
-- `WORKFLOW_NAME`: workflow/method used for tests. Expects published config named `[name]-configured`.
-    * _Default `echo_to_file`_
--  `LYLE_SA_KEY` **(required)**: service account key to access Lyle.  
-    Can be found in vault at `secret/dsde/terra/envs/common/lyle-user-service-account-key`
--  `LYLE_URL`: URL for the service account allocator.
+- Service account credentials **(required)**:
+    - Both of:
+        - `TERRA_SA_KEY`: service account key for creating access tokens for test user.  
+            Can be found in vault at `secret/dsde/alpha/common/firecloud-account.pem`
+        - `LYLE_SA_KEY`: service account key to access Lyle.  
+            Can be found in vault at `secret/dsde/terra/envs/common/lyle-user-service-account-key`
+    - Or both of:
+        - `GCP_PROJECT`: GCP project containing the above secrets in Secret Manager, i.e. `terra-bueller`
+        - `GOOGLE_APPLICATION_CREDENTIALS`: key file for Google App Engine default service account for `GCP_PROJECT`
+- `ENVIRONMENT`: Terra UI instance to test.  
+    Options: `local`, `dev`, `alpha`, `perf`, `staging`
+    * _Default `local`_, which sets:
+        - `BILLING_PROJECT`: used for workspace creation.
+            * _Default `saturn-integration-test-dev`_
+        - `TEST_URL`: URL for the ui.
+            * _Default `localhost:3000`_
+        - `WORKFLOW_NAME`: workflow/method used for tests.  
+           Expects published config named `[name]-configured`.
+            * _Default `echo_to_file`_
+- `LYLE_URL`: URL for the service account allocator.
     * _Default `https://terra-lyle.appspot.com`_
 - `SCREENSHOT_DIR`: without this, screenshots won't be saved on test failure.
-
-\* One of either `TERRA_SA_KEY` or `TERRA_TOKEN` is required
+- `TERRA_USER_EMAIL`: account that already has access to `BILLING_PROJECT`
+    * _Default `Scarlett.Flowerpicker@test.firecloud.org`_
 
 #### Convenient one-liner:
-_(make sure you're `gcloud auth`ed as a user registered on Terra on your environment, with access to the billing project)_
 
 ```sh
 TERRA_SA_KEY=$(vault read --format=json secret/dsde/alpha/common/firecloud-account.pem | jq .data) \
@@ -44,14 +54,15 @@ yarn test
 
 To open a debug port into the jest tests run the following in the integration-tests folder
 ```sh
-TERRA_TOKEN=$(gcloud auth print-access-token) \
+TERRA_SA_KEY=$(vault read --format=json secret/dsde/alpha/common/firecloud-account.pem | jq .data) \
 LYLE_SA_KEY=$(vault read --format=json secret/dsde/terra/envs/common/lyle-user-service-account-key | jq .data) \
 node --inspect-brk node_modules/.bin/jest [test name] --runInBand
 ```
 
 To disable headless mode while debugging
 ```sh
-HEADLESS=false TERRA_TOKEN=$(gcloud auth print-access-token) \ 
+HEADLESS=false \
+TERRA_SA_KEY=$(vault read --format=json secret/dsde/alpha/common/firecloud-account.pem | jq .data) \
 LYLE_SA_KEY=$(vault read --format=json secret/dsde/terra/envs/common/lyle-user-service-account-key | jq .data) \
 node --inspect-brk node_modules/.bin/jest [test name] --runInBand
 ```

@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  slack: circleci/slack@3.4.1
+  slack: circleci/slack@3.4.2
 
 executors:
   node:
@@ -60,12 +60,9 @@ commands:
       local:
         type: boolean
         default: false
-      test_url:
+      env:
         type: string
-        default: "http://localhost:3000"
-      billing_project:
-        type: string
-        default: "saturn-integration-test-dev"
+        default: local
     steps:
       - checkout
       - attach_workspace:
@@ -95,8 +92,7 @@ commands:
           environment:
             JEST_JUNIT_OUTPUT_DIR: "/tmp/test-results/integration-test-results.xml"
             SCREENSHOT_DIR: "/tmp/failure-screenshots"
-            TEST_URL: << parameters.test_url >>
-            BILLING_PROJECT: << parameters.billing_project >>
+            ENVIRONMENT: << parameters.env >>
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             yarn test --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
@@ -105,8 +101,13 @@ commands:
       - store_artifacts:
           path: /tmp/failure-screenshots
   notify-qa:
+    parameters:
+      channel:
+        type: string
+        default: ""
     steps:
       - slack/status:
+          channel: << parameters.channel >>
           include_job_number_field: false
           include_project_field: false
           failure_message: ":sadpanda: $CIRCLE_JOB failed."
@@ -164,6 +165,8 @@ jobs:
       - deploy-env:
           sa_key_var: "ALPHA_SA_KEY_JSON"
           env: "alpha"
+      - notify-qa:
+          channel: "C7H40L71D" # dsde-qa-notify
   deploy-perf:
     executor: gcloud
     steps:
@@ -176,6 +179,8 @@ jobs:
       - deploy-env:
           sa_key_var: "STAGING_SA_KEY_JSON"
           env: "staging"
+      - notify-qa:
+          channel: "C7H40L71D" # dsde-qa-notify
   run-dev-security-scans:
     executor: security-scanner
     steps:
@@ -194,19 +199,18 @@ jobs:
     steps:
       - integration-tests:
           local: true
+          env: local
   integration-tests-alpha:
     executor: puppeteer
     steps:
       - integration-tests:
-          billing_project: "saturn-integration-test-alpha"
-          test_url: "https://bvdp-saturn-alpha.appspot.com"
+          env: alpha
       - notify-qa
   integration-tests-staging:
     executor: puppeteer
     steps:
       - integration-tests:
-          billing_project: "saturn-integration-test-stage"
-          test_url: "https://bvdp-saturn-staging.appspot.com"
+          env: staging
       - notify-qa
 
 workflows:

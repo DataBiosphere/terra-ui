@@ -188,18 +188,16 @@ export const MenuButton = ({ disabled, children, ...props }) => {
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
   return h(Interactive, _.merge({
     as: 'span',
+    className: 'fa-layers fa-fw',
     role: 'checkbox',
     'aria-checked': checked,
-    onClick: () => onChange && !disabled && onChange(!checked),
-    style: {
-      display: 'inline-flex',
-      verticalAlign: 'middle',
-      color: disabled ? colors.dark(0.4) : checked ? colors.accent() : colors.dark(0.55)
-    },
-    hover: disabled ? undefined : { color: colors.accent(0.8) },
+    onClick: () => !disabled && onChange?.(!checked),
+    style: { verticalAlign: 'middle' },
     disabled
   }, props), [
-    icon(checked ? 'checkSquare' : 'square', { size: 16 })
+    icon('squareSolid', { style: { color: Utils.cond([disabled, colors.light(1.2)], [checked, colors.accent()], 'white') } }), // bg
+    !disabled && icon('squareLight', { style: { color: checked ? colors.accent(1.2) : colors.dark(0.75) } }), // border
+    checked && icon('check', { size: 8, style: { color: disabled ? colors.dark(0.75) : 'white' } }) // check
   ])
 }
 
@@ -210,10 +208,10 @@ export const LabeledCheckbox = ({ checked, onChange, disabled, children, ...prop
       id,
       style: {
         verticalAlign: 'middle',
-        color: disabled ? colors.dark(0.7) : undefined,
+        color: disabled ? colors.dark(0.8) : undefined,
         cursor: disabled ? 'default' : 'pointer'
       },
-      onClick: () => onChange && !disabled && onChange(!checked),
+      onClick: () => !disabled && onChange?.(!checked),
       disabled
     }, [children])
   ])])

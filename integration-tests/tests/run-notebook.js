@@ -1,11 +1,10 @@
 const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
-const { testUrl } = require('../utils/integration-config')
 const { click, clickable, signIntoTerra, findElement, waitForNoSpinners, select, fillIn, input, findIframe, findText, dismissNotifications } = require('../utils/integration-utils')
 
 
 const notebookName = 'TestNotebook'
 
-const testRunNotebookFn = withRegisteredUser(async ({ page, context, email, token }) => {
+const testRunNotebookFn = withRegisteredUser(async ({ billingProject, page, context, email, testUrl, token }) => {
   await withBilling(withWorkspace(async ({ workspaceName }) => {
     await page.goto(testUrl)
     await click(page, clickable({ textContains: 'View Workspaces' }))
@@ -30,10 +29,10 @@ const testRunNotebookFn = withRegisteredUser(async ({ page, context, email, toke
     await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
     await click(frame, clickable({ text: 'Run' }))
     await findText(frame, '123456789099886419754209')
-  }))({ context, email, token })
+  }))({ billingProject, context, email, testUrl, token })
 })
 const testRunNotebook = {
-  name: 'run notebook',
+  name: 'run-notebook',
   fn: testRunNotebookFn,
   timeout: 15 * 60 * 1000
 
