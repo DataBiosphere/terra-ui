@@ -13,17 +13,17 @@ import TermsOfService from 'src/pages/TermsOfService'
 const AuthContainer = ({ children }) => {
   const { name, public: isPublic } = useRoute()
   const { isSignedIn, registrationStatus, acceptedTos, profile } = Utils.useStore(authStore)
-  const spinner = () => h(centeredSpinner, { size: 48, style: { right: 'calc(50vw - 24px)', left: 'calc(50vw - 24px)' } })
+  const authspinner = () => h(centeredSpinner, { style: { position: 'fixed' } })
 
   return Utils.cond(
-    [isSignedIn === undefined && !isPublic, spinner],
+    [isSignedIn === undefined && !isPublic, authspinner],
     [isSignedIn === false && !isPublic, h(SignIn)],
-    [registrationStatus === undefined && !isPublic, spinner],
+    [registrationStatus === undefined && !isPublic, authspinner],
     [registrationStatus === 'unregistered', h(Register)],
     [registrationStatus === 'disabled', () => h(Disabled)],
-    [acceptedTos === undefined && !isPublic, spinner],
+    [acceptedTos === undefined && !isPublic, authspinner],
     [acceptedTos === false && name !== 'privacy', () => h(TermsOfService)],
-    [_.isEmpty(profile) && !isPublic, spinner],
+    [_.isEmpty(profile) && !isPublic, authspinner],
     children
   )
 }
