@@ -113,9 +113,7 @@ const openNotification = async page => {
 
   const errorDetails = await page.$x('(//a | //*[@role="button"] | //button)[contains(normalize-space(.),"Details")]')
 
-  await Promise.all(
-    errorDetails.map(handle => handle.click())
-  )
+  !!errorDetails[0] && await errorDetails[0].click()
 
   return errorDetails.length
 }
