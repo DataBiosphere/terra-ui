@@ -107,7 +107,7 @@ const findInDataTableRow = (page, entityName, text) => {
   return findElement(page, `//*[@role="grid"]//*[contains(.,"${entityName}")]/following-sibling::*[contains(.,"${text}")]`)
 }
 
-const openNotification = async page => {
+const openError = async page => {
   //close out any non-error notifications first
   await dismissNotifications(page)
 
