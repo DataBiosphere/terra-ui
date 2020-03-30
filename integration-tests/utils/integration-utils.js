@@ -139,7 +139,7 @@ const withScreenshot = _.curry((testName, fn) => async options => {
         if (screenshotBucket) {
           const storage = new Storage()
           await storage.bucket(screenshotBucket).upload(path)
-          if (notificationsPresent) {
+          if (errorsPresent) {
             await storage.bucket(screenshotBucket).upload({ path: failureNotificationDetailsPath })
           }
         }
