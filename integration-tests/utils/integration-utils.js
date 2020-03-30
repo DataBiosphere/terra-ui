@@ -132,7 +132,7 @@ const withScreenshot = _.curry((testName, fn) => async options => {
 
         const errorsPresent = await openError(page)
 
-        if (!!notificationsPresent) {
+        if (errorsPresent) {
           await page.screenshot({ path: failureNotificationDetailsPath, fullPage: true })
         }
 
