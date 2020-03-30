@@ -169,5 +169,5 @@ module.exports = {
   navChild,
   findInDataTableRow,
   withScreenshot,
-  openNotification
+  openError
 }
