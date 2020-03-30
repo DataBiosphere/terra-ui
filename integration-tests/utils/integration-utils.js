@@ -115,7 +115,7 @@ const openNotification = async page => {
 
   !!errorDetails[0] && await errorDetails[0].click()
 
-  return errorDetails.length
+  return !!errorDetails.length
 }
 
 const withScreenshot = _.curry((testName, fn) => async options => {
