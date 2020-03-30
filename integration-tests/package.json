@@ -8,7 +8,7 @@
     "start-dev": "nodemon"
   },
   "devDependencies": {
-    "jest": "^25.2.3",
+    "jest": "^25.2.4",
     "jest-junit": "^10.0.0",
     "jest-puppeteer": "^4.4.0",
     "node-fetch": "^2.6.0",
@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "@google-cloud/secret-manager": "^2.1.0",
-    "@google-cloud/storage": "^4.6.0",
+    "@google-cloud/storage": "^4.7.0",
     "express": "^4.17.1",
     "google-auth-library": "^6.0.0",
     "googleapis": "^48.0.0",
