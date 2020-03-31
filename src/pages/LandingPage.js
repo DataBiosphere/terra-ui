@@ -1,7 +1,8 @@
 import { Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, h2 } from 'react-hyperscript-helpers'
 import { Clickable, HeroWrapper, Link, makeIconButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import colors from 'src/libs/colors'
 import { isFirecloud, isTerra } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
@@ -54,6 +55,30 @@ const LandingPage = () => {
       ]),
       makeCard('library-showcase', 'View Examples', 'Browse our gallery of showcase Workspaces to see how science gets done.'),
       makeCard('library-datasets', 'Browse Data', 'Access data from a rich ecosystem of data portals.')
+    ]),
+    div({
+      style: {
+        backgroundColor: 'black', backgroundImage: `url(${covidBg})`, borderRadius: 5,
+        boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)',
+        color: 'white', padding: '2rem 1rem',
+        width: 'calc(675px + 2rem)' // 3 card widths + 2 card margins to line up with the content directly above
+      }
+    }, [
+      h2({
+        style: {
+          fontSize: 18, fontWeight: 500, lineHeight: '22px', margin: 0
+        }
+      }, ['Data & Tools for COVID-19/SARS CoV2 analysis']),
+      div([
+        h(Clickable, {
+          href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
+          style: {
+            textDecoration: 'underline'
+          },
+          ...Utils.newTabLinkProps
+        }, ['See this article']),
+        ' for a summary of available resources.'
+      ])
     ]),
     (isTerra() || isFirecloud()) && div({ style: { width: 700, marginTop: '4rem' } }, [
       'This project has been funded in whole or in part with Federal funds from the National Cancer Institute, National Institutes of Health, ',
