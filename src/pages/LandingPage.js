@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import { Clickable, HeroWrapper, Link, makeIconButton } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import covidHero from 'src/images/covid-hero.png'
+import covidHero from 'src/images/covid-hero.jpg'
 import colors from 'src/libs/colors'
 import { isFirecloud, isTerra } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
@@ -58,7 +58,7 @@ const LandingPage = () => {
     ]),
     div({
       style: {
-        background: `right 1rem bottom 0 / 30% url(${covidHero}) no-repeat, radial-gradient(circle at right 20% bottom 0, #666, #1A1B1C 85%)`, borderRadius: 5,
+        backgroundImage: `url(${covidHero})`, backgroundSize: 'cover', borderRadius: 5,
         boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)',
         color: 'white', padding: '2rem 1rem',
         width: 'calc(675px + 2rem)' // 3 card widths + 2 card margins to line up with the content directly above

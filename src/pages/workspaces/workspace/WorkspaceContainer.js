@@ -1,7 +1,7 @@
 import { differenceInSeconds, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
-import { div, h, h2, p, span } from 'react-hyperscript-helpers'
+import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
 import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, spinnerOverlay, TabBar } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -98,6 +98,17 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
         ])
       ]),
       topBarContent,
+      div({ style: { flexGrow: 1 } }),
+      h(Link, {
+        style: {
+          backgroundColor: colors.light(), borderRadius: 4,
+          marginRight: '1.5rem', padding: '0.4rem 0.8rem',
+          display: 'flex', alignItems: 'center'
+        }
+      }, [
+        icon('virus', { size: 24, style: { marginRight: '0.5rem' } }),
+        div({ style: { fontSize: 12 } }, ['COVID-19', br(), 'Data & Tools'])
+      ]),
       h(ClusterManager, {
         namespace, name, clusters, refreshClusters,
         canCompute: !!((workspace && workspace.canCompute) || (clusters && clusters.length))
