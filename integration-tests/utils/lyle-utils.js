@@ -1,9 +1,11 @@
+const _ = require('lodash/fp')
 const { JWT } = require('google-auth-library')
 const fetch = require('node-fetch')
-const { lyleKey, lyleUrl } = require('./integration-config')
+const { getSecrets, lyleUrl } = require('./integration-config')
 
 
-const makeAuthClient = () => {
+const makeAuthClient = _.once(async () => {
+  const { lyleKey } = await getSecrets()
   const { client_email: email, private_key: key } = JSON.parse(lyleKey)
 
   return new JWT({
@@ -11,12 +13,11 @@ const makeAuthClient = () => {
     key,
     additionalClaims: { target_audience: lyleUrl }
   })
-}
-
-const authClient = makeAuthClient()
+})
 
 const fetchLyle = async (path, email) => {
   const url = `${lyleUrl}/api/${path}`
+  const authClient = await makeAuthClient()
 
   const res = await fetch(url, {
     method: 'POST',

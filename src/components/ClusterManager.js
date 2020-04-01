@@ -167,7 +167,7 @@ export default class ClusterManager extends PureComponent {
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
       notify('warn', 'Please Update Your Runtime', {
         message: h(Fragment, [
-          p(['On Sunday Oct 20th at 10am, we are introducing important updates to Terra, which are not compatible with the older notebook runtime in this workspace. After this date, you will no longer be able to save new changes to notebooks in one of these older runtimes.']),
+          p(['Last year, we introduced important updates to Terra that are not compatible with the older notebook runtime associated with this workspace. You are no longer able to save new changes to notebooks using this older runtime.']),
           h(Link, { href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
         ])
       })

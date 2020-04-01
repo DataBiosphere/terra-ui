@@ -3,20 +3,16 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "preinstall": "node ../.hooks/check-engine-light.js",
     "test": "jest",
     "start": "node src/server.js",
     "start-dev": "nodemon"
   },
   "devDependencies": {
-    "google-auth-library": "^5.10.1",
-    "jest": "^25.1.0",
+    "jest": "^25.2.4",
     "jest-junit": "^10.0.0",
     "jest-puppeteer": "^4.4.0",
     "node-fetch": "^2.6.0",
-    "p-retry": "^4.2.0",
-    "prompts": "^2.3.1",
-    "puppeteer": "^2.1.1"
+    "prompts": "^2.3.2"
   },
   "jest-junit": {
     "suiteName": "Integration tests",
@@ -24,7 +20,14 @@
     "includeConsoleOutput": true
   },
   "dependencies": {
+    "@google-cloud/secret-manager": "^2.1.0",
+    "@google-cloud/storage": "^4.7.0",
     "express": "^4.17.1",
-    "lodash": "^4.17.15"
+    "google-auth-library": "^6.0.0",
+    "googleapis": "^48.0.0",
+    "lodash": "^4.17.15",
+    "nodemon": "^2.0.1",
+    "p-retry": "^4.2.0",
+    "puppeteer": "^2.1.1"
   }
 }
