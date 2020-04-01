@@ -12,6 +12,7 @@ import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import { currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
+import { isFirecloud, isTerra } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
@@ -99,7 +100,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
       ]),
       topBarContent,
       div({ style: { flexGrow: 1 } }),
-      h(Link, {
+      (isTerra() || isFirecloud()) && h(Link, {
         href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
         style: {
           backgroundColor: colors.light(), borderRadius: 4,

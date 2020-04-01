@@ -299,7 +299,7 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
               ...Utils.newTabLinkProps
             }, ['Release Notes'])
           ]),
-          h(NavSection, {
+          (isTerra() || isFirecloud()) && h(NavSection, {
             href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
             onClick: () => this.hideNav(),
             ...Utils.newTabLinkProps

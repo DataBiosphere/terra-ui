@@ -56,7 +56,7 @@ const LandingPage = () => {
       makeCard('library-showcase', 'View Examples', 'Browse our gallery of showcase Workspaces to see how science gets done.'),
       makeCard('library-datasets', 'Browse Data', 'Access data from a rich ecosystem of data portals.')
     ]),
-    div({
+    (isTerra() || isFirecloud()) && div({
       style: {
         backgroundImage: `url(${covidHero})`, backgroundSize: 'cover', borderRadius: 5,
         boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)',
