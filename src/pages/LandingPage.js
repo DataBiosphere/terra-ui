@@ -64,21 +64,13 @@ const LandingPage = () => {
         width: 'calc(675px + 2rem)' // 3 card widths + 2 card margins to line up with the content directly above
       }
     }, [
-      h2({
-        style: {
-          fontSize: 18, fontWeight: 500, lineHeight: '22px', margin: 0
-        }
-      }, ['Data & Tools for COVID-19/SARS CoV2 analysis']),
-      div([
-        h(Clickable, {
-          href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
-          style: {
-            textDecoration: 'underline'
-          },
-          ...Utils.newTabLinkProps
-        }, ['See this article']),
-        ' for a summary of available resources.'
-      ])
+      h2({ style: { fontSize: 18, fontWeight: 500, lineHeight: '22px', margin: 0 } }, ['Data & Tools for COVID-19/SARS CoV2 analysis']),
+      h(Clickable, {
+        href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
+        style: { textDecoration: 'underline' },
+        ...Utils.newTabLinkProps
+      }, ['See this article']),
+      ' for a summary of available resources.'
     ]),
     (isTerra() || isFirecloud()) && div({ style: { width: 700, marginTop: '4rem' } }, [
       'This project has been funded in whole or in part with Federal funds from the National Cancer Institute, National Institutes of Health, ',
