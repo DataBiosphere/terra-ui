@@ -2,16 +2,16 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { h, p, span } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
-import { machineTypes, storagePrice } from 'src/data/clusters'
+import { machineTypes, storagePrice } from 'src/data/machines'
 import * as Utils from 'src/libs/utils'
 
 
 export const usableStatuses = ['Updating', 'Running']
 
-export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
+export const normalizeRuntimeConfig = ({ machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
   return {
-    masterMachineType: masterMachineType || 'n1-standard-4',
-    masterDiskSize: masterDiskSize || 50,
+    masterMachineType: masterMachineType || machineType || 'n1-standard-4',
+    masterDiskSize: masterDiskSize || diskSize || 50,
     numberOfWorkers: numberOfWorkers || 0,
     numberOfPreemptibleWorkers: (numberOfWorkers && numberOfPreemptibleWorkers) || 0,
     workerMachineType: (numberOfWorkers && workerMachineType) || 'n1-standard-4',
@@ -20,7 +20,7 @@ export const normalizeMachineConfig = ({ masterMachineType, masterDiskSize, numb
 }
 
 const machineStorageCost = config => {
-  const { masterDiskSize, numberOfWorkers, workerDiskSize } = normalizeMachineConfig(config)
+  const { masterDiskSize, numberOfWorkers, workerDiskSize } = normalizeRuntimeConfig(config)
   return (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice
 }
 
@@ -29,7 +29,7 @@ export const findMachineType = name => {
 }
 
 export const machineConfigCost = config => {
-  const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = normalizeMachineConfig(config)
+  const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = normalizeRuntimeConfig(config)
   const { price: masterPrice } = findMachineType(masterMachineType)
   const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
   return _.sum([
@@ -40,24 +40,24 @@ export const machineConfigCost = config => {
   ])
 }
 
-export const clusterCost = ({ machineConfig, status }) => {
+export const runtimeCost = ({ runtimeConfig, status }) => {
   switch (status) {
     case 'Stopped':
-      return machineStorageCost(machineConfig)
+      return machineStorageCost(runtimeConfig)
     case 'Deleting':
     case 'Error':
       return 0.0
     default:
-      return machineConfigCost(machineConfig)
+      return machineConfigCost(runtimeConfig)
   }
 }
 
-export const trimClustersOldestFirst = _.flow(
+export const trimRuntimesOldestFirst = _.flow(
   _.remove({ status: 'Deleting' }),
   _.sortBy('createdDate')
 )
 
-export const currentCluster = _.flow(trimClustersOldestFirst, _.last)
+export const currentRuntime = _.flow(trimRuntimesOldestFirst, _.last)
 
 
 export const deleteText = () => {

@@ -428,7 +428,7 @@ const Notebooks = _.flow(
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['clusters', 'cluster', 'notebooks', 'sortOrder', 'filter'],
+      ['runtimes', 'runtime', 'notebooks', 'sortOrder', 'filter'],
       this.state)
     )
   }

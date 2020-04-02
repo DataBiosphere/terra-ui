@@ -7,17 +7,17 @@ import { div, h, img, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, IdContainer, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { NewClusterModal } from 'src/components/NewClusterModal'
-import { dataSyncingDocUrl } from 'src/data/clusters'
+import { NewRuntimeModal } from 'src/components/NewRuntimeModal'
+import { dataSyncingDocUrl } from 'src/data/machines'
 import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
-import { clusterCost, currentCluster, deleteText, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { errorNotifiedClusters } from 'src/libs/state'
+import { currentRuntime, deleteText, normalizeRuntimeConfig, runtimeCost, trimRuntimesOldestFirst } from 'src/libs/runtime-utils'
+import { errorNotifiedRuntimes } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -45,33 +45,33 @@ const styles = {
   })
 }
 
-const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
+const RuntimeIcon = ({ shape, onClick, disabled, style, ...props }) => {
   return h(Clickable, {
     style: { color: onClick && !disabled ? colors.accent() : colors.dark(0.7), ...styles.verticalCenter, ...style },
     onClick, disabled, ...props
   }, [icon(shape, { size: 20 })])
 }
 
-export const ClusterErrorModal = ({ cluster, onDismiss }) => {
+export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
   const [error, setError] = useState()
   const [userscriptError, setUserscriptError] = useState(false)
-  const [loadingClusterDetails, setLoadingClusterDetails] = useState(false)
+  const [loadingRuntimeDetails, setLoadingRuntimeDetails] = useState(false)
 
-  const loadClusterError = _.flow(
+  const loadRuntimeError = _.flow(
     withErrorReporting('Error loading notebook runtime details'),
-    Utils.withBusyState(setLoadingClusterDetails)
+    Utils.withBusyState(setLoadingRuntimeDetails)
   )(async () => {
-    const { errors: clusterErrors } = await Ajax().Clusters.cluster(cluster.googleProject, cluster.clusterName).details()
-    if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), clusterErrors)) {
+    const { errors: runtimeErrors } = await Ajax().Runtimes.runtime(runtime.googleProject, runtime.runtimeName).details()
+    if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), runtimeErrors)) {
       setError(
-        await Ajax().Buckets.getObjectPreview(cluster.stagingBucket, `userscript_output.txt`, cluster.googleProject, true).then(res => res.text()))
+        await Ajax().Buckets.getObjectPreview(runtime.stagingBucket, `userscript_output.txt`, runtime.googleProject, true).then(res => res.text()))
       setUserscriptError(true)
     } else {
-      setError(clusterErrors[0].errorMessage)
+      setError(runtimeErrors[0].errorMessage)
     }
   })
 
-  Utils.useOnMount(() => { loadClusterError() })
+  Utils.useOnMount(() => { loadRuntimeError() })
 
   return h(Modal, {
     title: `Notebook Runtime Creation Failed${userscriptError ? ' due to Userscript Error' : ''}`,
@@ -79,30 +79,30 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
     onDismiss
   }, [
     div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word', overflowY: 'auto', maxHeight: 500, background: colors.light() } }, [error]),
-    loadingClusterDetails && spinnerOverlay
+    loadingRuntimeDetails && spinnerOverlay
   ])
 }
 
-export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, onDismiss, onSuccess }) => {
+export const DeleteRuntimeModal = ({ runtime: { googleProject, runtimeName }, onDismiss, onSuccess }) => {
   const [deleting, setDeleting] = useState()
-  const deleteCluster = _.flow(
+  const deleteRuntime = _.flow(
     Utils.withBusyState(setDeleting),
     withErrorReporting('Error deleting notebook runtime')
   )(async () => {
-    await Ajax().Clusters.cluster(googleProject, clusterName).delete()
+    await Ajax().Runtimes.runtime(googleProject, runtimeName).delete()
     onSuccess()
   })
   return h(Modal, {
     title: 'Delete Notebook Runtime?',
     onDismiss,
-    okButton: deleteCluster
+    okButton: deleteRuntime
   }, [
     h(deleteText),
     deleting && spinnerOverlay
   ])
 }
 
-const ClusterErrorNotification = ({ cluster }) => {
+const RuntimeErrorNotification = ({ runtime }) => {
   const [modalOpen, setModalOpen] = useState(false)
 
   return h(Fragment, [
@@ -114,20 +114,20 @@ const ClusterErrorNotification = ({ cluster }) => {
         fontWeight: 'bold'
       }
     }, ['SEE LOG INFO']),
-    modalOpen && h(ClusterErrorModal, {
-      cluster,
+    modalOpen && h(RuntimeErrorModal, {
+      runtime,
       onDismiss: () => setModalOpen(false)
     })
   ])
 }
 
-export default class ClusterManager extends PureComponent {
+export default class RuntimeManager extends PureComponent {
   static propTypes = {
     namespace: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
-    clusters: PropTypes.array,
+    runtimes: PropTypes.array,
     canCompute: PropTypes.bool.isRequired,
-    refreshClusters: PropTypes.func.isRequired
+    refreshRuntimes: PropTypes.func.isRequired
   }
 
   constructor(props) {
@@ -140,22 +140,22 @@ export default class ClusterManager extends PureComponent {
 
   componentDidUpdate(prevProps) {
     const { namespace, name } = this.props
-    const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
-    const cluster = this.getCurrentCluster() || {}
+    const prevRuntime = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.runtimes))) || {}
+    const runtime = this.getCurrentRuntime() || {}
     const twoMonthsAgo = _.tap(d => d.setMonth(d.getMonth() - 2), new Date())
     const welderCutOff = new Date('2019-08-01')
-    const createdDate = new Date(cluster.createdDate)
-    const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`) || {}
+    const createdDate = new Date(runtime.createdDate)
+    const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime.id}`) || {}
     const rStudioLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: 'RStudio' })
 
-    if (cluster.status === 'Error' && prevCluster.status !== 'Error' && !_.includes(cluster.id, errorNotifiedClusters.get())) {
+    if (runtime.status === 'Error' && prevRuntime.status !== 'Error' && !_.includes(runtime.id, errorNotifiedRuntimes.get())) {
       notify('error', 'Error Creating Notebook Runtime', {
-        message: h(ClusterErrorNotification, { cluster })
+        message: h(RuntimeErrorNotification, { runtime })
       })
-      errorNotifiedClusters.update(Utils.append(cluster.id))
+      errorNotifiedRuntimes.update(Utils.append(runtime.id))
     } else if (
-      cluster.status === 'Running' && prevCluster.status && prevCluster.status !== 'Running' &&
-      cluster.labels.tool === 'RStudio' && window.location.hash !== rStudioLaunchLink
+      runtime.status === 'Running' && prevRuntime.status && prevRuntime.status !== 'Running' &&
+      runtime.labels.tool === 'RStudio' && window.location.hash !== rStudioLaunchLink
     ) {
       const rStudioNotificationId = notify('info', 'Your runtime is ready.', {
         message: h(ButtonPrimary, {
@@ -164,7 +164,7 @@ export default class ClusterManager extends PureComponent {
         }, 'Launch Runtime')
       })
     } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) { // TODO: remove this notification some time after the data syncing release
-      setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
+      setDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime.id}`, Date.now())
       notify('warn', 'Please Update Your Runtime', {
         message: h(Fragment, [
           p(['Last year, we introduced important updates to Terra that are not compatible with the older notebook runtime associated with this workspace. You are no longer able to save new changes to notebooks using this older runtime.']),
@@ -172,32 +172,32 @@ export default class ClusterManager extends PureComponent {
         ])
       })
     } else if (isAfter(createdDate, twoMonthsAgo) && !isToday(dateNotified)) {
-      setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
+      setDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime.id}`, Date.now())
       notify('warn', 'Outdated Notebook Runtime', {
         message: 'Your notebook runtime is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'
       })
-    } else if (cluster.status === 'Running' && prevCluster.status === 'Updating') {
+    } else if (runtime.status === 'Running' && prevRuntime.status === 'Updating') {
       notify('success', 'Number of workers has updated successfully.')
     }
   }
 
-  getActiveClustersOldestFirst() {
-    const { clusters } = this.props
-    return trimClustersOldestFirst(clusters)
+  getActiveRuntimesOldestFirst() {
+    const { runtimes } = this.props
+    return trimRuntimesOldestFirst(runtimes)
   }
 
-  getCurrentCluster() {
-    const { clusters } = this.props
-    return currentCluster(clusters)
+  getCurrentRuntime() {
+    const { runtimes } = this.props
+    return currentRuntime(runtimes)
   }
 
   async executeAndRefresh(promise, waitBeforeRefreshMillis = 0) {
     try {
-      const { refreshClusters } = this.props
+      const { refreshRuntimes } = this.props
       this.setState({ busy: true })
       await promise
       waitBeforeRefreshMillis && await Utils.delay(waitBeforeRefreshMillis)
-      await refreshClusters()
+      await refreshRuntimes()
     } catch (error) {
       reportError('Notebook Runtime Error', error)
     } finally {
@@ -205,52 +205,52 @@ export default class ClusterManager extends PureComponent {
     }
   }
 
-  createDefaultCluster() {
+  createDefaultRuntime() {
     const { namespace } = this.props
     this.executeAndRefresh(
-      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
-        machineConfig: normalizeMachineConfig({})
+      Ajax().Runtimes.runtime(namespace, Utils.generateRuntimeName()).create({
+        machineConfig: normalizeRuntimeConfig({})
       })
     )
   }
 
-  startCluster() {
-    const { googleProject, clusterName } = this.getCurrentCluster()
+  startRuntime() {
+    const { googleProject, runtimeName } = this.getCurrentRuntime()
     this.executeAndRefresh(
-      Ajax().Clusters.cluster(googleProject, clusterName).start()
+      Ajax().Runtimes.runtime(googleProject, runtimeName).start()
     )
   }
 
-  stopCluster() {
-    const { googleProject, clusterName } = this.getCurrentCluster()
+  stopRuntime() {
+    const { googleProject, runtimeName } = this.getCurrentRuntime()
     this.executeAndRefresh(
-      Ajax().Clusters.cluster(googleProject, clusterName).stop()
+      Ajax().Runtimes.runtime(googleProject, runtimeName).stop()
     )
   }
 
   render() {
-    const { namespace, name, clusters, canCompute } = this.props
+    const { namespace, name, runtimes, canCompute } = this.props
     const { busy, createModalDrawerOpen, errorModalOpen } = this.state
-    if (!clusters) {
+    if (!runtimes) {
       return null
     }
-    const currentCluster = this.getCurrentCluster()
-    const currentStatus = currentCluster?.status
+    const currentRuntime = this.getCurrentRuntime()
+    const currentStatus = currentRuntime?.status
 
     const renderIcon = () => {
       switch (currentStatus) {
         case 'Stopped':
-          return h(ClusterIcon, {
+          return h(RuntimeIcon, {
             shape: 'play',
-            onClick: () => this.startCluster(),
+            onClick: () => this.startRuntime(),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'Start notebook runtime' : noCompute,
             'aria-label': 'Start notebook runtime'
           })
         case 'Running':
-          return h(ClusterIcon, {
+          return h(RuntimeIcon, {
             shape: 'pause',
-            onClick: () => this.stopCluster(),
+            onClick: () => this.stopRuntime(),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'Stop notebook runtime' : noCompute,
             'aria-label': 'Stop notebook runtime'
@@ -259,14 +259,14 @@ export default class ClusterManager extends PureComponent {
         case 'Stopping':
         case 'Updating':
         case 'Creating':
-          return h(ClusterIcon, {
+          return h(RuntimeIcon, {
             shape: 'sync',
             disabled: true,
             tooltip: 'Notebook runtime update in progress',
             'aria-label': 'Notebook runtime update in progress'
           })
         case 'Error':
-          return h(ClusterIcon, {
+          return h(RuntimeIcon, {
             shape: 'warning-standard',
             style: { color: colors.danger(0.9) },
             onClick: () => this.setState({ errorModalOpen: true }),
@@ -275,33 +275,33 @@ export default class ClusterManager extends PureComponent {
             'aria-label': 'View error'
           })
         default:
-          return h(ClusterIcon, {
+          return h(RuntimeIcon, {
             shape: 'play',
-            onClick: () => this.createDefaultCluster(),
+            onClick: () => this.createDefaultRuntime(),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'Create notebook runtime' : noCompute,
             'aria-label': 'Create notebook runtime'
           })
       }
     }
-    const totalCost = _.sum(_.map(clusterCost, clusters))
-    const activeClusters = this.getActiveClustersOldestFirst()
-    const { Creating: creating, Updating: updating } = _.countBy('status', activeClusters)
+    const totalCost = _.sum(_.map(runtimeCost, runtimes))
+    const activeRuntimes = this.getActiveRuntimesOldestFirst()
+    const { Creating: creating, Updating: updating } = _.countBy('status', activeRuntimes)
     const isDisabled = !canCompute || creating || busy || updating
 
-    const isRStudioImage = currentCluster?.labels.tool === 'RStudio'
+    const isRStudioImage = currentRuntime?.labels.tool === 'RStudio'
     const appName = isRStudioImage ? 'RStudio' : 'terminal'
     const appLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: appName })
 
     return div({ style: styles.container }, [
-      activeClusters.length > 1 && h(Link, {
+      activeRuntimes.length > 1 && h(Link, {
         style: { marginRight: '1rem' },
-        href: Nav.getLink('clusters'),
+        href: Nav.getLink('runtimes'),
         tooltip: 'Multiple runtimes found in this billing project. Click to select which to delete.'
       }, [icon('warning-standard', { size: 24, style: { color: colors.danger() } })]),
       h(Link, {
         href: appLaunchLink,
-        onClick: window.location.hash === appLaunchLink && currentStatus === 'Stopped' ? () => this.startCluster() : undefined,
+        onClick: window.location.hash === appLaunchLink && currentStatus === 'Stopped' ? () => this.startRuntime() : undefined,
         tooltip: canCompute ? `Open ${appName}` : noCompute,
         'aria-label': `Open ${appName}`,
         disabled: !canCompute,
@@ -331,18 +331,18 @@ export default class ClusterManager extends PureComponent {
           icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
         ])
       ])]),
-      h(NewClusterModal, {
+      h(NewRuntimeModal, {
         isOpen: createModalDrawerOpen,
         namespace,
-        currentCluster,
+        currentRuntime,
         onDismiss: () => this.setState({ createModalDrawerOpen: false }),
         onSuccess: (promise, waitBeforeRefreshMillis = 0) => {
           this.setState({ createModalDrawerOpen: false })
           this.executeAndRefresh(promise, waitBeforeRefreshMillis)
         }
       }),
-      errorModalOpen && h(ClusterErrorModal, {
-        cluster: currentCluster,
+      errorModalOpen && h(RuntimeErrorModal, {
+        runtime: currentRuntime,
         onDismiss: () => this.setState({ errorModalOpen: false })
       })
     ])

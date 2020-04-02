@@ -38,21 +38,21 @@ export const profiles = [
   {
     name: 'moderate',
     label: 'Default (Moderate)',
-    machineConfig: {
+    runtimeConfig: {
       masterMachineType: 'n1-standard-4'
     }
   },
   {
     name: 'increased',
     label: 'Increased',
-    machineConfig: {
+    runtimeConfig: {
       masterMachineType: 'n1-standard-16'
     }
   },
   {
     name: 'high',
     label: 'High',
-    machineConfig: {
+    runtimeConfig: {
       masterMachineType: 'n1-standard-64'
     }
   }
