@@ -217,7 +217,6 @@ workflows:
                 - dev
       - deploy-pr:
           requires:
-            - test
             - build
           filters:
             branches:
@@ -225,28 +224,24 @@ workflows:
                 - dev
       - deploy-dev:
           requires:
-            - test
             - build
           filters:
             branches:
               only: dev
       - deploy-alpha:
           requires:
-            - test
             - build
           filters:
             branches:
               only: dev
       - deploy-perf:
           requires:
-            - test
             - build
           filters:
             branches:
               only: dev
       - deploy-staging:
           requires:
-            - test
             - build
           filters:
             branches:
