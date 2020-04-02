@@ -100,7 +100,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
       ]),
       topBarContent,
       div({ style: { flexGrow: 1 } }),
-      (isTerra() || isFirecloud()) && h(Link, {
+      isTerra() && h(Link, {
         href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
         style: {
           backgroundColor: colors.light(), borderRadius: 4,
