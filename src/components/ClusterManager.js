@@ -28,7 +28,7 @@ const styles = {
   container: {
     height: '3rem',
     display: 'flex', alignItems: 'center', flex: 'none',
-    marginLeft: 'auto', paddingLeft: '1rem', paddingRight: '1rem',
+    paddingLeft: '1rem', paddingRight: '1rem',
     borderTopLeftRadius: 5, borderBottomLeftRadius: 5,
     backgroundColor: colors.light()
   },

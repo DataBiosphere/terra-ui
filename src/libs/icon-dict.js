@@ -3,7 +3,7 @@ import {
   faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faCloud, faCog, faCreditCard, faDownload,
   faEllipsisV, faExclamationCircle, faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown,
   faLongArrowAltUp, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid,
-  faTerminal, faTrashAlt
+  faTerminal, faTrashAlt, faVirus
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
@@ -100,6 +100,7 @@ const iconDict = {
   'upload-cloud': custom(cloudUpload),
   'view-cards': fa(faGripHorizontal),
   'view-list': custom(list),
+  virus: fa(faVirus),
   'warning-standard': fa(faExclamationTriangle)
 }
 
