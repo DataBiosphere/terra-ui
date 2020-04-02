@@ -114,7 +114,7 @@ commands:
           success_message: ":circleci-pass: $CIRCLE_JOB ran successfully."
 
 jobs:
-  test:
+  build:
     executor: node
     steps:
       - checkout
@@ -129,16 +129,6 @@ jobs:
           paths:
             - node_modules
       - run: yarn test
-  build:
-    executor: node
-    steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - deps4-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
-            - deps4-{{ checksum "package.json" }}-
-            - deps4-
-      - run: yarn install --frozen-lockfile
       - run: yarn build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
       - store_artifacts:
@@ -217,7 +207,6 @@ workflows:
   version: 2
   build-deploy:
     jobs:
-      - test
       - build
       - integration-tests-branch-against-dev:
           requires:
