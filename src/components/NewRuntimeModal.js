@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
-import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
+import { b, div, fieldset, h, label, legend, p, span } from 'react-hyperscript-helpers'
+import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, Select } from 'src/components/common'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -36,9 +36,6 @@ const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
 const rstudioBaseImages = 'https://github.com/anvilproject/anvil-docker'
 const zendeskImagePage = 'https://support.terra.bio/hc/en-us/articles/360037269472-Working-with-project-specific-environments-in-Terra#h_b5773619-e264-471c-9647-f9b826c27820'
-const runtimeConfigsEqual = (a, b) => {
-  return _.isEqual(normalizeRuntimeConfig(a), normalizeRuntimeConfig(b))
-}
 
 // distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
@@ -110,30 +107,28 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
   constructor(props) {
     super(props)
     const { currentRuntime } = props
-    const currentConfig = currentRuntime ? currentRuntime.runtimeConfig : profiles[0].runtimeConfig
-    const matchingProfile = _.find(
-      ({ runtimeConfig }) => runtimeConfigsEqual(runtimeConfig, currentConfig),
-      profiles
-    )
+    const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentRuntime?.runtimeConfig || profiles[0].runtimeConfig)
+    const matchingProfile = _.find({ runtimeConfig: { masterMachineType: currentConfig.masterMachineType } }, profiles)
+
     this.state = {
-      profile: matchingProfile ? matchingProfile.name : 'custom',
+      profile: matchingProfile?.name || 'custom',
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
-      ...normalizeRuntimeConfig(currentConfig)
+      sparkMode: cloudService === 'GCE' ? false : currentConfig.numberOfWorkers === 0 ? 'master' : 'cluster',
+      ...currentConfig
     }
   }
 
   getRuntimeConfig() {
-    const { numberOfWorkers, masterMachineType, masterDiskSize, workerMachineType, workerDiskSize, numberOfPreemptibleWorkers } = this.state
-    const isCluster = !!numberOfWorkers
+    const { sparkMode, numberOfWorkers, masterMachineType, masterDiskSize, workerMachineType, workerDiskSize, numberOfPreemptibleWorkers } = this.state
 
-    return isCluster ? {
-      cloudService: 'dataproc',
+    return !!sparkMode ? {
+      cloudService: 'DATAPROC',
       numberOfWorkers, masterMachineType,
       masterDiskSize, workerMachineType,
       workerDiskSize, numberOfWorkerLocalSSDs: 0,
       numberOfPreemptibleWorkers
     } : {
-      cloudService: 'gce',
+      cloudService: 'GCE',
       machineType: masterMachineType,
       diskSize: masterDiskSize
     }
@@ -293,7 +288,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
   render() {
     const { currentRuntime, onDismiss, onSuccess } = this.props
     const {
-      profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
+      profile, masterMachineType, masterDiskSize, sparkMode, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
       jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode
     } = this.state
     const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
@@ -408,72 +403,86 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             onChangeDiskSize: v => this.setState({ masterDiskSize: v }),
             readOnly: profile !== 'custom'
           }),
-          profile === 'custom' && h(Fragment, [
-            h(IdContainer, [
-              id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, 'Startup\nscript'),
-                div({ style: { gridColumnEnd: 'span 5' } }, [
-                  h(TextInput, {
-                    id,
-                    placeholder: 'URI',
-                    value: jupyterUserScriptUri,
-                    onChange: v => this.setState({ jupyterUserScriptUri: v })
-                  })
-                ])
-              ])
-            ]),
-            div({ style: { gridColumnEnd: 'span 6' } }, [
-              h(LabeledCheckbox, {
-                checked: !!numberOfWorkers,
-                onChange: v => this.setState({
-                  numberOfWorkers: v ? 2 : 0,
-                  numberOfPreemptibleWorkers: 0
+          profile === 'custom' && h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: styles.label }, 'Startup\nscript'),
+              div({ style: { gridColumnEnd: 'span 5' } }, [
+                h(TextInput, {
+                  id,
+                  placeholder: 'URI',
+                  value: jupyterUserScriptUri,
+                  onChange: v => this.setState({ jupyterUserScriptUri: v })
                 })
-              }, ' Configure as Spark runtime')
-            ]),
-            !!numberOfWorkers && h(Fragment, [
-              h(IdContainer, [
-                id => h(Fragment, [
-                  label({ htmlFor: id, style: styles.label }, 'Workers'),
-                  h(NumberInput, {
-                    id,
-                    min: 2,
-                    isClearable: false,
-                    onlyInteger: true,
-                    value: numberOfWorkers,
-                    onChange: v => this.setState({
-                      numberOfWorkers: v,
-                      numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
-                    })
-                  })
-                ])
-              ]),
-              h(IdContainer, [
-                id => h(Fragment, [
-                  label({
-                    htmlFor: id,
-                    style: styles.label
-                  }, 'Preemptible'),
-                  h(NumberInput, {
-                    id,
-                    min: 0,
-                    max: numberOfWorkers,
-                    isClearable: false,
-                    onlyInteger: true,
-                    value: numberOfPreemptibleWorkers,
-                    onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
-                  })
-                ])
-              ]),
-              div({ style: { gridColumnEnd: 'span 2' } }),
-              h(MachineSelector, {
-                machineType: workerMachineType,
-                onChangeMachineType: v => this.setState({ workerMachineType: v }),
-                diskSize: workerDiskSize,
-                onChangeDiskSize: v => this.setState({ workerDiskSize: v })
-              })
+              ])
+            ])
+          ]),
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: styles.label }, 'Runtime\nType'),
+              div({ style: { gridColumnEnd: 'span 3' } }, [
+                h(Select, {
+                  id,
+                  isSearchable: false,
+                  value: sparkMode,
+                  onChange: ({ value }) => this.setState({
+                    sparkMode: value,
+                    numberOfWorkers: value === 'cluster' ? 2 : 0,
+                    numberOfPreemptibleWorkers: 0
+                  }),
+                  options: [
+                    { value: false, label: 'Standard VM' },
+                    { value: 'master', label: 'Spark master node' },
+                    { value: 'cluster', label: 'Configure as spark cluster' }
+                  ]
+                })
+              ])
             ])
           ])
+        ]),
+        sparkMode === 'cluster' && fieldset({
+          style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' }
+        }, [
+          legend(['Worker config']),
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: styles.label }, 'Workers'),
+              h(NumberInput, {
+                id,
+                min: 2,
+                isClearable: false,
+                onlyInteger: true,
+                value: numberOfWorkers,
+                onChange: v => this.setState({
+                  numberOfWorkers: v,
+                  numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+                })
+              })
+            ])
+          ]),
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({
+                htmlFor: id,
+                style: styles.label
+              }, 'Preemptible'),
+              h(NumberInput, {
+                id,
+                min: 0,
+                max: numberOfWorkers,
+                isClearable: false,
+                onlyInteger: true,
+                value: numberOfPreemptibleWorkers,
+                onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
+              })
+            ])
+          ]),
+          div({ style: { gridColumnEnd: 'span 2' } }),
+          h(MachineSelector, {
+            machineType: workerMachineType,
+            onChangeMachineType: v => this.setState({ workerMachineType: v }),
+            diskSize: workerDiskSize,
+            onChangeDiskSize: v => this.setState({ workerDiskSize: v })
+          })
         ]),
         div({
           style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }

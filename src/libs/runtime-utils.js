@@ -8,8 +8,9 @@ import * as Utils from 'src/libs/utils'
 
 export const usableStatuses = ['Updating', 'Running']
 
-export const normalizeRuntimeConfig = ({ machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
+export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
   return {
+    cloudService: cloudService || 'GCE',
     masterMachineType: masterMachineType || machineType || 'n1-standard-4',
     masterDiskSize: masterDiskSize || diskSize || 50,
     numberOfWorkers: numberOfWorkers || 0,
