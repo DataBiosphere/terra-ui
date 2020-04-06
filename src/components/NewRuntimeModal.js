@@ -418,7 +418,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
           ]),
           h(IdContainer, [
             id => h(Fragment, [
-              label({ htmlFor: id, style: styles.label }, 'Runtime\nType'),
+              label({ htmlFor: id, style: styles.label }, 'Runtime\ntype'),
               div({ style: { gridColumnEnd: 'span 3' } }, [
                 h(Select, {
                   id,
@@ -440,9 +440,9 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
           ])
         ]),
         sparkMode === 'cluster' && fieldset({
-          style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' }
+          style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.25rem', gridGap: '0.8rem', alignItems: 'center' }
         }, [
-          legend(['Worker config']),
+          legend({ style: styles.label }, ['Worker config']),
           h(IdContainer, [
             id => h(Fragment, [
               label({ htmlFor: id, style: styles.label }, 'Workers'),
