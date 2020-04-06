@@ -439,50 +439,57 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             ])
           ])
         ]),
-        sparkMode === 'cluster' && fieldset({
-          style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.25rem', gridGap: '0.8rem', alignItems: 'center' }
-        }, [
-          legend({ style: styles.label }, ['Worker config']),
-          h(IdContainer, [
-            id => h(Fragment, [
-              label({ htmlFor: id, style: styles.label }, 'Workers'),
-              h(NumberInput, {
-                id,
-                min: 2,
-                isClearable: false,
-                onlyInteger: true,
-                value: numberOfWorkers,
-                onChange: v => this.setState({
-                  numberOfWorkers: v,
-                  numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+        sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0, position: 'relative' } }, [
+          legend({ style: { position: 'absolute', top: '-0.5rem', left: '0.5rem', padding: '0 0.5rem 0 0.25rem', backgroundColor: colors.light(), ...styles.label } }, ['Worker config']),
+          // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
+          div({
+            style: {
+              display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.25rem', gridGap: '0.8rem', alignItems: 'center',
+              padding: '1rem 0.8rem 0.8rem',
+              border: `2px solid ${colors.dark(0.3)}`, borderRadius: 7
+            }
+          }, [
+            h(IdContainer, [
+              id => h(Fragment, [
+                label({ htmlFor: id, style: styles.label }, 'Workers'),
+                h(NumberInput, {
+                  id,
+                  min: 2,
+                  isClearable: false,
+                  onlyInteger: true,
+                  value: numberOfWorkers,
+                  onChange: v => this.setState({
+                    numberOfWorkers: v,
+                    numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+                  })
                 })
-              })
-            ])
-          ]),
-          h(IdContainer, [
-            id => h(Fragment, [
-              label({
-                htmlFor: id,
-                style: styles.label
-              }, 'Preemptible'),
-              h(NumberInput, {
-                id,
-                min: 0,
-                max: numberOfWorkers,
-                isClearable: false,
-                onlyInteger: true,
-                value: numberOfPreemptibleWorkers,
-                onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
-              })
-            ])
-          ]),
-          div({ style: { gridColumnEnd: 'span 2' } }),
-          h(MachineSelector, {
-            machineType: workerMachineType,
-            onChangeMachineType: v => this.setState({ workerMachineType: v }),
-            diskSize: workerDiskSize,
-            onChangeDiskSize: v => this.setState({ workerDiskSize: v })
-          })
+              ])
+            ]),
+            h(IdContainer, [
+              id => h(Fragment, [
+                label({
+                  htmlFor: id,
+                  style: styles.label
+                }, 'Preemptible'),
+                h(NumberInput, {
+                  id,
+                  min: 0,
+                  max: numberOfWorkers,
+                  isClearable: false,
+                  onlyInteger: true,
+                  value: numberOfPreemptibleWorkers,
+                  onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
+                })
+              ])
+            ]),
+            div({ style: { gridColumnEnd: 'span 2' } }),
+            h(MachineSelector, {
+              machineType: workerMachineType,
+              onChangeMachineType: v => this.setState({ workerMachineType: v }),
+              diskSize: workerDiskSize,
+              onChangeDiskSize: v => this.setState({ workerDiskSize: v })
+            })
+          ])
         ]),
         div({
           style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
