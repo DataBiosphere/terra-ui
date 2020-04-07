@@ -10,8 +10,6 @@ import { ajaxOverridesStore, requesterPaysBuckets, requesterPaysProjectStore, wo
 import * as Utils from 'src/libs/utils'
 
 
-const metricsEnabled = false
-
 window.ajaxOverrideUtils = {
   mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
     const res = await wrappedFetch(...args)
@@ -1103,12 +1101,12 @@ const Metrics = signal => ({
         appPath: Nav.getCurrentRoute().name
       }
     }
-    // Remove the metricsEnabled feature flag once TOS and all metrics projects are setup
-    return metricsEnabled && fetchBard('api/event', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+
+    return fetchBard('api/event', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
   }),
 
   syncProfile: withErrorIgnoring(() => {
-    return metricsEnabled && fetchBard('api/syncProfile', _.merge(authOpts(), { signal, method: 'POST' }))
+    return fetchBard('api/syncProfile', _.merge(authOpts(), { signal, method: 'POST' }))
   })
 })
 
