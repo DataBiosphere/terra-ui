@@ -1102,12 +1102,11 @@ const Metrics = signal => ({
       }
     }
 
-    // Remove the metricsEnabled feature flag once TOS and all metrics projects are setup
-    fetchBard('api/event', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
+    return fetchBard('api/event', _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
   }),
 
   syncProfile: withErrorIgnoring(() => {
-    fetchBard('api/syncProfile', _.merge(authOpts(), { signal, method: 'POST' }))
+    return fetchBard('api/syncProfile', _.merge(authOpts(), { signal, method: 'POST' }))
   })
 })
 
