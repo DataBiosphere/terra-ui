@@ -44,6 +44,10 @@ const HallOfFame = () => {
         name: 'Kate Voss',
         dates: 'August 2018 - July 2019',
         pic: 'https://github.com/katevoss.png?size=200'
+      }, {
+        name: 'Pete Santos',
+        dates: 'May 2019 - March 2020',
+        pic: 'https://github.com/petesantos.png?size=200'
       }
     ]))
   ])
