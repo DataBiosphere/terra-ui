@@ -291,7 +291,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       profile, masterMachineType, masterDiskSize, sparkMode, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
       jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode
     } = this.state
-    const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
+    const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
     const makeEnvSelect = id => h(Select, {
       id,
@@ -324,7 +324,10 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       maxMenuHeight: '25rem',
       value: selectedLeoImage,
       onChange: ({ value }) => {
-        this.setState({ selectedLeoImage: value, customEnvImage: '' })
+        this.setState({
+          selectedLeoImage: value, customEnvImage: '',
+          sparkMode: _.find({ image: value }, leoImages)?.requiresSpark ? (sparkMode || 'master') : false
+        })
       },
       isSearchable: true,
       isClearable: false,
@@ -430,7 +433,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                     numberOfPreemptibleWorkers: 0
                   }),
                   options: [
-                    { value: false, label: 'Standard VM' },
+                    { value: false, label: 'Standard VM', isDisabled: requiresSpark },
                     { value: 'master', label: 'Spark master node' },
                     { value: 'cluster', label: 'Configure as spark cluster' }
                   ]
@@ -440,7 +443,11 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
           ])
         ]),
         sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0, position: 'relative' } }, [
-          legend({ style: { position: 'absolute', top: '-0.5rem', left: '0.5rem', padding: '0 0.5rem 0 0.25rem', backgroundColor: colors.light(), ...styles.label } }, ['Worker config']),
+          legend({
+            style: {
+              position: 'absolute', top: '-0.5rem', left: '0.5rem', padding: '0 0.5rem 0 0.25rem', backgroundColor: colors.light(), ...styles.label
+            }
+          }, ['Worker config']),
           // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
           div({
             style: {
@@ -568,7 +575,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       ])],
       [Utils.DEFAULT, () => h(Fragment, [
         div({ style: { marginBottom: '1rem' } }, [
-          'Create a cloud compute instance to launch Jupyter Notebooks or a Project-Specific software application.'
+          'Create cloud compute to launch Jupyter Notebooks or a Project-Specific software application.'
         ]),
         h(IdContainer, [
           id => h(Fragment, [
