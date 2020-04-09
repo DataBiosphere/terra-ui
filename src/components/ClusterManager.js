@@ -83,13 +83,13 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   ])
 }
 
-export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, onDismiss, onSuccess }) => {
+export const DeleteClusterModal = ({ cluster: { googleProject, runtimeName }, onDismiss, onSuccess }) => {
   const [deleting, setDeleting] = useState()
   const deleteCluster = _.flow(
     Utils.withBusyState(setDeleting),
     withErrorReporting('Error deleting notebook runtime')
   )(async () => {
-    await Ajax().Clusters.cluster(googleProject, clusterName).delete()
+    await Ajax().Clusters.cluster(googleProject, runtimeName).delete()
     onSuccess()
   })
   return h(Modal, {
@@ -215,16 +215,16 @@ export default class ClusterManager extends PureComponent {
   }
 
   startCluster() {
-    const { googleProject, clusterName } = this.getCurrentCluster()
+    const { googleProject, runtimeName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Ajax().Clusters.cluster(googleProject, clusterName).start()
+      Ajax().Clusters.cluster(googleProject, runtimeName).start()
     )
   }
 
   stopCluster() {
-    const { googleProject, clusterName } = this.getCurrentCluster()
+    const { googleProject, runtimeName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Ajax().Clusters.cluster(googleProject, clusterName).stop()
+      Ajax().Clusters.cluster(googleProject, runtimeName).stop()
     )
   }
 
