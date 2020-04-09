@@ -64,7 +64,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
     const { errors: clusterErrors } = await Ajax().Clusters.cluster(cluster.googleProject, cluster.runtimeName).details()
     if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), clusterErrors)) {
       setError(
-        await Ajax().Buckets.getObjectPreview(cluster.stagingBucket, `userscript_output.txt`, cluster.googleProject, true).then(res => res.text()))
+        await Ajax().Buckets.getObjectPreview(cluster.asyncRuntimeFields.stagingBucket, `userscript_output.txt`, cluster.googleProject, true).then(res => res.text()))
       setUserscriptError(true)
     } else {
       setError(clusterErrors[0].errorMessage)

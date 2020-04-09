@@ -56,10 +56,7 @@ const NotebookLauncher = _.flow(
         h(labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : NotebookEditorFrame,
           { key: runtimeName, workspace, cluster, notebookName, mode }) :
         h(Fragment, [
-          h(PreviewHeader, {
-            queryParams, cluster, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute),
-            onCreateCluster: () => setCreateOpen(true)
-          }),
+          h(PreviewHeader, { queryParams, cluster, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateCluster: () => setCreateOpen(true) }),
           h(NotebookPreviewFrame, { notebookName, workspace })
         ]),
       mode && h(ClusterKicker, { cluster, refreshClusters, onNullCluster: () => setCreateOpen(true) }),
