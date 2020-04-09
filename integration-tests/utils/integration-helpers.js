@@ -110,43 +110,43 @@ const withBilling = test => async options => {
   try {
     await test({ ...options })
   } finally {
-    await deleteRuntime(options)
+    await deleteCluster(options)
     await removeUserFromBilling(options)
   }
 }
 
-const trimRuntimesOldestFirst = _.flow(
+const trimClustersOldestFirst = _.flow(
   _.remove({ status: 'Deleting' }),
   _.remove({ status: 'Creating' }),
   _.sortBy('createdDate')
 )
 
-const currentRuntime = _.flow(trimRuntimesOldestFirst, _.last)
+const currentCluster = _.flow(trimClustersOldestFirst, _.last)
 
-const getCurrentRuntime = withUserToken(async ({ billingProject, context, testUrl, token }) => {
+const getCurrentCluster = withUserToken(async ({ billingProject, context, testUrl, token }) => {
   const ajaxPage = await context.newPage()
   await ajaxPage.goto(testUrl)
   await signIntoTerra(ajaxPage, token)
 
-  const runtimes = await ajaxPage.evaluate(billingProject => {
-    return window.Ajax().Runtimes.list({ googleProject: billingProject })
+  const clusters = await ajaxPage.evaluate(billingProject => {
+    return window.Ajax().Clusters.list({ googleProject: billingProject })
   }, billingProject)
 
   await ajaxPage.close()
-  return currentRuntime(runtimes)
+  return currentCluster(clusters)
 })
 
-const deleteRuntime = withUserToken(async ({ billingProject, context, testUrl, token }) => {
+const deleteCluster = withUserToken(async ({ billingProject, context, testUrl, token }) => {
   const ajaxPage = await context.newPage()
   await ajaxPage.goto(testUrl)
   await signIntoTerra(ajaxPage, token)
 
-  const currentC = await getCurrentRuntime({ billingProject, context, testUrl })
+  const currentC = await getCurrentCluster({ billingProject, context, testUrl })
   currentC && await ajaxPage.evaluate((currentC, billingProject) => {
-    return window.Ajax().Runtimes.runtime(billingProject, currentC.runtimeName).delete()
+    return window.Ajax().Clusters.cluster(billingProject, currentC.clusterName).delete()
   }, currentC, billingProject)
 
-  currentC && console.info(`deleted runtime: ${currentC.runtimeName}`)
+  currentC && console.info(`deleted cluster: ${currentC.clusterName}`)
 
   await ajaxPage.close()
 })

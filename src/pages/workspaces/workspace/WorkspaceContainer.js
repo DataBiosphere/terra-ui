@@ -2,20 +2,20 @@ import { differenceInSeconds, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
+import ClusterManager from 'src/components/ClusterManager'
 import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, spinnerOverlay, TabBar } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
-import RuntimeManager from 'src/components/RuntimeManager'
 import TopBar from 'src/components/TopBar'
 import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
+import { currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { isTerra } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { currentRuntime } from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -88,7 +88,7 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
   ])
 }
 
-const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace, runtimes, children }) => {
+const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters, children }) => {
   return h(Fragment, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
@@ -112,9 +112,9 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
         icon('virus', { size: 24, style: { marginRight: '0.5rem' } }),
         div({ style: { fontSize: 12 } }, ['COVID-19', br(), 'Data & Tools'])
       ]),
-      h(RuntimeManager, {
-        namespace, name, runtimes, refreshRuntimes,
-        canCompute: !!((workspace && workspace.canCompute) || (runtimes && runtimes.length))
+      h(ClusterManager, {
+        namespace, name, clusters, refreshClusters,
+        canCompute: !!((workspace && workspace.canCompute) || (clusters && clusters.length))
       })
     ]),
     showTabBar && h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace }),
@@ -147,32 +147,32 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const useRuntimePolling = namespace => {
+const useClusterPolling = namespace => {
   const signal = Utils.useCancellation()
   const timeout = useRef()
-  const [runtimes, setRuntimes] = useState()
+  const [clusters, setClusters] = useState()
   const reschedule = ms => {
     clearTimeout(timeout.current)
-    timeout.current = setTimeout(refreshRuntimesSilently, ms)
+    timeout.current = setTimeout(refreshClustersSilently, ms)
   }
-  const loadRuntimes = async () => {
+  const loadClusters = async () => {
     try {
-      const newRuntimes = await Ajax(signal).Runtimes.list({ googleProject: namespace, creator: getUser().email })
-      setRuntimes(newRuntimes)
-      const runtime = currentRuntime(newRuntimes)
-      reschedule(_.includes(runtime && runtime.status, ['Creating', 'Starting', 'Stopping', 'Updating']) ? 10000 : 120000)
+      const newClusters = await Ajax(signal).Clusters.list({ googleProject: namespace, creator: getUser().email })
+      setClusters(newClusters)
+      const cluster = currentCluster(newClusters)
+      reschedule(_.includes(cluster && cluster.status, ['Creating', 'Starting', 'Stopping', 'Updating']) ? 10000 : 120000)
     } catch (error) {
       reschedule(30000)
       throw error
     }
   }
-  const refreshRuntimes = withErrorReporting('Error loading notebook runtimes', loadRuntimes)
-  const refreshRuntimesSilently = withErrorIgnoring(loadRuntimes)
+  const refreshClusters = withErrorReporting('Error loading notebook runtimes', loadClusters)
+  const refreshClustersSilently = withErrorIgnoring(loadClusters)
   Utils.useOnMount(() => {
-    refreshRuntimes()
+    refreshClusters()
     return () => clearTimeout(timeout.current)
   })
-  return { runtimes, refreshRuntimes }
+  return { clusters, refreshClusters }
 }
 
 export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryparams }) => WrappedComponent => {
@@ -184,7 +184,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const accessNotificationId = useRef()
     const cachedWorkspace = Utils.useStore(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
-    const { runtimes, refreshRuntimes } = useRuntimePolling(namespace)
+    const { clusters, refreshClusters } = useClusterPolling(namespace)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
       cachedWorkspace :
       undefined
@@ -241,7 +241,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       return h(Fragment, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
-        namespace, name, activeTab, showTabBar, workspace, runtimes,
+        namespace, name, activeTab, showTabBar, workspace, clusters,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
@@ -251,12 +251,12 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
             child.current.refresh()
           }
         },
-        refreshRuntimes
+        refreshClusters
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, refreshRuntimes,
-          runtime: !runtimes ? undefined : (currentRuntime(runtimes) || null),
+          workspace, refreshWorkspace, refreshClusters,
+          cluster: !clusters ? undefined : (currentCluster(clusters) || null),
           ...props
         }),
         loadingWorkspace && spinnerOverlay

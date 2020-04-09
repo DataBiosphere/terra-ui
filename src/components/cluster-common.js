@@ -4,9 +4,9 @@ import { b, div, h } from 'react-hyperscript-helpers'
 import { spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
+import { usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
-import { usableStatuses } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -17,26 +17,26 @@ export const StatusMessage = ({ hideSpinner, children }) => {
   ])
 }
 
-export const RuntimeKicker = ({ runtime, refreshRuntimes, onNullRuntime }) => {
-  const getRuntime = Utils.useGetter(runtime)
+export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
+  const getCluster = Utils.useGetter(cluster)
   const signal = Utils.useCancellation()
   const [busy, setBusy] = useState()
 
-  const startRuntimeOnce = withErrorReporting('Error starting notebook runtime', async () => {
+  const startClusterOnce = withErrorReporting('Error starting notebook runtime', async () => {
     while (!signal.aborted) {
-      const currentRuntime = getRuntime()
-      const { status, googleProject, runtimeName } = currentRuntime || {}
+      const currentCluster = getCluster()
+      const { status, googleProject, runtimeName } = currentCluster || {}
 
       if (status === 'Stopped') {
         setBusy(true)
-        await Ajax().Runtimes.runtime(googleProject, runtimeName).start()
-        await refreshRuntimes()
+        await Ajax().Clusters.cluster(googleProject, runtimeName).start()
+        await refreshClusters()
         setBusy(false)
         return
-      } else if (currentRuntime === undefined || status === 'Stopping') {
+      } else if (currentCluster === undefined || status === 'Stopping') {
         await Utils.delay(500)
-      } else if (currentRuntime === null) {
-        onNullRuntime()
+      } else if (currentCluster === null) {
+        onNullCluster()
         return
       } else {
         return
@@ -45,7 +45,7 @@ export const RuntimeKicker = ({ runtime, refreshRuntimes, onNullRuntime }) => {
   })
 
   Utils.useOnMount(() => {
-    startRuntimeOnce()
+    startClusterOnce()
   })
 
   return busy ? spinnerOverlay : null
@@ -73,17 +73,17 @@ export const PlaygroundHeader = ({ children }) => {
   ])
 }
 
-export const RuntimeStatusMonitor = ({ runtime, onRuntimeStoppedRunning = _.noop, onRuntimeStartedRunning = _.noop }) => {
-  const currentStatus = runtime && runtime.status
+export const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning = _.noop, onClusterStartedRunning = _.noop }) => {
+  const currentStatus = cluster && cluster.status
   const prevStatus = Utils.usePrevious(currentStatus)
 
   useEffect(() => {
     if (prevStatus === 'Running' && !_.includes(currentStatus, usableStatuses)) {
-      onRuntimeStoppedRunning()
+      onClusterStoppedRunning()
     } else if (prevStatus !== 'Running' && _.includes(currentStatus, usableStatuses)) {
-      onRuntimeStartedRunning()
+      onClusterStartedRunning()
     }
-  }, [currentStatus, onRuntimeStartedRunning, onRuntimeStoppedRunning, prevStatus])
+  }, [currentStatus, onClusterStartedRunning, onClusterStoppedRunning, prevStatus])
 
   return null
 }
@@ -91,7 +91,7 @@ export const RuntimeStatusMonitor = ({ runtime, onRuntimeStoppedRunning = _.noop
 export const PeriodicCookieSetter = ({ namespace, runtimeName, leading }) => {
   const signal = Utils.useCancellation()
   Utils.usePollingEffect(
-    withErrorIgnoring(() => Ajax(signal).Runtimes.notebooks(namespace, runtimeName).setCookie()),
+    withErrorIgnoring(() => Ajax(signal).Clusters.notebooks(namespace, runtimeName).setCookie()),
     { ms: 15 * 60 * 1000, leading })
   return null
 }

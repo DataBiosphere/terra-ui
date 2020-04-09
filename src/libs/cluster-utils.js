@@ -8,7 +8,7 @@ import * as Utils from 'src/libs/utils'
 
 export const usableStatuses = ['Updating', 'Running']
 
-export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
+export const normalizeMachineConfig = ({ cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
   return {
     cloudService: cloudService || 'GCE',
     masterMachineType: masterMachineType || machineType || 'n1-standard-4',
@@ -21,7 +21,7 @@ export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, ma
 }
 
 const machineStorageCost = config => {
-  const { masterDiskSize, numberOfWorkers, workerDiskSize } = normalizeRuntimeConfig(config)
+  const { masterDiskSize, numberOfWorkers, workerDiskSize } = normalizeMachineConfig(config)
   return (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice
 }
 
@@ -30,7 +30,7 @@ export const findMachineType = name => {
 }
 
 export const machineConfigCost = config => {
-  const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = normalizeRuntimeConfig(config)
+  const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = normalizeMachineConfig(config)
   const { price: masterPrice } = findMachineType(masterMachineType)
   const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
   return _.sum([
@@ -41,7 +41,7 @@ export const machineConfigCost = config => {
   ])
 }
 
-export const runtimeCost = ({ runtimeConfig, status }) => {
+export const clusterCost = ({ runtimeConfig, status }) => {
   switch (status) {
     case 'Stopped':
       return machineStorageCost(runtimeConfig)
@@ -53,12 +53,12 @@ export const runtimeCost = ({ runtimeConfig, status }) => {
   }
 }
 
-export const trimRuntimesOldestFirst = _.flow(
+export const trimClustersOldestFirst = _.flow(
   _.remove({ status: 'Deleting' }),
   _.sortBy('createdDate')
 )
 
-export const currentRuntime = _.flow(trimRuntimesOldestFirst, _.last)
+export const currentCluster = _.flow(trimClustersOldestFirst, _.last)
 
 
 export const deleteText = () => {

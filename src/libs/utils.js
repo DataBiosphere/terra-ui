@@ -179,7 +179,7 @@ export const abandonedPromise = () => {
   return new Promise(() => {})
 }
 
-export const generateRuntimeName = () => `saturn-${uuid()}`
+export const generateClusterName = () => `saturn-${uuid()}`
 
 export const waitOneTick = () => new Promise(setImmediate)
 

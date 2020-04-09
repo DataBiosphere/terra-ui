@@ -10,10 +10,10 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
+import { deleteText, findMachineType, machineConfigCost, normalizeMachineConfig } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { notify } from 'src/libs/notifications'
-import { deleteText, findMachineType, machineConfigCost, normalizeRuntimeConfig } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -96,9 +96,9 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
 const CUSTOM_MODE = '__custom_mode__'
 const PROJECT_SPECIFIC_MODE = '__project_specific_mode__'
 
-export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeModal extends Component {
+export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
   static propTypes = {
-    currentRuntime: PropTypes.object,
+    currentCluster: PropTypes.object,
     namespace: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired
@@ -106,8 +106,8 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
 
   constructor(props) {
     super(props)
-    const { currentRuntime } = props
-    const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentRuntime?.runtimeConfig || profiles[0].runtimeConfig)
+    const { currentCluster } = props
+    const { cloudService, ...currentConfig } = normalizeMachineConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
     const matchingProfile = _.find({ runtimeConfig: { masterMachineType: currentConfig.masterMachineType } }, profiles)
 
     this.state = {
@@ -118,7 +118,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     }
   }
 
-  getRuntimeConfig() {
+  getClusterConfig() {
     const { sparkMode, numberOfWorkers, masterMachineType, masterDiskSize, workerMachineType, workerDiskSize, numberOfPreemptibleWorkers } = this.state
 
     return !!sparkMode ? {
@@ -134,52 +134,52 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     }
   }
 
-  deleteRuntime() {
-    const { currentRuntime } = this.props
-    const { googleProject, runtimeName } = currentRuntime
+  deleteCluster() {
+    const { currentCluster } = this.props
+    const { googleProject, runtimeName } = currentCluster
 
-    return Ajax().Runtimes.runtime(googleProject, runtimeName).delete()
+    return Ajax().Clusters.cluster(googleProject, runtimeName).delete()
   }
 
-  createRuntime() {
-    const { namespace, onSuccess, currentRuntime } = this.props
+  createCluster() {
+    const { namespace, onSuccess, currentCluster } = this.props
     const { jupyterUserScriptUri, selectedLeoImage, customEnvImage } = this.state
     onSuccess(Promise.all([
-      Ajax().Runtimes.runtime(namespace, Utils.generateRuntimeName()).create({
-        runtimeConfig: this.getRuntimeConfig(),
+      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
+        runtimeConfig: this.getClusterConfig(),
         toolDockerImage: selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE ? customEnvImage : selectedLeoImage,
         labels: { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` },
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
-      !!currentRuntime && this.deleteRuntime()
+      !!currentCluster && this.deleteCluster()
     ]))
   }
 
-  updateRuntime(isStopRequired = false) {
-    const { currentRuntime, onSuccess } = this.props
-    const { googleProject, runtimeName } = currentRuntime
+  updateCluster(isStopRequired = false) {
+    const { currentCluster, onSuccess } = this.props
+    const { googleProject, runtimeName } = currentCluster
 
     if (isStopRequired) {
       notify('info', 'To be updated, your runtime will now stop, and then start. This will take 3-5 minutes.')
     }
 
     return onSuccess(
-      Ajax().Runtimes.runtime(googleProject, runtimeName).update({
-        runtimeConfig: this.getRuntimeConfig()
+      Ajax().Clusters.cluster(googleProject, runtimeName).update({
+        runtimeConfig: this.getClusterConfig()
       }),
       isStopRequired ? 5000 : 0)
   }
 
   hasStartUpScriptChanged() {
-    const { currentRuntime } = this.props
+    const { currentCluster } = this.props
     const { jupyterUserScriptUri } = this.state
-    const originalJupyterUserScriptUri = currentRuntime.jupyterUserScriptUri || ''
+    const originalJupyterUserScriptUri = currentCluster.jupyterUserScriptUri || ''
     return jupyterUserScriptUri !== originalJupyterUserScriptUri
   }
 
   hasImageChanged() {
-    const { selectedLeoImage, customEnvImage, currentRuntimeDetails } = this.state
-    const { imageUrl } = currentRuntimeDetails ? this.getImageUrl(currentRuntimeDetails) : ''
+    const { selectedLeoImage, customEnvImage, currentClusterDetails } = this.state
+    const { imageUrl } = currentClusterDetails ? this.getImageUrl(currentClusterDetails) : ''
     return !_.includes(imageUrl, [selectedLeoImage, customEnvImage])
   }
 
@@ -187,27 +187,27 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
   //see this for a diagram of the conditional this implements https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
   //this function returns true for cases 2 & 3 in this diagram
   canUpdate() {
-    const { currentRuntime } = this.props
+    const { currentCluster } = this.props
 
-    if (!currentRuntime) return false
+    if (!currentCluster) return false
 
-    const currentRuntimeConfig = normalizeRuntimeConfig(currentRuntime.runtimeConfig)
-    const userSelectedConfig = normalizeRuntimeConfig(this.getRuntimeConfig())
+    const currentClusterConfig = normalizeMachineConfig(currentCluster.runtimeConfig)
+    const userSelectedConfig = normalizeMachineConfig(this.getClusterConfig())
 
-    const cantWorkersUpdate = currentRuntimeConfig.numberOfWorkers !== userSelectedConfig.numberOfWorkers &&
-      (currentRuntimeConfig.numberOfWorkers < 2 || userSelectedConfig.numberOfWorkers < 2)
+    const cantWorkersUpdate = currentClusterConfig.numberOfWorkers !== userSelectedConfig.numberOfWorkers &&
+      (currentClusterConfig.numberOfWorkers < 2 || userSelectedConfig.numberOfWorkers < 2)
 
     const hasUnUpdateableResourceChanged =
-      currentRuntimeConfig.workerDiskSize !== userSelectedConfig.workerDiskSize ||
-      currentRuntimeConfig.workerMachineType !== userSelectedConfig.workerMachineType ||
-      currentRuntimeConfig.numberOfWorkerLocalSSDs !== userSelectedConfig.numberOfWorkerLocalSSDs
+      currentClusterConfig.workerDiskSize !== userSelectedConfig.workerDiskSize ||
+      currentClusterConfig.workerMachineType !== userSelectedConfig.workerMachineType ||
+      currentClusterConfig.numberOfWorkerLocalSSDs !== userSelectedConfig.numberOfWorkerLocalSSDs
 
-    const hasWorkers = currentRuntimeConfig.numberOfWorkers >= 2 || currentRuntimeConfig.numberOfPreemptibleWorkers >= 2
+    const hasWorkers = currentClusterConfig.numberOfWorkers >= 2 || currentClusterConfig.numberOfPreemptibleWorkers >= 2
     const hasWorkersResourceChanged = hasWorkers && hasUnUpdateableResourceChanged
 
-    const hasDiskSizeDecreased = currentRuntimeConfig.masterDiskSize > userSelectedConfig.masterDiskSize
+    const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
 
-    const hasCloudServiceChanged = currentRuntimeConfig.cloudService !== userSelectedConfig.cloudService
+    const hasCloudServiceChanged = currentClusterConfig.cloudService !== userSelectedConfig.cloudService
 
     const cantUpdate = cantWorkersUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || hasCloudServiceChanged ||
       this.hasImageChanged() || this.hasStartUpScriptChanged()
@@ -215,28 +215,28 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
   }
 
   hasChanges() {
-    const { currentRuntime } = this.props
-    if (!currentRuntime) return true
+    const { currentCluster } = this.props
+    if (!currentCluster) return true
 
     //TODO: this _.pickBy will need to change if the UI-side machineConfig starts tracking the cloud service (which it will once Leo exposes the ability to create GCE runtimes)
-    const currentRuntimeWithoutService = _.pickBy((v, k) => k !== 'cloudService', currentRuntime.runtimeConfig)
-    const hasMachineConfigChanges = !_.isMatch(currentRuntimeWithoutService, this.getRuntimeConfig())
+    const currentClusterWithoutService = _.pickBy((v, k) => k !== 'cloudService', currentCluster.runtimeConfig)
+    const hasMachineConfigChanges = !_.isMatch(currentClusterWithoutService, this.getClusterConfig())
 
     return hasMachineConfigChanges || this.hasImageChanged() || this.hasStartUpScriptChanged()
   }
 
   //returns true for case 3 in this diagram: https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
   isStopRequired() {
-    const { currentRuntime } = this.props
+    const { currentCluster } = this.props
 
-    const currentRuntimeConfig = normalizeRuntimeConfig(currentRuntime.runtimeConfig)
-    const userSelectedConfig = normalizeRuntimeConfig(this.getRuntimeConfig())
+    const currentClusterConfig = normalizeMachineConfig(currentCluster.runtimeConfig)
+    const userSelectedConfig = normalizeMachineConfig(this.getClusterConfig())
 
-    const isMasterMachineTypeChanged = currentRuntimeConfig.masterMachineType !== userSelectedConfig.masterMachineType
+    const isMasterMachineTypeChanged = currentClusterConfig.masterMachineType !== userSelectedConfig.masterMachineType
 
-    const isRuntimeRunning = currentRuntime.status === 'Running'
+    const isClusterRunning = currentCluster.status === 'Running'
 
-    return this.canUpdate() && isMasterMachineTypeChanged && isRuntimeRunning
+    return this.canUpdate() && isMasterMachineTypeChanged && isClusterRunning
   }
 
   getRunningUpdateText() {
@@ -254,26 +254,26 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       ])
   }
 
-  getImageUrl(runtimeDetails) {
-    const { runtimeImages } = runtimeDetails
+  getImageUrl(clusterDetails) {
+    const { runtimeImages } = clusterDetails
     return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeImages)
   }
 
-  componentDidMount = withErrorReporting('Error loading runtime', async () => {
-    const { currentRuntime, namespace } = this.props
+  componentDidMount = withErrorReporting('Error loading cluster', async () => {
+    const { currentCluster, namespace } = this.props
 
-    const [currentRuntimeDetails, newLeoImages] = await Promise.all([
-      currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
+    const [currentClusterDetails, newLeoImages] = await Promise.all([
+      currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.runtimeName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
     ])
 
-    this.setState({ leoImages: newLeoImages, currentRuntimeDetails })
-    if (currentRuntimeDetails) {
-      const { jupyterUserScriptUri } = currentRuntimeDetails
-      const { imageUrl } = this.getImageUrl(currentRuntimeDetails)
+    this.setState({ leoImages: newLeoImages, currentClusterDetails })
+    if (currentClusterDetails) {
+      const { jupyterUserScriptUri } = currentClusterDetails
+      const { imageUrl } = this.getImageUrl(currentClusterDetails)
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
-      } else if (currentRuntimeDetails.labels.saturnIsProjectSpecific === 'true') {
+      } else if (currentClusterDetails.labels.saturnIsProjectSpecific === 'true') {
         this.setState({ selectedLeoImage: PROJECT_SPECIFIC_MODE, customEnvImage: imageUrl })
       } else {
         this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl })
@@ -288,7 +288,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
   })
 
   render() {
-    const { currentRuntime, onDismiss, onSuccess } = this.props
+    const { currentCluster, onDismiss, onSuccess } = this.props
     const {
       profile, masterMachineType, masterDiskSize, sparkMode, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
       jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode
@@ -351,7 +351,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
 
       return h(Fragment, [
         div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
-          !!currentRuntime && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'delete' }) }, 'Delete Runtime'),
+          !!currentCluster && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'delete' }) }, 'Delete Runtime'),
           div({ style: { flex: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: onDismiss }, 'Cancel'),
           h(ButtonPrimary, {
@@ -360,13 +360,13 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             onClick: () => {
               if (isSelectedImageInputted && !canUpdate) {
                 this.setState({ viewMode: 'warning' })
-              } else if (!!currentRuntime) {
+              } else if (!!currentCluster) {
                 this.setState({ viewMode: updateOrReplace })
               } else {
-                this.createRuntime()
+                this.createCluster()
               }
             }
-          }, !!currentRuntime ? _.startCase(updateOrReplace) : 'Create')
+          }, !!currentCluster ? _.startCase(updateOrReplace) : 'Create')
         ])
       ])
     }
@@ -391,7 +391,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                   onChange: ({ value }) => {
                     this.setState({
                       profile: value,
-                      ...(value === 'custom' ? {} : normalizeRuntimeConfig(_.find({ name: value }, profiles).runtimeConfig))
+                      ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).runtimeConfig))
                     })
                   },
                   isSearchable: false,
@@ -507,7 +507,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
           style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
         }, [
           span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['COST:']),
-          `${Utils.formatUSD(machineConfigCost(this.getRuntimeConfig()))} per hour`
+          `${Utils.formatUSD(machineConfigCost(this.getClusterConfig()))} per hour`
         ])
       ])
     ])
@@ -527,21 +527,21 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
         ]),
         h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
         p({ style: { lineHeight: 1.5 } }, [
-          'If you\'re confident that your image is safe, click ', b([!!currentRuntime ? 'NEXT' : 'CREATE']),
+          'If you\'re confident that your image is safe, click ', b([!!currentCluster ? 'NEXT' : 'CREATE']),
           ' to use it. Otherwise, click ', b(['BACK']), ' to select another image.'
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Back']),
           h(ButtonPrimary, {
-            onClick: () => !!currentRuntime ? this.setState({ viewMode: 'replace' }) : this.createRuntime()
-          }, [!!currentRuntime ? 'Next' : 'Create'])
+            onClick: () => !!currentCluster ? this.setState({ viewMode: 'replace' }) : this.createCluster()
+          }, [!!currentCluster ? 'Next' : 'Create'])
         ])
       ])],
       ['delete', () => h(Fragment, [
         h(deleteText),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
-          h(ButtonPrimary, { onClick: () => onSuccess(this.deleteRuntime()) }, ['DELETE'])
+          h(ButtonPrimary, { onClick: () => onSuccess(this.deleteCluster()) }, ['DELETE'])
         ])
       ])],
       ['replace', () => h(Fragment, [
@@ -559,11 +559,11 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             style: { marginRight: '2rem' },
             onClick: () => this.setState({ viewMode: undefined })
           }, ['BACK']),
-          h(ButtonPrimary, { onClick: () => this.createRuntime() }, ['REPLACE'])
+          h(ButtonPrimary, { onClick: () => this.createCluster() }, ['REPLACE'])
         ])
       ])],
       ['update', () => h(Fragment, [
-        currentRuntime.status === 'Running' ?
+        currentCluster.status === 'Running' ?
           this.getRunningUpdateText() :
           p([
             'This will update your existing runtime. You will not lose any files. ',
@@ -575,7 +575,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             style: { marginRight: '2rem' },
             onClick: () => this.setState({ viewMode: undefined })
           }, ['BACK']),
-          h(ButtonPrimary, { onClick: () => this.updateRuntime(this.isStopRequired()) }, ['UPDATE'])
+          h(ButtonPrimary, { onClick: () => this.updateCluster(this.isStopRequired()) }, ['UPDATE'])
         ])
       ])],
       [Utils.DEFAULT, () => h(Fragment, [

@@ -2,75 +2,75 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
+import { ClusterErrorModal, DeleteClusterModal } from 'src/components/ClusterManager'
 import { Clickable, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { DeleteRuntimeModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import { FlexTable, Sortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
+import { clusterCost, currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
-import { currentRuntime, runtimeCost } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import { formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
 
-const Runtimes = () => {
+const Clusters = () => {
   const signal = useCancellation()
-  const [runtimes, setRuntimes] = useState()
+  const [clusters, setClusters] = useState()
   const [loading, setLoading] = useState(false)
-  const [errorRuntimeId, setErrorRuntimeId] = useState()
-  const getErrorRuntimeId = useGetter(errorRuntimeId)
-  const [deleteRuntimeId, setDeleteRuntimeId] = useState()
-  const getDeleteRuntimeId = useGetter(deleteRuntimeId)
+  const [errorClusterId, setErrorClusterId] = useState()
+  const getErrorClusterId = useGetter(errorClusterId)
+  const [deleteClusterId, setDeleteClusterId] = useState()
+  const getDeleteClusterId = useGetter(deleteClusterId)
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
 
-  const refreshRuntimes = withBusyState(setLoading, async () => {
-    const newRuntimes = await Ajax(signal).Runtimes.list({ creator: getUser().email })
-    setRuntimes(newRuntimes)
-    if (!_.some({ id: getErrorRuntimeId() }, newRuntimes)) {
-      setErrorRuntimeId(undefined)
+  const refreshClusters = withBusyState(setLoading, async () => {
+    const newClusters = await Ajax(signal).Clusters.list({ creator: getUser().email })
+    setClusters(newClusters)
+    if (!_.some({ id: getErrorClusterId() }, newClusters)) {
+      setErrorClusterId(undefined)
     }
-    if (!_.some({ id: getDeleteRuntimeId() }, newRuntimes)) {
-      setDeleteRuntimeId(undefined)
+    if (!_.some({ id: getDeleteClusterId() }, newClusters)) {
+      setDeleteClusterId(undefined)
     }
   })
-  const loadRuntimes = withErrorReporting('Error loading notebook runtimes', refreshRuntimes)
+  const loadClusters = withErrorReporting('Error loading notebook runtimes', refreshClusters)
 
-  useOnMount(() => { loadRuntimes() })
-  usePollingEffect(withErrorIgnoring(refreshRuntimes), { ms: 30000 })
+  useOnMount(() => { loadClusters() })
+  usePollingEffect(withErrorIgnoring(refreshClusters), { ms: 30000 })
 
-  const filteredRuntimes = _.orderBy([{
+  const filteredClusters = _.orderBy([{
     project: 'googleProject',
     status: 'status',
     created: 'createdDate',
     accessed: 'dateAccessed',
-    cost: runtimeCost
-  }[sort.field]], [sort.direction], runtimes)
+    cost: clusterCost
+  }[sort.field]], [sort.direction], clusters)
 
-  const totalCost = _.sum(_.map(runtimeCost, runtimes))
+  const totalCost = _.sum(_.map(clusterCost, clusters))
 
-  const runtimesByProject = _.groupBy('googleProject', runtimes)
+  const clustersByProject = _.groupBy('googleProject', clusters)
 
   return h(Fragment, [
     h(TopBar, { title: 'Notebook Runtimes' }),
     div({ role: 'main', style: { padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', marginBottom: '1rem' } }, ['Your notebook runtimes']),
       div({ style: { flex: 1 } }, [
-        runtimes && h(AutoSizer, [
+        clusters && h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
-            width, height, rowCount: filteredRuntimes.length,
+            width, height, rowCount: filteredClusters.length,
             columns: [
               {
                 headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
                 cellRenderer: ({ rowIndex }) => {
-                  const runtime = filteredRuntimes[rowIndex]
-                  const inactive = !_.includes(runtime.status, ['Deleting', 'Error']) &&
-                    currentRuntime(runtimesByProject[runtime.googleProject]) !== runtime
+                  const cluster = filteredClusters[rowIndex]
+                  const inactive = !_.includes(cluster.status, ['Deleting', 'Error']) &&
+                    currentCluster(clustersByProject[cluster.googleProject]) !== cluster
                   return h(Fragment, [
-                    runtime.googleProject,
+                    cluster.googleProject,
                     inactive && h(TooltipTrigger, {
                       content: 'This billing project has multiple active runtime environments. Only the most recently created one will be used.'
                     }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
@@ -81,13 +81,13 @@ const Runtimes = () => {
                 size: { basis: 150, grow: 0 },
                 headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
-                  const runtime = filteredRuntimes[rowIndex]
+                  const cluster = filteredClusters[rowIndex]
                   return h(Fragment, [
-                    runtime.status,
-                    runtime.status === 'Error' && h(Clickable, {
+                    cluster.status,
+                    cluster.status === 'Error' && h(Clickable, {
                       tooltip: 'View error',
                       'aria-label': 'View error',
-                      onClick: () => setErrorRuntimeId(runtime.id)
+                      onClick: () => setErrorClusterId(cluster.id)
                     }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
                   ])
                 }
@@ -96,14 +96,14 @@ const Runtimes = () => {
                 size: { basis: 250, grow: 0 },
                 headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Created']),
                 cellRenderer: ({ rowIndex }) => {
-                  return makeCompleteDate(filteredRuntimes[rowIndex].auditInfo.createdDate)
+                  return makeCompleteDate(filteredClusters[rowIndex].auditInfo.createdDate)
                 }
               },
               {
                 size: { basis: 250, grow: 0 },
                 headerRenderer: () => h(Sortable, { sort, field: 'accessed', onSort: setSort }, ['Last accessed']),
                 cellRenderer: ({ rowIndex }) => {
-                  return makeCompleteDate(filteredRuntimes[rowIndex].auditInfo.dateAccessed)
+                  return makeCompleteDate(filteredClusters[rowIndex].auditInfo.dateAccessed)
                 }
               },
               {
@@ -112,19 +112,19 @@ const Runtimes = () => {
                   return h(Sortable, { sort, field: 'cost', onSort: setSort }, [`Cost / hr (${formatUSD(totalCost)} total)`])
                 },
                 cellRenderer: ({ rowIndex }) => {
-                  return formatUSD(runtimeCost(filteredRuntimes[rowIndex]))
+                  return formatUSD(clusterCost(filteredClusters[rowIndex]))
                 }
               },
               {
                 size: { basis: 50, grow: 0 },
                 headerRenderer: () => null,
                 cellRenderer: ({ rowIndex }) => {
-                  const { id, status } = filteredRuntimes[rowIndex]
+                  const { id, status } = filteredClusters[rowIndex]
                   return status !== 'Deleting' && h(Link, {
                     disabled: status === 'Creating',
                     'aria-label': 'Delete notebook runtime',
                     tooltip: status === 'Creating' ? 'Cannot delete a runtime while it is being created' : 'Delete notebook runtime',
-                    onClick: () => setDeleteRuntimeId(id)
+                    onClick: () => setDeleteClusterId(id)
                   }, [icon('trash')])
                 }
               }
@@ -132,16 +132,16 @@ const Runtimes = () => {
           })
         ])
       ]),
-      errorRuntimeId && h(RuntimeErrorModal, {
-        runtime: _.find({ id: errorRuntimeId }, runtimes),
-        onDismiss: () => setErrorRuntimeId(undefined)
+      errorClusterId && h(ClusterErrorModal, {
+        cluster: _.find({ id: errorClusterId }, clusters),
+        onDismiss: () => setErrorClusterId(undefined)
       }),
-      deleteRuntimeId && h(DeleteRuntimeModal, {
-        runtime: _.find({ id: deleteRuntimeId }, runtimes),
-        onDismiss: () => setDeleteRuntimeId(undefined),
+      deleteClusterId && h(DeleteClusterModal, {
+        cluster: _.find({ id: deleteClusterId }, clusters),
+        onDismiss: () => setDeleteClusterId(undefined),
         onSuccess: () => {
-          setDeleteRuntimeId(undefined)
-          loadRuntimes()
+          setDeleteClusterId(undefined)
+          loadClusters()
         }
       }),
       loading && spinnerOverlay
@@ -151,9 +151,9 @@ const Runtimes = () => {
 
 export const navPaths = [
   {
-    name: 'runtimes',
-    path: '/runtimes',
-    component: Runtimes,
+    name: 'clusters',
+    path: '/clusters',
+    component: Clusters,
     title: 'Runtime environments'
   }
 ]

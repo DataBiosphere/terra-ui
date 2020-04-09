@@ -958,14 +958,14 @@ const Submissions = signal => ({
 })
 
 
-const Runtimes = signal => ({
+const Clusters = signal => ({
   list: async (labels = {}) => {
     const res = await fetchLeo(`api/google/v1/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
 
-  runtime: (project, name) => {
+  cluster: (project, name) => {
     const root = `api/google/v1/runtimes/${project}/${name}`
 
     return {
@@ -973,8 +973,8 @@ const Runtimes = signal => ({
         const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
         return res.json()
       },
-      create: runtimeOptions => {
-        const body = _.merge(runtimeOptions, {
+      create: clusterOptions => {
+        const body = _.merge(clusterOptions, {
           labels: { saturnAutoCreated: 'true', saturnVersion: version },
           defaultClientId: getConfig().googleClientId,
           userJupyterExtensionConfig: {
@@ -993,8 +993,8 @@ const Runtimes = signal => ({
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
       },
 
-      update: runtimeOptions => {
-        const body = { ...runtimeOptions, allowStop: true }
+      update: clusterOptions => {
+        const body = { ...clusterOptions, allowStop: true }
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PATCH' }, appIdentifier]))
       },
 
@@ -1119,7 +1119,7 @@ export const Ajax = signal => {
     GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),
     Submissions: Submissions(signal),
-    Runtimes: Runtimes(signal),
+    Clusters: Clusters(signal),
     Dockstore: Dockstore(signal),
     Martha: Martha(signal),
     Duos: Duos(signal),

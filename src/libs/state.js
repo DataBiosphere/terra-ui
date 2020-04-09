@@ -30,7 +30,7 @@ export const workspacesStore = Utils.atom()
 
 export const rerunFailuresStatus = Utils.atom()
 
-export const errorNotifiedRuntimes = Utils.atom([])
+export const errorNotifiedClusters = Utils.atom([])
 
 export const requesterPaysBuckets = Utils.atom([])
 

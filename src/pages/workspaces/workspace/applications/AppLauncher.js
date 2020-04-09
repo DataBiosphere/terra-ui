@@ -2,9 +2,9 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
+import { ClusterKicker, ClusterStatusMonitor, PeriodicCookieSetter, PlaygroundHeader, StatusMessage } from 'src/components/cluster-common'
 import { Link, spinnerOverlay } from 'src/components/common'
-import { NewRuntimeModal } from 'src/components/NewRuntimeModal'
-import { PeriodicCookieSetter, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
+import { NewClusterModal } from 'src/components/NewClusterModal'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -19,29 +19,29 @@ const AppLauncher = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: _.get('app')
   })
-)(({ namespace, refreshRuntimes, runtime, app }, ref) => {
+)(({ namespace, refreshClusters, cluster, app }, ref) => {
   const [cookieReady, setCookieReady] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
 
-  const runtimeStatus = runtime && runtime.status // preserve null vs undefined
-  const runtimeName = runtime?.runtimeName
+  const clusterStatus = cluster && cluster.status // preserve null vs undefined
+  const runtimeName = cluster?.runtimeName
 
   return h(Fragment, [
-    h(RuntimeStatusMonitor, {
-      runtime,
-      onRuntimeStartedRunning: async () => {
-        await Ajax().Runtimes.notebooks(namespace, runtimeName).setCookie()
+    h(ClusterStatusMonitor, {
+      cluster,
+      onClusterStartedRunning: async () => {
+        await Ajax().Clusters.notebooks(namespace, runtimeName).setCookie()
         setCookieReady(true)
         Ajax().Metrics.captureEvent(Events.applicationLaunch, { app })
       },
-      onRuntimeStoppedRunning: () => setCookieReady(false)
+      onClusterStoppedRunning: () => setCookieReady(false)
     }),
-    h(RuntimeKicker, {
-      runtime, refreshRuntimes,
-      onNullRuntime: () => setShowCreate(true)
+    h(ClusterKicker, {
+      cluster, refreshClusters,
+      onNullCluster: () => setShowCreate(true)
     }),
-    runtimeStatus === 'Running' && cookieReady ?
+    clusterStatus === 'Running' && cookieReady ?
       h(Fragment, [
         h(PeriodicCookieSetter, { namespace, runtimeName }),
         app === 'RStudio' && h(PlaygroundHeader, [
@@ -53,7 +53,7 @@ const AppLauncher = _.flow(
           '.'
         ]),
         iframe({
-          src: `${runtime.proxyUrl}/${app === 'terminal' ? 'terminals/1' : ''}`,
+          src: `${cluster.proxyUrl}/${app === 'terminal' ? 'terminals/1' : ''}`,
           style: {
             border: 'none', flex: 1,
             ...(app === 'terminal' ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
@@ -62,8 +62,8 @@ const AppLauncher = _.flow(
         })
       ]) :
       div({ style: { padding: '2rem' } }, [
-        !busy && h(StatusMessage, { hideSpinner: ['Error', 'Stopped', null].includes(runtimeStatus) }, [
-          Utils.switchCase(runtimeStatus,
+        !busy && h(StatusMessage, { hideSpinner: ['Error', 'Stopped', null].includes(clusterStatus) }, [
+          Utils.switchCase(clusterStatus,
             ['Creating', () => 'Creating notebook runtime environment. You can navigate away and return in 3-5 minutes.'],
             ['Starting', () => 'Starting notebook runtime environment, this may take up to 2 minutes.'],
             ['Running', () => 'Almost ready...'],
@@ -75,17 +75,17 @@ const AppLauncher = _.flow(
             [Utils.DEFAULT, () => 'Unknown notebook runtime status. Please create a new runtime or contact support.']
           )
         ]),
-        h(NewRuntimeModal, {
+        h(NewClusterModal, {
           isOpen: showCreate,
-          namespace, currentRuntime: runtime,
+          namespace, currentCluster: cluster,
           onDismiss: () => setShowCreate(false),
           onSuccess: _.flow(
-            withErrorReporting('Error creating runtime'),
+            withErrorReporting('Error creating cluster'),
             Utils.withBusyState(setBusy)
           )(async promise => {
             setShowCreate(false)
             await promise
-            await refreshRuntimes()
+            await refreshClusters()
           })
         }),
         busy && spinnerOverlay
