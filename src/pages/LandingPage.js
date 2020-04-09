@@ -1,8 +1,9 @@
 import { Fragment } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
-import { Clickable, HeroWrapper, Link, makeIconButton } from 'src/components/common'
+import { Clickable, HeroWrapper, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import covidHero from 'src/images/covid-hero.jpg'
+import hexButton from 'src/images/hex-button.svg'
 import colors from 'src/libs/colors'
 import { isFirecloud, isTerra } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
@@ -25,6 +26,18 @@ const makeDocLink = (href, title) => {
   ])
 }
 
+const makeRightArrowWithBackgroundIcon = () => div({
+  style: {
+    height: 30, width: 30,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    alignSelf: 'flex-end',
+    backgroundColor: colors.accent(),
+    ...(isTerra() ?
+      { mask: `url(${hexButton}) center no-repeat`, WebkitMask: `url(${hexButton}) center no-repeat` } :
+      { borderRadius: '1rem' })
+  }
+}, [icon('arrowRight', { color: 'white' })])
+
 const makeCard = (link, title, body) => h(Clickable, {
   href: Nav.getLink(link),
   style: { ...Style.elements.card.container, height: 245, width: 225, marginRight: '1rem', justifyContent: undefined },
@@ -33,7 +46,7 @@ const makeCard = (link, title, body) => h(Clickable, {
   div({ style: { color: colors.accent(), fontSize: 18, fontWeight: 500, lineHeight: '22px', marginBottom: '0.5rem' } }, title),
   div({ style: { lineHeight: '22px' } }, body),
   div({ style: { flexGrow: 1 } }),
-  makeIconButton('arrowRight', { tabIndex: '-1', 'aria-hidden': true, size: 30, style: { alignSelf: 'flex-end' } })
+  makeRightArrowWithBackgroundIcon()
 ])
 
 const LandingPage = () => {
