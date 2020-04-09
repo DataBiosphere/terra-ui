@@ -76,10 +76,13 @@ const checkRequesterPaysError = async response => {
  * Detects errors due to requester pays buckets, and adds the current workspace's billing
  * project if the user has access, retrying the request once if necessary.
  */
-const withRequesterPays = wrappedFetch => (url, ...args) => {
+const withRequesterPays = wrappedFetch => async (url, ...args) => {
   const bucket = /\/b\/([^/?]+)[/?]/.exec(url)[1]
   const workspace = workspaceStore.get()
-  const userProject = workspace && Utils.canWrite(workspace.accessLevel) ? workspace.workspace.namespace : requesterPaysProjectStore.get()
+  const userProjects = await Billing().listProjects()
+  const userProject = workspace && _.some(['projectName', workspace.workspace.namespace], userProjects) ?
+    workspace.workspace.namespace :
+    requesterPaysProjectStore.get()
   const tryRequest = async () => {
     const knownRequesterPays = _.includes(bucket, requesterPaysBuckets.get())
     try {
