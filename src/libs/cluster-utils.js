@@ -8,7 +8,7 @@ import * as Utils from 'src/libs/utils'
 
 export const usableStatuses = ['Updating', 'Running']
 
-export const normalizeMachineConfig = ({ cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
+export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
   return {
     cloudService: cloudService || 'GCE',
     masterMachineType: masterMachineType || machineType || 'n1-standard-4',
@@ -21,7 +21,7 @@ export const normalizeMachineConfig = ({ cloudService, machineType, diskSize, ma
 }
 
 const machineStorageCost = config => {
-  const { masterDiskSize, numberOfWorkers, workerDiskSize } = normalizeMachineConfig(config)
+  const { masterDiskSize, numberOfWorkers, workerDiskSize } = normalizeRuntimeConfig(config)
   return (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice
 }
 
@@ -29,8 +29,8 @@ export const findMachineType = name => {
   return _.find({ name }, machineTypes) || { name, cpu: '?', memory: '?', price: NaN, preemptiblePrice: NaN }
 }
 
-export const machineConfigCost = config => {
-  const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = normalizeMachineConfig(config)
+export const runtimeConfigCost = config => {
+  const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = normalizeRuntimeConfig(config)
   const { price: masterPrice } = findMachineType(masterMachineType)
   const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
   return _.sum([
@@ -49,7 +49,7 @@ export const clusterCost = ({ runtimeConfig, status }) => {
     case 'Error':
       return 0.0
     default:
-      return machineConfigCost(runtimeConfig)
+      return runtimeConfigCost(runtimeConfig)
   }
 }
 

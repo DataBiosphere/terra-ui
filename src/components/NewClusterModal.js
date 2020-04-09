@@ -10,7 +10,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { deleteText, findMachineType, machineConfigCost, normalizeMachineConfig } from 'src/libs/cluster-utils'
+import { deleteText, findMachineType, runtimeConfigCost, normalizeRuntimeConfig } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { notify } from 'src/libs/notifications'
@@ -107,7 +107,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   constructor(props) {
     super(props)
     const { currentCluster } = props
-    const { cloudService, ...currentConfig } = normalizeMachineConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
+    const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
     const matchingProfile = _.find({ runtimeConfig: { masterMachineType: currentConfig.masterMachineType } }, profiles)
 
     this.state = {
@@ -191,8 +191,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     if (!currentCluster) return false
 
-    const currentClusterConfig = normalizeMachineConfig(currentCluster.runtimeConfig)
-    const userSelectedConfig = normalizeMachineConfig(this.getClusterConfig())
+    const currentClusterConfig = normalizeRuntimeConfig(currentCluster.runtimeConfig)
+    const userSelectedConfig = normalizeRuntimeConfig(this.getClusterConfig())
 
     const cantWorkersUpdate = currentClusterConfig.numberOfWorkers !== userSelectedConfig.numberOfWorkers &&
       (currentClusterConfig.numberOfWorkers < 2 || userSelectedConfig.numberOfWorkers < 2)
@@ -218,19 +218,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster } = this.props
     if (!currentCluster) return true
 
-    //TODO: this _.pickBy will need to change if the UI-side machineConfig starts tracking the cloud service (which it will once Leo exposes the ability to create GCE runtimes)
-    const currentClusterWithoutService = _.pickBy((v, k) => k !== 'cloudService', currentCluster.runtimeConfig)
-    const hasMachineConfigChanges = !_.isMatch(currentClusterWithoutService, this.getClusterConfig())
+    const hasRuntimeConfigChanges = !_.isMatch(currentCluster.runtimeConfig, this.getClusterConfig())
 
-    return hasMachineConfigChanges || this.hasImageChanged() || this.hasStartUpScriptChanged()
+    return hasRuntimeConfigChanges || this.hasImageChanged() || this.hasStartUpScriptChanged()
   }
 
   //returns true for case 3 in this diagram: https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
   isStopRequired() {
     const { currentCluster } = this.props
 
-    const currentClusterConfig = normalizeMachineConfig(currentCluster.runtimeConfig)
-    const userSelectedConfig = normalizeMachineConfig(this.getClusterConfig())
+    const currentClusterConfig = normalizeRuntimeConfig(currentCluster.runtimeConfig)
+    const userSelectedConfig = normalizeRuntimeConfig(this.getClusterConfig())
 
     const isMasterMachineTypeChanged = currentClusterConfig.masterMachineType !== userSelectedConfig.masterMachineType
 
@@ -371,7 +369,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])
     }
 
-    const machineConfig = () => h(Fragment, [
+    const runtimeConfig = () => h(Fragment, [
       div({
         style: {
           padding: '1rem', marginTop: '1rem',
@@ -391,7 +389,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   onChange: ({ value }) => {
                     this.setState({
                       profile: value,
-                      ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).runtimeConfig))
+                      ...(value === 'custom' ? {} : normalizeRuntimeConfig(_.find({ name: value }, profiles).runtimeConfig))
                     })
                   },
                   isSearchable: false,
@@ -507,7 +505,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
         }, [
           span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['COST:']),
-          `${Utils.formatUSD(machineConfigCost(this.getClusterConfig()))} per hour`
+          `${Utils.formatUSD(runtimeConfigCost(this.getClusterConfig()))} per hour`
         ])
       ])
     ])
@@ -650,7 +648,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               ])
             ])
           }]),
-        machineConfig(),
+        runtimeConfig(),
         bottomButtons()
       ])]
     )
