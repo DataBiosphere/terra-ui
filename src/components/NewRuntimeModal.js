@@ -207,8 +207,10 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
 
     const hasDiskSizeDecreased = currentRuntimeConfig.masterDiskSize > userSelectedConfig.masterDiskSize
 
-    const cantUpdate = cantWorkersUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || this.hasImageChanged() ||
-      this.hasStartUpScriptChanged()
+    const hasCloudServiceChanged = currentRuntimeConfig.cloudService !== userSelectedConfig.cloudService
+
+    const cantUpdate = cantWorkersUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || hasCloudServiceChanged ||
+      this.hasImageChanged() || this.hasStartUpScriptChanged()
     return !cantUpdate
   }
 
@@ -343,28 +345,31 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       div(['Version: ', version || null])
     ])
 
-    const bottomButtons = () => h(Fragment, [
-      div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
-        !!currentRuntime && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'delete' }) }, 'Delete Runtime'),
-        div({ style: { flex: 1 } }),
-        h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: onDismiss }, 'Cancel'),
-        h(ButtonPrimary, {
-          disabled: !this.hasChanges() || !!errors,
-          tooltip: Utils.summarizeErrors(errors),
-          onClick: () => {
-            if (isSelectedImageInputted && !this.canUpdate()) {
-              this.setState({ viewMode: 'warning' })
-            } else if (!!currentRuntime) {
-              this.setState({ viewMode: getUpdateOrReplace() })
-            } else {
-              this.createRuntime()
-            }
-          }
-        }, !!currentRuntime ? _.startCase(getUpdateOrReplace()) : 'Create')
-      ])
-    ])
+    const bottomButtons = () => {
+      const canUpdate = this.canUpdate()
+      const updateOrReplace = canUpdate ? 'update' : 'replace'
 
-    const getUpdateOrReplace = () => this.canUpdate() ? 'update' : 'replace'
+      return h(Fragment, [
+        div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
+          !!currentRuntime && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'delete' }) }, 'Delete Runtime'),
+          div({ style: { flex: 1 } }),
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: onDismiss }, 'Cancel'),
+          h(ButtonPrimary, {
+            disabled: !this.hasChanges() || !!errors,
+            tooltip: Utils.summarizeErrors(errors),
+            onClick: () => {
+              if (isSelectedImageInputted && !canUpdate) {
+                this.setState({ viewMode: 'warning' })
+              } else if (!!currentRuntime) {
+                this.setState({ viewMode: updateOrReplace })
+              } else {
+                this.createRuntime()
+              }
+            }
+          }, !!currentRuntime ? _.startCase(updateOrReplace) : 'Create')
+        ])
+      ])
+    }
 
     const machineConfig = () => h(Fragment, [
       div({
