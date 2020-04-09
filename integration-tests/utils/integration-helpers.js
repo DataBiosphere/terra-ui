@@ -143,10 +143,10 @@ const deleteCluster = withUserToken(async ({ billingProject, context, testUrl, t
 
   const currentC = await getCurrentCluster({ billingProject, context, testUrl })
   currentC && await ajaxPage.evaluate((currentC, billingProject) => {
-    return window.Ajax().Clusters.cluster(billingProject, currentC.clusterName).delete()
+    return window.Ajax().Clusters.cluster(billingProject, currentC.runtimeName).delete()
   }, currentC, billingProject)
 
-  currentC && console.info(`deleted cluster: ${currentC.clusterName}`)
+  currentC && console.info(`deleted cluster: ${currentC.runtimeName}`)
 
   await ajaxPage.close()
 })
