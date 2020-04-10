@@ -156,7 +156,8 @@ const ExportDataModal = withWorkspaces(class ExportDataModal extends Component {
     return _.map(([i, entity]) => div({
       style: {
         borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
-        padding: '0.6rem 1.25rem', margin: '0 -1.25rem'
+        padding: '0.6rem 1.25rem', margin: '0 -1.25rem',
+        ...Style.noWrapEllipsis
       }
     }, showType ? `${entity.entityName} (${entity.entityType})` : entity),
     Utils.toIndexPairs(entities))

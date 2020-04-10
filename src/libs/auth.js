@@ -205,6 +205,12 @@ authStore.subscribe(withErrorReporting('Error loading NIH account link status', 
   }
 }))
 
+authStore.subscribe(async (state, oldState) => {
+  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
+    await Ajax().Metrics.syncProfile()
+  }
+})
+
 authStore.subscribe((state, oldState) => {
   if (state.nihStatus !== oldState.nihStatus) {
     const notificationId = 'nih-link-warning'
