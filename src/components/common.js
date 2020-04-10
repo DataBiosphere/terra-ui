@@ -11,7 +11,6 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import hexButton from 'src/images/hex-button.svg'
 import landingPageHero from 'src/images/landing-page-hero.jpg'
 import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
@@ -112,23 +111,6 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
     },
     hover: disabled ? undefined : { backgroundColor: colors.accent(0.1) }
   }, props), [children])
-}
-
-export const makeIconButton = (shape, { disabled, size, iconProps = {}, ...props } = {}) => {
-  return h(Clickable, _.merge({
-    as: 'span',
-    disabled,
-    style: {
-      height: size, width: size,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      backgroundColor: disabled ? colors.dark(0.15) : colors.accent(),
-      ...(isTerra() ?
-        { mask: `url(${hexButton}) center no-repeat`, WebkitMask: `url(${hexButton}) center no-repeat` } :
-        { borderRadius: '1rem' })
-    }
-  }, props), [
-    icon(shape, _.merge({ style: { color: disabled ? colors.dark() : 'white' } }, iconProps))
-  ])
 }
 
 export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref, getOnClick = _.noop, children }) => {

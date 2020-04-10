@@ -258,7 +258,7 @@ export const WorkspaceList = () => {
                   closeOnClick: true,
                   content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
                 }, [
-                  h(Link, { 'aria-label': 'Workspace menu', disabled: !canView }, [icon('cardMenuIcon', { size: 20 })])
+                  h(Link, { 'aria-label': `Menu for Workspace: ${name}`, disabled: !canView }, [icon('cardMenuIcon', { size: 20 })])
                 ])
               ]),
               div({ style: styles.tableCellContent }, [
@@ -295,7 +295,7 @@ export const WorkspaceList = () => {
     div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-        h(Link, { onClick: () => setCreatingNewWorkspace(true), style: { marginLeft: '0.5rem' } }, [icon('lighter-plus-circle', { size: 24 })])
+        h(Link, { 'aria-label': 'Create new workspace', onClick: () => setCreatingNewWorkspace(true), style: { marginLeft: '0.5rem' } }, [icon('lighter-plus-circle', { size: 24 })])
       ]),
       div({ style: { display: 'flex', marginBottom: '1rem' } }, [
         div({ style: styles.filter }, [
