@@ -1,5 +1,5 @@
 import { Component, Fragment } from 'react'
-import { b, div, h, p } from 'react-hyperscript-helpers'
+import { div, h, p } from 'react-hyperscript-helpers'
 import { Clickable, HeroWrapper, Link } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import SignInButton from 'src/components/SignInButton'
@@ -77,8 +77,7 @@ export default class SignIn extends Component {
             ])
           ]),
           isBioDataCatalyst && p([
-            'This statement is provided pursuant to the Privacy Act of 1974 (5 U.S.C. ',
-            b('§ 552a): The information requested on this form is authorized to be collected pursuant to '),
+            'This statement is provided pursuant to the Privacy Act of 1974 (5 U.S.C. §552a): The information requested on this form is authorized to be collected pursuant to ',
             h(Link, {
               ...Utils.newTabLinkProps,
               href: 'https://www.govinfo.gov/content/pkg/USCODE-2018-title42/html/USCODE-2018-title42-chap6A-subchapI-partA-sec217.htm'
