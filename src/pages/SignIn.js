@@ -4,7 +4,7 @@ import { Clickable, HeroWrapper, Link } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import SignInButton from 'src/components/SignInButton'
 import colors from 'src/libs/colors'
-import { isFirecloud } from 'src/libs/config'
+import { isBioDataCatalyst, isFirecloud } from 'src/libs/config'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -75,6 +75,28 @@ export default class SignIn extends Component {
                 href: 'https://www.cancer.gov/about-nci/organization/ccg/research/structural-genomics/tcga/history/policies/tcga-data-use-certification-agreement.pdf'
               }, ['DATA USE CERTIFICATION AGREEMENT (DUCA)'])
             ])
+          ]),
+          isBioDataCatalyst() && p([
+            'This statement is provided pursuant to the Privacy Act of 1974 (5 U.S.C. §552a): The information requested on this form is authorized to be collected pursuant to ',
+            h(Link, {
+              ...Utils.newTabLinkProps,
+              href: 'https://www.govinfo.gov/content/pkg/USCODE-2018-title42/html/USCODE-2018-title42-chap6A-subchapI-partA-sec217.htm'
+            }, ['42 U.S.C. 217']),
+            'a, 241, 281, 282, 284; 48 CFR Subpart 15.3; and Executive Order ',
+            h(Link, {
+              ...Utils.newTabLinkProps,
+              href: 'https://www.federalregister.gov/documents/2008/11/20/E8-27771/amendments-to-executive-order-9397-relating-to-federal-agency-use-of-social-security-numbers'
+            }, ['13478']),
+            `. Completing the form is voluntary, however, declining to provide any or all of the requested information may result in denial of access to controlled data.
+             The principal purpose for which the information will be used is to authenticate users who request access to controlled access data. The information will be 
+             used to contact you in response to requests you have specifically made on this Web site. Your personal information may also be used to audit your activity 
+             on the system in order to ensure compliance with NIH policies. The information you provide will be included in a Privacy Act system of Records, and will be 
+             used and may be disclosed for the purposes and routine uses described and published in the following System of Records Notice (SORN): 
+             09-90-1401, Records About Restricted Dataset Requesters, HHS/OS/Other `,
+            h(Link, {
+              ...Utils.newTabLinkProps,
+              href: 'https://www.federalregister.gov/documents/2018/03/14/2018-05176/privacy-act-of-1974-system-of-records'
+            }, ['https://www.federalregister.gov/documents/2018/03/14/2018-05176/privacy-act-of-1974-system-of-records'])
           ])
         ]),
         openCookiesModal && h(CookiesModal, {
