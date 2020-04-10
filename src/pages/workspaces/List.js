@@ -258,7 +258,7 @@ export const WorkspaceList = () => {
                   closeOnClick: true,
                   content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
                 }, [
-                  h(Link, { 'aria-label': 'Workspace menu', disabled: !canView, 'aria-hidden': false }, [icon('cardMenuIcon', { size: 20 })])
+                  h(Link, { 'aria-label': `Menu for Workspace: ${name}`, disabled: !canView }, [icon('cardMenuIcon', { size: 20 })])
                 ])
               ]),
               div({ style: styles.tableCellContent }, [
