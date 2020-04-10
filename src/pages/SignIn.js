@@ -76,7 +76,7 @@ export default class SignIn extends Component {
               }, ['DATA USE CERTIFICATION AGREEMENT (DUCA)'])
             ])
           ]),
-          isBioDataCatalyst && p([
+          isBioDataCatalyst() && p([
             'This statement is provided pursuant to the Privacy Act of 1974 (5 U.S.C. §552a): The information requested on this form is authorized to be collected pursuant to ',
             h(Link, {
               ...Utils.newTabLinkProps,
