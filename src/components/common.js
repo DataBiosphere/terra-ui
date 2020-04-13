@@ -267,7 +267,8 @@ const commonSelectProps = {
     indicatorSeparator: () => ({ display: 'none' }),
     dropdownIndicator: (base, { selectProps: { isClearable } }) => _.merge(base, { paddingLeft: isClearable ? 0 : undefined }),
     multiValueLabel: base => ({ ...base, maxWidth: '100%' }),
-    multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } })
+    multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } }),
+    placeholder: base => ({ ...base, color: colors.dark(.8) })
   },
   components: {
     Option: ({ children, ...props }) => {
