@@ -135,5 +135,3 @@ export const TrialBanner = Utils.connectStore(authStore, 'authState')(class Tria
     ])
   }
 })
-
-
