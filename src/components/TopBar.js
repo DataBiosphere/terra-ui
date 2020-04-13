@@ -307,6 +307,16 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
             icon('virus', { size: 24, style: styles.nav.icon }),
             'COVID-19 Data & Tools'
           ]),
+          isBioDataCatalyst() && h(NavSection, {
+            href: Nav.getLink('privacy'),
+            onClick: () => this.hideNav(),
+            ...Utils.newTabLinkProps
+          }, ['Terra Privacy Policy']),
+          isBioDataCatalyst() && h(NavSection, {
+            href: Nav.getLink('terms-of-service'),
+            onClick: () => this.hideNav(),
+            ...Utils.newTabLinkProps
+          }, ['Terra Terms of Service']),
           isFirecloud() && h(NavSection, {
             disabled: !isSignedIn,
             tooltip: isSignedIn ? undefined : 'Please sign in',
