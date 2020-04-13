@@ -69,7 +69,7 @@ export const TrialBanner = Utils.connectStore(authStore, 'authState')(class Tria
       div({
         style: {
           display: 'flex', alignItems: 'center', padding: '1.5rem', height: 95,
-          backgroundColor: isWarning ? colors.warning() : '#359448',
+          backgroundColor: isWarning ? colors.warning() : '#28873b',
           justifyContent: 'center', color: 'white', width: '100%', fontSize: '1rem'
         }
       },
@@ -77,7 +77,7 @@ export const TrialBanner = Utils.connectStore(authStore, 'authState')(class Tria
         div({
           style: {
             fontSize: '1.5rem', fontWeight: 500, textAlign: 'right', borderRight: '1px solid', paddingRight: '1rem', marginRight: '1rem',
-            maxWidth: 200, flexShrink: 0
+            maxWidth: 225, flexShrink: 0
           }
         }, title),
         span({ style: { maxWidth: 600, lineHeight: '1.5rem' } },
