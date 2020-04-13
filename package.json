@@ -54,7 +54,7 @@
     "preinstall": "node .hooks/check-engine-light.js",
     "analyze": "yarn build; source-map-explorer 'build/static/js/*.js' --gzip",
     "optimize-image-svgs": "svgo --enable=inlineStyles,prefixIds  --config '{ \"plugins\": [ { \"inlineStyles\": { \"onlyMatchedOnce\": false } }] }' --pretty -f src/images -r -p 1 --multipass",
-    "setenv": "echo REACT_APP_VERSION=$(git rev-parse HEAD) REACT_APP_BUILD_TIMESTAMP=$(date -u \"+%s000\")",
+    "setenv": "echo REACT_APP_VERSION=$(git rev-parse HEAD) REACT_APP_BUILD_TIMESTAMP=$(date -u \"+%s000\") EXTEND_ESLINT=true",
     "start": "env $(yarn -s setenv) react-app-rewired start",
     "build": "env $(yarn -s setenv) react-app-rewired build",
     "postbuild": "rm build/config.json",
