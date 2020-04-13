@@ -69,7 +69,7 @@ export const TrialBanner = Utils.connectStore(authStore, 'authState')(class Tria
       div({
         style: {
           display: 'flex', alignItems: 'center', padding: '1.5rem', height: 95,
-          backgroundColor: isWarning ? colors.warning() : '#359448',
+          backgroundColor: isWarning ? colors.warning() : '#28873b',
           justifyContent: 'center', color: 'white', width: '100%', fontSize: '1rem'
         }
       },
