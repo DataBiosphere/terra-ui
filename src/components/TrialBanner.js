@@ -76,8 +76,8 @@ export const TrialBanner = Utils.connectStore(authStore, 'authState')(class Tria
       [
         div({
           style: {
-            fontSize: '1.45rem', fontWeight: 500, textAlign: 'right', borderRight: '1px solid', paddingRight: '1rem', marginRight: '1rem',
-            maxWidth: 200, flexShrink: 0
+            fontSize: '1.5rem', fontWeight: 500, textAlign: 'right', borderRight: '1px solid', paddingRight: '1rem', marginRight: '1rem',
+            maxWidth: 225, flexShrink: 0
           }
         }, title),
         span({ style: { maxWidth: 600, lineHeight: '1.5rem' } },
@@ -135,3 +135,5 @@ export const TrialBanner = Utils.connectStore(authStore, 'authState')(class Tria
     ])
   }
 })
+
+
