@@ -4,7 +4,9 @@ import { Component, Fragment, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, b, div, h, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
-import { ButtonPrimary, Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
+import {
+  ButtonPrimary, Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay
+} from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -307,16 +309,6 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
             icon('virus', { size: 24, style: styles.nav.icon }),
             'COVID-19 Data & Tools'
           ]),
-          isBioDataCatalyst() && h(NavSection, {
-            href: Nav.getLink('privacy'),
-            onClick: () => this.hideNav(),
-            ...Utils.newTabLinkProps
-          }, ['Terra Privacy Policy']),
-          isBioDataCatalyst() && h(NavSection, {
-            href: Nav.getLink('terms-of-service'),
-            onClick: () => this.hideNav(),
-            ...Utils.newTabLinkProps
-          }, ['Terra Terms of Service']),
           isFirecloud() && h(NavSection, {
             disabled: !isSignedIn,
             tooltip: isSignedIn ? undefined : 'Please sign in',
@@ -334,6 +326,20 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
             style: { flex: 'none', padding: 28, marginTop: 'auto' }
           }, [
             h(CromwellVersionLink, { variant: 'light', style: { textDecoration: 'underline', color: colors.accent(0.2) } }),
+            isBioDataCatalyst() && h(Fragment, [
+              h(Link,
+                // {style: { textDecoration: 'underline', color: colors.accent(0.2) } },
+                {
+                  href: Nav.getLink('privacy'),
+                  onClick: () => this.hideNav(),
+                  ...Utils.newTabLinkProps
+                }, ['Terra Privacy Policy']),
+              h(Link, {
+                href: Nav.getLink('terms-of-service'),
+                onClick: () => this.hideNav(),
+                ...Utils.newTabLinkProps
+              }, ['Terra Terms of Service'])
+            ]),
             div({ style: { color: colors.dark(0.3), fontSize: 10, fontWeight: 600, marginTop: '0.5rem' } }, [
               'Built on: ',
               h(Clickable, {
