@@ -10,7 +10,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { deleteText, findMachineType, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
+import { deleteText, findMachineType, formatRuntimeConfig, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { notify } from 'src/libs/notifications'
@@ -107,31 +107,22 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   constructor(props) {
     super(props)
     const { currentCluster } = props
-    const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
-    const matchingProfile = _.find({ runtimeConfig: { masterMachineType: currentConfig.masterMachineType } }, profiles)
+    const currentConfig = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
+    const matchingProfile = _.find(({ runtimeConfig }) => _.isEqual(normalizeRuntimeConfig(runtimeConfig), currentConfig), profiles)
 
     this.state = {
       profile: matchingProfile?.name || 'custom',
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
-      sparkMode: cloudService === 'GCE' ? false : currentConfig.numberOfWorkers === 0 ? 'master' : 'cluster',
+      sparkMode: currentConfig.cloudService === 'GCE' ? false : currentConfig.numberOfWorkers === 0 ? 'master' : 'cluster',
       ...currentConfig
     }
   }
 
-  getClusterConfig() {
-    const { sparkMode, numberOfWorkers, masterMachineType, masterDiskSize, workerMachineType, workerDiskSize, numberOfPreemptibleWorkers } = this.state
-
-    return !!sparkMode ? {
-      cloudService: 'DATAPROC',
-      numberOfWorkers, masterMachineType,
-      masterDiskSize, workerMachineType,
-      workerDiskSize, numberOfWorkerLocalSSDs: 0,
-      numberOfPreemptibleWorkers
-    } : {
-      cloudService: 'GCE',
-      machineType: masterMachineType,
-      diskSize: masterDiskSize
-    }
+  getRuntimeConfig() {
+    return formatRuntimeConfig(_.pick(
+      ['sparkMode', 'numberOfWorkers', 'masterMachineType', 'masterDiskSize', 'workerMachineType', 'workerDiskSize', 'numberOfPreemptibleWorkers'],
+      this.state)
+    )
   }
 
   deleteCluster() {
@@ -146,7 +137,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { jupyterUserScriptUri, selectedLeoImage, customEnvImage } = this.state
     onSuccess(Promise.all([
       Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
-        runtimeConfig: this.getClusterConfig(),
+        runtimeConfig: this.getRuntimeConfig(),
         toolDockerImage: selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE ? customEnvImage : selectedLeoImage,
         labels: { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` },
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
@@ -165,7 +156,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     return onSuccess(
       Ajax().Clusters.cluster(googleProject, runtimeName).update({
-        runtimeConfig: this.getClusterConfig()
+        runtimeConfig: this.getRuntimeConfig()
       }),
       isStopRequired ? 5000 : 0)
   }
@@ -192,7 +183,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     if (!currentCluster) return false
 
     const currentClusterConfig = normalizeRuntimeConfig(currentCluster.runtimeConfig)
-    const userSelectedConfig = normalizeRuntimeConfig(this.getClusterConfig())
+    const userSelectedConfig = normalizeRuntimeConfig(this.getRuntimeConfig())
 
     const cantWorkersUpdate = currentClusterConfig.numberOfWorkers !== userSelectedConfig.numberOfWorkers &&
       (currentClusterConfig.numberOfWorkers < 2 || userSelectedConfig.numberOfWorkers < 2)
@@ -218,7 +209,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster } = this.props
     if (!currentCluster) return true
 
-    const hasRuntimeConfigChanges = !_.isMatch(currentCluster.runtimeConfig, this.getClusterConfig())
+    const hasRuntimeConfigChanges = !_.isMatch(currentCluster.runtimeConfig, this.getRuntimeConfig())
 
     return hasRuntimeConfigChanges || this.hasImageChanged() || this.hasStartUpScriptChanged()
   }
@@ -228,7 +219,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster } = this.props
 
     const currentClusterConfig = normalizeRuntimeConfig(currentCluster.runtimeConfig)
-    const userSelectedConfig = normalizeRuntimeConfig(this.getClusterConfig())
+    const userSelectedConfig = normalizeRuntimeConfig(this.getRuntimeConfig())
 
     const isMasterMachineTypeChanged = currentClusterConfig.masterMachineType !== userSelectedConfig.masterMachineType
 
@@ -293,11 +284,18 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     } = this.state
     const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
+    const onEnvChange = ({ value }) => {
+      this.setState({
+        selectedLeoImage: value, customEnvImage: '',
+        sparkMode: _.find({ image: value }, leoImages)?.requiresSpark ? (sparkMode || 'master') : false
+      })
+    }
+
     const makeEnvSelect = id => h(Select, {
       id,
       'aria-label': 'Select Environment',
       value: selectedLeoImage,
-      onChange: ({ value }) => this.setState({ selectedLeoImage: value }),
+      onChange: onEnvChange,
       isSearchable: true,
       isClearable: false,
       options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
@@ -323,12 +321,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       id,
       maxMenuHeight: '25rem',
       value: selectedLeoImage,
-      onChange: ({ value }) => {
-        this.setState({
-          selectedLeoImage: value, customEnvImage: '',
-          sparkMode: _.find({ image: value }, leoImages)?.requiresSpark ? (sparkMode || 'master') : false
-        })
-      },
+      onChange: onEnvChange,
       isSearchable: true,
       isClearable: false,
       options: [{ label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
@@ -389,7 +382,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   onChange: ({ value }) => {
                     this.setState({
                       profile: value,
-                      ...(value === 'custom' ? {} : normalizeRuntimeConfig(_.find({ name: value }, profiles).runtimeConfig))
+                      ...(value === 'custom' ?
+                        {} :
+                        _.pick(['masterMachineType', 'masterDiskSize'], normalizeRuntimeConfig(_.find({ name: value }, profiles).runtimeConfig)))
                     })
                   },
                   isSearchable: false,
@@ -505,7 +500,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
         }, [
           span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['COST:']),
-          `${Utils.formatUSD(runtimeConfigCost(this.getClusterConfig()))} per hour`
+          `${Utils.formatUSD(runtimeConfigCost(this.getRuntimeConfig()))} per hour`
         ])
       ])
     ])

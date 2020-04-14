@@ -20,6 +20,20 @@ export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, ma
   }
 }
 
+export const formatRuntimeConfig = ({ sparkMode, numberOfWorkers, masterMachineType, masterDiskSize, workerMachineType, workerDiskSize, numberOfPreemptibleWorkers }) => {
+  return !!sparkMode ? {
+    cloudService: 'DATAPROC',
+    numberOfWorkers, masterMachineType,
+    masterDiskSize, workerMachineType,
+    workerDiskSize, numberOfWorkerLocalSSDs: 0,
+    numberOfPreemptibleWorkers
+  } : {
+    cloudService: 'GCE',
+    machineType: masterMachineType,
+    diskSize: masterDiskSize
+  }
+}
+
 const machineStorageCost = config => {
   const { masterDiskSize, numberOfWorkers, workerDiskSize } = normalizeRuntimeConfig(config)
   return (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice
