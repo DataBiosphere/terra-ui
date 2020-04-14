@@ -3,6 +3,7 @@ import * as qs from 'qs'
 import { Component, Fragment } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -256,7 +257,7 @@ export const BillingList = _.flow(
     const hasBillingProjects = !_.isEmpty(billingProjects)
     const breadcrumbs = `Billing > Billing Project`
 
-    return h(Fragment, [
+    return h(FooterWrapper, [
       h(TopBar, { title: 'Billing' }, [
         !!selectedName && div({
           style: {

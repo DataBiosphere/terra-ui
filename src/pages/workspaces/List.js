@@ -5,6 +5,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link, makeMenuIcon, MenuButton, Select, SimpleTabBar, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -282,7 +283,7 @@ export const WorkspaceList = () => {
   ])])
 
 
-  return h(Fragment, [
+  return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces' }, [
       h(DelayedSearchInput, {
         style: { marginLeft: '2rem', width: 500 },

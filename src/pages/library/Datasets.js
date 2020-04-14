@@ -1,6 +1,7 @@
 import { Component, Fragment } from 'react'
 import { b, div, h, img, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { libraryTopMatter } from 'src/components/library-common'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -386,7 +387,7 @@ const ukb = () => h(Participant, {
 
 
 const Datasets = () => {
-  return h(Fragment, [
+  return h(FooterWrapper, [
     libraryTopMatter('datasets'),
     div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
