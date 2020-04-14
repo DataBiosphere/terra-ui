@@ -20,7 +20,7 @@ const styles = {
 
 // This is written as a "function" function rather than an arrow function because react-onclickoutside wants it to have a prototype
 // eslint-disable-next-line prefer-arrow-callback
-export const Popup = onClickOutside(function InnerPopup({ side = 'right', target: targetId, onClick, children }) {
+export const Popup = onClickOutside(function({ side = 'right', target: targetId, onClick, children }) {
   const elementRef = useRef()
   const [target, element, viewport] = useDynamicPosition([{ id: targetId }, { ref: elementRef }, { viewport: true }])
   const { position } = computePopupPosition({ side, target, element, viewport, gap: 10 })
