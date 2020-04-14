@@ -1,6 +1,6 @@
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
-import { Link } from 'src/components/common'
+import { Clickable, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import { isBioDataCatalyst } from 'src/libs/config'
@@ -17,6 +17,7 @@ const buildTimestamp = new Date(parseInt(process.env.REACT_APP_BUILD_TIMESTAMP, 
 
 // If you change the layout here, make sure it's reflected in the pre-rendered version in public/index.html
 const FooterWrapper = ({ children }) => {
+  const [isExpanded, setIsExpanded] = useState(false)
   return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100%', flexGrow: 1 } }, [
     children,
     div({
@@ -24,45 +25,53 @@ const FooterWrapper = ({ children }) => {
       style: {
         flex: 'none',
         display: 'flex', alignItems: 'center',
-        height: 66,
+        height: isExpanded ? 66 : 20,
         padding: '0 1rem',
         backgroundColor: colors.secondary(),
         color: 'white'
       }
     }, [
-      h(Link, { href: Nav.getLink('root') }, [
-        footerLogo()
-      ]),
-      isBioDataCatalyst() ?
-        div({ style: { display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '0.5rem 2rem', fontSize: 10 } }, [
-          a({ href: 'https://biodatacatalyst.nhlbi.nih.gov/privacy', ...Utils.newTabLinkProps }, 'Privacy Policy'),
-          a({ href: 'https://www.nhlbi.nih.gov/about/foia-fee-for-service-office', ...Utils.newTabLinkProps }, 'Freedom of Information Act (FOIA)'),
-          a({ href: 'https://biodatacatalyst.nhlbi.nih.gov/accessibility', ...Utils.newTabLinkProps }, 'Accessibility'),
-          a({ href: 'https://www.hhs.gov/', ...Utils.newTabLinkProps }, 'U.S. Department of Health &  Human Services'),
-          a({ href: 'https://osp.od.nih.gov/scientific-sharing/policies/', ...Utils.newTabLinkProps }, 'Data Sharing Policy'),
-          a({ href: 'https://www.nih.gov/', ...Utils.newTabLinkProps }, 'National Institutes of Health'),
-          a({ href: 'https://www.usa.gov/', ...Utils.newTabLinkProps }, 'USA.gov'),
-          a({ href: 'https://osp.od.nih.gov/scientific-sharing/policies/', ...Utils.newTabLinkProps }, 'National Heart, Lung, and Blood Institute')
-        ]) :
-        h(Fragment, [
-          a({ href: Nav.getLink('privacy'), style: styles.item }, 'Privacy Policy'),
-          div({ style: styles.item }, '|'),
-          a({ href: Nav.getLink('terms-of-service'), style: styles.item }, 'Terms of Service'),
-          div({ style: styles.item }, '|'),
-          a({ href: 'https://support.terra.bio/hc/en-us/articles/360030793091-Terra-FireCloud-Security-Posture', ...Utils.newTabLinkProps, style: styles.item },
+      isExpanded ? h(Fragment, [
+        h(Link, { href: Nav.getLink('root') }, [
+          footerLogo()
+        ]),
+        isBioDataCatalyst() ?
+          div({ style: { display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '0.5rem 2rem', fontSize: 10 } }, [
+            a({ href: 'https://biodatacatalyst.nhlbi.nih.gov/privacy', ...Utils.newTabLinkProps }, 'Privacy Policy'),
+            a({ href: 'https://www.nhlbi.nih.gov/about/foia-fee-for-service-office', ...Utils.newTabLinkProps }, 'Freedom of Information Act (FOIA)'),
+            a({ href: 'https://biodatacatalyst.nhlbi.nih.gov/accessibility', ...Utils.newTabLinkProps }, 'Accessibility'),
+            a({ href: 'https://www.hhs.gov/', ...Utils.newTabLinkProps }, 'U.S. Department of Health &  Human Services'),
+            a({ href: 'https://osp.od.nih.gov/scientific-sharing/policies/', ...Utils.newTabLinkProps }, 'Data Sharing Policy'),
+            a({ href: 'https://www.nih.gov/', ...Utils.newTabLinkProps }, 'National Institutes of Health'),
+            a({ href: 'https://www.usa.gov/', ...Utils.newTabLinkProps }, 'USA.gov'),
+            a({ href: 'https://osp.od.nih.gov/scientific-sharing/policies/', ...Utils.newTabLinkProps }, 'National Heart, Lung, and Blood Institute')
+          ]) :
+          h(Fragment, [
+            a({ href: Nav.getLink('privacy'), style: styles.item }, 'Privacy Policy'),
+            div({ style: styles.item }, '|'),
+            a({ href: Nav.getLink('terms-of-service'), style: styles.item }, 'Terms of Service'),
+            div({ style: styles.item }, '|'),
+            a({
+              href: 'https://support.terra.bio/hc/en-us/articles/360030793091-Terra-FireCloud-Security-Posture', ...Utils.newTabLinkProps,
+              style: styles.item
+            },
             ['Security', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })]),
-          div({ style: styles.item }, '|'),
-          a({
-            href: 'https://support.terra.bio/hc/en-us', ...Utils.newTabLinkProps,
-            style: { ...styles.item, display: 'flex', alignItems: 'center' }
-          }, [
-            'Documentation', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
-          ]),
-          div({ style: { flexGrow: 1 } }),
-          div({ onClick: () => Nav.goToPath('hall-of-fame'), style: { fontWeight: 600, fontSize: '10px' } }, [
-            `Copyright ©${buildTimestamp.getFullYear()}`
+            div({ style: styles.item }, '|'),
+            a({
+              href: 'https://support.terra.bio/hc/en-us', ...Utils.newTabLinkProps,
+              style: { ...styles.item, display: 'flex', alignItems: 'center' }
+            }, [
+              'Documentation', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
+            ]),
+            div({ style: { flexGrow: 1 } }),
+            div({ onClick: () => Nav.goToPath('hall-of-fame'), style: { fontWeight: 600, fontSize: '10px' } }, [
+              `Copyright ©${buildTimestamp.getFullYear()}`
+            ])
           ])
-        ])
+      ]) : div({}, [h(Clickable, {
+        onClick: () => setIsExpanded(true)
+      }, ['Show Footer'])])
+
     ])
   ])
 }
