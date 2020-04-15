@@ -430,10 +430,10 @@ export const Switch = ({ onChange, ...props }) => {
   })
 }
 
-export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) => {
+export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children, isNotCollapsable }) => {
   const heavyWrapper = text => bigSubhead ? b({ style: { whiteSpace: 'nowrap' } }, [text]) : text
 
-  return h(FooterWrapper, [
+  return h(FooterWrapper, { isNotCollapsable }, [
     h(TopBar, { showMenu }),
     div({
       role: 'main',

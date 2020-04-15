@@ -50,7 +50,7 @@ const makeCard = (link, title, body) => h(Clickable, {
 ])
 
 const LandingPage = () => {
-  return h(HeroWrapper, { bigSubhead: true }, [
+  return h(HeroWrapper, { bigSubhead: true, isNotCollapsable: true }, [
     makeDocLink('https://support.terra.bio/hc/en-us', 'Find how-to\'s, documentation, video tutorials, and discussion forums'),
     isTerra() && makeDocLink('https://support.terra.bio/hc/en-us/articles/360033416672',
       'Learn more about the Terra platform and our co-branded sites'),
