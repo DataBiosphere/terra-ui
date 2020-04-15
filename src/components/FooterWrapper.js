@@ -26,7 +26,7 @@ const styles = {
 const buildTimestamp = new Date(parseInt(process.env.REACT_APP_BUILD_TIMESTAMP, 10))
 
 // If you change the layout here, make sure it's reflected in the pre-rendered version in public/index.html
-const FooterWrapper = ({ children, isNotCollapsable = true }) => {
+const FooterWrapper = ({ children, isNotCollapsable }) => {
   const [isExpanded, setIsExpanded] = useState(false)
 
   return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100%', flexGrow: 1 } }, [
