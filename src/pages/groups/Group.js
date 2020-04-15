@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { PageBox, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -72,7 +72,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
           value: filter
         })
       ]),
-      h(PageBox, { role: 'main', style: { flexGrow: 1 }}, [
+      h(PageBox, { role: 'main', style: { flexGrow: 1 } }, [
         div({ style: Style.cardList.toolbarContainer }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
             `Group Management: ${groupName}`
