@@ -10,17 +10,15 @@ import * as Utils from 'src/libs/utils'
 
 
 const styles = {
-  item: { marginLeft: '2rem' }
-  // regExpandedFoot: {
-  //   style: {
-  //     flex: 'none',
-  //     display: 'flex', alignItems: 'center',
-  //     height: 66,
-  //     padding: '0 1rem',
-  //     backgroundColor: colors.secondary(),
-  //     color: 'white'
-  //   }
-  // }
+  item: { marginLeft: '2rem' },
+  regExpandedFoot: {
+    flex: 'none',
+    display: 'flex', alignItems: 'center',
+    height: 60,
+    padding: '0 1rem',
+    backgroundColor: colors.secondary(),
+    color: 'white'
+  }
 }
 
 const buildTimestamp = new Date(parseInt(process.env.REACT_APP_BUILD_TIMESTAMP, 10))
@@ -36,12 +34,8 @@ const FooterWrapper = ({ children, isNotCollapsable }) => {
         h(div, {
           role: 'contentinfo',
           style: {
-            flex: 'none',
-            display: 'flex', alignItems: 'center',
-            height: 80,
-            padding: '0 1rem',
-            backgroundColor: colors.secondary(),
-            color: 'white'
+            ...styles.regExpandedFoot,
+            height: 80
           }
         }, [
           h(Clickable, {
@@ -67,14 +61,7 @@ const FooterWrapper = ({ children, isNotCollapsable }) => {
       [isNotCollapsable,
         div({
           role: 'contentinfo',
-          style: {
-            flex: 'none',
-            display: 'flex', alignItems: 'center',
-            height: 66,
-            padding: '0 1rem',
-            backgroundColor: colors.secondary(),
-            color: 'white'
-          }
+          style: styles.regExpandedFoot
         }, [
           h(Link, { href: Nav.getLink('root') }, [
             footerLogo()
@@ -119,12 +106,8 @@ const FooterWrapper = ({ children, isNotCollapsable }) => {
         div({
           role: 'contentinfo',
           style: {
-            flex: 'none',
-            display: 'flex', alignItems: 'center',
-            height: isExpanded ? 80 : 20,
-            padding: '0 1rem',
-            backgroundColor: colors.secondary(),
-            color: 'white'
+            ...styles.regExpandedFoot,
+            height: 20
           }
         }, [h(Clickable, {
           onClick: () => setIsExpanded(true), style: { fontSize: 10 }
