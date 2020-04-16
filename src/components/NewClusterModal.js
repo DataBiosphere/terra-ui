@@ -107,13 +107,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   constructor(props) {
     super(props)
     const { currentCluster } = props
-    const currentConfig = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
-    const matchingProfile = _.find(({ runtimeConfig }) => _.isEqual(normalizeRuntimeConfig(runtimeConfig), currentConfig), profiles)
+    const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
+    const { masterDiskSize, masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
+    const matchingProfile = masterDiskSize === normalizeRuntimeConfig({}).masterDiskSize && _.find({ runtimeConfig: { masterMachineType } }, profiles)
 
     this.state = {
       profile: matchingProfile?.name || 'custom',
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
-      sparkMode: currentConfig.cloudService === 'GCE' ? false : currentConfig.numberOfWorkers === 0 ? 'master' : 'cluster',
+      sparkMode: cloudService === 'GCE' ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
       ...currentConfig
     }
   }
@@ -209,7 +210,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster } = this.props
     if (!currentCluster) return true
 
-    const hasRuntimeConfigChanges = !_.isMatch(currentCluster.runtimeConfig, this.getRuntimeConfig())
+    const hasRuntimeConfigChanges = !_.isEqual(normalizeRuntimeConfig(currentCluster.runtimeConfig), this.getRuntimeConfig())
 
     return hasRuntimeConfigChanges || this.hasImageChanged() || this.hasStartUpScriptChanged()
   }
