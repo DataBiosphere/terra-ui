@@ -44,14 +44,15 @@ export const findMachineType = name => {
 }
 
 export const runtimeConfigCost = config => {
-  const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = normalizeRuntimeConfig(config)
-  const { price: masterPrice } = findMachineType(masterMachineType)
-  const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
+  const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = normalizeRuntimeConfig(config)
+  const { price: masterPrice, cpu: masterCpu } = findMachineType(masterMachineType)
+  const { price: workerPrice, preemptiblePrice, cpu: workerCpu } = findMachineType(workerMachineType)
   return _.sum([
     masterPrice,
     (numberOfWorkers - numberOfPreemptibleWorkers) * workerPrice,
     numberOfPreemptibleWorkers * preemptiblePrice,
-    machineStorageCost(config)
+    machineStorageCost(config),
+    cloudService === 'GCE' ? 0 : masterCpu + (workerCpu * numberOfWorkers) // dataproc costs $.01 per cpu per hour
   ])
 }
 
