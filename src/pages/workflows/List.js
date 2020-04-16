@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link, TabBar } from 'src/components/common'

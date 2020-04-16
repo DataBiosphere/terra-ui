@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Component } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
