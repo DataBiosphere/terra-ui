@@ -11,7 +11,7 @@ import * as Utils from 'src/libs/utils'
 
 const styles = {
   item: { marginLeft: '2rem' },
-  regExpandedFoot: {
+  footer: {
     flex: 'none',
     padding: '0 1rem',
     backgroundColor: colors.secondary(),
@@ -25,7 +25,7 @@ const buildTimestamp = new Date(parseInt(process.env.REACT_APP_BUILD_TIMESTAMP, 
 const FooterWrapper = ({ children, isNotCollapsable }) => {
   const [isExpanded, setIsExpanded] = useState(false)
 
-  const BCDFooterContent = div({ style: { display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '0.5rem 2rem', fontSize: 10 } }, [
+  const bdcFooterContent = div({ style: { display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '0.5rem 2rem', fontSize: 10 } }, [
     a({ href: 'https://biodatacatalyst.nhlbi.nih.gov/privacy', ...Utils.newTabLinkProps }, 'Privacy Policy'),
     a({ href: 'https://www.nhlbi.nih.gov/about/foia-fee-for-service-office', ...Utils.newTabLinkProps },
       'Freedom of Information Act (FOIA)'),
@@ -38,7 +38,7 @@ const FooterWrapper = ({ children, isNotCollapsable }) => {
       'National Heart, Lung, and Blood Institute')
   ])
 
-  const standardContent = h(Fragment, [
+  const standardFooterContent = h(Fragment, [
     a({ href: Nav.getLink('privacy'), style: styles.item }, 'Privacy Policy'),
     div({ style: styles.item }, '|'),
     a({ href: Nav.getLink('terms-of-service'), style: styles.item }, 'Terms of Service'),
@@ -65,9 +65,7 @@ const FooterWrapper = ({ children, isNotCollapsable }) => {
     children,
     (isBioDataCatalyst() || isNotCollapsable) && h(div, {
       role: 'contentinfo',
-      style: {
-        ...styles.regExpandedFoot
-      }
+      style: styles.footer
     }, [
       !isNotCollapsable && h(Clickable, {
         onClick: () => setIsExpanded(!isExpanded), style: { fontSize: 10, padding: '0.25rem 0' }
@@ -81,7 +79,7 @@ const FooterWrapper = ({ children, isNotCollapsable }) => {
         h(Link, { href: Nav.getLink('root') }, [
           footerLogo()
         ]),
-        !isBioDataCatalyst() ? standardContent : BCDFooterContent
+        !isBioDataCatalyst() ? standardFooterContent : bdcFooterContent
       ])
     ])
   ])
