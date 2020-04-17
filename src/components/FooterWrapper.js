@@ -39,9 +39,7 @@ const FooterWrapper = ({ children, alwaysShow }) => {
   ])
 
   const standardFooterContent = h(Fragment, [
-    h(Link, { href: Nav.getLink('root') }, [
-      footerLogo()
-    ]),
+    h(Link, { href: Nav.getLink('root') }, [footerLogo()]),
     a({ href: Nav.getLink('privacy'), style: styles.item }, 'Privacy Policy'),
     div({ style: styles.item }, '|'),
     a({ href: Nav.getLink('terms-of-service'), style: styles.item }, 'Terms of Service'),
@@ -73,7 +71,7 @@ const FooterWrapper = ({ children, alwaysShow }) => {
       !alwaysShow && h(Clickable, {
         onClick: () => setIsExpanded(!isExpanded),
         style: { fontSize: 10, padding: '0.25rem 0' }
-      }, [isExpanded ? 'Hide' : 'Show', ' Legal and Regulatory Information']),
+      }, [`${isExpanded ? 'Hide' : 'Show'} Legal and Regulatory Information`]),
       (isExpanded || alwaysShow) && div({
         style: { display: 'flex', alignItems: 'center', height: 60 }
       }, [
