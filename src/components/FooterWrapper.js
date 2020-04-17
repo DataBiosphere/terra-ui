@@ -22,7 +22,7 @@ const styles = {
 const buildTimestamp = new Date(parseInt(process.env.REACT_APP_BUILD_TIMESTAMP, 10))
 
 // If you change the layout here, make sure it's reflected in the pre-rendered version in public/index.html
-const FooterWrapper = ({ children, isNotCollapsable }) => {
+const FooterWrapper = ({ children, alwaysShow }) => {
   const [isExpanded, setIsExpanded] = useState(false)
 
   const bdcFooterContent = div({ style: { display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '0.5rem 2rem', fontSize: 10 } }, [
@@ -34,11 +34,14 @@ const FooterWrapper = ({ children, isNotCollapsable }) => {
     a({ href: 'https://osp.od.nih.gov/scientific-sharing/policies/', ...Utils.newTabLinkProps }, 'Data Sharing Policy'),
     a({ href: 'https://www.nih.gov/', ...Utils.newTabLinkProps }, 'National Institutes of Health'),
     a({ href: 'https://www.usa.gov/', ...Utils.newTabLinkProps }, 'USA.gov'),
-    a({ href: 'https://osp.od.nih.gov/scientific-sharing/policies/', ...Utils.newTabLinkProps },
+    a({ href: 'https://www.nhlbi.nih.gov/', ...Utils.newTabLinkProps },
       'National Heart, Lung, and Blood Institute')
   ])
 
   const standardFooterContent = h(Fragment, [
+    h(Link, { href: Nav.getLink('root') }, [
+      footerLogo()
+    ]),
     a({ href: Nav.getLink('privacy'), style: styles.item }, 'Privacy Policy'),
     div({ style: styles.item }, '|'),
     a({ href: Nav.getLink('terms-of-service'), style: styles.item }, 'Terms of Service'),
@@ -63,22 +66,17 @@ const FooterWrapper = ({ children, isNotCollapsable }) => {
 
   return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100%', flexGrow: 1 } }, [
     children,
-    (isBioDataCatalyst() || isNotCollapsable) && h(div, {
+    (isBioDataCatalyst() || alwaysShow) && h(div, {
       role: 'contentinfo',
       style: styles.footer
     }, [
-      !isNotCollapsable && h(Clickable, {
-        onClick: () => setIsExpanded(!isExpanded), style: { fontSize: 10, padding: '0.25rem 0' }
-      }, [isExpanded ? 'Hide Footer' : 'Show Footer']),
-      (isExpanded || isNotCollapsable) && div({
-        style: {
-          display: 'flex', alignItems: 'center',
-          height: 60
-        }
+      !alwaysShow && h(Clickable, {
+        onClick: () => setIsExpanded(!isExpanded),
+        style: { fontSize: 10, padding: '0.25rem 0' }
+      }, [isExpanded ? 'Hide' : 'Show', ' Legal and Regulatory Information']),
+      (isExpanded || alwaysShow) && div({
+        style: { display: 'flex', alignItems: 'center', height: 60 }
       }, [
-        h(Link, { href: Nav.getLink('root') }, [
-          footerLogo()
-        ]),
         !isBioDataCatalyst() ? standardFooterContent : bdcFooterContent
       ])
     ])
