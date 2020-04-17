@@ -6,6 +6,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonSecondary, Link, Select, TabBar } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
 import { FlexTable, HeaderCell } from 'src/components/table'
@@ -50,7 +51,7 @@ const WorkflowWrapper = ({ namespace, name, children }) => {
   })
 
 
-  return h(Fragment, [
+  return h(FooterWrapper, [
     h(TopBar, { title: 'Workflows', href: Nav.getLink('workflows') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
         div(breadcrumbs.commonPaths.workflowList()),

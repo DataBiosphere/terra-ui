@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { useWorkspaces } from 'src/components/workspace-utils'
@@ -84,9 +85,9 @@ const Showcase = () => {
     allFeatured
   )
 
-  return h(Fragment, [
+  return h(FooterWrapper, [
     libraryTopMatter('showcase & tutorials'),
-    div({ role: 'main', style: { margin: '2.5rem 2rem' } }, [
+    div({ role: 'main', style: { margin: '2.5rem 2rem', flexGrow: 1 } }, [
       !(featuredList && workspaces) ?
         centeredSpinner() :
         div({ style: { display: 'flex' } }, [

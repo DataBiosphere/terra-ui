@@ -50,8 +50,8 @@ export default class SignIn extends Component {
         div({ style: { lineHeight: 1.5, marginTop: '2rem', paddingTop: '1rem', borderTop: Style.standardLine } }, [
           div({ style: { fontWeight: 500 } }, ['WARNING NOTICE']),
           p([`
-            By continuing to log in, you acknowledge that you are accessing a US Government web site 
-            which may contain information that must be protected under the US Privacy Act or other 
+            By continuing to log in, you acknowledge that you are accessing a US Government web site
+            which may contain information that must be protected under the US Privacy Act or other
             sensitive information and is intended for Government authorized use only.
             `]),
           p([`
@@ -88,10 +88,10 @@ export default class SignIn extends Component {
               href: 'https://www.federalregister.gov/documents/2008/11/20/E8-27771/amendments-to-executive-order-9397-relating-to-federal-agency-use-of-social-security-numbers'
             }, ['13478']),
             `. Completing the form is voluntary, however, declining to provide any or all of the requested information may result in denial of access to controlled data.
-             The principal purpose for which the information will be used is to authenticate users who request access to controlled access data. The information will be 
-             used to contact you in response to requests you have specifically made on this Web site. Your personal information may also be used to audit your activity 
-             on the system in order to ensure compliance with NIH policies. The information you provide will be included in a Privacy Act system of Records, and will be 
-             used and may be disclosed for the purposes and routine uses described and published in the following System of Records Notice (SORN): 
+             The principal purpose for which the information will be used is to authenticate users who request access to controlled access data. The information will be
+             used to contact you in response to requests you have specifically made on this Web site. Your personal information may also be used to audit your activity
+             on the system in order to ensure compliance with NIH policies. The information you provide will be included in a Privacy Act system of Records, and will be
+             used and may be disclosed for the purposes and routine uses described and published in the following System of Records Notice (SORN):
              09-90-1401, Records About Restricted Dataset Requesters, HHS/OS/Other `,
             h(Link, {
               ...Utils.newTabLinkProps,

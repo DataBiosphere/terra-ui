@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { PageBox, spinnerOverlay } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { DelayedSearchInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
@@ -61,7 +62,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
     const { members, adminCanEdit, loading, filter, creatingNewUser, editingUser, deletingUser, updating } = this.state
     const { groupName } = this.props
 
-    return h(Fragment, [
+    return h(FooterWrapper, [
       h(TopBar, { title: 'Groups', href: Nav.getLink('groups') }, [
         h(DelayedSearchInput, {
           'aria-label': 'Search group',
@@ -71,7 +72,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
           value: filter
         })
       ]),
-      h(PageBox, { role: 'main' }, [
+      h(PageBox, { role: 'main', style: { flexGrow: 1 } }, [
         div({ style: Style.cardList.toolbarContainer }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
             `Group Management: ${groupName}`

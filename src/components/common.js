@@ -433,7 +433,7 @@ export const Switch = ({ onChange, ...props }) => {
 export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) => {
   const heavyWrapper = text => bigSubhead ? b({ style: { whiteSpace: 'nowrap' } }, [text]) : text
 
-  return h(FooterWrapper, [
+  return h(FooterWrapper, { alwaysShow: true }, [
     h(TopBar, { showMenu }),
     div({
       role: 'main',

@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
 import { IdContainer, spinnerOverlay } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
@@ -131,9 +132,9 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
 const Importer = ({ source, item }) => {
   const [path, version] = item.split(':')
 
-  return h(Fragment, [
+  return h(FooterWrapper, [
     h(TopBar, { title: 'Import Workflow' }),
-    div({ role: 'main' }, [
+    div({ role: 'main', style: { flexGrow: 1 } }, [
       Utils.cond(
         [source === 'dockstore', () => h(DockstoreImporter, { path, version })],
         () => `Unknown source '${source}'`

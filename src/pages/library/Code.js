@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Clickable, Link } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, wdlIcon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import broadSquare from 'src/images/library/code/broad-square.svg'
@@ -105,9 +106,9 @@ const Code = () => {
     _.compact
   )(featuredList)
 
-  return h(Fragment, [
+  return h(FooterWrapper, [
     libraryTopMatter('code & workflows'),
-    div({ role: 'main' }, [
+    div({ role: 'main', style: { flexGrow: 1 } }, [
       div({ style: { display: 'flex', flex: 1 } }, [
         div({ style: { flex: 1, margin: '30px 0 30px 40px' } }, [
           div({ style: styles.header }, 'GATK4 Best Practices workflows'),

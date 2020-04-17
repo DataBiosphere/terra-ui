@@ -3,6 +3,7 @@ import { Fragment, useState } from 'react'
 import { div, h, img, p } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable, RadioButton, spinnerOverlay } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, wdlIcon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import TopBar from 'src/components/TopBar'
@@ -111,7 +112,7 @@ const ImportData = () => {
     Nav.goToPath('workspace-data', { namespace, name })
   })
 
-  return h(Fragment, [
+  return h(FooterWrapper, [
     backgroundLogo,
     h(TopBar, { title: 'Import Data' }),
     div({ role: 'main', style: styles.container }, [
