@@ -80,18 +80,18 @@ const withRequesterPays = wrappedFetch => async (url, ...args) => {
   const bucket = /\/b\/([^/?]+)[/?]/.exec(url)[1]
   const workspace = workspaceStore.get()
   const userProjects = await Billing().listProjects()
-  const userProject = workspace && _.some(['projectName', workspace.workspace.namespace], userProjects) ?
+  const getUserProject = () => workspace && _.some(['projectName', workspace.workspace.namespace], userProjects) ?
     workspace.workspace.namespace :
     requesterPaysProjectStore.get()
   const tryRequest = async () => {
     const knownRequesterPays = _.includes(bucket, requesterPaysBuckets.get())
     try {
-      return await wrappedFetch(Utils.mergeQueryParams({ userProject: (knownRequesterPays && userProject) || undefined }, url), ...args)
+      return await wrappedFetch(Utils.mergeQueryParams({ userProject: (knownRequesterPays && getUserProject()) || undefined }, url), ...args)
     } catch (error) {
       const newResponse = await checkRequesterPaysError(error)
       if (newResponse.requesterPaysError && !knownRequesterPays) {
         requesterPaysBuckets.update(_.union([bucket]))
-        if (userProject) {
+        if (getUserProject()) {
           return tryRequest()
         }
       }
