@@ -327,19 +327,21 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
           }, [
             h(CromwellVersionLink, { variant: 'light', style: { textDecoration: 'underline', color: colors.accent(0.2) } }),
             isBioDataCatalyst() && h(Fragment, [
-              div([h(Link,
+              h(Link,
                 {
-                  style: { textDecoration: 'underline', color: colors.accent(0.2) },
+                  variant: 'light',
+                  style: { display: 'block', textDecoration: 'underline', color: colors.accent(0.2) },
                   href: Nav.getLink('privacy'),
                   onClick: () => this.hideNav(),
                   ...Utils.newTabLinkProps
-                }, ['Terra Privacy Policy'])]),
-              div([h(Link, {
+                }, ['Terra Privacy Policy']),
+              h(Link, {
+                variant: 'light',
                 href: Nav.getLink('terms-of-service'),
-                style: { textDecoration: 'underline', color: colors.accent(0.2) },
+                style: { display: 'block', textDecoration: 'underline', color: colors.accent(0.2) },
                 onClick: () => this.hideNav(),
                 ...Utils.newTabLinkProps
-              }, ['Terra Terms of Service'])])
+              }, ['Terra Terms of Service'])
             ]),
             div({ style: { color: colors.dark(0.3), fontSize: 10, fontWeight: 600, marginTop: '0.5rem' } }, [
               'Built on: ',
