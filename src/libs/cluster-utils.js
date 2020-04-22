@@ -9,29 +9,26 @@ import * as Utils from 'src/libs/utils'
 export const usableStatuses = ['Updating', 'Running']
 
 export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
+  const isDataproc = cloudService === 'DATAPROC'
+
   return {
     cloudService: cloudService || 'GCE',
     masterMachineType: masterMachineType || machineType || 'n1-standard-4',
     masterDiskSize: masterDiskSize || diskSize || 50,
-    numberOfWorkers: numberOfWorkers || 0,
-    numberOfPreemptibleWorkers: (numberOfWorkers && numberOfPreemptibleWorkers) || 0,
-    workerMachineType: (numberOfWorkers && workerMachineType) || 'n1-standard-4',
-    workerDiskSize: (numberOfWorkers && workerDiskSize) || 50
+    numberOfWorkers: (isDataproc && numberOfWorkers) || 0,
+    numberOfPreemptibleWorkers: (isDataproc && numberOfWorkers && numberOfPreemptibleWorkers) || 0,
+    workerMachineType: (isDataproc && numberOfWorkers && workerMachineType) || 'n1-standard-4',
+    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || 50
   }
 }
 
-export const formatRuntimeConfig = ({ sparkMode, numberOfWorkers, masterMachineType, masterDiskSize, workerMachineType, workerDiskSize, numberOfPreemptibleWorkers }) => {
-  return !!sparkMode ? {
-    cloudService: 'DATAPROC',
-    numberOfWorkers, masterMachineType,
-    masterDiskSize, workerMachineType,
-    workerDiskSize, numberOfWorkerLocalSSDs: 0,
-    numberOfPreemptibleWorkers
-  } : {
-    cloudService: 'GCE',
+export const formatRuntimeConfig = config => {
+  const { cloudService, masterMachineType, masterDiskSize } = config
+  return cloudService === 'GCE' ? {
+    cloudService,
     machineType: masterMachineType,
     diskSize: masterDiskSize
-  }
+  } : config
 }
 
 const ongoingCost = config => {

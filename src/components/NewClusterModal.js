@@ -120,10 +120,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   getRuntimeConfig() {
-    return formatRuntimeConfig(_.pick(
-      ['sparkMode', 'numberOfWorkers', 'masterMachineType', 'masterDiskSize', 'workerMachineType', 'workerDiskSize', 'numberOfPreemptibleWorkers'],
-      this.state)
-    )
+    return formatRuntimeConfig({
+      cloudService: !!this.state.sparkMode ? 'DATAPROC' : 'GCE',
+      ..._.pick(
+        ['numberOfWorkers', 'masterMachineType', 'masterDiskSize', 'workerMachineType', 'workerDiskSize', 'numberOfPreemptibleWorkers'],
+        this.state)
+    })
   }
 
   deleteCluster() {
@@ -210,7 +212,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster } = this.props
     if (!currentCluster) return true
 
-    const hasRuntimeConfigChanges = !_.isEqual(normalizeRuntimeConfig(currentCluster.runtimeConfig), this.getRuntimeConfig())
+    const hasRuntimeConfigChanges = !_.isEqual(normalizeRuntimeConfig(currentCluster.runtimeConfig), normalizeRuntimeConfig(this.getRuntimeConfig()))
 
     return hasRuntimeConfigChanges || this.hasImageChanged() || this.hasStartUpScriptChanged()
   }
@@ -286,9 +288,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
     const onEnvChange = ({ value }) => {
+      const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
+      const isCluster = sparkMode === 'cluster'
+
       this.setState({
         selectedLeoImage: value, customEnvImage: '',
-        sparkMode: _.find({ image: value }, leoImages)?.requiresSpark ? (sparkMode || 'master') : false
+        sparkMode: requiresSpark ? (sparkMode || 'master') : false,
+        numberOfWorkers: requiresSpark && isCluster ? (numberOfWorkers || 2) : 0,
+        numberOfPreemptibleWorkers: requiresSpark && isCluster ? (numberOfPreemptibleWorkers || 0) : 0
       })
     }
 
