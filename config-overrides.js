@@ -1,21 +1,18 @@
 const _ = require('lodash/fp')
 const rewireReactHotLoader = require('react-app-rewire-hot-loader')
-const { addBabelPlugin, useEslintRc } = require('customize-cra')
+const { addBabelPlugin } = require('customize-cra')
 
 
 module.exports = {
   webpack(config, env) {
-    const newConfig = _.flow(
-      useEslintRc(),
-      addBabelPlugin([
-        'prismjs', {
-          languages: ['bash', 'python'],
-          plugins: ['line-numbers'],
-          theme: 'default',
-          css: true
-        }
-      ])
-    )(config)
+    const newConfig = addBabelPlugin([
+      'prismjs', {
+        languages: ['bash', 'python'],
+        plugins: ['line-numbers'],
+        theme: 'default',
+        css: true
+      }
+    ])(config)
 
     return rewireReactHotLoader(newConfig, env)
   },
