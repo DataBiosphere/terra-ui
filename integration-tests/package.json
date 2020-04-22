@@ -8,7 +8,7 @@
     "start-dev": "nodemon"
   },
   "devDependencies": {
-    "jest": "^25.3.0",
+    "jest": "^25.4.0",
     "jest-junit": "^10.0.0",
     "jest-puppeteer": "^4.4.0",
     "node-fetch": "^2.6.0",
@@ -28,6 +28,6 @@
     "lodash": "^4.17.15",
     "nodemon": "^2.0.3",
     "p-retry": "^4.2.0",
-    "puppeteer": "^3.0.0"
+    "puppeteer": "^3.0.1"
   }
 }
