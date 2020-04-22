@@ -15,3 +15,5 @@ handlers:
     Strict-Transport-Security: "max-age=31536000; includeSubdomains; preload"
     X-Content-Type-Options: "nosniff"
     X-XSS-Protection: "1; mode=block"
+    Expect-CT: max-age=0, report-uri="https://broadappsec.report-uri.com/r/d/ct/reportOnly"
+    Referrer-Policy: no-referrer-when-downgrade
