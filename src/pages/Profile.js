@@ -4,6 +4,7 @@ import * as qs from 'qs'
 import { Component, Fragment, useState } from 'react'
 import { div, h, label, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -278,10 +279,10 @@ const Profile = _.flow(
     const { profileInfo, saving } = this.state
     const { firstName } = profileInfo
 
-    return h(Fragment, [
+    return h(FooterWrapper, [
       saving && spinnerOverlay,
       h(TopBar),
-      div({ role: 'main' }, [
+      div({ role: 'main', style: { flexGrow: 1 } }, [
         !profileInfo ? centeredSpinner() : h(Fragment, [
           div({ style: { marginLeft: '2rem' } }, [sectionTitle('Profile')]),
           div({ style: styles.header.line }, [

@@ -4,6 +4,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ClusterErrorModal, DeleteClusterModal } from 'src/components/ClusterManager'
 import { Clickable, Link, spinnerOverlay } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { FlexTable, Sortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -54,7 +55,7 @@ const Clusters = () => {
 
   const clustersByProject = _.groupBy('googleProject', clusters)
 
-  return h(Fragment, [
+  return h(FooterWrapper, [
     h(TopBar, { title: 'Notebook Runtimes' }),
     div({ role: 'main', style: { padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', marginBottom: '1rem' } }, ['Your notebook runtimes']),

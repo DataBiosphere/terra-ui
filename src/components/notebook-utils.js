@@ -32,7 +32,10 @@ export const findPotentialNotebookLockers = async ({ canShare, namespace, wsName
       _.map(([email, data]) => ({ email, ...data })),
       _.filter(({ accessLevel }) => Utils.hasAccessLevel('WRITER', accessLevel))
     )(acl)
-    const lockHolderPromises = _.map(async ({ email }) => ({ [await notebookLockHash(bucketName, email)]: email }), potentialLockers)
+    const lockHolderPromises = _.map(async ({ email }) => {
+      const lockHash = await notebookLockHash(bucketName, email)
+      return { [lockHash]: email }
+    }, potentialLockers)
     return _.mergeAll(await Promise.all(lockHolderPromises))
   } else {
     return {}

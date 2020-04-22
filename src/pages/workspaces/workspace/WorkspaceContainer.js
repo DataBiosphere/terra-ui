@@ -4,6 +4,7 @@ import { Fragment, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
 import ClusterManager from 'src/components/ClusterManager'
 import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, spinnerOverlay, TabBar } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
@@ -89,7 +90,7 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
 }
 
 const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters, children }) => {
-  return h(Fragment, [
+  return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
         div({ style: Style.noWrapEllipsis }, breadcrumbs),
@@ -126,7 +127,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
 const WorkspaceAccessError = () => {
   const groupURL = 'https://software.broadinstitute.org/firecloud/documentation/article?id=9553'
   const authorizationURL = 'https://software.broadinstitute.org/firecloud/documentation/article?id=9524'
-  return div({ style: { padding: '2rem' } }, [
+  return div({ style: { padding: '2rem', flexGrow: 1 } }, [
     h2(['Could not display workspace']),
     p(['You are trying to access a workspace that either does not exist, or you do not have access to it.']),
     p([
@@ -238,7 +239,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     })
 
     if (accessError) {
-      return h(Fragment, [h(TopBar), h(WorkspaceAccessError)])
+      return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
         namespace, name, activeTab, showTabBar, workspace, clusters,

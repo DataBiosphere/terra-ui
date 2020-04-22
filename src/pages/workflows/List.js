@@ -1,9 +1,10 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useState } from 'react'
+import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link, TabBar } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { DelayedSearchInput } from 'src/components/input'
 import { FlexTable, HeaderCell, Sortable, TooltipCell } from 'src/components/table'
 import TopBar from 'src/components/TopBar'
@@ -64,7 +65,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
     _.orderBy([({ [sort.field]: field }) => _.lowerCase(field)], [sort.direction])
   )(workflows?.[tabName])
 
-  return h(Fragment, [
+  return h(FooterWrapper, [
     h(TopBar, { title: 'Workflows' }, [
       h(DelayedSearchInput, {
         style: { marginLeft: '2rem', width: 500 },

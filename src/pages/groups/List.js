@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Component } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, Link, PageBox, spinnerOverlay } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -181,7 +182,7 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
     const { groups, isDataLoaded, filter, creatingNewGroup, deletingGroup, updating } = this.state
     const filteredGroups = _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups)
 
-    return h(Fragment, [
+    return h(FooterWrapper, [
       h(TopBar, { title: 'Groups' }, [
         h(DelayedSearchInput, {
           'aria-label': 'Search groups',
@@ -191,7 +192,7 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
           value: filter
         })
       ]),
-      h(PageBox, { role: 'main' }, [
+      h(PageBox, { role: 'main', style: { flexGrow: 1 } }, [
         div({ style: Style.cardList.toolbarContainer }, [
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
             'Group Management'

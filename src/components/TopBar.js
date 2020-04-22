@@ -4,7 +4,9 @@ import { Component, Fragment, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, b, div, h, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
-import { ButtonPrimary, Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, spinnerOverlay } from 'src/components/common'
+import {
+  ButtonPrimary, Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay
+} from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -324,6 +326,21 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
             style: { flex: 'none', padding: 28, marginTop: 'auto' }
           }, [
             h(CromwellVersionLink, { variant: 'light', style: { textDecoration: 'underline', color: colors.accent(0.2) } }),
+            isBioDataCatalyst() && h(Fragment, [
+              h(Link,
+                {
+                  variant: 'light',
+                  style: { display: 'block', textDecoration: 'underline', color: colors.accent(0.2) },
+                  href: Nav.getLink('privacy'),
+                  onClick: () => this.hideNav()
+                }, ['Terra Privacy Policy']),
+              h(Link, {
+                variant: 'light',
+                href: Nav.getLink('terms-of-service'),
+                style: { display: 'block', textDecoration: 'underline', color: colors.accent(0.2) },
+                onClick: () => this.hideNav()
+              }, ['Terra Terms of Service'])
+            ]),
             div({ style: { color: colors.dark(0.3), fontSize: 10, fontWeight: 600, marginTop: '0.5rem' } }, [
               'Built on: ',
               h(Clickable, {

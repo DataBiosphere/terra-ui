@@ -68,22 +68,29 @@ export default _.flow(
     const { completedDeOauth, groups } = this.state
     const { authDomain, origin, partner } = _.find({ name: dataset }, datasets)
 
-    const notInAuthDomainError = div({
-      style: { fontSize: 18, margin: '3rem 5rem', width: 800 }
-    }, [
+    const standardErrorText = h(Fragment, [
       p(['This Data Explorer requires you to be in the ', b([authDomain]), ' Terra group.']),
       p([
         'If you have a different Google account in that group, please sign out of Terra and sign in ',
         'with that account. To sign out of Terra, click on the menu on the upper left, click on your ',
         'name, then click Sign Out.'
-      ]),
+      ])
+    ])
+
+    const notInAuthDomainError = div({
+      style: { fontSize: 18, margin: '3rem 5rem', width: 800 }
+    }, [
       Utils.switchCase(partner, [
-        'AMP PD', () => p([
-          'If you do not have a Google account in that group, please apply for access by emailing ',
-          h(Link, { href: 'mailto:admin@amp-pd.org' }, ['admin@amp-pd.org.'])
+        'AMP PD', () => h(Fragment, [
+          standardErrorText,
+          p([
+            'If you do not have a Google account in that group, please apply for access by emailing ',
+            h(Link, { href: 'mailto:admin@amp-pd.org' }, ['admin@amp-pd.org.'])
+          ])
         ])
       ], [
         'UKBB', () => h(Fragment, [
+          standardErrorText,
           p([
             'If you do not have a Google account in that group, you will not be able to browse UKB data at this time. ',
             'However, if you already have access to a copy of UKB data, you may upload it to a workspace, ',
@@ -92,9 +99,22 @@ export default _.flow(
           p(['We are actively working with UK Biobank to improve the process of accessing and working with UKB data.'])
         ])
       ], [
-        Utils.DEFAULT, () => p([
-          'If you do not have a Google account in that group, please ',
-          h(Link, { onClick: () => { contactUsActive.set(true) } }, ['apply for access.'])
+        'baseline', () => h(Fragment, [
+          p([
+            `Thank you for your interest in the Baseline Health Study data. Baseline data is currently only being shared
+             with Baseline Health Study partner sites, Duke and Stanford. If you are a current researcher at one of those sites,
+             please reach out to your institutional contacts for information on how to obtain access. In the future, Baseline 
+             is planning to make this data available to qualified researchers, outside of these partner sites.`
+          ]),
+          p(['Please reach out to ', h(Link, { href: 'mailto:support@terra.bio' }, ['support@terra.bio']), ' if you have any additional questions.'])
+        ])
+      ], [
+        Utils.DEFAULT, () => h(Fragment, [
+          standardErrorText,
+          p([
+            'If you do not have a Google account in that group, please ',
+            h(Link, { onClick: () => { contactUsActive.set(true) } }, ['apply for access.'])
+          ])
         ])
       ])
     ])

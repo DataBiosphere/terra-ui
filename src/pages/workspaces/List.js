@@ -5,6 +5,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link, makeMenuIcon, MenuButton, Select, SimpleTabBar, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -258,7 +259,7 @@ export const WorkspaceList = () => {
                   closeOnClick: true,
                   content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
                 }, [
-                  h(Link, { 'aria-label': 'Workspace menu', disabled: !canView }, [icon('cardMenuIcon', { size: 20 })])
+                  h(Link, { 'aria-label': `Menu for Workspace: ${name}`, disabled: !canView }, [icon('cardMenuIcon', { size: 20 })])
                 ])
               ]),
               div({ style: styles.tableCellContent }, [
@@ -282,7 +283,7 @@ export const WorkspaceList = () => {
   ])])
 
 
-  return h(Fragment, [
+  return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces' }, [
       h(DelayedSearchInput, {
         style: { marginLeft: '2rem', width: 500 },
@@ -295,7 +296,7 @@ export const WorkspaceList = () => {
     div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-        h(Link, { onClick: () => setCreatingNewWorkspace(true), style: { marginLeft: '0.5rem' } }, [icon('lighter-plus-circle', { size: 24 })])
+        h(Link, { 'aria-label': 'Create new workspace', onClick: () => setCreatingNewWorkspace(true), style: { marginLeft: '0.5rem' } }, [icon('lighter-plus-circle', { size: 24 })])
       ]),
       div({ style: { display: 'flex', marginBottom: '1rem' } }, [
         div({ style: styles.filter }, [
