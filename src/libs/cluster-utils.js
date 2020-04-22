@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { h, p, span } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
-import { machineTypes, storagePrice } from 'src/data/machines'
+import { dataprocCpuPrice, machineTypes, storagePrice } from 'src/data/machines'
 import * as Utils from 'src/libs/utils'
 
 
@@ -34,9 +34,16 @@ export const formatRuntimeConfig = ({ sparkMode, numberOfWorkers, masterMachineT
   }
 }
 
-const machineStorageCost = config => {
-  const { masterDiskSize, numberOfWorkers, workerDiskSize } = normalizeRuntimeConfig(config)
-  return (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice
+const ongoingCost = config => {
+  const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize } = normalizeRuntimeConfig(config)
+  const { cpu: masterCpu } = findMachineType(masterMachineType)
+  const { cpu: workerCpu } = findMachineType(workerMachineType)
+
+
+  return _.sum([
+    (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice,
+    cloudService === 'DATAPROC' && (masterCpu + workerCpu * numberOfWorkers) * dataprocCpuPrice
+  ])
 }
 
 export const findMachineType = name => {
@@ -44,22 +51,21 @@ export const findMachineType = name => {
 }
 
 export const runtimeConfigCost = config => {
-  const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = normalizeRuntimeConfig(config)
-  const { price: masterPrice, cpu: masterCpu } = findMachineType(masterMachineType)
-  const { price: workerPrice, preemptiblePrice, cpu: workerCpu } = findMachineType(workerMachineType)
+  const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = normalizeRuntimeConfig(config)
+  const { price: masterPrice } = findMachineType(masterMachineType)
+  const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
   return _.sum([
     masterPrice,
     (numberOfWorkers - numberOfPreemptibleWorkers) * workerPrice,
     numberOfPreemptibleWorkers * preemptiblePrice,
-    machineStorageCost(config),
-    cloudService === 'GCE' ? 0 : masterCpu + (workerCpu * numberOfWorkers) // dataproc costs $.01 per cpu per hour
+    ongoingCost(config)
   ])
 }
 
 export const clusterCost = ({ runtimeConfig, status }) => {
   switch (status) {
     case 'Stopped':
-      return machineStorageCost(runtimeConfig)
+      return ongoingCost(runtimeConfig)
     case 'Deleting':
     case 'Error':
       return 0.0
