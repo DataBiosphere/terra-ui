@@ -342,8 +342,8 @@ const tcga = () => h(Participant, {
   description: h(Fragment, [
     'The Cancer Genome Atlas (TCGA), a landmark ',
     h(Link, { href: 'https://www.cancer.gov/about-nci/organization/ccg/cancer-genomics-overview', ...Utils.newTabLinkProps }, 'cancer genomics'),
-    ` program, molecularly characterized over 20,000 primary cancer and matched normal samples spanning 33 cancer types. 
-    This joint effort between the National Cancer Institute and the National Human Genome Research Institute began in 2006, 
+    ` program, molecularly characterized over 20,000 primary cancer and matched normal samples spanning 33 cancer types.
+    This joint effort between the National Cancer Institute and the National Human Genome Research Institute began in 2006,
     bringing together researchers from diverse disciplines and multiple institutions.`
   ]),
   sizeText: 'Participants: 11,000'
@@ -387,7 +387,7 @@ const ukb = () => h(Participant, {
 
 
 const Datasets = () => {
-  return h(FooterWrapper, [
+  return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('datasets'),
     div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
