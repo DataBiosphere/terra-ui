@@ -109,7 +109,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster } = props
     const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
     const { masterDiskSize, masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
-    const matchingProfile = masterDiskSize === normalizeRuntimeConfig({}).masterDiskSize && _.find({ runtimeConfig: { masterMachineType } }, profiles)
+    const matchingProfile = _.find(({ runtimeConfig }) => _.isMatch({ masterMachineType, masterDiskSize }, normalizeRuntimeConfig(runtimeConfig)), profiles)
 
     this.state = {
       profile: matchingProfile?.name || 'custom',
