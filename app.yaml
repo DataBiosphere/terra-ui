@@ -17,3 +17,4 @@ handlers:
     X-XSS-Protection: "1; mode=block"
     Expect-CT: max-age=0, report-uri="https://broadappsec.report-uri.com/r/d/ct/reportOnly"
     Referrer-Policy: no-referrer-when-downgrade
+    Content-Security-Policy-Report-Only: default-src 'none'; form-action 'none'; frame-ancestors 'none'; report-uri https://broadappsec.report-uri.com/r/d/csp/wizard
