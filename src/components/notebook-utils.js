@@ -580,7 +580,7 @@ export const cohortNotebook = cohortName => `
     "        col_to_plot = col\\n",
     "        break\\n",
     "\\n",
-    "title = f'Plot of {col_to_plot} for cohort \"{COHORT}\"'\\n",
+    "title = f'Plot of {col_to_plot} for cohort \\"{COHORT}\\"'\\n",
     "print(title)"
    ]
   },
@@ -962,7 +962,7 @@ export const cohortRNotebook = cohortName => `
     "    }\\n",
     "}\\n",
     "\\n",
-    "title <- str_glue('Plot of {col_to_plot} for cohort \"{COHORT}\"')\\n",
+    "title <- str_glue('Plot of {col_to_plot} for cohort \\"{COHORT}\\"')\\n",
     "print(title)"
    ]
   },
