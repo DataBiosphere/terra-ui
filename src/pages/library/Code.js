@@ -106,7 +106,7 @@ const Code = () => {
     _.compact
   )(featuredList)
 
-  return h(FooterWrapper, [
+  return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('code & workflows'),
     div({ role: 'main', style: { flexGrow: 1 } }, [
       div({ style: { display: 'flex', flex: 1 } }, [
