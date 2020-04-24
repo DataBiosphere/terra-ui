@@ -1,13 +1,13 @@
 import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { PageBox, spinnerOverlay } from 'src/components/common'
+import { LabeledCheckbox, PageBox, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { DelayedSearchInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -35,7 +35,9 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
       this.setState({ loading: true, creatingNewUser: false, editingUser: false, deletingUser: false, updating: false })
 
       const groupAjax = Groups.group(groupName)
-      const [membersEmails, adminsEmails] = await Promise.all([groupAjax.listMembers(), groupAjax.listAdmins()])
+      const [membersEmails, adminsEmails, allowAccessRequests] = await Promise.all([
+        groupAjax.listMembers(), groupAjax.listAdmins(), groupAjax.getPolicy('admin-notifier')
+      ])
 
       const rolesByMember = _.mergeAllWith((a, b) => { if (_.isArray(a)) return a.concat(b) }, [
         _.fromPairs(_.map(email => [email, ['admin']], adminsEmails)),
@@ -46,7 +48,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
         _.map(([email, roles]) => ({ email, roles })),
         _.sortBy(member => member.email.toUpperCase())
       )(rolesByMember)
-      this.setState({ members, adminCanEdit: adminsEmails.length > 1 })
+      this.setState({ members, adminCanEdit: adminsEmails.length > 1, allowAccessRequests })
     } catch (error) {
       reportError('Error loading group list', error)
     } finally {
@@ -59,7 +61,7 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
   }
 
   render() {
-    const { members, adminCanEdit, loading, filter, creatingNewUser, editingUser, deletingUser, updating } = this.state
+    const { members, adminCanEdit, allowAccessRequests, loading, filter, creatingNewUser, editingUser, deletingUser, updating } = this.state
     const { groupName } = this.props
 
     return h(FooterWrapper, [
@@ -77,6 +79,19 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
           div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
             `Group Management: ${groupName}`
           ])
+        ]),
+        div({ style: { marginTop: '0.5rem' } }, [
+          h(LabeledCheckbox, {
+            style: { marginRight: '0.25rem' },
+            checked: allowAccessRequests,
+            onChange: _.flow(
+              withErrorReporting('Error changing access request permission'),
+              Utils.withBusyState(v => this.setState({ updating: v }))
+            )(async () => {
+              await Ajax().Groups.group(groupName).setPolicy('admin-notifier', !allowAccessRequests)
+              return this.refresh()
+            })
+          }, ['Allow anyone to request access'])
         ]),
         div({ style: Style.cardList.cardContainer }, [
           h(NewUserCard, {
