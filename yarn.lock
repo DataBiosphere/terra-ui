@@ -6787,10 +6787,10 @@ ignore@^4.0.6:
   resolved "https://registry.yarnpkg.com/ignore/-/ignore-4.0.6.tgz#750e3db5862087b4737ebac8207ffd1ef27b25fc"
   integrity sha512-cyFDKrqc/YdcWFniJhzI42+AzS+gNwmUzOSFcRCQYwySuBBBy/KjuxWLZ/FHEH6Moq1NizMOBWyTcv8O4OZIMg==
 
-igv@^2.5.2:
-  version "2.5.2"
-  resolved "https://registry.yarnpkg.com/igv/-/igv-2.5.2.tgz#bf89b3c4f3513de060c866654cf1c0bb6f33ec07"
-  integrity sha512-mEluvu75EZAVy/Sf0NN9E5PBVnwq/TRvBK2zzYF+/Hm7ZLz0RswgzQTl9p4IUI3ka8MVCMMPXMjbZXT/S5NTsQ==
+igv@2.3.5:
+  version "2.3.5"
+  resolved "https://registry.yarnpkg.com/igv/-/igv-2.3.5.tgz#fb235934c3ac9bf582e9f4c25825b558c337df16"
+  integrity sha512-jwEXn/6Vc5K3ckKoTW8ok+PB+AUyTEXPN4tQZ6DXRFx1Mn7thO/DS2LpBSbHdPhMYKSdOc6QRSiFe6/26hBHWw==
 
 immediate@~3.0.5:
   version "3.0.6"
