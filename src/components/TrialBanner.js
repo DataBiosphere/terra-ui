@@ -109,6 +109,7 @@ export const TrialBanner = Utils.connectStore(authStore, 'authState')(class Tria
           h(Clickable, {
             style: { borderBottom: 'none' },
             tooltip: 'Hide banner',
+            'aria-label': 'Dismiss free credits offer',
             onClick: trialState === 'Terminated' ? () => this.setState({ finalizeTrial: true }) : () => {
               localStorage.setItem('removeBanner', 'true')
               this.forceUpdate()
