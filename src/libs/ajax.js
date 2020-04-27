@@ -79,26 +79,41 @@ const checkRequesterPaysError = async response => {
 const withRequesterPays = wrappedFetch => async (url, ...args) => {
   const bucket = /\/b\/([^/?]+)[/?]/.exec(url)[1]
   const workspace = workspaceStore.get()
-  const userProjects = await Billing().listProjects()
-  const getUserProject = () => workspace && _.some(['projectName', workspace.workspace.namespace], userProjects) ?
-    workspace.workspace.namespace :
-    requesterPaysProjectStore.get()
+  const workspaceProject = workspace?.workspace?.namespace
+  const canCompute = workspace?.canCompute
+
+  const isProjectOwner = async () => {
+    const userProjects = await Billing().listProjects()
+    return _.some({ projectName: workspaceProject, role: 'Owner' }, userProjects)
+  }
+
+  const getUserProject = async () => {
+    if (requesterPaysProjectStore.get()) {
+      return requesterPaysProjectStore.get()
+    } else if (workspaceProject && (canCompute || (await isProjectOwner()))) {
+      requesterPaysProjectStore.set(workspaceProject)
+      return workspaceProject
+    } else {
+      return undefined
+    }
+  }
+
   const tryRequest = async () => {
     const knownRequesterPays = _.includes(bucket, requesterPaysBuckets.get())
     try {
-      return await wrappedFetch(Utils.mergeQueryParams({ userProject: (knownRequesterPays && getUserProject()) || undefined }, url), ...args)
+      return await wrappedFetch(Utils.mergeQueryParams({ userProject: (knownRequesterPays && await getUserProject()) || undefined }, url), ...args)
     } catch (error) {
       const newResponse = await checkRequesterPaysError(error)
       if (newResponse.requesterPaysError && !knownRequesterPays) {
         requesterPaysBuckets.update(_.union([bucket]))
-        if (getUserProject()) {
+        if (await getUserProject()) {
           return tryRequest()
         }
       }
       throw newResponse
     }
   }
-  return tryRequest()
+  return await tryRequest()
 }
 
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
