@@ -19,7 +19,7 @@
     "github-markdown-css": "^4.0.0",
     "history": "^4.10.1",
     "iframe-resizer": "^4.2.10",
-    "igv": "^2.5.2",
+    "igv": "2.3.5",
     "jszip": "^3.4.0",
     "lodash": "^4.17.15",
     "marked": "^0.6.3",
