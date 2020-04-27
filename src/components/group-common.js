@@ -26,7 +26,7 @@ const styles = {
   }
 }
 
-export const AdminNotifierCheckbox = ({checked, onChange}) => {
+export const AdminNotifierCheckbox = ({ checked, onChange }) => {
   return div({ style: { marginTop: '0.5rem', display: 'flex', alignItems: 'center' } }, [
     h(LabeledCheckbox, {
       style: { marginRight: '0.25rem' },
