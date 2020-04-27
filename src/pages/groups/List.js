@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, PageBox, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, IdContainer, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
+import { AdminNotifierCheckbox } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -67,13 +68,10 @@ const NewGroupModal = class NewGroupModal extends Component {
         })
       ])]),
       !(groupNameTouched && errors) && formHint('Only letters, numbers, underscores, and dashes allowed'),
-      div({ style: { marginTop: '0.5rem' } }, [
-        h(LabeledCheckbox, {
-          style: { marginRight: '0.25rem' },
-          checked: allowAccessRequests,
-          onChange: v => this.setState({ allowAccessRequests: v })
-        }, ['Allow anyone to request access'])
-      ]),
+      h(AdminNotifierCheckbox, {
+        checked: allowAccessRequests,
+        onChange: v => this.setState({ allowAccessRequests: v })
+      }),
       submitting && spinnerOverlay
     ])
   }

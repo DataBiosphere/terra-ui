@@ -6,6 +6,7 @@ import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, spinnerOv
 import { icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { InfoBox } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -23,6 +24,18 @@ const styles = {
     margin: '0 -1rem',
     borderBottom: `1px solid ${colors.dark(0.4)}`
   }
+}
+
+export const AdminNotifierCheckbox = ({checked, onChange}) => {
+  return div({ style: { marginTop: '0.5rem', display: 'flex', alignItems: 'center' } }, [
+    h(LabeledCheckbox, {
+      style: { marginRight: '0.25rem' },
+      checked, onChange
+    }, ['Allow anyone to request access']),
+    h(InfoBox, { style: { marginLeft: '0.3rem' } }, [
+      'Any user will be able to request to become a member of this group. This will send an email to the group admins.'
+    ])
+  ])
 }
 
 export const NewUserCard = ({ onClick }) => {

@@ -3,8 +3,9 @@ import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { LabeledCheckbox, PageBox, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
+import { AdminNotifierCheckbox, DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { DelayedSearchInput } from 'src/components/input'
+import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -80,19 +81,16 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
             `Group Management: ${groupName}`
           ])
         ]),
-        div({ style: { marginTop: '0.5rem' } }, [
-          h(LabeledCheckbox, {
-            style: { marginRight: '0.25rem' },
-            checked: allowAccessRequests,
-            onChange: _.flow(
-              withErrorReporting('Error changing access request permission'),
-              Utils.withBusyState(v => this.setState({ updating: v }))
-            )(async () => {
-              await Ajax().Groups.group(groupName).setPolicy('admin-notifier', !allowAccessRequests)
-              return this.refresh()
-            })
-          }, ['Allow anyone to request access'])
-        ]),
+        h(AdminNotifierCheckbox, {
+          checked: allowAccessRequests,
+          onChange: _.flow(
+            withErrorReporting('Error changing access request permission'),
+            Utils.withBusyState(v => this.setState({ updating: v }))
+          )(async () => {
+            await Ajax().Groups.group(groupName).setPolicy('admin-notifier', !allowAccessRequests)
+            return this.refresh()
+          })
+        }),
         div({ style: Style.cardList.cardContainer }, [
           h(NewUserCard, {
             onClick: () => this.setState({ creatingNewUser: true })
