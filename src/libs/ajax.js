@@ -95,7 +95,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
   const tryRequest = async () => {
     const knownRequesterPays = _.includes(bucket, requesterPaysBuckets.get())
     try {
-      const userProject = knownRequesterPays && await getUserProject() || undefined
+      const userProject = (knownRequesterPays && await getUserProject()) || undefined
       return await wrappedFetch(Utils.mergeQueryParams({ userProject }, url), ...args)
     } catch (error) {
       const newResponse = await checkRequesterPaysError(error)
