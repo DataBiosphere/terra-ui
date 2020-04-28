@@ -78,24 +78,18 @@ const checkRequesterPaysError = async response => {
  */
 const withRequesterPays = wrappedFetch => (url, ...args) => {
   const bucket = /\/b\/([^/?]+)[/?]/.exec(url)[1]
-  const workspace = workspaceStore.get()
-  const workspaceProject = workspace?.workspace?.namespace
-  const canCompute = workspace?.canCompute
+  const { workspace, canCompute } = workspaceStore.get() || {}
+  const workspaceProject = workspace?.namespace
 
-  const isProjectOwner = async () => {
-    const userProjects = await Billing().listProjects()
-    return _.some({ projectName: workspaceProject, role: 'Owner' }, userProjects)
+  const canUseWorkspaceProject = async () => {
+    return canCompute || _.some({ projectName: workspaceProject, role: 'Owner' }, await Ajax().Billing.listProjects())
   }
 
   const getUserProject = async () => {
-    if (requesterPaysProjectStore.get()) {
-      return requesterPaysProjectStore.get()
-    } else if (workspaceProject && (canCompute || (await isProjectOwner()))) {
+    if (!requesterPaysProjectStore.get() && workspaceProject && await canUseWorkspaceProject()) {
       requesterPaysProjectStore.set(workspaceProject)
-      return workspaceProject
-    } else {
-      return undefined
     }
+    return requesterPaysProjectStore.get()
   }
 
   const tryRequest = async () => {
