@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
-import { Component } from 'react'
+import { Component, Fragment } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, Link, PageBox, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, IdContainer, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
+import { AdminNotifierCheckbox } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -35,13 +36,14 @@ const NewGroupModal = class NewGroupModal extends Component {
     super(props)
     this.state = {
       groupName: '',
-      groupNameTouched: false
+      groupNameTouched: false,
+      allowAccessRequests: true
     }
   }
 
   render() {
     const { onDismiss, existingGroups } = this.props
-    const { groupName, groupNameTouched, submitting } = this.state
+    const { groupName, groupNameTouched, allowAccessRequests, submitting } = this.state
 
     const errors = validate({ groupName }, { groupName: groupNameValidator(existingGroups) })
 
@@ -53,27 +55,36 @@ const NewGroupModal = class NewGroupModal extends Component {
         onClick: () => this.submit()
       }, ['Create Group'])
     }, [
-      h(FormLabel, { required: true }, ['Enter a unique name']),
-      h(ValidatedInput, {
-        inputProps: {
-          autoFocus: true,
-          value: groupName,
-          onChange: v => this.setState({ groupName: v, groupNameTouched: true })
-        },
-        error: groupNameTouched && Utils.summarizeErrors(errors && errors.groupName)
-      }),
+      h(IdContainer, [id => h(Fragment, [
+        h(FormLabel, { required: true, htmlFor: id }, ['Enter a unique name']),
+        h(ValidatedInput, {
+          inputProps: {
+            id,
+            autoFocus: true,
+            value: groupName,
+            onChange: v => this.setState({ groupName: v, groupNameTouched: true })
+          },
+          error: groupNameTouched && Utils.summarizeErrors(errors && errors.groupName)
+        })
+      ])]),
       !(groupNameTouched && errors) && formHint('Only letters, numbers, underscores, and dashes allowed'),
+      h(AdminNotifierCheckbox, {
+        checked: allowAccessRequests,
+        onChange: v => this.setState({ allowAccessRequests: v })
+      }),
       submitting && spinnerOverlay
     ])
   }
 
   async submit() {
     const { onSuccess } = this.props
-    const { groupName } = this.state
+    const { groupName, allowAccessRequests } = this.state
 
     try {
       this.setState({ submitting: true })
-      await Ajax().Groups.group(groupName).create()
+      const groupAjax = Ajax().Groups.group(groupName)
+      await groupAjax.create()
+      await groupAjax.setPolicy('admin-notifier', allowAccessRequests)
       onSuccess()
     } catch (error) {
       this.setState({ submitting: false })

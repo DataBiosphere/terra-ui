@@ -331,6 +331,7 @@ const Groups = signal => ({
 
   group: groupName => {
     const root = `api/groups/v1/${groupName}`
+    const resourceRoot = `api/resources/v1/managed-group/${groupName}`
 
     const addRole = (role, email) => {
       return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
@@ -376,6 +377,15 @@ const Groups = signal => ({
 
       requestAccess: async () => {
         await fetchSam(`${root}/requestAccess`, _.merge(authOpts(), { signal, method: 'POST' }))
+      },
+
+      getPolicy: async policyName => {
+        const res = await fetchSam(`${resourceRoot}/policies/${policyName}/public`, _.merge(authOpts(), { signal }))
+        return await res.json()
+      },
+
+      setPolicy: (policyName, value) => {
+        return fetchSam(`${resourceRoot}/policies/${policyName}/public`, _.mergeAll([authOpts(), { signal, method: 'PUT' }, jsonBody(value)]))
       }
     }
   }

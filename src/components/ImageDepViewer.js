@@ -32,7 +32,7 @@ export const ImageDepViewer = ({ packageLink }) => {
 
   return h(Fragment, [
     div({ style: { display: 'flex', alignItems: 'center' } }, [
-      div({ style: { fontWeight: 'bold', marginRight: '1rem' } }, ['Installed packages']),
+      div({ style: { fontWeight: 'bold', marginRight: '1rem' } }, ['Language:']),
       tools.length === 1 ?
         _.startCase(selectedTool) :
         div({ style: { width: 120 } }, [

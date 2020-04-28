@@ -270,6 +270,16 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
             isOpened: openSupportMenu
           }, [
             h(DropDownSubItem, {
+              href: window.Appcues ? undefined : 'https://support.terra.bio/hc/en-us/articles/360042745091',
+              onClick: () => {
+                this.hideNav()
+                // until eslint supports optional chaining, possibly with https://github.com/eslint/eslint/pull/13196:
+                // eslint-disable-next-line no-unused-expressions
+                window.Appcues?.show('-M3lNP6ncNr-42_78TOX')
+              },
+              ...Utils.newTabLinkProps
+            }, ['Tutorials and Videos']),
+            h(DropDownSubItem, {
               href: 'https://support.terra.bio/hc/en-us',
               onClick: () => this.hideNav(),
               ...Utils.newTabLinkProps

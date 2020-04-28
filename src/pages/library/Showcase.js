@@ -85,7 +85,7 @@ const Showcase = () => {
     allFeatured
   )
 
-  return h(FooterWrapper, [
+  return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('showcase & tutorials'),
     div({ role: 'main', style: { margin: '2.5rem 2rem', flexGrow: 1 } }, [
       !(featuredList && workspaces) ?
