@@ -53,9 +53,10 @@ const billingProjectNameValidator = existing => ({
   }
 })
 
-const noBillingMessage = div({ style: { fontSize: 20, margin: '2rem' } }, [
+const noBillingMessage = onClickCreateProject => div({ style: { fontSize: 20, margin: '2rem' } }, [
   div([
-    'To get started, click the plus button to ', span({ style: { fontWeight: 600 } }, ['create a Billing Project'])
+    'To get started, ',
+    h(Link, { onClick: onClickCreateProject }, ['click here to ', span({ style: { fontWeight: 600 } }, ['create a Billing Project'])])
   ]),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
     h(Link, {
@@ -249,6 +250,15 @@ export const BillingList = _.flow(
     !isOwner && _.map(project => _.includes('Owner', project.role) ? this.setState({ isOwner: true }) : null, billingProjects)
   }
 
+  onClickCreateProject = async () => {
+    if (Auth.hasBillingScope()) {
+      this.setState({ creatingBillingProject: true })
+    } else {
+      await this.authorizeAndLoadAccounts()
+      Auth.hasBillingScope() && this.setState({ creatingBillingProject: true })
+    }
+  }
+
   render() {
     const { billingProjects, isLoadingProjects, isLoadingAccounts, isAuthorizing, creatingBillingProject, billingAccounts, isOwner } = this.state
     const { queryParams: { selectedName }, authState: { profile } } = this.props
@@ -274,14 +284,7 @@ export const BillingList = _.flow(
             'Billing Projects',
             h(Clickable, {
               'aria-label': 'Create new billing project',
-              onClick: async () => {
-                if (Auth.hasBillingScope()) {
-                  this.setState({ creatingBillingProject: true })
-                } else {
-                  await this.authorizeAndLoadAccounts()
-                  Auth.hasBillingScope() && this.setState({ creatingBillingProject: true })
-                }
-              }
+              onClick: this.onClickCreateProject
             },
             [icon('plus-circle', { size: 21, style: { color: colors.accent() } })]
             )
@@ -318,7 +321,7 @@ export const BillingList = _.flow(
           })],
           [isOwner && !selectedName && hasBillingProjects, () => div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Billing Project'])],
           [!hasBillingProjects && hasFreeCredits, () => freeCreditsMessage],
-          [!hasBillingProjects && !hasFreeCredits, () => noBillingMessage]
+          [!hasBillingProjects && !hasFreeCredits, () => noBillingMessage(this.onClickCreateProject)]
         ),
         (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
       ])
