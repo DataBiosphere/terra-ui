@@ -165,9 +165,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   hasStartUpScriptChanged() {
-    const { currentCluster } = this.props
-    const { jupyterUserScriptUri } = this.state
-    const originalJupyterUserScriptUri = currentCluster.jupyterUserScriptUri || ''
+    const { jupyterUserScriptUri, currentClusterDetails } = this.state
+    const originalJupyterUserScriptUri = currentClusterDetails?.jupyterUserScriptUri || ''
     return jupyterUserScriptUri !== originalJupyterUserScriptUri
   }
 
