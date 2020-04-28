@@ -97,14 +97,14 @@ const Clusters = () => {
                 size: { basis: 250, grow: 0 },
                 headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Created']),
                 cellRenderer: ({ rowIndex }) => {
-                  return makeCompleteDate(filteredClusters[rowIndex].createdDate)
+                  return makeCompleteDate(filteredClusters[rowIndex].auditInfo.createdDate)
                 }
               },
               {
                 size: { basis: 250, grow: 0 },
                 headerRenderer: () => h(Sortable, { sort, field: 'accessed', onSort: setSort }, ['Last accessed']),
                 cellRenderer: ({ rowIndex }) => {
-                  return makeCompleteDate(filteredClusters[rowIndex].dateAccessed)
+                  return makeCompleteDate(filteredClusters[rowIndex].auditInfo.dateAccessed)
                 }
               },
               {

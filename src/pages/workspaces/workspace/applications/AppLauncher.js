@@ -25,13 +25,13 @@ const AppLauncher = _.flow(
   const [busy, setBusy] = useState(false)
 
   const clusterStatus = cluster && cluster.status // preserve null vs undefined
-  const clusterName = cluster?.clusterName
+  const runtimeName = cluster?.runtimeName
 
   return h(Fragment, [
     h(ClusterStatusMonitor, {
       cluster,
       onClusterStartedRunning: async () => {
-        await Ajax().Clusters.notebooks(namespace, clusterName).setCookie()
+        await Ajax().Clusters.notebooks(namespace, runtimeName).setCookie()
         setCookieReady(true)
         Ajax().Metrics.captureEvent(Events.applicationLaunch, { app })
       },
@@ -43,7 +43,7 @@ const AppLauncher = _.flow(
     }),
     clusterStatus === 'Running' && cookieReady ?
       h(Fragment, [
-        h(PeriodicCookieSetter, { namespace, clusterName }),
+        h(PeriodicCookieSetter, { namespace, runtimeName }),
         app === 'RStudio' && h(PlaygroundHeader, [
           'This feature is in early development. Your files are saved on your runtime but not to your workspace. We encourage you to frequently ',
           h(Link, {
@@ -53,7 +53,7 @@ const AppLauncher = _.flow(
           '.'
         ]),
         iframe({
-          src: `${cluster.clusterUrl}/${app === 'terminal' ? 'terminals/1' : ''}`,
+          src: `${cluster.proxyUrl}/${app === 'terminal' ? 'terminals/1' : ''}`,
           style: {
             border: 'none', flex: 1,
             ...(app === 'terminal' ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar

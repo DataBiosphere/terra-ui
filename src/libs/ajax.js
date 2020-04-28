@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { h } from 'react-hyperscript-helpers'
-import { version } from 'src/data/clusters'
+import { version } from 'src/data/machines'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
@@ -981,13 +981,13 @@ const Submissions = signal => ({
 
 const Clusters = signal => ({
   list: async (labels = {}) => {
-    const res = await fetchLeo(`api/clusters?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
+    const res = await fetchLeo(`api/google/v1/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
 
   cluster: (project, name) => {
-    const root = `api/cluster/${project}/${name}`
+    const root = `api/google/v1/runtimes/${project}/${name}`
 
     return {
       details: async () => {
@@ -1011,12 +1011,12 @@ const Clusters = signal => ({
             'https://www.googleapis.com/auth/userinfo.profile'],
           enableWelder: true
         })
-        return fetchLeo(`api/cluster/v2/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PUT' }, appIdentifier]))
+        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
       },
 
       update: clusterOptions => {
         const body = { ...clusterOptions, allowStop: true }
-        return fetchLeo(`api/cluster/${project}/${name}`, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PATCH' }, appIdentifier]))
+        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PATCH' }, appIdentifier]))
       },
 
       start: () => {

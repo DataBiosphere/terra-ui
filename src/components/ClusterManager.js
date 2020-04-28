@@ -8,11 +8,11 @@ import { ButtonPrimary, Clickable, IdContainer, Link, spinnerOverlay } from 'src
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
-import { dataSyncingDocUrl } from 'src/data/clusters'
+import { dataSyncingDocUrl } from 'src/data/machines'
 import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
-import { clusterCost, currentCluster, deleteText, normalizeMachineConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
+import { clusterCost, currentCluster, deleteText, formatRuntimeConfig, normalizeRuntimeConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -61,10 +61,13 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
     withErrorReporting('Error loading notebook runtime details'),
     Utils.withBusyState(setLoadingClusterDetails)
   )(async () => {
-    const { errors: clusterErrors } = await Ajax().Clusters.cluster(cluster.googleProject, cluster.clusterName).details()
+    const { errors: clusterErrors } = await Ajax().Clusters.cluster(cluster.googleProject, cluster.runtimeName).details()
     if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), clusterErrors)) {
       setError(
-        await Ajax().Buckets.getObjectPreview(cluster.stagingBucket, `userscript_output.txt`, cluster.googleProject, true).then(res => res.text()))
+        await Ajax()
+          .Buckets
+          .getObjectPreview(cluster.asyncRuntimeFields.stagingBucket, `userscript_output.txt`, cluster.googleProject, true)
+          .then(res => res.text()))
       setUserscriptError(true)
     } else {
       setError(clusterErrors[0].errorMessage)
@@ -83,13 +86,13 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   ])
 }
 
-export const DeleteClusterModal = ({ cluster: { googleProject, clusterName }, onDismiss, onSuccess }) => {
+export const DeleteClusterModal = ({ cluster: { googleProject, runtimeName }, onDismiss, onSuccess }) => {
   const [deleting, setDeleting] = useState()
   const deleteCluster = _.flow(
     Utils.withBusyState(setDeleting),
     withErrorReporting('Error deleting notebook runtime')
   )(async () => {
-    await Ajax().Clusters.cluster(googleProject, clusterName).delete()
+    await Ajax().Clusters.cluster(googleProject, runtimeName).delete()
     onSuccess()
   })
   return h(Modal, {
@@ -209,22 +212,22 @@ export default class ClusterManager extends PureComponent {
     const { namespace } = this.props
     this.executeAndRefresh(
       Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
-        machineConfig: normalizeMachineConfig({})
+        runtimeConfig: formatRuntimeConfig(normalizeRuntimeConfig({}))
       })
     )
   }
 
   startCluster() {
-    const { googleProject, clusterName } = this.getCurrentCluster()
+    const { googleProject, runtimeName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Ajax().Clusters.cluster(googleProject, clusterName).start()
+      Ajax().Clusters.cluster(googleProject, runtimeName).start()
     )
   }
 
   stopCluster() {
-    const { googleProject, clusterName } = this.getCurrentCluster()
+    const { googleProject, runtimeName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Ajax().Clusters.cluster(googleProject, clusterName).stop()
+      Ajax().Clusters.cluster(googleProject, runtimeName).stop()
     )
   }
 

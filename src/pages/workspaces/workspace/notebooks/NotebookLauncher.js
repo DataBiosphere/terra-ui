@@ -14,7 +14,7 @@ import Modal from 'src/components/Modal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { findPotentialNotebookLockers, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
-import { dataSyncingDocUrl } from 'src/data/clusters'
+import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import { usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
@@ -47,14 +47,14 @@ const NotebookLauncher = _.flow(
   ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace }, accessLevel, canCompute }, cluster, refreshClusters }, ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     // Status note: undefined means still loading, null means no cluster
-    const { clusterName, status, labels } = cluster || {}
+    const { runtimeName, status, labels } = cluster || {}
     const [busy, setBusy] = useState()
     const { mode } = queryParams
 
     return h(Fragment, [
       (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && labels.tool === 'Jupyter') ?
         h(labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : NotebookEditorFrame,
-          { key: clusterName, workspace, cluster, notebookName, mode }) :
+          { key: runtimeName, workspace, cluster, notebookName, mode }) :
         h(Fragment, [
           h(PreviewHeader, { queryParams, cluster, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateCluster: () => setCreateOpen(true) }),
           h(NotebookPreviewFrame, { notebookName, workspace })
@@ -388,7 +388,7 @@ const copyingNotebookMessage = div({ style: { paddingTop: '2rem' } }, [
   h(StatusMessage, ['Copying notebook to runtime environment, almost ready...'])
 ])
 
-const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
+const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { runtimeName, proxyUrl, status, labels } }) => {
   console.assert(_.includes(status, usableStatuses), `Expected notebook runtime to be one of: [${usableStatuses}]`)
   console.assert(!labels.welderInstallFailed, 'Expected cluster to have Welder')
   const frameRef = useRef()
@@ -405,20 +405,20 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   )(async () => {
     await Ajax()
       .Clusters
-      .notebooks(namespace, clusterName)
+      .notebooks(namespace, runtimeName)
       .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
-    if (mode === 'edit' && !(await Ajax().Clusters.notebooks(namespace, clusterName).lock(`${localBaseDirectory}/${notebookName}`))) {
+    if (mode === 'edit' && !(await Ajax().Clusters.notebooks(namespace, runtimeName).lock(`${localBaseDirectory}/${notebookName}`))) {
       notify('error', 'Unable to Edit Notebook', {
         message: 'Another user is currently editing this notebook. You can run it in Playground Mode or make a copy.'
       })
       chooseMode(undefined)
     } else {
       await Promise.all([
-        Ajax().Clusters.notebooks(namespace, clusterName).localize([{
+        Ajax().Clusters.notebooks(namespace, runtimeName).localize([{
           sourceUri: `${cloudStorageDirectory}/${notebookName}`,
           localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${notebookName}` : `${localSafeModeBaseDirectory}/${notebookName}`
         }]),
-        Ajax().Clusters.notebooks(namespace, clusterName).setCookie()
+        Ajax().Clusters.notebooks(namespace, runtimeName).setCookie()
       ])
       setNotebookSetupComplete(true)
     }
@@ -430,9 +430,9 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
 
   return h(Fragment, [
     notebookSetupComplete && h(Fragment, [
-      h(PeriodicCookieSetter, { namespace, clusterName }),
+      h(PeriodicCookieSetter, { namespace, runtimeName }),
       iframe({
-        src: `${clusterUrl}/notebooks/${mode === 'edit' ? localBaseDirectory : localSafeModeBaseDirectory}/${notebookName}`,
+        src: `${proxyUrl}/notebooks/${mode === 'edit' ? localBaseDirectory : localSafeModeBaseDirectory}/${notebookName}`,
         style: { border: 'none', flex: 1 },
         ref: frameRef
       }),
@@ -445,7 +445,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   ])
 }
 
-const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { clusterName, clusterUrl, status, labels } }) => {
+const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { runtimeName, proxyUrl, status, labels } }) => {
   console.assert(status === 'Running', 'Expected notebook runtime to be running')
   console.assert(!!labels.welderInstallFailed, 'Expected cluster to not have Welder')
   const frameRef = useRef()
@@ -467,10 +467,10 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
       chooseMode(undefined)
     } else {
       await Promise.all([
-        Ajax(signal).Clusters.notebooks(namespace, clusterName).oldLocalize({
+        Ajax(signal).Clusters.notebooks(namespace, runtimeName).oldLocalize({
           [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
         }),
-        Ajax(signal).Clusters.notebooks(namespace, clusterName).setCookie()
+        Ajax(signal).Clusters.notebooks(namespace, runtimeName).setCookie()
       ])
       setLocalized(true)
     }
@@ -493,7 +493,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
     ]),
     localized && h(Fragment, [
       iframe({
-        src: `${clusterUrl}/notebooks/${name}/${notebookName}`,
+        src: `${proxyUrl}/notebooks/${name}/${notebookName}`,
         style: { border: 'none', flex: 1 },
         ref: frameRef
       }),

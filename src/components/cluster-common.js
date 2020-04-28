@@ -25,11 +25,11 @@ export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
   const startClusterOnce = withErrorReporting('Error starting notebook runtime', async () => {
     while (!signal.aborted) {
       const currentCluster = getCluster()
-      const { status, googleProject, clusterName } = currentCluster || {}
+      const { status, googleProject, runtimeName } = currentCluster || {}
 
       if (status === 'Stopped') {
         setBusy(true)
-        await Ajax().Clusters.cluster(googleProject, clusterName).start()
+        await Ajax().Clusters.cluster(googleProject, runtimeName).start()
         await refreshClusters()
         setBusy(false)
         return
@@ -88,10 +88,10 @@ export const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning = _.noop
   return null
 }
 
-export const PeriodicCookieSetter = ({ namespace, clusterName, leading }) => {
+export const PeriodicCookieSetter = ({ namespace, runtimeName, leading }) => {
   const signal = Utils.useCancellation()
   Utils.usePollingEffect(
-    withErrorIgnoring(() => Ajax(signal).Clusters.notebooks(namespace, clusterName).setCookie()),
+    withErrorIgnoring(() => Ajax(signal).Clusters.notebooks(namespace, runtimeName).setCookie()),
     { ms: 15 * 60 * 1000, leading })
   return null
 }

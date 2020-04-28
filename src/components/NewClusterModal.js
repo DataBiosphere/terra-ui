@@ -1,16 +1,16 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
-import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
+import { b, div, fieldset, h, label, legend, p, span } from 'react-hyperscript-helpers'
+import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, Select } from 'src/components/common'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
-import { machineTypes, profiles } from 'src/data/clusters'
+import { machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { deleteText, findMachineType, machineConfigCost, normalizeMachineConfig } from 'src/libs/cluster-utils'
+import { deleteText, findMachineType, formatRuntimeConfig, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { notify } from 'src/libs/notifications'
@@ -36,9 +36,6 @@ const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
 const rstudioBaseImages = 'https://github.com/anvilproject/anvil-docker'
 const zendeskImagePage = 'https://support.terra.bio/hc/en-us/articles/360037269472-Working-with-project-specific-environments-in-Terra#h_b5773619-e264-471c-9647-f9b826c27820'
-const machineConfigsEqual = (a, b) => {
-  return _.isEqual(normalizeMachineConfig(a), normalizeMachineConfig(b))
-}
 
 // distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
@@ -110,33 +107,32 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   constructor(props) {
     super(props)
     const { currentCluster } = props
-    const currentConfig = currentCluster ? currentCluster.machineConfig : profiles[0].machineConfig
-    const matchingProfile = _.find(
-      ({ machineConfig }) => machineConfigsEqual(machineConfig, currentConfig),
-      profiles
-    )
+    const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
+    const { masterDiskSize, masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
+    const matchingProfile = _.find(({ runtimeConfig }) => _.isMatch({ masterMachineType, masterDiskSize }, normalizeRuntimeConfig(runtimeConfig)), profiles)
+
     this.state = {
-      profile: matchingProfile ? matchingProfile.name : 'custom',
+      profile: matchingProfile?.name || 'custom',
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
-      ...normalizeMachineConfig(currentConfig)
+      sparkMode: cloudService === 'GCE' ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
+      ...currentConfig
     }
   }
 
-  getMachineConfig() {
-    const { numberOfWorkers, masterMachineType, masterDiskSize, workerMachineType, workerDiskSize, numberOfPreemptibleWorkers } = this.state
-    return {
-      numberOfWorkers, masterMachineType,
-      masterDiskSize, workerMachineType,
-      workerDiskSize, numberOfWorkerLocalSSDs: 0,
-      numberOfPreemptibleWorkers
-    }
+  getRuntimeConfig() {
+    return formatRuntimeConfig({
+      cloudService: !!this.state.sparkMode ? 'DATAPROC' : 'GCE',
+      ..._.pick(
+        ['numberOfWorkers', 'masterMachineType', 'masterDiskSize', 'workerMachineType', 'workerDiskSize', 'numberOfPreemptibleWorkers'],
+        this.state)
+    })
   }
 
   deleteCluster() {
     const { currentCluster } = this.props
-    const { googleProject, clusterName } = currentCluster
+    const { googleProject, runtimeName } = currentCluster
 
-    return Ajax().Clusters.cluster(googleProject, clusterName).delete()
+    return Ajax().Clusters.cluster(googleProject, runtimeName).delete()
   }
 
   createCluster() {
@@ -144,7 +140,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { jupyterUserScriptUri, selectedLeoImage, customEnvImage } = this.state
     onSuccess(Promise.all([
       Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
-        machineConfig: this.getMachineConfig(),
+        runtimeConfig: this.getRuntimeConfig(),
         toolDockerImage: selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE ? customEnvImage : selectedLeoImage,
         labels: { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` },
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
@@ -155,15 +151,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   updateCluster(isStopRequired = false) {
     const { currentCluster, onSuccess } = this.props
-    const { googleProject, clusterName } = currentCluster
+    const { googleProject, runtimeName } = currentCluster
 
     if (isStopRequired) {
       notify('info', 'To be updated, your runtime will now stop, and then start. This will take 3-5 minutes.')
     }
 
     return onSuccess(
-      Ajax().Clusters.cluster(googleProject, clusterName).update({
-        machineConfig: this.getMachineConfig()
+      Ajax().Clusters.cluster(googleProject, runtimeName).update({
+        runtimeConfig: this.getRuntimeConfig()
       }),
       isStopRequired ? 5000 : 0)
   }
@@ -188,8 +184,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     if (!currentCluster) return false
 
-    const currentClusterConfig = currentCluster.machineConfig
-    const userSelectedConfig = this.getMachineConfig()
+    const currentClusterConfig = normalizeRuntimeConfig(currentCluster.runtimeConfig)
+    const userSelectedConfig = normalizeRuntimeConfig(this.getRuntimeConfig())
 
     const cantWorkersUpdate = currentClusterConfig.numberOfWorkers !== userSelectedConfig.numberOfWorkers &&
       (currentClusterConfig.numberOfWorkers < 2 || userSelectedConfig.numberOfWorkers < 2)
@@ -204,8 +200,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
 
-    const cantUpdate = cantWorkersUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || this.hasImageChanged() ||
-      this.hasStartUpScriptChanged()
+    const hasCloudServiceChanged = currentClusterConfig.cloudService !== userSelectedConfig.cloudService
+
+    const cantUpdate = cantWorkersUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || hasCloudServiceChanged ||
+      this.hasImageChanged() || this.hasStartUpScriptChanged()
     return !cantUpdate
   }
 
@@ -213,19 +211,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster } = this.props
     if (!currentCluster) return true
 
-    //TODO: this _.pickBy will need to change if the UI-side machineConfig starts tracking the cloud service (which it will once Leo exposes the ability to create GCE runtimes)
-    const currentClusterWithoutService = _.pickBy((v, k) => k !== 'cloudService', currentCluster.machineConfig)
-    const hasMachineConfigChanges = !_.isMatch(currentClusterWithoutService, this.getMachineConfig())
+    const hasRuntimeConfigChanges = !_.isEqual(normalizeRuntimeConfig(currentCluster.runtimeConfig), normalizeRuntimeConfig(this.getRuntimeConfig()))
 
-    return hasMachineConfigChanges || this.hasImageChanged() || this.hasStartUpScriptChanged()
+    return hasRuntimeConfigChanges || this.hasImageChanged() || this.hasStartUpScriptChanged()
   }
 
   //returns true for case 3 in this diagram: https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
   isStopRequired() {
     const { currentCluster } = this.props
 
-    const currentClusterConfig = currentCluster.machineConfig
-    const userSelectedConfig = this.getMachineConfig()
+    const currentClusterConfig = normalizeRuntimeConfig(currentCluster.runtimeConfig)
+    const userSelectedConfig = normalizeRuntimeConfig(this.getRuntimeConfig())
 
     const isMasterMachineTypeChanged = currentClusterConfig.masterMachineType !== userSelectedConfig.masterMachineType
 
@@ -250,15 +246,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   getImageUrl(clusterDetails) {
-    const { clusterImages } = clusterDetails
-    return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), clusterImages)
+    const { runtimeImages } = clusterDetails
+    return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeImages)
   }
 
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
     const { currentCluster, namespace } = this.props
 
     const [currentClusterDetails, newLeoImages] = await Promise.all([
-      currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.clusterName).details() : null,
+      currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.runtimeName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
     ])
 
@@ -285,16 +281,28 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   render() {
     const { currentCluster, onDismiss, onSuccess } = this.props
     const {
-      profile, masterMachineType, masterDiskSize, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
+      profile, masterMachineType, masterDiskSize, sparkMode, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
       jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode
     } = this.state
-    const { version, updated, packages } = _.find({ image: selectedLeoImage }, leoImages) || {}
+    const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
+
+    const onEnvChange = ({ value }) => {
+      const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
+      const isCluster = sparkMode === 'cluster'
+
+      this.setState({
+        selectedLeoImage: value, customEnvImage: '',
+        sparkMode: requiresSpark ? (sparkMode || 'master') : false,
+        numberOfWorkers: requiresSpark && isCluster ? (numberOfWorkers || 2) : 0,
+        numberOfPreemptibleWorkers: requiresSpark && isCluster ? (numberOfPreemptibleWorkers || 0) : 0
+      })
+    }
 
     const makeEnvSelect = id => h(Select, {
       id,
       'aria-label': 'Select Environment',
       value: selectedLeoImage,
-      onChange: ({ value }) => this.setState({ selectedLeoImage: value }),
+      onChange: onEnvChange,
       isSearchable: true,
       isClearable: false,
       options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
@@ -320,9 +328,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       id,
       maxMenuHeight: '25rem',
       value: selectedLeoImage,
-      onChange: ({ value }) => {
-        this.setState({ selectedLeoImage: value, customEnvImage: '' })
-      },
+      onChange: onEnvChange,
       isSearchable: true,
       isClearable: false,
       options: [{ label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
@@ -337,30 +343,33 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       div(['Version: ', version || null])
     ])
 
-    const bottomButtons = () => h(Fragment, [
-      div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
-        !!currentCluster && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'delete' }) }, 'Delete Runtime'),
-        div({ style: { flex: 1 } }),
-        h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: onDismiss }, 'Cancel'),
-        h(ButtonPrimary, {
-          disabled: !this.hasChanges() || !!errors,
-          tooltip: Utils.summarizeErrors(errors),
-          onClick: () => {
-            if (isSelectedImageInputted && !this.canUpdate()) {
-              this.setState({ viewMode: 'warning' })
-            } else if (!!currentCluster) {
-              this.setState({ viewMode: getUpdateOrReplace() })
-            } else {
-              this.createCluster()
+    const bottomButtons = () => {
+      const canUpdate = this.canUpdate()
+      const updateOrReplace = canUpdate ? 'update' : 'replace'
+
+      return h(Fragment, [
+        div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
+          !!currentCluster && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'delete' }) }, 'Delete Runtime'),
+          div({ style: { flex: 1 } }),
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: onDismiss }, 'Cancel'),
+          h(ButtonPrimary, {
+            disabled: !this.hasChanges() || !!errors,
+            tooltip: Utils.summarizeErrors(errors),
+            onClick: () => {
+              if (isSelectedImageInputted && !canUpdate) {
+                this.setState({ viewMode: 'warning' })
+              } else if (!!currentCluster) {
+                this.setState({ viewMode: updateOrReplace })
+              } else {
+                this.createCluster()
+              }
             }
-          }
-        }, !!currentCluster ? _.startCase(getUpdateOrReplace()) : 'Create')
+          }, !!currentCluster ? _.startCase(updateOrReplace) : 'Create')
+        ])
       ])
-    ])
+    }
 
-    const getUpdateOrReplace = () => this.canUpdate() ? 'update' : 'replace'
-
-    const machineConfig = () => h(Fragment, [
+    const runtimeConfig = () => h(Fragment, [
       div({
         style: {
           padding: '1rem', marginTop: '1rem',
@@ -380,7 +389,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   onChange: ({ value }) => {
                     this.setState({
                       profile: value,
-                      ...(value === 'custom' ? {} : normalizeMachineConfig(_.find({ name: value }, profiles).machineConfig))
+                      ...(value === 'custom' ?
+                        {} :
+                        _.pick(['masterMachineType', 'masterDiskSize'], normalizeRuntimeConfig(_.find({ name: value }, profiles).runtimeConfig)))
                     })
                   },
                   isSearchable: false,
@@ -400,78 +411,103 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             onChangeDiskSize: v => this.setState({ masterDiskSize: v }),
             readOnly: profile !== 'custom'
           }),
-          profile === 'custom' && h(Fragment, [
+          profile === 'custom' && h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: styles.label }, 'Startup\nscript'),
+              div({ style: { gridColumnEnd: 'span 5' } }, [
+                h(TextInput, {
+                  id,
+                  placeholder: 'URI',
+                  value: jupyterUserScriptUri,
+                  onChange: v => this.setState({ jupyterUserScriptUri: v })
+                })
+              ])
+            ])
+          ]),
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: styles.label }, 'Runtime\ntype'),
+              div({ style: { gridColumnEnd: 'span 3' } }, [
+                h(Select, {
+                  id,
+                  isSearchable: false,
+                  value: sparkMode,
+                  onChange: ({ value }) => this.setState({
+                    sparkMode: value,
+                    numberOfWorkers: value === 'cluster' ? 2 : 0,
+                    numberOfPreemptibleWorkers: 0
+                  }),
+                  options: [
+                    { value: false, label: 'Standard VM', isDisabled: requiresSpark },
+                    { value: 'master', label: 'Spark master node' },
+                    { value: 'cluster', label: 'Configure as spark cluster' }
+                  ]
+                })
+              ])
+            ])
+          ])
+        ]),
+        sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0, position: 'relative' } }, [
+          legend({
+            style: {
+              position: 'absolute', top: '-0.5rem', left: '0.5rem', padding: '0 0.5rem 0 0.25rem', backgroundColor: colors.light(), ...styles.label
+            }
+          }, ['Worker config']),
+          // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
+          div({
+            style: {
+              display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.25rem', gridGap: '0.8rem', alignItems: 'center',
+              padding: '1rem 0.8rem 0.8rem',
+              border: `2px solid ${colors.dark(0.3)}`, borderRadius: 7
+            }
+          }, [
             h(IdContainer, [
               id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, 'Startup\nscript'),
-                div({ style: { gridColumnEnd: 'span 5' } }, [
-                  h(TextInput, {
-                    id,
-                    placeholder: 'URI',
-                    value: jupyterUserScriptUri,
-                    onChange: v => this.setState({ jupyterUserScriptUri: v })
+                label({ htmlFor: id, style: styles.label }, 'Workers'),
+                h(NumberInput, {
+                  id,
+                  min: 2,
+                  isClearable: false,
+                  onlyInteger: true,
+                  value: numberOfWorkers,
+                  onChange: v => this.setState({
+                    numberOfWorkers: v,
+                    numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
                   })
-                ])
+                })
               ])
             ]),
-            div({ style: { gridColumnEnd: 'span 6' } }, [
-              h(LabeledCheckbox, {
-                checked: !!numberOfWorkers,
-                onChange: v => this.setState({
-                  numberOfWorkers: v ? 2 : 0,
-                  numberOfPreemptibleWorkers: 0
+            h(IdContainer, [
+              id => h(Fragment, [
+                label({
+                  htmlFor: id,
+                  style: styles.label
+                }, 'Preemptible'),
+                h(NumberInput, {
+                  id,
+                  min: 0,
+                  max: numberOfWorkers,
+                  isClearable: false,
+                  onlyInteger: true,
+                  value: numberOfPreemptibleWorkers,
+                  onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
                 })
-              }, ' Configure as Spark cluster')
+              ])
             ]),
-            !!numberOfWorkers && h(Fragment, [
-              h(IdContainer, [
-                id => h(Fragment, [
-                  label({ htmlFor: id, style: styles.label }, 'Workers'),
-                  h(NumberInput, {
-                    id,
-                    min: 2,
-                    isClearable: false,
-                    onlyInteger: true,
-                    value: numberOfWorkers,
-                    onChange: v => this.setState({
-                      numberOfWorkers: v,
-                      numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
-                    })
-                  })
-                ])
-              ]),
-              h(IdContainer, [
-                id => h(Fragment, [
-                  label({
-                    htmlFor: id,
-                    style: styles.label
-                  }, 'Preemptible'),
-                  h(NumberInput, {
-                    id,
-                    min: 0,
-                    max: numberOfWorkers,
-                    isClearable: false,
-                    onlyInteger: true,
-                    value: numberOfPreemptibleWorkers,
-                    onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
-                  })
-                ])
-              ]),
-              div({ style: { gridColumnEnd: 'span 2' } }),
-              h(MachineSelector, {
-                machineType: workerMachineType,
-                onChangeMachineType: v => this.setState({ workerMachineType: v }),
-                diskSize: workerDiskSize,
-                onChangeDiskSize: v => this.setState({ workerDiskSize: v })
-              })
-            ])
+            div({ style: { gridColumnEnd: 'span 2' } }),
+            h(MachineSelector, {
+              machineType: workerMachineType,
+              onChangeMachineType: v => this.setState({ workerMachineType: v }),
+              diskSize: workerDiskSize,
+              onChangeDiskSize: v => this.setState({ workerDiskSize: v })
+            })
           ])
         ]),
         div({
           style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
         }, [
           span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['COST:']),
-          `${Utils.formatUSD(machineConfigCost(this.getMachineConfig()))} per hour`
+          `${Utils.formatUSD(runtimeConfigCost(this.getRuntimeConfig()))} per hour`
         ])
       ])
     ])
@@ -544,7 +580,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])],
       [Utils.DEFAULT, () => h(Fragment, [
         div({ style: { marginBottom: '1rem' } }, [
-          'Create a cloud compute instance to launch Jupyter Notebooks or a Project-Specific software application.'
+          'Create cloud compute to launch Jupyter Notebooks or a Project-Specific software application.'
         ]),
         h(IdContainer, [
           id => h(Fragment, [
@@ -614,7 +650,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               ])
             ])
           }]),
-        machineConfig(),
+        runtimeConfig(),
         bottomButtons()
       ])]
     )
