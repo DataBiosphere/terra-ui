@@ -78,17 +78,29 @@ const checkRequesterPaysError = async response => {
  */
 const withRequesterPays = wrappedFetch => (url, ...args) => {
   const bucket = /\/b\/([^/?]+)[/?]/.exec(url)[1]
-  const workspace = workspaceStore.get()
-  const userProject = workspace && Utils.canWrite(workspace.accessLevel) ? workspace.workspace.namespace : requesterPaysProjectStore.get()
+  const { workspace, canCompute } = workspaceStore.get() || {}
+  const workspaceProject = workspace?.namespace
+
+  const canUseWorkspaceProject = async () => {
+    return canCompute || _.some({ projectName: workspaceProject, role: 'Owner' }, await Ajax().Billing.listProjects())
+  }
+
+  const getUserProject = async () => {
+    if (!requesterPaysProjectStore.get() && workspaceProject && await canUseWorkspaceProject()) {
+      requesterPaysProjectStore.set(workspaceProject)
+    }
+    return requesterPaysProjectStore.get()
+  }
+
   const tryRequest = async () => {
     const knownRequesterPays = _.includes(bucket, requesterPaysBuckets.get())
     try {
-      return await wrappedFetch(Utils.mergeQueryParams({ userProject: (knownRequesterPays && userProject) || undefined }, url), ...args)
+      return await wrappedFetch(Utils.mergeQueryParams({ userProject: (knownRequesterPays && await getUserProject()) || undefined }, url), ...args)
     } catch (error) {
       const newResponse = await checkRequesterPaysError(error)
       if (newResponse.requesterPaysError && !knownRequesterPays) {
         requesterPaysBuckets.update(_.union([bucket]))
-        if (userProject) {
+        if (await getUserProject()) {
           return tryRequest()
         }
       }
