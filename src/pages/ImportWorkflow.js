@@ -72,7 +72,7 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
             margin: '1rem 0', color: colors.warning()
           }
         }, [
-          icon('warning-standard', { size: 32, style: { marginRight: '0.5rem', flex: 'none' } }),
+          icon('warning-standard', { title: 'Warning', size: 32, style: { marginRight: '0.5rem', flex: 'none' } }),
           'Please note: Dockstore cannot guarantee that the WDL and Docker image referenced ',
           'by this Workflow will not change. We advise you to review the WDL before future runs.'
         ]),
