@@ -53,10 +53,10 @@ const billingProjectNameValidator = existing => ({
   }
 })
 
-const noBillingMessage = onClickCreateProject => div({ style: { fontSize: 20, margin: '2rem' } }, [
+const noBillingMessage = onClick => div({ style: { fontSize: 20, margin: '2rem' } }, [
   div([
     'To get started, ',
-    h(Link, { onClick: onClickCreateProject }, ['click here to ', span({ style: { fontWeight: 600 } }, ['create a Billing Project'])])
+    h(Link, { onClick }, ['click here to create a Billing Project'])
   ]),
   div({ style: { marginTop: '1rem', fontSize: 16 } }, [
     h(Link, {
@@ -250,7 +250,7 @@ export const BillingList = _.flow(
     !isOwner && _.map(project => _.includes('Owner', project.role) ? this.setState({ isOwner: true }) : null, billingProjects)
   }
 
-  onClickCreateProject = async () => {
+  showCreateProjectModal = async () => {
     if (Auth.hasBillingScope()) {
       this.setState({ creatingBillingProject: true })
     } else {
@@ -284,7 +284,7 @@ export const BillingList = _.flow(
             'Billing Projects',
             h(Clickable, {
               'aria-label': 'Create new billing project',
-              onClick: this.onClickCreateProject
+              onClick: this.showCreateProjectModal
             },
             [icon('plus-circle', { size: 21, style: { color: colors.accent() } })]
             )
@@ -321,7 +321,7 @@ export const BillingList = _.flow(
           })],
           [isOwner && !selectedName && hasBillingProjects, () => div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Billing Project'])],
           [!hasBillingProjects && hasFreeCredits, () => freeCreditsMessage],
-          [!hasBillingProjects && !hasFreeCredits, () => noBillingMessage(this.onClickCreateProject)]
+          [!hasBillingProjects && !hasFreeCredits, () => noBillingMessage(this.showCreateProjectModal)]
         ),
         (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
       ])
