@@ -15,10 +15,6 @@ const getAuthInstance = () => {
   return window.gapi.auth2.getAuthInstance()
 }
 
-const getDateJoined = async () => {
-  return parseJSON((await Ajax().User.firstTimestamp()).timestamp)
-}
-
 export const signOut = () => {
   sessionStorage.clear()
   getAuthInstance().signOut()
@@ -155,6 +151,14 @@ authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldSt
   }
 }))
 
+authStore.subscribe(async (state, oldState) => {
+  if (!oldState.acceptedTos && state.acceptedTos) {
+    window.Appcues && window.Appcues.identify(state.user.id, {
+      dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime()
+    })
+  }
+})
+
 authStore.subscribe(withErrorReporting('Error checking groups for timeout status', async (state, oldState) => {
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
     const isTimeoutEnabled = _.some({ groupName: 'session_timeout' }, await Ajax().Groups.list())
@@ -167,12 +171,9 @@ authStore.subscribe(withErrorReporting('Error checking groups for timeout status
  * hashes to identify a user in our analytics data. We trust our developers to refrain from
  * doing this.
  */
-authStore.subscribe(async (state, oldState) => {
+authStore.subscribe((state, oldState) => {
   if (!oldState.registrationStatus && state.registrationStatus) {
     window.newrelic.setCustomAttribute('userGoogleId', state.user.id)
-    window.Appcues && window.Appcues.identify(state.user.id, {
-      dateJoined: state.registrationStatus === 'registered' ? await getDateJoined() : Date.now()
-    })
   }
 })
 
