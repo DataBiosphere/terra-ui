@@ -67,11 +67,6 @@
             style="flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; height: 66px; padding: 0 1rem; background-color: rgb(109, 110, 112);">
           <img role="img" src="%PUBLIC_URL%/logo-grey.svg" alt="Terra logo"
                style="height: 40px; margin-bottom: 4px;">
-          <div style="font-weight: 600; font-size: 10px; color: white;" id="copyright"></div>
-          <script>
-            const buildTimestamp = new Date(parseInt('%REACT_APP_BUILD_TIMESTAMP%', 10))
-            window.document.getElementById('copyright').innerHTML = `Copyright ©${buildTimestamp.getFullYear()}`
-          </script>
         </div>
       </div>
     </div>
