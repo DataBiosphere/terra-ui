@@ -59,7 +59,7 @@ const getMaxDownloadCostNA = bytes => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos
   const downloadPrice = bytes * nanos / DownloadPrices.pricingInfo[0].pricingExpression.baseUnitConversionFactor / 10e8
 
-  return downloadPrice < 0.01 ? '< $0.01' : Utils.formatUSD(downloadPrice)
+  return Utils.formatUSD(downloadPrice)
 }
 
 const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProject }) => {
