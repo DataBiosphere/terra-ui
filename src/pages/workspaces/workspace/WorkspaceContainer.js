@@ -111,7 +111,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
         ...Utils.newTabLinkProps
       }, [
         icon('virus', { size: 24, style: { marginRight: '0.5rem' } }),
-        div({ style: { fontSize: 12 } }, ['COVID-19', br(), 'Data & Tools'])
+        div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools'])
       ]),
       h(ClusterManager, {
         namespace, name, clusters, refreshClusters,
