@@ -96,7 +96,11 @@ export const makeStandardDate = dateString => dateFormat.format(new Date(dateStr
 export const makeCompleteDate = dateString => completeDateFormat.format(new Date(dateString))
 
 const usdFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
-export const formatUSD = v => _.isNaN(v) ? 'unknown' : usdFormatter.format(v)
+export const formatUSD = v => cond(
+  [_.isNaN(v), () => 'unknown'],
+  [(v > 0) && (v < 0.01), () => '< $0.01'],
+  () => usdFormatter.format(v)
+)
 
 export const formatNumber = new Intl.NumberFormat('en-US').format
 
