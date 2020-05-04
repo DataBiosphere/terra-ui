@@ -64,6 +64,15 @@ const NotificationDisplay = Utils.connectStore(notificationStore, 'notificationS
       ['error', () => 'error-standard']
     )
 
+    const ariaLabel = Utils.switchCase(type,
+      ['success', () => 'success notification'],
+      ['info', () => 'info notification'],
+      ['welcome', () => 'welcome notification'],
+      ['warn', () => 'warning notification'],
+      ['error', () => 'error notification'],
+      [Utils.DEFAULT, () => 'notification']
+    )
+
     return div({
       style: {
         backgroundColor: baseColor(0.15),
@@ -81,7 +90,7 @@ const NotificationDisplay = Utils.connectStore(notificationStore, 'notificationS
         div({ style: { display: 'flex', flex: 1, flexDirection: 'column' } }, [
           // icon and title
           div({ style: { display: 'flex' } }, [
-            !!iconType && icon(iconType, { size: 26, style: { color: baseColor(), flexShrink: 0, marginRight: '0.5rem' } }),
+            !!iconType && icon(iconType, { 'aria-label': ariaLabel, size: 26, style: { color: baseColor(), flexShrink: 0, marginRight: '0.5rem' } }),
             div({ style: { fontWeight: 600 } }, [title])
           ]),
           !!message && div({ style: { marginTop: '0.5rem' } }, [message]),
