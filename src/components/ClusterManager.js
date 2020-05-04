@@ -310,7 +310,7 @@ export default class ClusterManager extends PureComponent {
         disabled: !canCompute,
         style: { marginRight: '2rem', ...styles.verticalCenter },
         ...(isRStudioImage ? {} : Utils.newTabLinkProps)
-      }, [isRStudioImage ? img({ src: rLogo, style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
+      }, [isRStudioImage ? img({ src: rLogo, alt: 'R-Studio Logo', style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
       renderIcon(),
       h(IdContainer, [id => h(Fragment, [
         h(Clickable, {
