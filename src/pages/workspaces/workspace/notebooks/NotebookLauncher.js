@@ -248,7 +248,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
         'Creating notebook runtime environment. You can navigate away and return in 3-5 minutes.'
       ])],
       [clusterStatus === 'Starting', () => h(StatusMessage, [
-        'Notebook runtime environment is stopped. Start it to edit your notebook or use the terminal.'
+        'Starting notebook runtime environment, this may take up to 2 minutes.'
       ])],
       [clusterStatus === 'Stopping', () => h(StatusMessage, [
         'Notebook runtime environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'
