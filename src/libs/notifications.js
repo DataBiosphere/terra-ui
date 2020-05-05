@@ -50,13 +50,13 @@ const NotificationDisplay = Utils.connectStore(notificationStore, 'notificationS
     const onLast = notificationNumber + 1 === notifications.length
 
     const { title, message, detail, type } = notifications[notificationNumber]
-    const baseColor = Utils.switchCase(type,
-      ['success', () => colors.success],
-      ['info', () => colors.accent],
-      ['welcome', () => colors.accent],
-      ['warn', () => colors.warning],
-      ['error', () => colors.danger],
-      [Utils.DEFAULT, () => colors.accent]
+    const [baseColor, ariaLabel] = Utils.switchCase(type,
+      ['success', () => [colors.success, 'success notification']],
+      ['info', () => [colors.accent, 'info notification']],
+      ['welcome', () => [colors.accent, 'welcome notification']],
+      ['warn', () => [colors.warning, 'warning notification']],
+      ['error', () => [colors.danger, 'error notification']],
+      [Utils.DEFAULT, () => [colors.accent, 'notification']]
     )
     const iconType = Utils.switchCase(type,
       ['success', () => 'success-standard'],
@@ -81,7 +81,11 @@ const NotificationDisplay = Utils.connectStore(notificationStore, 'notificationS
         div({ style: { display: 'flex', flex: 1, flexDirection: 'column' } }, [
           // icon and title
           div({ style: { display: 'flex' } }, [
-            !!iconType && icon(iconType, { size: 26, style: { color: baseColor(), flexShrink: 0, marginRight: '0.5rem' } }),
+            !!iconType && icon(iconType, {
+              'aria-hidden': false, 'aria-label': ariaLabel,
+              size: 26,
+              style: { color: baseColor(), flexShrink: 0, marginRight: '0.5rem' }
+            }),
             div({ style: { fontWeight: 600 } }, [title])
           ]),
           !!message && div({ style: { marginTop: '0.5rem' } }, [message]),
