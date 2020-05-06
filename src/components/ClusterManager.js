@@ -306,11 +306,11 @@ export default class ClusterManager extends PureComponent {
         href: appLaunchLink,
         onClick: window.location.hash === appLaunchLink && currentStatus === 'Stopped' ? () => this.startCluster() : undefined,
         tooltip: canCompute ? `Open ${appName}` : noCompute,
-        'aria-label': !isRStudioImage ? `Open ${appName}`: undefined,
+        'aria-label': `Open ${appName}`,
         disabled: !canCompute,
         style: { marginRight: '2rem', ...styles.verticalCenter },
         ...(isRStudioImage ? {} : Utils.newTabLinkProps)
-      }, [isRStudioImage ? img({ src: rLogo, alt: 'Open RStudio', style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
+      }, [isRStudioImage ? img({ src: rLogo, alt: '', style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
       renderIcon(),
       h(IdContainer, [id => h(Fragment, [
         h(Clickable, {
