@@ -50,7 +50,7 @@ const styles = {
       transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
       paddingTop: 66,
       width: 290, color: 'white', position: 'absolute', cursor: 'default',
-      backgroundColor: colors.dark(0.7), height: '100%',
+      backgroundColor: colors.dark(0.8), height: '100%',
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
       zIndex: 2,
       display: 'flex', flexDirection: 'column'
@@ -351,7 +351,7 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
                 onClick: () => this.hideNav()
               }, ['Terra Terms of Service'])
             ]),
-            div({ style: { color: colors.dark(0.3), fontSize: 10, fontWeight: 600, marginTop: '0.5rem' } }, [
+            div({ style: { color: colors.light(), fontSize: 10, fontWeight: 600, marginTop: '0.5rem' } }, [
               'Built on: ',
               h(Clickable, {
                 href: `https://github.com/DataBiosphere/terra-ui/commits/${process.env.REACT_APP_VERSION}`,
