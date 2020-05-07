@@ -1,6 +1,7 @@
 import { parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
-import { div, h } from 'react-hyperscript-helpers'
+import { Fragment } from 'react'
+import { h } from 'react-hyperscript-helpers'
 import { ShibbolethLink } from 'src/components/common'
 import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
@@ -223,11 +224,14 @@ authStore.subscribe((state, oldState) => {
       [now > expireTime - (1000 * 60 * 60 * 24), () => 'will expire soon']
     )
     if (expireStatus) {
-      notify('info', div({}, [
-        `Your access to NIH Controlled Access workspaces and data ${expireStatus}. To regain access, `,
-        h(ShibbolethLink, ['re-link']),
-        ` your eRA Commons / NIH account (${state.nihStatus.linkedNihUsername}) with ${getAppName()}.`
-      ]), { id: notificationId })
+      notify('info', `Your access to NIH Controlled Access workspaces and data ${expireStatus}.`, {
+        id: notificationId,
+        message: h(Fragment, [
+          'To regain access, ',
+          h(ShibbolethLink, { style: { color: 'unset', fontWeight: 600, textDecoration: 'underline' } }, ['re-link']),
+          ` your eRA Commons / NIH account (${state.nihStatus.linkedNihUsername}) with ${getAppName()}.`
+        ])
+      })
     } else {
       clearNotification(notificationId)
     }
