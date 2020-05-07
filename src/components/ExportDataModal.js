@@ -17,9 +17,9 @@ import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
 
-const InfoTile = ({ infoStyle, content, iconName, iconColor }) => {
+const InfoTile = ({ infoStyle, content, icon: { name, color } }) => {
   return div({ style: { ...infoStyle, display: 'flex', alignItems: 'center' } }, [
-    icon(iconName, { size: 36, style: { color: iconColor, flex: 'none', marginRight: '0.5rem' } }),
+    icon(name, { size: 36, style: { color, flex: 'none', marginRight: '0.5rem' } }),
     content
   ])
 }
@@ -89,7 +89,7 @@ const ExportDataModal = withWorkspaces(class ExportDataModal extends Component {
       }, ['Copy'])
     }, [
       runningSubmissionsCount > 0 && InfoTile({
-        infoStyle: warningStyle, iconName: 'warning-standard', iconColor: colors.warning(),
+        infoStyle: warningStyle, icon: { name: 'warning-standard', color: colors.warning() },
         content: `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
           'Copying the following data could cause failures if a workflow is using this data.'
       }),
@@ -102,15 +102,15 @@ const ExportDataModal = withWorkspaces(class ExportDataModal extends Component {
         })
       ]),
       (hardConflicts.length !== 0) && InfoTile({
-        infoStyle: errorStyle, iconName: 'error-standard', iconColor: colors.danger(),
+        infoStyle: errorStyle, icon: { name: 'error-standard', color: colors.danger() },
         content: 'Some of the following data already exists in the selected workspace. Click CANCEL to go back or COPY to override the existing data.'
       }),
       moreToDelete && InfoTile({
-        infoStyle: warningStyle, iconName: 'warning-standard', iconColor: colors.warning(),
+        infoStyle: warningStyle, icon: { name: 'warning-standard', color: colors.warning() },
         content: 'To override the selected data entries, the following entries that reference the original data will also be deleted.'
       }),
       (softConflicts.length !== 0) && InfoTile({
-        infoStyle: warningStyle, iconName: 'warning-standard', iconColor: colors.warning(),
+        infoStyle: warningStyle, icon: { name: 'warning-standard', color: colors.warning() },
         content: 'The following data is linked to entries which already exist in the selected workspace. You may re-link the following data to the existing entries by clicking COPY.'
       }),
       h(FormLabel, ['Entries selected']),
