@@ -17,9 +17,24 @@ import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
 
-const InfoTile = ({ infoStyle, content, icon: { name, color } }) => {
-  return div({ style: { ...infoStyle, display: 'flex', alignItems: 'center' } }, [
-    icon(name, { size: 36, style: { color, flex: 'none', marginRight: '0.5rem' } }),
+const warningStyle = {
+  border: `1px solid ${colors.warning(0.8)}`, borderLeft: 'none', borderRight: 'none',
+  backgroundColor: colors.warning(0.15),
+  padding: '1rem 1.25rem', margin: '0 -1.25rem',
+  fontWeight: 'bold', fontSize: 12
+}
+const errorStyle = {
+  ...warningStyle,
+  border: `1px solid ${colors.danger(0.8)}`,
+  backgroundColor: colors.danger(0.15)
+}
+
+const InfoTile = ({ type = 'warning', content }) => {
+  const [style, shape, color] = Utils.switchCase(type,
+    ['error', () => [errorStyle, 'error-standard', colors.danger()]],
+    [Utils.DEFAULT, () => [warningStyle, 'warning-standard', colors.warning()]])
+  return div({ style: { ...style, display: 'flex', alignItems: 'center' } }, [
+    icon(shape, { size: 36, style: { color, flex: 'none', marginRight: '0.5rem' } }),
     content
   ])
 }
@@ -62,17 +77,6 @@ const ExportDataModal = withWorkspaces(class ExportDataModal extends Component {
     const { onDismiss, selectedEntities, runningSubmissionsCount, workspace, workspaces } = this.props
     const { copying, hardConflicts, softConflicts, error, selectedWorkspaceId, additionalDeletions } = this.state
     const moreToDelete = !!additionalDeletions.length
-    const warningStyle = {
-      border: `1px solid ${colors.warning(0.8)}`, borderLeft: 'none', borderRight: 'none',
-      backgroundColor: colors.warning(0.15),
-      padding: '1rem 1.25rem', margin: '0 -1.25rem',
-      fontWeight: 'bold', fontSize: 12
-    }
-    const errorStyle = {
-      ...warningStyle,
-      border: `1px solid ${colors.danger(0.8)}`,
-      backgroundColor: colors.danger(0.15)
-    }
 
     const errors = validate(
       { selectedWorkspaceId },
@@ -89,7 +93,6 @@ const ExportDataModal = withWorkspaces(class ExportDataModal extends Component {
       }, ['Copy'])
     }, [
       runningSubmissionsCount > 0 && InfoTile({
-        infoStyle: warningStyle, icon: { name: 'warning-standard', color: colors.warning() },
         content: `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
           'Copying the following data could cause failures if a workflow is using this data.'
       }),
@@ -102,15 +105,13 @@ const ExportDataModal = withWorkspaces(class ExportDataModal extends Component {
         })
       ]),
       (hardConflicts.length !== 0) && InfoTile({
-        infoStyle: errorStyle, icon: { name: 'error-standard', color: colors.danger() },
+        type: 'error',
         content: 'Some of the following data already exists in the selected workspace. Click CANCEL to go back or COPY to override the existing data.'
       }),
       moreToDelete && InfoTile({
-        infoStyle: warningStyle, icon: { name: 'warning-standard', color: colors.warning() },
         content: 'To override the selected data entries, the following entries that reference the original data will also be deleted.'
       }),
       (softConflicts.length !== 0) && InfoTile({
-        infoStyle: warningStyle, icon: { name: 'warning-standard', color: colors.warning() },
         content: 'The following data is linked to entries which already exist in the selected workspace. You may re-link the following data to the existing entries by clicking COPY.'
       }),
       h(FormLabel, ['Entries selected']),
