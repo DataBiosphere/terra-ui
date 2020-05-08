@@ -33,6 +33,7 @@ const InfoTile = ({ isError = false, content }) => {
   const [style, shape, color] = isError ?
     [errorStyle, 'error-standard', colors.danger()] :
     [warningStyle, 'warning-standard', colors.warning()]
+
   return div({ style: { ...style, display: 'flex', alignItems: 'center' } }, [
     icon(shape, { size: 36, style: { color, flex: 'none', marginRight: '0.5rem' } }),
     content
