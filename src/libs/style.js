@@ -86,9 +86,11 @@ export const navList = {
     backgroundColor: 'white',
     borderBottom: `1px solid ${colors.dark(0.2)}`, borderRightStyle: 'solid',
     borderRightWidth: selected ? 10 : 0,
-    borderRightColor: selected ? terraSpecial() : colors.accent()
+    borderRightColor: terraSpecial()
   }),
-  itemHover: selected => selected ? {} : { backgroundColor: colors.accent(0.1) }
+  itemHover: selected => selected ? {} : {
+    borderRightWidth: 10, borderRightColor: 'red'
+  }
 }
 
 export const breadcrumb = {
