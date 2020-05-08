@@ -125,7 +125,7 @@ const ExportDataModal = withWorkspaces(class ExportDataModal extends Component {
         style: { ...warningStyle, textAlign: 'right', marginTop: (hardConflicts.length !== 0) ? '1rem' : undefined }
       }, [`${selectedEntities.length} data entries to be copied.`]),
       copying && spinnerOverlay,
-      error && h(ErrorView, { error, collapses: false })
+      error && h(ErrorView, { error })
     ])
   }
 

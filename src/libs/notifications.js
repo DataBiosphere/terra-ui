@@ -131,7 +131,7 @@ const NotificationDisplay = Utils.connectStore(notificationStore, 'notificationS
         onDismiss: () => this.setState({ modal: false }),
         okButton: h(ButtonPrimary, { onClick: () => refreshPage() }, 'Refresh Page')
       }, [
-        h(ErrorView, { error: detail, collapses: false })
+        h(ErrorView, { error: detail })
       ])
     ])
   }
