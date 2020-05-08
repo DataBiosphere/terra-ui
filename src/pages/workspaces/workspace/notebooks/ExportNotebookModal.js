@@ -93,7 +93,7 @@ export default _.flow(
         })
       ])]),
       copying && spinnerOverlay,
-      error && h(ErrorView, { error, collapses: false })
+      error && h(ErrorView, { error })
     ])
   }
 

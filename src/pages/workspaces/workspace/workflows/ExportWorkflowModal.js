@@ -78,7 +78,7 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
         })
       ])]),
       exporting && spinnerOverlay,
-      error && h(ErrorView, { error, collapses: false })
+      error && h(ErrorView, { error })
     ])
   }
 
