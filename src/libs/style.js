@@ -84,12 +84,11 @@ export const navList = {
   item: selected => ({
     display: 'flex', alignItems: 'center', padding: '0 1.5rem', height: 50, fontWeight: selected ? 700 : 500,
     backgroundColor: 'white',
-    borderBottom: `1px solid ${colors.dark(0.2)}`, borderRightStyle: 'solid',
-    borderRightWidth: selected ? 10 : 0,
-    borderRightColor: terraSpecial()
+    borderBottom: `1px solid ${colors.dark(0.2)}`,
+    borderRight: `${selected ? 10 : 0}px solid ${terraSpecial()}`
   }),
   itemHover: selected => selected ? {} : {
-    borderRightWidth: 10, borderRightColor: 'red'
+    borderRight: `5px solid ${terraSpecial(0.5)}`
   }
 }
 

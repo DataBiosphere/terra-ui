@@ -14,6 +14,7 @@
   --hover-boxShadow: var(--app-hover-boxShadow);
   --hover-opacity: var(--app-hover-opacity);
   --hover-textDecoration: var(--app-hover-textDecoration);
+  --hover-borderRight: var(--app-hover-borderRight);
 }
 
 .hover-style:hover .hover-style:not(:hover) {
@@ -23,6 +24,7 @@
   --hover-boxShadow: initial;
   --hover-opacity: initial;
   --hover-textDecoration: initial;
+  --hover-borderRight: initial;
 }
 
 body, input, textarea, select, button {
