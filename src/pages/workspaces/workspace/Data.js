@@ -472,9 +472,9 @@ const ToolDrawer = _.flow(
       drawerContent: h(NotebookCreator, {
         bucketName, namespace,
         existingNames: notebookNames,
-        onSuccess: async notebookName => {
+        onSuccess: async (notebookName, notebookKernel) => {
           const cohortName = _.values(selectedEntities)[0].name
-          const contents = cohortNotebook(cohortName)
+          const contents = notebookKernel === 'r' ? cohortRNotebook(cohortName) : cohortNotebook(cohortName)
           await Buckets.notebook(namespace, bucketName, notebookName).create(JSON.parse(contents))
           Nav.goToPath('workspace-notebook-launch', { namespace, name: wsName, notebookName: `${notebookName}.ipynb` })
         },
