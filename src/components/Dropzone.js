@@ -13,17 +13,17 @@ const Dropzone = ({ disabled = false, onDragOver, onDrop, onDragLeave, style = {
     // re-renders on every focus/blur, which causes performance problems on some pages.
     noKeyboard: true,
     disabled,
-    onDragOver: e => {
+    onDragOver: (...args) => {
       setDragging(true)
-      onDragOver && onDragOver(e)
+      onDragOver && onDragOver(...args)
     },
-    onDrop: e => {
+    onDrop: (...args) => {
       setDragging(false)
-      onDrop && onDrop(e)
+      onDrop && onDrop(...args)
     },
-    onDragLeave: e => {
+    onDragLeave: (...args) => {
       setDragging(false)
-      onDragLeave && onDragLeave(e)
+      onDragLeave && onDragLeave(...args)
     },
     ...props
   })

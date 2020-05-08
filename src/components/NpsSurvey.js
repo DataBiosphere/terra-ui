@@ -95,7 +95,7 @@ export const NpsSurvey = Utils.connectStore(authStore, 'authState')(class NpsSur
     _.range(0, 11))
 
     return requestable && div({
-      className: 'animated slideInRight',
+      className: 'animate__animated animate__slideInRight',
       style: {
         position: 'fixed', bottom: '1.5rem', right: expanded ? '1.5rem' : 0,
         transition: 'right 0.2s linear',
