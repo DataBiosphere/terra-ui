@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment, useState } from 'react'
 import { div, h, label, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay, FrameworkServicesLink } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
@@ -226,16 +226,6 @@ const FenceLink = ({ provider, displayName }) => {
   })
 
   /*
-   * Render helpers
-   */
-  const renderFrameworkServicesLink = linkText => {
-    return href && h(Link, { href, style: { display: 'flex', alignItems: 'center' } }, [
-      linkText,
-      icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
-    ])
-  }
-
-  /*
    * Render
    */
   const isBusy = isLoadingStatus || isLoadingAuthUrl || isLinking
@@ -245,7 +235,7 @@ const FenceLink = ({ provider, displayName }) => {
     div({ style: styles.form.title }, [displayName]),
     Utils.cond(
       [isBusy, () => div([spinner(), 'Loading account status...'])],
-      [!username, () => renderFrameworkServicesLink('Log-In to Framework Services to link your account')],
+      [!username, () => FrameworkServicesLink('Log-In to Framework Services to link your account', href)],
       () => div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
         div({ style: { display: 'flex' } }, [
           div({ style: { flex: 1 } }, ['Username:']),
@@ -255,7 +245,7 @@ const FenceLink = ({ provider, displayName }) => {
           div({ style: { flex: 1 } }, ['Link Expiration:']),
           div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
         ]),
-        renderFrameworkServicesLink('Log-In to Framework Services to re-link your account')
+        FrameworkServicesLink('Log-In to Framework Services to re-link your account', href)
       ])
     )
   ])
