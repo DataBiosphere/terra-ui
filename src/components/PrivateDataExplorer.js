@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { b, div, h, p } from 'react-hyperscript-helpers'
+import { b, div, h, li, ol, p } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import DataExplorerFrame from 'src/components/DataExplorerFrame'
 import { centeredSpinner } from 'src/components/icons'
@@ -108,6 +108,28 @@ export default _.flow(
           ]),
           p(['Please reach out to ', h(Link, { href: 'mailto:support@terra.bio' }, ['support@terra.bio']), ' if you have any additional questions.'])
         ])
+      ], [
+        'NHS', () => h(Fragment, [
+          standardErrorText,
+          p([
+            'If you do not have a Google account in that group, please follow these steps:',
+            ol([
+              li({ style: { marginBottom: '1rem' } }, [
+                'If you are not already a Nurses\' Health Study researcher, you will need to first go through the normal process of becoming one. ',
+                h(Link, { href: 'https://www.nurseshealthstudy.org/researchers', ...Utils.newTabLinkProps }, [
+                  'Please see here for information.'
+                ])
+              ]),
+              li([
+                'If you are already a Nurses\' Health Study researcher, please ',
+                h(Link, { onClick: () => { contactUsActive.set(true) } }, ['contact us']),
+                ' with details about you, your affiliation, and your need for access to NHS via Terra. We will vet your request and get back to you ',
+                'as soon as possible.'
+              ])
+            ])
+          ])
+        ])
+
       ], [
         Utils.DEFAULT, () => h(Fragment, [
           standardErrorText,
