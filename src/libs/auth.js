@@ -1,11 +1,12 @@
-import { parseJSON } from 'date-fns/fp'
+import { addDays, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { div, h } from 'react-hyperscript-helpers'
-import { ShibbolethLink } from 'src/components/common'
+import { FrameworkServicesLink, ShibbolethLink } from 'src/components/common'
 import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
+import * as Nav from 'src/libs/nav'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { authStore, pfbImportJobStore, requesterPaysProjectStore, workspacesStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -216,10 +217,11 @@ authStore.subscribe((state, oldState) => {
   if (state.nihStatus !== oldState.nihStatus) {
     const notificationId = 'nih-link-warning'
     const now = Date.now()
-    const expireTime = state.nihStatus && state.nihStatus.linkExpireTime * 1000
+
+    const expireTime = Date.now() //state.nihStatus && state.nihStatus.linkExpireTime * 1000
     const expireStatus = Utils.cond(
       [!expireTime, () => null],
-      [now > expireTime, () => 'has expired'],
+      [now >= expireTime, () => 'has expired'],
       [now > expireTime - (1000 * 60 * 60 * 24), () => 'will expire soon']
     )
     if (expireStatus) {
@@ -233,6 +235,90 @@ authStore.subscribe((state, oldState) => {
     }
   }
 })
+
+//DCP
+authStore.subscribe(withErrorReporting('Error loading DCP Framework Services account status', async (state, oldState) => {
+  const loadDCPFenceStatus = async () => {
+    try {
+      return await Ajax().User.getFenceStatus('fence')
+    } catch (error) {
+      if (error.status === 404) {
+        return {}
+      } else {
+        throw error
+      }
+    }
+  }
+  const loadDCFFenceStatus = async () => {
+    try {
+      return await Ajax().User.getFenceStatus('dcf-fence')
+    } catch (error) {
+      if (error.status === 404) {
+        return {}
+      } else {
+        throw error
+      }
+    }
+  }
+  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
+    const fenceDCPStatus = await loadDCPFenceStatus()
+    authStore.update(state => ({ ...state, fenceDCPStatus }))
+
+    const fenceDCFStatus = await loadDCFFenceStatus()
+    authStore.update(state => ({ ...state, fenceDCFStatus }))
+  }
+}))
+
+//DCP
+authStore.subscribe(async (state, oldState) => {
+  if (state.fenceDCPStatus !== oldState.fenceDCPStatus) {
+    const notificationId = 'fence-dcp-link-warning'
+    const now = Date.now()
+    const expireTime = state.fenceDCPStatus && addDays(30, parseJSON(state.fenceDCPStatus.issued_at))
+    const expireStatus = Utils.cond(
+      [!expireTime, () => null],
+      [now < expireTime, () => 'has expired'],
+      [now > expireTime - (1000 * 60 * 60 * 24), () => 'will expire soon']
+    )
+    const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
+    const href = await Ajax().User.getFenceAuthUrl('fence', redirectUrl)
+    if (expireStatus) {
+      notify('info', div({}, [
+        `Your access to DCP Framework Services ${expireStatus}. To regain access, log-in to Framework Services to `,
+        [FrameworkServicesLink('re-link', href.url)],
+        ' your account'
+      ]), { id: notificationId })
+    } else {
+      clearNotification(notificationId)
+    }
+  }
+})
+
+//DCF
+authStore.subscribe(async (state, oldState) => {
+  if (state.fenceDCFStatus !== oldState.fenceDCFStatus) {
+    const notificationId = 'fence-dcf-link-warning'
+    const now = Date.now()
+    const expireTime = state.fenceDCFStatus && addDays(30, parseJSON(state.fenceDCFStatus.issued_at))
+    const expireStatus = Utils.cond(
+      [!expireTime, () => null],
+      [now < expireTime, () => 'has expired'],
+      [now > expireTime - (1000 * 60 * 60 * 24), () => 'will expire soon']
+    )
+    const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
+    const href = await Ajax().User.getFenceAuthUrl('dcf-fence', redirectUrl)
+    if (expireStatus) {
+      notify('info', div({}, [
+        `Your access to DCF Framework Services ${expireStatus}. To regain access, log-in to Framework Services to `,
+        [FrameworkServicesLink('re-link', href.url)],
+        ' your account'
+      ]), { id: notificationId })
+    } else {
+      clearNotification(notificationId)
+    }
+  }
+})
+
 
 authStore.subscribe((state, oldState) => {
   if (oldState.isSignedIn && !state.isSignedIn) {

@@ -366,6 +366,13 @@ export const ShibbolethLink = ({ children }) => {
   ])
 }
 
+export const FrameworkServicesLink = (linkText, href) => {
+  return href && h(Link, { href, style: { display: 'inline-flex', alignItems: 'center' }, ...Utils.newTabLinkProps }, [
+    linkText,
+    icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' }})
+  ])
+}
+
 export const IdContainer = ({ children }) => {
   const [id] = useState(() => _.uniqueId('element-'))
   return children(id)
