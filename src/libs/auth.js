@@ -266,8 +266,8 @@ authStore.subscribe(async (state, oldState) => {
     const expireTime = state.fenceDCPStatus && addDays(30, parseJSON(state.fenceDCPStatus.issued_at))
     const expireStatus = Utils.cond(
       [!expireTime, () => null],
-      [now < expireTime, () => 'has expired'],
-      [now > expireTime - (1000 * 60 * 60 * 24), () => 'will expire soon']
+      [now >= expireTime, () => 'has expired'],
+      [now > expireTime - (1000 * 60 * 60 * 24 * 5), () => 'will expire soon']
     )
     const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
     const href = await Ajax().User.getFenceAuthUrl('fence', redirectUrl)
@@ -291,8 +291,8 @@ authStore.subscribe(async (state, oldState) => {
     const expireTime = state.fenceDCFStatus && addDays(30, parseJSON(state.fenceDCFStatus.issued_at))
     const expireStatus = Utils.cond(
       [!expireTime, () => null],
-      [now < expireTime, () => 'has expired'],
-      [now > expireTime - (1000 * 60 * 60 * 24), () => 'will expire soon']
+      [now >= expireTime, () => 'has expired'],
+      [now > expireTime - (1000 * 60 * 60 * 24 * 5), () => 'will expire soon']
     )
     const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
     const href = await Ajax().User.getFenceAuthUrl('dcf-fence', redirectUrl)
