@@ -236,8 +236,7 @@ authStore.subscribe((state, oldState) => {
   }
 })
 
-//DCP
-authStore.subscribe(withErrorReporting('Error loading DCP Framework Services account status', async (state, oldState) => {
+authStore.subscribe(withErrorReporting('Error loading Framework Services account status', async (state, oldState) => {
   const loadDCPFenceStatus = async () => {
     try {
       return await Ajax().User.getFenceStatus('fence')
@@ -262,10 +261,8 @@ authStore.subscribe(withErrorReporting('Error loading DCP Framework Services acc
   }
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
     const fenceDCPStatus = await loadDCPFenceStatus()
-    authStore.update(state => ({ ...state, fenceDCPStatus }))
-
     const fenceDCFStatus = await loadDCFFenceStatus()
-    authStore.update(state => ({ ...state, fenceDCFStatus }))
+    authStore.update(state => ({ ...state, fenceDCFStatus, fenceDCPStatus }))
   }
 }))
 
