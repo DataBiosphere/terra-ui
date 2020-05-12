@@ -85,10 +85,10 @@ export const navList = {
     display: 'flex', alignItems: 'center', padding: '0 1.5rem', height: 50, fontWeight: selected ? 700 : 500,
     backgroundColor: 'white',
     borderBottom: `1px solid ${colors.dark(0.2)}`,
-    boxShadow: selected ? `inset -10px 0px 0px 0px ${terraSpecial()}` : undefined
+    boxShadow: selected ? `inset -10px 0px ${terraSpecial()}` : undefined
   }),
   itemHover: selected => selected ? {} : {
-    boxShadow: `inset -10px 0px 0px 0px ${terraSpecial(0.5)}`
+    boxShadow: `inset -6px 0px ${terraSpecial(0.5)}`
   }
 }
 
