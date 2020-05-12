@@ -237,9 +237,12 @@ authStore.subscribe((state, oldState) => {
 })
 
 authStore.subscribe(withErrorReporting('Error loading Framework Services account status', async (state, oldState) => {
-  const loadDCPFenceStatus = async () => {
+  const loadFenceStatus = async () => {
     try {
-      return await Ajax().User.getFenceStatus('fence')
+      const dcpStatus = await Ajax().User.getFenceStatus('fence')
+      const dcfStatus = await Ajax().User.getFenceStatus('dcf-fence')
+
+      return { dcp: dcpStatus, dcf: dcfStatus }
     } catch (error) {
       if (error.status === 404) {
         return {}
@@ -248,21 +251,10 @@ authStore.subscribe(withErrorReporting('Error loading Framework Services account
       }
     }
   }
-  const loadDCFFenceStatus = async () => {
-    try {
-      return await Ajax().User.getFenceStatus('dcf-fence')
-    } catch (error) {
-      if (error.status === 404) {
-        return {}
-      } else {
-        throw error
-      }
-    }
-  }
+
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    const fenceDCPStatus = await loadDCPFenceStatus()
-    const fenceDCFStatus = await loadDCFFenceStatus()
-    authStore.update(state => ({ ...state, fenceDCFStatus, fenceDCPStatus }))
+    const fenceStatus = await loadFenceStatus()
+    authStore.update(state => ({ ...state, fenceDCFStatus: fenceStatus.dcp, fenceDCPStatus: fenceStatus.dcf }))
   }
 }))
 
