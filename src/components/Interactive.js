@@ -4,7 +4,7 @@ import { h } from 'react-hyperscript-helpers'
 import * as Utils from 'src/libs/utils'
 
 
-const allowedHoverVariables = ['backgroundColor', 'border', 'color', 'boxShadow', 'opacity', 'textDecoration', 'borderRight']
+const allowedHoverVariables = ['backgroundColor', 'border', 'color', 'boxShadow', 'opacity', 'textDecoration']
 const pointerTags = ['button', 'area', 'a', 'select']
 const pointerTypes = ['radio', 'checkbox', 'submit', 'button']
 
