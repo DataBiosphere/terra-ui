@@ -20,7 +20,7 @@ import IGVFileSelector from 'src/components/IGVFileSelector'
 import { DelayedSearchInput, TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { cohortNotebook, NotebookCreator } from 'src/components/notebook-utils'
+import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TitleBar from 'src/components/TitleBar'
@@ -472,9 +472,9 @@ const ToolDrawer = _.flow(
       drawerContent: h(NotebookCreator, {
         bucketName, namespace,
         existingNames: notebookNames,
-        onSuccess: async notebookName => {
+        onSuccess: async (notebookName, notebookKernel) => {
           const cohortName = _.values(selectedEntities)[0].name
-          const contents = cohortNotebook(cohortName)
+          const contents = notebookKernel === 'r' ? cohortRNotebook(cohortName) : cohortNotebook(cohortName)
           await Buckets.notebook(namespace, bucketName, notebookName).create(JSON.parse(contents))
           Nav.goToPath('workspace-notebook-launch', { namespace, name: wsName, notebookName: `${notebookName}.ipynb` })
         },

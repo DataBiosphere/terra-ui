@@ -68,9 +68,9 @@ export const NpsSurvey = Utils.connectStore(authStore, 'authState')(class NpsSur
     const scoreRadios = _.map(i => {
       const isSelected = i === score
       const bgColor = Utils.cond(
-        [i <= 6, colors.danger()],
-        [i <= 8, colors.warning()],
-        colors.success(1.2)
+        [i <= 6, colors.danger(0.5)],
+        [i <= 8, colors.warning(0.8)],
+        colors.success(0.8)
       )
 
       return h(Interactive, {
@@ -79,7 +79,7 @@ export const NpsSurvey = Utils.connectStore(authStore, 'authState')(class NpsSur
           width: 25, borderRadius: '1rem',
           lineHeight: '25px', textAlign: 'center',
           cursor: 'pointer',
-          ...(isSelected ? { backgroundColor: bgColor } : {})
+          ...(isSelected ? { backgroundColor: bgColor, color: colors.dark() } : {})
         },
         hover: isSelected ? {} : { backgroundColor: colors.dark(0.7) }
       }, [
@@ -124,10 +124,10 @@ export const NpsSurvey = Utils.connectStore(authStore, 'authState')(class NpsSur
         div({ style: styles.questionLabel }, `How likely are you to recommend ${getAppName()} to others?`),
         div({ style: { display: 'flex', justifyContent: 'space-around', marginBottom: '0.5rem' } }, scoreRadios),
         div({ style: styles.questionLabel }, ['What was the reason for this score? ',
-          span({ style: { ...styles.questionLabel, color: colors.dark(0.55) } }, '(Optional)')]),
+          span({ style: { ...styles.questionLabel, fontStyle: 'italic' } }, '(Optional)')]),
         h(TextArea, { style: styles.questionInput, value: reasonComment, onChange: v => this.setState({ reasonComment: v }) }),
         div({ style: styles.questionLabel }, ['What could we change? ',
-          span({ style: { ...styles.questionLabel, color: colors.dark(0.55) } }, '(Optional)')]),
+          span({ style: { ...styles.questionLabel, fontStyle: 'italic' } }, '(Optional)')]),
         h(TextArea, { style: styles.questionInput, value: changeComment, onChange: v => this.setState({ changeComment: v }) }),
         div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
           h(ButtonSecondary, {

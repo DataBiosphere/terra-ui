@@ -25,7 +25,7 @@ const styles = {
     padding: '1rem', flex: 1
   },
   deemphasized: {
-    color: colors.dark(0.7)
+    fontWeight: 'initial'
   },
   statusDetailCell: {
     align: 'center',
@@ -183,7 +183,7 @@ const JobHistory = _.flow(
                     style: {
                       flex: 1, alignSelf: 'stretch', display: 'flex', flexDirection: 'column', justifyContent: 'center',
                       margin: '0 -1rem', padding: '0 1rem', minWidth: 0,
-                      color: 'unset', fontWeight: 500,
+                      fontWeight: 600,
                       backgroundColor: Utils.cond([!!failed, colors.danger(0.1)], [!!running || !!submitted, colors.accent(0.1)], colors.success(0.1))
                     },
                     href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId })
