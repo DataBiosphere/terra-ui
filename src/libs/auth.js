@@ -218,7 +218,7 @@ authStore.subscribe((state, oldState) => {
     const notificationId = 'nih-link-warning'
     const now = Date.now()
 
-    const expireTime = Date.now() //state.nihStatus && state.nihStatus.linkExpireTime * 1000
+    const expireTime = state.nihStatus && state.nihStatus.linkExpireTime * 1000
     const expireStatus = Utils.cond(
       [!expireTime, () => null],
       [now >= expireTime, () => 'has expired'],
