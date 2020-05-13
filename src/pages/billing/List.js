@@ -290,7 +290,7 @@ export const BillingList = _.flow(
             )
           ]),
           hasFreeCredits && h(Clickable, {
-            style: { ...Style.navList.heading, color: colors.light(), backgroundColor: colors.accent() },
+            style: { ...Style.navList.heading, color: 'white', backgroundColor: colors.accent() },
             hover: { backgroundColor: colors.accent(0.85) },
             onClick: () => freeCreditsActive.set(true)
           }, ['Click for $300 free credits']),

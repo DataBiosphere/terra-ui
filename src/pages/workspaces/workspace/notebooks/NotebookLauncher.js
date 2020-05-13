@@ -245,13 +245,13 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
         ])
       ])],
       [clusterStatus === 'Creating', () => h(StatusMessage, [
-        'Creating notebook runtime, this will take 5-10 minutes. You can navigate away and return when it’s ready.'
+        'Creating notebook runtime environment. You can navigate away and return in 3-5 minutes.'
       ])],
       [clusterStatus === 'Starting', () => h(StatusMessage, [
-        'Starting notebook runtime, this may take up to 2 minutes.'
+        'Starting notebook runtime environment, this may take up to 2 minutes.'
       ])],
       [clusterStatus === 'Stopping', () => h(StatusMessage, [
-        'Notebook runtime is stopping. You can restart it after it finishes.'
+        'Notebook runtime environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'
       ])],
       [clusterStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Notebook runtime error.'])]
     ),

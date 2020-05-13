@@ -30,7 +30,8 @@ const datasets = [
   {
     name: 'Nurses\' Health Study',
     origin: 'https://nhs-explorer.appspot.com',
-    authDomain: 'nhs_saturn_users'
+    authDomain: 'nhs_saturn_users',
+    partner: 'NHS'
   },
   {
     name: 'UK Biobank',

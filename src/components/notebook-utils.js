@@ -135,7 +135,7 @@ export const NotebookCreator = class NotebookCreator extends Component {
           try {
             await Ajax().Buckets.notebook(namespace, bucketName, notebookName).create(notebookData[notebookKernel])
             reloadList()
-            onSuccess(notebookName)
+            onSuccess(notebookName, notebookKernel)
           } catch (error) {
             await reportError('Error creating notebook', error)
             onDismiss()
