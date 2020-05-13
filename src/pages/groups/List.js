@@ -96,7 +96,7 @@ const NewGroupModal = class NewGroupModal extends Component {
 const DeleteGroupModal = ({ groupName, onDismiss, onSubmit }) => {
   return h(Modal, {
     onDismiss,
-    title: 'Confirm',
+    title: 'Confirm Group Delete',
     okButton: h(ButtonPrimary, {
       onClick: onSubmit
     }, ['Delete Group'])
