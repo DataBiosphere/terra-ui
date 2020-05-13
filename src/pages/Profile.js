@@ -235,7 +235,7 @@ const FenceLink = ({ provider, displayName }) => {
     div({ style: styles.form.title }, [displayName]),
     Utils.cond(
       [isBusy, () => div([spinner(), 'Loading account status...'])],
-      [!username, () => FrameworkServicesLink('Log-In to Framework Services to link your account', href)],
+      [!username, () => h(FrameworkServicesLink, { linkText: 'Log-In to Framework Services to link your account', href })],
       () => div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
         div({ style: { display: 'flex' } }, [
           div({ style: { flex: 1 } }, ['Username:']),
@@ -245,7 +245,7 @@ const FenceLink = ({ provider, displayName }) => {
           div({ style: { flex: 1 } }, ['Link Expiration:']),
           div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
         ]),
-        FrameworkServicesLink('Log-In to Framework Services to re-link your account', href)
+        h(FrameworkServicesLink, { linkText: 'Log-In to Framework Services to re-link your account', href })
       ])
     )
   ])

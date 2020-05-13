@@ -272,9 +272,9 @@ authStore.subscribe(async (state, oldState) => {
     const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
     const href = await Ajax().User.getFenceAuthUrl('fence', redirectUrl)
     if (expireStatus) {
-      notify('info', div({}, [
+      notify('info', div([
         `Your access to DCP Framework Services ${expireStatus}. To regain access, log-in to Framework Services to `,
-        [FrameworkServicesLink('re-link', href.url)],
+        h(FrameworkServicesLink, { linkText: 're-link', href: href.url }),
         ' your account'
       ]), { id: notificationId })
     } else {
@@ -297,9 +297,9 @@ authStore.subscribe(async (state, oldState) => {
     const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
     const href = await Ajax().User.getFenceAuthUrl('dcf-fence', redirectUrl)
     if (expireStatus) {
-      notify('info', div({}, [
+      notify('info', div([
         `Your access to DCF Framework Services ${expireStatus}. To regain access, log-in to Framework Services to `,
-        [FrameworkServicesLink('re-link', href.url)],
+        h(FrameworkServicesLink, { linkText: 're-link', href: href.url }),
         ' your account'
       ]), { id: notificationId })
     } else {
