@@ -327,7 +327,7 @@ const WorkflowView = _.flow(
 
     return {
       type: Utils.cond(
-        [isSet(value), () => _.includes(value, _.keys(entityMetadata)) ? chooseSets : processAllAsSet],
+        [isSet(value), () => _.includes(value, _.keys(entityMetadata)) ? chooseSets : processAllAsSet], // ???
         [_.isEmpty(selectedEntities), () => processAll],
         () => chooseRows
       ),
@@ -549,7 +549,7 @@ const WorkflowView = _.flow(
       [type === chooseSetComponents, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}s ${newSetMessage}`],
       [type === processAllAsSet, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType]?.count || 0} ${baseEntityType}s ${newSetMessage}`],
       [type === chooseSets, () => !!count ?
-        `${count} selected ${rootEntityType}s` :
+        `${count} selected ${rootEntityType}s ${newSetMessage}` :
         `No ${rootEntityType}s selected`]
     )
   }
@@ -592,7 +592,7 @@ const WorkflowView = _.flow(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
       [this.isMultiple() && (!entityMetadata[rootEntityType] && !_.includes(rootEntityType, possibleSetTypes)), () => `There are no ${selectedEntityType}s in this workspace.`],
-      [this.isMultiple() && (entitySelectionModel.type === chooseSets || entitySelectionModel.type === chooseSetComponents) && !_.size(entitySelectionModel.selectedEntities),
+      [this.isMultiple() && (entitySelectionModel.type === chooseSets || entitySelectionModel.type === chooseSetComponents) && !_.size(entitySelectionModel.selectedEntities), // ???
         () => 'Select or create a set']
     )
 

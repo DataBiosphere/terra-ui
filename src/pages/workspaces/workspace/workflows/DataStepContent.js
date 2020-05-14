@@ -50,7 +50,7 @@ export default class DataStepContent extends Component {
     return selectionSize === 1 ||
       (type === processAll && !!newSetName) ||
       (type === chooseRows && !!newSetName && selectionSize > 1) ||
-      (type === chooseSets && selectionSize > 1 && selectionSize <= 10) ||
+      (type === chooseSets && !!newSetName && selectionSize > 1) ||
       (type === processMergedSet && !!newSetName && selectionSize > 1) ||
       (type === chooseSetComponents && !!newSetName && selectionSize > 0) ||
       (type === processAllAsSet && !!newSetName)
@@ -181,7 +181,7 @@ export default class DataStepContent extends Component {
                 [isProcessMergedSet, () => 'Select one or more sets to combine and process'],
                 [isChooseRows, () => `Select ${rootEntityType}s to process`],
                 [isChooseSetComponents, () => `Select ${baseEntityType}s to create a new set to process`],
-                [isChooseSets, () => `Select up to 10 ${rootEntityType}s to process in parallel`]
+                [isChooseSets, () => `Select ${rootEntityType}s to process`]
               )
             ]),
             entityType: (isChooseSetComponents && baseEntityType) || (isProcessMergedSet && setType) || rootEntityType,
@@ -193,7 +193,7 @@ export default class DataStepContent extends Component {
           })
         ]),
         (isProcessAll || isProcessAllAsSet || (isChooseSetComponents && !_.isEmpty(selectedEntities)) ||
-          ((isChooseRows || isProcessMergedSet) && _.size(selectedEntities) > 1)) && h(IdContainer,
+          ((isChooseRows || isProcessMergedSet || isChooseSets) && _.size(selectedEntities) > 1)) && h(IdContainer,
           [id => div({ style: { marginTop: '1rem' } }, [
             h(FormLabel, { htmlFor: id }, [
               Utils.cond(
@@ -201,6 +201,7 @@ export default class DataStepContent extends Component {
                 [isProcessAllAsSet, () => `All ${baseEntityTypeCount} ${baseEntityType}s will be saved as a new set named:`],
                 [isProcessMergedSet, () => `Selected ${rootEntityType}s will have their membership combined into a new set named:`],
                 [isChooseSetComponents, () => `Selected ${baseEntityType}s will be saved as a new set named:`],
+                [isChooseSets, () => `Selected ${rootEntityType}s will be saved as a new set named:`],
                 [isChooseRows, () => `Selected ${rootEntityType}s will be saved as a new set named:`]
               )
             ]),

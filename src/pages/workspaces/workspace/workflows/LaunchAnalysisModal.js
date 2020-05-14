@@ -47,6 +47,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     if (!processSingle) {
       return Utils.switchCase(type,
         [chooseRows, () => _.keys(selectedEntities)],
+        [chooseSets, () => _.keys(selectedEntities)],
         [chooseSetComponents, () => _.keys(selectedEntities)],
         [processMergedSet, () => _.flow(
           _.flatMap(`attributes.${rootEntityType}s.items`),
@@ -88,9 +89,8 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       div({ style: { margin: '1rem 0' } }, ['This analysis will be run by ', h(CromwellVersionLink), '.']),
       (!entities && !processSingle) ? spinner() : div({ style: { margin: '1rem 0' } }, [
         'This will launch ', b([entityCount]), ` analys${entityCount === 1 ? 'is' : 'es'}`,
-        type === chooseSets && entityCount > 1 && ' simultaneously',
         '.',
-        !processSingle && type !== chooseSets && type !== processAll && entityCount !== entities.length && div({
+        !processSingle && type !== chooseSets /* ??? */ && type !== processAll && entityCount !== entities.length && div({
           style: { fontStyle: 'italic', marginTop: '0.5rem' }
         }, ['(Duplicate entities are only processed once.)'])
       ]),
@@ -134,7 +134,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       this.setState({ message: 'Fetching data...' })
       const allEntities = _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(rootEntityType))
       this.createSetAndLaunch(allEntities)
-    } else if (type === chooseRows) {
+    } else if (type === chooseRows || type === chooseSets) {
       if (entities.length === 1) {
         this.launch(rootEntityType, entities[0])
       } else {
@@ -148,12 +148,6 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       const baseEntityType = rootEntityType.slice(0, -4)
       const allBaseEntities = _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(baseEntityType))
       this.createSetAndLaunchOne(allBaseEntities)
-    } else if (type === chooseSets) {
-      if (_.size(entities) === 1) {
-        this.launch(rootEntityType, _.values(entities)[0].name)
-      } else {
-        this.launchParallel()
-      }
     }
   }
 
