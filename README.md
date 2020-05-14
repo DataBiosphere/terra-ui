@@ -15,7 +15,7 @@ Web user interface for the Terra platform.
 
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
 
-Guide [here](https://github.com/facebookincubator/create-react-app/blob/master/packages/react-scripts/template/README.md).
+Guide [here](https://github.com/facebook/create-react-app/blob/master/packages/cra-template/template/README.md).
 
 Builds/deploying handled by CircleCI.
 
