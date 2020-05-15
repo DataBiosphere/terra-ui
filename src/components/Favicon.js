@@ -2,10 +2,10 @@ import RFavicon from 'react-favicon'
 import { h } from 'react-hyperscript-helpers'
 import bioDataCatalystFavicon from 'src/images/brands/bioDataCatalyst/bioDataCatalyst-favicon.jpg'
 import { isBioDataCatalyst } from 'src/libs/config'
-import { cond } from 'src/libs/utils'
+import * as Utils from 'src/libs/utils'
 
 
-const faviconPath = () => cond(
+const faviconPath = () => Utils.cond(
   [isBioDataCatalyst(), () => bioDataCatalystFavicon],
   () => `${process.env.PUBLIC_URL}/favicon.png`
 )
