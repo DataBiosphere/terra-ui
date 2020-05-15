@@ -177,7 +177,7 @@ export default _.flow(
         h(IdContainer, [id => h(Fragment, [
           h(FormLabel, { htmlFor: id }, [
             'Authorization domain',
-            h(InfoBox, [
+            h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
               'An authorization domain can only be set when creating a workspace. ',
               'Once set, it cannot be changed. ',
               'Any cloned workspace will automatically inherit the authorization domain(s) from the original workspace and cannot be removed. ',
