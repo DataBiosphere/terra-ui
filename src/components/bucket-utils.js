@@ -22,6 +22,7 @@ export const withRequesterPaysHandler = _.curry((handler, fn) => async (...args)
 export const requesterPaysWrapper = ({ onDismiss }) => WrappedComponent => {
   return Utils.forwardRefWithName('requesterPaysWrapper', (props, ref) => {
     const [showModal, setShowModal] = useState(false)
+    const [onSuccess, setOnSuccess] = useState(() => {})
 
     return Utils.cond(
       [showModal, () => h(RequesterPaysModal, {
@@ -29,11 +30,15 @@ export const requesterPaysWrapper = ({ onDismiss }) => WrappedComponent => {
         onSuccess: selectedBilling => {
           requesterPaysProjectStore.set(selectedBilling)
           setShowModal(false)
+          onSuccess()
         }
       })],
       () => h(WrappedComponent, {
         ref, ...props,
-        onRequesterPaysError: () => setShowModal(true)
+        onRequesterPaysError: ({ onSuccess = () => {} }) => {
+          setShowModal(true)
+          setOnSuccess(onSuccess)
+        }
       })
     )
   })

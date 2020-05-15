@@ -3,7 +3,9 @@ import { useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
 import { AutoSizer, List } from 'react-virtualized'
 import ButtonBar from 'src/components/ButtonBar'
-import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
+import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
+import { Ajax } from 'src/libs/ajax'
+import { parseGsUri } from 'src/libs/data-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -18,7 +20,9 @@ const getStrings = v => {
 
 const MAX_CONCURRENT_IGV_FILES = 10
 
-const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
+const IGVFileSelector = ({ namespace, onRequesterPaysError, selectedEntities, onSuccess }) => {
+  const [busy, setBusy] = useState()
+  const signal = Utils.useCancellation()
   const [refGenome, setRefGenome] = useState('hg38')
   const [selections, setSelections] = useState(() => {
     const allAttributeStrings = _.flow(
@@ -96,9 +100,32 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
       okButton: h(ButtonPrimary, {
         disabled: !isSelectionValid,
         tooltip: !isSelectionValid && `Select between 1 and ${MAX_CONCURRENT_IGV_FILES} files`,
-        onClick: () => onSuccess({ selectedFiles: _.filter('isSelected', selections), refGenome })
+        onClick: Utils.withBusyState(setBusy, async () => {
+          const selectedFiles = _.filter('isSelected', selections)
+          const fileBucketExemplars = _.uniqBy(({ filePath }) => /gs:\/\/([^/]+)/.exec(filePath), selectedFiles)
+
+          // make sure any requester pays buckets get tagged for later for igv, non-rp errors can be handled later for now
+          const bucketRpStatuses = await Promise.all(_.map(async ({ filePath }) => {
+            const [bucket, file] = parseGsUri(filePath)
+            try {
+              await Ajax(signal).Buckets.getObject(bucket, file, namespace, { fields: 'kind' })
+              return false
+            } catch (e) {
+              if (e.requesterPaysError) {
+                return true
+              }
+            }
+          }, fileBucketExemplars))
+
+          if (_.some(_.identity, bucketRpStatuses)) {
+            onRequesterPaysError({ onSuccess: () => onSuccess({ selectedFiles, refGenome }) })
+          } else {
+            onSuccess({ selectedFiles, refGenome })
+          }
+        })
       }, ['Launch IGV'])
-    })
+    }),
+    busy && spinnerOverlay
   ])
 }
 

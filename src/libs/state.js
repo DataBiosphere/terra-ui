@@ -32,7 +32,7 @@ export const rerunFailuresStatus = Utils.atom()
 
 export const errorNotifiedClusters = Utils.atom([])
 
-export const requesterPaysBuckets = Utils.atom([])
+export const knownBucketRequesterPaysStatuses = Utils.atom({})
 
 export const requesterPaysProjectStore = Utils.atom()
 
