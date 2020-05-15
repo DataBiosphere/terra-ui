@@ -47,7 +47,7 @@ Requests related to the funtionality or usability of the UI can be submitted as 
 6. Code style:
     * Not in IntelliJ: use an eslint plugin.
     * In IntelliJ: 
-        * When you open the project, right-click [.eslintrc.js](.eslintrc.js) and click `Apply Eslint Code Style Rules`; then go to `Preferences -> Editor -> Code Style -> Javascript`, click the gear next to `Scheme` -> `Import Scheme` -> `Intellij IDEA code style XML`, then select [js-style.xml](js-style.xml).
+        * When you open the project, right-click [.eslintrc.js](.eslintrc.js), click `Apply Eslint Code Style Rules`, and select `Automatic ESLint Configuration`; then go to `Preferences -> Editor -> Code Style -> Javascript`, click the gear next to `Scheme` -> `Import Scheme` -> `Intellij IDEA code style XML`, then select [js-style.xml](js-style.xml).
         * In order to correctly format a file at any time, run the IntelliJ `Reformat Code` action, and then right-click in a window and click `Fix ESLint Problems`. You could also create a macro to do this for you.
 
 
