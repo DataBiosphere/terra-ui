@@ -3,7 +3,9 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment, useState } from 'react'
 import { div, h, label, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, FrameworkServicesLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
+import {
+  ButtonPrimary, FrameworkServicesLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay
+} from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
@@ -173,7 +175,6 @@ const FenceLink = ({ provider, displayName }) => {
    * Hooks
    */
   const [{ username, issued_at: issuedAt }, setStatus] = useState({})
-  const [href, setHref] = useState(undefined)
   const [isLoadingStatus, setIsLoadingStatus] = useState(false)
   const [isLoadingAuthUrl, setIsLoadingAuthUrl] = useState(false)
   const [isLinking, setIsLinking] = useState(false)
@@ -185,8 +186,7 @@ const FenceLink = ({ provider, displayName }) => {
     withErrorReporting(`Error loading Fence link`),
     Utils.withBusyState(setIsLoadingAuthUrl)
   )(async () => {
-    const result = await User.getFenceAuthUrl(provider, redirectUrl)
-    setHref(result.url)
+    await User.getFenceAuthUrl(provider, redirectUrl)
   })
 
   const loadFenceStatus = _.flow(
@@ -204,10 +204,7 @@ const FenceLink = ({ provider, displayName }) => {
     }
   })
 
-  const linkFenceAccount = _.flow(
-    withErrorReporting('Error linking NIH account'),
-    Utils.withBusyState(setIsLinking)
-  )(async () => {
+  const linkFenceAccount = Utils.withBusyState(setIsLinking)(async () => {
     setStatus(await User.linkFenceAccount(provider, token, redirectUrl))
   })
 
@@ -235,7 +232,7 @@ const FenceLink = ({ provider, displayName }) => {
     div({ style: styles.form.title }, [displayName]),
     Utils.cond(
       [isBusy, () => div([spinner(), 'Loading account status...'])],
-      [!username, () => h(FrameworkServicesLink, { linkText: 'Log-In to Framework Services to link your account', href })],
+      [!username, () => h(FrameworkServicesLink, { linkText: 'Log-In to Framework Services to link your account', redirectUrl, provider })],
       () => div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
         div({ style: { display: 'flex' } }, [
           div({ style: { flex: 1 } }, ['Username:']),
@@ -245,7 +242,7 @@ const FenceLink = ({ provider, displayName }) => {
           div({ style: { flex: 1 } }, ['Link Expiration:']),
           div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
         ]),
-        h(FrameworkServicesLink, { linkText: 'Log-In to Framework Services to re-link your account', href })
+        h(FrameworkServicesLink, { linkText: 'Log-In to Framework Services to re-link your account', redirectUrl, provider })
       ])
     )
   ])

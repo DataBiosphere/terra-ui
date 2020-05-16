@@ -16,6 +16,7 @@ import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { getConfig, isFirecloud, isTerra } from 'src/libs/config'
+import { withErrorReporting } from 'src/libs/error'
 import { getAppName, returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -366,7 +367,19 @@ export const ShibbolethLink = ({ children, ...props }) => {
   ])
 }
 
-export const FrameworkServicesLink = ({ href, linkText }) => {
+
+export const FrameworkServicesLink = ({ linkText, redirectUrl, provider }) => {
+  const [href, setHref] = useState()
+
+  Utils.useOnMount(() => {
+    const loadAuthUrl = withErrorReporting('Error getting Fence Link', async (provider, redirectUrl) => {
+      const result = await Ajax().User.getFenceAuthUrl(provider, redirectUrl)
+      setHref(result.url)
+    })
+
+    loadAuthUrl(provider, redirectUrl)
+  })
+
   return h(Link, {
     href,
     style: { display: 'inline-flex', alignItems: 'center' }, ...Utils.newTabLinkProps
