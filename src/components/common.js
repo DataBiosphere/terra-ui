@@ -376,17 +376,20 @@ export const FrameworkServicesLink = ({ linkText, provider, redirectUrl }) => {
       const result = await Ajax().User.getFenceAuthUrl(provider, redirectUrl)
       setHref(result.url)
     })
-
     loadAuthUrl(provider, redirectUrl)
   })
 
-  return h(Link, {
-    href,
-    style: { display: 'inline-flex', alignItems: 'center' }, ...Utils.newTabLinkProps
-  }, [
-    linkText,
-    icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
-  ])
+  if (href) {
+    return h(Link, {
+      href,
+      style: { display: 'inline-flex', alignItems: 'center' }, ...Utils.newTabLinkProps
+    }, [
+      linkText,
+      icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
+    ])
+  } else {
+    return (h(Fragment, [linkText]))
+  }
 }
 
 export const IdContainer = ({ children }) => {

@@ -186,15 +186,13 @@ export const refreshTerraProfile = async () => {
 
 //helpers for external services statuses
 
-const loadStatus = func => {
-  return async () => {
-    try {
-      return await func
-    } catch (error) {
-      if (error.status === 404) {
-      } else {
-        throw error
-      }
+const loadStatus = async func => {
+  try {
+    return await func
+  } catch (error) {
+    if (error.status === 404) {
+    } else {
+      throw error
     }
   }
 }
@@ -232,9 +230,8 @@ authStore.subscribe(withErrorReporting('Error loading user profile', async (stat
 }))
 
 authStore.subscribe(withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
-  const loadNihStatus = loadStatus(Ajax().User.getNihStatus())
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    const nihStatus = await loadNihStatus()
+    const nihStatus = await loadStatus(Ajax().User.getNihStatus())
     authStore.update(state => ({ ...state, nihStatus }))
   }
 }))
@@ -272,18 +269,16 @@ authStore.subscribe((state, oldState) => {
 })
 
 authStore.subscribe(withErrorReporting('Error loading DCP Framework Services account status', async (state, oldState) => {
-  const loadFenceDCPStatus = await loadStatus(Ajax().User.getFenceStatus('fence'))
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    const fenceDCPStatus = await loadFenceDCPStatus()
+    const fenceDCPStatus = await loadStatus(Ajax().User.getFenceStatus('fence'))
     authStore.update(state => ({ ...state, fenceDCPStatus }))
   }
 }))
 
 
 authStore.subscribe(withErrorReporting('Error loading DCF Framework Services account status', async (state, oldState) => {
-  const loadFenceDCFStatus = await loadStatus(Ajax().User.getFenceStatus('dcf-fence'))
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    const fenceDCFStatus = await loadFenceDCFStatus()
+    const fenceDCFStatus = await loadStatus(Ajax().User.getFenceStatus('dcf-fence'))
     authStore.update(state => ({ ...state, fenceDCFStatus }))
   }
 }))
