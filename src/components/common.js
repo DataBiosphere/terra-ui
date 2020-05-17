@@ -368,7 +368,7 @@ export const ShibbolethLink = ({ children, ...props }) => {
 }
 
 
-export const FrameworkServicesLink = ({ linkText, redirectUrl, provider }) => {
+export const FrameworkServicesLink = ({ linkText, provider, redirectUrl }) => {
   const [href, setHref] = useState()
 
   Utils.useOnMount(() => {
