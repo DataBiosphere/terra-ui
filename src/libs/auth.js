@@ -191,6 +191,7 @@ const loadStatus = async func => {
     return await func
   } catch (error) {
     if (error.status === 404) {
+      return {}
     } else {
       throw error
     }

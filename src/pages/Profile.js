@@ -175,41 +175,13 @@ const FenceLink = ({ provider, displayName }) => {
    * Hooks
    */
   const [{ username, issued_at: issuedAt }, setStatus] = useState({})
-  const [isLoadingStatus, setIsLoadingStatus] = useState(false)
-  const [isLoadingAuthUrl, setIsLoadingAuthUrl] = useState(false)
   const [isLinking, setIsLinking] = useState(false)
   const signal = Utils.useCancellation()
 
   const { User } = Ajax(signal)
 
-  const loadAuthUrl = _.flow(
-    withErrorReporting(`Error loading Fence link`),
-    Utils.withBusyState(setIsLoadingAuthUrl)
-  )(async () => {
-    await User.getFenceAuthUrl(provider, redirectUrl)
-  })
-
-  const loadFenceStatus = _.flow(
-    withErrorReporting(`Error loading status for ${displayName}`),
-    Utils.withBusyState(setIsLoadingStatus)
-  )(async () => {
-    try {
-      setStatus(await User.getFenceStatus(provider))
-    } catch (error) {
-      if (error.status === 404) {
-        setStatus({})
-      } else {
-        throw error
-      }
-    }
-  })
-
   const linkFenceAccount = Utils.withBusyState(setIsLinking)(async () => {
     setStatus(await User.linkFenceAccount(provider, token, redirectUrl))
-  })
-
-  Utils.useOnMount(() => {
-    loadAuthUrl()
   })
 
   Utils.useOnMount(() => {
@@ -217,15 +189,13 @@ const FenceLink = ({ provider, displayName }) => {
       const profileLink = `/${Nav.getLink('profile')}`
       window.history.replaceState({}, '', profileLink)
       linkFenceAccount()
-    } else {
-      loadFenceStatus()
     }
   })
 
   /*
    * Render
    */
-  const isBusy = isLoadingStatus || isLoadingAuthUrl || isLinking
+  const isBusy = isLinking
   const expireTime = addDays(30, parseJSON(issuedAt))
 
   return div({ style: { marginBottom: '1rem' } }, [
