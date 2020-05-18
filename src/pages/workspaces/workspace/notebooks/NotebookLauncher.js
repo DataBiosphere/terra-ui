@@ -343,9 +343,9 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
   ])
 }
 
-const JupyterFrameManager = ({ onClose, frameRef }) => {
+const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
   Utils.useOnMount(() => {
-    Ajax().Metrics.captureEvent(Events.notebookLaunch)
+    Ajax().Metrics.captureEvent(Events.notebookLaunch, { 'Notebook Name': details.notebookName, ' Workspace Name': details.name, 'Workspace Namespace': details.namespace })
 
     const isSaved = Utils.atom(true)
     const onMessage = e => {
@@ -438,7 +438,8 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
       }),
       h(JupyterFrameManager, {
         frameRef,
-        onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name })
+        onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name }),
+        details: { notebookName, name, namespace }
       })
     ]),
     busy && copyingNotebookMessage
@@ -499,7 +500,8 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
       }),
       h(JupyterFrameManager, {
         frameRef,
-        onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name })
+        onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name }),
+        details: { notebookName, name, namespace }
       })
     ]),
     busy && copyingNotebookMessage
