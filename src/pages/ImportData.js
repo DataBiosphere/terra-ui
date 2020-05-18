@@ -108,7 +108,7 @@ const ImportData = () => {
         notify('success', 'Data imported successfully.', { timeout: 3000 })
       }]
     )
-    Ajax().Metrics.captureEvent(Events.workspaceDataImport)
+    Ajax().Metrics.captureEvent(Events.workspaceDataImport, { 'Workspace Name': name, 'Workspace Namespace': namespace })
     Nav.goToPath('workspace-data', { namespace, name })
   })
 

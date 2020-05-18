@@ -223,6 +223,7 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
     const aclEmails = _.map('email', acl)
     const needsDelete = _.remove(entry => aclEmails.includes(entry.email), originalAcl)
     const numAdditions = _.filter(({ email }) => !_.some({ email }, originalAcl), acl).length
+    const eventData = { numAdditions, 'Workspace Name': name, 'Workspace Namespace': namespace }
 
     const aclUpdates = [
       ..._.flow(
@@ -235,10 +236,10 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
     try {
       this.setState({ working: true })
       await Ajax().Workspaces.workspace(namespace, name).updateAcl(aclUpdates)
-      !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { numAdditions, success: true })
+      !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { ...eventData, success: true })
       onDismiss()
     } catch (error) {
-      !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { numAdditions, success: false })
+      !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { ...eventData, success: false })
       this.setState({ updateError: await error.text(), working: false })
     }
   }
