@@ -345,7 +345,7 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
 
 const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
   Utils.useOnMount(() => {
-    Ajax().Metrics.captureEvent(Events.notebookLaunch, { 'Notebook Name': details.notebookName, ' Workspace Name': details.name, 'Workspace Namespace': details.namespace })
+    Ajax().Metrics.captureEvent(Events.notebookLaunch, { 'Notebook Name': details.notebookName, 'Workspace Name': details.name, 'Workspace Namespace': details.namespace })
 
     const isSaved = Utils.atom(true)
     const onMessage = e => {
