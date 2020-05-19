@@ -105,8 +105,8 @@ a {
 
 /* Styles for content rendered by marked (also used by react-simplemde-editor) */
 .markdown-body a, .simplemde-container .editor-preview a {
-  color: #3176BB;
-  color: #3176BB;
+  color: #4D72AA;
+  text-decoration: underline;
 }
 
 .markdown-body {
