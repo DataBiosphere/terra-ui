@@ -397,11 +397,17 @@ const WorkflowView = _.flow(
     // savedConfig: unmodified copy of config for checking for unsaved edits
     // modifiedConfig: active data, potentially unsaved
     const {
-      isFreshData, savedConfig, entityMetadata, launching, activeTab, useCallCache, deleteIntermediateOutputFiles,
+      currentSnapRedacted, isFreshData, savedConfig, entityMetadata, launching, activeTab, useCallCache, deleteIntermediateOutputFiles,
       entitySelectionModel, variableSelected, modifiedConfig, updatingConfig
     } = this.state
+    const { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } = modifiedConfig.methodRepoMethod
     const { namespace, name, workspace } = this.props
     const workspaceId = { namespace, name }
+    const workflowMetadata = {
+      // Source follows the logic of the rendering on the page. It is not identical because the rendering requires elements to be included.
+      snapshotId: modifiedConfig.methodRepoMethod.methodVersion, source: sourceRepo === 'agora' || currentSnapRedacted ?
+        `${methodNamespace}/${methodName}/${methodVersion}` : `${methodPath}:${methodVersion}`
+    }
     return h(Fragment, [
       savedConfig && h(Fragment, [
         this.renderSummary(),
@@ -416,11 +422,11 @@ const WorkflowView = _.flow(
           processSingle: this.isSingle(), entitySelectionModel, useCallCache, deleteIntermediateOutputFiles,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, { multi: false })
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...workflowMetadata, multi: false })
             Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
           },
           onSuccessMulti: () => {
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, { multi: true })
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...workflowMetadata, multi: true })
             Nav.goToPath('workspace-job-history', workspaceId)
           }
         }),
