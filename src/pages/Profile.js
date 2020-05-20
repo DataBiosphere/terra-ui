@@ -4,7 +4,7 @@ import * as qs from 'qs'
 import { Component, Fragment, useState } from 'react'
 import { div, h, label, span } from 'react-hyperscript-helpers'
 import {
-  ButtonPrimary, FrameworkServicesLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay
+  ButtonPrimary, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay
 } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
@@ -202,7 +202,7 @@ const FenceLink = ({ provider, displayName }) => {
     div({ style: styles.form.title }, [displayName]),
     Utils.cond(
       [isBusy, () => div([spinner(), 'Loading account status...'])],
-      [!username, () => h(FrameworkServicesLink, { linkText: 'Log-In to Framework Services to link your account', provider, redirectUrl })],
+      [!username, () => h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to link your account', provider, redirectUrl })],
       () => div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
         div({ style: { display: 'flex' } }, [
           div({ style: { flex: 1 } }, ['Username:']),
@@ -212,7 +212,7 @@ const FenceLink = ({ provider, displayName }) => {
           div({ style: { flex: 1 } }, ['Link Expiration:']),
           div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
         ]),
-        h(FrameworkServicesLink, { linkText: 'Log-In to Framework Services to re-link your account', provider, redirectUrl })
+        h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to re-link your account', provider, redirectUrl })
       ])
     )
   ])

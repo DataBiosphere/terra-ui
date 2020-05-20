@@ -2,7 +2,7 @@ import { addDays, getDay, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { FrameworkServicesLink, ShibbolethLink } from 'src/components/common'
+import { FrameworkServiceLink, ShibbolethLink } from 'src/components/common'
 import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
@@ -214,8 +214,8 @@ const fenceNotify = (status, oldStatus, notificationId, serviceName, provider) =
       notify('info', div([
         `Your access to ${serviceName} Framework Services ${expireStatus}. To `,
         expireStatus === 'has expired' ? 'restore ' : 'renew ',
-        `access, log-in to Framework Services to `,
-        h(FrameworkServicesLink, { linkText: 're-link', provider, redirectUrl }),
+        'access, log-in to Framework Services to ',
+        h(FrameworkServiceLink, { linkText: 're-link', provider, redirectUrl }),
         ' your account'
       ]), { id: notificationId })
     } else {
@@ -247,7 +247,6 @@ authStore.subscribe((state, oldState) => {
   if (state.nihStatus !== oldState.nihStatus) {
     const notificationId = 'nih-link-warning'
     const now = Date.now()
-
     const expireTime = state.nihStatus && state.nihStatus.linkExpireTime * 1000
     const expireStatus = Utils.cond(
       [!expireTime, () => null],

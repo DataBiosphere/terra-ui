@@ -368,28 +368,26 @@ export const ShibbolethLink = ({ children, ...props }) => {
 }
 
 
-export const FrameworkServicesLink = ({ linkText, provider, redirectUrl }) => {
+export const FrameworkServiceLink = ({ linkText, provider, redirectUrl }) => {
   const [href, setHref] = useState()
 
   Utils.useOnMount(() => {
-    const loadAuthUrl = withErrorReporting('Error getting Fence Link', async (provider, redirectUrl) => {
+    const loadAuthUrl = withErrorReporting('Error getting Fence Link', async () => {
       const result = await Ajax().User.getFenceAuthUrl(provider, redirectUrl)
       setHref(result.url)
     })
-    loadAuthUrl(provider, redirectUrl)
+    loadAuthUrl()
   })
 
-  if (href) {
-    return h(Link, {
+  return !!href ?
+    h(Link, {
       href,
-      style: { display: 'inline-flex', alignItems: 'center' }, ...Utils.newTabLinkProps
+      style: { display: 'inline-flex', alignItems: 'center' },
+      ...Utils.newTabLinkProps
     }, [
       linkText,
       icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
-    ])
-  } else {
-    return (h(Fragment, [linkText]))
-  }
+    ]) : h(Fragment, [linkText])
 }
 
 export const IdContainer = ({ children }) => {
