@@ -703,7 +703,7 @@ class EntitiesContent extends Component {
     const selectedLength = selectedKeys.length
 
     return selectedFiles ?
-      h(IGVBrowser, { selectedFiles, refGenome, namespace, onDismiss: () => this.setState(_.set(['igvData', 'selectedFiles'], undefined)) }) :
+      h(IGVBrowser, { selectedFiles, refGenome, workspace, onDismiss: () => this.setState(_.set(['igvData', 'selectedFiles'], undefined)) }) :
       h(Fragment, [
         h(DataTable, {
           persist: true, firstRender, refreshKey, editable: !Utils.editWorkspaceError(workspace),
