@@ -180,7 +180,10 @@ const FenceLink = ({ provider, displayName }) => {
 
   const { User } = Ajax(signal)
 
-  const linkFenceAccount = Utils.withBusyState(setIsLinking)(async () => {
+  const linkFenceAccount = _.flow(
+    withErrorReporting('Error linking NIH account'),
+    Utils.withBusyState(setIsLinking)
+  )(async () => {
     setStatus(await User.linkFenceAccount(provider, token, redirectUrl))
   })
 

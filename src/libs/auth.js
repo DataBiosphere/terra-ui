@@ -1,4 +1,4 @@
-import { addDays, getDay, parseJSON } from 'date-fns/fp'
+import { differenceInDays, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
@@ -186,9 +186,9 @@ export const refreshTerraProfile = async () => {
 
 //helpers for external services statuses
 
-const loadStatus = async func => {
+const fetchServiceStatus = async statusPromise => {
   try {
-    return await func
+    return await statusPromise
   } catch (error) {
     if (error.status === 404) {
       return {}
@@ -203,12 +203,12 @@ const fenceNotify = (status, oldStatus, notificationId, serviceName, provider) =
     const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
 
     const now = Date.now()
-    const expireTime = status && addDays(30, parseJSON(status.issued_at))
+    const expireTime = now//status && addDays(30, parseJSON(status.issued_at))
     const fiveDays = 1000 * 60 * 60 * 24 * 5
     const expireStatus = Utils.cond(
       [!expireTime, () => null],
       [now >= expireTime, () => 'has expired'],
-      [now > expireTime - (fiveDays), () => `will expire in ${getDay(expireTime - (fiveDays))} days`]
+      [now > expireTime - (fiveDays), () => `will expire in ${differenceInDays(expireTime, fiveDays)} days`]
     )
     if (expireStatus) {
       notify('info', div([
@@ -232,7 +232,7 @@ authStore.subscribe(withErrorReporting('Error loading user profile', async (stat
 
 authStore.subscribe(withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    const nihStatus = await loadStatus(Ajax().User.getNihStatus())
+    const nihStatus = await fetchServiceStatus(Ajax().User.getNihStatus())
     authStore.update(state => ({ ...state, nihStatus }))
   }
 }))
@@ -270,7 +270,7 @@ authStore.subscribe((state, oldState) => {
 
 authStore.subscribe(withErrorReporting('Error loading DCP Framework Services account status', async (state, oldState) => {
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    const fenceDCPStatus = await loadStatus(Ajax().User.getFenceStatus('fence'))
+    const fenceDCPStatus = await fetchServiceStatus(Ajax().User.getFenceStatus('fence'))
     authStore.update(state => ({ ...state, fenceDCPStatus }))
   }
 }))
@@ -278,7 +278,7 @@ authStore.subscribe(withErrorReporting('Error loading DCP Framework Services acc
 
 authStore.subscribe(withErrorReporting('Error loading DCF Framework Services account status', async (state, oldState) => {
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    const fenceDCFStatus = await loadStatus(Ajax().User.getFenceStatus('dcf-fence'))
+    const fenceDCFStatus = await fetchServiceStatus(Ajax().User.getFenceStatus('dcf-fence'))
     authStore.update(state => ({ ...state, fenceDCFStatus }))
   }
 }))
