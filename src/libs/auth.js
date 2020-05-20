@@ -1,4 +1,4 @@
-import { differenceInDays, parseJSON } from 'date-fns/fp'
+import { addDays, differenceInDays, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
@@ -198,17 +198,18 @@ const fetchServiceStatus = async statusPromise => {
   }
 }
 
-const fenceNotify = (status, oldStatus, notificationId, serviceName, provider) => {
+const fenceNotify = (stateKey, notificationId, serviceName, provider) => (state, oldState) => {
+  const status = state[stateKey]
+  const oldStatus = oldState[stateKey]
   if (status !== oldStatus) {
     const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
-
     const now = Date.now()
-    const expireTime = now//status && addDays(30, parseJSON(status.issued_at))
-    const fiveDays = 1000 * 60 * 60 * 24 * 5
+    const dateOfExpiration = status && addDays(30, parseJSON(status.issued_at))
+    const dateFiveDaysBeforeExpiration = dateOfExpiration && addDays(-5, dateOfExpiration)
     const expireStatus = Utils.cond(
-      [!expireTime, () => null],
-      [now >= expireTime, () => 'has expired'],
-      [now > expireTime - (fiveDays), () => `will expire in ${differenceInDays(expireTime, fiveDays)} days`]
+      [!dateOfExpiration, () => null],
+      [now >= dateOfExpiration, () => 'has expired'],
+      [now >= dateFiveDaysBeforeExpiration, () => `will expire in ${differenceInDays(now, dateOfExpiration)} day(s)`]
     )
     if (expireStatus) {
       notify('info', div([
@@ -275,7 +276,6 @@ authStore.subscribe(withErrorReporting('Error loading DCP Framework Services acc
   }
 }))
 
-
 authStore.subscribe(withErrorReporting('Error loading DCF Framework Services account status', async (state, oldState) => {
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
     const fenceDCFStatus = await fetchServiceStatus(Ajax().User.getFenceStatus('dcf-fence'))
@@ -283,17 +283,12 @@ authStore.subscribe(withErrorReporting('Error loading DCF Framework Services acc
   }
 }))
 
-
 //DCP
-authStore.subscribe((state, oldState) => {
-  fenceNotify(state.fenceDCPStatus, oldState.fenceDCPStatus, 'fence-dcp-link-warning', 'DCP', 'fence')
-})
+authStore.subscribe(fenceNotify('fenceDCPStatus', 'fence-dcp-link-warning', 'DCP', 'fence'))
+
 
 //DCF
-authStore.subscribe((state, oldState) => {
-  fenceNotify(state.fenceDCFStatus, oldState.fenceDCFStatus, 'fence-dcf-link-warning', 'DCF', 'dcf-fence')
-})
-
+authStore.subscribe(fenceNotify('fenceDCFStatus', 'fence-dcf-link-warning', 'DCF', 'dcf-fence'))
 
 authStore.subscribe((state, oldState) => {
   if (oldState.isSignedIn && !state.isSignedIn) {
