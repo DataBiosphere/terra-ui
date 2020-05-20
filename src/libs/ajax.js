@@ -100,7 +100,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
       !knownRequesterPays && knownBucketRequesterPaysStatuses.update(_.set(bucket, false))
       return res
     } catch (error) {
-      if (knownBucketRequesterPaysStatuses.get()[bucket] === false) {
+      if (knownRequesterPays === false) {
         throw error
       } else {
         const newResponse = await checkRequesterPaysError(error)
