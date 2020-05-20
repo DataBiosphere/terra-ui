@@ -23,7 +23,6 @@ const IGVBrowser = _.flow(
   Utils.useOnMount(() => {
     const igvSetup = async () => {
       const fileBucketExemplars = _.uniqBy(({ filePath }) => /gs:\/\/([^/]+)/.exec(filePath)[1], selectedFiles)
-      console.log(fileBucketExemplars)
 
       // make sure any requester pays buckets get tagged, non-rp errors can be handled later for now
       const bucketRpStatuses = await Promise.all(_.map(async ({ filePath }) => {
