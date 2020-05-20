@@ -13,6 +13,7 @@ import Modal from 'src/components/Modal'
 import { TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { UriViewerLink } from 'src/components/UriViewer'
+import { canUseWorkspaceProject } from 'src/components/workspace-utils'
 import ReferenceData from 'src/data/reference-data'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -34,7 +35,7 @@ const errorTextStyle = { color: colors.danger(), fontWeight: 'bold', fontSize: 1
 
 export const parseGsUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 
-export const getUserProjectForWorkspace = workspace => workspace && Utils.canWrite(workspace.accessLevel) ? workspace.workspace.namespace : requesterPaysProjectStore.get()
+export const getUserProjectForWorkspace = async workspace => (workspace && await canUseWorkspaceProject(workspace)) ? workspace.workspace.namespace : requesterPaysProjectStore.get()
 
 export const renderDataCell = (data, namespace) => {
   const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)

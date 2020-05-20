@@ -107,7 +107,7 @@ const DownloadButton = ({ uri, metadata: { bucket, name, size } }) => {
     try {
       const { url } = await Ajax(signal).Martha.getSignedUrl({ bucket, object: name, dataObjectUri: isGs(uri) ? undefined : uri })
       const workspace = workspaceStore.get()
-      const userProject = getUserProjectForWorkspace(workspace)
+      const userProject = await getUserProjectForWorkspace(workspace)
       setUrl(knownBucketRequesterPaysStatuses.get()[bucket] ? Utils.mergeQueryParams({ userProject }, url) : url)
     } catch (error) {
       setUrl(null)

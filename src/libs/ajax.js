@@ -97,7 +97,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
     try {
       const userProject = (knownRequesterPays && await getUserProject()) || undefined
       const res = await wrappedFetch(Utils.mergeQueryParams({ userProject }, url), ...args)
-      knownBucketRequesterPaysStatuses.update(_.set(bucket, false))
+      !knownRequesterPays && knownBucketRequesterPaysStatuses.update(_.set(bucket, false))
       return res
     } catch (error) {
       if (knownBucketRequesterPaysStatuses.get()[bucket] === false) {

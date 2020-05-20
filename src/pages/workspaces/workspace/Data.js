@@ -458,8 +458,6 @@ const ToolDrawer = _.flow(
     'IGV', () => ({
       title: 'IGV',
       drawerContent: h(IGVFileSelector, {
-        namespace,
-        onRequesterPaysError,
         onSuccess: onIgvSuccess,
         selectedEntities
       })
