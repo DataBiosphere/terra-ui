@@ -101,9 +101,10 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
   }
 
   async import_({ namespace, name }) {
+    const eventData = { source: 'dockstore', 'Workspace Name': name, 'Workspace Namespace': namespace }
+
     try {
       this.setState({ isImporting: true })
-
       const { path, version } = this.props
       const workflowName = this.state.workflowName
       const rawlsWorkspace = Ajax().Workspaces.workspace(namespace, name)
@@ -117,11 +118,11 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
           methodVersion: version
         }
       })
-      Ajax().Metrics.captureEvent(Events.workflowImport, { success: true, source: 'dockstore' })
+      Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: true })
       Nav.goToPath('workflow', { namespace, name, workflowNamespace: namespace, workflowName })
     } catch (error) {
       reportError('Error importing workflow', error)
-      Ajax().Metrics.captureEvent(Events.workflowImport, { success: false, source: 'dockstore' })
+      Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: false })
     } finally {
       this.setState({ isImporting: false })
     }

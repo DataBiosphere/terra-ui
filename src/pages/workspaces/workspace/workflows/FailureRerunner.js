@@ -28,6 +28,7 @@ const ToastMessageComponent = Utils.connectStore(rerunFailuresStatus, 'status')(
 export const rerunFailures = async ({ namespace, name, submissionId, configNamespace, configName, onDone }) => {
   rerunFailuresStatus.set({ text: 'Loading workflow info...' })
   const id = notify('info', h(ToastMessageComponent))
+  const eventData = { rerun: true, 'Workspace Name': name, 'Workspace Namespace': namespace }
 
   try {
     const workspace = Ajax().Workspaces.workspace(namespace, name)
@@ -61,11 +62,11 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
         reportError('Error rerunning failed workflows', error)
       }
     })
-    Ajax().Metrics.captureEvent(Events.workflowLaunch, { rerun: true, success: true })
+    Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...eventData, success: true })
 
     await Utils.delay(2000)
   } catch (error) {
-    Ajax().Metrics.captureEvent(Events.workflowLaunch, { rerun: true, success: false })
+    Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...eventData, success: false })
     reportError('Error rerunning failed workflows', error)
   } finally {
     clearNotification(id)

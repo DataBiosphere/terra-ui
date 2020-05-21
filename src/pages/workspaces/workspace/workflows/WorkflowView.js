@@ -399,6 +399,7 @@ const WorkflowView = _.flow(
       entitySelectionModel, variableSelected, modifiedConfig, updatingConfig
     } = this.state
     const { namespace, name, workspace } = this.props
+    const eventData = { 'Workspace Name': name, 'Workspace Namespace': namespace }
     const workspaceId = { namespace, name }
     return h(Fragment, [
       savedConfig && h(Fragment, [
@@ -414,11 +415,11 @@ const WorkflowView = _.flow(
           processSingle: this.isSingle(), entitySelectionModel, useCallCache, deleteIntermediateOutputFiles,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, { multi: false })
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...eventData, multi: false })
             Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
           },
           onSuccessMulti: () => {
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, { multi: true })
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...eventData, multi: true })
             Nav.goToPath('workspace-job-history', workspaceId)
           }
         }),
