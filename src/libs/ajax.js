@@ -211,7 +211,7 @@ const User = signal => ({
   },
 
   getProxyGroup: async email => {
-    const res = await fetchOrchestration(`api/proxyGroup/${email}`, _.merge(authOpts(), { signal }))
+    const res = await fetchOrchestration(`api/proxyGroup/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
@@ -326,7 +326,7 @@ const User = signal => ({
 
   isUserRegistered: async email => {
     try {
-      await fetchSam(`api/users/v1/${email}`, _.merge(authOpts(), { signal, method: 'GET' }))
+      await fetchSam(`api/users/v1/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'GET' }))
     } catch (error) {
       if (error.status === 404) {
         return false
@@ -338,7 +338,7 @@ const User = signal => ({
   },
 
   inviteUser: email => {
-    return fetchSam(`api/users/v1/invite/${email}`, _.merge(authOpts(), { signal, method: 'POST' }))
+    return fetchSam(`api/users/v1/invite/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'POST' }))
   }
 })
 
@@ -353,11 +353,12 @@ const Groups = signal => ({
     const resourceRoot = `api/resources/v1/managed-group/${groupName}`
 
     const addRole = (role, email) => {
-      return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
+      console.log(email, encodeURIComponent(email))
+      return fetchSam(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'PUT' }))
     }
 
     const removeRole = (role, email) => {
-      return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+      return fetchSam(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
     }
 
     return {
@@ -432,11 +433,11 @@ const Billing = signal => ({
     const root = `billing/${projectName}`
 
     const removeRole = (role, email) => {
-      return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+      return fetchRawls(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
     }
 
     const addRole = (role, email) => {
-      return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
+      return fetchRawls(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'PUT' }))
     }
 
     return {
