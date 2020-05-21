@@ -90,7 +90,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       (!entities && !processSingle) ? spinner() : div({ style: { margin: '1rem 0' } }, [
         'This will launch ', b([entityCount]), ` analys${entityCount === 1 ? 'is' : 'es'}`,
         '.',
-        !processSingle && type !== chooseSets /* ??? */ && type !== processAll && entityCount !== entities.length && div({
+        !processSingle && type !== processAll && entityCount !== entities.length && div({
           style: { fontStyle: 'italic', marginTop: '0.5rem' }
         }, ['(Duplicate entities are only processed once.)'])
       ]),
