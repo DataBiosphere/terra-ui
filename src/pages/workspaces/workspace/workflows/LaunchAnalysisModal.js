@@ -7,7 +7,6 @@ import Modal from 'src/components/Modal'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { createEntitySet } from 'src/libs/data-utils'
-import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 import {
   chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet
@@ -18,8 +17,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      launching: undefined, message: undefined, launchError: undefined,
-      multiLaunchCompletions: undefined, multiLaunchErrors: undefined
+      launching: undefined, message: undefined, launchError: undefined
     }
   }
 
@@ -60,7 +58,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
 
   render() {
     const { onDismiss, entitySelectionModel: { type }, entityMetadata, config: { rootEntityType }, processSingle } = this.props
-    const { launching, message, multiLaunchCompletions, launchError, multiLaunchErrors } = this.state
+    const { launching, message, launchError } = this.state
     const entities = this.getEntities()
     const entityCount = Utils.cond(
       [processSingle, () => 1],
@@ -76,7 +74,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       title: !launching ? 'Confirm launch' : 'Launching Analysis',
       onDismiss,
       showCancel: !launching,
-      okButton: !(launchError || multiLaunchErrors) ?
+      okButton: !launchError ?
         h(ButtonPrimary, {
           disabled: launching,
           onClick: () => {
@@ -94,25 +92,12 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
           style: { fontStyle: 'italic', marginTop: '0.5rem' }
         }, ['(Duplicate entities are only processed once.)'])
       ]),
-      (message || multiLaunchCompletions !== undefined) && div({ style: { display: 'flex' } }, [
+      message && div({ style: { display: 'flex' } }, [
         spinner({ style: { marginRight: '0.5rem' } }),
-        message,
-        multiLaunchCompletions !== undefined && div({
-          style: { flexGrow: 1, backgroundColor: colors.secondary(0.3), borderRadius: 5, height: 24 }
-        }, [div({
-          style: {
-            backgroundColor: colors.accent(),
-            height: '100%', width: `${multiLaunchCompletions / entityCount * 100}%`,
-            borderRadius: 5
-          }
-        })])
+        message
       ]),
       div({ style: { color: colors.danger(), overflowWrap: 'break-word' } }, [
-        h(Fragment, wrappableOnPeriods(launchError)),
-        multiLaunchErrors && h(Fragment, _.map(({ name, message }) => div({
-          style: { marginTop: '1rem' }
-        }, [`Error launching with set ${name}: `, h(Fragment, wrappableOnPeriods(message))]),
-        multiLaunchErrors))
+        h(Fragment, wrappableOnPeriods(launchError))
       ])
     ])
   }
@@ -207,36 +192,6 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       onSuccess(submissionId)
     } catch (error) {
       this.setState({ launchError: await error.text(), message: undefined })
-    }
-  }
-
-  async launchParallel() {
-    const { onSuccessMulti, entitySelectionModel: { selectedEntities }, config: { rootEntityType } } = this.props
-
-    this.setState({ multiLaunchCompletions: 0, message: undefined })
-
-    const allErrors = await Promise.all(_.map(async ({ name }) => {
-      try {
-        await this.baseLaunch(rootEntityType, name)
-      } catch (error) {
-        const { message } = JSON.parse(await error.text())
-        return { name, message }
-      } finally {
-        this.setState(_.update('multiLaunchCompletions', _.add(1)))
-      }
-    }, selectedEntities))
-
-    const multiLaunchErrors = _.compact(allErrors)
-
-    if (_.isEmpty(multiLaunchErrors)) {
-      onSuccessMulti()
-    } else if (multiLaunchErrors.length === _.size(selectedEntities)) {
-      this.setState({ multiLaunchErrors, multiLaunchCompletions: undefined })
-    } else {
-      reportError(`${multiLaunchErrors.length} sets failed to launch`, {
-        message: h(Fragment, _.map(({ name, message }) => div([`Error launching with set ${name}: ${message}`]), multiLaunchErrors))
-      })
-      onSuccessMulti()
     }
   }
 })
