@@ -400,13 +400,17 @@ const WorkflowView = _.flow(
       currentSnapRedacted, isFreshData, savedConfig, entityMetadata, launching, activeTab, useCallCache, deleteIntermediateOutputFiles,
       entitySelectionModel, variableSelected, modifiedConfig, updatingConfig
     } = this.state
-    const { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } = modifiedConfig.methodRepoMethod
     const { namespace, name, workspace } = this.props
     const workspaceId = { namespace, name }
-    const workflowMetadata = {
-      // Source follows the logic of the rendering on the page. It is not identical because the rendering requires elements to be included.
-      snapshotId: modifiedConfig.methodRepoMethod.methodVersion, source: sourceRepo === 'agora' || currentSnapRedacted ?
-        `${methodNamespace}/${methodName}/${methodVersion}` : `${methodPath}:${methodVersion}`
+    let workflowMetadata
+    if (savedConfig) {
+      const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
+
+      workflowMetadata = {
+        // Source follows the logic of the rendering on the page. It is not identical because the rendering requires elements to be included.
+        snapshotId: modifiedConfig.methodRepoMethod.methodVersion, source: sourceRepo === 'agora' || currentSnapRedacted ?
+          `${methodNamespace}/${methodName}/${methodVersion}` : `${methodPath}:${methodVersion}`
+      }
     }
     return h(Fragment, [
       savedConfig && h(Fragment, [

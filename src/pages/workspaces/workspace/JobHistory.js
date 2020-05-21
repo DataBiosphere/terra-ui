@@ -128,7 +128,6 @@ const JobHistory = _.flow(
           return _.set('asText', subAsText, sub)
         })
       )(await Workspaces.workspace(namespace, name).listSubmissions())
-
       this.setState({ submissions })
 
       if (_.some(({ status }) => !isTerminal(status), submissions)) {

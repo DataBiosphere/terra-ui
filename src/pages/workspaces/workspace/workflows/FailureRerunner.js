@@ -61,11 +61,11 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
         reportError('Error rerunning failed workflows', error)
       }
     })
-    Ajax().Metrics.captureEvent(Events.workflowLaunch, { rerun: true, success: true })
+    Ajax().Metrics.captureEvent(Events.workflowRerun, { success: true, configNamespace, configName })
 
     await Utils.delay(2000)
   } catch (error) {
-    Ajax().Metrics.captureEvent(Events.workflowLaunch, { rerun: true, success: false })
+    Ajax().Metrics.captureEvent(Events.workflowRerun, { success: false, configNamespace, configName })
     reportError('Error rerunning failed workflows', error)
   } finally {
     clearNotification(id)
