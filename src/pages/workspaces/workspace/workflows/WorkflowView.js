@@ -397,21 +397,11 @@ const WorkflowView = _.flow(
     // savedConfig: unmodified copy of config for checking for unsaved edits
     // modifiedConfig: active data, potentially unsaved
     const {
-      currentSnapRedacted, isFreshData, savedConfig, entityMetadata, launching, activeTab, useCallCache, deleteIntermediateOutputFiles,
+      isFreshData, savedConfig, entityMetadata, launching, activeTab, useCallCache, deleteIntermediateOutputFiles,
       entitySelectionModel, variableSelected, modifiedConfig, updatingConfig
     } = this.state
     const { namespace, name, workspace } = this.props
     const workspaceId = { namespace, name }
-    let workflowMetadata
-    if (savedConfig) {
-      const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
-
-      workflowMetadata = {
-        // Source follows the logic of the rendering on the page. It is not identical because the rendering requires elements to be included.
-        snapshotId: modifiedConfig.methodRepoMethod.methodVersion, source: sourceRepo === 'agora' || currentSnapRedacted ?
-          `${methodNamespace}/${methodName}/${methodVersion}` : `${methodPath}:${methodVersion}`
-      }
-    }
     return h(Fragment, [
       savedConfig && h(Fragment, [
         this.renderSummary(),
@@ -426,12 +416,9 @@ const WorkflowView = _.flow(
           processSingle: this.isSingle(), entitySelectionModel, useCallCache, deleteIntermediateOutputFiles,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...workflowMetadata, multi: false })
+            const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, { methodVersion, sourceRepo, methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath })
             Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
-          },
-          onSuccessMulti: () => {
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...workflowMetadata, multi: true })
-            Nav.goToPath('workspace-job-history', workspaceId)
           }
         }),
         variableSelected && h(BucketContentModal, {
@@ -613,6 +600,7 @@ const WorkflowView = _.flow(
 
     const inputsValid = _.isEmpty(errors.inputs)
     const outputsValid = _.isEmpty(errors.outputs)
+    const sourceDisplay = sourceRepo === 'agora' ? `${methodNamespace}/${methodName}/${methodVersion}` : `${methodPath}:${methodVersion}`
     return div({
       style: {
         position: 'relative',
@@ -671,10 +659,10 @@ const WorkflowView = _.flow(
             ])
           ])]),
           div([
-            'Source: ', currentSnapRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : h(Link, {
+            'Source: ', currentSnapRedacted ? sourceDisplay : h(Link, {
               href: methodLink(modifiedConfig),
               ...Utils.newTabLinkProps
-            }, sourceRepo === 'agora' ? `${methodNamespace}/${methodName}/${methodVersion}` : `${methodPath}:${methodVersion}`)
+            }, [sourceDisplay])
           ]),
           div(`Synopsis: ${synopsis ? synopsis : ''}`),
           documentation ?
