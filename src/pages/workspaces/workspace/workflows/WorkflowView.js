@@ -416,12 +416,9 @@ const WorkflowView = _.flow(
           processSingle: this.isSingle(), entitySelectionModel, useCallCache, deleteIntermediateOutputFiles,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, { multi: false })
+            const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, { methodVersion, sourceRepo, methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath })
             Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
-          },
-          onSuccessMulti: () => {
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, { multi: true })
-            Nav.goToPath('workspace-job-history', workspaceId)
           }
         }),
         variableSelected && h(BucketContentModal, {
@@ -603,6 +600,7 @@ const WorkflowView = _.flow(
 
     const inputsValid = _.isEmpty(errors.inputs)
     const outputsValid = _.isEmpty(errors.outputs)
+    const sourceDisplay = sourceRepo === 'agora' ? `${methodNamespace}/${methodName}/${methodVersion}` : `${methodPath}:${methodVersion}`
     return div({
       style: {
         position: 'relative',
@@ -661,10 +659,10 @@ const WorkflowView = _.flow(
             ])
           ])]),
           div([
-            'Source: ', currentSnapRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : h(Link, {
+            'Source: ', currentSnapRedacted ? sourceDisplay : h(Link, {
               href: methodLink(modifiedConfig),
               ...Utils.newTabLinkProps
-            }, sourceRepo === 'agora' ? `${methodNamespace}/${methodName}/${methodVersion}` : `${methodPath}:${methodVersion}`)
+            }, [sourceDisplay])
           ]),
           div(`Synopsis: ${synopsis ? synopsis : ''}`),
           documentation ?
