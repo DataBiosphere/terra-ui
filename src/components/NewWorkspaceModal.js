@@ -86,8 +86,8 @@ export default _.flow(
         Ajax().Metrics.captureEvent(Events.workspaceClone, {
           public: cloneWorkspace.public,
           featured: _.some({ namespace: cloneWorkspace.workspace.namespace, name: cloneWorkspace.workspace.name }, featuredList),
-          'From Workspace Name': cloneWorkspace.workspace.name, 'From Workspace Namespace': cloneWorkspace.workspace.namespace,
-          'To Workspace Name': name, 'To Workspace Namespace': namespace
+          fromWorkspaceName: cloneWorkspace.workspace.name, fromWorkspaceNamespace: cloneWorkspace.workspace.namespace,
+          toWorkspaceName: name, toWorkspaceNamespace: namespace
         })
       }
 
