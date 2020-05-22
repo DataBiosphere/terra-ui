@@ -325,6 +325,8 @@ const WorkflowView = _.flow(
   resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata) {
     const { workflowName } = this.props
 
+    // If the default for non-set types changes from `processAllAsSet` then the calculation of `noLaunchReason` in `renderSummary` needs to be updated accordingly.
+    // Currently, `renderSummary` assumes that it is not possible to have nothing selected for non-set types.
     return {
       type: Utils.cond(
         [isSet(value), () => _.includes(value, _.keys(entityMetadata)) ? chooseSets : processAllAsSet],
@@ -549,7 +551,7 @@ const WorkflowView = _.flow(
       [type === chooseSetComponents, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}s ${newSetMessage}`],
       [type === processAllAsSet, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType]?.count || 0} ${baseEntityType}s ${newSetMessage}`],
       [type === chooseSets, () => !!count ?
-        `${count} selected ${rootEntityType}s` :
+        `${count} selected ${rootEntityType}s ${newSetMessage}` :
         `No ${rootEntityType}s selected`]
     )
   }
@@ -592,6 +594,9 @@ const WorkflowView = _.flow(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
       [this.isMultiple() && (!entityMetadata[rootEntityType] && !_.includes(rootEntityType, possibleSetTypes)), () => `There are no ${selectedEntityType}s in this workspace.`],
+      // Default for _set types is `chooseSets` so we need to make sure something is selected.
+      // Default for non- _set types is `processAll` and the "Select Data" modal makes it impossible to have nothing selected for these types.
+      // Users have expressed dislike of the `processAll` default so this clause will likely need to be expanded along with any change to `resetSelectionModel`.
       [this.isMultiple() && (entitySelectionModel.type === chooseSets || entitySelectionModel.type === chooseSetComponents) && !_.size(entitySelectionModel.selectedEntities),
         () => 'Select or create a set']
     )
