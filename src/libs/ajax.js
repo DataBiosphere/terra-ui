@@ -353,7 +353,6 @@ const Groups = signal => ({
     const resourceRoot = `api/resources/v1/managed-group/${groupName}`
 
     const addRole = (role, email) => {
-      console.log(email, encodeURIComponent(email))
       return fetchSam(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'PUT' }))
     }
 
