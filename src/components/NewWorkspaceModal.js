@@ -9,7 +9,6 @@ import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
@@ -82,7 +81,7 @@ export default _.flow(
         Ajax().Workspaces.workspace(cloneWorkspace.workspace.namespace, cloneWorkspace.workspace.name).clone(body) :
         Ajax().Workspaces.create(body))
       if (cloneWorkspace) {
-        const featuredList = await fetch(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`).then(res => res.json())
+        const featuredList = await Ajax().Buckets.getFeaturedWorkspaces()
         Ajax().Metrics.captureEvent(Events.workspaceClone, {
           public: cloneWorkspace.public,
           featured: _.some({ namespace: cloneWorkspace.workspace.namespace, name: cloneWorkspace.workspace.name }, featuredList),

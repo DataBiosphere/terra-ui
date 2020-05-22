@@ -789,6 +789,11 @@ const Buckets = signal => ({
     return res.json()
   },
 
+  getFeaturedWorkspaces: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`, { signal })
+    return res.json()
+  },
+
   listNotebooks: async (namespace, name) => {
     const res = await fetchBuckets(
       `storage/v1/b/${name}/o?prefix=notebooks/`,
