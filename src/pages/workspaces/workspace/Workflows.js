@@ -253,7 +253,7 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
     this.setState({ exporting: true })
 
-    const eventData = { source: 'repo', 'Workspace Name': name, 'Workspace Namespace': namespace }
+    const eventData = { source: 'repo', ...extractWorkspaceDetails(ws) }
 
     try {
       const methodAjax = Ajax().Methods.method(selectedWorkflow.namespace, selectedWorkflow.name, selectedWorkflow.snapshotId)
@@ -264,11 +264,11 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
       const { namespace: workflowNamespace, name: workflowName } = config || selectedWorkflow
 
-      Ajax().Metrics.captureEvent(Events.workflowImport, { ...extractWorkspaceDetails(ws), source: 'repo', success: true })
+      Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: true })
       Nav.goToPath('workflow', { namespace, name, workflowNamespace, workflowName })
     } catch (error) {
       reportError('Error importing workflow', error)
-      Ajax().Metrics.captureEvent(Events.workflowImport, { ...extractWorkspaceDetails(ws), source: 'repo', success: false })
+      Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: false })
       this.setState({ exporting: false })
     }
   }

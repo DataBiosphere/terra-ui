@@ -12,7 +12,7 @@ import importBackground from 'src/images/hex-import-background.svg'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -100,8 +100,9 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
     ])
   }
 
-  async import_({ namespace, name }) {
-    const eventData = { source: 'dockstore', 'Workspace Name': name, 'Workspace Namespace': namespace }
+  async import_(ws) {
+    const { name, namespace } = ws
+    const eventData = { source: 'dockstore', ...extractWorkspaceDetails({ workspace: ws }) }
 
     try {
       this.setState({ isImporting: true })
