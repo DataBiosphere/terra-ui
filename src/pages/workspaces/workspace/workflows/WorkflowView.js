@@ -20,7 +20,7 @@ import WDLViewer from 'src/components/WDLViewer'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { workflowSelectionStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -399,7 +399,6 @@ const WorkflowView = _.flow(
       entitySelectionModel, variableSelected, modifiedConfig, updatingConfig
     } = this.state
     const { namespace, name, workspace } = this.props
-    const eventData = { 'Workspace Name': name, 'Workspace Namespace': namespace }
     const workspaceId = { namespace, name }
     return h(Fragment, [
       savedConfig && h(Fragment, [
@@ -415,11 +414,11 @@ const WorkflowView = _.flow(
           processSingle: this.isSingle(), entitySelectionModel, useCallCache, deleteIntermediateOutputFiles,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...eventData, multi: false })
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...extractWorkspaceDetails(workspace), multi: false })
             Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
           },
           onSuccessMulti: () => {
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...eventData, multi: true })
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...extractWorkspaceDetails(workspace), multi: true })
             Nav.goToPath('workspace-job-history', workspaceId)
           }
         }),
