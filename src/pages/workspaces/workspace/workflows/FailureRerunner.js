@@ -46,7 +46,6 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
     const newSetName = Utils.sanitizeEntityName(`${configName}-resubmission-${new Date().toISOString().slice(0, -5)}`)
 
     await launch({
-      workspaceNamespace: namespace, workspaceName: name,
       config: { namespace: configNamespace, name: configName, rootEntityType },
       entityType: rootEntityType, entityNames: _.map('entityName', failedEntities),
       newSetName, useCallCache, deleteIntermediateOutputFiles,
@@ -65,7 +64,7 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
 
     await Utils.delay(2000)
   } catch (error) {
-    Ajax().Metrics.captureEvent(Events.workflowRerun, { ...extractWorkspaceDetails(workspace), success: false, configNamespace, configName })
+    Ajax().Metrics.captureEvent(Events.workflowRerun, { workspaceName: name, workspaceNamespace: namespace, success: false, configNamespace, configName })
     reportError('Error rerunning failed workflows', error)
   } finally {
     clearNotification(id)
