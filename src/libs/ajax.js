@@ -6,7 +6,7 @@ import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { ajaxOverridesStore, requesterPaysBuckets, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
+import { ajaxOverridesStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -93,19 +93,25 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
   }
 
   const tryRequest = async () => {
-    const knownRequesterPays = _.includes(bucket, requesterPaysBuckets.get())
+    const knownRequesterPays = knownBucketRequesterPaysStatuses.get()[bucket]
     try {
       const userProject = (knownRequesterPays && await getUserProject()) || undefined
-      return await wrappedFetch(Utils.mergeQueryParams({ userProject }, url), ...args)
+      const res = await wrappedFetch(Utils.mergeQueryParams({ userProject }, url), ...args)
+      !knownRequesterPays && knownBucketRequesterPaysStatuses.update(_.set(bucket, false))
+      return res
     } catch (error) {
-      const newResponse = await checkRequesterPaysError(error)
-      if (newResponse.requesterPaysError && !knownRequesterPays) {
-        requesterPaysBuckets.update(_.union([bucket]))
-        if (await getUserProject()) {
-          return tryRequest()
+      if (knownRequesterPays === false) {
+        throw error
+      } else {
+        const newResponse = await checkRequesterPaysError(error)
+        if (newResponse.requesterPaysError && !knownRequesterPays) {
+          knownBucketRequesterPaysStatuses.update(_.set(bucket, true))
+          if (await getUserProject()) {
+            return tryRequest()
+          }
         }
+        throw newResponse
       }
-      throw newResponse
     }
   }
   return tryRequest()
@@ -114,7 +120,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
 export const fetchOk = _.flow(withInstrumentation, withCancellation, withErrorRejection)(fetch)
 
 const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIdentifier)(fetchOk)
-const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://www.googleapis.com/'))(fetchOk)
+const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchGoogleBilling = withUrlPrefix('https://cloudbilling.googleapis.com/v1/', fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
@@ -205,7 +211,7 @@ const User = signal => ({
   },
 
   getProxyGroup: async email => {
-    const res = await fetchOrchestration(`api/proxyGroup/${email}`, _.merge(authOpts(), { signal }))
+    const res = await fetchOrchestration(`api/proxyGroup/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
@@ -320,7 +326,7 @@ const User = signal => ({
 
   isUserRegistered: async email => {
     try {
-      await fetchSam(`api/users/v1/${email}`, _.merge(authOpts(), { signal, method: 'GET' }))
+      await fetchSam(`api/users/v1/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'GET' }))
     } catch (error) {
       if (error.status === 404) {
         return false
@@ -332,7 +338,7 @@ const User = signal => ({
   },
 
   inviteUser: email => {
-    return fetchSam(`api/users/v1/invite/${email}`, _.merge(authOpts(), { signal, method: 'POST' }))
+    return fetchSam(`api/users/v1/invite/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'POST' }))
   }
 })
 
@@ -347,11 +353,11 @@ const Groups = signal => ({
     const resourceRoot = `api/resources/v1/managed-group/${groupName}`
 
     const addRole = (role, email) => {
-      return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
+      return fetchSam(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'PUT' }))
     }
 
     const removeRole = (role, email) => {
-      return fetchSam(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+      return fetchSam(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
     }
 
     return {
@@ -426,11 +432,11 @@ const Billing = signal => ({
     const root = `billing/${projectName}`
 
     const removeRole = (role, email) => {
-      return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+      return fetchRawls(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
     }
 
     const addRole = (role, email) => {
-      return fetchRawls(`${root}/${role}/${email}`, _.merge(authOpts(), { signal, method: 'PUT' }))
+      return fetchRawls(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'PUT' }))
     }
 
     return {
@@ -760,8 +766,8 @@ const Workspaces = signal => ({
 
 
 const Buckets = signal => ({
-  getObject: async (bucket, object, namespace) => {
-    return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}`,
+  getObject: async (bucket, object, namespace, params = {}) => {
+    return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}${qs.stringify(params, { addQueryPrefix: true })}`,
       _.merge(authOpts(await saToken(namespace)), { signal })
     ).then(
       res => res.json()

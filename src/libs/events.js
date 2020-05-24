@@ -11,6 +11,7 @@ const eventsList = {
   pageView: `page:view`,
   workflowImport: 'workflow:import',
   workflowLaunch: 'workflow:launch',
+  workflowRerun: 'workflow:rerun',
   workspaceDataImport: 'workspace:data:import',
   workspaceShare: 'workspace:share'
 }

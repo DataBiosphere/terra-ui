@@ -120,3 +120,7 @@ export const WorkspaceTagSelect = props => {
     ...props
   })
 }
+
+export const canUseWorkspaceProject = async ({ canCompute, workspace: { namespace } }) => {
+  return canCompute || _.some({ projectName: namespace, role: 'Owner' }, await Ajax().Billing.listProjects())
+}

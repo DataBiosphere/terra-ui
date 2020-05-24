@@ -16,6 +16,7 @@ import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { getConfig, isFirecloud, isTerra } from 'src/libs/config'
+import { withErrorReporting } from 'src/libs/error'
 import { getAppName, returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -364,6 +365,29 @@ export const ShibbolethLink = ({ children, ...props }) => {
     children,
     icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
   ])
+}
+
+
+export const FrameworkServiceLink = ({ linkText, provider, redirectUrl }) => {
+  const [href, setHref] = useState()
+
+  Utils.useOnMount(() => {
+    const loadAuthUrl = withErrorReporting('Error getting Fence Link', async () => {
+      const result = await Ajax().User.getFenceAuthUrl(provider, redirectUrl)
+      setHref(result.url)
+    })
+    loadAuthUrl()
+  })
+
+  return !!href ?
+    h(Link, {
+      href,
+      style: { display: 'inline-flex', alignItems: 'center' },
+      ...Utils.newTabLinkProps
+    }, [
+      linkText,
+      icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
+    ]) : h(Fragment, [linkText])
 }
 
 export const IdContainer = ({ children }) => {

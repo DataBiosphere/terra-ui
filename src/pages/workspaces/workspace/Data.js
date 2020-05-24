@@ -573,6 +573,7 @@ class EntitiesContent extends Component {
 
   renderDownloadButton(columnSettings) {
     const { workspace: { workspace: { namespace, name } }, entityKey } = this.props
+    const disabled = entityKey.endsWith('_set_set')
     return h(Fragment, [
       form({
         ref: this.downloadForm,
@@ -584,7 +585,10 @@ class EntitiesContent extends Component {
         input({ type: 'hidden', name: 'model', value: 'flexible' })
       ]),
       h(ButtonPrimary, {
-        tooltip: `Download a .tsv file containing all the ${entityKey}s in this table`,
+        disabled,
+        tooltip: disabled ?
+          'Downloading sets of sets as TSV is not supported at this time' :
+          `Download a .tsv file containing all the ${entityKey}s in this table`,
         onClick: () => this.downloadForm.current.submit()
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
@@ -622,13 +626,17 @@ class EntitiesContent extends Component {
     const { selectedEntities } = this.state
     const isSet = _.endsWith('_set', entityKey)
     const noEdit = Utils.editWorkspaceError(workspace)
+    const disabled = entityKey.endsWith('_set_set')
 
     return !_.isEmpty(selectedEntities) && h(PopupTrigger, {
       side: 'bottom',
       closeOnClick: true,
       content: h(Fragment, [
         h(MenuButton, {
-          tooltip: `Download the selected data as a file`,
+          disabled,
+          tooltip: disabled ?
+            'Downloading sets of sets as TSV is not supported at this time' :
+            `Download the selected data as a file`,
           onClick: async () => {
             const tsv = this.buildTSV(columnSettings, selectedEntities)
             isSet ?
@@ -703,7 +711,7 @@ class EntitiesContent extends Component {
     const selectedLength = selectedKeys.length
 
     return selectedFiles ?
-      h(IGVBrowser, { selectedFiles, refGenome, namespace, onDismiss: () => this.setState(_.set(['igvData', 'selectedFiles'], undefined)) }) :
+      h(IGVBrowser, { selectedFiles, refGenome, workspace, onDismiss: () => this.setState(_.set(['igvData', 'selectedFiles'], undefined)) }) :
       h(Fragment, [
         h(DataTable, {
           persist: true, firstRender, refreshKey, editable: !Utils.editWorkspaceError(workspace),

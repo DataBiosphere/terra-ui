@@ -33,6 +33,7 @@
     "react-dom": "npm:@hot-loader/react-dom@~16.13.0",
     "react-draggable": "^4.3.1",
     "react-dropzone": "^11.0.1",
+    "react-favicon": "^0.0.18",
     "react-focus-lock": "^2.3.1",
     "react-hyperscript-helpers": "^1.2.0",
     "react-modal": "^3.11.2",

@@ -6,6 +6,7 @@ import ReactNotification from 'react-notifications-component'
 import AuthContainer from 'src/components/AuthContainer'
 import ConfigOverridesWarning from 'src/components/ConfigOverridesWarning'
 import ErrorWrapper from 'src/components/ErrorWrapper'
+import Favicon from 'src/components/Favicon'
 import FirecloudNotification from 'src/components/FirecloudNotification'
 import FreeCreditsModal from 'src/components/FreeCreditsModal'
 import IdleStatusMonitor from 'src/components/IdleStatusMonitor'
@@ -23,6 +24,7 @@ const Main = () => {
     h(ReactNotification),
     h(ImportStatus),
     h(ServiceAlerts),
+    h(Favicon),
     h(FreeCreditsModal),
     h(IdleStatusMonitor),
     h(ErrorWrapper, [
