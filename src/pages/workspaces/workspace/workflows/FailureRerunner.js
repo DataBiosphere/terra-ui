@@ -28,10 +28,12 @@ const ToastMessageComponent = Utils.connectStore(rerunFailuresStatus, 'status')(
 export const rerunFailures = async ({ namespace, name, submissionId, configNamespace, configName, onDone }) => {
   rerunFailuresStatus.set({ text: 'Loading workflow info...' })
   const id = notify('info', h(ToastMessageComponent))
+  const eventData = { ...extractWorkspaceDetails({ workspace: { name, namespace } }), configNamespace, configName }
 
   try {
     const workspace = Ajax().Workspaces.workspace(namespace, name)
     const methodConfig = workspace.methodConfig(configNamespace, configName)
+    console.log('methodConfig:', methodConfig)
 
     const [{ workflows, useCallCache, deleteIntermediateOutputFiles }, { rootEntityType }] = await Promise.all([
       workspace.submission(submissionId).get(),
@@ -61,11 +63,11 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
         reportError('Error rerunning failed workflows', error)
       }
     })
-    Ajax().Metrics.captureEvent(Events.workflowRerun, { ...extractWorkspaceDetails(workspace), success: true, configNamespace, configName })
+    Ajax().Metrics.captureEvent(Events.workflowRerun, { ...eventData, success: true  })
 
     await Utils.delay(2000)
   } catch (error) {
-    Ajax().Metrics.captureEvent(Events.workflowRerun, { workspaceName: name, workspaceNamespace: namespace, success: false, configNamespace, configName })
+    Ajax().Metrics.captureEvent(Events.workflowRerun, { ...eventData, success: false })
     reportError('Error rerunning failed workflows', error)
   } finally {
     clearNotification(id)
