@@ -88,6 +88,8 @@ export default _.flow(
           fromWorkspaceName: cloneWorkspace.workspace.name, fromWorkspaceNamespace: cloneWorkspace.workspace.namespace,
           toWorkspaceName: name, toWorkspaceNamespace: namespace
         })
+      } else {
+        Ajax().Metrics.captureEvent(Events.workspaceCreate, { workspaceName: name, workspaceNamespace: namespace })
       }
 
       onSuccess(workspace)
