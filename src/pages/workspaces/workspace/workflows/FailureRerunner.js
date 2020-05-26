@@ -46,6 +46,7 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
     const newSetName = Utils.sanitizeEntityName(`${configName}-resubmission-${new Date().toISOString().slice(0, -5)}`)
 
     await launch({
+      workspaceNamespace: namespace, workspaceName: name,
       config: { namespace: configNamespace, name: configName, rootEntityType },
       entityType: rootEntityType, entityNames: _.map('entityName', failedEntities),
       newSetName, useCallCache, deleteIntermediateOutputFiles,

@@ -8,7 +8,7 @@ import * as Utils from 'src/libs/utils'
 const eventsList = {
   applicationLaunch: 'application:launch',
   notebookLaunch: 'notebook:launch',
-  pageView: `page:view`,
+  pageView: 'page:view',
   workflowImport: 'workflow:import',
   workflowLaunch: 'workflow:launch',
   workflowRerun: 'workflow:rerun',

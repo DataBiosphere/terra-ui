@@ -94,15 +94,15 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
         ]),
         div({ style: { ...styles.title, paddingTop: '2rem' } }, ['Destination Workspace']),
         h(WorkspaceImporter,
-          { onImport: ws => this.import_(ws), additionalErrors: errors }),
+          { onImport: workspace => this.import_(workspace), additionalErrors: errors }),
         isImporting && spinnerOverlay
       ])
     ])
   }
 
-  async import_(ws) {
-    const { name, namespace } = ws
-    const eventData = { source: 'dockstore', ...extractWorkspaceDetails({ workspace: ws }) }
+  async import_(workspace) {
+    const { name, namespace } = workspace
+    const eventData = { source: 'dockstore', ...extractWorkspaceDetails({ workspace }) }
 
     try {
       this.setState({ isImporting: true })
