@@ -16,7 +16,6 @@ import TopBar from 'src/components/TopBar'
 import { useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -102,7 +101,7 @@ export const WorkspaceList = () => {
 
   Utils.useOnMount(() => {
     const loadFeatured = async () => {
-      setFeaturedList(await fetch(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`).then(res => res.json()))
+      setFeaturedList(await Ajax().Buckets.getFeaturedWorkspaces())
     }
 
     loadFeatured()

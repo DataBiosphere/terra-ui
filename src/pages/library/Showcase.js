@@ -8,8 +8,8 @@ import { useWorkspaces } from 'src/components/workspace-utils'
 import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
 import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -62,7 +62,7 @@ const Showcase = () => {
 
   Utils.useOnMount(() => {
     const loadData = async () => {
-      const featuredList = await fetch(`${getConfig().firecloudBucketRoot}/featured-workspaces.json`).then(res => res.json())
+      const featuredList = await Ajax().Buckets.getFeaturedWorkspaces()
 
       setFeaturedList(featuredList)
       StateHistory.update({ featuredList })
