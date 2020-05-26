@@ -33,7 +33,6 @@ export const rerunFailures = async ({ namespace, name, submissionId, configNames
   try {
     const workspace = Ajax().Workspaces.workspace(namespace, name)
     const methodConfig = workspace.methodConfig(configNamespace, configName)
-    console.log('methodConfig:', methodConfig)
 
     const [{ workflows, useCallCache, deleteIntermediateOutputFiles }, { rootEntityType }] = await Promise.all([
       workspace.submission(submissionId).get(),
