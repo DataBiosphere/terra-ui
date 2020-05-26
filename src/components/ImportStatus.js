@@ -49,14 +49,17 @@ const ImportStatusItem = ({ job: { targetWorkspace, jobId }, onDone }) => {
     // TODO: only need to support both sets of statuses during the transition from avro-import to import service.
     // once import servie is fully adopted, we can/should remove the avro-import status values.
 
+    const successNotify = () => notify('success', 'Data imported successfully.',
+      { message: `Data import to workspace "${namespace} / ${name}" is complete. Please refresh the Data view.` })
+
+    const errorNotify = () => notify('error', 'Error importing PFB data.', message)
+
     if (!_.includes(status, ['PENDING', 'RUNNING', 'Pending', 'Translating', 'ReadyForUpsert', 'Upserting'])) {
       Utils.switchCase(status,
-        ['SUCCESS', () => notify('success', 'Data imported successfully.',
-          { message: `Data import to workspace "${namespace} / ${name}" is complete. Please refresh the Data view.` })],
-        ['Done', () => notify('success', 'Data imported successfully.',
-          { message: `Data import to workspace "${namespace} / ${name}" is complete. Please refresh the Data view.` })],
-        ['ERROR', () => notify('error', 'Error importing PFB data.', message)],
-        ['Error', () => notify('error', 'Error importing PFB data.', message)],
+        ['SUCCESS', successNotify],
+        ['Done', successNotify],
+        ['ERROR', errorNotify],
+        ['Error', errorNotify],
         [Utils.DEFAULT, () => notify('error', 'Unexpected error importing PFB data', response)]
       )
       clearNotification(jobId)
