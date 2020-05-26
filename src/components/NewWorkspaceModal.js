@@ -85,13 +85,13 @@ export default _.flow(
             public: cloneWorkspace.public,
             featured: _.some({ namespace: cloneWorkspace.workspace.namespace, name: cloneWorkspace.workspace.name }, featuredList),
             fromWorkspaceName: cloneWorkspace.workspace.name, fromWorkspaceNamespace: cloneWorkspace.workspace.namespace,
-            toWorkspaceName: name, toWorkspaceNamespace: namespace
+            toWorkspaceName: workspace.name, toWorkspaceNamespace: workspace.namespace
           })
           return workspace
         }],
         async () => {
           const workspace = await Ajax().Workspaces.create(body)
-          Ajax().Metrics.captureEvent(Events.workspaceCreate, { workspaceName: name, workspaceNamespace: namespace })
+          Ajax().Metrics.captureEvent(Events.workspaceCreate, { workspaceName: workspace.name, workspaceNamespace: workspace.namespace })
           return workspace
         }))
     } catch (error) {
