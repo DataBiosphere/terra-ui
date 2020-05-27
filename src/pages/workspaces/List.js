@@ -295,7 +295,12 @@ export const WorkspaceList = () => {
     div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
-        h(Link, { 'aria-label': 'Create new workspace', onClick: () => setCreatingNewWorkspace(true), style: { marginLeft: '0.5rem' } }, [icon('lighter-plus-circle', { size: 24 })])
+        h(Link, {
+          'aria-label': 'Create new workspace', onClick: () => setCreatingNewWorkspace(true),
+          style: { marginLeft: '0.5rem' },
+          tooltip: 'Create a new workspace'
+        },
+        [icon('lighter-plus-circle', { size: 24 })])
       ]),
       div({ style: { display: 'flex', marginBottom: '1rem' } }, [
         div({ style: styles.filter }, [
