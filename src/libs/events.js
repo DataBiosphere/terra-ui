@@ -24,7 +24,7 @@ export const PageViewReporter = () => {
 
   useEffect(() => {
     if (isSignedIn && registrationStatus === 'registered') {
-      Ajax().Metrics.captureEvent(eventsList.pageView)
+      Ajax().Metrics.captureEvent(`${eventsList.pageView}:${name}`)
     }
   }, [isSignedIn, name, registrationStatus])
 
