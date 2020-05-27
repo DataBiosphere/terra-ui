@@ -146,7 +146,11 @@ export default _.flow(
         onDismiss,
         okButton: h(ButtonPrimary, {
           disabled: errors,
-          tooltip: Utils.summarizeErrors(errors),
+          tooltip: Utils.cond(
+            [errors, Utils.summarizeErrors(errors)],
+            [cloneWorkspace, 'Clone new workspace'],
+            [Utils.DEFAULT, 'Create new workspace']
+          ),
           onClick: () => this.create()
         }, Utils.cond(
           [buttonText, buttonText],
