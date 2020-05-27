@@ -11,6 +11,9 @@ const eventsList = {
   pageView: 'page:view',
   workflowImport: 'workflow:import',
   workflowLaunch: 'workflow:launch',
+  workflowRerun: 'workflow:rerun',
+  workspaceClone: 'workspace:clone',
+  workspaceCreate: 'workspace:create',
   workspaceDataImport: 'workspace:data:import',
   workspaceShare: 'workspace:share'
 }
@@ -21,7 +24,7 @@ export const PageViewReporter = () => {
 
   useEffect(() => {
     if (isSignedIn && registrationStatus === 'registered') {
-      Ajax().Metrics.captureEvent(eventsList.pageView)
+      Ajax().Metrics.captureEvent(`${eventsList.pageView}:${name}`)
     }
   }, [isSignedIn, name, registrationStatus])
 

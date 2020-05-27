@@ -3,7 +3,9 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment, useState } from 'react'
 import { div, h, label, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay } from 'src/components/common'
+import {
+  ButtonPrimary, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay
+} from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
@@ -173,36 +175,10 @@ const FenceLink = ({ provider, displayName }) => {
    * Hooks
    */
   const [{ username, issued_at: issuedAt }, setStatus] = useState({})
-  const [href, setHref] = useState(undefined)
-  const [isLoadingStatus, setIsLoadingStatus] = useState(false)
-  const [isLoadingAuthUrl, setIsLoadingAuthUrl] = useState(false)
   const [isLinking, setIsLinking] = useState(false)
   const signal = Utils.useCancellation()
 
   const { User } = Ajax(signal)
-
-  const loadAuthUrl = _.flow(
-    withErrorReporting(`Error loading Fence link`),
-    Utils.withBusyState(setIsLoadingAuthUrl)
-  )(async () => {
-    const result = await User.getFenceAuthUrl(provider, redirectUrl)
-    setHref(result.url)
-  })
-
-  const loadFenceStatus = _.flow(
-    withErrorReporting(`Error loading status for ${displayName}`),
-    Utils.withBusyState(setIsLoadingStatus)
-  )(async () => {
-    try {
-      setStatus(await User.getFenceStatus(provider))
-    } catch (error) {
-      if (error.status === 404) {
-        setStatus({})
-      } else {
-        throw error
-      }
-    }
-  })
 
   const linkFenceAccount = _.flow(
     withErrorReporting('Error linking NIH account'),
@@ -212,40 +188,24 @@ const FenceLink = ({ provider, displayName }) => {
   })
 
   Utils.useOnMount(() => {
-    loadAuthUrl()
-  })
-
-  Utils.useOnMount(() => {
     if (token) {
       const profileLink = `/${Nav.getLink('profile')}`
       window.history.replaceState({}, '', profileLink)
       linkFenceAccount()
-    } else {
-      loadFenceStatus()
     }
   })
 
   /*
-   * Render helpers
-   */
-  const renderFrameworkServicesLink = linkText => {
-    return href && h(Link, { href, style: { display: 'flex', alignItems: 'center' } }, [
-      linkText,
-      icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })
-    ])
-  }
-
-  /*
    * Render
    */
-  const isBusy = isLoadingStatus || isLoadingAuthUrl || isLinking
+  const isBusy = isLinking
   const expireTime = addDays(30, parseJSON(issuedAt))
 
   return div({ style: { marginBottom: '1rem' } }, [
     div({ style: styles.form.title }, [displayName]),
     Utils.cond(
       [isBusy, () => div([spinner(), 'Loading account status...'])],
-      [!username, () => renderFrameworkServicesLink('Log-In to Framework Services to link your account')],
+      [!username, () => h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to link your account', provider, redirectUrl })],
       () => div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
         div({ style: { display: 'flex' } }, [
           div({ style: { flex: 1 } }, ['Username:']),
@@ -255,7 +215,7 @@ const FenceLink = ({ provider, displayName }) => {
           div({ style: { flex: 1 } }, ['Link Expiration:']),
           div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
         ]),
-        renderFrameworkServicesLink('Log-In to Framework Services to re-link your account')
+        h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to re-link your account', provider, redirectUrl })
       ])
     )
   ])

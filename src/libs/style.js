@@ -82,13 +82,14 @@ export const navList = {
     fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.dark(0.2)}`
   },
   item: selected => ({
-    display: 'flex', alignItems: 'center', padding: '0 1.5rem', height: 50, fontWeight: 500,
-    backgroundColor: selected ? colors.accent(0.1) : 'white',
-    borderBottom: `1px solid ${colors.dark(0.2)}`, borderRightStyle: 'solid',
-    borderRightWidth: selected ? 10 : 0,
-    borderRightColor: selected ? terraSpecial() : colors.accent()
+    display: 'flex', alignItems: 'center', padding: '0 1.5rem', height: 50, fontWeight: selected ? 700 : 500,
+    backgroundColor: 'white',
+    borderBottom: `1px solid ${colors.dark(0.2)}`,
+    boxShadow: selected ? `inset -10px 0px ${terraSpecial()}` : undefined
   }),
-  itemHover: selected => selected ? {} : { backgroundColor: colors.accent(0.1) }
+  itemHover: selected => selected ? {} : {
+    boxShadow: `inset -6px 0px ${terraSpecial(0.5)}`
+  }
 }
 
 export const breadcrumb = {

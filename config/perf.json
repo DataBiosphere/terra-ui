@@ -16,6 +16,7 @@
   "rawlsUrlRoot": "https://rawls.dsde-perf.broadinstitute.org",
   "rexUrlRoot": "https://terra-rex-perf.appspot.com",
   "samUrlRoot": "https://sam.dsde-perf.broadinstitute.org",
+  "shibbolethUrlRoot": "http://mock-nih.dev.test.firecloud.org",
   "tCell": {
     "appId": "saturnnonprod-O9lUP",
     "apiKey": "AQEBBAEkx4iE2KxNyI7Wx08EwU1ycTM7E4FMSmaibbMUQxNU6uQvuAJt7fyABAtFYSYfgEE"

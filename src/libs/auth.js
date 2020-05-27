@@ -1,12 +1,13 @@
-import { parseJSON } from 'date-fns/fp'
+import { addDays, differenceInDays, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { h } from 'react-hyperscript-helpers'
-import { ShibbolethLink } from 'src/components/common'
+import { div, h } from 'react-hyperscript-helpers'
+import { FrameworkServiceLink, ShibbolethLink } from 'src/components/common'
 import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
+import * as Nav from 'src/libs/nav'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { authStore, pfbImportJobStore, requesterPaysProjectStore, workspacesStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -183,6 +184,47 @@ export const refreshTerraProfile = async () => {
   authStore.update(state => ({ ...state, profile }))
 }
 
+//helpers for external services statuses
+
+const fetchServiceStatus = async statusPromise => {
+  try {
+    return await statusPromise
+  } catch (error) {
+    if (error.status === 404) {
+      return {}
+    } else {
+      throw error
+    }
+  }
+}
+
+const fenceNotify = (stateKey, notificationId, serviceName, provider) => (state, oldState) => {
+  const status = state[stateKey]
+  const oldStatus = oldState[stateKey]
+  if (status !== oldStatus) {
+    const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
+    const now = Date.now()
+    const dateOfExpiration = status && addDays(30, parseJSON(status.issued_at))
+    const dateFiveDaysBeforeExpiration = dateOfExpiration && addDays(-5, dateOfExpiration)
+    const expireStatus = Utils.cond(
+      [!dateOfExpiration, () => null],
+      [now >= dateOfExpiration, () => 'has expired'],
+      [now >= dateFiveDaysBeforeExpiration, () => `will expire in ${differenceInDays(now, dateOfExpiration)} day(s)`]
+    )
+    if (expireStatus) {
+      notify('info', div([
+        `Your access to ${serviceName} Framework Services ${expireStatus}. To `,
+        expireStatus === 'has expired' ? 'restore ' : 'renew ',
+        'access, log-in to Framework Services to ',
+        h(FrameworkServiceLink, { linkText: 're-link', provider, redirectUrl }),
+        ' your account'
+      ]), { id: notificationId })
+    } else {
+      clearNotification(notificationId)
+    }
+  }
+}
+
 authStore.subscribe(withErrorReporting('Error loading user profile', async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     await refreshTerraProfile()
@@ -190,19 +232,8 @@ authStore.subscribe(withErrorReporting('Error loading user profile', async (stat
 }))
 
 authStore.subscribe(withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
-  const loadNihStatus = async () => {
-    try {
-      return await Ajax().User.getNihStatus()
-    } catch (error) {
-      if (error.status === 404) {
-        return {}
-      } else {
-        throw error
-      }
-    }
-  }
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    const nihStatus = await loadNihStatus()
+    const nihStatus = await fetchServiceStatus(Ajax().User.getNihStatus())
     authStore.update(state => ({ ...state, nihStatus }))
   }
 }))
@@ -220,7 +251,7 @@ authStore.subscribe((state, oldState) => {
     const expireTime = state.nihStatus && state.nihStatus.linkExpireTime * 1000
     const expireStatus = Utils.cond(
       [!expireTime, () => null],
-      [now > expireTime, () => 'has expired'],
+      [now >= expireTime, () => 'has expired'],
       [now > expireTime - (1000 * 60 * 60 * 24), () => 'will expire soon']
     )
     if (expireStatus) {
@@ -237,6 +268,27 @@ authStore.subscribe((state, oldState) => {
     }
   }
 })
+
+authStore.subscribe(withErrorReporting('Error loading DCP Framework Services account status', async (state, oldState) => {
+  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
+    const fenceDCPStatus = await fetchServiceStatus(Ajax().User.getFenceStatus('fence'))
+    authStore.update(state => ({ ...state, fenceDCPStatus }))
+  }
+}))
+
+authStore.subscribe(withErrorReporting('Error loading DCF Framework Services account status', async (state, oldState) => {
+  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
+    const fenceDCFStatus = await fetchServiceStatus(Ajax().User.getFenceStatus('dcf-fence'))
+    authStore.update(state => ({ ...state, fenceDCFStatus }))
+  }
+}))
+
+//DCP
+authStore.subscribe(fenceNotify('fenceDCPStatus', 'fence-dcp-link-warning', 'DCP', 'fence'))
+
+
+//DCF
+authStore.subscribe(fenceNotify('fenceDCFStatus', 'fence-dcf-link-warning', 'DCF', 'dcf-fence'))
 
 authStore.subscribe((state, oldState) => {
   if (oldState.isSignedIn && !state.isSignedIn) {

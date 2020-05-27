@@ -1,6 +1,6 @@
 const _ = require('lodash/fp')
 
-const { signIntoTerra, clickable, click, dismissNotifications, fillIn, input, delay } = require('./integration-utils')
+const { signIntoTerra } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -156,14 +156,11 @@ const withRegisteredUser = test => withUser(async args => {
   const ajaxPage = await context.newPage()
 
   await ajaxPage.goto(testUrl)
-  await click(ajaxPage, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(ajaxPage, token)
-  await dismissNotifications(ajaxPage)
-  await fillIn(ajaxPage, input({ labelContains: 'First Name' }), 'Integration')
-  await fillIn(ajaxPage, input({ labelContains: 'Last Name' }), 'Test')
-  await click(ajaxPage, clickable({ textContains: 'Register' }))
-  await click(ajaxPage, clickable({ textContains: 'Accept' }))
-  await delay(1000)
+  await ajaxPage.evaluate(async () => {
+    await window.Ajax().User.profile.set({ firstName: 'Integration', lastName: 'Test', contactEmail: 'me@example.com' })
+    await window.Ajax().User.acceptTos()
+  })
   await ajaxPage.close()
 
   await test(args)
@@ -174,5 +171,6 @@ module.exports = {
   defaultTimeout,
   withWorkspace,
   withBilling,
+  withUser,
   withRegisteredUser
 }

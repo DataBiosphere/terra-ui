@@ -325,6 +325,8 @@ const WorkflowView = _.flow(
   resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata) {
     const { workflowName } = this.props
 
+    // If the default for non-set types changes from `processAllAsSet` then the calculation of `noLaunchReason` in `renderSummary` needs to be updated accordingly.
+    // Currently, `renderSummary` assumes that it is not possible to have nothing selected for non-set types.
     return {
       type: Utils.cond(
         [isSet(value), () => _.includes(value, _.keys(entityMetadata)) ? chooseSets : processAllAsSet],
@@ -414,12 +416,9 @@ const WorkflowView = _.flow(
           processSingle: this.isSingle(), entitySelectionModel, useCallCache, deleteIntermediateOutputFiles,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, { multi: false })
+            const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, { methodVersion, sourceRepo, methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath })
             Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
-          },
-          onSuccessMulti: () => {
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, { multi: true })
-            Nav.goToPath('workspace-job-history', workspaceId)
           }
         }),
         variableSelected && h(BucketContentModal, {
@@ -549,7 +548,7 @@ const WorkflowView = _.flow(
       [type === chooseSetComponents, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}s ${newSetMessage}`],
       [type === processAllAsSet, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType]?.count || 0} ${baseEntityType}s ${newSetMessage}`],
       [type === chooseSets, () => !!count ?
-        `${count} selected ${rootEntityType}s` :
+        `${count} selected ${rootEntityType}s ${newSetMessage}` :
         `No ${rootEntityType}s selected`]
     )
   }
@@ -592,12 +591,16 @@ const WorkflowView = _.flow(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
       [this.isMultiple() && (!entityMetadata[rootEntityType] && !_.includes(rootEntityType, possibleSetTypes)), () => `There are no ${selectedEntityType}s in this workspace.`],
+      // Default for _set types is `chooseSets` so we need to make sure something is selected.
+      // Default for non- _set types is `processAll` and the "Select Data" modal makes it impossible to have nothing selected for these types.
+      // Users have expressed dislike of the `processAll` default so this clause will likely need to be expanded along with any change to `resetSelectionModel`.
       [this.isMultiple() && (entitySelectionModel.type === chooseSets || entitySelectionModel.type === chooseSetComponents) && !_.size(entitySelectionModel.selectedEntities),
         () => 'Select or create a set']
     )
 
     const inputsValid = _.isEmpty(errors.inputs)
     const outputsValid = _.isEmpty(errors.outputs)
+    const sourceDisplay = sourceRepo === 'agora' ? `${methodNamespace}/${methodName}/${methodVersion}` : `${methodPath}:${methodVersion}`
     return div({
       style: {
         position: 'relative',
@@ -656,10 +659,10 @@ const WorkflowView = _.flow(
             ])
           ])]),
           div([
-            'Source: ', currentSnapRedacted ? `${methodNamespace}/${methodName}/${methodVersion}` : h(Link, {
+            'Source: ', currentSnapRedacted ? sourceDisplay : h(Link, {
               href: methodLink(modifiedConfig),
               ...Utils.newTabLinkProps
-            }, sourceRepo === 'agora' ? `${methodNamespace}/${methodName}/${methodVersion}` : `${methodPath}:${methodVersion}`)
+            }, [sourceDisplay])
           ]),
           div(`Synopsis: ${synopsis ? synopsis : ''}`),
           documentation ?

@@ -131,7 +131,7 @@ const NotificationDisplay = Utils.connectStore(notificationStore, 'notificationS
         onDismiss: () => this.setState({ modal: false }),
         okButton: h(ButtonPrimary, { onClick: () => refreshPage() }, 'Refresh Page')
       }, [
-        h(ErrorView, { error: detail, collapses: false })
+        h(ErrorView, { error: detail })
       ])
     ])
   }
@@ -151,8 +151,8 @@ const showNotification = ({ id, timeout }) => {
     ]),
     container: 'top-right',
     dismiss: { duration: !!timeout ? timeout : 0, click: false, touch: false },
-    animationIn: ['animated', 'slideInRight'],
-    animationOut: ['animated', 'slideOutRight'],
+    animationIn: ['animate__animated', 'animate__slideInRight'],
+    animationOut: ['animate__animated', 'animate__slideOutRight'],
     width: 350
   })
 }

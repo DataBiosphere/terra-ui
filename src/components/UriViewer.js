@@ -12,8 +12,9 @@ import DownloadPrices from 'src/data/download-prices'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { getUserProjectForWorkspace, parseGsUri } from 'src/libs/data-utils'
 import { withErrorReporting } from 'src/libs/error'
-import { requesterPaysBuckets, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
+import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -54,7 +55,6 @@ const isFilePreviewable = ({ size, ...metadata }) => {
 
 const isGs = uri => _.startsWith('gs://', uri)
 
-const parseUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 const getMaxDownloadCostNA = bytes => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos
   const downloadPrice = bytes * nanos / DownloadPrices.pricingInfo[0].pricingExpression.baseUnitConversionFactor / 10e8
@@ -107,8 +107,8 @@ const DownloadButton = ({ uri, metadata: { bucket, name, size } }) => {
     try {
       const { url } = await Ajax(signal).Martha.getSignedUrl({ bucket, object: name, dataObjectUri: isGs(uri) ? undefined : uri })
       const workspace = workspaceStore.get()
-      const userProject = workspace && Utils.canWrite(workspace.accessLevel) ? workspace.workspace.namespace : requesterPaysProjectStore.get()
-      setUrl(_.includes(bucket, requesterPaysBuckets.get()) ? Utils.mergeQueryParams({ userProject }, url) : url)
+      const userProject = await getUserProjectForWorkspace(workspace)
+      setUrl(knownBucketRequesterPaysStatuses.get()[bucket] ? Utils.mergeQueryParams({ userProject }, url) : url)
     } catch (error) {
       setUrl(null)
     }
@@ -145,7 +145,7 @@ const UriViewer = _.flow(
   const loadMetadata = async () => {
     try {
       if (isGs(uri)) {
-        const [bucket, name] = parseUri(uri)
+        const [bucket, name] = parseGsUri(uri)
         const loadObject = withRequesterPaysHandler(onRequesterPaysError, () => {
           return Ajax(signal).Buckets.getObject(bucket, name, googleProject)
         })
@@ -153,7 +153,7 @@ const UriViewer = _.flow(
         setMetadata(metadata)
       } else {
         const { dos: { data_object: { size, urls } } } = await Ajax(signal).Martha.getDataObjectMetadata(uri)
-        const [bucket, name] = parseUri(_.find(u => u.startsWith('gs://'), _.map('url', urls)))
+        const [bucket, name] = parseGsUri(_.find(u => u.startsWith('gs://'), _.map('url', urls)))
         setMetadata({ bucket, name, size })
       }
     } catch (e) {
