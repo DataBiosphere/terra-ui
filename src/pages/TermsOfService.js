@@ -323,7 +323,7 @@ const TermsOfServicePage = () => {
         h(MarkdownViewer, {
           renderers: {
             link: newWindowLinkRenderer,
-            heading: (text, level) => `<h${level} style="color: ${colors.dark()}; margin-bottom: 0">${text}</h${level}>`
+            heading: (text, level) => `<h${level} style="margin-bottom: 0">${text}</h${level}>`
           }
         }, [termsOfService])
       ]),
