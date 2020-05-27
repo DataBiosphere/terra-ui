@@ -18,6 +18,11 @@ const eventsList = {
   workspaceShare: 'workspace:share'
 }
 
+export const extractWorkspaceDetails = workspaceObject => {
+  const { workspace: { namespace, name } } = workspaceObject
+  return { workspaceName: name, workspaceNamespace: namespace }
+}
+
 export const PageViewReporter = () => {
   const { name } = useRoute()
   const { isSignedIn, registrationStatus } = Utils.useStore(authStore)

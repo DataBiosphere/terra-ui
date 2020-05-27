@@ -13,7 +13,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { pfbImportJobStore } from 'src/libs/state'
@@ -89,7 +89,9 @@ const ImportData = () => {
   const onImport = _.flow(
     Utils.withBusyState(setIsImporting),
     withErrorReporting('Import Error')
-  )(async ({ namespace, name }) => {
+  )(async workspace => {
+    const namespace = workspace.namespace
+    const name = workspace.name
     await Utils.switchCase(format,
       ['PFB', async () => {
         const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importPFB(url)
@@ -108,7 +110,7 @@ const ImportData = () => {
         notify('success', 'Data imported successfully.', { timeout: 3000 })
       }]
     )
-    Ajax().Metrics.captureEvent(Events.workspaceDataImport)
+    Ajax().Metrics.captureEvent(Events.workspaceDataImport, { ...extractWorkspaceDetails({ workspace }) })
     Nav.goToPath('workspace-data', { namespace, name })
   })
 

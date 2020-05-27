@@ -15,7 +15,7 @@ import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -248,10 +248,12 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
   }
 
   async exportMethod() {
-    const { namespace, name } = this.props
+    const { namespace, name, ws } = this.props
     const { selectedWorkflow } = this.state
 
     this.setState({ exporting: true })
+
+    const eventData = { source: 'repo', ...extractWorkspaceDetails(ws) }
 
     try {
       const methodAjax = Ajax().Methods.method(selectedWorkflow.namespace, selectedWorkflow.name, selectedWorkflow.snapshotId)
@@ -262,11 +264,11 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
 
       const { namespace: workflowNamespace, name: workflowName } = config || selectedWorkflow
 
-      Ajax().Metrics.captureEvent(Events.workflowImport, { success: true, source: 'repo' })
+      Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: true })
       Nav.goToPath('workflow', { namespace, name, workflowNamespace, workflowName })
     } catch (error) {
       reportError('Error importing workflow', error)
-      Ajax().Metrics.captureEvent(Events.workflowImport, { success: false, source: 'repo' })
+      Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: false })
       this.setState({ exporting: false })
     }
   }
@@ -401,7 +403,7 @@ export const Workflows = _.flow(
           () => workflows
         ),
         findingWorkflow && h(FindWorkflowModal, {
-          namespace, name,
+          namespace, name, ws,
           onDismiss: () => this.setState({ findingWorkflow: false })
         }),
         loading && spinnerOverlay

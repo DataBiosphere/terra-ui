@@ -20,7 +20,7 @@ import WDLViewer from 'src/components/WDLViewer'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { workflowSelectionStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -417,7 +417,7 @@ const WorkflowView = _.flow(
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
             const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, { methodVersion, sourceRepo, methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath })
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...extractWorkspaceDetails(workspace), methodVersion, sourceRepo, methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath })
             Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
           }
         }),
