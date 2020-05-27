@@ -106,8 +106,10 @@ a {
 /* Styles for content rendered by marked (also used by react-simplemde-editor) */
 .markdown-body a, .simplemde-container .editor-preview a {
   color: #4d72aa;
+  text-decoration: underline;
 }
 
 .markdown-body {
   font-family: "Montserrat", sans-serif;
+  color: #333f52;
 }
