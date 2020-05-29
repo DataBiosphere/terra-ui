@@ -80,6 +80,8 @@ export const initializeAuth = _.memoize(async () => {
         acceptedTos: isSignedIn ? state.acceptedTos : undefined,
         profile: isSignedIn ? state.profile : {},
         nihStatus: isSignedIn ? state.nihStatus : undefined,
+        fenceDCPStatus: isSignedIn ? state.fenceDCPStatus : undefined,
+        fenceDCFStatus: isSignedIn ? state.fenceDCFStatus : undefined,
         isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
         user: {
           token: authResponse && authResponse.access_token,
