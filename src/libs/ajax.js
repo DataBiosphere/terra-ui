@@ -3,7 +3,7 @@ import * as qs from 'qs'
 import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/machines'
 import { getUser } from 'src/libs/auth'
-import { getConfig } from 'src/libs/config'
+import { getConfig, isAnvil, isBioDataCatalyst, isDatastage, isFirecloud, isUKBiobank } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { ajaxOverridesStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
@@ -24,7 +24,17 @@ window.ajaxOverrideUtils = {
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
-const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
+const appIdentifier = {
+  headers: {
+    'X-App-ID': Utils.cond(
+      [isFirecloud(), () => 'Firecloud'],
+      [isDatastage(), () => 'Datastage'],
+      [isAnvil(), () => 'Anvil'],
+      [isBioDataCatalyst(), () => 'BioDataCatalyst'],
+      [isUKBiobank(), () => 'UKBiobank'],
+      () => 'Terra')
+  }
+}
 const tosData = { appid: 'Saturn', tosversion: 6 }
 
 const withInstrumentation = wrappedFetch => (...args) => {
