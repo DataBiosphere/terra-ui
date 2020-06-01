@@ -56,7 +56,7 @@ const HallOfFame = () => {
       {
         name: 'Adrian Sharma',
         dates: 'October 2019 - May 2020',
-        pic: 'https://files.slack.com/files-pri/T0CMFS7GX-F014HJFR3TL/adrian.jpeg'
+        pic: 'https://media-exp1.licdn.com/dms/image/C4D03AQGxPOLoSvNMxg/profile-displayphoto-shrink_200_200/0?e=1596672000&v=beta&t=-kRYR4BI3ezoWQ1u1aMzvR68KZ2WlMhA3p7tR3eIiTA'
       }
     ]))
   ])
