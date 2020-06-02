@@ -52,6 +52,11 @@ const HallOfFame = () => {
         name: 'Isaac Zarsky',
         dates: 'February 2018 - May 2020',
         pic: 'https://github.com/zarsky-broad.png?size=200'
+      },
+      {
+        name: 'Adrian Sharma',
+        dates: 'October 2019 - May 2020',
+        pic: 'https://media-exp1.licdn.com/dms/image/C4D03AQGxPOLoSvNMxg/profile-displayphoto-shrink_200_200/0?e=1596672000&v=beta&t=-kRYR4BI3ezoWQ1u1aMzvR68KZ2WlMhA3p7tR3eIiTA'
       }
     ]))
   ])
