@@ -45,7 +45,10 @@ const makeCard = variant => ({ workspace: { namespace, name, attributes: { descr
         backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: 'auto 100%', borderRadius: '0 5px 5px 0',
         width: 87,
         ...Utils.switchCase(variant,
-          ['new', () => ({ backgroundImage: `url(${covidBg})` })],
+          ['new', () => Utils.switchCase(
+            [name.toLowerCase().includes('covid'), () =>({ backgroundImage: `url(${covidBg})` })],
+            [Utils.DEFAULT, () =>({ backgroundImage: `url(${featuredBg})`, opacity: 0.75 })]
+          )],
           ['gatk', () => ({ backgroundColor: '#333', backgroundImage: `url(${gatkLogo})`, backgroundSize: undefined })],
           [Utils.DEFAULT, () => ({ backgroundImage: `url(${featuredBg})`, opacity: 0.75 })]
         )
