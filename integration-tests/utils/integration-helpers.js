@@ -110,42 +110,26 @@ const withBilling = test => async options => {
   try {
     await test({ ...options })
   } finally {
-    await deleteCluster(options)
+    await deleteRuntimes(options)
     await removeUserFromBilling(options)
   }
 }
 
-const trimClustersOldestFirst = _.flow(
-  _.remove({ status: 'Deleting' }),
-  _.sortBy('createdDate')
-)
-
-const currentCluster = _.flow(trimClustersOldestFirst, _.last)
-
-const getCurrentCluster = withUserToken(async ({ billingProject, context, email, testUrl, token }) => {
+const deleteRuntimes = withUserToken(async ({ billingProject, context, email, testUrl, token }) => {
   const ajaxPage = await context.newPage()
   await ajaxPage.goto(testUrl)
   await signIntoTerra(ajaxPage, token)
 
-  const clusters = await ajaxPage.evaluate((billingProject, email) => {
+  const runtimes = await ajaxPage.evaluate((billingProject, email) => {
     return window.Ajax().Clusters.list({ googleProject: billingProject, creator: email })
   }, billingProject, email)
 
-  await ajaxPage.close()
-  return currentCluster(clusters)
-})
-
-const deleteCluster = withUserToken(async ({ billingProject, context, email, testUrl, token }) => {
-  const ajaxPage = await context.newPage()
-  await ajaxPage.goto(testUrl)
-  await signIntoTerra(ajaxPage, token)
-
-  const currentC = await getCurrentCluster({ billingProject, context, email, testUrl })
-  currentC && await ajaxPage.evaluate(currentC => {
-    return window.Ajax().Clusters.cluster(currentC.googleProject, currentC.runtimeName).delete()
-  }, currentC)
-
-  currentC && console.info(`deleted cluster: ${currentC.runtimeName}`)
+  await Promise.all(_.map(async runtime => {
+    const result = await ajaxPage.evaluate(runtime => {
+      return window.Ajax().Clusters.cluster(runtime.googleProject, runtime.runtimeName).delete()
+    }, runtime)
+    console.info(`deleted cluster: ${runtime.runtimeName} [${result}]`)
+  }, _.remove({ status: 'Deleting' }, runtimes)))
 
   await ajaxPage.close()
 })
