@@ -120,16 +120,14 @@ const deleteRuntimes = withUserToken(async ({ billingProject, context, email, te
   await ajaxPage.goto(testUrl)
   await signIntoTerra(ajaxPage, token)
 
-  const runtimes = await ajaxPage.evaluate((billingProject, email) => {
-    return window.Ajax().Clusters.list({ googleProject: billingProject, creator: email })
+  const deletedRuntimes = await ajaxPage.evaluate(async (billingProject, email) => {
+    const runtimes = await window.Ajax().Clusters.list({ googleProject: billingProject, creator: email })
+    return Promise.all(_.map(async runtime => {
+      await window.Ajax().Clusters.cluster(runtime.googleProject, runtime.runtimeName).delete()
+      return runtime.runtimeName
+    }, _.remove({ status: 'Deleting' }, runtimes)))
   }, billingProject, email)
-
-  await Promise.all(_.map(async runtime => {
-    const result = await ajaxPage.evaluate(runtime => {
-      return window.Ajax().Clusters.cluster(runtime.googleProject, runtime.runtimeName).delete()
-    }, runtime)
-    console.info(`deleted cluster: ${runtime.runtimeName} [${result}]`)
-  }, _.remove({ status: 'Deleting' }, runtimes)))
+  console.info(`deleted runtimes: ${deletedRuntimes}`)
 
   await ajaxPage.close()
 })
