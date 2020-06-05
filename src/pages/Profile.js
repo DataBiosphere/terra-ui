@@ -16,6 +16,7 @@ import { getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { allProviders, providerName } from 'src/libs/providers'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -159,7 +160,7 @@ const NihLink = ({ nihToken }) => {
 }
 
 
-const FenceLink = ({ provider, displayName }) => {
+const FenceLink = ({ provider }) => {
   const decodeProvider = state => state ? JSON.parse(atob(state)).provider : ''
 
   const extractToken = (provider, { state, code }) => {
@@ -174,7 +175,7 @@ const FenceLink = ({ provider, displayName }) => {
   /*
    * Hooks
    */
-  const [{ username, issued_at: issuedAt }, setStatus] = useState({})
+  const { fenceStatus: { [provider]: { username, issued_at: issuedAt } = {} } } = Utils.useStore(authStore)
   const [isLinking, setIsLinking] = useState(false)
   const signal = Utils.useCancellation()
 
@@ -184,7 +185,8 @@ const FenceLink = ({ provider, displayName }) => {
     withErrorReporting('Error linking NIH account'),
     Utils.withBusyState(setIsLinking)
   )(async () => {
-    setStatus(await User.linkFenceAccount(provider, token, redirectUrl))
+    const status = await User.linkFenceAccount(provider, token, redirectUrl)
+    authStore.set(['fenceStatus', provider], status)
   })
 
   Utils.useOnMount(() => {
@@ -202,7 +204,7 @@ const FenceLink = ({ provider, displayName }) => {
   const expireTime = addDays(30, parseJSON(issuedAt))
 
   return div({ style: { marginBottom: '1rem' } }, [
-    div({ style: styles.form.title }, [displayName]),
+    div({ style: styles.form.title }, [providerName(provider)]),
     Utils.cond(
       [isBusy, () => div([spinner(), 'Loading account status...'])],
       [!username, () => h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to link your account', provider, redirectUrl })],
@@ -267,14 +269,7 @@ const Profile = _.flow(
             div({ style: { marginTop: '0', marginLeft: '1rem' } }, [
               sectionTitle('Identity & External Servers'),
               h(NihLink, { nihToken: queryParams['nih-username-token'] }),
-              h(FenceLink, {
-                provider: 'fence',
-                displayName: 'DCP Framework Services by University of Chicago'
-              }),
-              h(FenceLink, {
-                provider: 'dcf-fence',
-                displayName: 'DCF Framework Services by University of Chicago'
-              })
+              _.map(provider => h(FenceLink, { key: provider, provider }), allProviders)
             ])
           ])
         ])

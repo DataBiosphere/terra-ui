@@ -9,7 +9,8 @@ export const authStore = Utils.atom({
   registrationStatus: undefined,
   acceptedTos: undefined,
   user: {},
-  profile: {}
+  profile: {},
+  fenceStatus: {}
 })
 
 export const lastActiveTimeStore = staticStorageSlot(localStorage, 'idleTimeout')

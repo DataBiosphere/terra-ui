@@ -291,8 +291,16 @@ const User = signal => ({
   },
 
   getNihStatus: async () => {
-    const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }))
-    return res.json()
+    try {
+      const res = await fetchOrchestration('api/nih/status', _.merge(authOpts(), { signal }))
+      return res.json()
+    } catch (error) {
+      if (error.status === 404) {
+        return {}
+      } else {
+        throw error
+      }
+    }
   },
 
   linkNihAccount: async token => {
@@ -301,8 +309,16 @@ const User = signal => ({
   },
 
   getFenceStatus: async provider => {
-    const res = await fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal }))
-    return res.json()
+    try {
+      const res = await fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal }))
+      return res.json()
+    } catch (error) {
+      if (error.status === 404) {
+        return {}
+      } else {
+        throw error
+      }
+    }
   },
 
   getFenceAuthUrl: async (provider, redirectUri) => {

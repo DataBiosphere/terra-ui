@@ -9,6 +9,7 @@ import { withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
+import { allProviders, providerName } from 'src/libs/providers'
 import { authStore, pfbImportJobStore, requesterPaysProjectStore, workspacesStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -80,8 +81,7 @@ export const initializeAuth = _.memoize(async () => {
         acceptedTos: isSignedIn ? state.acceptedTos : undefined,
         profile: isSignedIn ? state.profile : {},
         nihStatus: isSignedIn ? state.nihStatus : undefined,
-        fenceDCPStatus: isSignedIn ? state.fenceDCPStatus : undefined,
-        fenceDCFStatus: isSignedIn ? state.fenceDCFStatus : undefined,
+        fenceStatus: isSignedIn ? state.fenceStatus : {},
         isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
         user: {
           token: authResponse && authResponse.access_token,
@@ -186,47 +186,6 @@ export const refreshTerraProfile = async () => {
   authStore.update(state => ({ ...state, profile }))
 }
 
-//helpers for external services statuses
-
-const fetchServiceStatus = async statusPromise => {
-  try {
-    return await statusPromise
-  } catch (error) {
-    if (error.status === 404) {
-      return {}
-    } else {
-      throw error
-    }
-  }
-}
-
-const fenceNotify = (stateKey, notificationId, serviceName, provider) => (state, oldState) => {
-  const status = state[stateKey]
-  const oldStatus = oldState[stateKey]
-  if (status !== oldStatus) {
-    const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
-    const now = Date.now()
-    const dateOfExpiration = status && addDays(30, parseJSON(status.issued_at))
-    const dateFiveDaysBeforeExpiration = dateOfExpiration && addDays(-5, dateOfExpiration)
-    const expireStatus = Utils.cond(
-      [!dateOfExpiration, () => null],
-      [now >= dateOfExpiration, () => 'has expired'],
-      [now >= dateFiveDaysBeforeExpiration, () => `will expire in ${differenceInDays(now, dateOfExpiration)} day(s)`]
-    )
-    if (expireStatus) {
-      notify('info', div([
-        `Your access to ${serviceName} Framework Services ${expireStatus}. To `,
-        expireStatus === 'has expired' ? 'restore ' : 'renew ',
-        'access, log-in to Framework Services to ',
-        h(FrameworkServiceLink, { linkText: 're-link', provider, redirectUrl }),
-        ' your account'
-      ]), { id: notificationId })
-    } else {
-      clearNotification(notificationId)
-    }
-  }
-}
-
 authStore.subscribe(withErrorReporting('Error loading user profile', async (state, oldState) => {
   if (!oldState.isSignedIn && state.isSignedIn) {
     await refreshTerraProfile()
@@ -235,7 +194,7 @@ authStore.subscribe(withErrorReporting('Error loading user profile', async (stat
 
 authStore.subscribe(withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    const nihStatus = await fetchServiceStatus(Ajax().User.getNihStatus())
+    const nihStatus = await Ajax().User.getNihStatus()
     authStore.update(state => ({ ...state, nihStatus }))
   }
 }))
@@ -271,26 +230,44 @@ authStore.subscribe((state, oldState) => {
   }
 })
 
-authStore.subscribe(withErrorReporting('Error loading DCP Framework Services account status', async (state, oldState) => {
+authStore.subscribe(withErrorReporting('Error loading Framework Services account status', async (state, oldState) => {
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    const fenceDCPStatus = await fetchServiceStatus(Ajax().User.getFenceStatus('fence'))
-    authStore.update(state => ({ ...state, fenceDCPStatus }))
+    await Promise.all(_.map(async provider => {
+      const status = await Ajax().User.getFenceStatus(provider)
+      authStore.update(_.set(['fenceStatus', provider], status))
+    }, allProviders))
   }
 }))
 
-authStore.subscribe(withErrorReporting('Error loading DCF Framework Services account status', async (state, oldState) => {
-  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    const fenceDCFStatus = await fetchServiceStatus(Ajax().User.getFenceStatus('dcf-fence'))
-    authStore.update(state => ({ ...state, fenceDCFStatus }))
-  }
-}))
-
-//DCP
-authStore.subscribe(fenceNotify('fenceDCPStatus', 'fence-dcp-link-warning', 'DCP', 'fence'))
-
-
-//DCF
-authStore.subscribe(fenceNotify('fenceDCFStatus', 'fence-dcf-link-warning', 'DCF', 'dcf-fence'))
+authStore.subscribe((state, oldState) => {
+  _.forEach(provider => {
+    const notificationId = `fence-${provider}-link-warning`
+    const status = state.fenceStatus[provider]
+    const oldStatus = oldState.fenceStatus[provider]
+    if (status !== oldStatus) {
+      const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
+      const now = Date.now()
+      const dateOfExpiration = status && addDays(30, parseJSON(status.issued_at))
+      const dateFiveDaysBeforeExpiration = dateOfExpiration && addDays(-5, dateOfExpiration)
+      const expireStatus = Utils.cond(
+        [!dateOfExpiration, () => null],
+        [now >= dateOfExpiration, () => 'has expired'],
+        [now >= dateFiveDaysBeforeExpiration, () => `will expire in ${differenceInDays(now, dateOfExpiration)} day(s)`]
+      )
+      if (expireStatus) {
+        notify('info', div([
+          `Your access to ${providerName(provider)} Framework Services ${expireStatus}. To `,
+          expireStatus === 'has expired' ? 'restore ' : 'renew ',
+          'access, log-in to Framework Services to ',
+          h(FrameworkServiceLink, { linkText: 're-link', provider, redirectUrl }),
+          ' your account'
+        ]), { id: notificationId })
+      } else {
+        clearNotification(notificationId)
+      }
+    }
+  }, allProviders)
+})
 
 authStore.subscribe((state, oldState) => {
   if (oldState.isSignedIn && !state.isSignedIn) {
