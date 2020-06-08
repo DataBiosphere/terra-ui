@@ -110,43 +110,24 @@ const withBilling = test => async options => {
   try {
     await test({ ...options })
   } finally {
-    await deleteCluster(options)
+    await deleteRuntimes(options)
     await removeUserFromBilling(options)
   }
 }
 
-const trimClustersOldestFirst = _.flow(
-  _.remove({ status: 'Deleting' }),
-  _.remove({ status: 'Creating' }),
-  _.sortBy('createdDate')
-)
-
-const currentCluster = _.flow(trimClustersOldestFirst, _.last)
-
-const getCurrentCluster = withUserToken(async ({ billingProject, context, testUrl, token }) => {
+const deleteRuntimes = withUserToken(async ({ billingProject, context, email, testUrl, token }) => {
   const ajaxPage = await context.newPage()
   await ajaxPage.goto(testUrl)
   await signIntoTerra(ajaxPage, token)
 
-  const clusters = await ajaxPage.evaluate(billingProject => {
-    return window.Ajax().Clusters.list({ googleProject: billingProject })
-  }, billingProject)
-
-  await ajaxPage.close()
-  return currentCluster(clusters)
-})
-
-const deleteCluster = withUserToken(async ({ billingProject, context, testUrl, token }) => {
-  const ajaxPage = await context.newPage()
-  await ajaxPage.goto(testUrl)
-  await signIntoTerra(ajaxPage, token)
-
-  const currentC = await getCurrentCluster({ billingProject, context, testUrl })
-  currentC && await ajaxPage.evaluate((currentC, billingProject) => {
-    return window.Ajax().Clusters.cluster(billingProject, currentC.runtimeName).delete()
-  }, currentC, billingProject)
-
-  currentC && console.info(`deleted cluster: ${currentC.runtimeName}`)
+  const deletedRuntimes = await ajaxPage.evaluate(async (billingProject, email) => {
+    const runtimes = await window.Ajax().Clusters.list({ googleProject: billingProject, creator: email })
+    return Promise.all(_.map(async runtime => {
+      await window.Ajax().Clusters.cluster(runtime.googleProject, runtime.runtimeName).delete()
+      return runtime.runtimeName
+    }, _.remove({ status: 'Deleting' }, runtimes)))
+  }, billingProject, email)
+  console.info(`deleted runtimes: ${deletedRuntimes}`)
 
   await ajaxPage.close()
 })
