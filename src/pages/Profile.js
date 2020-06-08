@@ -349,7 +349,7 @@ const Profile = _.flow(
         h(InfoBox, [
           'For more information about proxy groups, see the ',
           h(Link, {
-            href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=11185',
+            href: 'https://support.terra.bio/hc/en-us/articles/360031023592',
             ...Utils.newTabLinkProps
           }, ['user guide.'])
         ])
