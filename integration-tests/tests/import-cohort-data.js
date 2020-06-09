@@ -1,3 +1,4 @@
+const _ = require('lodash/fp')
 const { withWorkspace } = require('../utils/integration-helpers')
 const { findInGrid, click, clickable, dismissNotifications, fillIn, findIframe, input, signIntoTerra, select, svgText, waitForNoSpinners, findElement } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
@@ -5,7 +6,10 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 
 const cohortName = `terra-ui-test-cohort`
 
-const testImportCohortDataFn = withUserToken(withWorkspace(async ({ page, testUrl, token, workspaceName }) => {
+const testImportCohortDataFn = _.flow(
+  withWorkspace,
+  withUserToken
+)(async ({ page, testUrl, token, workspaceName }) => {
   await page.goto(testUrl)
   await signIntoTerra(page, token)
   await dismissNotifications(page)
@@ -26,7 +30,7 @@ const testImportCohortDataFn = withUserToken(withWorkspace(async ({ page, testUr
   await click(page, clickable({ textContains: 'cohort' }))
   await findInGrid(page, '1000 Genomes')
   await findInGrid(page, cohortName)
-}))
+})
 
 const testImportCohortData = {
   name: 'import-cohort-data',
