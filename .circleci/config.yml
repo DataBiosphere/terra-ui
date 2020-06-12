@@ -93,6 +93,7 @@ commands:
             JEST_JUNIT_OUTPUT_DIR: "/tmp/test-results/integration-test-results.xml"
             SCREENSHOT_DIR: "/tmp/failure-screenshots"
             ENVIRONMENT: << parameters.env >>
+          no_output_timeout: 16m
           command: |
             mkdir -p ${SCREENSHOT_DIR}
             yarn test --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
