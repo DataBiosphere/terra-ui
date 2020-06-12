@@ -170,17 +170,6 @@ authStore.subscribe(withErrorReporting('Error checking groups for timeout status
   }
 }))
 
-/**
- * Developers can get access to a user's ID, so a determined person could compare user IDs to
- * hashes to identify a user in our analytics data. We trust our developers to refrain from
- * doing this.
- */
-authStore.subscribe((state, oldState) => {
-  if (!oldState.registrationStatus && state.registrationStatus) {
-    window.newrelic.setCustomAttribute('userGoogleId', state.user.id)
-  }
-})
-
 export const refreshTerraProfile = async () => {
   const profile = Utils.kvArrayToObject((await Ajax().User.profile.get()).keyValuePairs)
   authStore.update(state => ({ ...state, profile }))
