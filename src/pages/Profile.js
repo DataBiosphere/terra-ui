@@ -174,7 +174,11 @@ const FenceLink = ({ provider, displayName }) => {
   /*
    * Hooks
    */
-  const [{ username, issued_at: issuedAt }, setStatus] = useState({})
+  const auth = Utils.useStore(authStore)
+  const { username, issued_at: issuedAt } = Utils.switchCase(provider,
+    ['fence', () => auth.fenceDCPStatus || {}],
+    ['dcf-fence', () => auth.fenceDCFStatus || {}],
+    [Utils.DEFAULT, () => {}])
   const [isLinking, setIsLinking] = useState(false)
   const signal = Utils.useCancellation()
 
@@ -184,7 +188,8 @@ const FenceLink = ({ provider, displayName }) => {
     withErrorReporting('Error linking NIH account'),
     Utils.withBusyState(setIsLinking)
   )(async () => {
-    setStatus(await User.linkFenceAccount(provider, token, redirectUrl))
+    const resultStatus = await User.linkFenceAccount(provider, token, redirectUrl)
+    authStore.update(state => ({ ...state, resultStatus }))
   })
 
   Utils.useOnMount(() => {
