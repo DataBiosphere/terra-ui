@@ -9,7 +9,7 @@ import { withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
-import { allProviders, providerName } from 'src/libs/providers'
+import { allProviders } from 'src/libs/providers'
 import { authStore, pfbImportJobStore, requesterPaysProjectStore, workspacesStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -232,18 +232,18 @@ authStore.subscribe((state, oldState) => {
 
 authStore.subscribe(withErrorReporting('Error loading Framework Services account status', async (state, oldState) => {
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    await Promise.all(_.map(async provider => {
-      const status = await Ajax().User.getFenceStatus(provider)
-      authStore.update(_.set(['fenceStatus', provider], status))
+    await Promise.all(_.map(async ({ key }) => {
+      const status = await Ajax().User.getFenceStatus(key)
+      authStore.update(_.set(['fenceStatus', key], status))
     }, allProviders))
   }
 }))
 
 authStore.subscribe((state, oldState) => {
-  _.forEach(provider => {
-    const notificationId = `fence-${provider}-link-warning`
-    const status = state.fenceStatus[provider]
-    const oldStatus = oldState.fenceStatus[provider]
+  _.forEach(({ key, name }) => {
+    const notificationId = `fence-${key}-link-warning`
+    const status = state.fenceStatus[key]
+    const oldStatus = oldState.fenceStatus[key]
     if (status !== oldStatus) {
       const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
       const now = Date.now()
@@ -256,10 +256,10 @@ authStore.subscribe((state, oldState) => {
       )
       if (expireStatus) {
         notify('info', div([
-          `Your access to ${providerName(provider)} Framework Services ${expireStatus}. To `,
+          `Your access to ${name} Framework Services ${expireStatus}. To `,
           expireStatus === 'has expired' ? 'restore ' : 'renew ',
           'access, log-in to Framework Services to ',
-          h(FrameworkServiceLink, { linkText: 're-link', provider, redirectUrl }),
+          h(FrameworkServiceLink, { linkText: 're-link', provider: key, redirectUrl }),
           ' your account'
         ]), { id: notificationId })
       } else {

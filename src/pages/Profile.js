@@ -16,7 +16,7 @@ import { getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { allProviders, providerName } from 'src/libs/providers'
+import { allProviders } from 'src/libs/providers'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -160,7 +160,7 @@ const NihLink = ({ nihToken }) => {
 }
 
 
-const FenceLink = ({ provider }) => {
+const FenceLink = ({ provider: { key, name } }) => {
   const decodeProvider = state => state ? JSON.parse(atob(state)).provider : ''
 
   const extractToken = (provider, { state, code }) => {
@@ -169,13 +169,13 @@ const FenceLink = ({ provider }) => {
   }
 
   const queryParams = qs.parse(window.location.search, { ignoreQueryPrefix: true })
-  const token = extractToken(provider, queryParams)
+  const token = extractToken(key, queryParams)
   const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
 
   /*
    * Hooks
    */
-  const { fenceStatus: { [provider]: { username, issued_at: issuedAt } = {} } } = Utils.useStore(authStore)
+  const { fenceStatus: { [key]: { username, issued_at: issuedAt } = {} } } = Utils.useStore(authStore)
   const [isLinking, setIsLinking] = useState(false)
   const signal = Utils.useCancellation()
 
@@ -185,8 +185,8 @@ const FenceLink = ({ provider }) => {
     withErrorReporting('Error linking NIH account'),
     Utils.withBusyState(setIsLinking)
   )(async () => {
-    const status = await User.linkFenceAccount(provider, token, redirectUrl)
-    authStore.set(['fenceStatus', provider], status)
+    const status = await User.linkFenceAccount(key, token, redirectUrl)
+    authStore.update(_.set(['fenceStatus', key], status))
   })
 
   Utils.useOnMount(() => {
@@ -204,10 +204,10 @@ const FenceLink = ({ provider }) => {
   const expireTime = addDays(30, parseJSON(issuedAt))
 
   return div({ style: { marginBottom: '1rem' } }, [
-    div({ style: styles.form.title }, [providerName(provider)]),
+    div({ style: styles.form.title }, [name]),
     Utils.cond(
       [isBusy, () => div([spinner(), 'Loading account status...'])],
-      [!username, () => h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to link your account', provider, redirectUrl })],
+      [!username, () => h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to link your account', provider: key, redirectUrl })],
       () => div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
         div({ style: { display: 'flex' } }, [
           div({ style: { flex: 1 } }, ['Username:']),
@@ -217,7 +217,7 @@ const FenceLink = ({ provider }) => {
           div({ style: { flex: 1 } }, ['Link Expiration:']),
           div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
         ]),
-        h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to re-link your account', provider, redirectUrl })
+        h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to re-link your account', provider: key, redirectUrl })
       ])
     )
   ])
