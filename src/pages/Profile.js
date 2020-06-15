@@ -16,6 +16,7 @@ import { getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import { allProviders } from 'src/libs/providers'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -159,7 +160,7 @@ const NihLink = ({ nihToken }) => {
 }
 
 
-const FenceLink = ({ provider, displayName }) => {
+const FenceLink = ({ provider: { key, name } }) => {
   const decodeProvider = state => state ? JSON.parse(atob(state)).provider : ''
 
   const extractToken = (provider, { state, code }) => {
@@ -168,13 +169,13 @@ const FenceLink = ({ provider, displayName }) => {
   }
 
   const queryParams = qs.parse(window.location.search, { ignoreQueryPrefix: true })
-  const token = extractToken(provider, queryParams)
+  const token = extractToken(key, queryParams)
   const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
 
   /*
    * Hooks
    */
-  const [{ username, issued_at: issuedAt }, setStatus] = useState({})
+  const { fenceStatus: { [key]: { username, issued_at: issuedAt } = {} } } = Utils.useStore(authStore)
   const [isLinking, setIsLinking] = useState(false)
   const signal = Utils.useCancellation()
 
@@ -184,7 +185,8 @@ const FenceLink = ({ provider, displayName }) => {
     withErrorReporting('Error linking NIH account'),
     Utils.withBusyState(setIsLinking)
   )(async () => {
-    setStatus(await User.linkFenceAccount(provider, token, redirectUrl))
+    const status = await User.linkFenceAccount(key, token, redirectUrl)
+    authStore.update(_.set(['fenceStatus', key], status))
   })
 
   Utils.useOnMount(() => {
@@ -202,10 +204,10 @@ const FenceLink = ({ provider, displayName }) => {
   const expireTime = addDays(30, parseJSON(issuedAt))
 
   return div({ style: { marginBottom: '1rem' } }, [
-    div({ style: styles.form.title }, [displayName]),
+    div({ style: styles.form.title }, [name]),
     Utils.cond(
       [isBusy, () => div([spinner(), 'Loading account status...'])],
-      [!username, () => h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to link your account', provider, redirectUrl })],
+      [!username, () => h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to link your account', provider: key, redirectUrl })],
       () => div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
         div({ style: { display: 'flex' } }, [
           div({ style: { flex: 1 } }, ['Username:']),
@@ -215,7 +217,7 @@ const FenceLink = ({ provider, displayName }) => {
           div({ style: { flex: 1 } }, ['Link Expiration:']),
           div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
         ]),
-        h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to re-link your account', provider, redirectUrl })
+        h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to re-link your account', provider: key, redirectUrl })
       ])
     )
   ])
@@ -267,14 +269,7 @@ const Profile = _.flow(
             div({ style: { marginTop: '0', marginLeft: '1rem' } }, [
               sectionTitle('Identity & External Servers'),
               h(NihLink, { nihToken: queryParams['nih-username-token'] }),
-              h(FenceLink, {
-                provider: 'fence',
-                displayName: 'DCP Framework Services by University of Chicago'
-              }),
-              h(FenceLink, {
-                provider: 'dcf-fence',
-                displayName: 'DCF Framework Services by University of Chicago'
-              })
+              _.map(provider => h(FenceLink, { key: provider, provider }), allProviders)
             ])
           ])
         ])
