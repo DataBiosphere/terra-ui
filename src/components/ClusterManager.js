@@ -280,7 +280,7 @@ export default class ClusterManager extends PureComponent {
         default:
           return h(ClusterIcon, {
             shape: 'play',
-            onClick: () => this.createDefaultCluster(),
+            onClick: () => this.setState({ createModalDrawerOpen: true }),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'Create notebook runtime' : noCompute,
             'aria-label': 'Create notebook runtime'
