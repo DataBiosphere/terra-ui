@@ -14,6 +14,12 @@ To generate a token, create a JWT with the additional claim `target_audience: 'h
 
 Pass the token in a header with every call: `Authorization: Bearer <token>`
 
+### Generating an OpenID Connect ID token: 
+
+First make sure you have vault set up on your computer. Instructions for how to do that can be found [here](Vault.md).
+
+At that point, you can run `node scripts/makeBearerToken.js "$(vault read --format=json secret/dsde/terra/envs/common/bueller-user-service-account-key | jq .data)" https://terra-bueller.appspot.com`, which will output an OpenID Connect ID token.
+
 ## Developing
 
 Install deps
