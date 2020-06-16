@@ -12,7 +12,7 @@ import { dataSyncingDocUrl } from 'src/data/machines'
 import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
-import { clusterCost, currentCluster, deleteText, formatRuntimeConfig, normalizeRuntimeConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
+import { clusterCost, currentCluster, deleteText, trimClustersOldestFirst } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -206,15 +206,6 @@ export default class ClusterManager extends PureComponent {
     } finally {
       this.setState({ busy: false })
     }
-  }
-
-  createDefaultCluster() {
-    const { namespace } = this.props
-    this.executeAndRefresh(
-      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
-        runtimeConfig: formatRuntimeConfig(normalizeRuntimeConfig({}))
-      })
-    )
   }
 
   startCluster() {
