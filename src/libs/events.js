@@ -8,6 +8,8 @@ import * as Utils from 'src/libs/utils'
 const eventsList = {
   applicationLaunch: 'application:launch',
   notebookLaunch: 'notebook:launch',
+  notebookRename: 'notebook:rename',
+  notebookClone: 'notebook:clone',
   pageView: 'page:view',
   workflowImport: 'workflow:import',
   workflowLaunch: 'workflow:launch',

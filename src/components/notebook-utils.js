@@ -8,6 +8,7 @@ import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -217,9 +218,16 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
         onClick: async () => {
           try {
             this.setState({ processing: true })
-            await (destroyOld ?
-              Ajax().Buckets.notebook(namespace, bucketName, printName).rename(newName) :
-              Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld))
+            await Utils.switchCase(destroyOld,
+              [true, () => {
+                Ajax().Buckets.notebook(namespace, bucketName, printName).rename(newName)
+                Ajax().Metrics.captureEvent(Events.notebookRename, { oldName: printName, newName })
+              }],
+              [false, () => {
+                Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld)
+                Ajax().Metrics.captureEvent(Events.notebookClone, { oldName: printName, newName })
+              }],
+              [Utils.DEFAULT, reportError('Destroy old notebook not defined')])
             onSuccess()
             if (fromLauncher) {
               Nav.goToPath('workspace-notebook-launch', {
