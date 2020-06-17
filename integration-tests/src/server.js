@@ -44,7 +44,6 @@ const runTest = fn => withPuppeteer(async ({ browser, context, name, page, req, 
   }
   try {
     const test = withScreenshot(name, fn)
-    throw new Error(`Test timeout after ${timeout}ms`)
     const result = await Promise.race([
       test({ browser, context, page, ...targetEnvParams }),
       testTimeout(timeout)
