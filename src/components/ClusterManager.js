@@ -12,7 +12,7 @@ import { dataSyncingDocUrl } from 'src/data/machines'
 import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
-import { clusterCost, currentCluster, deleteText, formatRuntimeConfig, normalizeRuntimeConfig, trimClustersOldestFirst } from 'src/libs/cluster-utils'
+import { clusterCost, currentCluster, deleteText, trimClustersOldestFirst } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -208,15 +208,6 @@ export default class ClusterManager extends PureComponent {
     }
   }
 
-  createDefaultCluster() {
-    const { namespace } = this.props
-    this.executeAndRefresh(
-      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
-        runtimeConfig: formatRuntimeConfig(normalizeRuntimeConfig({}))
-      })
-    )
-  }
-
   startCluster() {
     const { googleProject, runtimeName } = this.getCurrentCluster()
     this.executeAndRefresh(
@@ -280,7 +271,7 @@ export default class ClusterManager extends PureComponent {
         default:
           return h(ClusterIcon, {
             shape: 'play',
-            onClick: () => this.createDefaultCluster(),
+            onClick: () => this.setState({ createModalDrawerOpen: true }),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'Create notebook runtime' : noCompute,
             'aria-label': 'Create notebook runtime'
