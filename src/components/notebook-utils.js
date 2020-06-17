@@ -225,7 +225,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
               Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld)
             )
           } catch (error) {
-            reportError(`Error renaming notebook`, error)
+            reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
           }
           onSuccess()
           if (fromLauncher) {
