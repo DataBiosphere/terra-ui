@@ -257,7 +257,7 @@ const JobHistory = _.flow(
                 headerRenderer: () => h(HeaderCell, ['Submitted']),
                 cellRenderer: ({ rowIndex }) => {
                   const { submissionDate } = filteredSubmissions[rowIndex]
-                  return h(TooltipCell, { tooltip: Utils.makeCompleteDate(submissionDate) }, [Utils.makePrettyDate(submissionDate)])
+                  return h(TooltipCell, { tooltip: Utils.makeCompleteDate(submissionDate) }, [Utils.makeCompleteDate(submissionDate)])
                 }
               },
               {
