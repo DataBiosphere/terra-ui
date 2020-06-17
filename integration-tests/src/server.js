@@ -28,9 +28,9 @@ const testTimeout = async timeout => {
   throw new Error(`Test timeout after ${timeout}ms`)
 }
 
-const reportTest = (testGroup, startTime, host, errorMessage) => {
+const reportTest = (testGroup, startTime, host, testName, errorMessage) => {
   const endTime = new Date()
-  const testReport = { testGroup, runtimeInMilliseconds: endTime - startTime, status: errorMessage ? 'error' : 'success', errorMessage, host }
+  const testReport = { testGroup, runtimeInMilliseconds: endTime - startTime, status: errorMessage ? 'error' : 'success', testName, errorMessage, host }
   firestore.collection('tests').doc().create(testReport)
 }
 
@@ -38,7 +38,9 @@ const runTest = fn => withPuppeteer(async ({ browser, context, name, page, req, 
   const targetEnvParams = { ...envs[req.query.targetEnv] }
   const testGroup = req.query.testGroup
   const startTime = new Date()
+  const testName = req.route.path
   const host = req.headers.host
+  console.log(req)
   if (host === 'terra-bueller.appspot.com') {
     throw new Error('Do not call without a version specified')
   }
@@ -48,7 +50,7 @@ const runTest = fn => withPuppeteer(async ({ browser, context, name, page, req, 
       test({ browser, context, page, ...targetEnvParams }),
       testTimeout(timeout)
     ])
-    reportTest(testGroup, startTime, host, null)
+    reportTest(testGroup, startTime, host, testName, null)
     return new Response(200, result)
   } catch (e) {
     const error = {
@@ -56,7 +58,7 @@ const runTest = fn => withPuppeteer(async ({ browser, context, name, page, req, 
       message: e.message,
       stack: e.stack
     }
-    reportTest(testGroup, startTime, host, error)
+    reportTest(testGroup, startTime, host, testName, error)
     return new Response(200, error)
   }
 })
