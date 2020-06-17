@@ -170,6 +170,7 @@ export const NotebookCreator = class NotebookCreator extends Component {
   }
 }
 
+
 export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Component {
   static propTypes = {
     destroyOld: PropTypes.bool,
@@ -199,6 +200,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
     this.setState({ existingNames })
   }
 
+
   render() {
     const { destroyOld, fromLauncher, printName, wsName, namespace, bucketName, onDismiss, onSuccess } = this.props
     const { newName, processing, nameTouched, existingNames } = this.state
@@ -215,27 +217,24 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
       okButton: h(ButtonPrimary, {
         disabled: errors || processing,
         tooltip: Utils.summarizeErrors(errors),
-        onClick: () => {
+        onClick: async () => {
+          this.setState({ processing: true })
           try {
-            this.setState({ processing: true })
-            Utils.switchCase(destroyOld,
-              [true, async () => {
-                await Ajax().Buckets.notebook(namespace, bucketName, printName).rename(newName)
-                Ajax().Metrics.captureEvent(Events.notebookRename, { oldName: printName, newName })
-              }],
-              [false, async () => {
-                await Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld)
-                Ajax().Metrics.captureEvent(Events.notebookClone, { oldName: printName, newName })
-              }])
-            onSuccess()
-            if (fromLauncher) {
-              Nav.goToPath('workspace-notebook-launch', {
-                namespace, name: wsName, notebookName: `${newName}.ipynb`
-              })
-            }
+            await (destroyOld ?
+              Ajax().Buckets.notebook(namespace, bucketName, printName).rename(newName) :
+              Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld)
+            )
           } catch (error) {
-            reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
+            reportError(`Error renaming notebook`, error)
           }
+          onSuccess()
+          if (fromLauncher) {
+            Nav.goToPath('workspace-notebook-launch', {
+              namespace, name: wsName, notebookName: `${newName}.ipynb`
+            })
+          }
+          const eventType = destroyOld ? Events.notebookRename : Events.notebookClone
+          Ajax().Metrics.captureEvent(eventType, { oldName: printName, newName })
         }
       }, `${destroyOld ? 'Rename' : 'Copy'} Notebook`)
     },
@@ -256,6 +255,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
     ))
   }
 })
+
 
 export const NotebookDeleter = class NotebookDeleter extends Component {
   static propTypes = {
