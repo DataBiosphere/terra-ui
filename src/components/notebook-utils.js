@@ -226,8 +226,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
               [false, () => {
                 Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld)
                 Ajax().Metrics.captureEvent(Events.notebookClone, { oldName: printName, newName })
-              }],
-              [Utils.DEFAULT, reportError('Destroy old notebook not defined')])
+              }])
             onSuccess()
             if (fromLauncher) {
               Nav.goToPath('workspace-notebook-launch', {
