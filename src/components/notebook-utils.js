@@ -215,16 +215,16 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
       okButton: h(ButtonPrimary, {
         disabled: errors || processing,
         tooltip: Utils.summarizeErrors(errors),
-        onClick: async () => {
+        onClick: () => {
           try {
             this.setState({ processing: true })
-            await Utils.switchCase(destroyOld,
-              [true, () => {
-                Ajax().Buckets.notebook(namespace, bucketName, printName).rename(newName)
+            Utils.switchCase(destroyOld,
+              [true, async () => {
+                await Ajax().Buckets.notebook(namespace, bucketName, printName).rename(newName)
                 Ajax().Metrics.captureEvent(Events.notebookRename, { oldName: printName, newName })
               }],
-              [false, () => {
-                Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld)
+              [false, async () => {
+                await Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld)
                 Ajax().Metrics.captureEvent(Events.notebookClone, { oldName: printName, newName })
               }])
             onSuccess()
