@@ -40,7 +40,6 @@ const runTest = fn => withPuppeteer(async ({ browser, context, name, page, req, 
   const startTime = new Date()
   const testName = req.route.path
   const host = req.headers.host
-  console.log(req)
   if (host === 'terra-bueller.appspot.com') {
     throw new Error('Do not call without a version specified')
   }
