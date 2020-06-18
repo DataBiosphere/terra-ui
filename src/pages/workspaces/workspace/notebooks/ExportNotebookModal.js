@@ -8,6 +8,7 @@ import Modal from 'src/components/Modal'
 import { notebookNameInput, notebookNameValidator } from 'src/components/notebook-utils'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -150,6 +151,7 @@ export default _.flow(
         .notebook(workspace.workspace.namespace, workspace.workspace.bucketName, printName)
         .copy(newName, selectedWorkspace.bucketName)
       this.setState({ copied: true })
+      Ajax().Metrics.captureEvent(Events.notebookClone, { oldName: printName, newName })
     } catch (error) {
       this.setState({ error: await error.text(), copying: false })
     }
