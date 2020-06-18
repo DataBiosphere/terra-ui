@@ -170,7 +170,6 @@ export const NotebookCreator = class NotebookCreator extends Component {
   }
 }
 
-
 export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Component {
   static propTypes = {
     destroyOld: PropTypes.bool,
@@ -200,7 +199,6 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
     this.setState({ existingNames })
   }
 
-
   render() {
     const { destroyOld, fromLauncher, printName, wsName, namespace, bucketName, onDismiss, onSuccess } = this.props
     const { newName, processing, nameTouched, existingNames } = this.state
@@ -224,17 +222,17 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
               Ajax().Buckets.notebook(namespace, bucketName, printName).rename(newName) :
               Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld)
             )
+            onSuccess()
+            if (fromLauncher) {
+              Nav.goToPath('workspace-notebook-launch', {
+                namespace, name: wsName, notebookName: `${newName}.ipynb`
+              })
+            }
+            const eventType = destroyOld ? Events.notebookRename : Events.notebookClone
+            Ajax().Metrics.captureEvent(eventType, { oldName: printName, newName })
           } catch (error) {
             reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
           }
-          onSuccess()
-          if (fromLauncher) {
-            Nav.goToPath('workspace-notebook-launch', {
-              namespace, name: wsName, notebookName: `${newName}.ipynb`
-            })
-          }
-          const eventType = destroyOld ? Events.notebookRename : Events.notebookClone
-          Ajax().Metrics.captureEvent(eventType, { oldName: printName, newName })
         }
       }, `${destroyOld ? 'Rename' : 'Copy'} Notebook`)
     },
