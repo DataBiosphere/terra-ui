@@ -34,11 +34,10 @@ const runTest = fn => withPuppeteer(async ({ browser, context, name, page, req, 
   const targetEnvParams = { ...envs[req.query.targetEnv] }
   const testGroup = req.query.testGroup
   const startTime = new Date()
-  const testName = req.route.path.split('/')[2]
   const host = req.headers.host
   const reportTest = async error => {
     const endTime = new Date()
-    const testReport = { testGroup, runtimeInMilliseconds: endTime - startTime, status: error ? 'error' : 'success', testName, error, host }
+    const testReport = { testGroup, runtimeInMilliseconds: endTime - startTime, status: error ? 'error' : 'success', testName: name, error, host, startTime }
     await firestore.collection('tests').doc().create(testReport)
   }
   if (host === 'terra-bueller.appspot.com') {
