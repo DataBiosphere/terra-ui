@@ -9,7 +9,7 @@ const eventsList = {
   applicationLaunch: 'application:launch',
   notebookLaunch: 'notebook:launch',
   notebookRename: 'notebook:rename',
-  notebookClone: 'notebook:clone',
+  notebookCopy: 'notebook:copy',
   pageView: 'page:view',
   workflowImport: 'workflow:import',
   workflowLaunch: 'workflow:launch',

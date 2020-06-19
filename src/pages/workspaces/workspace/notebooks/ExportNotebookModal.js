@@ -151,7 +151,7 @@ export default _.flow(
         .notebook(workspace.workspace.namespace, workspace.workspace.bucketName, printName)
         .copy(newName, selectedWorkspace.bucketName)
       this.setState({ copied: true })
-      Ajax().Metrics.captureEvent(Events.notebookClone, { oldName: printName, newName })
+      Ajax().Metrics.captureEvent(Events.notebookCopy, { oldName: printName, newName })
     } catch (error) {
       this.setState({ error: await error.text(), copying: false })
     }

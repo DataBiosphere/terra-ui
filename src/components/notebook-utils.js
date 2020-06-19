@@ -228,7 +228,7 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
                 namespace, name: wsName, notebookName: `${newName}.ipynb`
               })
             }
-            const eventType = destroyOld ? Events.notebookRename : Events.notebookClone
+            const eventType = destroyOld ? Events.notebookRename : Events.notebookCopy
             Ajax().Metrics.captureEvent(eventType, { oldName: printName, newName })
           } catch (error) {
             reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
@@ -253,7 +253,6 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
     ))
   }
 })
-
 
 export const NotebookDeleter = class NotebookDeleter extends Component {
   static propTypes = {
