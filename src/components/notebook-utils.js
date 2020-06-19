@@ -231,7 +231,12 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
             if (destroyOld) {
               Ajax()
                 .Metrics
-                .captureEvent(Events.notebookRename, { oldName: printName, newName, workspaceName: wsName, workspaceNamespace: namespace })
+                .captureEvent(Events.notebookRename, {
+                  oldName: printName,
+                  newName,
+                  workspaceName: wsName,
+                  workspaceNamespace: namespace
+                })
             } else {
               Ajax().Metrics.captureEvent(Events.notebookCopy, {
                 oldName: printName,
