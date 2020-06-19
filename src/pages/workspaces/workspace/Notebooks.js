@@ -346,7 +346,7 @@ const Notebooks = _.flow(
   render() {
     const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter } = this.state
     const {
-      namespace, listView, setListView, workspace,
+      namespace, name, listView, setListView, workspace,
       workspace: { accessLevel, workspace: { bucketName } }
     } = this.props
     const existingNames = this.getExistingNames()
@@ -391,7 +391,7 @@ const Notebooks = _.flow(
           }),
           renamingNotebookName && h(NotebookDuplicator, {
             printName: printName(renamingNotebookName),
-            namespace, bucketName, destroyOld: true,
+            namespace, wsName: name, bucketName, destroyOld: true,
             onDismiss: () => this.setState({ renamingNotebookName: undefined }),
             onSuccess: () => {
               this.setState({ renamingNotebookName: undefined })
@@ -400,7 +400,7 @@ const Notebooks = _.flow(
           }),
           copyingNotebookName && h(NotebookDuplicator, {
             printName: printName(copyingNotebookName),
-            namespace, bucketName, destroyOld: false,
+            namespace, wsName: name, bucketName, destroyOld: false,
             onDismiss: () => this.setState({ copyingNotebookName: undefined }),
             onSuccess: () => {
               this.setState({ copyingNotebookName: undefined })

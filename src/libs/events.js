@@ -8,6 +8,8 @@ import * as Utils from 'src/libs/utils'
 const eventsList = {
   applicationLaunch: 'application:launch',
   notebookLaunch: 'notebook:launch',
+  notebookRename: 'notebook:rename',
+  notebookCopy: 'notebook:copy',
   pageView: 'page:view',
   workflowImport: 'workflow:import',
   workflowLaunch: 'workflow:launch',
@@ -21,6 +23,15 @@ const eventsList = {
 export const extractWorkspaceDetails = workspaceObject => {
   const { workspace: { namespace, name } } = workspaceObject
   return { workspaceName: name, workspaceNamespace: namespace }
+}
+
+export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
+  return {
+    fromWorkspaceNamespace: fromWorkspace.workspace.namespace,
+    fromWorkspaceName: fromWorkspace.workspace.name,
+    toWorkspaceNamespace: toWorkspace.workspace.namespace,
+    toWorkspaceName: toWorkspace.workspace.name
+  }
 }
 
 export const PageViewReporter = () => {

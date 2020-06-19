@@ -8,6 +8,7 @@ import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -215,15 +216,33 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
         disabled: errors || processing,
         tooltip: Utils.summarizeErrors(errors),
         onClick: async () => {
+          this.setState({ processing: true })
           try {
-            this.setState({ processing: true })
             await (destroyOld ?
               Ajax().Buckets.notebook(namespace, bucketName, printName).rename(newName) :
-              Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld))
+              Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld)
+            )
             onSuccess()
             if (fromLauncher) {
               Nav.goToPath('workspace-notebook-launch', {
                 namespace, name: wsName, notebookName: `${newName}.ipynb`
+              })
+            }
+            if (destroyOld) {
+              Ajax().Metrics.captureEvent(Events.notebookRename, {
+                oldName: printName,
+                newName,
+                workspaceName: wsName,
+                workspaceNamespace: namespace
+              })
+            } else {
+              Ajax().Metrics.captureEvent(Events.notebookCopy, {
+                oldName: printName,
+                newName,
+                fromWorkspaceNamespace: namespace,
+                fromWorkspaceName: wsName,
+                toWorkspaceNamespace: namespace,
+                toWorkspaceName: wsName
               })
             }
           } catch (error) {
