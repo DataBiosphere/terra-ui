@@ -8,7 +8,7 @@ import Modal from 'src/components/Modal'
 import { notebookNameInput, notebookNameValidator } from 'src/components/notebook-utils'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
-import Events from 'src/libs/events'
+import Events, { extractCrossWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -143,15 +143,15 @@ export default _.flow(
   async copy() {
     const { printName, workspace } = this.props
     const { newName } = this.state
-    const selectedWorkspace = this.getSelectedWorkspace().workspace
+    const selectedWorkspace = this.getSelectedWorkspace()
     try {
       this.setState({ copying: true })
       await Ajax()
         .Buckets
         .notebook(workspace.workspace.namespace, workspace.workspace.bucketName, printName)
-        .copy(newName, selectedWorkspace.bucketName)
+        .copy(newName, selectedWorkspace.workspace.bucketName)
       this.setState({ copied: true })
-      Ajax().Metrics.captureEvent(Events.notebookCopy, { oldName: printName, newName })
+      Ajax().Metrics.captureEvent(Events.notebookCopy, { oldName: printName, newName, ...extractCrossWorkspaceDetails(workspace, selectedWorkspace) })
     } catch (error) {
       this.setState({ error: await error.text(), copying: false })
     }

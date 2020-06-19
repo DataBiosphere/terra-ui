@@ -25,6 +25,15 @@ export const extractWorkspaceDetails = workspaceObject => {
   return { workspaceName: name, workspaceNamespace: namespace }
 }
 
+export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
+  return {
+    fromWorkspaceNamespace: fromWorkspace.workspace.namespace,
+    fromWorkspaceName: fromWorkspace.workspace.name,
+    toWorkspaceNamespace: toWorkspace.workspace.namespace,
+    toWorkspaceName: toWorkspace.workspace.name
+  }
+}
+
 export const PageViewReporter = () => {
   const { name } = useRoute()
   const { isSignedIn, registrationStatus } = Utils.useStore(authStore)

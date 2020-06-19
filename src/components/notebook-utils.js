@@ -228,8 +228,20 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
                 namespace, name: wsName, notebookName: `${newName}.ipynb`
               })
             }
-            const eventType = destroyOld ? Events.notebookRename : Events.notebookCopy
-            Ajax().Metrics.captureEvent(eventType, { oldName: printName, newName })
+            if (destroyOld) {
+              Ajax()
+                .Metrics
+                .captureEvent(Events.notebookRename, { oldName: printName, newName, workspaceName: wsName, workspaceNamespace: namespace })
+            } else {
+              Ajax().Metrics.captureEvent(Events.notebookCopy, {
+                oldName: printName,
+                newName,
+                fromWorkspaceNamespace: namespace,
+                fromWorkspaceName: wsName,
+                toWorkspaceNamespace: namespace,
+                toWorkspaceName: wsName
+              })
+            }
           } catch (error) {
             reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
           }
