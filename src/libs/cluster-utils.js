@@ -18,7 +18,8 @@ export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, ma
     numberOfWorkers: (isDataproc && numberOfWorkers) || 0,
     numberOfPreemptibleWorkers: (isDataproc && numberOfWorkers && numberOfPreemptibleWorkers) || 0,
     workerMachineType: (isDataproc && numberOfWorkers && workerMachineType) || 'n1-standard-4',
-    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || 50
+    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || 50,
+    infrastructureDiskSize: (cloudService === 'GCE' && 50) || 0 // extra 50G disk which will host the notebook infrastructure for all GCE runtimes
   }
 }
 
@@ -32,14 +33,14 @@ export const formatRuntimeConfig = config => {
 }
 
 const ongoingCost = config => {
-  const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize } = normalizeRuntimeConfig(config)
+  const { cloudService, masterMachineType, masterDiskSize, infrastructureDiskSize, numberOfWorkers, workerMachineType, workerDiskSize } = normalizeRuntimeConfig(config)
   const { cpu: masterCpu } = findMachineType(masterMachineType)
   const { cpu: workerCpu } = findMachineType(workerMachineType)
 
-
   return _.sum([
     (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice,
-    cloudService === 'DATAPROC' && (masterCpu + workerCpu * numberOfWorkers) * dataprocCpuPrice
+    cloudService === 'DATAPROC' && (masterCpu + workerCpu * numberOfWorkers) * dataprocCpuPrice,
+    infrastructureDiskSize * storagePrice
   ])
 }
 
