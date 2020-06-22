@@ -20,6 +20,7 @@
     "includeConsoleOutput": true
   },
   "dependencies": {
+    "@google-cloud/firestore": "^3.8.5",
     "@google-cloud/secret-manager": "^3.0.0",
     "@google-cloud/storage": "^4.7.0",
     "express": "^4.17.1",
