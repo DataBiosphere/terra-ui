@@ -35,9 +35,12 @@ const runTest = fn => withPuppeteer(async ({ browser, context, name, page, req, 
   const testGroup = req.query.testGroup
   const startTime = new Date()
   const host = req.headers.host
+  if (testGroup === undefined) {
+    throw new Error('Must provide a test group to record test results')
+  }
   const reportTest = async error => {
     const endTime = new Date()
-    const testReport = { testGroup, runtimeInMilliseconds: endTime - startTime, status: error ? 'error' : 'success', testName: name, error, host, startTime }
+    const testReport = { testGroup, runtimeInMilliseconds: endTime - startTime, status: error ? 'error' : 'success', testName: name, error, host, startTime, endTime }
     await firestore.collection('tests').doc().create(testReport)
   }
   if (host === 'terra-bueller.appspot.com') {
