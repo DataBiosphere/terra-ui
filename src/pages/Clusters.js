@@ -46,8 +46,8 @@ const Clusters = () => {
   const filteredClusters = _.orderBy([{
     project: 'googleProject',
     status: 'status',
-    created: 'createdDate',
-    accessed: 'dateAccessed',
+    created: 'auditInfo.createdDate',
+    accessed: 'auditInfo.dateAccessed',
     cost: clusterCost
   }[sort.field]], [sort.direction], clusters)
 
