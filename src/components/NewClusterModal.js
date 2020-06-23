@@ -122,6 +122,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   getRuntimeConfig() {
     return formatRuntimeConfig({
       cloudService: !!this.state.sparkMode ? 'DATAPROC' : 'GCE',
+      bootDiskSize: !!this.state.sparkMode ? null : 50,
       ..._.pick(
         ['numberOfWorkers', 'masterMachineType', 'masterDiskSize', 'workerMachineType', 'workerDiskSize', 'numberOfPreemptibleWorkers'],
         this.state)
