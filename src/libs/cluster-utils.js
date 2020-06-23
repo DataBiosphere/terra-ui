@@ -8,7 +8,7 @@ import * as Utils from 'src/libs/utils'
 
 export const usableStatuses = ['Updating', 'Running']
 
-export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize }) => {
+export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, bootDiskSize }) => {
   const isDataproc = cloudService === 'DATAPROC'
 
   return {
@@ -19,28 +19,31 @@ export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, ma
     numberOfPreemptibleWorkers: (isDataproc && numberOfWorkers && numberOfPreemptibleWorkers) || 0,
     workerMachineType: (isDataproc && numberOfWorkers && workerMachineType) || 'n1-standard-4',
     workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || 50,
-    infrastructureDiskSize: (cloudService === 'GCE' && 50) || 0 // extra 50G disk which will host the notebook infrastructure for all GCE runtimes
+    bootDiskSize: bootDiskSize || 0
+
   }
 }
 
 export const formatRuntimeConfig = config => {
-  const { cloudService, masterMachineType, masterDiskSize } = config
+  const { cloudService, masterMachineType, masterDiskSize, bootDiskSize } = config
   return cloudService === 'GCE' ? {
     cloudService,
     machineType: masterMachineType,
-    diskSize: masterDiskSize
+    diskSize: masterDiskSize,
+    bootDiskSize
   } : config
 }
 
 const ongoingCost = config => {
-  const { cloudService, masterMachineType, masterDiskSize, infrastructureDiskSize, numberOfWorkers, workerMachineType, workerDiskSize } = normalizeRuntimeConfig(config)
+  const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize } = normalizeRuntimeConfig(
+    config)
   const { cpu: masterCpu } = findMachineType(masterMachineType)
   const { cpu: workerCpu } = findMachineType(workerMachineType)
 
   return _.sum([
     (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice,
     cloudService === 'DATAPROC' && (masterCpu + workerCpu * numberOfWorkers) * dataprocCpuPrice,
-    infrastructureDiskSize * storagePrice
+    bootDiskSize * storagePrice
   ])
 }
 
