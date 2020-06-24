@@ -269,7 +269,7 @@ const Profile = _.flow(
             div({ style: { marginTop: '0', marginLeft: '1rem' } }, [
               sectionTitle('Identity & External Servers'),
               h(NihLink, { nihToken: queryParams['nih-username-token'] }),
-              _.map(provider => h(FenceLink, { key: provider, provider }), allProviders)
+              _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders)
             ])
           ])
         ])
