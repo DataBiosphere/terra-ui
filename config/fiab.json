@@ -12,10 +12,11 @@
   "leoUrlRoot": "https://leonardo-fiab.dsde-dev.broadinstitute.org:30443",
   "marthaUrlRoot": "https://martha-fiab.dsde-dev.broadinstitute.org:32443/dockerized-martha/us-central1",
   "orchestrationUrlRoot": "https://firecloud-orchestration-fiab.dsde-dev.broadinstitute.org:23443",
+  "profileUrlRoot": "https://profile-dot-broad-shibboleth-prod.appspot.com/dev",
   "rawlsUrlRoot": "https://rawls-fiab.dsde-dev.broadinstitute.org:24443",
   "rexUrlRoot": "https://terra-rex-dev.appspot.com",
   "samUrlRoot": "https://sam-fiab.dsde-dev.broadinstitute.org:29443",
-  "shibbolethUrlRoot": "http://mock-nih.dev.test.firecloud.org",
+  "shibbolethUrlRoot": "https://broad-shibboleth-prod.appspot.com/dev",
   "tCell": {
     "appId": "saturnnonprod-O9lUP",
     "apiKey": "AQEBBAEkx4iE2KxNyI7Wx08EwU1ycTM7E4FMSmaibbMUQxNU6uQvuAJt7fyABAtFYSYfgEE"
