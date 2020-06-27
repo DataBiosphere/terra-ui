@@ -33,7 +33,7 @@ const IGVBrowser = _.flow(
           return knownBucketStatus
         } else {
           try {
-            await Ajax(signal).Buckets.getObject(bucket, file, workspace.namespace, { fields: 'kind' })
+            await Ajax(signal).Buckets.getObject(bucket, file, workspace.workspace.namespace, { fields: 'kind' })
             return false
           } catch (e) {
             if (e.requesterPaysError) {
@@ -63,7 +63,7 @@ const IGVBrowser = _.flow(
             }, selectedFiles))
           }
 
-          igv.setGoogleOauthToken(() => saToken(workspace.namespace))
+          igv.setGoogleOauthToken(() => saToken(workspace.workspace.namespace))
           igv.createBrowser(containerRef.current, options)
         } catch (e) {
           reportError('Error loading IGV.js', e)

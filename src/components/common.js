@@ -356,9 +356,9 @@ export const methodLink = config => {
 }
 
 export const ShibbolethLink = ({ children, ...props }) => {
-  const nihRedirectUrl = `${window.location.origin}/${Nav.getLink('profile')}?nih-username-token={token}`
+  const nihRedirectUrl = `${window.location.origin}/${Nav.getLink('profile')}?nih-username-token=<token>`
   return h(Link, _.merge({
-    href: `${getConfig().shibbolethUrlRoot}/link-nih-account?${qs.stringify({ 'redirect-url': nihRedirectUrl })}`,
+    href: `${getConfig().shibbolethUrlRoot}/login?${qs.stringify({ 'return-url': nihRedirectUrl })}`,
     style: { display: 'inline-flex', alignItems: 'center' },
     ...Utils.newTabLinkProps
   }, props), [
