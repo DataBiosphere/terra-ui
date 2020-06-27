@@ -119,10 +119,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
-  getRuntimeConfig() {
+  getRuntimeConfig(isNew = false) {
     return formatRuntimeConfig({
       cloudService: !!this.state.sparkMode ? 'DATAPROC' : 'GCE',
-      bootDiskSize: !!this.state.sparkMode ? null : 50,
+      isNew,
       ..._.pick(
         ['numberOfWorkers', 'masterMachineType', 'masterDiskSize', 'workerMachineType', 'workerDiskSize', 'numberOfPreemptibleWorkers'],
         this.state)
@@ -141,7 +141,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { jupyterUserScriptUri, selectedLeoImage, customEnvImage } = this.state
     onSuccess(Promise.all([
       Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
-        runtimeConfig: this.getRuntimeConfig(),
+        runtimeConfig: this.getRuntimeConfig(true),
         toolDockerImage: selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE ? customEnvImage : selectedLeoImage,
         labels: { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` },
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
@@ -508,7 +508,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
         }, [
           span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['COST:']),
-          `${Utils.formatUSD(runtimeConfigCost(this.getRuntimeConfig()))} per hour`
+          `${Utils.formatUSD(runtimeConfigCost(this.getRuntimeConfig(!currentCluster)))} per hour`
         ])
       ])
     ])
