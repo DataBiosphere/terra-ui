@@ -507,7 +507,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({
           style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
         }, [
-          span({ style: { ...styles.label, marginRight: '0.25rem' } }, ['COST:']),
+          span({ style: { ...styles.label, marginRight: '0.25rem', textTransform: 'uppercase' } }, ['cost:']),
           `${Utils.formatUSD(runtimeConfigCost(this.getRuntimeConfig(!currentCluster)))} per hour`
         ])
       ])
