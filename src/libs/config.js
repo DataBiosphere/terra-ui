@@ -13,4 +13,6 @@ export const isDatastage = () => (window.location.hostname === 'datastage.terra.
 export const isAnvil = () => (window.location.hostname === 'anvil.terra.bio') || getConfig().isAnvil
 export const isBioDataCatalyst = () => (window.location.hostname.endsWith('.biodatacatalyst.nhlbi.nih.gov')) || getConfig().isBioDataCatalyst
 export const isUKBiobank = () => (window.location.hostname === 'ukbiobank.terra.bio') || getConfig().isUKBiobank
-export const isTerra = () => !isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isUKBiobank()
+export const isBaseline = () => (window.location.hostname === 'baseline.terra.bio') || getConfig().isBaseline
+export const isTerra = () => !isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isUKBiobank() && !isBaseline()
+

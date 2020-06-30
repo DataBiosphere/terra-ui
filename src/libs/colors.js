@@ -1,6 +1,6 @@
 import Color from 'color'
 import _ from 'lodash/fp'
-import { isAnvil, isBioDataCatalyst, isDatastage, isFirecloud, isTerra, isUKBiobank } from 'src/libs/config'
+import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra, isUKBiobank } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
@@ -23,6 +23,7 @@ const colorPalette = Utils.cond(
   [isAnvil(), { ...baseColors, primary: '#e0dd10', accent: '#035c94', light: '#f6f7f4', dark: '#012840' }],
   [isBioDataCatalyst(), { ...baseColors, primary: '#c02f42', secondary: '#1a568c', accent: '#1a568c', light: '#f4f4f6', dark: '#12385a' }],
   [isUKBiobank(), { ...baseColors, primary: '#005f6f' }],
+  [isBaseline(), { ...baseColors, primary: '#c41061', secondary: '#31164c', accent: '#4d72aa', success: '#74ae43', warning: '#f7981c', danger: '#db3214', light: '#f6f7f4', dark: '#012840' }],
   { ...baseColors, primary: '#74ae43' }
 )
 
