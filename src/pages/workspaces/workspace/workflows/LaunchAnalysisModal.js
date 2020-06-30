@@ -72,28 +72,28 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
       const { workspace, workspace: { workspace: { namespace, name } }, processSingle, entitySelectionModel: { type, selectedEntities, newSetName }, config, config: { rootEntityType }, useCallCache, deleteIntermediateOutputFiles, onSuccess, ajax: { Workspaces } } = this.props
 
       const baseEntityType = rootEntityType.slice(0, -4)
-      const { entityType, entityNames } = await Utils.cond(
+      const { selectedEntityType, selectedEntityNames } = await Utils.cond(
         [processSingle, () => ({})],
         [type === processAll, async () => {
           this.setState({ message: 'Fetching data...' })
-          const entityNames = _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(rootEntityType))
-          return { entityType: rootEntityType, entityNames }
+          const selectedEntityNames = _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(rootEntityType))
+          return { selectedEntityType: rootEntityType, selectedEntityNames }
         }],
-        [type === chooseRows || type === chooseSets, () => ({ entityType: rootEntityType, entityNames: _.keys(selectedEntities) })],
+        [type === chooseRows || type === chooseSets, () => ({ selectedEntityType: rootEntityType, selectedEntityNames: _.keys(selectedEntities) })],
         [type === processMergedSet, () => {
           return _.size(selectedEntities) === 1 ?
-            { entityType: `${rootEntityType}_set`, entityNames: _.keys(selectedEntities) } :
-            { entityType: rootEntityType, entityNames: _.flow(_.flatMap(`attributes.${rootEntityType}s.items`), _.map('entityName'))(selectedEntities) }
+            { selectedEntityType: `${rootEntityType}_set`, selectedEntityNames: _.keys(selectedEntities) } :
+            { selectedEntityType: rootEntityType, selectedEntityNames: _.flow(_.flatMap(`attributes.${rootEntityType}s.items`), _.map('entityName'))(selectedEntities) }
         }],
-        [type === chooseSetComponents, () => ({ entityType: baseEntityType, entityNames: _.keys(selectedEntities) })],
+        [type === chooseSetComponents, () => ({ selectedEntityType: baseEntityType, selectedEntityNames: _.keys(selectedEntities) })],
         [type === processAllAsSet, async () => {
           this.setState({ message: 'Fetching data...' })
-          const entityNames = _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(baseEntityType))
-          return { entityType: baseEntityType, entityNames }
+          const selectedEntityNames = _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(baseEntityType))
+          return { selectedEntityType: baseEntityType, selectedEntityNames }
         }]
       )
       const { submissionId } = await launch({
-        workspace, config, entityType, entityNames, newSetName, useCallCache, deleteIntermediateOutputFiles,
+        workspace, config, selectedEntityType, selectedEntityNames, newSetName, useCallCache, deleteIntermediateOutputFiles,
         onProgress: stage => {
           this.setState({ message: { createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage] })
         }

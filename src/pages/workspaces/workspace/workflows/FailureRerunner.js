@@ -38,8 +38,8 @@ export const rerunFailures = async ({ workspace, workspace: { workspace: { names
 
     await launch({
       workspace, config,
-      entityType: config.rootEntityType,
-      entityNames: _.flow(
+      selectedEntityType: config.rootEntityType,
+      selectedEntityNames: _.flow(
         _.filter(v => (v.status === 'Aborted' || v.status === 'Failed')),
         _.map('workflowEntity.entityName')
       )(workflows),

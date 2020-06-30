@@ -6,18 +6,18 @@ import * as Utils from 'src/libs/utils'
 export const launch = async ({
   workspace: { workspace: { namespace, name, bucketName }, accessLevel },
   config: { namespace: configNamespace, name: configName, rootEntityType },
-  entityType, entityNames, newSetName, useCallCache = true, deleteIntermediateOutputFiles,
+  selectedEntityType, selectedEntityNames, newSetName, useCallCache = true, deleteIntermediateOutputFiles,
   onProgress
 }) => {
   const createSet = () => {
     onProgress('createSet')
     return Ajax().Workspaces.workspace(namespace, name).createEntity({
       name: newSetName,
-      entityType: `${entityType}_set`,
+      entityType: `${selectedEntityType}_set`,
       attributes: {
-        [`${entityType}s`]: {
+        [`${selectedEntityType}s`]: {
           itemsType: 'EntityReference',
-          items: _.map(entityName => ({ entityName, entityType }), entityNames)
+          items: _.map(entityName => ({ entityName, entityType: selectedEntityType }), selectedEntityNames)
         }
       }
     })
@@ -29,24 +29,24 @@ export const launch = async ({
     throw new Error('Error confirming workspace bucket access. This may be a transient problem. Please try again in a few minutes. If the problem persists, please contact support.')
   }
   const { entityName, processSet = false } = await Utils.cond(
-    [entityType === undefined, () => ({})],
-    [`${entityType}_set` === rootEntityType, async () => {
+    [selectedEntityType === undefined, () => ({})],
+    [`${selectedEntityType}_set` === rootEntityType, async () => {
       await createSet()
       return { entityName: newSetName }
     }],
-    [entityType === rootEntityType, async () => {
-      if (_.size(entityNames) === 1) {
-        return { entityName: entityNames[0] }
+    [selectedEntityType === rootEntityType, async () => {
+      if (_.size(selectedEntityNames) === 1) {
+        return { entityName: selectedEntityNames[0] }
       } else {
         await createSet()
         return { entityName: newSetName, processSet: true }
       }
     }],
-    [entityType === `${rootEntityType}_set`, () => {
-      if (_.size(entityNames) > 1) {
+    [selectedEntityType === `${rootEntityType}_set`, () => {
+      if (_.size(selectedEntityNames) > 1) {
         throw new Error('Cannot launch against multiple sets')
       }
-      return { entityName: entityNames[0], processSet: true }
+      return { entityName: selectedEntityNames[0], processSet: true }
     }]
   )
   onProgress('launch')
