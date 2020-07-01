@@ -1,6 +1,8 @@
 import { div, img } from 'react-hyperscript-helpers'
 import anvilLogoWhite from 'src/images/brands/anvil/ANVIL-Logo-White.svg'
 import anvilLogo from 'src/images/brands/anvil/ANVIL-Logo.svg'
+import baselineLogo from 'src/images/brands/baseline/baseline-logo-color.svg'
+import baselineLogoWhite from 'src/images/brands/baseline/baseline-logo-white.svg'
 import bioDataCatalystLogo from 'src/images/brands/bioDataCatalyst/bioDataCatalyst-Logo-color.svg'
 import bioDataCatalystLogoWhite from 'src/images/brands/bioDataCatalyst/bioDataCatalyst-Logo-white.svg'
 import datastageLogoWhite from 'src/images/brands/datastage/DataSTAGE-Logo-White.svg'
@@ -12,7 +14,7 @@ import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg'
 import terraLogo from 'src/images/brands/terra/logo.svg'
 import ukbLogo from 'src/images/brands/ukbiobank/uk-biobank-logo-color.svg'
 import ukbLogoWhite from 'src/images/brands/ukbiobank/uk-biobank-logo-white.svg'
-import { isAnvil, isBioDataCatalyst, isDatastage, isFirecloud, isTerra, isUKBiobank } from 'src/libs/config'
+import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra, isUKBiobank } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 
@@ -22,6 +24,7 @@ export const getAppName = (longName = false) => Utils.cond(
   [isAnvil(), longName ? 'The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space)' : 'AnVIL'],
   [isBioDataCatalyst(), 'NHLBI BioData Catalyst'],
   [isUKBiobank(), 'UK Biobank'],
+  [isBaseline(), longName ? 'The Baseline Health Study Data Portal' : 'Project Baseline'],
   'Terra'
 )
 
@@ -32,7 +35,8 @@ const pickBrandLogo = (color = false) => Utils.cond(
   [isDatastage(), color ? datastageLogo : datastageLogoWhite],
   [isAnvil(), color ? anvilLogo : anvilLogoWhite],
   [isBioDataCatalyst(), color ? bioDataCatalystLogo : bioDataCatalystLogoWhite],
-  [isUKBiobank(), color ? ukbLogo : ukbLogoWhite]
+  [isUKBiobank(), color ? ukbLogo : ukbLogoWhite],
+  [isBaseline(), color ? baselineLogo : baselineLogoWhite]
 )
 
 export const terraLogoMaker = (logoVariant, style) => img({ alt: 'Terra logo', role: 'img', src: logoVariant, style })
