@@ -52,7 +52,7 @@ export const launch = async ({
   onProgress('launch')
   return Ajax().Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
     entityType: Utils.cond(
-      [!entityName, () => undefined],
+      [entityName === undefined, () => undefined],
       [processSet, () => `${rootEntityType}_set`],
       () => rootEntityType
     ),
