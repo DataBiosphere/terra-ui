@@ -71,7 +71,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
     try {
       const { workspace, workspace: { workspace: { namespace, name } }, processSingle, entitySelectionModel: { type, selectedEntities, newSetName }, config, config: { rootEntityType }, useCallCache, deleteIntermediateOutputFiles, onSuccess, ajax: { Workspaces } } = this.props
 
-      const baseEntityType = rootEntityType.slice(0, -4)
+      const baseEntityType = rootEntityType && rootEntityType.slice(0, -4)
       const { selectedEntityType, selectedEntityNames } = await Utils.cond(
         [processSingle, () => ({})],
         [type === processAll, async () => {
