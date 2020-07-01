@@ -15,6 +15,3 @@ export const isDatastage = () => (window.location.hostname === 'datastage.terra.
 export const isFirecloud = () => (window.location.hostname === 'firecloud.terra.bio') || getConfig().isFirecloud
 export const isTerra = () => !isFirecloud() && !isDatastage() && !isAnvil() && !isBioDataCatalyst() && !isUKBiobank() && !isBaseline()
 export const isUKBiobank = () => (window.location.hostname === 'ukbiobank.terra.bio') || getConfig().isUKBiobank
-
-
-
