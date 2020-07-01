@@ -4,7 +4,7 @@ import { b, div, h } from 'react-hyperscript-helpers'
 import { spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
-import { usableStatuses } from 'src/libs/cluster-utils'
+import { collapsedClusterStatus, usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -25,7 +25,8 @@ export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
   const startClusterOnce = withErrorReporting('Error starting notebook runtime', async () => {
     while (!signal.aborted) {
       const currentCluster = getCluster()
-      const { status, googleProject, runtimeName } = currentCluster || {}
+      const { googleProject, runtimeName } = currentCluster || {}
+      const status = collapsedClusterStatus(currentCluster)
 
       if (status === 'Stopped') {
         setBusy(true)
@@ -74,7 +75,7 @@ export const PlaygroundHeader = ({ children }) => {
 }
 
 export const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning = _.noop, onClusterStartedRunning = _.noop }) => {
-  const currentStatus = cluster && cluster.status
+  const currentStatus = collapsedClusterStatus(cluster)
   const prevStatus = Utils.usePrevious(currentStatus)
 
   useEffect(() => {

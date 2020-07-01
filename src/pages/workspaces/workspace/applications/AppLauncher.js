@@ -6,6 +6,7 @@ import { ClusterKicker, ClusterStatusMonitor, PeriodicCookieSetter, PlaygroundHe
 import { Link, spinnerOverlay } from 'src/components/common'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { Ajax } from 'src/libs/ajax'
+import { collapsedClusterStatus } from 'src/libs/cluster-utils'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -24,7 +25,7 @@ const AppLauncher = _.flow(
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
 
-  const clusterStatus = cluster && cluster.status // preserve null vs undefined
+  const clusterStatus = collapsedClusterStatus(cluster) // preserve null vs undefined
   const runtimeName = cluster?.runtimeName
 
   return h(Fragment, [
@@ -69,6 +70,7 @@ const AppLauncher = _.flow(
             ['Running', () => 'Almost ready...'],
             ['Stopping', () => 'Notebook runtime environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'],
             ['Stopped', () => 'Notebook runtime environment is stopped. Start it to edit your notebook or use the terminal.'],
+            ['Reconfiguring', () => 'Notebook runtime environment is updating, please wait.'],
             ['Error', () => 'Error with the notebook runtime environment, please try again.'],
             [null, () => 'Create a notebook runtime to continue.'],
             [undefined, () => 'Loading...'],
