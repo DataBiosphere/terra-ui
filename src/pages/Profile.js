@@ -9,6 +9,7 @@ import {
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
+import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
@@ -161,6 +162,7 @@ const NihLink = ({ nihToken }) => {
 
 
 const FenceLink = ({ provider: { key, name } }) => {
+  const [modal, setModal] = useState(false)
   const decodeProvider = state => state ? JSON.parse(atob(state)).provider : ''
 
   const extractToken = (provider, { state, code }) => {
@@ -217,7 +219,13 @@ const FenceLink = ({ provider: { key, name } }) => {
           div({ style: { flex: 1 } }, ['Link Expiration:']),
           div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
         ]),
-        h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to re-link your account', provider: key, redirectUrl })
+        h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to re-link your account', provider: key, redirectUrl }),
+        h(Link, { onClick: () => { console.log('I am a link to ', name, modal) } }, ['link here!']),
+        h(Modal, {
+          onDismiss: () => setModal(false),
+          title: 'testing modal'
+        }, ['llksdjf']
+        )
       ])
     )
   ])
