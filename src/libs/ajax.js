@@ -341,6 +341,10 @@ const User = signal => ({
     return res.json()
   },
 
+  unlinkFenceAccount: (provider) => {
+    return fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
+  },
+
   isUserRegistered: async email => {
     try {
       await fetchSam(`api/users/v1/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'GET' }))

@@ -220,12 +220,17 @@ const FenceLink = ({ provider: { key, name } }) => {
           div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
         ]),
         h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to re-link your account', provider: key, redirectUrl }),
-        h(Link, { onClick: () => { console.log('I am a link to ', name, modal) } }, ['link here!']),
-        h(Modal, {
+        h(Link, { onClick: () => { setModal(true) } }, ['Click here to unlink your account']),
+        modal && h(Modal, {
           onDismiss: () => setModal(false),
-          title: 'testing modal'
-        }, ['llksdjf']
-        )
+          okButton: async () => {
+            await Ajax().User.unlinkFenceAccount(key)
+          },
+          title: 'Confirm unlink account'
+        }, [
+          div([`Are you sure you want to unlink from ${name}?`]),
+          div({ style: { marginTop: '1rem' } }, ['You will lose access to any underlying datasets. You can always re-link later.'])
+        ])
       ])
     )
   ])
