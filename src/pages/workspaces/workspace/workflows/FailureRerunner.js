@@ -25,43 +25,32 @@ const ToastMessageComponent = Utils.connectStore(rerunFailuresStatus, 'status')(
   }
 })
 
-export const rerunFailures = async ({ namespace, name, submissionId, configNamespace, configName, onDone }) => {
+export const rerunFailures = async ({ workspace, workspace: { workspace: { namespace, name } }, submissionId, configNamespace, configName, onDone }) => {
   rerunFailuresStatus.set({ text: 'Loading workflow info...' })
   const id = notify('info', h(ToastMessageComponent))
-  const eventData = { ...extractWorkspaceDetails({ workspace: { name, namespace } }), configNamespace, configName }
+  const eventData = { ...extractWorkspaceDetails(workspace), configNamespace, configName }
 
   try {
-    const workspace = Ajax().Workspaces.workspace(namespace, name)
-    const methodConfig = workspace.methodConfig(configNamespace, configName)
-
-    const [{ workflows, useCallCache, deleteIntermediateOutputFiles }, { rootEntityType }] = await Promise.all([
-      workspace.submission(submissionId).get(),
-      methodConfig.get()
+    const [{ workflows, useCallCache, deleteIntermediateOutputFiles }, config] = await Promise.all([
+      Ajax().Workspaces.workspace(namespace, name).submission(submissionId).get(),
+      Ajax().Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).get()
     ])
 
-    const failedEntities = _.flow(
-      _.filter(v => (v.status === 'Aborted' || v.status === 'Failed')),
-      _.map('workflowEntity')
-    )(workflows)
-
-    const newSetName = Utils.sanitizeEntityName(`${configName}-resubmission-${new Date().toISOString().slice(0, -5)}`)
-
     await launch({
-      workspaceNamespace: namespace, workspaceName: name,
-      config: { namespace: configNamespace, name: configName, rootEntityType },
-      entityType: rootEntityType, entityNames: _.map('entityName', failedEntities),
-      newSetName, useCallCache, deleteIntermediateOutputFiles,
-      onCreateSet: () => rerunFailuresStatus.set({ text: 'Creating set from failures...' }),
-      onLaunch: () => rerunFailuresStatus.set({ text: 'Launching new job...' }),
-      onSuccess: () => {
-        rerunFailuresStatus.set({ text: 'Success!', done: true })
-        onDone()
-      },
-      onFailure: error => {
-        clearNotification(id)
-        reportError('Error rerunning failed workflows', error)
+      workspace, config,
+      selectedEntityType: config.rootEntityType,
+      selectedEntityNames: _.flow(
+        _.filter(v => (v.status === 'Aborted' || v.status === 'Failed')),
+        _.map('workflowEntity.entityName')
+      )(workflows),
+      newSetName: Utils.sanitizeEntityName(`${configName}-resubmission-${new Date().toISOString().slice(0, -5)}`),
+      useCallCache, deleteIntermediateOutputFiles,
+      onProgress: stage => {
+        rerunFailuresStatus.set({ text: { createSet: 'Creating set from failures...', launch: 'Launching new job...', checkBucketAccess: 'Checking bucket access...' }[stage] })
       }
     })
+    rerunFailuresStatus.set({ text: 'Success!', done: true })
+    onDone()
     Ajax().Metrics.captureEvent(Events.workflowRerun, { ...eventData, success: true })
 
     await Utils.delay(2000)

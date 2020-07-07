@@ -411,7 +411,7 @@ const WorkflowView = _.flow(
           ['outputs', () => this.renderIOTable('outputs')]
         ),
         launching && h(LaunchAnalysisModal, {
-          workspaceId, config: savedConfig, entityMetadata,
+          workspace, config: savedConfig, entityMetadata,
           accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache, deleteIntermediateOutputFiles,
           onDismiss: () => this.setState({ launching: false }),
