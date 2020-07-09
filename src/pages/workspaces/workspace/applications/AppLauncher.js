@@ -6,7 +6,7 @@ import { ClusterKicker, ClusterStatusMonitor, PeriodicCookieSetter, PlaygroundHe
 import { Link, spinnerOverlay } from 'src/components/common'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { Ajax } from 'src/libs/ajax'
-import { collapsedClusterStatus } from 'src/libs/cluster-utils'
+import { collapsedClusterStatus, usableStatuses } from 'src/libs/cluster-utils'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -42,7 +42,7 @@ const AppLauncher = _.flow(
       cluster, refreshClusters,
       onNullCluster: () => setShowCreate(true)
     }),
-    clusterStatus === 'Running' && cookieReady ?
+    _.includes(clusterStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
         h(PeriodicCookieSetter, { namespace, runtimeName }),
         app === 'RStudio' && h(PlaygroundHeader, [
@@ -64,17 +64,17 @@ const AppLauncher = _.flow(
       ]) :
       div({ style: { padding: '2rem' } }, [
         !busy && h(StatusMessage, { hideSpinner: ['Error', 'Stopped', null].includes(clusterStatus) }, [
-          Utils.switchCase(clusterStatus,
-            ['Creating', () => 'Creating notebook runtime environment. You can navigate away and return in 3-5 minutes.'],
-            ['Starting', () => 'Starting notebook runtime environment, this may take up to 2 minutes.'],
-            ['Running', () => 'Almost ready...'],
-            ['Stopping', () => 'Notebook runtime environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'],
-            ['Stopped', () => 'Notebook runtime environment is stopped. Start it to edit your notebook or use the terminal.'],
-            ['Reconfiguring', () => 'Notebook runtime environment is updating, please wait.'],
-            ['Error', () => 'Error with the notebook runtime environment, please try again.'],
-            [null, () => 'Create a notebook runtime to continue.'],
-            [undefined, () => 'Loading...'],
-            [Utils.DEFAULT, () => 'Unknown notebook runtime status. Please create a new runtime or contact support.']
+          Utils.cond(
+            [clusterStatus === 'Creating', () => 'Creating notebook runtime environment. You can navigate away and return in 3-5 minutes.'],
+            [clusterStatus === 'Starting', () => 'Starting notebook runtime environment, this may take up to 2 minutes.'],
+            [_.includes(clusterStatus, usableStatuses), () => 'Almost ready...'],
+            [clusterStatus === 'Stopping', () => 'Notebook runtime environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'],
+            [clusterStatus === 'Stopped', () => 'Notebook runtime environment is stopped. Start it to edit your notebook or use the terminal.'],
+            [clusterStatus === 'LeoReconfiguring', () => 'Notebook runtime environment is updating, please wait.'],
+            [clusterStatus === 'Error', () => 'Error with the notebook runtime environment, please try again.'],
+            [clusterStatus === null, () => 'Create a notebook runtime to continue.'],
+            [clusterStatus === undefined, () => 'Loading...'],
+            () => 'Unknown notebook runtime status. Please create a new runtime or contact support.'
           )
         ]),
         h(NewClusterModal, {

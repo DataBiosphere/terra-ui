@@ -252,7 +252,7 @@ export default class ClusterManager extends PureComponent {
         case 'Stopping':
         case 'Updating':
         case 'Creating':
-        case 'Reconfiguring':
+        case 'LeoReconfiguring':
           return h(ClusterIcon, {
             shape: 'sync',
             disabled: true,
@@ -280,7 +280,7 @@ export default class ClusterManager extends PureComponent {
     }
     const totalCost = _.sum(_.map(clusterCost, clusters))
     const activeClusters = this.getActiveClustersOldestFirst()
-    const { Creating: creating, Updating: updating, Reconfiguring: reconfiguring } = _.countBy(collapsedClusterStatus, activeClusters)
+    const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring } = _.countBy(collapsedClusterStatus, activeClusters)
     const isDisabled = !canCompute || creating || busy || updating || reconfiguring
 
     const isRStudioImage = currentCluster?.labels.tool === 'RStudio'
@@ -318,7 +318,7 @@ export default class ClusterManager extends PureComponent {
           div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
             div({ style: { fontSize: 10 } }, [
-              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, [currentStatus === 'Reconfiguring' ? 'Updating' : (currentStatus || 'None')]),
+              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, [currentStatus === 'LeoReconfiguring' ? 'Updating' : (currentStatus || 'None')]),
               currentStatus && ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
