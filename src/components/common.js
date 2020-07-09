@@ -17,9 +17,10 @@ import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { getConfig, isFirecloud, isTerra } from 'src/libs/config'
-import { reportError, withErrorReporting } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import { getAppName, returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -391,27 +392,29 @@ export const FrameworkServiceLink = ({ linkText, provider, redirectUrl }) => {
 }
 
 export const UnlinkFenceAccount = ({ provider }) => {
-  const [modal, setModal] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isUnlinking, setIsUnlinking] = useState(false)
 
   return div([
-    h(Link, { onClick: () => { setModal(true) } }, ['Click here to unlink your account']),
-    modal && h(Modal, {
+    h(Link, { onClick: () => { setIsModalOpen(true) } }, ['Click here to unlink your account']),
+    isModalOpen && h(Modal, {
       title: 'Confirm unlink account',
-      onDismiss: () => setModal(false),
+      onDismiss: () => setIsModalOpen(false),
       okButton: h(ButtonPrimary, {
-        onClick: async () => {
-          try {
-            setModal(false),
-            await Ajax().User.unlinkFenceAccount(provider.key)
-            //document.location.reload()
-          } catch (error) {
-            await reportError('Error importing reference data', error)
-          }
+        onClick: _.flow(
+          withErrorReporting('Error unlinking account'),
+          Utils.withBusyState(setIsUnlinking)
+        )(async () => {
+          await Ajax().User.unlinkFenceAccount(provider.key)
+          authStore.update(_.set(['fenceStatus', provider.key], {}))
+          setIsModalOpen(false)
         }
+        )
       }, 'OK')
     }, [
       div([`Are you sure you want to unlink from ${provider.name}?`]),
-      div({ style: { marginTop: '1rem' } }, ['You will lose access to any underlying datasets. You can always re-link your account later.'])
+      div({ style: { marginTop: '1rem' } }, ['You will lose access to any underlying datasets. You can always re-link your account later.']),
+      isUnlinking && spinnerOverlay
     ])
   ])
 }

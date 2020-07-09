@@ -13,6 +13,8 @@ export const authStore = Utils.atom({
   fenceStatus: {}
 })
 
+window.authStore = authStore
+
 export const lastActiveTimeStore = staticStorageSlot(localStorage, 'idleTimeout')
 lastActiveTimeStore.update(v => v || {})
 
