@@ -4,12 +4,11 @@ import * as qs from 'qs'
 import { Component, Fragment, useState } from 'react'
 import { div, h, label, span } from 'react-hyperscript-helpers'
 import {
-  ButtonPrimary, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay
+  ButtonPrimary, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay, UnlinkFenceAccount
 } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
 import { TextInput, ValidatedInput } from 'src/components/input'
-import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
@@ -162,7 +161,6 @@ const NihLink = ({ nihToken }) => {
 
 
 const FenceLink = ({ provider: { key, name } }) => {
-  const [modal, setModal] = useState(false)
   const decodeProvider = state => state ? JSON.parse(atob(state)).provider : ''
 
   const extractToken = (provider, { state, code }) => {
@@ -220,17 +218,7 @@ const FenceLink = ({ provider: { key, name } }) => {
           div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
         ]),
         h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to re-link your account', provider: key, redirectUrl }),
-        h(Link, { onClick: () => { setModal(true) } }, ['Click here to unlink your account']),
-        modal && h(Modal, {
-          onDismiss: () => setModal(false),
-          okButton: async () => {
-            await Ajax().User.unlinkFenceAccount(key)
-          },
-          title: 'Confirm unlink account'
-        }, [
-          div([`Are you sure you want to unlink from ${name}?`]),
-          div({ style: { marginTop: '1rem' } }, ['You will lose access to any underlying datasets. You can always re-link later.'])
-        ])
+        h(UnlinkFenceAccount, { provider: { key, name } })
       ])
     )
   ])

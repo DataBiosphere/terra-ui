@@ -9,6 +9,7 @@ import RSwitch from 'react-switch'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
+import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import landingPageHero from 'src/images/landing-page-hero.jpg'
@@ -16,7 +17,7 @@ import scienceBackground from 'src/images/science-background.jpg'
 import { Ajax } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { getConfig, isFirecloud, isTerra } from 'src/libs/config'
-import { withErrorReporting } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import { getAppName, returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -367,7 +368,6 @@ export const ShibbolethLink = ({ children, ...props }) => {
   ])
 }
 
-
 export const FrameworkServiceLink = ({ linkText, provider, redirectUrl }) => {
   const [href, setHref] = useState()
 
@@ -388,6 +388,32 @@ export const FrameworkServiceLink = ({ linkText, provider, redirectUrl }) => {
       linkText,
       icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
     ]) : h(Fragment, [linkText])
+}
+
+export const UnlinkFenceAccount = ({ provider }) => {
+  const [modal, setModal] = useState(false)
+
+  return div([
+    h(Link, { onClick: () => { setModal(true) } }, ['Click here to unlink your account']),
+    modal && h(Modal, {
+      title: 'Confirm unlink account',
+      onDismiss: () => setModal(false),
+      okButton: h(ButtonPrimary, {
+        onClick: async () => {
+          try {
+            setModal(false),
+            await Ajax().User.unlinkFenceAccount(provider.key)
+            //document.location.reload()
+          } catch (error) {
+            await reportError('Error importing reference data', error)
+          }
+        }
+      }, 'OK')
+    }, [
+      div([`Are you sure you want to unlink from ${provider.name}?`]),
+      div({ style: { marginTop: '1rem' } }, ['You will lose access to any underlying datasets. You can always re-link your account later.'])
+    ])
+  ])
 }
 
 export const IdContainer = ({ children }) => {

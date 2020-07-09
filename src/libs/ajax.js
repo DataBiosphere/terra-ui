@@ -341,7 +341,7 @@ const User = signal => ({
     return res.json()
   },
 
-  unlinkFenceAccount: (provider) => {
+  unlinkFenceAccount: provider => {
     return fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
   },
 
