@@ -2563,10 +2563,10 @@ array-includes@^3.0.3, array-includes@^3.1.1:
     es-abstract "^1.17.0"
     is-string "^1.0.5"
 
-array-move@^2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/array-move/-/array-move-2.2.1.tgz#16d5b68cb949c43e8821d63e4622f3a3336f254d"
-  integrity sha512-qQpEHBnVT6HAFgEVUwRdHVd8TYJThrZIT5wSXpEUTPwBaYhPLclw12mEpyUvRWVdl1VwPOqnIy6LqTFN3cSeUQ==
+array-move@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/array-move/-/array-move-2.2.2.tgz#c125f84d64e2f4bc09147f91f900a1bf58bb25d1"
+  integrity sha512-lKc6C+nsOSA1o7eHSP/HshlGDYUI7QKyaus5kPDm2zEEPQID9xlspnraLR8l+rDlqg9mGo8ziE7F8TEnF6D3Tw==
 
 array-union@^1.0.1:
   version "1.0.2"
@@ -6799,10 +6799,10 @@ iferr@^0.1.5:
   resolved "https://registry.yarnpkg.com/iferr/-/iferr-0.1.5.tgz#c60eed69e6d8fdb6b3104a1fcbca1c192dc5b501"
   integrity sha1-xg7taebY/bazEEofy8ocGS3FtQE=
 
-iframe-resizer@^4.2.10:
-  version "4.2.10"
-  resolved "https://registry.yarnpkg.com/iframe-resizer/-/iframe-resizer-4.2.10.tgz#c61c9119bb1bf31931fc3c3bb025e1891b18502c"
-  integrity sha512-9T/AWavGI5Q7nw2ch7qatkKvhK6S11eatuSh0SXpPXN3MV0HtN97KyifWJSuMj47rD6jbqe1CXT91PLQbexvEQ==
+iframe-resizer@^4.2.11:
+  version "4.2.11"
+  resolved "https://registry.yarnpkg.com/iframe-resizer/-/iframe-resizer-4.2.11.tgz#68a6709796447e90109d2cf54373b51adbd1186a"
+  integrity sha512-fj5vX5kkpRbMb5Qje6veIDzqoJpnCEqUDdSOwASOeQHYmb8hLYX6Ev2yXf3jjMs2MclwcYY3chyZ3diGKcr8DA==
 
 ignore@^3.3.5:
   version "3.3.10"
