@@ -63,6 +63,7 @@ export const TrialBanner = Utils.connectStore(authStore, 'authState')(class Tria
     const { finalizeTrial } = this.state
     const { trialState } = profile
     const removeBanner = localStorage.getItem('removeBanner')
+    if (trialState === 'Enabled') return null // Disable new sign-ups
     if (!trialState || !isSignedIn || !acceptedTos || trialState === 'Finalized' || removeBanner === 'true') return null
     const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
     return div([

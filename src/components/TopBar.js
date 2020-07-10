@@ -22,7 +22,7 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import { topBarLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
-import { authStore, contactUsActive, freeCreditsActive } from 'src/libs/state'
+import { authStore, contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CookiesModal } from 'src/pages/SignIn'
@@ -232,17 +232,6 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
             }, ['Workflows'])
           ]),
           Utils.switchCase(trialState,
-            ['Enabled', () => {
-              return h(NavSection, {
-                onClick: () => {
-                  this.hideNav()
-                  freeCreditsActive.set(true)
-                }
-              }, [
-                div({ style: styles.nav.icon }, [icon('cloud', { size: 20 })]),
-                'Sign up for free credits'
-              ])
-            }],
             ['Enrolled', () => {
               return h(NavSection, {
                 href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',

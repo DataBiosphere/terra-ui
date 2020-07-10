@@ -15,7 +15,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
-import { authStore, freeCreditsActive } from 'src/libs/state'
+import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -63,18 +63,6 @@ const noBillingMessage = onClick => div({ style: { fontSize: 20, margin: '2rem' 
       ...Utils.newTabLinkProps,
       href: `https://support.terra.bio/hc/en-us/articles/360026182251`
     }, [`What is a billing project?`])
-  ])
-])
-
-const freeCreditsMessage = div({ style: { fontSize: 20, margin: '2rem' } }, [
-  div([
-    'Start your free trial by redeeming your ', span({ style: { fontWeight: 600 } }, ['Free Credits'])
-  ]),
-  div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-    h(Link, {
-      ...Utils.newTabLinkProps,
-      href: `https://support.terra.bio/hc/en-us/articles/360027940952`
-    }, [`What are Free Credits?`])
   ])
 ])
 
@@ -261,9 +249,7 @@ export const BillingList = _.flow(
 
   render() {
     const { billingProjects, isLoadingProjects, isLoadingAccounts, isAuthorizing, creatingBillingProject, billingAccounts, isOwner } = this.state
-    const { queryParams: { selectedName }, authState: { profile } } = this.props
-    const { trialState } = profile
-    const hasFreeCredits = trialState === 'Enabled'
+    const { queryParams: { selectedName } } = this.props
     const hasBillingProjects = !_.isEmpty(billingProjects)
     const breadcrumbs = `Billing > Billing Project`
 
@@ -289,11 +275,6 @@ export const BillingList = _.flow(
             [icon('plus-circle', { size: 21, style: { color: colors.accent() } })]
             )
           ]),
-          hasFreeCredits && h(Clickable, {
-            style: { ...Style.navList.heading, color: 'white', backgroundColor: colors.accent() },
-            hover: { backgroundColor: colors.accent(0.85) },
-            onClick: () => freeCreditsActive.set(true)
-          }, ['Click for $300 free credits']),
           _.map(project => h(ProjectTab, {
             project, key: project.projectName,
             isActive: !!selectedName && project.projectName === selectedName
@@ -320,8 +301,7 @@ export const BillingList = _.flow(
             authorizeAndLoadAccounts: this.authorizeAndLoadAccounts
           })],
           [isOwner && !selectedName && hasBillingProjects, () => div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Billing Project'])],
-          [!hasBillingProjects && hasFreeCredits, () => freeCreditsMessage],
-          [!hasBillingProjects && !hasFreeCredits, () => noBillingMessage(this.showCreateProjectModal)]
+          [!hasBillingProjects, () => noBillingMessage(this.showCreateProjectModal)]
         ),
         (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
       ])

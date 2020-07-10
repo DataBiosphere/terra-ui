@@ -142,7 +142,7 @@ const JobHistory = _.flow(
   }
 
   render() {
-    const { namespace, name, workspace: { workspace: { bucketName } } } = this.props
+    const { namespace, name, workspace, workspace: { workspace: { bucketName } } } = this.props
     const { submissions, loading, aborting, textFilter } = this.state
     const filteredSubmissions = _.filter(({ asText }) => _.every(term => asText.includes(term.toLowerCase()), textFilter.split(/\s+/)), submissions)
     const hasJobs = !_.isEmpty(submissions)
@@ -241,8 +241,7 @@ const JobHistory = _.flow(
                     isTerminal(status) && (workflowStatuses['Failed'] || workflowStatuses['Aborted']) &&
                     submissionEntity && !methodConfigurationDeleted && h(ButtonPrimary, {
                       onClick: () => rerunFailures({
-                        namespace,
-                        name,
+                        workspace,
                         submissionId,
                         configNamespace: methodConfigurationNamespace,
                         configName: methodConfigurationName,
