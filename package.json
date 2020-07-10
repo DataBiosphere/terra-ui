@@ -48,7 +48,7 @@
     "react-textarea-autosize": "^7.1.2",
     "react-transition-group": "^4.4.1",
     "react-virtualized": "^9.21.2",
-    "uuid": "^8.0.0",
+    "uuid": "^8.2.0",
     "validate.js": "^0.13.1"
   },
   "scripts": {
