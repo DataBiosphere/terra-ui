@@ -20,7 +20,7 @@
     "history": "^4.10.1",
     "iframe-resizer": "^4.2.11",
     "igv": "2.3.5",
-    "jszip": "^3.4.0",
+    "jszip": "^3.5.0",
     "lodash": "^4.17.19",
     "marked": "^0.6.3",
     "outdated-browser-rework": "^2.10.0",
