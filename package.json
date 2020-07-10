@@ -11,7 +11,7 @@
     "array-move": "^2.2.2",
     "clipboard-polyfill": "^2.8.6",
     "color": "^3.1.2",
-    "date-fns": "^2.13.0",
+    "date-fns": "^2.14.0",
     "debounce-promise": "^3.1.2",
     "downshift": "^5.2.7",
     "file-saver": "^2.0.2",
