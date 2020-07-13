@@ -1107,6 +1107,14 @@ const Clusters = signal => ({
 })
 
 
+const Disks = signal => ({
+  list: async (labels = {}) => {
+    const res = await fetchLeo(`api/google/v1/disks?${qs.stringify(labels)}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    return res.json()
+  },
+})
+
 const Dockstore = signal => ({
   getWdl: async (path, version) => {
     const res = await fetchDockstore(`${dockstoreMethodPath(path)}/${encodeURIComponent(version)}/WDL/descriptor`, { signal })
