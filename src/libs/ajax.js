@@ -1109,7 +1109,7 @@ const Clusters = signal => ({
 
 const Disks = signal => ({
   list: async (labels = {}) => {
-    const res = await fetchLeo(`api/google/v1/disks?${qs.stringify(labels)}`,
+    const res = await fetchLeo(`api/google/v1/disks${qs.stringify(labels)}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
@@ -1183,7 +1183,8 @@ export const Ajax = signal => {
     Dockstore: Dockstore(signal),
     Martha: Martha(signal),
     Duos: Duos(signal),
-    Metrics: Metrics(signal)
+    Metrics: Metrics(signal),
+    Disks: Disks(signal)
   }
 }
 
