@@ -82,6 +82,9 @@ export const trimClustersOldestFirst = _.flow(
 
 export const currentCluster = _.flow(trimClustersOldestFirst, _.last)
 
+export const collapsedClusterStatus = cluster => {
+  return cluster && (cluster.patchInProgress ? 'LeoReconfiguring' : cluster.status) // NOTE: preserves null vs undefined
+}
 
 export const deleteText = () => {
   return h(Fragment, [p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [

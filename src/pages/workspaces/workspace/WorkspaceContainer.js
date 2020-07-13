@@ -11,7 +11,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
-import { currentCluster } from 'src/libs/cluster-utils'
+import { collapsedClusterStatus, currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { isTerra } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
@@ -161,7 +161,7 @@ const useClusterPolling = namespace => {
       const newClusters = await Ajax(signal).Clusters.list({ googleProject: namespace, creator: getUser().email })
       setClusters(newClusters)
       const cluster = currentCluster(newClusters)
-      reschedule(_.includes(cluster && cluster.status, ['Creating', 'Starting', 'Stopping', 'Updating']) ? 10000 : 120000)
+      reschedule(_.includes(collapsedClusterStatus(cluster), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
     } catch (error) {
       reschedule(30000)
       throw error

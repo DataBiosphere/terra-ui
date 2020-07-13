@@ -16,7 +16,7 @@ import { findPotentialNotebookLockers, NotebookDuplicator, notebookLockHash } fr
 import PopupTrigger from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { usableStatuses } from 'src/libs/cluster-utils'
+import { collapsedClusterStatus, usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -47,7 +47,8 @@ const NotebookLauncher = _.flow(
   ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace }, accessLevel, canCompute }, cluster, refreshClusters }, ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     // Status note: undefined means still loading, null means no cluster
-    const { runtimeName, status, labels } = cluster || {}
+    const { runtimeName, labels } = cluster || {}
+    const status = collapsedClusterStatus(cluster)
     const [busy, setBusy] = useState()
     const { mode } = queryParams
 
@@ -183,7 +184,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
   const [lockedBy, setLockedBy] = useState(null)
   const [exportingNotebook, setExportingNotebook] = useState(false)
   const [copyingNotebook, setCopyingNotebook] = useState(false)
-  const clusterStatus = cluster && cluster.status
+  const clusterStatus = collapsedClusterStatus(cluster)
   const welderEnabled = cluster && !cluster.labels.welderInstallFailed
   const { mode } = queryParams
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
@@ -244,6 +245,10 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
           h(HeaderButton, {}, [icon('ellipsis-v')])
         ])
       ])],
+      [_.includes(clusterStatus, usableStatuses), () => {
+        console.assert(false, `Expected notebook runtime to NOT be one of: [${usableStatuses}]`)
+        return null
+      }],
       [clusterStatus === 'Creating', () => h(StatusMessage, [
         'Creating notebook runtime environment. You can navigate away and return in 3-5 minutes.'
       ])],
@@ -252,6 +257,9 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
       ])],
       [clusterStatus === 'Stopping', () => h(StatusMessage, [
         'Notebook runtime environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'
+      ])],
+      [clusterStatus === 'LeoReconfiguring', () => h(StatusMessage, [
+        'Notebook runtime environment is updating, please wait.'
       ])],
       [clusterStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Notebook runtime error.'])]
     ),

@@ -161,8 +161,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return onSuccess(
       Ajax().Clusters.cluster(googleProject, runtimeName).update({
         runtimeConfig: this.getRuntimeConfig()
-      }),
-      isStopRequired ? 5000 : 0)
+      })
+    )
   }
 
   hasStartUpScriptChanged() {
