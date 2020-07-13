@@ -22,6 +22,7 @@ const Clusters = () => {
   const signal = useCancellation()
   const [clusters, setClusters] = useState()
   const [loading, setLoading] = useState(false)
+  const [disksLoading, setDisksLoading] = useState(false)
   const [errorClusterId, setErrorClusterId] = useState()
   const getErrorClusterId = useGetter(errorClusterId)
   const [deleteClusterId, setDeleteClusterId] = useState()
@@ -38,6 +39,11 @@ const Clusters = () => {
       setDeleteClusterId(undefined)
     }
   })
+
+  const refreshDisks = withBusyState(setDisksLoading, async () => {
+    const disks = await Ajax(signal).Disks.list({})
+  })
+
   const loadClusters = withErrorReporting('Error loading notebook runtimes', refreshClusters)
 
   useOnMount(() => { loadClusters() })
