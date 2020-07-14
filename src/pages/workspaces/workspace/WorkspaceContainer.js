@@ -148,7 +148,7 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const useClusterPolling = namespace => {
+const useCloudEnvironmentPolling = namespace => {
   const signal = Utils.useCancellation()
   const timeout = useRef()
   const [clusters, setClusters] = useState()
@@ -158,11 +158,12 @@ const useClusterPolling = namespace => {
     clearTimeout(timeout.current)
     timeout.current = setTimeout(refreshClustersSilently, ms)
   }
-  const loadClusters = async () => {
+  const load = async () => {
     try {
-      const newDisks = await Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email })
-      const newClusters = await Ajax(signal).Clusters.list({ googleProject: namespace, creator: getUser().email })
-      // Setting the state after both ajax calls to ensure synchronization of clusters and disks
+      const [ newDisks, newClusters ] = await Promise.all([
+        Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email }),
+        Ajax(signal).Clusters.list({ googleProject: namespace, creator: getUser().email })
+      ])
       setClusters(newClusters)
       setDisks(newDisks)
 
@@ -173,8 +174,8 @@ const useClusterPolling = namespace => {
       throw error
     }
   }
-  const refreshClusters = withErrorReporting('Error loading notebook runtimes', loadClusters)
-  const refreshClustersSilently = withErrorIgnoring(loadClusters)
+  const refreshClusters = withErrorReporting('Error loading notebook runtimes', load)
+  const refreshClustersSilently = withErrorIgnoring(load)
   Utils.useOnMount(() => {
     refreshClusters()
     return () => clearTimeout(timeout.current)
@@ -191,7 +192,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const accessNotificationId = useRef()
     const cachedWorkspace = Utils.useStore(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
-    const { clusters, refreshClusters } = useClusterPolling(namespace)
+    const { clusters, refreshClusters } = useCloudEnvironmentPolling(namespace)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
       cachedWorkspace :
       undefined
