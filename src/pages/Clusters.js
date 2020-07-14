@@ -40,8 +40,8 @@ const Clusters = () => {
     }
   })
 
-  const refreshDisks = withBusyState(setDisksLoading, async () => {
-    const disks = await Ajax(signal).Disks.list({})
+  const refreshPersistentDisks = withBusyState(setDisksLoading, async () => {
+    const persistentDisks = await Ajax(signal).Disks.list({})
   })
 
   const loadClusters = withErrorReporting('Error loading notebook runtimes', refreshClusters)
