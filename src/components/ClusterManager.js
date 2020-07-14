@@ -223,7 +223,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, clusters, canCompute } = this.props
+    const { namespace, name, clusters, canCompute, persistentDisks } = this.props
     const { busy, createModalDrawerOpen, errorModalOpen } = this.state
     if (!clusters) {
       return null
@@ -330,6 +330,7 @@ export default class ClusterManager extends PureComponent {
         isOpen: createModalDrawerOpen,
         namespace,
         currentCluster,
+        persistentDisks,
         onDismiss: () => this.setState({ createModalDrawerOpen: false }),
         onSuccess: promise => {
           this.setState({ createModalDrawerOpen: false })
