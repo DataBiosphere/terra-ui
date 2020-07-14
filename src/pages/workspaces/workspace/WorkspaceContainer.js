@@ -152,14 +152,20 @@ const useClusterPolling = namespace => {
   const signal = Utils.useCancellation()
   const timeout = useRef()
   const [clusters, setClusters] = useState()
+  const [disks, setDisks] = useState()
+
   const reschedule = ms => {
     clearTimeout(timeout.current)
     timeout.current = setTimeout(refreshClustersSilently, ms)
   }
   const loadClusters = async () => {
     try {
+      const newDisks = await Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email })
       const newClusters = await Ajax(signal).Clusters.list({ googleProject: namespace, creator: getUser().email })
+      // Setting the state after both ajax calls to ensure synchronization of clusters and disks
       setClusters(newClusters)
+      setDisks(newDisks)
+
       const cluster = currentCluster(newClusters)
       reschedule(_.includes(collapsedClusterStatus(cluster), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
     } catch (error) {
