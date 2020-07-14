@@ -129,6 +129,7 @@ export default class ClusterManager extends PureComponent {
     namespace: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     clusters: PropTypes.array,
+    disks: PropTypes.array,
     canCompute: PropTypes.bool.isRequired,
     refreshClusters: PropTypes.func.isRequired
   }

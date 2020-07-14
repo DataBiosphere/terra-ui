@@ -89,7 +89,7 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
   ])
 }
 
-const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters, children }) => {
+const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters, disks, children }) => {
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
@@ -114,7 +114,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
         div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools'])
       ]),
       h(ClusterManager, {
-        namespace, name, clusters, refreshClusters,
+        namespace, name, clusters, disks, refreshClusters,
         canCompute: !!((workspace && workspace.canCompute) || (clusters && clusters.length))
       })
     ]),
@@ -180,7 +180,7 @@ const useCloudEnvironmentPolling = namespace => {
     refreshClusters()
     return () => clearTimeout(timeout.current)
   })
-  return { clusters, refreshClusters }
+  return { clusters, refreshClusters, disks }
 }
 
 export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryparams }) => WrappedComponent => {
@@ -192,7 +192,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const accessNotificationId = useRef()
     const cachedWorkspace = Utils.useStore(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
-    const { clusters, refreshClusters } = useCloudEnvironmentPolling(namespace)
+    const { clusters, refreshClusters, disks } = useCloudEnvironmentPolling(namespace)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
       cachedWorkspace :
       undefined
@@ -249,7 +249,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
-        namespace, name, activeTab, showTabBar, workspace, clusters,
+        namespace, name, activeTab, showTabBar, workspace, clusters, disks,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
