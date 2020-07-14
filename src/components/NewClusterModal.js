@@ -111,11 +111,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
     const { masterDiskSize, masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
     const matchingProfile = _.find(({ runtimeConfig }) => _.isMatch({ masterMachineType, masterDiskSize }, normalizeRuntimeConfig(runtimeConfig)), profiles)
-    // persistent disk attached to this runtime or the most recent
-    const currentPersistentDisk = currentCluster?.diskConfig
+    const currentPersistentDisk = currentCluster?.diskConfig || _.last(_.sortBy('auditinfo.createdDate', persistentDisks))
 
     this.state = {
-      // persistentDiskSize: ,
+      persistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : (!currentCluster ? 50 : null),
       profile: matchingProfile?.name || 'custom',
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
       sparkMode: cloudService === 'GCE' ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
