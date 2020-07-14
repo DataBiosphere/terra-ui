@@ -112,7 +112,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { masterDiskSize, masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
     const matchingProfile = _.find(({ runtimeConfig }) => _.isMatch({ masterMachineType, masterDiskSize }, normalizeRuntimeConfig(runtimeConfig)), profiles)
     // persistent disk attached to this runtime or the most recent
-    const currentPersistentDisk = currentCluster.diskConfig
+    const currentPersistentDisk = currentCluster?.diskConfig
 
     this.state = {
       // persistentDiskSize: ,
