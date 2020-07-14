@@ -1109,10 +1109,13 @@ const Clusters = signal => ({
 
 const Disks = signal => ({
   list: async (labels = {}) => {
-    const res = await fetchLeo(`api/google/v1/disks${qs.stringify(labels)}`,
+    const res = await fetchLeo(`api/google/v1/disks${qs.stringify(labels, { addQueryPrefix: true })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
+
+  create: async () => {
+  }
 })
 
 const Dockstore = signal => ({
