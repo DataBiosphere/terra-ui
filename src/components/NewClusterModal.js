@@ -452,7 +452,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                     sparkMode: value,
                     numberOfWorkers: value === 'cluster' ? 2 : 0,
                     numberOfPreemptibleWorkers: 0,
-                    persistentDiskSize: value ?
+                    persistentDiskSize: value ? /* dataproc case */ : /* GCE case */
                   }),
                   options: [
                     { value: false, label: 'Standard VM', isDisabled: requiresSpark },
