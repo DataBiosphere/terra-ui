@@ -77,7 +77,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
     ]),
     h(IdContainer, [
       id => h(Fragment, [
-        label({ htmlFor: id, style: styles.label }, 'Disk size (GB)'),
+        label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
         readOnly ? div({ style: styles.disabledInputs }, [diskSize]) :
           h(NumberInput, {
             id,
