@@ -208,17 +208,22 @@ const FenceLink = ({ provider: { key, name } }) => {
     Utils.cond(
       [isBusy, () => div([spinner(), 'Loading account status...'])],
       [!username, () => h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to link your account', provider: key, redirectUrl })],
-      () => div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
-        div({ style: { display: 'flex' } }, [
-          div({ style: { flex: 1 } }, ['Username:']),
-          div({ style: { flex: 2 } }, [username])
+      () => div([
+        div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
+          div({ style: { display: 'flex' } }, [
+            div({ style: { flex: 1 } }, ['Username:']),
+            div({ style: { flex: 2 } }, [username])
+          ]),
+          div({ style: { display: 'flex' } }, [
+            div({ style: { flex: 1 } }, ['Link Expiration:']),
+            div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
+          ])
         ]),
-        div({ style: { display: 'flex' } }, [
-          div({ style: { flex: 1 } }, ['Link Expiration:']),
-          div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
-        ]),
-        h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to re-link your account', provider: key, redirectUrl }),
-        h(UnlinkFenceAccount, { provider: { key, name } })
+        div({ style: { display: 'inline-flex', alignItems: 'center' } }, [
+          h(FrameworkServiceLink, { linkText: 'Renew', provider: key, redirectUrl }),
+          div({ style: { margin: '0 .25rem' } }, [' | ']),
+          h(UnlinkFenceAccount, { linkText: 'Unlink', provider: { key, name } })
+        ])
       ])
     )
   ])

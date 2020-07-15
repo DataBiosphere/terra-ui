@@ -391,12 +391,13 @@ export const FrameworkServiceLink = ({ linkText, provider, redirectUrl }) => {
     ]) : h(Fragment, [linkText])
 }
 
-export const UnlinkFenceAccount = ({ provider }) => {
+export const UnlinkFenceAccount = ({ linkText, provider }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isUnlinking, setIsUnlinking] = useState(false)
 
-  return div([
-    h(Link, { onClick: () => { setIsModalOpen(true) } }, ['Click here to unlink your account']),
+  return div({ style: { display: 'inline-flex' } }, [
+    h(Link, { onClick: () => { setIsModalOpen(true) } },
+      [linkText, icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })]),
     isModalOpen && h(Modal, {
       title: 'Confirm unlink account',
       onDismiss: () => setIsModalOpen(false),
