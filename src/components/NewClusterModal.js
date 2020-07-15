@@ -119,7 +119,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       profile: matchingProfile?.name || 'custom',
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
       sparkMode: cloudService === 'GCE' ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
-      ...currentConfig
+      ...currentConfig,
+      masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize
     }
   }
 
