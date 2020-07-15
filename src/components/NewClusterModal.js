@@ -411,7 +411,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(MachineSelector, {
             machineType: masterMachineType,
             onChangeMachineType: v => this.setState({ masterMachineType: v }),
-            diskSize: masterDiskSize,
+            diskSize: currentCluster?.diskConfig ? this.state.persistentDiskSize : masterDiskSize,
+            //TODO(PD): change this function to work with persistent disks
             onChangeDiskSize: v => this.setState({ masterDiskSize: v }),
             readOnly: profile !== 'custom'
           }),
