@@ -112,7 +112,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { masterDiskSize, masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
     const matchingProfile = _.find(({ runtimeConfig }) => _.isMatch({ masterMachineType, masterDiskSize }, normalizeRuntimeConfig(runtimeConfig)), profiles)
     // TODO(PD): This should probably only choose from unattached persistent disks.
-    const currentPersistentDisk = currentCluster?.diskConfig || _.last(_.sortBy('auditinfo.createdDate', persistentDisks))
+    const currentPersistentDisk = this.getCurrentPersistentDisk()
 
     this.state = {
       persistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : (!currentCluster ? 50 : null),
@@ -122,6 +122,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ...currentConfig,
       masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize
     }
+  }
+
+  getCurrentPersistentDisk () {
+    const { currentCluster, persistentDisks } = this.props
+    return currentCluster?.diskConfig || _.last(_.sortBy('auditinfo.createdDate', persistentDisks))
   }
 
   getRuntimeConfig(isNew = false) {
@@ -446,7 +451,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   onChange: ({ value }) => this.setState({
                     sparkMode: value,
                     numberOfWorkers: value === 'cluster' ? 2 : 0,
-                    numberOfPreemptibleWorkers: 0
+                    numberOfPreemptibleWorkers: 0,
+                    persistentDiskSize: value ?
                   }),
                   options: [
                     { value: false, label: 'Standard VM', isDisabled: requiresSpark },
