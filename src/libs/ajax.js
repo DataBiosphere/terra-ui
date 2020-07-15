@@ -1114,8 +1114,16 @@ const Disks = signal => ({
     return res.json()
   },
 
-  create: async () => {
+  disk: (project, name) => {
+    return {
+      delete: () => {
+        return fetchLeo(`api/google/v1/disks/${project}/${name}`, _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }]))
+      }
+    }
   }
+
+
+
 })
 
 const Dockstore = signal => ({
