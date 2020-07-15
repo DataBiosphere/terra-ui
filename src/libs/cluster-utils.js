@@ -6,6 +6,9 @@ import { dataprocCpuPrice, machineTypes, storagePrice } from 'src/data/machines'
 import * as Utils from 'src/libs/utils'
 
 
+// TODO (PD): look for other places this might make sense
+export const DEFAULT_DISK_SIZE = 50
+
 export const usableStatuses = ['Updating', 'Running']
 
 export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, bootDiskSize }) => {

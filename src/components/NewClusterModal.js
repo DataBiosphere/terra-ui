@@ -10,7 +10,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { deleteText, findMachineType, formatRuntimeConfig, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
+import { DEFAULT_DISK_SIZE, deleteText, findMachineType, formatRuntimeConfig, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { notify } from 'src/libs/notifications'
@@ -115,7 +115,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
     this.state = {
-      persistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : (!currentCluster ? 50 : null),
+      persistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : (!currentCluster ? DEFAULT_DISK_SIZE : null),
       profile: matchingProfile?.name || 'custom',
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
       sparkMode: cloudService === 'GCE' ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
@@ -452,7 +452,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                     sparkMode: value,
                     numberOfWorkers: value === 'cluster' ? 2 : 0,
                     numberOfPreemptibleWorkers: 0,
-                    persistentDiskSize: value ? /* dataproc case */ : /* GCE case */
+                    persistentDiskSize: this.getCurrentPersistentDisk() ?
+                      this.getCurrentPersistentDisk().size :
+                      (value ? undefined : DEFAULT_DISK_SIZE),
+                    masterDiskSize: currentCluster?.masterDiskSize || (value ? DEFAULT_DISK_SIZE : undefined)
                   }),
                   options: [
                     { value: false, label: 'Standard VM', isDisabled: requiresSpark },
