@@ -42,7 +42,7 @@ const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:
 
 const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
 
-const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly }) => {
+const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly, isPersistentDisk }) => {
   const { cpu: currentCpu, memory: currentMemory } = findMachineType(machineType)
   return h(Fragment, [
     h(IdContainer, [
@@ -77,7 +77,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
     ]),
     h(IdContainer, [
       id => h(Fragment, [
-        label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
+        label({ htmlFor: id, style: styles.label }, [isPersistentDisk ? 'Persistent disk size (GB)' : 'Disk size (GB)']),
         readOnly ? div({ style: styles.disabledInputs }, [diskSize]) :
           h(NumberInput, {
             id,
@@ -285,10 +285,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   render() {
     const { currentCluster, onDismiss, onSuccess } = this.props
     const {
-      profile, masterMachineType, masterDiskSize, sparkMode, workerMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
+      profile, masterMachineType, masterDiskSize, persistentDiskSize, sparkMode, workerMachineType,
+      numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
       jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode
     } = this.state
     const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
+
+    const isPersistentDisk = currentCluster?.diskConfig
 
     const onEnvChange = ({ value }) => {
       const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
@@ -411,9 +414,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(MachineSelector, {
             machineType: masterMachineType,
             onChangeMachineType: v => this.setState({ masterMachineType: v }),
-            diskSize: currentCluster?.diskConfig ? this.state.persistentDiskSize : masterDiskSize,
+            isPersistentDisk,
+            diskSize: isPersistentDisk ? persistentDiskSize : masterDiskSize,
             //TODO(PD): change this function to work with persistent disks
-            onChangeDiskSize: v => this.setState({ masterDiskSize: v }),
+            onChangeDiskSize: v => this.setState(isPersistentDisk ? { persistentDiskSize: v } : { masterDiskSize: v }),
             readOnly: profile !== 'custom'
           }),
           profile === 'custom' && h(IdContainer, [
