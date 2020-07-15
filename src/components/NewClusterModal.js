@@ -111,6 +111,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
     const { masterDiskSize, masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
     const matchingProfile = _.find(({ runtimeConfig }) => _.isMatch({ masterMachineType, masterDiskSize }, normalizeRuntimeConfig(runtimeConfig)), profiles)
+    // TODO(PD): This should probably only choose from unattached persistent disks.
     const currentPersistentDisk = currentCluster?.diskConfig || _.last(_.sortBy('auditinfo.createdDate', persistentDisks))
 
     this.state = {
@@ -291,7 +292,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     } = this.state
     const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
-    const isPersistentDisk = currentCluster?.diskConfig
+    const isPersistentDisk = !masterDiskSize
 
     const onEnvChange = ({ value }) => {
       const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
