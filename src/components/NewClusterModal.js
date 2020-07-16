@@ -113,16 +113,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const matchingProfile = _.find(({ runtimeConfig }) => _.isMatch({ masterMachineType, masterDiskSize }, normalizeRuntimeConfig(runtimeConfig)), profiles)
     // TODO(PD): This should probably only choose from unattached persistent disks.
     const currentPersistentDisk = this.getCurrentPersistentDisk()
-    const sparkMode = cloudService === 'GCE' ? false : numberOfWorkers === 0 ? 'master' : 'cluster'
 
     this.state = {
-      persistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : (!currentCluster ? DEFAULT_DISK_SIZE : null),
+      persistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : DEFAULT_DISK_SIZE,
       profile: matchingProfile?.name || 'custom',
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
-      sparkMode,
+      sparkMode: cloudService === 'GCE' ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
       ...currentConfig,
-      userSelectedDiskSize: sparkMode ? currentCluster?.masterDiskSize : (currentPersistentDisk ? currentPersistentDisk.size : DEFAULT_DISK_SIZE),
-      masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize
+      masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize || DEFAULT_DISK_SIZE
     }
   }
 
@@ -300,7 +298,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     } = this.state
     const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
-    const isPersistentDisk = !masterDiskSize
+    const isPersistentDisk = !sparkMode
 
     const onEnvChange = ({ value }) => {
       const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
@@ -454,10 +452,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                     sparkMode: value,
                     numberOfWorkers: value === 'cluster' ? 2 : 0,
                     numberOfPreemptibleWorkers: 0,
-                    persistentDiskSize: this.getCurrentPersistentDisk() ?
-                      this.getCurrentPersistentDisk().size :
-                      (value ? undefined : DEFAULT_DISK_SIZE),
-                    masterDiskSize: currentCluster?.masterDiskSize || (value ? DEFAULT_DISK_SIZE : undefined)
                   }),
                   options: [
                     { value: false, label: 'Standard VM', isDisabled: requiresSpark },
