@@ -113,13 +113,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const matchingProfile = _.find(({ runtimeConfig }) => _.isMatch({ masterMachineType, masterDiskSize }, normalizeRuntimeConfig(runtimeConfig)), profiles)
     // TODO(PD): This should probably only choose from unattached persistent disks.
     const currentPersistentDisk = this.getCurrentPersistentDisk()
+    const sparkMode = cloudService === 'GCE' ? false : numberOfWorkers === 0 ? 'master' : 'cluster'
 
     this.state = {
       persistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : (!currentCluster ? DEFAULT_DISK_SIZE : null),
       profile: matchingProfile?.name || 'custom',
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
-      sparkMode: cloudService === 'GCE' ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
+      sparkMode,
       ...currentConfig,
+      userSelectedDiskSize: sparkMode ? currentCluster?.masterDiskSize : (currentPersistentDisk ? currentPersistentDisk.size : DEFAULT_DISK_SIZE),
       masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize
     }
   }
