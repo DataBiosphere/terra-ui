@@ -1043,14 +1043,34 @@ const dataprocCluster = {
   patchInProgress: false
 }
 
+const GCECluster = {
+  id: 24365,
+  runtimeName: 'saturn-f9694786-ce63-4b82-972c-3c108f5970c0',
+  googleProject: 'general-dev-billing-account',
+  auditInfo: {
+    creator: 'b.adm.firec@gmail.com', createdDate: '2020-07-01T13:05:45.619Z', destroyedDate: null, dateAccessed: '2020-07-09T14:04:37.347Z'
+  }, runtimeConfig: { machineType: 'n1-standard-2', diskSize: 50, cloudService: 'GCE', bootDiskSize: 50 },
+  proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/general-dev-billing-account/saturn-f9694786-ce63-4b82-972c-3c108f5970c0/jupyter',
+  status: 'Running',
+  labels: {
+    deletionConfirmed: 'false', saturnVersion: '6', tool: 'Jupyter',
+    'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js', creator: 'b.adm.firec@gmail.com',
+    runtimeName: 'saturn-f9694786-ce63-4b82-972c-3c108f5970c0', googleProject: 'general-dev-billing-account',
+    clusterServiceAccount: 'pet-100271339377034276912@general-dev-billing-account.iam.gserviceaccount.com', saturnIsProjectSpecific: 'false',
+    saturnAutoCreated: 'true', clusterName: 'saturn-f9694786-ce63-4b82-972c-3c108f5970c0'
+  },
+  patchInProgress: false
+}
+
 
 const Clusters = signal => ({
   list: async (labels = {}) => {
     const res = await fetchLeo(`api/google/v1/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-    // return []
+    // return res.json()
+    return []
     // return [dataprocCluster] // Dataproc
+    // return [GCECluster] // GCE
   },
 
   cluster: (project, name) => {
@@ -1150,8 +1170,8 @@ const Disks = signal => ({
   list: async (labels = {}) => {
     const res = await fetchLeo(`api/google/v1/disks${qs.stringify(labels, { addQueryPrefix: true })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
-    // return []
+    // return res.json()
+    return []
   },
 
   disk: (project, name) => {
