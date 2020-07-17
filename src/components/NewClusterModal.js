@@ -544,7 +544,21 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         }, [
           span({ style: { ...styles.label, marginRight: '0.25rem', textTransform: 'uppercase' } }, ['cost:']),
           `${Utils.formatUSD(runtimeConfigCost(this.getRuntimeConfig(!currentCluster)))} per hour`
-        ])
+        ]),
+        !!isPersistentDisk && h(IdContainer, [
+          id => h(Fragment, [
+            label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
+            h(NumberInput, {
+              id,
+              min: 10,
+              max: 64000,
+              isClearable: false,
+              onlyInteger: true,
+              value: persistentDiskSize,
+              onChange: value => this.setState({ persistentDiskSize: value })
+            })
+          ])
+        ]),
       ])
     ])
 
@@ -697,20 +711,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ])
           }]),
         runtimeConfig(),
-        !!isPersistentDisk && h(IdContainer, [
-          id => h(Fragment, [
-            label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
-            h(NumberInput, {
-              id,
-              min: 10,
-              max: 64000,
-              isClearable: false,
-              onlyInteger: true,
-              value: persistentDiskSize,
-              onChange: value => this.setState({ persistentDiskSize: value })
-            })
-          ])
-        ]),
         bottomButtons()
       ])]
     )

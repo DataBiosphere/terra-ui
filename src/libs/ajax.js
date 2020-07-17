@@ -1067,8 +1067,8 @@ const Clusters = signal => ({
   list: async (labels = {}) => {
     const res = await fetchLeo(`api/google/v1/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    // return res.json()
-    return []
+    return res.json()
+    // return []
     // return [dataprocCluster] // Dataproc
     // return [GCECluster] // GCE
   },
@@ -1170,8 +1170,8 @@ const Disks = signal => ({
   list: async (labels = {}) => {
     const res = await fetchLeo(`api/google/v1/disks${qs.stringify(labels, { addQueryPrefix: true })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    // return res.json()
-    return []
+    return res.json()
+    // return []
   },
 
   disk: (project, name) => {
