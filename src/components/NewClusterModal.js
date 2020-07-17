@@ -289,6 +289,24 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   })
 
+  renderDebugger() {
+    const { currentCluster } = this.props
+    const { showDebugger } = this.state
+    const makeHeader = text => div({ style: { fontSize: 20, margin: '0.5rem 0' } }, [text])
+    const makeJSON = value => div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace' } }, [JSON.stringify(value, null, 2)])
+    return h(Fragment, [
+      showDebugger ?
+        showDebugger && div({ style: { position: 'fixed', top: 0, left: 0, bottom: 0, right: '50vw', backgroundColor: 'white', padding: '1rem', overflowY: 'auto' } }, [
+          h(Link, { onClick: () => this.setState({ showDebugger: false }), style: { position: 'absolute', top: 0, right: 0 } }, ['x']),
+          makeHeader('Current Runtime'),
+          makeJSON(currentCluster),
+          makeHeader('Current PD'),
+          makeJSON(this.getCurrentPersistentDisk())
+        ]) :
+        h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } }, ['D']),
+    ])
+  }
+
   render() {
     const { currentCluster, onDismiss, onSuccess } = this.props
     const {
@@ -685,7 +703,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onDismiss,
         onPrevious: !!viewMode ? () => this.setState({ viewMode: undefined }) : undefined
       }),
-      div({ style: { padding: '0.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents])
+      div({ style: { padding: '0.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents]),
+      this.renderDebugger()
     ])
   }
 })
