@@ -75,7 +75,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
           ])
       ])
     ]),
-    !isPersistentDisk && h(IdContainer, [
+    !isPersistentDisk ? h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
         readOnly ? div({ style: styles.disabledInputs }, [diskSize]) :
@@ -89,7 +89,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
             onChange: onChangeDiskSize
           })
       ])
-    ])
+    ]) : div({ style: { gridColumnEnd: 'span 2' } })
   ])
 }
 
