@@ -107,7 +107,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   constructor(props) {
     super(props)
-    const { currentCluster, persistentDisks } = props
+    const { currentCluster } = props
     const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
     const { masterDiskSize, masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
     const matchingProfile = _.find(({ runtimeConfig }) => _.isMatch({ masterMachineType, masterDiskSize }, normalizeRuntimeConfig(runtimeConfig)), profiles)
@@ -546,7 +546,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           `${Utils.formatUSD(runtimeConfigCost(this.getRuntimeConfig(!currentCluster)))} per hour`
         ]),
         !!isPersistentDisk && h(IdContainer, [
-          id => h(div, { style: { marginTop: '1rem' } }, [
+          id => h(div, { style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
             label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
             h(NumberInput, {
               id,
@@ -555,7 +555,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               isClearable: false,
               onlyInteger: true,
               value: persistentDiskSize,
-              style: { marginTop: '0.5rem' },
+              style: { marginTop: '0.5rem', width: '5rem' },
               onChange: value => this.setState({ persistentDiskSize: value })
             })
           ])

@@ -1006,6 +1006,7 @@ const Submissions = signal => ({
   }
 })
 
+// eslint-disable-next-line no-unused-vars
 const dataprocCluster = {
   id: 24460,
   runtimeName: 'saturn-0f58061f-42c7-4980-af22-c72f83df6785',
@@ -1043,6 +1044,7 @@ const dataprocCluster = {
   patchInProgress: false
 }
 
+// eslint-disable-next-line no-unused-vars
 const GCECluster = {
   id: 24365,
   runtimeName: 'saturn-f9694786-ce63-4b82-972c-3c108f5970c0',
@@ -1067,10 +1069,10 @@ const Clusters = signal => ({
   list: async (labels = {}) => {
     const res = await fetchLeo(`api/google/v1/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    return res.json()
+    // return res.json()
     // return []
     // return [dataprocCluster] // Dataproc
-    // return [GCECluster] // GCE
+    return [GCECluster] // GCE
   },
 
   cluster: (project, name) => {
