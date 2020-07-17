@@ -381,12 +381,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
       return h(Fragment, [
         div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
-          !!currentCluster && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'delete' }) }, ['Delete Runtime']),
-          !!this.getCurrentPersistentDisk() && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'delete' }) }, ['Delete Persistent Disk ']),
-          // TODO add the different delete text options for each permutation (PD, PD & VM, VM)
-            // Note this is in progress still!
-
-
+          !!currentCluster && !this.getCurrentPersistentDisk() && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteRuntime' }) }, ['Delete Runtime']),
+          !currentCluster && !!this.getCurrentPersistentDisk() && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deletePersistentDisk' }) }, ['Delete Persistent Disk']),
+          !!currentCluster && !!this.getCurrentPersistentDisk() && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' }) }, ['Delete Environment Options']),
           div({ style: { flex: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: onDismiss }, 'Cancel'),
           h(ButtonPrimary, {
@@ -576,11 +573,21 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           }, [!!currentCluster ? 'Next' : 'Create'])
         ])
       ])],
-      ['delete', () => h(Fragment, [
+      ['deleteRuntime', () => h(Fragment, [
         h(deleteText),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
           h(ButtonPrimary, { onClick: () => onSuccess(this.deleteCluster()) }, ['DELETE'])
+        ])
+      ])],
+      ['deletePersistentDisk', () => h(Fragment, [
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL'])
+        ])
+      ])],
+      ['deleteEnvironmentOptions', () => h(Fragment, [
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL'])
         ])
       ])],
       ['replace', () => h(Fragment, [
