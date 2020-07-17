@@ -381,8 +381,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
       return h(Fragment, [
         div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
-          !!currentCluster && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'delete' }) }, 'Delete Runtime'),
+          !!currentCluster && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'delete' }) }, ['Delete Runtime']),
+          !!this.getCurrentPersistentDisk() && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'delete' }) }, ['Delete Persistent Disk ']),
           // TODO add the different delete text options for each permutation (PD, PD & VM, VM)
+            // Note this is in progress still!
+
 
           div({ style: { flex: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: onDismiss }, 'Cancel'),
