@@ -124,7 +124,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
-  getCurrentPersistentDisk () {
+  getCurrentPersistentDisk() {
     const { currentCluster, persistentDisks } = this.props
     return currentCluster?.diskConfig || _.last(_.sortBy('auditinfo.createdDate', persistentDisks))
   }
@@ -303,7 +303,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           makeHeader('Current PD'),
           makeJSON(this.getCurrentPersistentDisk())
         ]) :
-        h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } }, ['D']),
+        h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } }, ['D'])
     ])
   }
 
@@ -471,7 +471,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   onChange: ({ value }) => this.setState({
                     sparkMode: value,
                     numberOfWorkers: value === 'cluster' ? 2 : 0,
-                    numberOfPreemptibleWorkers: 0,
+                    numberOfPreemptibleWorkers: 0
                   }),
                   options: [
                     { value: false, label: 'Standard VM', isDisabled: requiresSpark },
@@ -546,7 +546,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           `${Utils.formatUSD(runtimeConfigCost(this.getRuntimeConfig(!currentCluster)))} per hour`
         ]),
         !!isPersistentDisk && h(IdContainer, [
-          id => h(Fragment, [
+          id => h(div, { style: { marginTop: '1rem' } }, [
             label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
             h(NumberInput, {
               id,
@@ -555,10 +555,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               isClearable: false,
               onlyInteger: true,
               value: persistentDiskSize,
+              style: { marginTop: '0.5rem' },
               onChange: value => this.setState({ persistentDiskSize: value })
             })
           ])
-        ]),
+        ])
       ])
     ])
 
