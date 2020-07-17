@@ -1006,12 +1006,51 @@ const Submissions = signal => ({
   }
 })
 
+const dataprocCluster = {
+  id: 24460,
+  runtimeName: 'saturn-0f58061f-42c7-4980-af22-c72f83df6785',
+  googleProject: 'general-dev-billing-account',
+  auditInfo: {
+    creator: 'b.adm.firec@gmail.com',
+    createdDate: '2020-07-17T15:07:52.241Z',
+    destroyedDate: null,
+    dateAccessed: '2020-07-17T15:07:53.046Z'
+  },
+  runtimeConfig: {
+    numberOfWorkers: 0,
+    masterMachineType: 'n1-standard-4',
+    masterDiskSize: 50,
+    workerMachineType: null,
+    workerDiskSize: null,
+    numberOfWorkerLocalSSDs: null,
+    numberOfPreemptibleWorkers: null,
+    cloudService: 'DATAPROC'
+  },
+  proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/general-dev-billing-account/saturn-0f58061f-42c7-4980-af22-c72f83df6785/jupyter',
+  status: 'Running',
+  labels: {
+    saturnVersion: '6',
+    tool: 'Jupyter',
+    'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js',
+    creator: 'b.adm.firec@gmail.com',
+    runtimeName: 'saturn-0f58061f-42c7-4980-af22-c72f83df6785',
+    googleProject: 'general-dev-billing-account',
+    clusterServiceAccount: 'pet-100271339377034276912@general-dev-billing-account.iam.gserviceaccount.com',
+    saturnIsProjectSpecific: 'false',
+    saturnAutoCreated: 'true',
+    clusterName: 'saturn-0f58061f-42c7-4980-af22-c72f83df6785'
+  },
+  patchInProgress: false
+}
+
 
 const Clusters = signal => ({
   list: async (labels = {}) => {
     const res = await fetchLeo(`api/google/v1/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
+    // return []
+    // return [dataprocCluster] // Dataproc
   },
 
   cluster: (project, name) => {
@@ -1112,6 +1151,7 @@ const Disks = signal => ({
     const res = await fetchLeo(`api/google/v1/disks${qs.stringify(labels, { addQueryPrefix: true })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
+    // return []
   },
 
   disk: (project, name) => {
@@ -1121,7 +1161,6 @@ const Disks = signal => ({
       }
     }
   }
-
 
 
 })
