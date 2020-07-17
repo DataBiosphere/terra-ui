@@ -10,6 +10,120 @@ import { ajaxOverridesStore, knownBucketRequesterPaysStatuses, requesterPaysProj
 import * as Utils from 'src/libs/utils'
 
 
+const dataprocRuntime = {
+  id: 24460,
+  runtimeName: 'saturn-0f58061f-42c7-4980-af22-c72f83df6785',
+  googleProject: 'general-dev-billing-account',
+  auditInfo: {
+    creator: 'b.adm.firec@gmail.com',
+    createdDate: '2020-07-17T15:07:52.241Z',
+    destroyedDate: null,
+    dateAccessed: '2020-07-17T15:07:53.046Z'
+  },
+  runtimeConfig: {
+    numberOfWorkers: 0,
+    masterMachineType: 'n1-standard-4',
+    masterDiskSize: 60,
+    workerMachineType: null,
+    workerDiskSize: null,
+    numberOfWorkerLocalSSDs: null,
+    numberOfPreemptibleWorkers: null,
+    cloudService: 'DATAPROC'
+  },
+  proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/general-dev-billing-account/saturn-0f58061f-42c7-4980-af22-c72f83df6785/jupyter',
+  status: 'Running',
+  labels: {
+    saturnVersion: '6',
+    tool: 'Jupyter',
+    'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js',
+    creator: 'b.adm.firec@gmail.com',
+    runtimeName: 'saturn-0f58061f-42c7-4980-af22-c72f83df6785',
+    googleProject: 'general-dev-billing-account',
+    clusterServiceAccount: 'pet-100271339377034276912@general-dev-billing-account.iam.gserviceaccount.com',
+    saturnIsProjectSpecific: 'false',
+    saturnAutoCreated: 'true',
+    clusterName: 'saturn-0f58061f-42c7-4980-af22-c72f83df6785'
+  },
+  patchInProgress: false
+}
+
+const gceRuntime = {
+  id: 24365,
+  runtimeName: 'saturn-f9694786-ce63-4b82-972c-3c108f5970c0',
+  googleProject: 'general-dev-billing-account',
+  auditInfo: {
+    creator: 'b.adm.firec@gmail.com',
+    createdDate: '2020-07-01T13:05:45.619Z',
+    destroyedDate: null,
+    dateAccessed: '2020-07-09T14:04:37.347Z'
+  },
+  runtimeConfig: {
+    machineType: 'n1-standard-2',
+    diskSize: 40,
+    cloudService: 'GCE',
+    bootDiskSize: 50
+  },
+  proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/general-dev-billing-account/saturn-f9694786-ce63-4b82-972c-3c108f5970c0/jupyter',
+  status: 'Running',
+  labels: {
+    deletionConfirmed: 'false',
+    saturnVersion: '6',
+    tool: 'Jupyter',
+    'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js',
+    creator: 'b.adm.firec@gmail.com',
+    runtimeName: 'saturn-f9694786-ce63-4b82-972c-3c108f5970c0',
+    googleProject: 'general-dev-billing-account',
+    clusterServiceAccount: 'pet-100271339377034276912@general-dev-billing-account.iam.gserviceaccount.com',
+    saturnIsProjectSpecific: 'false',
+    saturnAutoCreated: 'true',
+    clusterName: 'saturn-f9694786-ce63-4b82-972c-3c108f5970c0'
+  },
+  patchInProgress: false
+}
+
+const disk = {
+  id: 21,
+  googleProject: 'general-dev-billing-account',
+  zone: 'us-central1-a',
+  name: 'fakeDisk',
+  status: 'Ready',
+  auditInfo: {
+    creator: 'b.adm.firec@gmail.com',
+    createdDate: '2020-07-16T18:42:14.941807Z',
+    destroyedDate: null,
+    dateAccessed: '2020-07-16T18:42:09.784Z'
+  },
+  size: 500,
+  diskType: 'pd-standard',
+  blockSize: 4096
+}
+
+const runtimeDetails = {
+  runtimeImages: [
+    { imageType: 'Jupyter', imageUrl: 'us.gcr.io/broad-dsp-gcr-public/terra-jupyter-gatk:1.0.3', timestamp: '2020-07-17T15:07:52.241Z' },
+    { imageType: 'Proxy', imageUrl: 'broadinstitute/openidc-proxy:2.3.1_2', timestamp: '2020-07-17T15:07:52.241Z' },
+    { imageType: 'VM', imageUrl: 'projects/broad-dsp-gcr-public/global/images/custom-leo-image-dataproc-1-4-15-debian9-2020-07-02', timestamp: '2020-07-17T15:07:53.046Z' },
+    { imageType: 'Welder', imageUrl: 'us.gcr.io/broad-dsp-gcr-public/welder-server:5426cf0', timestamp: '2020-07-17T15:07:52.241Z' }
+  ],
+  jupyterUserScriptUri: null
+}
+
+// eslint-disable-next-line no-unused-vars
+const pdOverrides = _.mapValues(({ runtimes, disks }) => {
+  const stub = v => () => () => new Response(JSON.stringify(v))
+  return [
+    { filter: /v1\/runtimes\?/, fn: stub(runtimes) },
+    { filter: /v1\/disks\?/, fn: stub(disks) },
+    { filter: /v1\/runtimes\//, fn: stub({ ...runtimes[0], ...runtimeDetails }) }
+  ]
+}, {
+  nothing: { runtimes: [], disks: [] },
+  gce: { runtimes: [gceRuntime], disks: [] },
+  dataproc: { runtimes: [dataprocRuntime], disks: [] },
+  disk: { runtimes: [], disks: [disk] },
+  gceAndDisk: { runtimes: [gceRuntime], disks: [disk] }
+})
+
 window.ajaxOverrideUtils = {
   mapJsonBody: _.curry((fn, wrappedFetch) => async (...args) => {
     const res = await wrappedFetch(...args)
@@ -21,6 +135,7 @@ window.ajaxOverrideUtils = {
       wrappedFetch(...args)
   })
 }
+//ajaxOverridesStore.set(pdOverrides.gce)
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
@@ -1006,73 +1121,12 @@ const Submissions = signal => ({
   }
 })
 
-// eslint-disable-next-line no-unused-vars
-const dataprocCluster = {
-  id: 24460,
-  runtimeName: 'saturn-0f58061f-42c7-4980-af22-c72f83df6785',
-  googleProject: 'general-dev-billing-account',
-  auditInfo: {
-    creator: 'b.adm.firec@gmail.com',
-    createdDate: '2020-07-17T15:07:52.241Z',
-    destroyedDate: null,
-    dateAccessed: '2020-07-17T15:07:53.046Z'
-  },
-  runtimeConfig: {
-    numberOfWorkers: 0,
-    masterMachineType: 'n1-standard-4',
-    masterDiskSize: 50,
-    workerMachineType: null,
-    workerDiskSize: null,
-    numberOfWorkerLocalSSDs: null,
-    numberOfPreemptibleWorkers: null,
-    cloudService: 'DATAPROC'
-  },
-  proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/general-dev-billing-account/saturn-0f58061f-42c7-4980-af22-c72f83df6785/jupyter',
-  status: 'Running',
-  labels: {
-    saturnVersion: '6',
-    tool: 'Jupyter',
-    'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js',
-    creator: 'b.adm.firec@gmail.com',
-    runtimeName: 'saturn-0f58061f-42c7-4980-af22-c72f83df6785',
-    googleProject: 'general-dev-billing-account',
-    clusterServiceAccount: 'pet-100271339377034276912@general-dev-billing-account.iam.gserviceaccount.com',
-    saturnIsProjectSpecific: 'false',
-    saturnAutoCreated: 'true',
-    clusterName: 'saturn-0f58061f-42c7-4980-af22-c72f83df6785'
-  },
-  patchInProgress: false
-}
-
-// eslint-disable-next-line no-unused-vars
-const GCECluster = {
-  id: 24365,
-  runtimeName: 'saturn-f9694786-ce63-4b82-972c-3c108f5970c0',
-  googleProject: 'general-dev-billing-account',
-  auditInfo: {
-    creator: 'b.adm.firec@gmail.com', createdDate: '2020-07-01T13:05:45.619Z', destroyedDate: null, dateAccessed: '2020-07-09T14:04:37.347Z'
-  }, runtimeConfig: { machineType: 'n1-standard-2', diskSize: 50, cloudService: 'GCE', bootDiskSize: 50 },
-  proxyUrl: 'https://leonardo.dsde-dev.broadinstitute.org/proxy/general-dev-billing-account/saturn-f9694786-ce63-4b82-972c-3c108f5970c0/jupyter',
-  status: 'Running',
-  labels: {
-    deletionConfirmed: 'false', saturnVersion: '6', tool: 'Jupyter',
-    'saturn-iframe-extension': 'https://bvdp-saturn-dev.appspot.com/jupyter-iframe-extension.js', creator: 'b.adm.firec@gmail.com',
-    runtimeName: 'saturn-f9694786-ce63-4b82-972c-3c108f5970c0', googleProject: 'general-dev-billing-account',
-    clusterServiceAccount: 'pet-100271339377034276912@general-dev-billing-account.iam.gserviceaccount.com', saturnIsProjectSpecific: 'false',
-    saturnAutoCreated: 'true', clusterName: 'saturn-f9694786-ce63-4b82-972c-3c108f5970c0'
-  },
-  patchInProgress: false
-}
-
 
 const Clusters = signal => ({
   list: async (labels = {}) => {
     const res = await fetchLeo(`api/google/v1/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
-    // return res.json()
-    // return []
-    // return [dataprocCluster] // Dataproc
-    return [GCECluster] // GCE
+    return res.json()
   },
 
   cluster: (project, name) => {
@@ -1173,7 +1227,6 @@ const Disks = signal => ({
     const res = await fetchLeo(`api/google/v1/disks${qs.stringify(labels, { addQueryPrefix: true })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
-    // return []
   },
 
   disk: (project, name) => {
