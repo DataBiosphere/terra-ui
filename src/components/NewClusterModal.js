@@ -75,9 +75,9 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
           ])
       ])
     ]),
-    h(IdContainer, [
+    !isPersistentDisk && h(IdContainer, [
       id => h(Fragment, [
-        label({ htmlFor: id, style: styles.label }, [isPersistentDisk ? 'Persistent disk size (GB)' : 'Disk size (GB)']),
+        label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
         readOnly ? div({ style: styles.disabledInputs }, [diskSize]) :
           h(NumberInput, {
             id,
@@ -697,6 +697,20 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ])
           }]),
         runtimeConfig(),
+        !!isPersistentDisk && h(IdContainer, [
+          id => h(Fragment, [
+            label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
+            h(NumberInput, {
+              id,
+              min: 10,
+              max: 64000,
+              isClearable: false,
+              onlyInteger: true,
+              value: persistentDiskSize,
+              onChange: value => this.setState({ persistentDiskSize: value })
+            })
+          ])
+        ]),
         bottomButtons()
       ])]
     )
