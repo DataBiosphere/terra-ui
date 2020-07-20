@@ -110,11 +110,15 @@ const runtimeDetails = {
 
 // eslint-disable-next-line no-unused-vars
 const pdOverrides = _.mapValues(({ runtimes, disks }) => {
-  const stub = v => () => () => new Response(JSON.stringify(v))
+  const stub = v => wrappedFetch => requestURL => {
+    console.log(requestURL)
+    return new Response(JSON.stringify(v))
+  }
   return [
     { filter: /v1\/runtimes\?/, fn: stub(runtimes) },
     { filter: /v1\/disks\?/, fn: stub(disks) },
-    { filter: /v1\/runtimes\//, fn: stub({ ...runtimes[0], ...runtimeDetails }) }
+    { filter: /v1\/runtimes\//, fn: stub({ ...runtimes[0], ...runtimeDetails }) },
+    { filter: /v1\/runtimes\/.+\/.+/, fn: stub({}) }
   ]
 }, {
   nothing: { runtimes: [], disks: [] },
@@ -135,19 +139,21 @@ window.ajaxOverrideUtils = {
       wrappedFetch(...args)
   })
 }
-//ajaxOverridesStore.set(pdOverrides.gce)
+ajaxOverridesStore.set(pdOverrides.nothing)
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
 const tosData = { appid: 'Saturn', tosversion: 6 }
 
+// Allows use of ajaxOverrideStore to stub responses for testing
 const withInstrumentation = wrappedFetch => (...args) => {
   return _.flow(
     ..._.map('fn', _.filter(({ filter }) => args[0].match(filter), ajaxOverridesStore.get()))
   )(wrappedFetch)(...args)
 }
 
+// Ignores cancellation error when request is cancelled
 const withCancellation = wrappedFetch => async (...args) => {
   try {
     return await wrappedFetch(...args)
@@ -160,6 +166,7 @@ const withCancellation = wrappedFetch => async (...args) => {
   }
 }
 
+// Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
   const res = await wrappedFetch(...args)
   if (res.ok) {
