@@ -26,6 +26,11 @@ const machineBases = [
   { name: 'n1-highcpu-96', cpu: 96, memory: 86.4, price: 3.402, preemptiblePrice: 0.7200 }
 ]
 
+export const cloudServices = {
+  GCE: 'GCE',
+  DATAPROC: 'DATAPROC'
+}
+
 export const machineTypes = _.map(({ price, preemptiblePrice, ...details }) => ({
   price: price + 0.004,
   preemptiblePrice: preemptiblePrice + 0.002,

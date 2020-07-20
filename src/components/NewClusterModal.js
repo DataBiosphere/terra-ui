@@ -8,7 +8,7 @@ import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
-import { machineTypes, profiles } from 'src/data/machines'
+import { cloudServices, machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import { DEFAULT_DISK_SIZE, deleteText, findMachineType, formatRuntimeConfig, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
@@ -118,7 +118,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       persistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : DEFAULT_DISK_SIZE,
       profile: matchingProfile?.name || 'custom',
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
-      sparkMode: cloudService === 'GCE' ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
+      sparkMode: cloudService === cloudServices.GCE ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
       ...currentConfig,
       masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize || DEFAULT_DISK_SIZE
     }
@@ -132,7 +132,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   getRuntimeConfig(isNew = false) {
     const formatRuntimeConfig = config => {
       const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = config
-      return cloudService === 'GCE' ? {
+      return cloudService === cloudServices.GCE ? {
         cloudService,
         machineType: masterMachineType,
         diskSize: masterDiskSize
@@ -149,7 +149,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       }
     }
     return formatRuntimeConfig({
-      cloudService: !!this.state.sparkMode ? 'DATAPROC' : 'GCE',
+      cloudService: !!this.state.sparkMode ? cloudServices.DATAPROC : cloudServices.GCE,
       isNew,
       ..._.pick(
         ['numberOfWorkers', 'masterMachineType', 'masterDiskSize', 'workerMachineType', 'workerDiskSize', 'numberOfPreemptibleWorkers'],

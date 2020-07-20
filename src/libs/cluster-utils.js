@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { h, p, span } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
-import { dataprocCpuPrice, machineTypes, storagePrice } from 'src/data/machines'
+import { cloudServices, dataprocCpuPrice, machineTypes, storagePrice } from 'src/data/machines'
 import * as Utils from 'src/libs/utils'
 
 
@@ -12,10 +12,10 @@ export const DEFAULT_DISK_SIZE = 50
 export const usableStatuses = ['Updating', 'Running']
 
 export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, bootDiskSize }) => {
-  const isDataproc = cloudService === 'DATAPROC'
+  const isDataproc = cloudService === cloudServices.DATAPROC
 
   return {
-    cloudService: cloudService || 'GCE',
+    cloudService: cloudService || cloudServices.GCE,
     masterMachineType: masterMachineType || machineType || 'n1-standard-4',
     masterDiskSize: masterDiskSize || diskSize || 50,
     numberOfWorkers: (isDataproc && numberOfWorkers) || 0,
@@ -35,7 +35,7 @@ const ongoingCost = config => {
 
   return _.sum([
     (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice,
-    cloudService === 'DATAPROC' && (masterCpu + workerCpu * numberOfWorkers) * dataprocCpuPrice,
+    cloudService === cloudServices.DATAPROC && (masterCpu + workerCpu * numberOfWorkers) * dataprocCpuPrice,
     bootDiskSize * storagePrice
   ])
 }
