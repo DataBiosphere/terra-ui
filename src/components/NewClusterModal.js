@@ -168,7 +168,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     return Ajax().Clusters.cluster(googleProject, runtimeName).delete()
   }
-
+  // TODO PD delete these comments and de-dup code
+  // existing (no PD)
   createCluster() {
     const { namespace, onSuccess, currentCluster } = this.props
     const { jupyterUserScriptUri, selectedLeoImage, customEnvImage } = this.state
@@ -181,6 +182,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       }),
       !!currentCluster && this.deleteCluster()
     ]))
+  }
+
+  // TODO WIP
+  createOnlyRuntime_fromNothing_() {
+    const { namespace } = this.props
+    Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({})
   }
 
   updateCluster(isStopRequired = false) {
