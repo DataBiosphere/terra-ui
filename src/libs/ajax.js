@@ -110,8 +110,8 @@ const runtimeDetails = {
 
 // eslint-disable-next-line no-unused-vars
 const pdOverrides = _.mapValues(({ runtimes, disks }) => {
-  const stub = v => wrappedFetch => requestURL => {
-    console.log(requestURL)
+  const stub = v => wrappedFetch => (url, { method = 'GET', body }) => {
+    console.log({ method, url, body: body && JSON.parse(body) })
     return new Response(JSON.stringify(v))
   }
   return [
