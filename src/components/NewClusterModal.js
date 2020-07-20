@@ -131,11 +131,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   getRuntimeConfig(isNew = false) {
     const formatRuntimeConfig = config => {
-      const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = config
+      const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, persistentDiskSize } = config
       return cloudService === cloudServices.GCE ? {
         cloudService,
         machineType: masterMachineType,
-        diskSize: masterDiskSize
+        diskSize: masterDiskSize,
+        //TODO(PD): work in progress
+        /*persistentDisk: {
+          name: Utils.generatePersistentDiskName(),
+          diskSize: persistentDiskSize
+        }*/
       } : {
         cloudService,
         masterMachineType,
@@ -152,7 +157,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       cloudService: !!this.state.sparkMode ? cloudServices.DATAPROC : cloudServices.GCE,
       isNew,
       ..._.pick(
-        ['numberOfWorkers', 'masterMachineType', 'masterDiskSize', 'workerMachineType', 'workerDiskSize', 'numberOfPreemptibleWorkers'],
+        ['numberOfWorkers', 'masterMachineType', 'masterDiskSize', 'workerMachineType', 'workerDiskSize', 'numberOfPreemptibleWorkers', 'persistentDiskSize'],
         this.state)
     })
   }
