@@ -239,9 +239,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       machineType: masterMachineType,
       persistentDisk: {
         name: Utils.generatePersistentDiskName(),
-        size: persistentDiskSize, // in GB
-        diskType: 'pd-standard',
-        blockSize: 4 * 1024 // in bytes
+        size: persistentDiskSize // in GB
+        // diskType and blockSize are not required per leo team
       }
     }
     onSuccess(
