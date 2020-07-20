@@ -15,7 +15,7 @@ module.exports = {
     workflowName: 'echo_to_file'
   },
   perf: {
-    billingProject: '???',
+    billingProject: 'saturn-integration-test-perf',
     testUrl: 'https://bvdp-saturn-perf.appspot.com',
     workflowName: 'echo_to_file'
   },
