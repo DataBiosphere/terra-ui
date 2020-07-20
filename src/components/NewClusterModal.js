@@ -126,6 +126,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   getCurrentPersistentDisk() {
     const { currentCluster, persistentDisks } = this.props
+    // TODO PD: this logic isn't correct, confirm whether we should be getting diskConfig or persistentDiskId from leo
     return currentCluster?.diskConfig || _.last(_.sortBy('auditinfo.createdDate', persistentDisks))
   }
 
@@ -207,8 +208,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   createOnlyDataproc_fromNothing_() {
     const { namespace, onSuccess, currentCluster } = this.props
-    const { jupyterUserScriptUri } = this.state
-    const { masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = this.state
+    const { jupyterUserScriptUri, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = this.state
     const runtimeConfig = {
       cloudService: cloudServices.DATAPROC,
       masterMachineType,
@@ -232,8 +232,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   createOnlyGCE_fromNothing_() {
     const { namespace, onSuccess, currentCluster } = this.props
-    const { jupyterUserScriptUri, persistentDiskSize } = this.state
-    const { masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = this.state
+    const { jupyterUserScriptUri, persistentDiskSize, masterMachineType } = this.state
     const runtimeConfig = {
       cloudService: cloudServices.GCE,
       machineType: masterMachineType,
@@ -253,10 +252,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     )
   }
 
-  // TODO WIP
-  createOnlyRuntime_fromNothing_() {
-    const { namespace } = this.props
-    Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({})
+  createGCE_fromPD_() {
+    // TODO PD write me next!
   }
 
   updateCluster(isStopRequired = false) {
