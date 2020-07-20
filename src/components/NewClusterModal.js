@@ -232,12 +232,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   createOnlyGCE_fromNothing_() {
     const { namespace, onSuccess, currentCluster } = this.props
-    const { jupyterUserScriptUri } = this.state
+    const { jupyterUserScriptUri, persistentDiskSize } = this.state
     const { masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = this.state
     const runtimeConfig = {
       cloudService: cloudServices.GCE,
       machineType: masterMachineType,
-      diskSize: masterDiskSize,
+      persistentDisk: {
+        name: Utils.generatePersistentDiskName(),
+        size: persistentDiskSize, // in GB
+        diskType: 'pd-standard',
+        blockSize: 4 * 1024 // in bytes
+      }
     }
     onSuccess(
       Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
