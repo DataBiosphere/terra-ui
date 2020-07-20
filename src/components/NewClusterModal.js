@@ -184,6 +184,40 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ]))
   }
 
+  newCreateRuntime() {
+    const { currentCluster } = this.props
+    const { sparkMode } = this.state
+    return Utils.cond(
+      [!currentCluster && !!sparkMode, () => this.createOnlyDataproc_fromNothing_()],
+      () => this.createCluster()
+    )
+  }
+
+  createOnlyDataproc_fromNothing_() {
+    const { namespace, onSuccess, currentCluster } = this.props
+    const { jupyterUserScriptUri, selectedLeoImage, customEnvImage } = this.state
+    const { masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = this.state
+    const runtimeConfig = {
+      cloudService: cloudServices.DATAPROC,
+      masterMachineType,
+      masterDiskSize,
+      numberOfWorkers,
+      ...(numberOfWorkers && {
+        numberOfPreemptibleWorkers,
+        workerMachineType,
+        workerDiskSize
+      })
+    }
+    onSuccess(
+      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
+        runtimeConfig,
+        toolDockerImage: selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE ? customEnvImage : selectedLeoImage,
+        labels: { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` },
+        ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
+      })
+    )
+  }
+
   // TODO WIP
   createOnlyRuntime_fromNothing_() {
     const { namespace } = this.props
@@ -425,7 +459,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               } else if (!!currentCluster) {
                 this.setState({ viewMode: updateOrReplace })
               } else {
-                this.createCluster()
+                this.newCreateRuntime()
               }
             }
           }, !!currentCluster ? _.startCase(updateOrReplace) : 'Create')
@@ -614,7 +648,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Back']),
           h(ButtonPrimary, {
-            onClick: () => !!currentCluster ? this.setState({ viewMode: 'replace' }) : this.createCluster()
+            onClick: () => !!currentCluster ? this.setState({ viewMode: 'replace' }) : this.newCreateRuntime()
           }, [!!currentCluster ? 'Next' : 'Create'])
         ])
       ])],
@@ -650,7 +684,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             style: { marginRight: '2rem' },
             onClick: () => this.setState({ viewMode: undefined })
           }, ['BACK']),
-          h(ButtonPrimary, { onClick: () => this.createCluster() }, ['REPLACE'])
+          h(ButtonPrimary, { onClick: () => this.newCreateRuntime() }, ['REPLACE'])
         ])
       ])],
       ['update', () => h(Fragment, [
