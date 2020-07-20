@@ -61,6 +61,10 @@ const styles = {
     checkboxLabel: {
       marginLeft: '0.5rem'
     }
+  },
+  identityLine: {
+    display: 'flex',
+    margin: '.3rem 0 0'
   }
 }
 
@@ -96,7 +100,7 @@ const NihLink = ({ nihToken }) => {
    * Render helpers
    */
   const renderDatasetAuthStatus = ({ name, authorized }) => {
-    return div({ key: `nih-auth-status-${name}`, style: { display: 'flex' } }, [
+    return div({ key: `nih-auth-status-${name}`, style: styles.identityLine }, [
       div({ style: { flex: 1 } }, [`${name} Authorization`]),
       div({ style: { flex: 2 } }, [
         authorized ? 'Authorized' : span({ style: { marginRight: '0.5rem' } }, ['Not Authorized']),
@@ -117,24 +121,26 @@ const NihLink = ({ nihToken }) => {
 
   const renderStatus = () => {
     const { linkedNihUsername, linkExpireTime, datasetPermissions } = nihStatus
-    return h(Fragment, [
-      !linkedNihUsername && h(ShibbolethLink, ['Log in to NIH to link your account']),
-      !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
-        div({ style: { display: 'flex' } }, [
-          div({ style: { flex: 1 } }, ['Username:']),
-          div({ style: { flex: 2 } }, [linkedNihUsername])
-        ]),
-        div({ style: { display: 'flex' } }, [
-          div({ style: { flex: 1 } }, ['Link Expiration:']),
-          div({ style: { flex: 2 } }, [
-            div([Utils.makeCompleteDate(linkExpireTime * 1000)]),
-            div([h(ShibbolethLink, ['Log in to NIH to re-link your account'])])
-          ])
-        ]),
-        _.flow(
-          _.sortBy('name'),
-          _.map(renderDatasetAuthStatus)
-        )(datasetPermissions)
+    return div({ style: styles.identityLine }, [
+      h(Fragment, [
+        !linkedNihUsername && div({ style: styles.identityLine }, [ShibbolethLink, ['Log in to NIH to link your account']]),
+        !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
+          div({ style: styles.identityLine }, [
+            div({ style: { flex: 1 } }, ['Username:']),
+            div({ style: { flex: 2 } }, [linkedNihUsername])
+          ]),
+          div({ style: styles.identityLine }, [
+            div({ style: { flex: 1 } }, ['Link Expiration:']),
+            div({ style: { flex: 2 } }, [
+              div([Utils.makeCompleteDate(linkExpireTime * 1000)]),
+              div({ style: styles.identityLine }, [h(ShibbolethLink, ['Renew'])])
+            ])
+          ]),
+          _.flow(
+            _.sortBy('name'),
+            _.map(renderDatasetAuthStatus)
+          )(datasetPermissions)
+        ])
       ])
     ])
   }
@@ -207,21 +213,23 @@ const FenceLink = ({ provider: { key, name } }) => {
     div({ style: styles.form.title }, [name]),
     Utils.cond(
       [isBusy, () => div([spinner(), 'Loading account status...'])],
-      [!username, () => h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to link your account', provider: key, redirectUrl })],
+      [!username, () => div({ style: styles.identityLine },
+        [h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to link your account', provider: key, redirectUrl })]
+      )],
       () => div([
         div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
-          div({ style: { display: 'flex' } }, [
+          div({ style: styles.identityLine }, [
             div({ style: { flex: 1 } }, ['Username:']),
             div({ style: { flex: 2 } }, [username])
           ]),
-          div({ style: { display: 'flex' } }, [
+          div({ style: styles.identityLine }, [
             div({ style: { flex: 1 } }, ['Link Expiration:']),
             div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
           ])
         ]),
-        div({ style: { display: 'inline-flex', alignItems: 'center' } }, [
+        div({ style: { display: 'flex', alignItems: 'center', margin: '1rem 0 0' } }, [
           h(FrameworkServiceLink, { linkText: 'Renew', provider: key, redirectUrl }),
-          div({ style: { margin: '0 .25rem' } }, [' | ']),
+          span({ style: { margin: '0 .25rem 0' } }, [' | ']),
           h(UnlinkFenceAccount, { linkText: 'Unlink', provider: { key, name } })
         ])
       ])

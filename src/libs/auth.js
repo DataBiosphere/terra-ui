@@ -243,10 +243,7 @@ authStore.subscribe((state, oldState) => {
         [now >= dateOfExpiration, () => 'has expired'],
         [now >= dateFiveDaysBeforeExpiration, () => `will expire in ${differenceInDays(now, dateOfExpiration)} day(s)`]
       )
-      //testing
-      const overrideTest = true
-      //if (expireStatus) {
-      if (overrideTest) {
+      if (expireStatus) {
         notify('info', div([
           `Your access to ${name} ${expireStatus}. Log-in to `,
           h(FrameworkServiceLink, { linkText: expireStatus === 'has expired' ? 'restore ' : 'renew ', provider: key, redirectUrl }),
