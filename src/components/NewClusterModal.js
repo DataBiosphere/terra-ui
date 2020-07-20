@@ -168,6 +168,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     return Ajax().Clusters.cluster(googleProject, runtimeName).delete()
   }
+
+  getCorrectImage() {
+    const { selectedLeoImage, customEnvImage } = this.state
+    return selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE ? customEnvImage : selectedLeoImage
+  }
+
+  generateClusterLabels() {
+    const { selectedLeoImage } = this.state
+    return { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` }
+  }
+
   // TODO PD delete these comments and de-dup code
   // existing (no PD)
   createCluster() {
@@ -176,8 +187,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess(Promise.all([
       Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         runtimeConfig: this.getRuntimeConfig(true),
-        toolDockerImage: selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE ? customEnvImage : selectedLeoImage,
-        labels: { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` },
+        toolDockerImage: this.getCorrectImage(),
+        labels: this.generateClusterLabels(),
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       }),
       !!currentCluster && this.deleteCluster()
@@ -189,13 +200,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { sparkMode } = this.state
     return Utils.cond(
       [!currentCluster && !!sparkMode, () => this.createOnlyDataproc_fromNothing_()],
+      [!currentCluster && !sparkMode, () => this.createOnlyGCE_fromNothing_()],
       () => this.createCluster()
     )
   }
 
   createOnlyDataproc_fromNothing_() {
     const { namespace, onSuccess, currentCluster } = this.props
-    const { jupyterUserScriptUri, selectedLeoImage, customEnvImage } = this.state
+    const { jupyterUserScriptUri } = this.state
     const { masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = this.state
     const runtimeConfig = {
       cloudService: cloudServices.DATAPROC,
@@ -211,8 +223,27 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess(
       Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         runtimeConfig,
-        toolDockerImage: selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE ? customEnvImage : selectedLeoImage,
-        labels: { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` },
+        toolDockerImage: this.getCorrectImage(),
+        labels: this.generateClusterLabels(),
+        ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
+      })
+    )
+  }
+
+  createOnlyGCE_fromNothing_() {
+    const { namespace, onSuccess, currentCluster } = this.props
+    const { jupyterUserScriptUri } = this.state
+    const { masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = this.state
+    const runtimeConfig = {
+      cloudService: cloudServices.GCE,
+      machineType: masterMachineType,
+      diskSize: masterDiskSize,
+    }
+    onSuccess(
+      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
+        runtimeConfig,
+        toolDockerImage: this.getCorrectImage(),
+        labels: this.generateClusterLabels(),
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       })
     )
