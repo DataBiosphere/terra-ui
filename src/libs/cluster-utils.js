@@ -27,16 +27,6 @@ export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, ma
   }
 }
 
-export const formatRuntimeConfig = config => {
-  const { cloudService, masterMachineType, masterDiskSize, bootDiskSize, isNew } = config
-  return cloudService === 'GCE' ? {
-    cloudService,
-    machineType: masterMachineType,
-    diskSize: masterDiskSize,
-    bootDiskSize: bootDiskSize || (isNew && 50) || 0
-  } : config
-}
-
 const ongoingCost = config => {
   const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize } = normalizeRuntimeConfig(
     config)
