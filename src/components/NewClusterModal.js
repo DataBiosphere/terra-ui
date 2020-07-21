@@ -202,10 +202,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, onSuccess } = this.props
     const { sparkMode } = this.state
     await Utils.cond(
-      [!!currentCluster?.runtimeConfig?.persistentDiskId && !!sparkMode, () => this.createOnlyDataproc_()],
-      [!sparkMode && this.getCurrentPersistentDisk(), () => this.createGCE_fromPD_()],
+      [!sparkMode, () => this.createGCE_()],
       [!currentCluster && !!sparkMode, () => this.createOnlyDataproc_()],
-      [!currentCluster && !sparkMode, () => this.createOnlyGCE_fromNothing_()],
       () => this.createCluster()
     )
     // TODO PD: spinner
@@ -227,6 +225,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       })
     }
     if (currentCluster) {
+      //TODO PD: this needs to conditionally delete PD based on state from a user selection
       await this.deleteCluster()
     }
     return Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
@@ -237,34 +236,18 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     })
   }
 
-  createOnlyGCE_fromNothing_() {
+  async createGCE_() {
     const { namespace, currentCluster } = this.props
-    const { jupyterUserScriptUri, persistentDiskSize, masterMachineType } = this.state
+    const { jupyterUserScriptUri, masterMachineType, persistentDiskSize } = this.state
     const runtimeConfig = {
       cloudService: cloudServices.GCE,
       machineType: masterMachineType,
-      persistentDisk: {
+      persistentDisk: this.getCurrentPersistentDisk() ? {
+        name: this.getCurrentPersistentDisk().name
+      } : {
         name: Utils.generatePersistentDiskName(),
         size: persistentDiskSize // in GB
         // diskType and blockSize are not required per leo team
-      }
-    }
-    return Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
-      runtimeConfig,
-      toolDockerImage: this.getCorrectImage(),
-      labels: this.generateClusterLabels(),
-      ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
-    })
-  }
-
-  async createGCE_fromPD_() {
-    const { namespace, currentCluster } = this.props
-    const { jupyterUserScriptUri, masterMachineType } = this.state
-    const runtimeConfig = {
-      cloudService: cloudServices.GCE,
-      machineType: masterMachineType,
-      persistentDisk: {
-        name: this.getCurrentPersistentDisk().name
       }
     }
     if (currentCluster) {
