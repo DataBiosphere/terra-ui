@@ -198,22 +198,22 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ]))
   }
 
-  newCreateRuntime() {
-    const { currentCluster } = this.props
+  async newCreateRuntime() {
+    const { currentCluster, onSuccess } = this.props
     const { sparkMode } = this.state
-    return Utils.cond(
+    await Utils.cond(
       [!!currentCluster?.runtimeConfig?.persistentDiskId && !!sparkMode, () => this.createOnlyDataproc_()],
-      [!currentCluster && !sparkMode && this.getCurrentPersistentDisk(), () => this.createGCE_fromPD_()],
+      [!sparkMode && this.getCurrentPersistentDisk(), () => this.createGCE_fromPD_()],
       [!currentCluster && !!sparkMode, () => this.createOnlyDataproc_()],
       [!currentCluster && !sparkMode, () => this.createOnlyGCE_fromNothing_()],
-      // TODO PD: what about disk?
-      [!!currentCluster?.runtimeConfig?.cloudService === cloudServices.DATAPROC && !sparkMode, () => this.createGCE_attachDisk_fromDataproc_()],
       () => this.createCluster()
     )
+    // TODO PD: spinner
+    onSuccess()
   }
 
   async createOnlyDataproc_() {
-    const { namespace, onSuccess, currentCluster } = this.props
+    const { namespace, currentCluster } = this.props
     const { jupyterUserScriptUri, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = this.state
     const runtimeConfig = {
       cloudService: cloudServices.DATAPROC,
@@ -226,21 +226,19 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         workerDiskSize
       })
     }
-    // TODO PD: spinner
     if (currentCluster) {
       await this.deleteCluster()
     }
-    await Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
+    return Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
       runtimeConfig,
       toolDockerImage: this.getCorrectImage(),
       labels: this.generateClusterLabels(),
       ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
     })
-    onSuccess()
   }
 
   createOnlyGCE_fromNothing_() {
-    const { namespace, onSuccess, currentCluster } = this.props
+    const { namespace, currentCluster } = this.props
     const { jupyterUserScriptUri, persistentDiskSize, masterMachineType } = this.state
     const runtimeConfig = {
       cloudService: cloudServices.GCE,
@@ -251,18 +249,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         // diskType and blockSize are not required per leo team
       }
     }
-    onSuccess(
-      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
-        runtimeConfig,
-        toolDockerImage: this.getCorrectImage(),
-        labels: this.generateClusterLabels(),
-        ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
-      })
-    )
+    return Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
+      runtimeConfig,
+      toolDockerImage: this.getCorrectImage(),
+      labels: this.generateClusterLabels(),
+      ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
+    })
   }
 
-  createGCE_fromPD_() {
-    const { namespace, onSuccess } = this.props
+  async createGCE_fromPD_() {
+    const { namespace, currentCluster } = this.props
     const { jupyterUserScriptUri, masterMachineType } = this.state
     const runtimeConfig = {
       cloudService: cloudServices.GCE,
@@ -271,18 +267,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         name: this.getCurrentPersistentDisk().name
       }
     }
-    onSuccess(
-      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
-        runtimeConfig,
-        toolDockerImage: this.getCorrectImage(),
-        labels: this.generateClusterLabels(),
-        ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
-      })
-    )
-  }
-
-  createGCE_attachDisk_fromDataproc_() {
-    // TODO PD: implement me next
+    if (currentCluster) {
+      await this.deleteCluster()
+    }
+    return Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
+      runtimeConfig,
+      toolDockerImage: this.getCorrectImage(),
+      labels: this.generateClusterLabels(),
+      ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
+    })
   }
 
   updateCluster(isStopRequired = false) {
