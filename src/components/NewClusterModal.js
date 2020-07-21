@@ -198,6 +198,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ]))
   }
 
+  // TODO PD - this has been refactored but not tested, needs a console log to check if we're calling the right f'n
+  // TODO PD - TEST ME NEXT!
   async newCreateRuntime() {
     const { currentCluster, onSuccess } = this.props
     const { sparkMode } = this.state
