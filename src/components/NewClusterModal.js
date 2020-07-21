@@ -202,14 +202,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster } = this.props
     const { sparkMode } = this.state
     return Utils.cond(
+      [!!currentCluster && !sparkMode && this.getCurrentPersistentDisk(), () => this.setState({ viewMode: 'switchFromGCEToDataproc' })],
       [!currentCluster && !sparkMode && this.getCurrentPersistentDisk(), () => this.createGCE_fromPD_()],
-      [!currentCluster && !!sparkMode, () => this.createOnlyDataproc_fromNothing_()],
+      [!currentCluster && !!sparkMode, () => this.createOnlyDataproc_()],
       [!currentCluster && !sparkMode, () => this.createOnlyGCE_fromNothing_()],
       () => this.createCluster()
     )
   }
 
-  createOnlyDataproc_fromNothing_() {
+  createOnlyDataproc_() {
     const { namespace, onSuccess, currentCluster } = this.props
     const { jupyterUserScriptUri, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = this.state
     const runtimeConfig = {
@@ -684,6 +685,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         makeImageInfo({ margin: '1rem 0 0.5rem' }),
         packages && h(ImageDepViewer, { packageLink: packages })
       ])],
+      ['switchFromGCEToDataproc', () => h(Fragment, [
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL'])
+        ])
+      ])]
       ['warning', () => h(Fragment, [
         p({ style: { marginTop: 0, lineHeight: 1.5 } }, [
           `You are about to create a virtual machine using an unverified Docker image.
