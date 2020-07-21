@@ -126,11 +126,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   getCurrentPersistentDisk() {
     const { currentCluster, persistentDisks } = this.props
-    // TODO PD: this logic isn't correct, confirm whether we should be getting diskConfig or persistentDiskId from leo
-    //TODO PD: current cluster from cluster list will not have a disk config
-    return currentCluster?.runtimeConfig?.persistentDiskId ?
-      _.find({ id: currentCluster?.runtimeConfig?.persistentDiskId }, persistentDisks) :
-      _.last(_.sortBy('auditinfo.createdDate', persistentDisks))
+    const id = currentCluster?.runtimeConfig?.persistentDiskId
+    return id ?
+      _.find({ id }, persistentDisks) :
+      _.last(_.sortBy('auditInfo.createdDate', persistentDisks))
   }
 
   getRuntimeConfig(isNew = false) {
@@ -203,6 +202,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster } = this.props
     const { sparkMode } = this.state
     return Utils.cond(
+      [!currentCluster && !sparkMode && this.getCurrentPersistentDisk(), () => this.createGCE_fromPD_()],
       [!currentCluster && !!sparkMode, () => this.createOnlyDataproc_fromNothing_()],
       [!currentCluster && !sparkMode, () => this.createOnlyGCE_fromNothing_()],
       () => this.createCluster()
