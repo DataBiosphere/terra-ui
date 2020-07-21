@@ -127,6 +127,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   getCurrentPersistentDisk() {
     const { currentCluster, persistentDisks } = this.props
     // TODO PD: this logic isn't correct, confirm whether we should be getting diskConfig or persistentDiskId from leo
+    //TODO PD: current cluster from cluster list will not have a disk config
     return currentCluster?.diskConfig || _.last(_.sortBy('auditinfo.createdDate', persistentDisks))
   }
 
@@ -253,7 +254,23 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   createGCE_fromPD_() {
-    // TODO PD write me next!
+    const { namespace, onSuccess } = this.props
+    const { jupyterUserScriptUri, masterMachineType } = this.state
+    const runtimeConfig = {
+      cloudService: cloudServices.GCE,
+      machineType: masterMachineType,
+      persistentDisk: {
+        name: this.getCurrentPersistentDisk().name
+      }
+    }
+    onSuccess(
+      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
+        runtimeConfig,
+        toolDockerImage: this.getCorrectImage(),
+        labels: this.generateClusterLabels(),
+        ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
+      })
+    )
   }
 
   updateCluster(isStopRequired = false) {
