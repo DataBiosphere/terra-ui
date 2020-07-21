@@ -210,7 +210,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     )
   }
 
-  createOnlyDataproc_() {
+  async createOnlyDataproc_() {
     const { namespace, onSuccess, currentCluster } = this.props
     const { jupyterUserScriptUri, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = this.state
     const runtimeConfig = {
@@ -224,14 +224,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         workerDiskSize
       })
     }
-    onSuccess(
-      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
-        runtimeConfig,
-        toolDockerImage: this.getCorrectImage(),
-        labels: this.generateClusterLabels(),
-        ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
-      })
-    )
+    if (currentCluster) {
+      await this.deleteCluster()
+    }
+    await Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
+      runtimeConfig,
+      toolDockerImage: this.getCorrectImage(),
+      labels: this.generateClusterLabels(),
+      ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
+    })
+    onSuccess()
   }
 
   createOnlyGCE_fromNothing_() {
@@ -278,6 +280,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   createDataproc_FromGCE_() {
     // TODO PD: decide how to implement me!
+    // await delete runtime (keep pd)
+    // create new runtime
   }
 
   updateCluster(isStopRequired = false) {
