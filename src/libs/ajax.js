@@ -81,6 +81,8 @@ const gceRuntime = {
   patchInProgress: false
 }
 
+const gceRuntimeWithPd = _.flow(_.unset(['runtimeConfig', 'diskSize']), _.set(['runtimeConfig', 'persistentDiskId'], 21))(gceRuntime)
+
 const disk = {
   id: 21,
   googleProject: 'general-dev-billing-account',
@@ -125,7 +127,8 @@ const pdOverrides = _.mapValues(({ runtimes, disks }) => {
   gce: { runtimes: [gceRuntime], disks: [] },
   dataproc: { runtimes: [dataprocRuntime], disks: [] },
   disk: { runtimes: [], disks: [disk] },
-  gceAndDisk: { runtimes: [gceRuntime], disks: [disk] }
+  gceAndDisk: { runtimes: [gceRuntime], disks: [disk] },
+  gceAndAttachedDisk: { runtimes: [gceRuntimeWithPd], disks: [disk] }
 })
 
 window.ajaxOverrideUtils = {
@@ -139,7 +142,7 @@ window.ajaxOverrideUtils = {
       wrappedFetch(...args)
   })
 }
-// ajaxOverridesStore.set(pdOverrides.nothing)
+a//jaxOverridesStore.set(pdOverrides.gceAndDisk)
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
