@@ -112,15 +112,17 @@ const runtimeDetails = {
 
 // eslint-disable-next-line no-unused-vars
 const pdOverrides = _.mapValues(({ runtimes, disks }) => {
-  const stub = v => wrappedFetch => (url, { method = 'GET', body }) => {
+  const stub = v => () => async (url, { method = 'GET', body }) => {
     console.log({ method, url, body: body && JSON.parse(body) })
+    await Utils.delay(250)
     return new Response(JSON.stringify(v))
   }
   return [
-    { filter: /v1\/runtimes\?/, fn: stub(runtimes) },
-    { filter: /v1\/disks\?/, fn: stub(disks) },
-    { filter: /v1\/runtimes\//, fn: stub({ ...runtimes[0], ...runtimeDetails }) },
-    { filter: /v1\/runtimes\/.+\/.+/, fn: stub({}) }
+    { filter: { url: /v1\/runtimes\?/ }, fn: stub(runtimes) },
+    { filter: { url: /v1\/disks\?/ }, fn: stub(disks) },
+    { filter: { url: /v1\/runtimes\/.+\/.+$/, method: 'GET' }, fn: stub({ ...runtimes[0], ...runtimeDetails }) },
+    { filter: { url: /v1\/runtimes\/.+\/.+$/, method: 'POST' }, fn: stub({}) },
+    { filter: { url: /v1\/runtimes\/.+\/.+$/, method: 'DELETE' }, fn: stub({}) }
   ]
 }, {
   nothing: { runtimes: [], disks: [] },
@@ -152,7 +154,10 @@ const tosData = { appid: 'Saturn', tosversion: 6 }
 // Allows use of ajaxOverrideStore to stub responses for testing
 const withInstrumentation = wrappedFetch => (...args) => {
   return _.flow(
-    ..._.map('fn', _.filter(({ filter }) => args[0].match(filter), ajaxOverridesStore.get()))
+    ..._.map('fn', _.filter(({ filter }) => {
+      const [url, { method = 'GET' } = {}] = args
+      return _.isFunction(filter) ? filter(...args) : url.match(filter.url) && (!filter.method || filter.method === method)
+    }, ajaxOverridesStore.get()))
   )(wrappedFetch)(...args)
 }
 

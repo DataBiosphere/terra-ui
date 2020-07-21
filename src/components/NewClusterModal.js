@@ -10,7 +10,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { cloudServices, machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { DEFAULT_DISK_SIZE, deleteText, findMachineType, formatRuntimeConfig, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
+import { DEFAULT_DISK_SIZE, deleteText, findMachineType, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { notify } from 'src/libs/notifications'
@@ -134,11 +134,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   getRuntimeConfig(isNew = false) {
     const formatRuntimeConfig = config => {
-      const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, persistentDiskSize } = config
+      const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = config
       return cloudService === cloudServices.GCE ? {
         cloudService,
         machineType: masterMachineType,
-        diskSize: masterDiskSize,
+        diskSize: masterDiskSize
         //TODO(PD): work in progress
         /*persistentDisk: {
           name: Utils.generatePersistentDiskName(),
@@ -186,7 +186,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   // existing (no PD)
   createCluster() {
     const { namespace, onSuccess, currentCluster } = this.props
-    const { jupyterUserScriptUri, selectedLeoImage, customEnvImage } = this.state
+    const { jupyterUserScriptUri } = this.state
     onSuccess(Promise.all([
       Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         runtimeConfig: this.getRuntimeConfig(true),
