@@ -508,6 +508,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             onClick: () => {
               if (isSelectedImageInputted && !canUpdate) {
                 this.setState({ viewMode: 'warning' })
+              } else if (false) { // TODO PD: write logic for GCE-with-attached-disk switching to dataproc
               } else if (!!currentCluster) {
                 this.setState({ viewMode: updateOrReplace })
               } else {
@@ -689,7 +690,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL'])
         ])
-      ])]
+      ])],
       ['warning', () => h(Fragment, [
         p({ style: { marginTop: 0, lineHeight: 1.5 } }, [
           `You are about to create a virtual machine using an unverified Docker image.
