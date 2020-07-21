@@ -202,10 +202,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster } = this.props
     const { sparkMode } = this.state
     return Utils.cond(
-      [!!currentCluster?.runtimeConfig?.persistentDiskId && !!sparkMode, () => this.createDataproc_FromGCE_()],
+      [!!currentCluster?.runtimeConfig?.persistentDiskId && !!sparkMode, () => this.createOnlyDataproc_()],
       [!currentCluster && !sparkMode && this.getCurrentPersistentDisk(), () => this.createGCE_fromPD_()],
       [!currentCluster && !!sparkMode, () => this.createOnlyDataproc_()],
       [!currentCluster && !sparkMode, () => this.createOnlyGCE_fromNothing_()],
+      // TODO PD: what about disk?
+      [!!currentCluster?.runtimeConfig?.cloudService === cloudServices.DATAPROC && !sparkMode, () => this.createGCE_attachDisk_fromDataproc_()],
       () => this.createCluster()
     )
   }
@@ -224,6 +226,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         workerDiskSize
       })
     }
+    // TODO PD: spinner
     if (currentCluster) {
       await this.deleteCluster()
     }
@@ -278,10 +281,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     )
   }
 
-  createDataproc_FromGCE_() {
-    // TODO PD: decide how to implement me!
-    // await delete runtime (keep pd)
-    // create new runtime
+  createGCE_attachDisk_fromDataproc_() {
+    // TODO PD: implement me next
   }
 
   updateCluster(isStopRequired = false) {
