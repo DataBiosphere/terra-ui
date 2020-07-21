@@ -128,7 +128,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, persistentDisks } = this.props
     // TODO PD: this logic isn't correct, confirm whether we should be getting diskConfig or persistentDiskId from leo
     //TODO PD: current cluster from cluster list will not have a disk config
-    return currentCluster?.diskConfig || _.last(_.sortBy('auditinfo.createdDate', persistentDisks))
+    return currentCluster?.runtimeConfig?.persistentDiskId ?
+      _.find({ id: currentCluster?.runtimeConfig?.persistentDiskId }, persistentDisks) :
+      _.last(_.sortBy('auditinfo.createdDate', persistentDisks))
   }
 
   getRuntimeConfig(isNew = false) {
