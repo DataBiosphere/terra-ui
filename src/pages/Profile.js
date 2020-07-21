@@ -214,7 +214,7 @@ const FenceLink = ({ provider: { key, name } }) => {
     Utils.cond(
       [isBusy, () => div([spinner(), 'Loading account status...'])],
       [!username, () => div({ style: styles.identityLine },
-        [h(FrameworkServiceLink, { linkText: 'Log in to to link your account', provider: key, redirectUrl })]
+        [h(FrameworkServiceLink, { linkText: 'Log in to link your account', provider: key, redirectUrl })]
       )],
       () => div([
         div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
