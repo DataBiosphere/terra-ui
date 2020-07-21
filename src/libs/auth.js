@@ -245,7 +245,7 @@ authStore.subscribe((state, oldState) => {
       )
       if (expireStatus) {
         notify('info', div([
-          `Your access to ${name} ${expireStatus}. Log-in to `,
+          `Your access to ${name} ${expireStatus}. Log in to `,
           h(FrameworkServiceLink, { linkText: expireStatus === 'has expired' ? 'restore ' : 'renew ', provider: key, redirectUrl }),
           ' your access or ',
           h(UnlinkFenceAccount, { linkText: 'unlink ', provider: { key, name } }),
