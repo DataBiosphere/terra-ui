@@ -277,6 +277,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   createDataproc_FromGCE_() {
+    // TODO PD: decide how to implement me!
   }
 
   updateCluster(isStopRequired = false) {
@@ -692,7 +693,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])],
       ['switchFromGCEToDataproc', () => h(Fragment, [
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL'])
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
+          h(ButtonPrimary, { onClick: () => this.newCreateRuntime() }, ['REPLACE'])
         ])
       ])],
       ['warning', () => h(Fragment, [
