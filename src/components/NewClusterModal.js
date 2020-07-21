@@ -202,7 +202,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster } = this.props
     const { sparkMode } = this.state
     return Utils.cond(
-      [!!currentCluster && !sparkMode && this.getCurrentPersistentDisk(), () => this.setState({ viewMode: 'switchFromGCEToDataproc' })],
+      [!!currentCluster?.runtimeConfig?.persistentDiskId && !!sparkMode, () => this.createDataproc_FromGCE_()],
       [!currentCluster && !sparkMode && this.getCurrentPersistentDisk(), () => this.createGCE_fromPD_()],
       [!currentCluster && !!sparkMode, () => this.createOnlyDataproc_()],
       [!currentCluster && !sparkMode, () => this.createOnlyGCE_fromNothing_()],
@@ -274,6 +274,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
       })
     )
+  }
+
+  createDataproc_FromGCE_() {
   }
 
   updateCluster(isStopRequired = false) {
@@ -508,7 +511,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             onClick: () => {
               if (isSelectedImageInputted && !canUpdate) {
                 this.setState({ viewMode: 'warning' })
-              } else if (false) { // TODO PD: write logic for GCE-with-attached-disk switching to dataproc
+              } else if (!!currentCluster?.runtimeConfig?.persistentDiskId && !!sparkMode) {
+                this.setState({ viewMode: 'switchFromGCEToDataproc' })
               } else if (!!currentCluster) {
                 this.setState({ viewMode: updateOrReplace })
               } else {
