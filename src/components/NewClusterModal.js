@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { b, div, fieldset, h, label, legend, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, Select } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -115,6 +115,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
     this.state = {
+      loading: false,
       persistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : DEFAULT_DISK_SIZE,
       profile: matchingProfile?.name || 'custom',
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
@@ -198,16 +199,21 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ]))
   }
 
-  // TODO PD - this has been refactored but not tested, needs a console log to check if we're calling the right f'n
-  // TODO PD - TEST ME NEXT!
   async newCreateRuntime() {
     const { onSuccess } = this.props
     const { sparkMode } = this.state
-    await Utils.cond(
-      [!sparkMode, () => this.createGCE_()],
-      [!!sparkMode, () => this.createOnlyDataproc_()],
-      () => console.error('Not handled case in create runtime')
-    )
+
+    await _.flow(
+      Utils.withBusyState(() => this.setState({ loading: true })),
+      withErrorReporting('Error creating runtime')
+    )(async () => {
+      await Utils.cond(
+        [!sparkMode, () => this.createGCE_()],
+        [!!sparkMode, () => this.createOnlyDataproc_()],
+        () => console.error('Not handled case in create runtime')
+      )
+    })
+
     // TODO PD: spinner
     onSuccess()
   }
@@ -415,7 +421,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const {
       profile, masterMachineType, masterDiskSize, persistentDiskSize, sparkMode, workerMachineType,
       numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, loading
     } = this.state
     const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
@@ -840,6 +846,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onPrevious: !!viewMode ? () => this.setState({ viewMode: undefined }) : undefined
       }),
       div({ style: { padding: '0.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents]),
+      loading && spinnerOverlay,
       this.renderDebugger()
     ])
   }

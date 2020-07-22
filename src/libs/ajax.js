@@ -114,7 +114,7 @@ const runtimeDetails = {
 const pdOverrides = _.mapValues(({ runtimes, disks }) => {
   const stub = v => () => async (url, { method = 'GET', body }) => {
     console.log({ method, url, body: body && JSON.parse(body) })
-    await Utils.delay(250)
+    await Utils.delay(3000)
     return new Response(JSON.stringify(v))
   }
   return [
@@ -144,7 +144,7 @@ window.ajaxOverrideUtils = {
       wrappedFetch(...args)
   })
 }
-// ajaxOverridesStore.set(pdOverrides.gceAndDisk)
+ajaxOverridesStore.set(pdOverrides.nothing)
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
