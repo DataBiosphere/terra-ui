@@ -212,7 +212,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       () => console.error('Not handled case in create runtime')
     )
 
-    //TODO PD: handle react state error
+    //TODO PD: investigate react state error
     onSuccess()
   })
 
