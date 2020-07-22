@@ -201,12 +201,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   // TODO PD - this has been refactored but not tested, needs a console log to check if we're calling the right f'n
   // TODO PD - TEST ME NEXT!
   async newCreateRuntime() {
-    const { currentCluster, onSuccess } = this.props
+    const { onSuccess } = this.props
     const { sparkMode } = this.state
     await Utils.cond(
       [!sparkMode, () => this.createGCE_()],
-      [!currentCluster && !!sparkMode, () => this.createOnlyDataproc_()],
-      () => this.createCluster()
+      [!!sparkMode, () => this.createOnlyDataproc_()],
+      () => console.error('Not handled case in create runtime')
     )
     // TODO PD: spinner
     onSuccess()
