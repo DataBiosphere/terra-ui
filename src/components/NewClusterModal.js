@@ -199,24 +199,23 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ]))
   }
 
-  async newCreateRuntime() {
+  newCreateRuntime = _.flow(
+    Utils.withBusyState(() => this.setState({ loading: true })),
+    withErrorReporting('Error creating runtime')
+  )(async () => {
     const { onSuccess } = this.props
     const { sparkMode } = this.state
 
-    await _.flow(
-      Utils.withBusyState(() => this.setState({ loading: true })),
-      withErrorReporting('Error creating runtime')
-    )(async () => {
-      await Utils.cond(
-        [!sparkMode, () => this.createGCE_()],
-        [!!sparkMode, () => this.createOnlyDataproc_()],
-        () => console.error('Not handled case in create runtime')
-      )
-    })
+    await Utils.cond(
+      [!sparkMode, () => this.createGCE_()],
+      [!!sparkMode, () => this.createOnlyDataproc_()],
+      () => console.error('Not handled case in create runtime')
+    )
 
-    // TODO PD: spinner
+    //TODO PD: handle react state error
     onSuccess()
-  }
+  })
+
 
   async createOnlyDataproc_() {
     const { namespace, currentCluster } = this.props
