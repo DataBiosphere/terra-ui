@@ -246,10 +246,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   async createGCE_() {
     const { namespace, currentCluster } = this.props
     const { jupyterUserScriptUri, masterMachineType, persistentDiskSize } = this.state
+    const shouldDeletePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > persistentDiskSize
+    const persistentDiskDeletedWithCluster = currentCluster && shouldDeletePersistentDisk
+    const persistentDiskSizeChanged = this.getCurrentPersistentDisk() && persistentDiskSize !== this.getCurrentPersistentDisk().size
+
     const runtimeConfig = {
       cloudService: cloudServices.GCE,
       machineType: masterMachineType,
-      persistentDisk: this.getCurrentPersistentDisk() ? {
+      persistentDisk: this.getCurrentPersistentDisk() && !shouldDeletePersistentDisk ? {
         name: this.getCurrentPersistentDisk().name
       } : {
         name: Utils.generatePersistentDiskName(),
@@ -257,13 +261,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         // diskType and blockSize are not required per leo team
       }
     }
-    const shouldDelete = currentCluster?.runtimeConfig.persistentDiskId && this.getCurrentPersistentDisk().size > persistentDiskSize
     if (currentCluster) {
       //TODO PD: If we delete, DO NOT use PATCH endpoint for disk instead create a new disk with the new runtime
-      await this.deleteCluster(shouldDelete)
-    } else if (this.getCurrentPersistentDisk() && persistentDiskSize !== this.getCurrentPersistentDisk().size) {
-      // TODO PD: update disk size
-      await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).update(persistentDiskSize)
+      await this.deleteCluster(currentCluster?.runtimeConfig.persistentDiskId && shouldDeletePersistentDisk)
+    }
+    if (!persistentDiskDeletedWithCluster && persistentDiskSizeChanged) {
+      if (shouldDeletePersistentDisk) {
+        //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
+      } else {
+        await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).update(persistentDiskSize)
+      }
     }
     return Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
       runtimeConfig,
