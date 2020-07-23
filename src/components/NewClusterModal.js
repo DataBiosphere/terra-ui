@@ -166,11 +166,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     })
   }
 
-  deleteCluster() {
+  deleteCluster(deleteDisk) {
     const { currentCluster } = this.props
     const { googleProject, runtimeName } = currentCluster
 
-    return Ajax().Clusters.cluster(googleProject, runtimeName).delete()
+    return Ajax().Clusters.cluster(googleProject, runtimeName).delete(deleteDisk)
   }
 
   getCorrectImage() {

@@ -120,6 +120,7 @@ const pdOverrides = _.mapValues(({ runtimes, disks }) => {
   return [
     { filter: { url: /v1\/runtimes\?/ }, fn: stub(runtimes) },
     { filter: { url: /v1\/disks\?/ }, fn: stub(disks) },
+    { filter: { url: /v1\/disks\/.+\/.+$/, method: 'PATCH' }, fn: stub({}) },
     { filter: { url: /v1\/runtimes\/.+\/.+$/, method: 'GET' }, fn: stub({ ...runtimes[0], ...runtimeDetails }) },
     { filter: { url: /v1\/runtimes\/.+\/.+$/, method: 'POST' }, fn: stub({}) },
     { filter: { url: /v1\/runtimes\/.+\/.+$/, method: 'DELETE' }, fn: stub({}) }
@@ -144,7 +145,7 @@ window.ajaxOverrideUtils = {
       wrappedFetch(...args)
   })
 }
-ajaxOverridesStore.set(pdOverrides.nothing)
+ajaxOverridesStore.set(pdOverrides.disk)
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
@@ -1185,8 +1186,8 @@ const Clusters = signal => ({
         return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
       },
 
-      delete: () => {
-        return fetchLeo(root, _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
+      delete: deleteDisk => {
+        return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`, _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
       }
     }
   },
