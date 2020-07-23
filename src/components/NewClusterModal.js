@@ -258,7 +258,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       }
     }
     if (currentCluster) {
-      //TODO PD: test me next!! 
+      //TODO PD: If we delete, DO NOT use PATCH endpoint for disk instead create a new disk with the new runtime
       await this.deleteCluster(currentCluster.runtimeConfig.persistentDiskId && this.getCurrentPersistentDisk().size > persistentDiskSize)
     }
     if (this.getCurrentPersistentDisk() && persistentDiskSize !== this.getCurrentPersistentDisk().size) {
