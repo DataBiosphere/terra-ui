@@ -144,7 +144,7 @@ window.ajaxOverrideUtils = {
       wrappedFetch(...args)
   })
 }
-ajaxOverridesStore.set(pdOverrides.disk)
+ajaxOverridesStore.set(pdOverrides.nothing)
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
@@ -1248,6 +1248,9 @@ const Disks = signal => ({
     return {
       delete: () => {
         return fetchLeo(`api/google/v1/disks/${project}/${name}`, _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }]))
+      },
+      update: size => {
+        return fetchLeo(`api/google/v1/disks/${project}/${name}`, _.mergeAll([authOpts(), jsonBody({ size }), appIdentifier, { signal, method: 'PATCH' }]))
       }
     }
   }

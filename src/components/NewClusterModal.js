@@ -262,7 +262,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
     if (this.getCurrentPersistentDisk() && persistentDiskSize !== this.getCurrentPersistentDisk().size) {
       // TODO PD: update disk size
-      // await
+      await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).update(persistentDiskSize)
     }
     return Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
       runtimeConfig,
