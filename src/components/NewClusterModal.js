@@ -247,10 +247,18 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   async createGCE_() {
     const { namespace, currentCluster } = this.props
     const { jupyterUserScriptUri, masterMachineType, persistentDiskSize } = this.state
+    const shouldDeleteCluster = currentCluster
+    const shouldDeletePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > persistentDiskSize
+    const shouldUpdatePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size < persistentDiskSize
+    const diskIsAttached = currentCluster?.runtimeConfig.persistentDiskId
+    //TODO PD: test me next!! 
+    /*
+    //deprecated in favor of new approach, delete if testing succeeds
     const shouldDeletePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > persistentDiskSize // true
     const shouldOnlyDeletePersistentDisk = shouldDeletePersistentDisk && !currentCluster
     const persistentDiskDeletedWithCluster = currentCluster && shouldDeletePersistentDisk // false
     const persistentDiskSizeChanged = this.getCurrentPersistentDisk() && persistentDiskSize !== this.getCurrentPersistentDisk().size // true
+  */
 
     const runtimeConfig = {
       cloudService: cloudServices.GCE,
@@ -263,17 +271,30 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         // diskType and blockSize are not required per leo team
       }
     }
-    if (currentCluster) {
+    if (shouldDeleteCluster) {
+      //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
+      await this.deleteCluster(diskIsAttached && shouldDeletePersistentDisk)
+    }
+    if (shouldDeletePersistentDisk && !diskIsAttached) {
+      //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
+      await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).delete()
+    }
+    if (shouldUpdatePersistentDisk) {
+      await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).update(persistentDiskSize)
+    }
+    /*
+     //deprecated in favor of new approach, delete if testing succeeds
+     if (currentCluster) {
       await this.deleteCluster(currentCluster?.runtimeConfig.persistentDiskId && shouldDeletePersistentDisk)
     } else if (shouldOnlyDeletePersistentDisk) {
       await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).delete()
     }
     if (!persistentDiskDeletedWithCluster && persistentDiskSizeChanged) {
-      //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
       if (!shouldDeletePersistentDisk) {
         await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).update(persistentDiskSize)
       }
     }
+     */
     return Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
       runtimeConfig,
       toolDockerImage: this.getCorrectImage(),
