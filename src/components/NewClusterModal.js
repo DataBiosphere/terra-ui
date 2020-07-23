@@ -246,9 +246,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   async createGCE_() {
     const { namespace, currentCluster } = this.props
     const { jupyterUserScriptUri, masterMachineType, persistentDiskSize } = this.state
-    const shouldDeletePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > persistentDiskSize
-    const persistentDiskDeletedWithCluster = currentCluster && shouldDeletePersistentDisk
-    const persistentDiskSizeChanged = this.getCurrentPersistentDisk() && persistentDiskSize !== this.getCurrentPersistentDisk().size
+    const shouldDeletePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > persistentDiskSize // true
+    const shouldOnlyDeletePersistentDisk = shouldDeletePersistentDisk && !currentCluster
+    const persistentDiskDeletedWithCluster = currentCluster && shouldDeletePersistentDisk // false
+    const persistentDiskSizeChanged = this.getCurrentPersistentDisk() && persistentDiskSize !== this.getCurrentPersistentDisk().size // true
 
     const runtimeConfig = {
       cloudService: cloudServices.GCE,
@@ -262,13 +263,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       }
     }
     if (currentCluster) {
-      //TODO PD: If we delete, DO NOT use PATCH endpoint for disk instead create a new disk with the new runtime
       await this.deleteCluster(currentCluster?.runtimeConfig.persistentDiskId && shouldDeletePersistentDisk)
+    } else if (shouldOnlyDeletePersistentDisk) {
+      await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).delete()
     }
     if (!persistentDiskDeletedWithCluster && persistentDiskSizeChanged) {
-      if (shouldDeletePersistentDisk) {
-        //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
-      } else {
+      //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
+      if (!shouldDeletePersistentDisk) {
         await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).update(persistentDiskSize)
       }
     }

@@ -121,6 +121,7 @@ const pdOverrides = _.mapValues(({ runtimes, disks }) => {
     { filter: { url: /v1\/runtimes\?/ }, fn: stub(runtimes) },
     { filter: { url: /v1\/disks\?/ }, fn: stub(disks) },
     { filter: { url: /v1\/disks\/.+\/.+$/, method: 'PATCH' }, fn: stub({}) },
+    { filter: { url: /v1\/disks\/.+\/.+$/, method: 'DELETE' }, fn: stub({}) },
     { filter: { url: /v1\/runtimes\/.+\/.+$/, method: 'GET' }, fn: stub({ ...runtimes[0], ...runtimeDetails }) },
     { filter: { url: /v1\/runtimes\/.+\/.+$/, method: 'POST' }, fn: stub({}) },
     { filter: { url: /v1\/runtimes\/.+\/.+$/, method: 'DELETE' }, fn: stub({}) }
@@ -145,7 +146,7 @@ window.ajaxOverrideUtils = {
       wrappedFetch(...args)
   })
 }
-ajaxOverridesStore.set(pdOverrides.gceAndAttachedDisk)
+ajaxOverridesStore.set(pdOverrides.disk)
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
