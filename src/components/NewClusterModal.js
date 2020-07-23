@@ -260,6 +260,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     if (currentCluster) {
       await this.deleteCluster()
     }
+    if (this.getCurrentPersistentDisk() && persistentDiskSize !== this.getCurrentPersistentDisk().size) {
+      // TODO PD: update disk size
+      // await
+    }
     return Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
       runtimeConfig,
       toolDockerImage: this.getCorrectImage(),

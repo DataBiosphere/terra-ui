@@ -144,7 +144,7 @@ window.ajaxOverrideUtils = {
       wrappedFetch(...args)
   })
 }
-ajaxOverridesStore.set(pdOverrides.nothing)
+ajaxOverridesStore.set(pdOverrides.disk)
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
@@ -1252,6 +1252,7 @@ const Disks = signal => ({
     }
   }
 
+  // TODO PD next: implement PATCH to update disk size
 
 })
 
