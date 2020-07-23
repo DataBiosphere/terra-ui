@@ -1255,9 +1255,6 @@ const Disks = signal => ({
       }
     }
   }
-
-  // TODO PD next: implement PATCH to update disk size
-
 })
 
 const Dockstore = signal => ({

@@ -257,11 +257,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         // diskType and blockSize are not required per leo team
       }
     }
-    if (currentCluster) {
+    const shouldDelete = currentCluster?.runtimeConfig.persistentDiskId && this.getCurrentPersistentDisk().size > persistentDiskSize
+    if (currentCluster && shouldDelete) {
       //TODO PD: If we delete, DO NOT use PATCH endpoint for disk instead create a new disk with the new runtime
-      await this.deleteCluster(currentCluster.runtimeConfig.persistentDiskId && this.getCurrentPersistentDisk().size > persistentDiskSize)
+      await this.deleteCluster(shouldDelete)
     }
-    if (this.getCurrentPersistentDisk() && persistentDiskSize !== this.getCurrentPersistentDisk().size) {
+    else if (this.getCurrentPersistentDisk() && persistentDiskSize !== this.getCurrentPersistentDisk().size) {
       // TODO PD: update disk size
       await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).update(persistentDiskSize)
     }
