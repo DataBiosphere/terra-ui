@@ -45,13 +45,16 @@ The following environment variables are parsed by the tests:
 #### Convenient one-liner:
 
 ```sh
-[HEADLESS=false] \
-[ENVIRONMENT=local|dev|alpha|perf|staging] \
 TERRA_SA_KEY=$(vault read --format=json secret/dsde/alpha/common/firecloud-account.pem | jq .data) \
 LYLE_SA_KEY=$(vault read --format=json secret/dsde/terra/envs/common/lyle-user-service-account-key | jq .data) \
 yarn test
 ```
-`HEADLESS` and `ENVIRONMENT` are optional. By default, the tests will run headless against dev.
+Optionally, additional useful options are:
+```sh
+HEADLESS=false \
+ENVIRONMENT=[local|dev|alpha|perf|staging] \
+```
+By default, the tests will run headless against Terra UI running on your local machine.
 
 #### Debugging
 
