@@ -243,6 +243,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     })
   }
 
+  // TODO PD: delete larger unattached PD when replacing a legacy GCE runtime
   async createGCE_() {
     const { namespace, currentCluster } = this.props
     const { jupyterUserScriptUri, masterMachineType, persistentDiskSize } = this.state
