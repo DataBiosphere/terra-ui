@@ -20,11 +20,11 @@
     "includeConsoleOutput": true
   },
   "dependencies": {
-    "@google-cloud/firestore": "^3.8.5",
-    "@google-cloud/secret-manager": "^3.0.0",
+    "@google-cloud/firestore": "^3.8.6",
+    "@google-cloud/secret-manager": "^3.1.0",
     "@google-cloud/storage": "^4.7.0",
     "express": "^4.17.1",
-    "google-auth-library": "^6.0.0",
+    "google-auth-library": "^6.0.5",
     "googleapis": "^50.0.0",
     "lodash": "^4.17.15",
     "nodemon": "^2.0.3",
