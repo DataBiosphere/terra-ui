@@ -258,7 +258,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       }
     }
     if (currentCluster) {
-      await this.deleteCluster()
+      //TODO PD: test me next!! 
+      await this.deleteCluster(currentCluster.runtimeConfig.persistentDiskId && this.getCurrentPersistentDisk().size > persistentDiskSize)
     }
     if (this.getCurrentPersistentDisk() && persistentDiskSize !== this.getCurrentPersistentDisk().size) {
       // TODO PD: update disk size
@@ -304,6 +305,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   //this function returns true for cases 2 & 3 in this diagram
   canUpdate() {
     const { currentCluster } = this.props
+    const { persistentDiskSize } = this.state
 
     if (!currentCluster) return false
 
@@ -322,11 +324,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const hasWorkersResourceChanged = hasWorkers && hasUnUpdateableResourceChanged
 
     const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
+    const hasPersistentDiskSizeDecreased = currentCluster?.runtimeConfig?.persistentDiskId && this.getCurrentPersistentDisk().size > persistentDiskSize
 
     const hasCloudServiceChanged = currentClusterConfig.cloudService !== userSelectedConfig.cloudService
 
     const cantUpdate = cantWorkersUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || hasCloudServiceChanged ||
-      this.hasImageChanged() || this.hasStartUpScriptChanged()
+      this.hasImageChanged() || this.hasStartUpScriptChanged() || hasPersistentDiskSizeDecreased
     return !cantUpdate
   }
 
