@@ -722,7 +722,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Back']),
           h(ButtonPrimary, {
-            onClick: () => this.tbdFunction(currentCluster)
+            onClick: () => {
+              const newViewMode = this.tbdFunction(currentCluster)
+              newViewMode ? this.setState({ viewMode: newViewMode }) : this.newCreateRuntime()
+            }
           }, [!!currentCluster ? 'Next' : 'Create'])
         ])
       ])],
@@ -886,12 +889,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   tbdFunction(currentCluster) {
     if (this.shouldDeletePersistentDisk() && !currentCluster) {
       // go to warn about PD
+      return
     } else if (this.shouldDeletePersistentDisk() && !!currentCluster) {
       // go to warn about PD and cluster
+      return 'replace'
     } else if (!this.shouldDeletePersistentDisk() && !!currentCluster) {
       // go to warn about cluster
+      return 'replace'
     } else {
       return
+
     }
 
     return !!currentCluster ? this.setState({ viewMode: 'replace' }) : this.newCreateRuntime()
