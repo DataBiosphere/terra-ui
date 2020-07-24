@@ -758,6 +758,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(ButtonPrimary, { onClick: () => this.newCreateRuntime() }, ['REPLACE'])
         ])
       ])],
+      ['replacePersistentDiskAndCluster', () => h(Fragment, [
+        //TODO PD: add real warning text here!
+        //TODO PD: actually show warning when disk and runtime will be deleted
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          h(ButtonSecondary, {
+            style: { marginRight: '2rem' },
+            onClick: () => this.setState({ viewMode: undefined })
+          }, ['BACK']),
+          h(ButtonPrimary, { onClick: () => this.newCreateRuntime() }, ['REPLACE'])
+        ])
+      ])],
       ['update', () => h(Fragment, [
         currentCluster.status === 'Running' ?
           this.getRunningUpdateText() :
