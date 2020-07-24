@@ -251,7 +251,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const shouldDeletePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > persistentDiskSize
     const shouldUpdatePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size < persistentDiskSize
     const diskIsAttached = currentCluster?.runtimeConfig.persistentDiskId
-    //TODO PD: test me next!! 
+    //TODO PD: test me next!!
     /*
     //deprecated in favor of new approach, delete if testing succeeds
     const shouldDeletePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > persistentDiskSize // true
@@ -354,6 +354,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const hasWorkersResourceChanged = hasWorkers && hasUnUpdateableResourceChanged
 
     const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
+    //TODO PD: should we also look at current persistent disk?
     const hasPersistentDiskSizeDecreased = currentCluster?.runtimeConfig?.persistentDiskId && this.getCurrentPersistentDisk().size > persistentDiskSize
 
     const hasCloudServiceChanged = currentClusterConfig.cloudService !== userSelectedConfig.cloudService
