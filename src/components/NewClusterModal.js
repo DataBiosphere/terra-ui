@@ -41,6 +41,17 @@ const zendeskImagePage = 'https://support.terra.bio/hc/en-us/articles/3600372694
 // distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
 
+const clusterReplaceWarningText = h(Fragment, [p([
+  'Replacing your runtime will ', b(['delete any files on the associated hard disk ']),
+  '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+  h(Link, {
+    href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+    ...Utils.newTabLinkProps
+  }, ['move them to the workspace bucket.'])
+]),
+p(['You will be unable to work on the notebooks in this workspace while it updates, which can take a few minutes.'])])
+
+
 const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
 
 const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly, isPersistentDisk }) => {
@@ -111,7 +122,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster } = props
     const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
     const { masterDiskSize, masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
-    const matchingProfile = _.find(({ runtimeConfig }) => _.isMatch({ masterMachineType, masterDiskSize }, normalizeRuntimeConfig(runtimeConfig)), profiles)
+    const matchingProfile = _.find(({ runtimeConfig }) => _.isMatch({ masterMachineType, masterDiskSize }, normalizeRuntimeConfig(runtimeConfig)),
+      profiles)
     // TODO(PD): This should probably only choose from unattached persistent disks.
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
@@ -143,9 +155,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         diskSize: masterDiskSize
         //TODO(PD): work in progress
         /*persistentDisk: {
-          name: Utils.generatePersistentDiskName(),
-          diskSize: persistentDiskSize
-        }*/
+         name: Utils.generatePersistentDiskName(),
+         diskSize: persistentDiskSize
+         }*/
       } : {
         cloudService,
         masterMachineType,
@@ -162,7 +174,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       cloudService: !!this.state.sparkMode ? cloudServices.DATAPROC : cloudServices.GCE,
       isNew,
       ..._.pick(
-        ['numberOfWorkers', 'masterMachineType', 'masterDiskSize', 'workerMachineType', 'workerDiskSize', 'numberOfPreemptibleWorkers', 'persistentDiskSize'],
+        ['numberOfWorkers', 'masterMachineType', 'masterDiskSize', 'workerMachineType', 'workerDiskSize', 'numberOfPreemptibleWorkers',
+          'persistentDiskSize'],
         this.state)
     })
   }
@@ -339,7 +352,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
     //TODO PD: should we also look at current persistent disk?
-    const hasPersistentDiskSizeDecreased = currentCluster?.runtimeConfig?.persistentDiskId && this.getCurrentPersistentDisk().size > persistentDiskSize
+    const hasPersistentDiskSizeDecreased = currentCluster?.runtimeConfig?.persistentDiskId && this.getCurrentPersistentDisk().size >
+      persistentDiskSize
 
     const hasCloudServiceChanged = currentClusterConfig.cloudService !== userSelectedConfig.cloudService
 
@@ -426,14 +440,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const makeJSON = value => div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace' } }, [JSON.stringify(value, null, 2)])
     return h(Fragment, [
       showDebugger ?
-        showDebugger && div({ style: { position: 'fixed', top: 0, left: 0, bottom: 0, right: '50vw', backgroundColor: 'white', padding: '1rem', overflowY: 'auto' } }, [
-          h(Link, { onClick: () => this.setState({ showDebugger: false }), style: { position: 'absolute', top: 0, right: 0 } }, ['x']),
-          makeHeader('Current Runtime'),
-          makeJSON(currentCluster),
-          makeHeader('Current PD'),
-          makeJSON(this.getCurrentPersistentDisk())
-        ]) :
-        h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } }, ['D'])
+        showDebugger &&
+        div({ style: { position: 'fixed', top: 0, left: 0, bottom: 0, right: '50vw', backgroundColor: 'white', padding: '1rem', overflowY: 'auto' } },
+          [
+            h(Link, { onClick: () => this.setState({ showDebugger: false }), style: { position: 'absolute', top: 0, right: 0 } }, ['x']),
+            makeHeader('Current Runtime'),
+            makeJSON(currentCluster),
+            makeHeader('Current PD'),
+            makeJSON(this.getCurrentPersistentDisk())
+          ]) :
+        h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } },
+          ['D'])
     ])
   }
 
@@ -507,13 +524,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const bottomButtons = () => {
       const canUpdate = this.canUpdate()
-      const updateOrReplace = canUpdate ? 'update' : 'replace'
+      const buttonLabel = (!currentCluster && !this.shouldDeletePersistentDisk()) ? 'create' : (canUpdate ? 'update' : 'replace')
 
       return h(Fragment, [
         div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
-          !!currentCluster && !this.getCurrentPersistentDisk() && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteRuntime' }) }, ['Delete Runtime']),
-          !currentCluster && !!this.getCurrentPersistentDisk() && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deletePersistentDisk' }) }, ['Delete Persistent Disk']),
-          !!currentCluster && !!this.getCurrentPersistentDisk() && h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' }) }, ['Delete Environment Options']),
+          !!currentCluster && !this.getCurrentPersistentDisk() &&
+          h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteRuntime' }) }, ['Delete Runtime']),
+          !currentCluster && !!this.getCurrentPersistentDisk() &&
+          h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deletePersistentDisk' }) }, ['Delete Persistent Disk']),
+          !!currentCluster && !!this.getCurrentPersistentDisk() &&
+          h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' }) }, ['Delete Environment Options']),
           div({ style: { flex: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: onDismiss }, 'Cancel'),
           h(ButtonPrimary, {
@@ -529,7 +549,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 newViewMode ? this.setState({ viewMode: newViewMode }) : this.newCreateRuntime()
               }
             }
-          }, !!currentCluster ? _.startCase(updateOrReplace) : 'Create')
+          }, [_.startCase(buttonLabel)])
         ])
       ])
     }
@@ -746,15 +766,18 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])],
       ['replace', () => h(Fragment, [
-        p([
-          'Replacing your runtime will ', b(['delete any files on the associated hard disk ']),
-          '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
-          h(Link, {
-            href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-            ...Utils.newTabLinkProps
-          }, ['move them to the workspace bucket.'])
-        ]),
-        p(['You will be unable to work on the notebooks in this workspace while it updates, which can take a few minutes.']),
+        clusterReplaceWarningText,
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          h(ButtonSecondary, {
+            style: { marginRight: '2rem' },
+            onClick: () => this.setState({ viewMode: undefined })
+          }, ['BACK']),
+          h(ButtonPrimary, { onClick: () => this.newCreateRuntime() }, ['REPLACE'])
+        ])
+      ])],
+      ['replacePersistentDisk', () => h(Fragment, [
+        //TODO PD: add real warning text here!
+        p(['You are deleting your disk 🥺']),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, {
             style: { marginRight: '2rem' },
@@ -765,7 +788,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])],
       ['replacePersistentDiskAndCluster', () => h(Fragment, [
         //TODO PD: add real warning text here!
-        //TODO PD: actually show warning when disk and runtime will be deleted
         p(['You are deleting your runtime AND disk!!!']),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, {
@@ -887,10 +909,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   tbdFunction(currentCluster) {
-    console.log(this.shouldDeletePersistentDisk())
     if (this.shouldDeletePersistentDisk() && !currentCluster) {
       // go to warn about PD
-      return
+      return 'replacePersistentDisk'
     } else if (this.shouldDeletePersistentDisk() && !!currentCluster) {
       // go to warn about PD and cluster
       return 'replacePersistentDiskAndCluster'
