@@ -723,7 +723,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Back']),
           h(ButtonPrimary, {
             onClick: () => {
+              // TODO PD Is this where we meant to call tbdFunction from?
               const newViewMode = this.tbdFunction(currentCluster)
+              console.log(newViewMode)
               newViewMode ? this.setState({ viewMode: newViewMode }) : this.newCreateRuntime()
             }
           }, [!!currentCluster ? 'Next' : 'Create'])
@@ -767,6 +769,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ['replacePersistentDiskAndCluster', () => h(Fragment, [
         //TODO PD: add real warning text here!
         //TODO PD: actually show warning when disk and runtime will be deleted
+        p(['You are deleting your runtime AND disk!!!']),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, {
             style: { marginRight: '2rem' },
@@ -887,20 +890,18 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   tbdFunction(currentCluster) {
+    console.log(this.shouldDeletePersistentDisk())
     if (this.shouldDeletePersistentDisk() && !currentCluster) {
       // go to warn about PD
       return
     } else if (this.shouldDeletePersistentDisk() && !!currentCluster) {
       // go to warn about PD and cluster
-      return 'replace'
+      return 'replacePersistentDiskAndCluster'
     } else if (!this.shouldDeletePersistentDisk() && !!currentCluster) {
       // go to warn about cluster
       return 'replace'
     } else {
       return
-
     }
-
-    return !!currentCluster ? this.setState({ viewMode: 'replace' }) : this.newCreateRuntime()
   }
 })
