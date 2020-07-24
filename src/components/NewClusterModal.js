@@ -12,6 +12,7 @@ import { cloudServices, machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import { DEFAULT_DISK_SIZE, deleteText, findMachineType, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
+import { deletePDText } from 'src/libs/disk-utils'
 import { withErrorReporting } from 'src/libs/error'
 import { notify } from 'src/libs/notifications'
 import * as Style from 'src/libs/style'
@@ -251,14 +252,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const shouldDeletePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > persistentDiskSize
     const shouldUpdatePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size < persistentDiskSize
     const diskIsAttached = currentCluster?.runtimeConfig.persistentDiskId
-    //TODO PD: test me next!!
-    /*
-    //deprecated in favor of new approach, delete if testing succeeds
-    const shouldDeletePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > persistentDiskSize // true
-    const shouldOnlyDeletePersistentDisk = shouldDeletePersistentDisk && !currentCluster
-    const persistentDiskDeletedWithCluster = currentCluster && shouldDeletePersistentDisk // false
-    const persistentDiskSizeChanged = this.getCurrentPersistentDisk() && persistentDiskSize !== this.getCurrentPersistentDisk().size // true
-  */
 
     const runtimeConfig = {
       cloudService: cloudServices.GCE,
@@ -282,19 +275,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     if (shouldUpdatePersistentDisk) {
       await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).update(persistentDiskSize)
     }
-    /*
-     //deprecated in favor of new approach, delete if testing succeeds
-     if (currentCluster) {
-      await this.deleteCluster(currentCluster?.runtimeConfig.persistentDiskId && shouldDeletePersistentDisk)
-    } else if (shouldOnlyDeletePersistentDisk) {
-      await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).delete()
-    }
-    if (!persistentDiskDeletedWithCluster && persistentDiskSizeChanged) {
-      if (!shouldDeletePersistentDisk) {
-        await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).update(persistentDiskSize)
-      }
-    }
-     */
     return Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
       runtimeConfig,
       toolDockerImage: this.getCorrectImage(),
@@ -750,6 +730,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])],
       ['deletePersistentDisk', () => h(Fragment, [
+        h(deletePDText),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL'])
         ])
