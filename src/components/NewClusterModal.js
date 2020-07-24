@@ -244,19 +244,23 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     })
   }
 
+  shouldDeletePersistentDisk() {
+    const { persistentDiskSize } = this.state
+    return this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > persistentDiskSize
+  }
+
   // TODO PD: delete larger unattached PD when replacing a legacy GCE runtime
   async createGCE_() {
     const { namespace, currentCluster } = this.props
     const { jupyterUserScriptUri, masterMachineType, persistentDiskSize } = this.state
     const shouldDeleteCluster = currentCluster
-    const shouldDeletePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > persistentDiskSize
     const shouldUpdatePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size < persistentDiskSize
     const diskIsAttached = currentCluster?.runtimeConfig.persistentDiskId
 
     const runtimeConfig = {
       cloudService: cloudServices.GCE,
       machineType: masterMachineType,
-      persistentDisk: this.getCurrentPersistentDisk() && !shouldDeletePersistentDisk ? {
+      persistentDisk: this.getCurrentPersistentDisk() && !this.shouldDeletePersistentDisk() ? {
         name: this.getCurrentPersistentDisk().name
       } : {
         name: Utils.generatePersistentDiskName(),
@@ -266,9 +270,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
     if (shouldDeleteCluster) {
       //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
-      await this.deleteCluster(diskIsAttached && shouldDeletePersistentDisk)
+      await this.deleteCluster(diskIsAttached && this.shouldDeletePersistentDisk())
     }
-    if (shouldDeletePersistentDisk && !diskIsAttached) {
+    if (this.shouldDeletePersistentDisk() && !diskIsAttached) {
       //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
       await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).delete()
     }
@@ -718,7 +722,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Back']),
           h(ButtonPrimary, {
-            onClick: () => !!currentCluster ? this.setState({ viewMode: 'replace' }) : this.newCreateRuntime()
+            onClick: () => this.tbdFunction(currentCluster)
           }, [!!currentCluster ? 'Next' : 'Create'])
         ])
       ])],
@@ -877,5 +881,19 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       loading && spinnerOverlay,
       this.renderDebugger()
     ])
+  }
+
+  tbdFunction(currentCluster) {
+    if (this.shouldDeletePersistentDisk() && !currentCluster) {
+      // go to warn about PD
+    } else if (this.shouldDeletePersistentDisk() && !!currentCluster) {
+      // go to warn about PD and cluster
+    } else if (!this.shouldDeletePersistentDisk() && !!currentCluster) {
+      // go to warn about cluster
+    } else {
+      return
+    }
+
+    return !!currentCluster ? this.setState({ viewMode: 'replace' }) : this.newCreateRuntime()
   }
 })
