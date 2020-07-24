@@ -524,10 +524,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 this.setState({ viewMode: 'warning' })
               } else if (!!currentCluster?.runtimeConfig?.persistentDiskId && !!sparkMode) {
                 this.setState({ viewMode: 'switchFromGCEToDataproc' })
-              } else if (!!currentCluster) {
-                this.setState({ viewMode: updateOrReplace })
               } else {
-                this.newCreateRuntime()
+                const newViewMode = this.tbdFunction(currentCluster)
+                newViewMode ? this.setState({ viewMode: newViewMode }) : this.newCreateRuntime()
               }
             }
           }, !!currentCluster ? _.startCase(updateOrReplace) : 'Create')
@@ -723,9 +722,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Back']),
           h(ButtonPrimary, {
             onClick: () => {
-              // TODO PD Is this where we meant to call tbdFunction from?
               const newViewMode = this.tbdFunction(currentCluster)
-              console.log(newViewMode)
               newViewMode ? this.setState({ viewMode: newViewMode }) : this.newCreateRuntime()
             }
           }, [!!currentCluster ? 'Next' : 'Create'])
