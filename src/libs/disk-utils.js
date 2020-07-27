@@ -15,7 +15,7 @@ export const deletePDText = () => {
       ...Utils.newTabLinkProps
     }, ['move them to the workspace bucket.'])
   ]),
-    p({ style: { margin: '14px 0px 0px', lineHeight: '1.5rem' } },
-      ['Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, ' +
+  p({ style: { margin: '14px 0px 0px', lineHeight: '1.5rem' } },
+    ['Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, ' +
       'which will take several minutes.'])])
 }

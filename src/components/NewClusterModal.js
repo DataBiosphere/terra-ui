@@ -737,19 +737,21 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         p(['Learn more about about persistent disks in the Terra Support site'])
       ])],
       ['switchFromGCEToDataproc', () => h(Fragment, [
+        div(['You have requested to replace your existing application and cloud compute configurations to ones that support Hail.' +
+        ' Unfortunately, the type of cloud compute (spark) that is required for Hail does not support the persistent disk feature.']),
         h(RadioButton, {
           text: `Delete your disk`,
           name: 'delete-disk-selected-true',
           checked: deleteDiskSelected,
-          onChange: () => this.setState({deleteDiskSelected: true}),
-          labelStyle: { marginLeft: '0.75rem' }
+          onChange: () => this.setState({ deleteDiskSelected: true }),
+          labelStyle: { marginLeft: '1.25rem' }
         }),
         h(RadioButton, {
           text: `Don't delete your disk`,
           name: 'delete-disk-selected-false',
           checked: !deleteDiskSelected,
-          onChange: () => this.setState({deleteDiskSelected: false}),
-          labelStyle: { marginLeft: '0.75rem' }
+          onChange: () => this.setState({ deleteDiskSelected: false }),
+          labelStyle: { marginLeft: '1.25rem' }
         }),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
