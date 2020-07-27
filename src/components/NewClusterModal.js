@@ -300,6 +300,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     })
   }
 
+  getEnvironmentConfig() {
+    const { sparkMode, persistentDiskSize } = this.state
+    return {
+      runtime: '' ? {} : undefined,
+      persistentDisk: '' ? {
+        size: persistentDiskSize
+      } : undefined
+    }
+  }
+
   updateCluster(isStopRequired = false) {
     const { currentCluster, onSuccess } = this.props
     const { googleProject, runtimeName } = currentCluster
@@ -468,7 +478,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     } = this.state
     const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
-    const isPersistentDisk = !sparkMode && !currentCluster?.runtimeConfig.diskSize
+    const isPersistentDisk = this.getIsPersistentDisk()
 
     const onEnvChange = ({ value }) => {
       const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
@@ -939,6 +949,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       loading && spinnerOverlay,
       this.renderDebugger()
     ])
+  }
+
+  getIsPersistentDisk() {
+    const { sparkMode } = this.state
+    const { currentCluster } = this.props
+
+    return !sparkMode && !currentCluster?.runtimeConfig.diskSize
   }
 
   // TODO (PD): Give it a better name
