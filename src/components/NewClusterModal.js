@@ -138,7 +138,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   getCurrentPersistentDisk() {
     const { currentCluster, persistentDisks } = this.props
-    const id = currentCluster?.runtimeConfig?.persistentDiskId
+    const id = currentCluster?.runtimeConfig.persistentDiskId
     return id ?
       _.find({ id }, persistentDisks) :
       _.last(_.sortBy('auditInfo.createdDate', persistentDisks))
@@ -266,7 +266,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { jupyterUserScriptUri, masterMachineType, persistentDiskSize } = this.state
     const shouldDeleteCluster = currentCluster
     const shouldUpdatePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size < persistentDiskSize
-    const diskIsAttached = currentCluster?.runtimeConfig.persistentDiskId
 
     const runtimeConfig = {
       cloudService: cloudServices.GCE,
@@ -281,9 +280,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
     if (shouldDeleteCluster) {
       //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
-      await this.deleteCluster(diskIsAttached && this.shouldDeletePersistentDisk())
+      await this.deleteCluster(this.hasAttachedDisk() && this.shouldDeletePersistentDisk())
     }
-    if (this.shouldDeletePersistentDisk() && !diskIsAttached) {
+    if (this.shouldDeletePersistentDisk() && !this.hasAttachedDisk()) {
       //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
       await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).delete()
     }
@@ -325,6 +324,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return !_.includes(imageUrl, [selectedLeoImage, customEnvImage])
   }
 
+  // TODO PD: test this refactor
+  hasAttachedDisk() {
+    const { currentCluster } = this.props
+    return currentCluster?.runtimeConfig.persistentDiskId
+  }
+
   //determines whether the changes are applicable for a call to the leo patch endpoint
   //see this for a diagram of the conditional this implements https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
   //this function returns true for cases 2 & 3 in this diagram
@@ -350,7 +355,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
     //TODO PD: should we also look at current persistent disk?
-    const hasPersistentDiskSizeDecreased = currentCluster?.runtimeConfig?.persistentDiskId && this.getCurrentPersistentDisk().size >
+    const hasPersistentDiskSizeDecreased = this.hasAttachedDisk() && this.getCurrentPersistentDisk().size >
       persistentDiskSize
 
     const hasCloudServiceChanged = currentClusterConfig.cloudService !== userSelectedConfig.cloudService
@@ -540,7 +545,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             onClick: () => {
               if (isSelectedImageInputted && !canUpdate) {
                 this.setState({ viewMode: 'warning' })
-              } else if (!!currentCluster?.runtimeConfig?.persistentDiskId && !!sparkMode) {
+              } else if (this.hasAttachedDisk() && !!sparkMode) {
                 this.setState({ viewMode: 'switchFromGCEToDataproc' })
               } else {
                 const newViewMode = this.tbdFunction(currentCluster)
@@ -708,10 +713,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             })
           ])
         ]),
-        //TODO PD: add aboutPersistentDisk viewMode
         !sparkMode && !isPersistentDisk && div([
-          'Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.',
-          h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['learn more'])
+          p(['Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.']),
+          p([
+            h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
+          ])
         ])
       ])
     ])
@@ -723,10 +729,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         packages && h(ImageDepViewer, { packageLink: packages })
       ])],
       ['aboutPersistentDisk', () => h(Fragment, [
-        p('Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you deleting compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.'),
-        p('A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.'),
-        p('If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.'),
-        p('Learn more about about persistent disks in the Terra Support site')
+        p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you deleting compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
+        p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
+        p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
+        p(['Learn more about about persistent disks in the Terra Support site'])
       ])],
       ['switchFromGCEToDataproc', () => h(Fragment, [
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
