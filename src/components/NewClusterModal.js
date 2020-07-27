@@ -461,7 +461,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     } = this.state
     const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
-    const isPersistentDisk = !sparkMode
+    const isPersistentDisk = !sparkMode && !currentCluster?.runtimeConfig.diskSize
 
     const onEnvChange = ({ value }) => {
       const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
