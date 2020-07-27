@@ -127,7 +127,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     this.state = {
       loading: false,
-      persistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : DEFAULT_DISK_SIZE,
+      selectedPersistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : DEFAULT_DISK_SIZE,
       profile: matchingProfile?.name || 'custom',
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
       sparkMode: cloudService === cloudServices.GCE ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
@@ -155,7 +155,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         //TODO(PD): work in progress
         /*persistentDisk: {
          name: Utils.generatePersistentDiskName(),
-         diskSize: persistentDiskSize
+         diskSize: selectedPersistentDiskSize
          }*/
       } : {
         cloudService,
@@ -174,7 +174,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       isNew,
       ..._.pick(
         ['numberOfWorkers', 'masterMachineType', 'masterDiskSize', 'workerMachineType', 'workerDiskSize', 'numberOfPreemptibleWorkers',
-          'persistentDiskSize'],
+          'selectedPersistentDiskSize'],
         this.state)
     })
   }
@@ -256,8 +256,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   shouldDeletePersistentDisk() {
-    const { persistentDiskSize, deleteDiskSelected } = this.state
-    return (this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > persistentDiskSize) || deleteDiskSelected
+    const { selectedPersistentDiskSize, deleteDiskSelected } = this.state
+    return (this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > selectedPersistentDiskSize) || deleteDiskSelected
     // TODO PD: make sure to ignore pd size if not in pd mode
     // TODO PD: add 'deleteDiskSelected' state to logic in code and test
   }
@@ -265,9 +265,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   // TODO PD: delete larger unattached PD when replacing a legacy GCE runtime
   async createGCE_() {
     const { namespace, currentCluster } = this.props
-    const { jupyterUserScriptUri, masterMachineType, persistentDiskSize } = this.state
+    const { jupyterUserScriptUri, masterMachineType, selectedPersistentDiskSize } = this.state
     const shouldDeleteCluster = currentCluster
-    const shouldUpdatePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size < persistentDiskSize
+    const shouldUpdatePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size < selectedPersistentDiskSize
 
     const runtimeConfig = {
       cloudService: cloudServices.GCE,
@@ -277,7 +277,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         name: this.getCurrentPersistentDisk().name
       } : {
         name: Utils.generatePersistentDiskName(),
-        size: persistentDiskSize // in GB
+        size: selectedPersistentDiskSize // in GB
         // diskType and blockSize are not required per leo team
       }
     }
@@ -290,7 +290,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).delete()
     }
     if (shouldUpdatePersistentDisk) {
-      await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).update(persistentDiskSize)
+      await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).update(selectedPersistentDiskSize)
     }
     return Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
       runtimeConfig,
@@ -301,11 +301,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   getEnvironmentConfig() {
-    const { sparkMode, persistentDiskSize } = this.state
+    const { sparkMode, selectedPersistentDiskSize } = this.state
+    // TODO PD: conditionals for runtime and persistent disk -- this.shouldUsePersistentDisk()
     return {
       runtime: '' ? {} : undefined,
       persistentDisk: '' ? {
-        size: persistentDiskSize
+        size: selectedPersistentDiskSize
       } : undefined
     }
   }
@@ -347,7 +348,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   //this function returns true for cases 2 & 3 in this diagram
   canUpdate() {
     const { currentCluster } = this.props
-    const { persistentDiskSize } = this.state
+    const { selectedPersistentDiskSize } = this.state
 
     if (!currentCluster) return false
 
@@ -368,7 +369,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
     //TODO PD: should we also look at current persistent disk?
     const hasPersistentDiskSizeDecreased = this.hasAttachedDisk() && this.getCurrentPersistentDisk().size >
-      persistentDiskSize
+      selectedPersistentDiskSize
 
     const hasCloudServiceChanged = currentClusterConfig.cloudService !== userSelectedConfig.cloudService
 
@@ -472,13 +473,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   render() {
     const { currentCluster, onDismiss, onSuccess } = this.props
     const {
-      profile, masterMachineType, masterDiskSize, persistentDiskSize, sparkMode, workerMachineType,
+      profile, masterMachineType, masterDiskSize, selectedPersistentDiskSize, sparkMode, workerMachineType,
       numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
       jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, loading, deleteDiskSelected
     } = this.state
     const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
-    const isPersistentDisk = this.getIsPersistentDisk()
+    const isPersistentDisk = this.shouldUsePersistentDisk()
 
     const onEnvChange = ({ value }) => {
       const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
@@ -609,8 +610,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             machineType: masterMachineType,
             onChangeMachineType: v => this.setState({ masterMachineType: v }),
             isPersistentDisk,
-            diskSize: isPersistentDisk ? persistentDiskSize : masterDiskSize,
-            onChangeDiskSize: v => this.setState(isPersistentDisk ? { persistentDiskSize: v } : { masterDiskSize: v }),
+            diskSize: isPersistentDisk ? selectedPersistentDiskSize : masterDiskSize,
+            onChangeDiskSize: v => this.setState(isPersistentDisk ? { selectedPersistentDiskSize: v } : { masterDiskSize: v }),
             readOnly: profile !== 'custom'
           }),
           profile === 'custom' && h(IdContainer, [
@@ -720,9 +721,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               max: 64000,
               isClearable: false,
               onlyInteger: true,
-              value: persistentDiskSize,
+              value: selectedPersistentDiskSize,
               style: { marginTop: '0.5rem', width: '5rem' },
-              onChange: value => this.setState({ persistentDiskSize: value })
+              onChange: value => this.setState({ selectedPersistentDiskSize: value })
             })
           ])
         ]),
@@ -951,7 +952,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ])
   }
 
-  getIsPersistentDisk() {
+  shouldUsePersistentDisk() {
     const { sparkMode } = this.state
     const { currentCluster } = this.props
 
