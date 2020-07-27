@@ -592,7 +592,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             onChangeMachineType: v => this.setState({ masterMachineType: v }),
             isPersistentDisk,
             diskSize: isPersistentDisk ? persistentDiskSize : masterDiskSize,
-            //TODO(PD): change this function to work with persistent disks
             onChangeDiskSize: v => this.setState(isPersistentDisk ? { persistentDiskSize: v } : { masterDiskSize: v }),
             readOnly: profile !== 'custom'
           }),
@@ -905,6 +904,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ])
   }
 
+  // TODO (PD): Give it a better name
   tbdFunction(currentCluster) {
     if (this.shouldDeletePersistentDisk() && !currentCluster) {
       // go to warn about PD
