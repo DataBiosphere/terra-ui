@@ -707,7 +707,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               onChange: value => this.setState({ persistentDiskSize: value })
             })
           ])
-        ])
+        ]),
+        //TODO PD: add aboutPersistentDisk viewMode
+        !sparkMode && !isPersistentDisk && div(['hello world', h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['learn more'])])
       ])
     ])
 
