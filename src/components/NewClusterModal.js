@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { b, div, fieldset, h, label, legend, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, RadioButton, Select, spinnerOverlay } from 'src/components/common'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -132,7 +132,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
       sparkMode: cloudService === cloudServices.GCE ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
       ...currentConfig,
-      masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize || DEFAULT_DISK_SIZE
+      masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize || DEFAULT_DISK_SIZE,
+      deleteDiskSelected: false
     }
   }
 
@@ -462,7 +463,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const {
       profile, masterMachineType, masterDiskSize, persistentDiskSize, sparkMode, workerMachineType,
       numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, loading
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, loading, deleteDiskSelected
     } = this.state
     const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
@@ -736,6 +737,20 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         p(['Learn more about about persistent disks in the Terra Support site'])
       ])],
       ['switchFromGCEToDataproc', () => h(Fragment, [
+        h(RadioButton, {
+          text: `Delete your disk`,
+          name: 'delete-disk-selected-true',
+          checked: deleteDiskSelected,
+          onChange: () => this.setState({deleteDiskSelected: true}),
+          labelStyle: { marginLeft: '0.75rem' }
+        }),
+        h(RadioButton, {
+          text: `Don't delete your disk`,
+          name: 'delete-disk-selected-false',
+          checked: !deleteDiskSelected,
+          onChange: () => this.setState({deleteDiskSelected: false}),
+          labelStyle: { marginLeft: '0.75rem' }
+        }),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
           h(ButtonPrimary, { onClick: () => this.newCreateRuntime() }, ['REPLACE'])
