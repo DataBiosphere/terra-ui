@@ -244,8 +244,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       })
     }
     if (currentCluster) {
-      //TODO PD: this needs to conditionally delete PD based on state from a user selection
-      await this.deleteCluster()
+      await this.deleteCluster(this.hasAttachedDisk() && this.shouldDeletePersistentDisk())
     }
     return Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
       runtimeConfig,
@@ -256,8 +255,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   shouldDeletePersistentDisk() {
-    const { persistentDiskSize } = this.state
-    return this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > persistentDiskSize
+    const { persistentDiskSize, deleteDiskSelected } = this.state
+    return (this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > persistentDiskSize) || deleteDiskSelected
+    // TODO PD: make sure to ignore pd size if not in pd mode
+    // TODO PD: add 'deleteDiskSelected' state to logic in code and test
   }
 
   // TODO PD: delete larger unattached PD when replacing a legacy GCE runtime
@@ -324,7 +325,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return !_.includes(imageUrl, [selectedLeoImage, customEnvImage])
   }
 
-  // TODO PD: test this refactor
   hasAttachedDisk() {
     const { currentCluster } = this.props
     return currentCluster?.runtimeConfig.persistentDiskId
@@ -528,6 +528,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const bottomButtons = () => {
       const canUpdate = this.canUpdate()
       const buttonLabel = (!currentCluster && !this.shouldDeletePersistentDisk()) ? 'create' : (canUpdate ? 'update' : 'replace')
+      // TODO (PD) replace is not appropriate verbiage when decreasing just disk size
 
       return h(Fragment, [
         div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
