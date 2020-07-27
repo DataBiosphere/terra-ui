@@ -709,7 +709,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ])
         ]),
         //TODO PD: add aboutPersistentDisk viewMode
-        !sparkMode && !isPersistentDisk && div(['hello world', h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['learn more'])])
+        !sparkMode && !isPersistentDisk && div([
+          'Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.',
+          h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['learn more'])
+        ])
       ])
     ])
 
@@ -718,6 +721,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         makeEnvSelect(),
         makeImageInfo({ margin: '1rem 0 0.5rem' }),
         packages && h(ImageDepViewer, { packageLink: packages })
+      ])],
+      ['aboutPersistentDisk', () => h(Fragment, [
+        p('Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you deleting compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.'),
+        p('A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.'),
+        p('If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.'),
+        p('Learn more about about persistent disks in the Terra Support site')
       ])],
       ['switchFromGCEToDataproc', () => h(Fragment, [
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
