@@ -272,6 +272,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const runtimeConfig = {
       cloudService: cloudServices.GCE,
       machineType: masterMachineType,
+      // TODO PD: Should this be able to create old-style GCE machines (e.g. with diskSize) if the user doesn't opt into an upgrade?
       persistentDisk: this.getCurrentPersistentDisk() && !this.shouldDeletePersistentDisk() ? {
         name: this.getCurrentPersistentDisk().name
       } : {
