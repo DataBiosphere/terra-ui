@@ -301,12 +301,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   getEnvironmentConfig() {
-    const { sparkMode, selectedPersistentDiskSize } = this.state
-    // TODO PD: conditionals for runtime and persistent disk -- this.shouldUsePersistentDisk()
+    const { deleteDiskSelected, selectedPersistentDiskSize } = this.state
     return {
       runtime: '' ? {} : undefined,
-      persistentDisk: '' ? {
-        size: selectedPersistentDiskSize
+      persistentDisk: this.shouldUsePersistentDisk() || (this.getCurrentPersistentDisk() && !deleteDiskSelected) ? {
+        size: this.shouldUsePersistentDisk() ? selectedPersistentDiskSize : this.getCurrentPersistentDisk().size
       } : undefined
     }
   }
@@ -463,7 +462,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             makeHeader('Current Runtime'),
             makeJSON(currentCluster),
             makeHeader('Current PD'),
-            makeJSON(this.getCurrentPersistentDisk())
+            makeJSON(this.getCurrentPersistentDisk()),
+            makeHeader('Environment Config'),
+            makeJSON(this.getEnvironmentConfig())
           ]) :
         h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } },
           ['D'])
