@@ -41,16 +41,14 @@ const zendeskImagePage = 'https://support.terra.bio/hc/en-us/articles/3600372694
 // distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
 
-const clusterReplaceWarningText = h(Fragment, [p([
-  'Replacing your runtime will ', b(['delete any files on the associated hard disk ']),
-  '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
-  h(Link, {
-    href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-    ...Utils.newTabLinkProps
-  }, ['move them to the workspace bucket.'])
-]),
-p(['You will be unable to work on the notebooks in this workspace while it updates, which can take a few minutes.'])])
+const clusterReplaceWarningText = h(Fragment, [
+  //TODO PD: add real warning text here!
+  p(['Replacing runtime TODO']),
+  p(['You will be unable to work on the notebooks in this workspace while it updates, which can take a few minutes.'])
+])
 
+//TODO PD: add real warning text here!
+const diskReplaceWarningText = p(['Replacing disk TODO'])
 
 const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
 
@@ -776,8 +774,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])],
       ['replacePersistentDisk', () => h(Fragment, [
-        //TODO PD: add real warning text here!
-        p(['You are deleting your disk 🥺']),
+        diskReplaceWarningText,
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, {
             style: { marginRight: '2rem' },
@@ -787,8 +784,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])],
       ['replacePersistentDiskAndCluster', () => h(Fragment, [
-        //TODO PD: add real warning text here!
-        p(['You are deleting your runtime AND disk!!!']),
+        clusterReplaceWarningText,
+        diskReplaceWarningText,
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, {
             style: { marginRight: '2rem' },
