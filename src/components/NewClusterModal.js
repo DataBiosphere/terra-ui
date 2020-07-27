@@ -301,9 +301,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   getEnvironmentConfig() {
-    const { deleteDiskSelected, selectedPersistentDiskSize } = this.state
+    const { deleteDiskSelected, selectedPersistentDiskSize, viewMode } = this.state
     return {
-      runtime: '' ? {} : undefined,
+      runtime: !_.includes(viewMode, ['deleteRuntime', 'deletePersistentDisk', 'deleteEnvironmentOptions']) ? {
+        // TODO PD: fill this out with details of the intended runtime
+      } : undefined,
       persistentDisk: this.shouldUsePersistentDisk() || (this.getCurrentPersistentDisk() && !deleteDiskSelected) ? {
         size: this.shouldUsePersistentDisk() ? selectedPersistentDiskSize : this.getCurrentPersistentDisk().size
       } : undefined
