@@ -740,17 +740,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div(['You have requested to replace your existing application and cloud compute configurations to ones that support Hail.' +
         ' Unfortunately, the type of cloud compute (spark) that is required for Hail does not support the persistent disk feature.']),
         h(RadioButton, {
-          text: `Delete your disk`,
-          name: 'delete-disk-selected-true',
-          checked: deleteDiskSelected,
-          onChange: () => this.setState({ deleteDiskSelected: true }),
-          labelStyle: { marginLeft: '1.25rem' }
-        }),
-        h(RadioButton, {
-          text: `Don't delete your disk`,
+          text: 'Keep persistent disk, delete application configuration and cloud compute',
           name: 'delete-disk-selected-false',
           checked: !deleteDiskSelected,
           onChange: () => this.setState({ deleteDiskSelected: false }),
+          labelStyle: { marginLeft: '1.25rem' }
+        }),
+        h(RadioButton, {
+          text: `Delete cloud environment including persistent disk`,
+          name: 'delete-disk-selected-true',
+          checked: deleteDiskSelected,
+          onChange: () => this.setState({ deleteDiskSelected: true }),
           labelStyle: { marginLeft: '1.25rem' }
         }),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
@@ -928,6 +928,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ['warning', () => 'WARNING!'],
           ['delete', () => 'DELETE RUNTIME?'],
           ['update', () => 'UPDATE RUNTIME?'],
+          ['switchFromGCEToDataproc', () => 'Replace application configuration and cloud compute for Hail'],
           [Utils.DEFAULT, () => 'RUNTIME CONFIGURATION']
         ),
         onDismiss,
