@@ -752,20 +752,20 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ['switchFromGCEToDataproc', () => h(Fragment, [
         div(['You have requested to replace your existing application and cloud compute configurations to ones that support Hail.' +
         ' Unfortunately, the type of cloud compute (spark) that is required for Hail does not support the persistent disk feature.']),
-        h(RadioButton, {
+        div({ style: { marginTop: '.5rem' } }, [h(RadioButton, {
           text: 'Keep persistent disk, delete application configuration and cloud compute',
           name: 'delete-disk-selected-false',
           checked: !deleteDiskSelected,
           onChange: () => this.setState({ deleteDiskSelected: false }),
-          labelStyle: { marginLeft: '1.25rem' }
-        }),
-        h(RadioButton, {
+          labelStyle: { marginLeft: '.75rem' }
+        })]),
+        div({ style: { marginTop: '.5rem' } }, [h(RadioButton, {
           text: `Delete cloud environment including persistent disk`,
           name: 'delete-disk-selected-true',
           checked: deleteDiskSelected,
           onChange: () => this.setState({ deleteDiskSelected: true }),
-          labelStyle: { marginLeft: '1.25rem' }
-        }),
+          labelStyle: { marginLeft: '.75rem' }
+        })]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
           h(ButtonPrimary, { onClick: () => this.newCreateRuntime() }, ['REPLACE'])
