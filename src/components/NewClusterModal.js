@@ -274,6 +274,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       cloudService: environmentConfig.runtime.cloudService,
       machineType: environmentConfig.runtime.machineType,
       // TODO PD: Should this be able to create old-style GCE machines (e.g. with diskSize) if the user doesn't opt into an upgrade?
+      // TODO PD: current experience is on replace/upgrade delete old and build new runtime and PD
       persistentDisk: currentPersistentDisk && !this.shouldDeletePersistentDisk() ? {
         name: currentPersistentDisk.name
       } : {
@@ -297,15 +298,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       runtimeConfig,
       toolDockerImage: this.getCorrectImage(),
       labels: this.generateClusterLabels(),
-      // TODO: add this to environmentConfig
-      ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
+      ...(environmentConfig.runtime.jupyterUserScriptUri ? { jupyterUserScriptUri: environmentConfig.runtime.jupyterUserScriptUri } : {})
     })
   }
 
   getEnvironmentConfig() {
     const { deleteDiskSelected, selectedPersistentDiskSize, viewMode, masterMachineType,
       masterDiskSize, sparkMode, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType,
-      workerDiskSize } = this.state
+      workerDiskSize, jupyterUserScriptUri } = this.state
 
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
     return {
@@ -324,7 +324,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             workerMachineType,
             workerDiskSize
           })
-        })
+        }),
+        jupyterUserScriptUri
       } : undefined,
       persistentDisk: this.shouldUsePersistentDisk() || (this.getCurrentPersistentDisk() && !deleteDiskSelected) ? {
         size: this.shouldUsePersistentDisk() ? selectedPersistentDiskSize : this.getCurrentPersistentDisk().size
