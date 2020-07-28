@@ -242,6 +242,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   shouldDeletePersistentDisk() {
     const { selectedPersistentDiskSize, deleteDiskSelected } = this.state
+    // TODO PD: Maybe we should use 'shouldDeletePersistentDiskLocal' logic here instead (from createGCE_ method)
     return (this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > selectedPersistentDiskSize) || deleteDiskSelected
     // TODO PD: make sure to ignore pd size if not in pd mode
   }
@@ -252,8 +253,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const currentPersistentDisk = this.getCurrentPersistentDisk()
     const environmentConfig = this.getEnvironmentConfig()
     const shouldUpdatePersistentDisk = currentPersistentDisk && currentPersistentDisk.size < environmentConfig.persistentDisk.size
-    // TODO PD: test this logic, then use it below instead of this.shouldDeletePersistentDisk()
-    const shouldDeletePersistentDiskLocal = !environmentConfig.persistentDisk || (currentPersistentDisk && currentPersistentDisk.size > environmentConfig.persistentDisk.size)
+    const shouldDeletePersistentDiskLocal = currentPersistentDisk && (!environmentConfig.persistentDisk || currentPersistentDisk.size > environmentConfig.persistentDisk.size)
 
     const runtimeConfig = {
       cloudService: environmentConfig.runtime.cloudService,
@@ -261,7 +261,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ...(environmentConfig.runtime.diskSize ? {
         diskSize: environmentConfig.runtime.diskSize
       } : {
-        persistentDisk: currentPersistentDisk && !this.shouldDeletePersistentDisk() ? {
+        persistentDisk: currentPersistentDisk && !shouldDeletePersistentDiskLocal ? {
           name: currentPersistentDisk.name
         } : {
           name: Utils.generatePersistentDiskName(),
@@ -272,9 +272,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
     if (shouldDeleteCluster) {
       //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
-      await this.deleteCluster(this.hasAttachedDisk() && this.shouldDeletePersistentDisk())
+      await this.deleteCluster(this.hasAttachedDisk() && shouldDeletePersistentDiskLocal)
     }
-    if (this.shouldDeletePersistentDisk() && !this.hasAttachedDisk()) {
+    if (shouldDeletePersistentDiskLocal && !this.hasAttachedDisk()) {
       //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
     }
@@ -323,6 +323,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       persistentDisk: this.shouldUsePersistentDisk() || (this.getCurrentPersistentDisk() && !deleteDiskSelected) ? {
         size: this.shouldUsePersistentDisk() ? selectedPersistentDiskSize : this.getCurrentPersistentDisk().size
       } : undefined
+    }
+  }
+
+  getServerEnvironmentConfig() {
+    // TODO PD: Have this return a similar structure to `getEnvironmentConfig`
+    return {
+      runtime: undefined,
+      persistentDisk: undefined
     }
   }
 
