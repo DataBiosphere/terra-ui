@@ -301,26 +301,28 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   getEnvironmentConfig() {
-    const { deleteDiskSelected, selectedPersistentDiskSize, viewMode, masterMachineType: masterMachineTypeOrMachineTypeFromState, masterDiskSize: masterDiskSizeOrDiskSizeFromState, sparkMode } = this.state
+    const { deleteDiskSelected, selectedPersistentDiskSize, viewMode, masterMachineType,
+      masterDiskSize, sparkMode, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType,
+      workerDiskSize } = this.state
 
-    //TODO PD think on this machineType and masterMachineType logic - consider using spread instead
-    const machineType = !sparkMode ? masterMachineTypeOrMachineTypeFromState : undefined
-    const masterMachineType = sparkMode ? masterMachineTypeOrMachineTypeFromState : undefined
-    const diskSize = !sparkMode ? masterDiskSizeOrDiskSizeFromState : undefined
-    const masterDiskSize = sparkMode ? masterDiskSizeOrDiskSizeFromState : undefined
-    // TODO PD: finish this thought:
-    // const cloudService =
-
+    const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
     return {
       runtime: !_.includes(viewMode, ['deleteRuntime', 'deletePersistentDisk', 'deleteEnvironmentOptions']) ? {
         // TODO PD: fill this out with details of the intended runtime
-        runtimeConfig: {
-          sparkMode,
-          machineType,
+        cloudService,
+        ...(cloudService === cloudServices.GCE ? {
+          machineType: masterMachineType,
+          diskSize: masterDiskSize
+        } : {
           masterMachineType,
-          diskSize,
-          masterDiskSize
-        }
+          masterDiskSize,
+          numberOfWorkers,
+          ...(numberOfWorkers && {
+            numberOfPreemptibleWorkers,
+            workerMachineType,
+            workerDiskSize
+          })
+        })
       } : undefined,
       persistentDisk: this.shouldUsePersistentDisk() || (this.getCurrentPersistentDisk() && !deleteDiskSelected) ? {
         size: this.shouldUsePersistentDisk() ? selectedPersistentDiskSize : this.getCurrentPersistentDisk().size
