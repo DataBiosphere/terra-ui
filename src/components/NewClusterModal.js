@@ -265,19 +265,20 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   // TODO PD: delete larger unattached PD when replacing a legacy GCE runtime
   async createGCE_() {
     const { namespace, currentCluster } = this.props
-    const { jupyterUserScriptUri, masterMachineType, selectedPersistentDiskSize } = this.state
     const shouldDeleteCluster = currentCluster
-    const shouldUpdatePersistentDisk = this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size < selectedPersistentDiskSize
+    const currentPersistentDisk = this.getCurrentPersistentDisk()
+    const environmentConfig = this.getEnvironmentConfig()
+    const shouldUpdatePersistentDisk = currentPersistentDisk && currentPersistentDisk.size < environmentConfig.persistentDisk.size
 
     const runtimeConfig = {
-      cloudService: cloudServices.GCE,
-      machineType: masterMachineType,
+      cloudService: environmentConfig.runtime.cloudService,
+      machineType: environmentConfig.runtime.machineType,
       // TODO PD: Should this be able to create old-style GCE machines (e.g. with diskSize) if the user doesn't opt into an upgrade?
-      persistentDisk: this.getCurrentPersistentDisk() && !this.shouldDeletePersistentDisk() ? {
-        name: this.getCurrentPersistentDisk().name
+      persistentDisk: currentPersistentDisk && !this.shouldDeletePersistentDisk() ? {
+        name: currentPersistentDisk.name
       } : {
         name: Utils.generatePersistentDiskName(),
-        size: selectedPersistentDiskSize // in GB
+        size: environmentConfig.persistentDisk.size // in GB
         // diskType and blockSize are not required per leo team
       }
     }
@@ -287,15 +288,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
     if (this.shouldDeletePersistentDisk() && !this.hasAttachedDisk()) {
       //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
-      await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).delete()
+      await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
     }
     if (shouldUpdatePersistentDisk) {
-      await Ajax().Disks.disk(namespace, this.getCurrentPersistentDisk().name).update(selectedPersistentDiskSize)
+      await Ajax().Disks.disk(namespace, currentPersistentDisk.name).update(environmentConfig.persistentDisk.size)
     }
     return Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
       runtimeConfig,
       toolDockerImage: this.getCorrectImage(),
       labels: this.generateClusterLabels(),
+      // TODO: add this to environmentConfig
       ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
     })
   }
