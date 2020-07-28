@@ -302,6 +302,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     })
   }
 
+  // TODO PD: test that persistentDiskAttached logic works correctly
   getEnvironmentConfig() {
     const { deleteDiskSelected, selectedPersistentDiskSize, viewMode, masterMachineType,
       masterDiskSize, sparkMode, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType,
@@ -313,7 +314,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         cloudService,
         ...(cloudService === cloudServices.GCE ? {
           machineType: masterMachineType,
-          diskSize: masterDiskSize
+          ...(this.shouldUsePersistentDisk() ? {
+            persistentDiskAttached: true
+          } : {
+            diskSize: masterDiskSize
+          })
         } : {
           masterMachineType,
           masterDiskSize,
