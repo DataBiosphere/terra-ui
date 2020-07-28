@@ -16,6 +16,7 @@ export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, ma
 
   return {
     cloudService: cloudService || cloudServices.GCE,
+    // TODO PD: consider renaming masterMachineType to better represent its value
     masterMachineType: masterMachineType || machineType || 'n1-standard-4',
     masterDiskSize: masterDiskSize || diskSize || 50,
     numberOfWorkers: (isDataproc && numberOfWorkers) || 0,

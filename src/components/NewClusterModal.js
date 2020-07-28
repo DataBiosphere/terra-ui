@@ -310,7 +310,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
     return {
       runtime: !_.includes(viewMode, ['deleteRuntime', 'deletePersistentDisk', 'deleteEnvironmentOptions']) ? {
-        // TODO PD: fill this out with details of the intended runtime
         cloudService,
         ...(cloudService === cloudServices.GCE ? {
           machineType: masterMachineType,
@@ -564,8 +563,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const bottomButtons = () => {
       const canUpdate = this.canUpdate()
-      const buttonLabel = (!currentCluster && !this.shouldDeletePersistentDisk()) ? 'create' : (canUpdate ? 'update' : 'replace')
-      // TODO (PD) replace is not appropriate verbiage when decreasing just disk size
+      const buttonLabel = Utils.cond(
+        [!currentCluster && !this.shouldDeletePersistentDisk(), () => { return 'create' }],
+        [canUpdate, () => { return 'update' }],
+        [!canUpdate, () => { return 'replace' }],
+        () => {}
+      )
+      // TODO (PD) test the above cond, and add logic for decreasing only disk size, with appropriate text (e.g. it shouldn't say 'replace')
 
       return h(Fragment, [
         div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
