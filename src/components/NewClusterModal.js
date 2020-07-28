@@ -258,13 +258,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       machineType: environmentConfig.runtime.machineType,
       // TODO PD: Should this be able to create old-style GCE machines (e.g. with diskSize) if the user doesn't opt into an upgrade?
       // TODO PD: current experience is on replace/upgrade delete old and build new runtime and PD
-      persistentDisk: currentPersistentDisk && !this.shouldDeletePersistentDisk() ? {
-        name: currentPersistentDisk.name
+      ...(environmentConfig.runtime.diskSize ? {
+        diskSize: environmentConfig.runtime.diskSize
       } : {
-        name: Utils.generatePersistentDiskName(),
-        size: environmentConfig.persistentDisk.size // in GB
-        // diskType and blockSize are not required per leo team
-      }
+        persistentDisk: currentPersistentDisk && !this.shouldDeletePersistentDisk() ? {
+          name: currentPersistentDisk.name
+        } : {
+          name: Utils.generatePersistentDiskName(),
+          size: environmentConfig.persistentDisk.size // in GB
+          // diskType and blockSize are not required per leo team
+        }
+      })
     }
     if (shouldDeleteCluster) {
       //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
