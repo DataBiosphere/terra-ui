@@ -145,6 +145,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       _.last(_.sortBy('auditInfo.createdDate', persistentDisks))
   }
 
+  // TODO PD: replace with getEnvironmentConfig
   getRuntimeConfig(isNew = false) {
     const formatRuntimeConfig = config => {
       const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = config
@@ -196,22 +197,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` }
   }
 
-  // TODO PD delete these comments and de-dup code
-  // existing (no PD)
-  createCluster() {
-    const { namespace, onSuccess, currentCluster } = this.props
-    const { jupyterUserScriptUri } = this.state
-    onSuccess(Promise.all([
-      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
-        runtimeConfig: this.getRuntimeConfig(true),
-        toolDockerImage: this.getCorrectImage(),
-        labels: this.generateClusterLabels(),
-        ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
-      }),
-      !!currentCluster && this.deleteCluster()
-    ]))
-  }
-
   newCreateRuntime = _.flow(
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating runtime')
@@ -259,10 +244,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { selectedPersistentDiskSize, deleteDiskSelected } = this.state
     return (this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > selectedPersistentDiskSize) || deleteDiskSelected
     // TODO PD: make sure to ignore pd size if not in pd mode
-    // TODO PD: add 'deleteDiskSelected' state to logic in code and test
   }
 
-  // TODO PD: delete larger unattached PD when replacing a legacy GCE runtime
   async createGCE_() {
     const { namespace, currentCluster } = this.props
     const shouldDeleteCluster = currentCluster
@@ -303,9 +286,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   getEnvironmentConfig() {
-    const { deleteDiskSelected, selectedPersistentDiskSize, viewMode, masterMachineType,
+    const {
+      deleteDiskSelected, selectedPersistentDiskSize, viewMode, masterMachineType,
       masterDiskSize, sparkMode, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType,
-      workerDiskSize, jupyterUserScriptUri } = this.state
+      workerDiskSize, jupyterUserScriptUri
+    } = this.state
 
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
     return {
