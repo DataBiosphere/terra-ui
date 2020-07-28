@@ -327,9 +327,24 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   getServerEnvironmentConfig() {
+    const { currentCluster, currentCluster: { runtimeConfig } } = this.props
     // TODO PD: Have this return a similar structure to `getEnvironmentConfig`
+    const cloudService = runtimeConfig.cloudService
     return {
-      runtime: undefined,
+      runtime: currentCluster ? {
+        cloudService,
+        ...(cloudService === cloudServices.GCE ? {
+          machineType: runtimeConfig.machineType,
+          ...(runtimeConfig.persistentDiskId ? {
+            persistentDiskAttached: true
+          } : {
+            diskSize: runtimeConfig.diskSize
+          })
+        } : {
+          // TODO PD: Dataproc
+          masterMachineType: runtimeConfig.masterMachineType
+        })
+      } : undefined,
       persistentDisk: undefined
     }
   }
