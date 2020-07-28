@@ -302,7 +302,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     })
   }
 
-  // TODO PD: test that persistentDiskAttached logic works correctly
   getEnvironmentConfig() {
     const { deleteDiskSelected, selectedPersistentDiskSize, viewMode, masterMachineType,
       masterDiskSize, sparkMode, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType,
@@ -329,7 +328,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             workerDiskSize
           })
         }),
-        jupyterUserScriptUri
+        toolDockerImage: this.getCorrectImage(),
+        ...(jupyterUserScriptUri && { jupyterUserScriptUri })
       } : undefined,
       persistentDisk: this.shouldUsePersistentDisk() || (this.getCurrentPersistentDisk() && !deleteDiskSelected) ? {
         size: this.shouldUsePersistentDisk() ? selectedPersistentDiskSize : this.getCurrentPersistentDisk().size
@@ -574,7 +574,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         [!canUpdate, () => { return 'replace' }],
         () => {}
       )
-      // TODO (PD) test the above cond, and add logic for decreasing only disk size, with appropriate text (e.g. it shouldn't say 'replace')
 
       return h(Fragment, [
         div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
