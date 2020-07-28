@@ -252,12 +252,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const currentPersistentDisk = this.getCurrentPersistentDisk()
     const environmentConfig = this.getEnvironmentConfig()
     const shouldUpdatePersistentDisk = currentPersistentDisk && currentPersistentDisk.size < environmentConfig.persistentDisk.size
+    // TODO PD: test this logic, then use it below instead of this.shouldDeletePersistentDisk()
+    const shouldDeletePersistentDiskLocal = !environmentConfig.persistentDisk || (currentPersistentDisk && currentPersistentDisk.size > environmentConfig.persistentDisk.size)
 
     const runtimeConfig = {
       cloudService: environmentConfig.runtime.cloudService,
       machineType: environmentConfig.runtime.machineType,
-      // TODO PD: Should this be able to create old-style GCE machines (e.g. with diskSize) if the user doesn't opt into an upgrade?
-      // TODO PD: current experience is on replace/upgrade delete old and build new runtime and PD
       ...(environmentConfig.runtime.diskSize ? {
         diskSize: environmentConfig.runtime.diskSize
       } : {
