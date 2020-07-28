@@ -750,9 +750,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ]),
         !sparkMode && !isPersistentDisk && div([
           p(['Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.']),
-          p([
             h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
-          ])
         ])
       ])
     ])
