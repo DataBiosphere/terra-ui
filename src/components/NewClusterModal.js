@@ -409,11 +409,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       !oldRuntime ||
       !newRuntime ||
       oldRuntime.cloudService !== newRuntime.cloudService ||
-      (oldRuntime.cloudService === cloudServices.GCE ?
+      (oldRuntime.cloudService === cloudServices.GCE ? (
         // TODO PD: fill out GCE logic here!
-        false :
-        // TODO PD: WIP continue filling out dataproc logic here, and test logic on below line
-        (oldRuntime.masterDiskSize > newRuntime.masterDiskSize))
+        false
+      ) : (
+        // TODO PD: WIP continue filling out dataproc logic here
+        newRuntime.masterDiskSize < oldRuntime.masterDiskSize ||
+        (oldRuntime.numberOfWorkers === 0 && newRuntime.numberOfWorkers > 0)
+      ))
     )
   }
 
