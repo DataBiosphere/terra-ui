@@ -328,6 +328,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   getServerEnvironmentConfig() {
     const { currentCluster, currentCluster: { runtimeConfig } } = this.props
+    const { currentClusterDetails } = this.state
     // TODO PD: Have this return a similar structure to `getEnvironmentConfig`
     const cloudService = runtimeConfig.cloudService
     const numberOfWorkers = runtimeConfig.numberOfWorkers || 0
@@ -337,8 +338,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         cloudService,
         ...(cloudService === cloudServices.GCE ? {
           machineType: runtimeConfig.machineType,
-          // TODO PD: fix below line for toolDockerImage (not working)
-          toolDockerImage: runtimeConfig.imageUrl,
+          // TODO PD: Test below line 
+          toolDockerImage: this.getImageUrl(currentClusterDetails),
           ...(runtimeConfig.persistentDiskId ? {
             persistentDiskAttached: true
           } : {
