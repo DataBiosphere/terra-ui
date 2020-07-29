@@ -327,7 +327,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   getServerEnvironmentConfig() {
-    const { currentCluster, currentCluster: { runtimeConfig } } = this.props
+    const { currentCluster, currentCluster: { runtimeConfig } = {} } = this.props
     const { currentClusterDetails } = this.state
     // TODO PD: Have this return a similar structure to `getEnvironmentConfig`
     const cloudService = runtimeConfig.cloudService
@@ -394,6 +394,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return currentCluster?.runtimeConfig.persistentDiskId
   }
 
+  newCanUpdate() {
+   // const { currentCluster } = this.props
+   // if (!currentCluster) return false
+    const canPersistentDiskUpdate = !this.getEnvironmentConfig().persistentDisk ||
+      !this.getServerEnvironmentConfig().persistentDisk ||
+      this.getEnvironmentConfig().persistentDisk.size > this.getServerEnvironmentConfig().persistentDisk.size
+    return true
+  }
   //determines whether the changes are applicable for a call to the leo patch endpoint
   //see this for a diagram of the conditional this implements https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
   //this function returns true for cases 2 & 3 in this diagram
@@ -449,7 +457,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const isClusterRunning = currentCluster.status === 'Running'
 
-    return this.canUpdate() && isMasterMachineTypeChanged && isClusterRunning
+    return this.newCanUpdate() && isMasterMachineTypeChanged && isClusterRunning
   }
 
   getRunningUpdateText() {
@@ -594,7 +602,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ])
 
     const bottomButtons = () => {
-      const canUpdate = this.canUpdate()
+      const canUpdate = this.newCanUpdate()
       const buttonLabel = Utils.cond(
         [!currentCluster && !this.shouldDeletePersistentDisk(), () => { return 'create' }],
         [canUpdate, () => { return 'update' }],
