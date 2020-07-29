@@ -339,7 +339,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ...(cloudService === cloudServices.GCE ? {
           machineType: runtimeConfig.machineType,
           // TODO PD: Test below line
-          toolDockerImage: this.getImageUrl(currentClusterDetails)?.imageUrl,
           ...(runtimeConfig.persistentDiskId ? {
             persistentDiskAttached: true
           } : {
@@ -354,7 +353,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             workerMachineType: runtimeConfig.workerMachineType || 'n1-standard-4',
             workerDiskSize: runtimeConfig.workerDiskSize || 100
           })
-        })
+        }),
+        toolDockerImage: this.getImageUrl(currentClusterDetails),
+        ...(currentClusterDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentClusterDetails?.jupyterUserScriptUri })
       } : undefined,
       // TODO PD: add a default for the PD size (test Leo behavior to determine default PD size to see if we need default)
       persistentDisk: currentPersistentDisk ? { size: currentPersistentDisk.size } : undefined
@@ -384,7 +385,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   hasImageChanged() {
     const { selectedLeoImage, customEnvImage, currentClusterDetails } = this.state
-    const { imageUrl } = currentClusterDetails ? this.getImageUrl(currentClusterDetails) : ''
+    const imageUrl = this.getImageUrl(currentClusterDetails)
     return !_.includes(imageUrl, [selectedLeoImage, customEnvImage])
   }
 
@@ -467,7 +468,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   getImageUrl(clusterDetails) {
-    return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), clusterDetails?.runtimeImages)
+    return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), clusterDetails?.runtimeImages)?.imageUrl
   }
 
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
@@ -482,7 +483,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     this.setState({ leoImages: newLeoImages, currentClusterDetails })
     if (currentClusterDetails) {
       const { jupyterUserScriptUri } = currentClusterDetails
-      const { imageUrl } = this.getImageUrl(currentClusterDetails)
+      const imageUrl = this.getImageUrl(currentClusterDetails)
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
       } else if (currentClusterDetails.labels.saturnIsProjectSpecific === 'true') {
