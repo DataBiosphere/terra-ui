@@ -330,6 +330,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, currentCluster: { runtimeConfig } } = this.props
     // TODO PD: Have this return a similar structure to `getEnvironmentConfig`
     const cloudService = runtimeConfig.cloudService
+    const numberOfWorkers = runtimeConfig.numberOfWorkers || 0
     return {
       runtime: currentCluster ? {
         cloudService,
@@ -341,8 +342,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             diskSize: runtimeConfig.diskSize
           })
         } : {
-          // TODO PD: Dataproc
-          masterMachineType: runtimeConfig.masterMachineType
+          masterMachineType: runtimeConfig.masterMachineType || 'n1-standard-4',
+          masterDiskSize: runtimeConfig.masterDiskSize || 100,
+          numberOfWorkers,
+          ...(numberOfWorkers && {
+            numberOfPreemptibleWorkers: runtimeConfig.numberOfPreemptibleWorkers || 0,
+            workerMachineType: runtimeConfig.workerMachineType || 'n1-standard-4',
+            workerDiskSize: runtimeConfig.workerDiskSize || 100
+          })
         })
       } : undefined,
       persistentDisk: undefined
@@ -503,7 +510,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             makeHeader('Current PD'),
             makeJSON(this.getCurrentPersistentDisk()),
             makeHeader('Environment Config'),
-            makeJSON(this.getEnvironmentConfig())
+            makeJSON(this.getEnvironmentConfig()),
+            makeHeader('Server Environment Config'),
+            makeJSON(this.getServerEnvironmentConfig())
           ]) :
         h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } },
           ['D'])
