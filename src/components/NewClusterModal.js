@@ -413,9 +413,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         // TODO PD: fill out GCE logic here!
         false
       ) : (
+        // TODO PD: reevaluate order of comparisons (does new or old go first?)
         // TODO PD: WIP continue filling out dataproc logic here
         newRuntime.masterDiskSize < oldRuntime.masterDiskSize ||
-        (oldRuntime.numberOfWorkers === 0 && newRuntime.numberOfWorkers > 0)
+        (oldRuntime.numberOfWorkers === 0 && newRuntime.numberOfWorkers > 0) ||
+        (oldRuntime.numberOfWorkers > 0 && newRuntime.numberOfWorkers === 0) ||
+        oldRuntime.workerMachineType !== newRuntime.workerMachineType ||
+        newRuntime.workerDiskSize !== oldRuntime.workerDiskSize
       ))
     )
   }
@@ -718,6 +722,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   id,
                   isSearchable: false,
                   value: sparkMode,
+                  // TODO PD: don't reset number of workers
                   onChange: ({ value }) => this.setState({
                     sparkMode: value,
                     numberOfWorkers: value === 'cluster' ? 2 : 0,
