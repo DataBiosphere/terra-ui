@@ -331,11 +331,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     // TODO PD: Have this return a similar structure to `getEnvironmentConfig`
     const cloudService = runtimeConfig.cloudService
     const numberOfWorkers = runtimeConfig.numberOfWorkers || 0
+    const currentPersistentDisk = this.getCurrentPersistentDisk()
     return {
       runtime: currentCluster ? {
         cloudService,
         ...(cloudService === cloudServices.GCE ? {
           machineType: runtimeConfig.machineType,
+          // TODO PD: fix below line for toolDockerImage (not working)
+          toolDockerImage: runtimeConfig.imageUrl,
           ...(runtimeConfig.persistentDiskId ? {
             persistentDiskAttached: true
           } : {
@@ -352,7 +355,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           })
         })
       } : undefined,
-      persistentDisk: undefined
+      // TODO PD: add a default for the PD size (test Leo behavior to determine default PD size to see if we need default)
+      persistentDisk: currentPersistentDisk ? { size: currentPersistentDisk.size } : undefined
     }
   }
 
