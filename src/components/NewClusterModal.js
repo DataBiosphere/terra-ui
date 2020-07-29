@@ -253,7 +253,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const currentPersistentDisk = this.getCurrentPersistentDisk()
     const environmentConfig = this.getEnvironmentConfig()
     const shouldUpdatePersistentDisk = currentPersistentDisk && currentPersistentDisk.size < environmentConfig.persistentDisk.size
-    const shouldDeletePersistentDiskLocal = currentPersistentDisk && (!environmentConfig.persistentDisk || currentPersistentDisk.size > environmentConfig.persistentDisk.size)
+    const shouldDeletePersistentDiskLocal = currentPersistentDisk &&
+      (!environmentConfig.persistentDisk || currentPersistentDisk.size > environmentConfig.persistentDisk.size)
 
     const runtimeConfig = {
       cloudService: environmentConfig.runtime.cloudService,
@@ -330,8 +331,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster, currentCluster: { runtimeConfig } = {} } = this.props
     const { currentClusterDetails } = this.state
     // TODO PD: Have this return a similar structure to `getEnvironmentConfig`
-    const cloudService = runtimeConfig.cloudService
-    const numberOfWorkers = runtimeConfig.numberOfWorkers || 0
+    const cloudService = runtimeConfig?.cloudService
+    const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
     const currentPersistentDisk = this.getCurrentPersistentDisk()
     return {
       runtime: currentCluster ? {
@@ -395,13 +396,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   newCanUpdate() {
-   // const { currentCluster } = this.props
-   // if (!currentCluster) return false
+    // const { currentCluster } = this.props
+    // if (!currentCluster) return false
+    // TODO PD more descriptive name and start excluding cases in which we can't update instead (so flip it)
     const canPersistentDiskUpdate = !this.getEnvironmentConfig().persistentDisk ||
       !this.getServerEnvironmentConfig().persistentDisk ||
-      this.getEnvironmentConfig().persistentDisk.size > this.getServerEnvironmentConfig().persistentDisk.size
+      (this.getEnvironmentConfig().persistentDisk.size > this.getServerEnvironmentConfig().persistentDisk.size)
     return true
   }
+
   //determines whether the changes are applicable for a call to the leo patch endpoint
   //see this for a diagram of the conditional this implements https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
   //this function returns true for cases 2 & 3 in this diagram
@@ -796,7 +799,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ]),
         !sparkMode && !isPersistentDisk && div([
           p(['Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.']),
-            h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
+          h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
         ])
       ])
     ])
