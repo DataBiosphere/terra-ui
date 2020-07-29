@@ -402,7 +402,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const canPersistentDiskUpdate = !this.getEnvironmentConfig().persistentDisk ||
       !this.getServerEnvironmentConfig().persistentDisk ||
       (this.getEnvironmentConfig().persistentDisk.size > this.getServerEnvironmentConfig().persistentDisk.size)
-    return true
+    const runtimeDoesNotExist = !this.getServerEnvironmentConfig().runtime
+    // TODO PD: handle has runtime, changing cloud service
+    return !(runtimeDoesNotExist)
   }
 
   //determines whether the changes are applicable for a call to the leo patch endpoint
@@ -522,14 +524,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({ style: { position: 'fixed', top: 0, left: 0, bottom: 0, right: '50vw', backgroundColor: 'white', padding: '1rem', overflowY: 'auto' } },
           [
             h(Link, { onClick: () => this.setState({ showDebugger: false }), style: { position: 'absolute', top: 0, right: 0 } }, ['x']),
-            makeHeader('Current Runtime'),
-            makeJSON(currentCluster),
-            makeHeader('Current PD'),
-            makeJSON(this.getCurrentPersistentDisk()),
+            makeHeader('Server Environment Config'),
+            makeJSON(this.getServerEnvironmentConfig()),
             makeHeader('Environment Config'),
             makeJSON(this.getEnvironmentConfig()),
-            makeHeader('Server Environment Config'),
-            makeJSON(this.getServerEnvironmentConfig())
+            makeHeader('newCanUpdate'),
+            makeJSON(this.newCanUpdate())
           ]) :
         h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } },
           ['D'])
