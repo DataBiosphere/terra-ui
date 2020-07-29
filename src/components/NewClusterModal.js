@@ -338,8 +338,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         cloudService,
         ...(cloudService === cloudServices.GCE ? {
           machineType: runtimeConfig.machineType,
-          // TODO PD: Test below line 
-          toolDockerImage: this.getImageUrl(currentClusterDetails),
+          // TODO PD: Test below line
+          toolDockerImage: this.getImageUrl(currentClusterDetails)?.imageUrl,
           ...(runtimeConfig.persistentDiskId ? {
             persistentDiskAttached: true
           } : {
@@ -467,13 +467,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   getImageUrl(clusterDetails) {
-    const { runtimeImages } = clusterDetails
-    return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeImages)
+    return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), clusterDetails?.runtimeImages)
   }
 
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
     const { currentCluster, namespace } = this.props
 
+    // TODO PD: consider disabling submit button until these calls have finished
     const [currentClusterDetails, newLeoImages] = await Promise.all([
       currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.runtimeName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
