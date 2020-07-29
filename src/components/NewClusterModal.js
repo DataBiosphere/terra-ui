@@ -396,15 +396,25 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   newCanUpdate() {
+    const { runtime: oldRuntime } = this.getServerEnvironmentConfig()
+    const { runtime: newRuntime } = this.getEnvironmentConfig()
     // const { currentCluster } = this.props
     // if (!currentCluster) return false
     // TODO PD more descriptive name and start excluding cases in which we can't update instead (so flip it)
     const canPersistentDiskUpdate = !this.getEnvironmentConfig().persistentDisk ||
       !this.getServerEnvironmentConfig().persistentDisk ||
       (this.getEnvironmentConfig().persistentDisk.size > this.getServerEnvironmentConfig().persistentDisk.size)
-    const runtimeDoesNotExist = !this.getServerEnvironmentConfig().runtime
     // TODO PD: handle has runtime, changing cloud service
-    return !(runtimeDoesNotExist)
+    return !(
+      !oldRuntime ||
+      !newRuntime ||
+      oldRuntime.cloudService !== newRuntime.cloudService ||
+      (oldRuntime.cloudService === cloudServices.GCE ?
+        // TODO PD: fill out GCE logic here!
+        false :
+        // TODO PD: WIP continue filling out dataproc logic here, and test logic on below line
+        (oldRuntime.masterDiskSize > newRuntime.masterDiskSize))
+    )
   }
 
   //determines whether the changes are applicable for a call to the leo patch endpoint
