@@ -398,6 +398,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       newRuntime.jupyterUserScriptUri !== oldRuntime.jupyterUserScriptUri ||
       (oldRuntime.cloudService === cloudServices.GCE ? (
         newRuntime.persistentDiskAttached !== oldRuntime.persistentDiskAttached ||
+        // TODO PD: call canUpdatePersistentDisk() here
         (oldRuntime.persistentDiskAttached && newPersistentDisk.size < oldPersistentDisk.size) ||
         newRuntime.diskSize < oldRuntime.diskSize
       ) : (
@@ -408,6 +409,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         oldRuntime.workerMachineType !== newRuntime.workerMachineType ||
         newRuntime.workerDiskSize !== oldRuntime.workerDiskSize
       ))
+    )
+  }
+
+  canUpdatePersistentDisk() {
+    const { persistentDisk: oldPersistentDisk } = this.getServerEnvironmentConfig()
+    const { persistentDisk: newPersistentDisk } = this.getEnvironmentConfig()
+
+    return !(
+      !oldPersistentDisk ||
+      !newPersistentDisk ||
+      newPersistentDisk.size < oldPersistentDisk.size
     )
   }
 
@@ -497,7 +509,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             makeHeader('Environment Config'),
             makeJSON(this.getEnvironmentConfig()),
             makeHeader('newCanUpdate'),
-            makeJSON(this.canUpdate())
+            makeJSON(this.canUpdate()),
+            makeHeader('willDeleteBuiltinDisk'),
+            makeJSON(!!this.willDeleteBuiltinDisk())
           ]) :
         h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } },
           ['D'])
@@ -994,8 +1008,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return !sparkMode && !currentCluster?.runtimeConfig.diskSize
   }
 
+  // TODO PD: add to debugger panel and test this!!
+  willDeletePersistentDisk() {
+    const oldConfig = this.getServerEnvironmentConfig()
+    return oldConfig.persistentDisk && !this.canUpdatePersistentDisk()
+  }
+
+  willDeleteBuiltinDisk() {
+    const oldConfig = this.getServerEnvironmentConfig()
+    return (oldConfig.runtime?.diskSize || oldConfig.runtime?.masterDiskSize) && !this.canUpdate()
+  }
   // TODO PD: Make sure we warn the user if their disk must be implicitly deleted (due to decreasing size)
-  // TODO PD NEXT: Test me!!!
   // TODO PD: Consider having a unified warning screen that shows one of the following:
   // 1. You have a machine with builtin disk, that needs to be deleted, so you will lose data
   // 2. You have a PD that's being shrunk, so it needs to be deleted and you will lose data
