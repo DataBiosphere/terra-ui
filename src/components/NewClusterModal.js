@@ -385,7 +385,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return currentCluster?.runtimeConfig.persistentDiskId
   }
 
-  newCanUpdate() {
+  canUpdate() {
     // TODO PD: Should we use the old/new naming universally?
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getServerEnvironmentConfig()
     const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getEnvironmentConfig()
@@ -411,41 +411,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     )
   }
 
-  //determines whether the changes are applicable for a call to the leo patch endpoint
-  //see this for a diagram of the conditional this implements https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
-  //this function returns true for cases 2 & 3 in this diagram
-  // TODO PD: delete this function when all the logic is ported over to newCanUpdate
-  canUpdate() {
-    const { currentCluster } = this.props
-    const { selectedPersistentDiskSize } = this.state
-
-    if (!currentCluster) return false
-
-    const currentClusterConfig = normalizeRuntimeConfig(currentCluster.runtimeConfig)
-    const userSelectedConfig = normalizeRuntimeConfig(this.getRuntimeConfig())
-
-    const cantWorkersUpdate = currentClusterConfig.numberOfWorkers !== userSelectedConfig.numberOfWorkers &&
-      (currentClusterConfig.numberOfWorkers < 2 || userSelectedConfig.numberOfWorkers < 2)
-
-    const hasUnUpdateableResourceChanged =
-      currentClusterConfig.workerDiskSize !== userSelectedConfig.workerDiskSize ||
-      currentClusterConfig.workerMachineType !== userSelectedConfig.workerMachineType ||
-      currentClusterConfig.numberOfWorkerLocalSSDs !== userSelectedConfig.numberOfWorkerLocalSSDs
-
-    const hasWorkers = currentClusterConfig.numberOfWorkers >= 2 || currentClusterConfig.numberOfPreemptibleWorkers >= 2
-    const hasWorkersResourceChanged = hasWorkers && hasUnUpdateableResourceChanged
-
-    const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
-    const hasPersistentDiskSizeDecreased = this.hasAttachedDisk() && this.getCurrentPersistentDisk().size >
-      selectedPersistentDiskSize
-
-    const hasCloudServiceChanged = currentClusterConfig.cloudService !== userSelectedConfig.cloudService
-
-    const cantUpdate = cantWorkersUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || hasCloudServiceChanged ||
-      this.hasImageChanged() || this.hasStartUpScriptChanged() || hasPersistentDiskSizeDecreased
-    return !cantUpdate
-  }
-
   hasChanges() {
     const { currentCluster } = this.props
     if (!currentCluster) return true
@@ -466,7 +431,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const isClusterRunning = currentCluster.status === 'Running'
 
-    return this.newCanUpdate() && isMasterMachineTypeChanged && isClusterRunning
+    return this.canUpdate() && isMasterMachineTypeChanged && isClusterRunning
   }
 
   getRunningUpdateText() {
@@ -532,7 +497,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             makeHeader('Environment Config'),
             makeJSON(this.getEnvironmentConfig()),
             makeHeader('newCanUpdate'),
-            makeJSON(this.newCanUpdate())
+            makeJSON(this.canUpdate())
           ]) :
         h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } },
           ['D'])
@@ -608,7 +573,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ])
 
     const bottomButtons = () => {
-      const canUpdate = this.newCanUpdate()
+      const canUpdate = this.canUpdate()
       const buttonLabel = Utils.cond(
         [!currentCluster && !this.shouldDeletePersistentDisk(), () => { return 'create' }],
         [canUpdate, () => { return 'update' }],
