@@ -389,12 +389,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     // TODO PD: Should we use the old/new naming universally?
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getServerEnvironmentConfig()
     const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getEnvironmentConfig()
-    // TODO PD: maybe adapt this logic and use it below
-    /*
-    const canPersistentDiskUpdate = !this.getEnvironmentConfig().persistentDisk ||
-      !this.getServerEnvironmentConfig().persistentDisk ||
-      (this.getEnvironmentConfig().persistentDisk.size > this.getServerEnvironmentConfig().persistentDisk.size)
-    */
+
     return !(
       !oldRuntime ||
       !newRuntime ||
@@ -402,12 +397,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       newRuntime.toolDockerImage !== oldRuntime.toolDockerImage ||
       newRuntime.jupyterUserScriptUri !== oldRuntime.jupyterUserScriptUri ||
       (oldRuntime.cloudService === cloudServices.GCE ? (
-        // TODO PD: WIP fill out GCE logic here!
         newRuntime.persistentDiskAttached !== oldRuntime.persistentDiskAttached ||
-        oldRuntime.persistentDiskAttached && (newPersistentDisk.size < oldPersistentDisk.size)
+        (oldRuntime.persistentDiskAttached && newPersistentDisk.size < oldPersistentDisk.size) ||
+        newRuntime.diskSize < oldRuntime.diskSize
       ) : (
         // TODO PD: reevaluate order of comparisons (does new or old go first?)
-        // TODO PD: WIP continue filling out dataproc logic here
         newRuntime.masterDiskSize < oldRuntime.masterDiskSize ||
         (oldRuntime.numberOfWorkers === 0 && newRuntime.numberOfWorkers > 0) ||
         (oldRuntime.numberOfWorkers > 0 && newRuntime.numberOfWorkers === 0) ||
