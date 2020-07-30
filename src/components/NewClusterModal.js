@@ -401,7 +401,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         (oldRuntime.persistentDiskAttached && newPersistentDisk.size < oldPersistentDisk.size) ||
         newRuntime.diskSize < oldRuntime.diskSize
       ) : (
-        // TODO PD: reevaluate order of comparisons (does new or old go first?)
+        // TODO PD: is this code clear enough? (re: order of comparisons, order of new vs old, etc)
         newRuntime.masterDiskSize < oldRuntime.masterDiskSize ||
         (oldRuntime.numberOfWorkers === 0 && newRuntime.numberOfWorkers > 0) ||
         (oldRuntime.numberOfWorkers > 0 && newRuntime.numberOfWorkers === 0) ||
@@ -996,15 +996,19 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   // TODO PD: Make sure we warn the user if their disk must be implicitly deleted (due to decreasing size)
   // TODO PD NEXT: Test me!!!
+  // TODO PD: Consider having a unified warning screen that shows one of the following:
+  // 1. You have a machine with builtin disk, that needs to be deleted, so you will lose data
+  // 2. You have a PD that's being shrunk, so it needs to be deleted and you will lose data
+  // 3. You have a machine that needs to be rebuilt/updated, you will not lose data but will be unable to use the machine for a few mins
   warnOrApplyChanges(currentCluster) {
     // TODO PD: use getServerEnvironmentConfig() instead of being given currentCluster
-    const newViewMode = Utils.cond([
+    const newViewMode = Utils.cond(
       [this.shouldDeletePersistentDisk() && !currentCluster, 'replacePersistentDisk'],
       [this.shouldDeletePersistentDisk() && !this.canUpdate(), 'replacePersistentDiskAndCluster'],
-      [!this.shouldDeletePersistentDisk() && !this.canUpdate(), 'replace'],
+      [!this.shouldDeletePersistentDisk() && !this.canUpdate() && this.getServerEnvironmentConfig().runtime, 'replace'],
       [this.shouldDeletePersistentDisk() && this.canUpdate(), 'replacePersistentDisk'], // canUpdate() will never return true if we're deleting a PD
       undefined
-    ])
+    )
     newViewMode ? this.setState({ viewMode: newViewMode }) : !!this.getServerEnvironmentConfig().runtime ? this.updateCluster() : this.newCreateRuntime()
   }
 })
