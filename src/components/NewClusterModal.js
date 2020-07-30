@@ -386,8 +386,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   newCanUpdate() {
-    const { runtime: oldRuntime } = this.getServerEnvironmentConfig()
-    const { runtime: newRuntime } = this.getEnvironmentConfig()
+    // TODO PD: Should we use the old/new naming universally?
+    const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getServerEnvironmentConfig()
+    const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getEnvironmentConfig()
     // TODO PD: maybe adapt this logic and use it below
     /*
     const canPersistentDiskUpdate = !this.getEnvironmentConfig().persistentDisk ||
@@ -399,8 +400,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       !newRuntime ||
       oldRuntime.cloudService !== newRuntime.cloudService ||
       (oldRuntime.cloudService === cloudServices.GCE ? (
-        // TODO PD: fill out GCE logic here!
-        false
+        // TODO PD: WIP fill out GCE logic here!
+        newRuntime.persistentDiskAttached !== oldRuntime.persistentDiskAttached ||
+        oldRuntime.persistentDiskAttached && (newPersistentDisk.size < oldPersistentDisk.size)
       ) : (
         // TODO PD: reevaluate order of comparisons (does new or old go first?)
         // TODO PD: WIP continue filling out dataproc logic here
