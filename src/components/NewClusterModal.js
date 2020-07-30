@@ -122,7 +122,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { masterDiskSize, masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
     const matchingProfile = _.find(({ runtimeConfig }) => _.isMatch({ masterMachineType, masterDiskSize }, normalizeRuntimeConfig(runtimeConfig)),
       profiles)
-    // TODO(PD): This should probably only choose from unattached persistent disks.
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
     this.state = {
@@ -137,6 +136,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
+  // TODO PD: This should probably only choose from unattached persistent disks.
   getCurrentPersistentDisk() {
     const { currentCluster, persistentDisks } = this.props
     const id = currentCluster?.runtimeConfig.persistentDiskId
@@ -145,7 +145,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       _.last(_.sortBy('auditInfo.createdDate', persistentDisks))
   }
 
-  // TODO PD: replace with getEnvironmentConfig
+  // TODO PD: replace usages of this with getEnvironmentConfig, then delete this function
   getRuntimeConfig(isNew = false) {
     const formatRuntimeConfig = config => {
       const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = config
@@ -153,11 +153,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         cloudService,
         machineType: masterMachineType,
         diskSize: masterDiskSize
-        //TODO(PD): work in progress
-        /*persistentDisk: {
-         name: Utils.generatePersistentDiskName(),
-         diskSize: selectedPersistentDiskSize
-         }*/
       } : {
         cloudService,
         masterMachineType,
@@ -210,7 +205,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       () => console.error('Not handled case in create runtime')
     )
 
-    //TODO PD: investigate react state error
+    //TODO PD: investigate react setState-after-unmount error
     onSuccess()
   })
 
@@ -272,11 +267,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       })
     }
     if (shouldDeleteCluster) {
-      //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
       await this.deleteCluster(this.hasAttachedDisk() && shouldDeletePersistentDiskLocal)
     }
     if (shouldDeletePersistentDiskLocal && !this.hasAttachedDisk()) {
-      //TODO PD: show user warning about disk deletion. If confirm, delete and create disk w/new parameters
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
     }
     if (shouldUpdatePersistentDisk) {
@@ -330,7 +323,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   getServerEnvironmentConfig() {
     const { currentCluster, currentCluster: { runtimeConfig } = {} } = this.props
     const { currentClusterDetails } = this.state
-    // TODO PD: Have this return a similar structure to `getEnvironmentConfig`
     const cloudService = runtimeConfig?.cloudService
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
     const currentPersistentDisk = this.getCurrentPersistentDisk()
@@ -339,7 +331,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         cloudService,
         ...(cloudService === cloudServices.GCE ? {
           machineType: runtimeConfig.machineType,
-          // TODO PD: Test below line
           ...(runtimeConfig.persistentDiskId ? {
             persistentDiskAttached: true
           } : {
@@ -358,7 +349,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         toolDockerImage: this.getImageUrl(currentClusterDetails),
         ...(currentClusterDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentClusterDetails?.jupyterUserScriptUri })
       } : undefined,
-      // TODO PD: add a default for the PD size (test Leo behavior to determine default PD size to see if we need default)
       persistentDisk: currentPersistentDisk ? { size: currentPersistentDisk.size } : undefined
     }
   }
@@ -398,13 +388,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   newCanUpdate() {
     const { runtime: oldRuntime } = this.getServerEnvironmentConfig()
     const { runtime: newRuntime } = this.getEnvironmentConfig()
-    // const { currentCluster } = this.props
-    // if (!currentCluster) return false
-    // TODO PD more descriptive name and start excluding cases in which we can't update instead (so flip it)
+    // TODO PD: maybe adapt this logic and use it below
+    /*
     const canPersistentDiskUpdate = !this.getEnvironmentConfig().persistentDisk ||
       !this.getServerEnvironmentConfig().persistentDisk ||
       (this.getEnvironmentConfig().persistentDisk.size > this.getServerEnvironmentConfig().persistentDisk.size)
-    // TODO PD: handle has runtime, changing cloud service
+    */
     return !(
       !oldRuntime ||
       !newRuntime ||
@@ -427,6 +416,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   //determines whether the changes are applicable for a call to the leo patch endpoint
   //see this for a diagram of the conditional this implements https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
   //this function returns true for cases 2 & 3 in this diagram
+  // TODO PD: delete this function when all the logic is ported over to newCanUpdate
   canUpdate() {
     const { currentCluster } = this.props
     const { selectedPersistentDiskSize } = this.state
@@ -448,7 +438,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const hasWorkersResourceChanged = hasWorkers && hasUnUpdateableResourceChanged
 
     const hasDiskSizeDecreased = currentClusterConfig.masterDiskSize > userSelectedConfig.masterDiskSize
-    //TODO PD: should we also look at current persistent disk?
     const hasPersistentDiskSizeDecreased = this.hasAttachedDisk() && this.getCurrentPersistentDisk().size >
       selectedPersistentDiskSize
 
@@ -531,7 +520,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   })
 
   renderDebugger() {
-    const { currentCluster } = this.props
     const { showDebugger } = this.state
     const makeHeader = text => div({ style: { fontSize: 20, margin: '0.5rem 0' } }, [text])
     const makeJSON = value => div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace' } }, [JSON.stringify(value, null, 2)])
@@ -1045,7 +1033,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return !sparkMode && !currentCluster?.runtimeConfig.diskSize
   }
 
-  // TODO (PD): Give it a better name
+  // TODO PD: Give it a better name
+  // TODO PD: Make sure we warn the user if their disk must be implicitly deleted (due to decreasing size)
   tbdFunction(currentCluster) {
     if (this.shouldDeletePersistentDisk() && !currentCluster) {
       // go to warn about PD

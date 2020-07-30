@@ -47,6 +47,10 @@ const dataprocRuntime = {
   patchInProgress: false
 }
 
+const dataprocClusterRuntime = _.update('runtimeConfig', c => ({
+  ...c, numberOfWorkers: 4, numberOfPreemptibleWorkers: 0, workerMachineType: 'n1-standard-4', workerDiskSize: 75, numberOfWorkerLocalSSDs: 0
+}), dataprocRuntime)
+
 const gceRuntime = {
   id: 24365,
   runtimeName: 'saturn-f9694786-ce63-4b82-972c-3c108f5970c0',
@@ -130,6 +134,7 @@ const pdOverrides = _.mapValues(({ runtimes, disks }) => {
   nothing: { runtimes: [], disks: [] },
   gce: { runtimes: [gceRuntime], disks: [] },
   dataproc: { runtimes: [dataprocRuntime], disks: [] },
+  dataprocCluster: { runtimes: [dataprocClusterRuntime], disks: [] },
   disk: { runtimes: [], disks: [disk] },
   gceAndDisk: { runtimes: [gceRuntime], disks: [disk] },
   gceAndAttachedDisk: { runtimes: [gceRuntimeWithPd], disks: [disk] }
@@ -146,7 +151,7 @@ window.ajaxOverrideUtils = {
       wrappedFetch(...args)
   })
 }
-ajaxOverridesStore.set(pdOverrides.dataproc)
+ajaxOverridesStore.set(pdOverrides.dataprocCluster)
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
