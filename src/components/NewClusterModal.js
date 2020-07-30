@@ -628,6 +628,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               if (isSelectedImageInputted && !canUpdate) {
                 this.setState({ viewMode: 'warning' })
               } else if (this.hasAttachedDisk() && !!sparkMode) {
+                // TODO PD: add below switching logic to warnOrApplyChanges for case when switching GCE -> dataproc with a docker image
                 this.setState({ viewMode: 'switchFromGCEToDataproc' })
               } else {
                 this.warnOrApplyChanges(currentCluster)
@@ -857,6 +858,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           }, [!!currentCluster ? 'Next' : 'Create'])
         ])
       ])],
+      ['environmentWarning', () => h(Fragment, [
+        div('environment warning here!!')
+      ])],
       ['deleteRuntime', () => h(Fragment, [
         h(deleteText),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
@@ -1034,7 +1038,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return (oldConfig.runtime?.diskSize || oldConfig.runtime?.masterDiskSize) && !this.canUpdate()
   }
 
-  // TODO PD: test newIsStopRequired via this function
   willRequireDowntime() {
     const oldConfig = this.getServerEnvironmentConfig()
     return oldConfig.runtime && (!this.canUpdate() || this.newIsStopRequired())
@@ -1047,6 +1050,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   // 3. You have a machine that needs to be rebuilt/updated, you will not lose data but will be unable to use the machine for a few mins
   warnOrApplyChanges(currentCluster) {
     // TODO PD: use getServerEnvironmentConfig() instead of being given currentCluster
+    if (this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime()) {
+      this.setState({ viewMode: 'environmentWarning' })
+    } else {
+      if (this.canUpdate()) {
+        this.updateCluster()
+      } else {
+        this.newCreateRuntime()
+      }
+    }
+  /*
     const newViewMode = Utils.cond(
       [this.shouldDeletePersistentDisk() && !currentCluster, 'replacePersistentDisk'],
       [this.shouldDeletePersistentDisk() && !this.canUpdate(), 'replacePersistentDiskAndCluster'],
@@ -1055,5 +1068,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       undefined
     )
     newViewMode ? this.setState({ viewMode: newViewMode }) : !!this.getServerEnvironmentConfig().runtime ? this.updateCluster() : this.newCreateRuntime()
+  */
   }
 })
