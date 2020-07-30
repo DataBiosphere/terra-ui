@@ -353,11 +353,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
-  updateCluster(isStopRequired = false) {
+  updateCluster() {
     const { currentCluster, onSuccess } = this.props
     const { googleProject, runtimeName } = currentCluster
 
-    if (isStopRequired) {
+    if (this.isStopRequired()) {
       notify('info', 'To be updated, your runtime will now stop, and then start. This will take 3-5 minutes.')
     }
 
@@ -600,8 +600,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               } else if (this.hasAttachedDisk() && !!sparkMode) {
                 this.setState({ viewMode: 'switchFromGCEToDataproc' })
               } else {
-                const newViewMode = this.tbdFunction(currentCluster)
-                newViewMode ? this.setState({ viewMode: newViewMode }) : this.newCreateRuntime()
+                this.warnOrApplyChanges(currentCluster)
               }
             }
           }, [_.startCase(buttonLabel)])
@@ -823,8 +822,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Back']),
           h(ButtonPrimary, {
             onClick: () => {
-              const newViewMode = this.tbdFunction(currentCluster)
-              newViewMode ? this.setState({ viewMode: newViewMode }) : this.newCreateRuntime()
+              this.warnOrApplyChanges(currentCluster)
             }
           }, [!!currentCluster ? 'Next' : 'Create'])
         ])
@@ -890,7 +888,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             style: { marginRight: '2rem' },
             onClick: () => this.setState({ viewMode: undefined })
           }, ['BACK']),
-          h(ButtonPrimary, { onClick: () => this.updateCluster(this.isStopRequired()) }, ['UPDATE'])
+          h(ButtonPrimary, { onClick: () => this.updateCluster() }, ['UPDATE'])
         ])
       ])],
       [Utils.DEFAULT, () => h(Fragment, [
@@ -996,20 +994,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return !sparkMode && !currentCluster?.runtimeConfig.diskSize
   }
 
-  // TODO PD: Give it a better name
   // TODO PD: Make sure we warn the user if their disk must be implicitly deleted (due to decreasing size)
-  tbdFunction(currentCluster) {
-    if (this.shouldDeletePersistentDisk() && !currentCluster) {
-      // go to warn about PD
-      return 'replacePersistentDisk'
-    } else if (this.shouldDeletePersistentDisk() && !!currentCluster) {
-      // go to warn about PD and cluster
-      return 'replacePersistentDiskAndCluster'
-    } else if (!this.shouldDeletePersistentDisk() && !!currentCluster) {
-      // go to warn about cluster
-      return 'replace'
-    } else {
-      return
-    }
+  // TODO PD NEXT: Test me!!!
+  warnOrApplyChanges(currentCluster) {
+    // TODO PD: use getServerEnvironmentConfig() instead of being given currentCluster
+    const newViewMode = Utils.cond([
+      [this.shouldDeletePersistentDisk() && !currentCluster, 'replacePersistentDisk'],
+      [this.shouldDeletePersistentDisk() && !this.canUpdate(), 'replacePersistentDiskAndCluster'],
+      [!this.shouldDeletePersistentDisk() && !this.canUpdate(), 'replace'],
+      [this.shouldDeletePersistentDisk() && this.canUpdate(), 'replacePersistentDisk'], // canUpdate() will never return true if we're deleting a PD
+      undefined
+    ])
+    newViewMode ? this.setState({ viewMode: newViewMode }) : !!this.getServerEnvironmentConfig().runtime ? this.updateCluster() : this.newCreateRuntime()
   }
 })
