@@ -432,6 +432,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return hasRuntimeConfigChanges || this.hasImageChanged() || this.hasStartUpScriptChanged()
   }
 
+  // TODO PD: change usages of this over to newIsStopRequired and then delete this
   //returns true for case 3 in this diagram: https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
   isStopRequired() {
     const { currentCluster } = this.props
@@ -444,6 +445,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const isClusterRunning = currentCluster.status === 'Running'
 
     return this.canUpdate() && isMasterMachineTypeChanged && isClusterRunning
+  }
+
+  newIsStopRequired() {
+    const { runtime: oldRuntime } = this.getServerEnvironmentConfig()
+    const { runtime: newRuntime } = this.getEnvironmentConfig()
+
+    // TODO PD: should we consider runtime status here?
+    return this.canUpdate() &&
+      (oldRuntime.cloudService === cloudServices.GCE ?
+        oldRuntime.machineType !== newRuntime.machineType :
+        oldRuntime.masterMachineType !== newRuntime.masterMachineType)
   }
 
   getRunningUpdateText() {
@@ -514,8 +526,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             makeJSON(!!this.willDeleteBuiltinDisk()),
             makeHeader('willDeletePersistentDisk'),
             makeJSON(!!this.willDeletePersistentDisk()),
-            makeHeader('isStopRequired'),
-            makeJSON(!!this.isStopRequired())
+            makeHeader('willRequireDowntime'),
+            makeJSON(!!this.willRequireDowntime())
           ]) :
         h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } },
           ['D'])
@@ -1022,8 +1034,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return (oldConfig.runtime?.diskSize || oldConfig.runtime?.masterDiskSize) && !this.canUpdate()
   }
 
-  willTakeTime() {
-    // TODO PD: implement this; look at using isStopRequired()
+  // TODO PD: test newIsStopRequired via this function
+  willRequireDowntime() {
+    const oldConfig = this.getServerEnvironmentConfig()
+    return oldConfig.runtime && (!this.canUpdate() || this.newIsStopRequired())
   }
 
   // TODO PD: Make sure we warn the user if their disk must be implicitly deleted (due to decreasing size)
