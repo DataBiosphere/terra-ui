@@ -399,6 +399,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       !oldRuntime ||
       !newRuntime ||
       oldRuntime.cloudService !== newRuntime.cloudService ||
+      newRuntime.toolDockerImage !== oldRuntime.toolDockerImage ||
+      newRuntime.jupyterUserScriptUri !== oldRuntime.jupyterUserScriptUri ||
       (oldRuntime.cloudService === cloudServices.GCE ? (
         // TODO PD: WIP fill out GCE logic here!
         newRuntime.persistentDiskAttached !== oldRuntime.persistentDiskAttached ||
@@ -410,9 +412,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         (oldRuntime.numberOfWorkers === 0 && newRuntime.numberOfWorkers > 0) ||
         (oldRuntime.numberOfWorkers > 0 && newRuntime.numberOfWorkers === 0) ||
         oldRuntime.workerMachineType !== newRuntime.workerMachineType ||
-        newRuntime.workerDiskSize !== oldRuntime.workerDiskSize ||
-        newRuntime.toolDockerImage !== oldRuntime.toolDockerImage ||
-        newRuntime.jupyterUserScriptUri !== oldRuntime.jupyterUserScriptUri
+        newRuntime.workerDiskSize !== oldRuntime.workerDiskSize
       ))
     )
   }
