@@ -409,7 +409,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         (oldRuntime.numberOfWorkers > 0 && newRuntime.numberOfWorkers === 0) ||
         oldRuntime.workerMachineType !== newRuntime.workerMachineType ||
         newRuntime.workerDiskSize !== oldRuntime.workerDiskSize ||
-        newRuntime.toolDockerImage !== oldRuntime.toolDockerImage
+        newRuntime.toolDockerImage !== oldRuntime.toolDockerImage ||
+        newRuntime.jupyterUserScriptUri !== oldRuntime.jupyterUserScriptUri
       ))
     )
   }
@@ -556,7 +557,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const onEnvChange = ({ value }) => {
       const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
       const isCluster = sparkMode === 'cluster'
-
+      // TODO PD: Evaluate it going to GCE on change from dataproc to custom image
       this.setState({
         selectedLeoImage: value, customEnvImage: '',
         sparkMode: requiresSpark ? (sparkMode || 'master') : false,
