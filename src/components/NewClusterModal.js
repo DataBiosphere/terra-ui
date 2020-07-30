@@ -511,7 +511,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             makeHeader('newCanUpdate'),
             makeJSON(this.canUpdate()),
             makeHeader('willDeleteBuiltinDisk'),
-            makeJSON(!!this.willDeleteBuiltinDisk())
+            makeJSON(!!this.willDeleteBuiltinDisk()),
+            makeHeader('willDeletePersistentDisk'),
+            makeJSON(!!this.willDeletePersistentDisk()),
+            makeHeader('isStopRequired'),
+            makeJSON(!!this.isStopRequired())
           ]) :
         h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } },
           ['D'])
@@ -1008,7 +1012,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return !sparkMode && !currentCluster?.runtimeConfig.diskSize
   }
 
-  // TODO PD: add to debugger panel and test this!!
   willDeletePersistentDisk() {
     const oldConfig = this.getServerEnvironmentConfig()
     return oldConfig.persistentDisk && !this.canUpdatePersistentDisk()
@@ -1018,6 +1021,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const oldConfig = this.getServerEnvironmentConfig()
     return (oldConfig.runtime?.diskSize || oldConfig.runtime?.masterDiskSize) && !this.canUpdate()
   }
+
+  willTakeTime() {
+    // TODO PD: implement this; look at using isStopRequired()
+  }
+
   // TODO PD: Make sure we warn the user if their disk must be implicitly deleted (due to decreasing size)
   // TODO PD: Consider having a unified warning screen that shows one of the following:
   // 1. You have a machine with builtin disk, that needs to be deleted, so you will lose data
