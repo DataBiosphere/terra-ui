@@ -192,6 +192,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` }
   }
 
+  // TODO PD: Change this name to capture it also updating
   newCreateRuntime = _.flow(
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating runtime')
@@ -200,7 +201,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { sparkMode } = this.state
 
     await Utils.cond(
-      [!sparkMode, () => this.createGCE_()],
+      [!sparkMode, () => this.createOrUpdateGCE()],
       [!!sparkMode, () => this.createOnlyDataproc_()],
       () => console.error('Not handled case in create runtime')
     )
@@ -237,15 +238,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   shouldDeletePersistentDisk() {
     const { selectedPersistentDiskSize, deleteDiskSelected } = this.state
-    // TODO PD: Maybe we should use 'shouldDeletePersistentDiskLocal' logic here instead (from createGCE_ method)
+    // TODO PD: Maybe we should use 'shouldDeletePersistentDiskLocal' logic here instead (from createOrUpdateGCE method)
     return (this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > selectedPersistentDiskSize) || deleteDiskSelected
     // TODO PD: make sure to ignore pd size if not in pd mode
   }
 
-  // TODO PD: rename this function (it's no longer only creating)
-  async createGCE_() {
-    const { namespace, currentCluster } = this.props
-    const shouldDeleteCluster = currentCluster
+  async createOrUpdateGCE() {
+    const { namespace } = this.props
+    // TODO PD: Test this line
+    const shouldDeleteCluster = this.getServerEnvironmentConfig().runtime && !this.canUpdate()
+    // TODO PD: Evaluate the rest of this function
     const currentPersistentDisk = this.getCurrentPersistentDisk()
     const environmentConfig = this.getEnvironmentConfig()
     const shouldUpdatePersistentDisk = currentPersistentDisk && currentPersistentDisk.size < environmentConfig.persistentDisk.size
