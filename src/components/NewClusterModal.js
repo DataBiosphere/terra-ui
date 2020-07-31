@@ -354,6 +354,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   updateCluster() {
+    // TODO PD: This doens't know about persistent disks yet
     const { currentCluster, onSuccess } = this.props
     const { googleProject, runtimeName } = currentCluster
 
@@ -856,7 +857,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])],
       ['environmentWarning', () => h(Fragment, [
-        div(['environment warning here!!'])
+        Utils.cond(
+          [this.willDeleteBuiltinDisk(), () => div('willDeleteBuiltinDisk')],
+          [this.willDeletePersistentDisk(), () => div('willDeletePersistentDisk')],
+          [this.willRequireDowntime(), () => div('willRequireDowntime')]
+        ),
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
+          h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['UPDATE']) // TODO PD: call something
+        ])
         // TODO PD: display these messages:
         // 1. You have a machine with builtin disk, that needs to be deleted, so you will lose data
         // 2. You have a PD that's being shrunk, so it needs to be deleted and you will lose data
@@ -1050,11 +1059,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     } else if (this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime()) {
       this.setState({ viewMode: 'environmentWarning' })
     } else {
-      if (this.canUpdate()) {
-        this.updateCluster()
-      } else {
-        this.newCreateRuntime()
-      }
+      this.applyChanges()
+    }
+  }
+
+  applyChanges() {
+    if (this.canUpdate()) {
+      this.updateCluster()
+    } else {
+      this.newCreateRuntime()
     }
   }
 })

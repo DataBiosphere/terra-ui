@@ -128,6 +128,7 @@ const pdOverrides = _.mapValues(({ runtimes, disks }) => {
     { filter: { url: /v1\/disks\/.+\/.+$/, method: 'DELETE' }, fn: stub({}) },
     { filter: { url: /v1\/runtimes\/.+\/.+$/, method: 'GET' }, fn: stub({ ...runtimes[0], ...runtimeDetails }) },
     { filter: { url: /v1\/runtimes\/.+\/.+$/, method: 'POST' }, fn: stub({}) },
+    { filter: { url: /v1\/runtimes\/.+\/.+$/, method: 'PATCH' }, fn: stub({}) },
     { filter: { url: /v1\/runtimes\/.+\/.+$/, method: 'DELETE' }, fn: stub({}) }
   ]
 }, {
