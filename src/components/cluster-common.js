@@ -93,6 +93,6 @@ export const PeriodicCookieSetter = ({ namespace, runtimeName, leading }) => {
   const signal = Utils.useCancellation()
   Utils.usePollingEffect(
     withErrorIgnoring(() => Ajax(signal).Clusters.notebooks(namespace, runtimeName).setCookie()),
-    { ms: 15 * 60 * 1000, leading })
+    { ms: 5 * 60 * 1000, leading })
   return null
 }
