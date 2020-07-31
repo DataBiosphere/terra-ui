@@ -246,14 +246,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   async createOrUpdateGCE() {
     const { namespace } = this.props
     // TODO PD: Test this line
-    const shouldDeleteCluster = this.getServerEnvironmentConfig().runtime && !this.canUpdate()
     // TODO PD: Evaluate the rest of this function
-    const currentPersistentDisk = this.getCurrentPersistentDisk()
+    const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getServerEnvironmentConfig()
     const environmentConfig = this.getEnvironmentConfig()
-    const shouldUpdatePersistentDisk = currentPersistentDisk && currentPersistentDisk.size < environmentConfig.persistentDisk.size
-    const shouldDeletePersistentDiskLocal = currentPersistentDisk &&
-      (!environmentConfig.persistentDisk || currentPersistentDisk.size > environmentConfig.persistentDisk.size)
-    const shouldUpdateCluster = this.getServerEnvironmentConfig().runtime
+    const shouldUpdatePersistentDisk = oldPersistentDisk && this.canUpdatePersistentDisk()
+    const shouldDeletePersistentDiskLocal = oldPersistentDisk && !this.canUpdatePersistentDisk()
+    const shouldUpdateRuntime = oldRuntime && this.canUpdate()
+    const shouldDeleteRuntime = oldRuntime && !this.canUpdate()
 
     const runtimeConfig = {
       cloudService: environmentConfig.runtime.cloudService,
@@ -261,8 +260,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ...(environmentConfig.runtime.diskSize ? {
         diskSize: environmentConfig.runtime.diskSize
       } : {
-        persistentDisk: currentPersistentDisk && !shouldDeletePersistentDiskLocal ? {
-          name: currentPersistentDisk.name
+        persistentDisk: oldPersistentDisk && !shouldDeletePersistentDiskLocal ? {
+          name: oldPersistentDisk.name
         } : {
           name: Utils.generatePersistentDiskName(),
           size: environmentConfig.persistentDisk.size // in GB
@@ -270,16 +269,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         }
       })
     }
-    if (shouldDeleteCluster) {
+    if (shouldDeleteRuntime) {
       await this.deleteCluster(this.hasAttachedDisk() && shouldDeletePersistentDiskLocal)
     }
     if (shouldDeletePersistentDiskLocal && !this.hasAttachedDisk()) {
-      await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
+      await Ajax().Disks.disk(namespace, oldPersistentDisk.name).delete()
     }
     if (shouldUpdatePersistentDisk) {
-      await Ajax().Disks.disk(namespace, currentPersistentDisk.name).update(environmentConfig.persistentDisk.size)
+      await Ajax().Disks.disk(namespace, oldPersistentDisk.name).update(environmentConfig.persistentDisk.size)
     }
-    return shouldUpdateCluster ?
+    return shouldUpdateRuntime ?
       Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).update({
         runtimeConfig,
         labels: this.generateClusterLabels()
