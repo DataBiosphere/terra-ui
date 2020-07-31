@@ -283,10 +283,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         labels: this.generateClusterLabels()
       }) :
       Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
-      runtimeConfig,
-      toolDockerImage: this.getCorrectImage(),
-      labels: this.generateClusterLabels(),
-      ...(environmentConfig.runtime.jupyterUserScriptUri ? { jupyterUserScriptUri: environmentConfig.runtime.jupyterUserScriptUri } : {})
+        runtimeConfig,
+        toolDockerImage: this.getCorrectImage(),
+        labels: this.generateClusterLabels(),
+        ...(environmentConfig.runtime.jupyterUserScriptUri ? { jupyterUserScriptUri: environmentConfig.runtime.jupyterUserScriptUri } : {})
     })
   }
 
@@ -871,7 +871,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
-          h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['UPDATE']) // TODO PD: call something
+          h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['UPDATE'])
         ])
         // TODO PD: display these messages:
         // 1. You have a machine with builtin disk, that needs to be deleted, so you will lose data
@@ -1071,6 +1071,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   applyChanges() {
+    //if (this.canUpdate() && this.getEnvironmentConfig().runtime.cloudService === cloudServices.)
+    // createGCE + updateGCE has been done but needs to be renamed
+    // TODO PD: combine => createDP & updateDP
     if (this.canUpdate()) {
       // TODO PD: stop calling updateCluster
       this.updateCluster()
