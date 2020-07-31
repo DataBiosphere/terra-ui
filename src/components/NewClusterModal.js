@@ -626,7 +626,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             tooltip: Utils.summarizeErrors(errors),
             onClick: () => {
               if (isSelectedImageInputted && !canUpdate) {
-                this.setState({ viewMode: 'warning' })
+                this.setState({ viewMode: 'customImageWarning' })
               } else if (this.hasAttachedDisk() && !!sparkMode) {
                 // TODO PD: add below switching logic to warnOrApplyChanges for case when switching GCE -> dataproc with a docker image
                 this.setState({ viewMode: 'switchFromGCEToDataproc' })
@@ -837,7 +837,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(ButtonPrimary, { onClick: () => this.newCreateRuntime() }, ['REPLACE'])
         ])
       ])],
-      ['warning', () => h(Fragment, [
+      ['customImageWarning', () => h(Fragment, [
         p({ style: { marginTop: 0, lineHeight: 1.5 } }, [
           `You are about to create a virtual machine using an unverified Docker image.
             Please make sure that it was created by you or someone you trust, using one of our `,
@@ -1006,7 +1006,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       h(TitleBar, {
         title: Utils.switchCase(viewMode,
           ['packages', () => 'INSTALLED PACKAGES'],
-          ['warning', () => 'WARNING!'],
+          ['customImageWarning', () => 'WARNING!'],
           ['delete', () => 'DELETE RUNTIME?'],
           ['update', () => 'UPDATE RUNTIME?'],
           ['switchFromGCEToDataproc', () => 'Replace application configuration and cloud compute for Hail'],
@@ -1049,6 +1049,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   // 2. You have a PD that's being shrunk, so it needs to be deleted and you will lose data
   // 3. You have a machine that needs to be rebuilt/updated, you will not lose data but will be unable to use the machine for a few mins
   warnOrApplyChanges(currentCluster) {
+    // TODO PD: Figure out how to plug this logic into this function
+    // this.getEnvironmentConfig().runtime.cloudService === cloudServices.DATAPROC &&
+    //   this.hasAttachedDisk() && this.setState({ viewMode: 'switchFromGCEToDataproc' })
     // TODO PD: use getServerEnvironmentConfig() instead of being given currentCluster
     if (this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime()) {
       this.setState({ viewMode: 'environmentWarning' })
