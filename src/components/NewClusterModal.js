@@ -242,6 +242,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     // TODO PD: make sure to ignore pd size if not in pd mode
   }
 
+  // TODO PD: rename this function (it's no longer only creating)
   async createGCE_() {
     const { namespace, currentCluster } = this.props
     const shouldDeleteCluster = currentCluster
@@ -250,6 +251,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const shouldUpdatePersistentDisk = currentPersistentDisk && currentPersistentDisk.size < environmentConfig.persistentDisk.size
     const shouldDeletePersistentDiskLocal = currentPersistentDisk &&
       (!environmentConfig.persistentDisk || currentPersistentDisk.size > environmentConfig.persistentDisk.size)
+    const shouldUpdateCluster = this.getServerEnvironmentConfig().runtime
 
     const runtimeConfig = {
       cloudService: environmentConfig.runtime.cloudService,
@@ -275,7 +277,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     if (shouldUpdatePersistentDisk) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).update(environmentConfig.persistentDisk.size)
     }
-    return Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
+    return shouldUpdateCluster ?
+      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).update({
+        runtimeConfig,
+        labels: this.generateClusterLabels()
+      }) :
+      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
       runtimeConfig,
       toolDockerImage: this.getCorrectImage(),
       labels: this.generateClusterLabels(),
@@ -1065,6 +1072,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   applyChanges() {
     if (this.canUpdate()) {
+      // TODO PD: stop calling updateCluster
       this.updateCluster()
     } else {
       this.newCreateRuntime()
