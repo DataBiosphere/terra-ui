@@ -627,11 +627,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             onClick: () => {
               if (isSelectedImageInputted && !canUpdate) {
                 this.setState({ viewMode: 'customImageWarning' })
-              } else if (this.hasAttachedDisk() && !!sparkMode) {
-                // TODO PD: add below switching logic to warnOrApplyChanges for case when switching GCE -> dataproc with a docker image
-                this.setState({ viewMode: 'switchFromGCEToDataproc' })
               } else {
-                this.warnOrApplyChanges(currentCluster)
+                this.warnOrApplyChanges()
               }
             }
           }, [_.startCase(buttonLabel)])
@@ -853,13 +850,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Back']),
           h(ButtonPrimary, {
             onClick: () => {
-              this.warnOrApplyChanges(currentCluster)
+              this.warnOrApplyChanges()
             }
           }, [!!currentCluster ? 'Next' : 'Create'])
         ])
       ])],
       ['environmentWarning', () => h(Fragment, [
-        div('environment warning here!!')
+        div(['environment warning here!!'])
+        // TODO PD: display these messages:
+        // 1. You have a machine with builtin disk, that needs to be deleted, so you will lose data
+        // 2. You have a PD that's being shrunk, so it needs to be deleted and you will lose data
+        // 3. You have a machine that needs to be rebuilt/updated, you will not lose data but will be unable to use the machine for a few mins
       ])],
       ['deleteRuntime', () => h(Fragment, [
         h(deleteText),
@@ -1043,17 +1044,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return oldConfig.runtime && (!this.canUpdate() || this.newIsStopRequired())
   }
 
-  // TODO PD: Make sure we warn the user if their disk must be implicitly deleted (due to decreasing size)
-  // TODO PD: Consider having a unified warning screen that shows one of the following:
-  // 1. You have a machine with builtin disk, that needs to be deleted, so you will lose data
-  // 2. You have a PD that's being shrunk, so it needs to be deleted and you will lose data
-  // 3. You have a machine that needs to be rebuilt/updated, you will not lose data but will be unable to use the machine for a few mins
-  warnOrApplyChanges(currentCluster) {
-    // TODO PD: Figure out how to plug this logic into this function
-    // this.getEnvironmentConfig().runtime.cloudService === cloudServices.DATAPROC &&
-    //   this.hasAttachedDisk() && this.setState({ viewMode: 'switchFromGCEToDataproc' })
-    // TODO PD: use getServerEnvironmentConfig() instead of being given currentCluster
-    if (this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime()) {
+  warnOrApplyChanges() {
+    if (this.getEnvironmentConfig().runtime.cloudService === cloudServices.DATAPROC && this.hasAttachedDisk()) {
+      this.setState({ viewMode: 'switchFromGCEToDataproc' })
+    } else if (this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime()) {
       this.setState({ viewMode: 'environmentWarning' })
     } else {
       if (this.canUpdate()) {
@@ -1062,15 +1056,5 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         this.newCreateRuntime()
       }
     }
-  /*
-    const newViewMode = Utils.cond(
-      [this.shouldDeletePersistentDisk() && !currentCluster, 'replacePersistentDisk'],
-      [this.shouldDeletePersistentDisk() && !this.canUpdate(), 'replacePersistentDiskAndCluster'],
-      [!this.shouldDeletePersistentDisk() && !this.canUpdate() && this.getServerEnvironmentConfig().runtime, 'replace'],
-      [this.shouldDeletePersistentDisk() && this.canUpdate(), 'replacePersistentDisk'], // canUpdate() will never return true if we're deleting a PD
-      undefined
-    )
-    newViewMode ? this.setState({ viewMode: newViewMode }) : !!this.getServerEnvironmentConfig().runtime ? this.updateCluster() : this.newCreateRuntime()
-  */
   }
 })
