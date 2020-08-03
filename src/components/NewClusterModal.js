@@ -205,40 +205,40 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   })
 
   //TODO PD: TEST!!!
-  // TODO PD: switching from GCE to dataproc with a floating disk bug (showed an unexpected 'patch')
   async createOrUpdate() {
     const { namespace, currentCluster } = this.props
     const currentPersistentDisk = this.getCurrentPersistentDisk()
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getServerEnvironmentConfig()
-    const environmentConfig = this.getEnvironmentConfig()
-    const shouldUpdatePersistentDisk = oldPersistentDisk && this.canUpdatePersistentDisk() // TODO PD: This logic should also have: && pd_has_actual_change
+    const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getEnvironmentConfig()
+    const shouldUpdatePersistentDisk = oldPersistentDisk && this.canUpdatePersistentDisk() && !_.isEqual(newPersistentDisk, oldPersistentDisk)
     const shouldDeletePersistentDiskLocal = oldPersistentDisk && !this.canUpdatePersistentDisk()
-    const shouldUpdateRuntime = oldRuntime && this.canUpdate()
+    const shouldUpdateRuntime = oldRuntime && this.canUpdate() && !_.isEqual(newRuntime, oldRuntime)
     const shouldDeleteRuntime = oldRuntime && !this.canUpdate()
+    const shouldCreateRuntime = !this.canUpdate() //TODO PD: change this if/when we want this to handle deletes as well
 
     const runtimeConfig = {
-      cloudService: environmentConfig.runtime.cloudService,
-      ...(environmentConfig.runtime.cloudService === cloudServices.GCE ? {
-        machineType: environmentConfig.runtime.machineType,
-        ...(environmentConfig.runtime.diskSize ? {
-          diskSize: environmentConfig.runtime.diskSize
+      cloudService: newRuntime.cloudService,
+      ...(newRuntime.cloudService === cloudServices.GCE ? {
+        machineType: newRuntime.machineType,
+        ...(newRuntime.diskSize ? {
+          diskSize: newRuntime.diskSize
         } : {
           persistentDisk: oldPersistentDisk && !shouldDeletePersistentDiskLocal ? {
             name: oldPersistentDisk.name
           } : {
             name: Utils.generatePersistentDiskName(),
-            size: environmentConfig.persistentDisk.size // in GB
+            size: newPersistentDisk.size // in GB
             // diskType and blockSize are not required per leo team
           }
         })
       } : {
-        masterMachineType: environmentConfig.runtime.masterMachineType,
-        masterDiskSize: environmentConfig.runtime.masterDiskSize,
-        numberOfWorkers: environmentConfig.runtime.numberOfWorkers,
-        ...(environmentConfig.runtime.numberOfWorkers && {
-          numberOfPreemptibleWorkers: environmentConfig.runtime.numberOfPreemptibleWorkers,
-          workerMachineType: environmentConfig.runtime.workerMachineType,
-          workerDiskSize: environmentConfig.runtime.workerDiskSize
+        masterMachineType: newRuntime.masterMachineType,
+        masterDiskSize: newRuntime.masterDiskSize,
+        numberOfWorkers: newRuntime.numberOfWorkers,
+        ...(newRuntime.numberOfWorkers && {
+          numberOfPreemptibleWorkers: newRuntime.numberOfPreemptibleWorkers,
+          workerMachineType: newRuntime.workerMachineType,
+          workerDiskSize: newRuntime.workerDiskSize
         })
       })
     }
@@ -249,18 +249,22 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
     }
     if (shouldUpdatePersistentDisk) {
-      await Ajax().Disks.disk(namespace, currentPersistentDisk.name).update(environmentConfig.persistentDisk.size)
+      await Ajax().Disks.disk(namespace, currentPersistentDisk.name).update(newPersistentDisk.size)
     }
-    return shouldUpdateRuntime ?
-      Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).update({
+    if (shouldUpdateRuntime) {
+      await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).update({
         runtimeConfig
-      }) :
-      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
+      })
+    }
+    if (shouldCreateRuntime) {
+      await Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         runtimeConfig,
         toolDockerImage: this.getCorrectImage(),
         labels: this.generateClusterLabels(),
-        ...(environmentConfig.runtime.jupyterUserScriptUri ? { jupyterUserScriptUri: environmentConfig.runtime.jupyterUserScriptUri } : {})
-    })
+        ...(newRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: newRuntime.jupyterUserScriptUri } : {})
+      })
+    }
+
   }
 
   getEnvironmentConfig() {
