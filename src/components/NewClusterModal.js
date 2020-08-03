@@ -198,14 +198,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   )(async () => {
     const { onSuccess } = this.props
 
-    await this.createOrUpdateGCE()
+    await this.createOrUpdate()
 
     //TODO PD: investigate react setState-after-unmount error
     onSuccess()
   })
 
-  //TODO PD: TEST!!! and rename because now it handles dataproc as well
-  async createOrUpdateGCE() {
+  //TODO PD: TEST!!!
+  // TODO PD: switching from GCE to dataproc with a floating disk bug (showed an unexpected 'patch')
+  async createOrUpdate() {
     const { namespace, currentCluster } = this.props
     // TODO PD: Test this line
     // TODO PD: Evaluate the rest of this function
