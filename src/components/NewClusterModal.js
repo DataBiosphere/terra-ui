@@ -134,34 +134,28 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       _.last(_.sortBy('auditInfo.createdDate', persistentDisks))
   }
 
-  // TODO PD: rewrite this using getNewEnvironmentConfig so it can feed runtimeConfigCost
-  getRuntimeConfig(isNew = false) {
-    const formatRuntimeConfig = config => {
-      const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = config
-      return cloudService === cloudServices.GCE ? {
-        cloudService,
-        machineType: masterMachineType,
-        diskSize: masterDiskSize
+  //TODO PD: WIP should rewrite the cost calculation to not use normalize
+  getPendingRuntimeConfig() {
+    const { runtime: newRuntime } = this.getNewEnvironmentConfig()
+    return {
+      cloudService: newRuntime.cloudService,
+      ...(newRuntime.cloudService === cloudServices.GCE ? {
+        bootDiskSize: 50, //TODO PD: check if we only expect this on GCE and is 50 the right default value?
+        machineType: newRuntime.machineType,
+        ...(newRuntime.diskSize ? {
+          diskSize: newRuntime.diskSize
+        } : {} )
       } : {
-        cloudService,
-        masterMachineType,
-        masterDiskSize,
-        numberOfWorkers,
-        ...(numberOfWorkers && {
-          numberOfPreemptibleWorkers,
-          workerMachineType,
-          workerDiskSize
+        masterMachineType: newRuntime.masterMachineType,
+        masterDiskSize: newRuntime.masterDiskSize,
+        numberOfWorkers: newRuntime.numberOfWorkers,
+        ...(newRuntime.numberOfWorkers && {
+          numberOfPreemptibleWorkers: newRuntime.numberOfPreemptibleWorkers,
+          workerMachineType: newRuntime.workerMachineType,
+          workerDiskSize: newRuntime.workerDiskSize
         })
-      }
+      })
     }
-    return formatRuntimeConfig({
-      cloudService: !!this.state.sparkMode ? cloudServices.DATAPROC : cloudServices.GCE,
-      isNew,
-      ..._.pick(
-        ['numberOfWorkers', 'masterMachineType', 'masterDiskSize', 'workerMachineType', 'workerDiskSize', 'numberOfPreemptibleWorkers',
-          'selectedPersistentDiskSize'],
-        this.state)
-    })
   }
 
   deleteCluster(deleteDisk) {
@@ -427,18 +421,20 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({ style: { position: 'fixed', top: 0, left: 0, bottom: 0, right: '50vw', backgroundColor: 'white', padding: '1rem', overflowY: 'auto' } },
           [
             h(Link, { onClick: () => this.setState({ showDebugger: false }), style: { position: 'absolute', top: 0, right: 0 } }, ['x']),
-            makeHeader('Server Environment Config'),
+            makeHeader('Old Environment Config'),
             makeJSON(this.getOldEnvironmentConfig()),
-            makeHeader('Environment Config'),
+            makeHeader('New Environment Config'),
             makeJSON(this.getNewEnvironmentConfig()),
-            makeHeader('newCanUpdate'),
+            makeHeader('canUpdate'),
             makeJSON(this.canUpdate()),
             makeHeader('willDeleteBuiltinDisk'),
             makeJSON(!!this.willDeleteBuiltinDisk()),
             makeHeader('willDeletePersistentDisk'),
             makeJSON(!!this.willDeletePersistentDisk()),
             makeHeader('willRequireDowntime'),
-            makeJSON(!!this.willRequireDowntime())
+            makeJSON(!!this.willRequireDowntime()),
+            makeHeader('getPendingRuntimeConfig'),
+            makeJSON(this.getPendingRuntimeConfig())
           ]) :
         h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } },
           ['D'])
@@ -681,7 +677,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
         }, [
           span({ style: { ...styles.label, marginRight: '0.25rem', textTransform: 'uppercase' } }, ['cost:']),
-          `${Utils.formatUSD(runtimeConfigCost(this.getRuntimeConfig(!currentCluster)))} per hour`
+          `${Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))} per hour`
         ]),
         !!isPersistentDisk && h(IdContainer, [
           id => h(div, { style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
