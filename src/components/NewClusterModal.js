@@ -208,11 +208,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   // TODO PD: switching from GCE to dataproc with a floating disk bug (showed an unexpected 'patch')
   async createOrUpdate() {
     const { namespace, currentCluster } = this.props
-    // TODO PD: Test this line
-    // TODO PD: Evaluate the rest of this function
+    const currentPersistentDisk = this.getCurrentPersistentDisk()
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getServerEnvironmentConfig()
     const environmentConfig = this.getEnvironmentConfig()
-    const shouldUpdatePersistentDisk = oldPersistentDisk && this.canUpdatePersistentDisk()
+    const shouldUpdatePersistentDisk = oldPersistentDisk && this.canUpdatePersistentDisk() // TODO PD: This logic should also have: && pd_has_actual_change
     const shouldDeletePersistentDiskLocal = oldPersistentDisk && !this.canUpdatePersistentDisk()
     const shouldUpdateRuntime = oldRuntime && this.canUpdate()
     const shouldDeleteRuntime = oldRuntime && !this.canUpdate()
@@ -247,10 +246,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       await this.deleteCluster(this.hasAttachedDisk() && shouldDeletePersistentDiskLocal)
     }
     if (shouldDeletePersistentDiskLocal && !this.hasAttachedDisk()) {
-      await Ajax().Disks.disk(namespace, oldPersistentDisk.name).delete()
+      await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
     }
     if (shouldUpdatePersistentDisk) {
-      await Ajax().Disks.disk(namespace, oldPersistentDisk.name).update(environmentConfig.persistentDisk.size)
+      await Ajax().Disks.disk(namespace, currentPersistentDisk.name).update(environmentConfig.persistentDisk.size)
     }
     return shouldUpdateRuntime ?
       Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).update({
