@@ -202,7 +202,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     await Utils.cond(
       [!sparkMode, () => this.createOrUpdateGCE()],
-      [!!sparkMode, () => this.createOnlyDataproc_()],
+      [!!sparkMode, () => this.createOrUpdateDataproc()],
       () => console.error('Not handled case in create runtime')
     )
 
@@ -210,10 +210,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess()
   })
 
-
-  async createOnlyDataproc_() {
+  // TODO PD: test the update case here
+  async createOrUpdateDataproc() {
     const { namespace, currentCluster } = this.props
     const { jupyterUserScriptUri, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = this.state
+    const { runtime: oldRuntime } = this.getServerEnvironmentConfig()
+    const shouldUpdateRuntime = oldRuntime && this.canUpdate()
     const runtimeConfig = {
       cloudService: cloudServices.DATAPROC,
       masterMachineType,
@@ -228,12 +230,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     if (currentCluster) {
       await this.deleteCluster(this.hasAttachedDisk() && this.shouldDeletePersistentDisk())
     }
-    return Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
-      runtimeConfig,
-      toolDockerImage: this.getCorrectImage(),
-      labels: this.generateClusterLabels(),
-      ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
-    })
+    return shouldUpdateRuntime ?
+      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).update({
+        runtimeConfig,
+        labels: this.generateClusterLabels()
+      }) :
+      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
+        runtimeConfig,
+        toolDockerImage: this.getCorrectImage(),
+        labels: this.generateClusterLabels(),
+        ...(jupyterUserScriptUri ? { jupyterUserScriptUri } : {})
+      })
   }
 
   shouldDeletePersistentDisk() {
