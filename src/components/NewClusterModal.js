@@ -197,61 +197,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     withErrorReporting('Error creating runtime')
   )(async () => {
     const { onSuccess } = this.props
-    const { sparkMode } = this.state
 
-    await Utils.cond(
-      [!sparkMode, () => this.createOrUpdateGCE()],
-      [!!sparkMode, () => this.createOrUpdateDataproc()],
-      () => console.error('Not handled case in create runtime')
-    )
+    await this.createOrUpdateGCE()
 
     //TODO PD: investigate react setState-after-unmount error
     onSuccess()
   })
 
-  async createOrUpdateDataproc() {
-    const { namespace, currentCluster } = this.props
-    const environmentConfig = this.getEnvironmentConfig()
-    const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getServerEnvironmentConfig()
-    const shouldUpdateRuntime = oldRuntime && this.canUpdate()
-    const shouldDeleteRuntime = oldRuntime && !this.canUpdate()
-    const shouldDeletePersistentDiskLocal = oldPersistentDisk && !this.canUpdatePersistentDisk()
-
-    const runtimeConfig = {
-      cloudService: environmentConfig.runtime.cloudService,
-      masterMachineType: environmentConfig.runtime.masterMachineType,
-      masterDiskSize: environmentConfig.runtime.masterDiskSize,
-      numberOfWorkers: environmentConfig.runtime.numberOfWorkers,
-      ...(environmentConfig.runtime.numberOfWorkers && {
-        numberOfPreemptibleWorkers: environmentConfig.runtime.numberOfPreemptibleWorkers,
-        workerMachineType: environmentConfig.runtime.workerMachineType,
-        workerDiskSize: environmentConfig.runtime.workerDiskSize
-      })
-    }
-
-    if (shouldDeleteRuntime) {
-      await this.deleteCluster(this.hasAttachedDisk() && shouldDeletePersistentDiskLocal)
-    }
-
-    return shouldUpdateRuntime ?
-      Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).update({
-        runtimeConfig
-      }) :
-      Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
-        runtimeConfig,
-        toolDockerImage: this.getCorrectImage(),
-        labels: this.generateClusterLabels(),
-        ...(environmentConfig.runtime.jupyterUserScriptUri ? { jupyterUserScriptUri: environmentConfig.runtime.jupyterUserScriptUri } : {})
-      })
-  }
-
-  shouldDeletePersistentDisk() {
-    const { selectedPersistentDiskSize, deleteDiskSelected } = this.state
-    // TODO PD: Maybe we should use 'shouldDeletePersistentDiskLocal' logic here instead (from createOrUpdateGCE method)
-    return (this.getCurrentPersistentDisk() && this.getCurrentPersistentDisk().size > selectedPersistentDiskSize) || deleteDiskSelected
-    // TODO PD: make sure to ignore pd size if not in pd mode
-  }
-
+  //TODO PD: TEST!!! and rename because now it handles dataproc as well
   async createOrUpdateGCE() {
     const { namespace, currentCluster } = this.props
     // TODO PD: Test this line
@@ -265,17 +218,28 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const runtimeConfig = {
       cloudService: environmentConfig.runtime.cloudService,
-      machineType: environmentConfig.runtime.machineType,
-      ...(environmentConfig.runtime.diskSize ? {
-        diskSize: environmentConfig.runtime.diskSize
-      } : {
-        persistentDisk: oldPersistentDisk && !shouldDeletePersistentDiskLocal ? {
-          name: oldPersistentDisk.name
+      ...(environmentConfig.runtime.cloudService === cloudServices.GCE ? {
+        machineType: environmentConfig.runtime.machineType,
+        ...(environmentConfig.runtime.diskSize ? {
+          diskSize: environmentConfig.runtime.diskSize
         } : {
-          name: Utils.generatePersistentDiskName(),
-          size: environmentConfig.persistentDisk.size // in GB
-          // diskType and blockSize are not required per leo team
-        }
+          persistentDisk: oldPersistentDisk && !shouldDeletePersistentDiskLocal ? {
+            name: oldPersistentDisk.name
+          } : {
+            name: Utils.generatePersistentDiskName(),
+            size: environmentConfig.persistentDisk.size // in GB
+            // diskType and blockSize are not required per leo team
+          }
+        })
+      } : {
+        masterMachineType: environmentConfig.runtime.masterMachineType,
+        masterDiskSize: environmentConfig.runtime.masterDiskSize,
+        numberOfWorkers: environmentConfig.runtime.numberOfWorkers,
+        ...(environmentConfig.runtime.numberOfWorkers && {
+          numberOfPreemptibleWorkers: environmentConfig.runtime.numberOfPreemptibleWorkers,
+          workerMachineType: environmentConfig.runtime.workerMachineType,
+          workerDiskSize: environmentConfig.runtime.workerDiskSize
+        })
       })
     }
     if (shouldDeleteRuntime) {
