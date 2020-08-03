@@ -88,7 +88,6 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
     !isPersistentDisk ? h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
-        readOnly ? div({ style: styles.disabledInputs }, [diskSize]) :
           h(NumberInput, {
             id,
             min: 10,
@@ -120,8 +119,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { currentCluster } = props
     const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
     const { masterDiskSize, masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
-    const matchingProfile = _.find(({ runtimeConfig }) => _.isMatch({ masterMachineType, masterDiskSize }, normalizeRuntimeConfig(runtimeConfig)),
-      profiles)
+    const matchingProfile = _.find(({ runtimeConfig }) => runtimeConfig.masterMachineType === masterMachineType, profiles)
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
     this.state = {
@@ -577,7 +575,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                       profile: value,
                       ...(value === 'custom' ?
                         {} :
-                        _.pick(['masterMachineType', 'masterDiskSize'], normalizeRuntimeConfig(_.find({ name: value }, profiles).runtimeConfig)))
+                        { masterMachineType: _.find({ name: value }, profiles).runtimeConfig.masterMachineType })
                     })
                   },
                   isSearchable: false,
