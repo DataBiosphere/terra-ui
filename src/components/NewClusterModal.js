@@ -192,8 +192,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` }
   }
 
-  // TODO PD: Change this name to capture it also updating
-  newCreateRuntime = _.flow(
+  applyChanges = _.flow(
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating runtime')
   )(async () => {
@@ -563,12 +562,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const bottomButtons = () => {
       const canUpdate = this.canUpdate()
-      const buttonLabel = Utils.cond(
-        [!currentCluster && !this.shouldDeletePersistentDisk(), () => { return 'create' }],
-        [canUpdate, () => { return 'update' }],
-        [!canUpdate, () => { return 'replace' }],
-        () => {}
-      )
 
       return h(Fragment, [
         div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
@@ -590,7 +583,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 this.warnOrApplyChanges()
               }
             }
-          }, [_.startCase(buttonLabel)])
+          }, [!currentCluster ? 'Create' : 'Update'])
         ])
       ])
     }
@@ -790,7 +783,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         })]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
-          h(ButtonPrimary, { onClick: () => this.newCreateRuntime() }, ['REPLACE'])
+          h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['UPDATE'])
         ])
       ])],
       ['customImageWarning', () => h(Fragment, [
@@ -844,37 +837,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ['deleteEnvironmentOptions', () => h(Fragment, [
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL'])
-        ])
-      ])],
-      ['replace', () => h(Fragment, [
-        clusterReplaceWarningText,
-        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonSecondary, {
-            style: { marginRight: '2rem' },
-            onClick: () => this.setState({ viewMode: undefined })
-          }, ['BACK']),
-          h(ButtonPrimary, { onClick: () => this.newCreateRuntime() }, ['REPLACE'])
-        ])
-      ])],
-      ['replacePersistentDisk', () => h(Fragment, [
-        diskReplaceWarningText,
-        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonSecondary, {
-            style: { marginRight: '2rem' },
-            onClick: () => this.setState({ viewMode: undefined })
-          }, ['BACK']),
-          h(ButtonPrimary, { onClick: () => this.newCreateRuntime() }, ['REPLACE'])
-        ])
-      ])],
-      ['replacePersistentDiskAndCluster', () => h(Fragment, [
-        clusterReplaceWarningText,
-        diskReplaceWarningText,
-        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonSecondary, {
-            style: { marginRight: '2rem' },
-            onClick: () => this.setState({ viewMode: undefined })
-          }, ['BACK']),
-          h(ButtonPrimary, { onClick: () => this.newCreateRuntime() }, ['REPLACE'])
         ])
       ])],
       [Utils.DEFAULT, () => h(Fragment, [
@@ -1003,12 +965,5 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     } else {
       this.applyChanges()
     }
-  }
-
-  // TODO PD: get rid of this function!!
-  applyChanges() {
-    //if (this.canUpdate() && this.getEnvironmentConfig().runtime.cloudService === cloudServices.)
-    // createGCE + updateGCE has been done but needs to be renamed
-    this.newCreateRuntime()
   }
 })
