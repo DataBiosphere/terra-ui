@@ -41,15 +41,6 @@ const zendeskImagePage = 'https://support.terra.bio/hc/en-us/articles/3600372694
 // distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
 
-const clusterReplaceWarningText = h(Fragment, [
-  //TODO PD: add real warning text here!
-  p(['Replacing runtime TODO']),
-  p(['You will be unable to work on the notebooks in this workspace while it updates, which can take a few minutes.'])
-])
-
-//TODO PD: add real warning text here!
-const diskReplaceWarningText = p(['Replacing disk TODO'])
-
 const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
 
 const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly, isPersistentDisk }) => {
@@ -88,15 +79,15 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
     !isPersistentDisk ? h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
-          h(NumberInput, {
-            id,
-            min: 10,
-            max: 64000,
-            isClearable: false,
-            onlyInteger: true,
-            value: diskSize,
-            onChange: onChangeDiskSize
-          })
+        h(NumberInput, {
+          id,
+          min: 10,
+          max: 64000,
+          isClearable: false,
+          onlyInteger: true,
+          value: diskSize,
+          onChange: onChangeDiskSize
+        })
       ])
     ]) : div({ style: { gridColumnEnd: 'span 2' } })
   ])
@@ -118,7 +109,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     super(props)
     const { currentCluster } = props
     const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
-    const { masterDiskSize, masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
+    const { masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
     const matchingProfile = _.find(({ runtimeConfig }) => runtimeConfig.masterMachineType === masterMachineType, profiles)
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
@@ -143,7 +134,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       _.last(_.sortBy('auditInfo.createdDate', persistentDisks))
   }
 
-  // TODO PD: replace usages of this with getEnvironmentConfig, then delete this function
+  // TODO PD: rewrite this using getNewEnvironmentConfig so it can feed runtimeConfigCost
   getRuntimeConfig(isNew = false) {
     const formatRuntimeConfig = config => {
       const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = config
@@ -261,7 +252,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ...(newRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: newRuntime.jupyterUserScriptUri } : {})
       })
     }
-
   }
 
   getNewEnvironmentConfig() {
