@@ -377,18 +377,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     )
   }
 
-  hasStartUpScriptChanged() {
-    const { jupyterUserScriptUri, currentClusterDetails } = this.state
-    const originalJupyterUserScriptUri = currentClusterDetails?.jupyterUserScriptUri || ''
-    return jupyterUserScriptUri !== originalJupyterUserScriptUri
-  }
-
-  hasImageChanged() {
-    const { selectedLeoImage, customEnvImage, currentClusterDetails } = this.state
-    const imageUrl = this.getImageUrl(currentClusterDetails)
-    return !_.includes(imageUrl, [selectedLeoImage, customEnvImage])
-  }
-
   hasAttachedDisk() {
     const { currentCluster } = this.props
     return currentCluster?.runtimeConfig.persistentDiskId
@@ -433,12 +421,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   hasChanges() {
-    const { currentCluster } = this.props
-    if (!currentCluster) return true
+    const oldConfig = this.getServerEnvironmentConfig()
+    const newConfig = this.getEnvironmentConfig()
 
-    const hasRuntimeConfigChanges = !_.isEqual(normalizeRuntimeConfig(currentCluster.runtimeConfig), normalizeRuntimeConfig(this.getRuntimeConfig()))
-
-    return hasRuntimeConfigChanges || this.hasImageChanged() || this.hasStartUpScriptChanged()
+    return !_.isEqual(oldConfig, newConfig)
   }
 
   // TODO PD: change usages of this over to newIsStopRequired and then delete this
