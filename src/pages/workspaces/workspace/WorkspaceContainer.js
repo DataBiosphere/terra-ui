@@ -89,6 +89,33 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
   ])
 }
 
+const GalaxyManager = () => {
+  return h(PopupTrigger, {
+    side: 'bottom',
+    closeOnClick: true,
+    content: h(Fragment, [
+      h(MenuButton, ['Launch Galaxy']),
+      h(MenuButton, ['Delete runtime'])
+    ])
+  }, [
+    h(Link, {
+      style: {
+        height: '3rem',
+        flex: 'none', display: 'flex', alignItems: 'center',
+        paddingLeft: '1rem', paddingRight: '1rem', marginRight: '1rem',
+        borderRadius: 5,
+        backgroundColor: colors.light()
+      }
+    }, [
+      div([icon('library', { size: 24 })]),
+      div({ style: { marginLeft: '0.25rem', color: colors.dark() } }, [
+        div({ style: { fontSize: 12, fontWeight: 'bold' } }, ['Galaxy']),
+        div({ style: { fontSize: 10, fontWeight: 500 } }, ['$1.15 hr'])
+      ])
+    ])
+  ])
+}
+
 const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters, children }) => {
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -113,6 +140,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
         icon('virus', { size: 24, style: { marginRight: '0.5rem' } }),
         div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools'])
       ]),
+      h(GalaxyManager),
       h(ClusterManager, {
         namespace, name, clusters, refreshClusters,
         canCompute: !!((workspace && workspace.canCompute) || (clusters && clusters.length))
