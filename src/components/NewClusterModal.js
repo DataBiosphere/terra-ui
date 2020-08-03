@@ -1005,10 +1005,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
+  // TODO PD: get rid of this function!!
   applyChanges() {
     //if (this.canUpdate() && this.getEnvironmentConfig().runtime.cloudService === cloudServices.)
     // createGCE + updateGCE has been done but needs to be renamed
-    // TODO PD: combine => createDP & updateDP
     this.newCreateRuntime()
   }
 })
