@@ -204,7 +204,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess()
   })
 
-  //TODO PD: TEST!!!
   async createOrUpdate() {
     const { namespace, currentCluster } = this.props
     const currentPersistentDisk = this.getCurrentPersistentDisk()
@@ -223,9 +222,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ...(newRuntime.diskSize ? {
           diskSize: newRuntime.diskSize
         } : {
-          // TODO PD: look into case of dataproc and disk -> change to GCE and increase disk size
           persistentDisk: oldPersistentDisk && !shouldDeletePersistentDiskLocal ? {
-            name: oldPersistentDisk.name
+            name: currentPersistentDisk.name
           } : {
             name: Utils.generatePersistentDiskName(),
             size: newPersistentDisk.size // in GB
