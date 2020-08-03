@@ -205,8 +205,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   async createOrUpdate() {
     const { namespace, currentCluster } = this.props
     const currentPersistentDisk = this.getCurrentPersistentDisk()
-    const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getServerEnvironmentConfig()
-    const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getEnvironmentConfig()
+    const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
+    const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
     const shouldUpdatePersistentDisk = oldPersistentDisk && this.canUpdatePersistentDisk() && !_.isEqual(newPersistentDisk, oldPersistentDisk)
     const shouldDeletePersistentDiskLocal = oldPersistentDisk && !this.canUpdatePersistentDisk()
     const shouldUpdateRuntime = oldRuntime && this.canUpdate() && !_.isEqual(newRuntime, oldRuntime)
@@ -264,7 +264,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   }
 
-  getEnvironmentConfig() {
+  getNewEnvironmentConfig() {
     const {
       deleteDiskSelected, selectedPersistentDiskSize, viewMode, masterMachineType,
       masterDiskSize, sparkMode, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType,
@@ -301,7 +301,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
-  getServerEnvironmentConfig() {
+  getOldEnvironmentConfig() {
     const { currentCluster, currentCluster: { runtimeConfig } = {} } = this.props
     const { currentClusterDetails } = this.state
     const cloudService = runtimeConfig?.cloudService
@@ -340,9 +340,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   canUpdate() {
-    // TODO PD: Should we use the old/new naming universally?
-    const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getServerEnvironmentConfig()
-    const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getEnvironmentConfig()
+    const { runtime: oldRuntime } = this.getOldEnvironmentConfig()
+    const { runtime: newRuntime } = this.getNewEnvironmentConfig()
 
     return !(
       !oldRuntime ||
@@ -352,8 +351,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       newRuntime.jupyterUserScriptUri !== oldRuntime.jupyterUserScriptUri ||
       (oldRuntime.cloudService === cloudServices.GCE ? (
         newRuntime.persistentDiskAttached !== oldRuntime.persistentDiskAttached ||
-        // TODO PD: call canUpdatePersistentDisk() here
-        (oldRuntime.persistentDiskAttached && newPersistentDisk.size < oldPersistentDisk.size) ||
+        (oldRuntime.persistentDiskAttached && !this.canUpdatePersistentDisk()) ||
         newRuntime.diskSize < oldRuntime.diskSize
       ) : (
         // TODO PD: is this code clear enough? (re: order of comparisons, order of new vs old, etc)
@@ -367,8 +365,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   canUpdatePersistentDisk() {
-    const { persistentDisk: oldPersistentDisk } = this.getServerEnvironmentConfig()
-    const { persistentDisk: newPersistentDisk } = this.getEnvironmentConfig()
+    const { persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
+    const { persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
 
     return !(
       !oldPersistentDisk ||
@@ -378,16 +376,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   hasChanges() {
-    const oldConfig = this.getServerEnvironmentConfig()
-    const newConfig = this.getEnvironmentConfig()
+    const oldConfig = this.getOldEnvironmentConfig()
+    const newConfig = this.getNewEnvironmentConfig()
 
     return !_.isEqual(oldConfig, newConfig)
   }
 
   // original diagram (without PD) for update runtime logic: https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
   newIsStopRequired() {
-    const { runtime: oldRuntime } = this.getServerEnvironmentConfig()
-    const { runtime: newRuntime } = this.getEnvironmentConfig()
+    const { runtime: oldRuntime } = this.getOldEnvironmentConfig()
+    const { runtime: newRuntime } = this.getNewEnvironmentConfig()
 
     // TODO PD: should we consider runtime status here?
     return this.canUpdate() &&
@@ -440,9 +438,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           [
             h(Link, { onClick: () => this.setState({ showDebugger: false }), style: { position: 'absolute', top: 0, right: 0 } }, ['x']),
             makeHeader('Server Environment Config'),
-            makeJSON(this.getServerEnvironmentConfig()),
+            makeJSON(this.getOldEnvironmentConfig()),
             makeHeader('Environment Config'),
-            makeJSON(this.getEnvironmentConfig()),
+            makeJSON(this.getNewEnvironmentConfig()),
             makeHeader('newCanUpdate'),
             makeJSON(this.canUpdate()),
             makeHeader('willDeleteBuiltinDisk'),
@@ -908,22 +906,22 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   willDeletePersistentDisk() {
-    const oldConfig = this.getServerEnvironmentConfig()
+    const oldConfig = this.getOldEnvironmentConfig()
     return oldConfig.persistentDisk && !this.canUpdatePersistentDisk()
   }
 
   willDeleteBuiltinDisk() {
-    const oldConfig = this.getServerEnvironmentConfig()
+    const oldConfig = this.getOldEnvironmentConfig()
     return (oldConfig.runtime?.diskSize || oldConfig.runtime?.masterDiskSize) && !this.canUpdate()
   }
 
   willRequireDowntime() {
-    const oldConfig = this.getServerEnvironmentConfig()
+    const oldConfig = this.getOldEnvironmentConfig()
     return oldConfig.runtime && (!this.canUpdate() || this.newIsStopRequired())
   }
 
   warnOrApplyChanges() {
-    if (this.getEnvironmentConfig().runtime.cloudService === cloudServices.DATAPROC && this.hasAttachedDisk()) {
+    if (this.getNewEnvironmentConfig().runtime.cloudService === cloudServices.DATAPROC && this.hasAttachedDisk()) {
       this.setState({ viewMode: 'switchFromGCEToDataproc' })
     } else if (this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime()) {
       this.setState({ viewMode: 'environmentWarning' })
