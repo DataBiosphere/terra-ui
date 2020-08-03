@@ -210,7 +210,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess()
   })
 
-  // TODO PD: test the update case here
   async createOrUpdateDataproc() {
     const { namespace, currentCluster } = this.props
     const environmentConfig = this.getEnvironmentConfig()
@@ -218,7 +217,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const shouldUpdateRuntime = oldRuntime && this.canUpdate()
     const shouldDeleteRuntime = oldRuntime && !this.canUpdate()
     const shouldDeletePersistentDiskLocal = oldPersistentDisk && !this.canUpdatePersistentDisk()
-    
+
     const runtimeConfig = {
       cloudService: environmentConfig.runtime.cloudService,
       masterMachineType: environmentConfig.runtime.masterMachineType,
@@ -369,22 +368,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       } : undefined,
       persistentDisk: currentPersistentDisk ? { size: currentPersistentDisk.size } : undefined
     }
-  }
-
-  updateCluster() {
-    // TODO PD: This doesn't know about persistent disks yet
-    const { currentCluster, onSuccess } = this.props
-    const { googleProject, runtimeName } = currentCluster
-
-    if (this.newIsStopRequired()) {
-      notify('info', 'To be updated, your runtime will now stop, and then start. This will take 3-5 minutes.')
-    }
-
-    return onSuccess(
-      Ajax().Clusters.cluster(googleProject, runtimeName).update({
-        runtimeConfig: this.getRuntimeConfig()
-      })
-    )
   }
 
   hasAttachedDisk() {
@@ -1026,11 +1009,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     //if (this.canUpdate() && this.getEnvironmentConfig().runtime.cloudService === cloudServices.)
     // createGCE + updateGCE has been done but needs to be renamed
     // TODO PD: combine => createDP & updateDP
-    if (this.canUpdate()) {
-      // TODO PD: stop calling updateCluster
-      this.updateCluster()
-    } else {
-      this.newCreateRuntime()
-    }
+    this.newCreateRuntime()
   }
 })
