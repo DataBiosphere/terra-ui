@@ -362,11 +362,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   updateCluster() {
-    // TODO PD: This doens't know about persistent disks yet
+    // TODO PD: This doesn't know about persistent disks yet
     const { currentCluster, onSuccess } = this.props
     const { googleProject, runtimeName } = currentCluster
 
-    if (this.isStopRequired()) {
+    if (this.newIsStopRequired()) {
       notify('info', 'To be updated, your runtime will now stop, and then start. This will take 3-5 minutes.')
     }
 
@@ -427,21 +427,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return !_.isEqual(oldConfig, newConfig)
   }
 
-  // TODO PD: change usages of this over to newIsStopRequired and then delete this
-  //returns true for case 3 in this diagram: https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
-  isStopRequired() {
-    const { currentCluster } = this.props
-
-    const currentClusterConfig = normalizeRuntimeConfig(currentCluster.runtimeConfig)
-    const userSelectedConfig = normalizeRuntimeConfig(this.getRuntimeConfig())
-
-    const isMasterMachineTypeChanged = currentClusterConfig.masterMachineType !== userSelectedConfig.masterMachineType
-
-    const isClusterRunning = currentCluster.status === 'Running'
-
-    return this.canUpdate() && isMasterMachineTypeChanged && isClusterRunning
-  }
-
+  // original diagram (without PD) for update runtime logic: https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
   newIsStopRequired() {
     const { runtime: oldRuntime } = this.getServerEnvironmentConfig()
     const { runtime: newRuntime } = this.getEnvironmentConfig()
@@ -451,21 +437,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       (oldRuntime.cloudService === cloudServices.GCE ?
         oldRuntime.machineType !== newRuntime.machineType :
         oldRuntime.masterMachineType !== newRuntime.masterMachineType)
-  }
-
-  getRunningUpdateText() {
-    return this.isStopRequired() ?
-      p([
-        'Changing the machine type (increasing or decreasing the # of CPUs or Mem) results in an update that requires a ',
-        b(['restart']),
-        ' of your runtime. This may take a 3-5 minutes. Would you like to proceed? ',
-        b(['(You will not lose any files.)'])
-      ]) :
-      p([
-        'Increasing the disk size or changing the number of workers (when the number of workers is >2) results in a real-time update to your runtime. ',
-        'Updating the number of workers can take around 2 minutes. ',
-        'During this update, you can continue to work.'
-      ])
   }
 
   getImageUrl(clusterDetails) {
@@ -911,22 +882,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             onClick: () => this.setState({ viewMode: undefined })
           }, ['BACK']),
           h(ButtonPrimary, { onClick: () => this.newCreateRuntime() }, ['REPLACE'])
-        ])
-      ])],
-      ['update', () => h(Fragment, [
-        currentCluster.status === 'Running' ?
-          this.getRunningUpdateText() :
-          p([
-            'This will update your existing runtime. You will not lose any files. ',
-            'After the update is finished you will be able to start your runtime. ',
-            'Note that updating the number of workers requires your runtime to already be started.'
-          ]),
-        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonSecondary, {
-            style: { marginRight: '2rem' },
-            onClick: () => this.setState({ viewMode: undefined })
-          }, ['BACK']),
-          h(ButtonPrimary, { onClick: () => this.updateCluster() }, ['UPDATE'])
         ])
       ])],
       [Utils.DEFAULT, () => h(Fragment, [
