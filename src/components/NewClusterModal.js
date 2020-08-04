@@ -514,12 +514,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
       return h(Fragment, [
         div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
-          !!currentCluster && !this.getCurrentPersistentDisk() &&
-          h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' }) }, ['Delete Runtime']),
-          !currentCluster && !!this.getCurrentPersistentDisk() &&
-          h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' }) }, ['Delete Persistent Disk']),
-          !!currentCluster && !!this.getCurrentPersistentDisk() &&
-          h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' }) }, ['Delete Environment Options']),
+          (!!currentCluster || !!this.getCurrentPersistentDisk()) &&
+          h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' }) }, [
+            Utils.cond(
+              [!!currentCluster && !this.getCurrentPersistentDisk(), 'Delete Runtime'],
+              [!currentCluster && !!this.getCurrentPersistentDisk(), 'Delete Persistent Disk'],
+              'Delete Environment Options'
+            )
+          ]),
           div({ style: { flex: 1 } }),
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: onDismiss }, 'Cancel'),
           h(ButtonPrimary, {
