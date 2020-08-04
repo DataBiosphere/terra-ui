@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
-import { b, div, fieldset, h, label, legend, p, span } from 'react-hyperscript-helpers'
+import { b, div, fieldset, h, input, label, legend, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, RadioButton, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
@@ -91,6 +91,20 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
         })
       ])
     ]) : div({ style: { gridColumnEnd: 'span 2' } })
+  ])
+}
+
+//TODO PD: fix styling
+const FancyRadio = ({ labelText, children }) => {
+  const optionContainer = { backgroundColor: colors.warning(), borderRadius: 3, display: 'flex' }
+
+  return div({ style: optionContainer }, [
+    input({ type: 'radio' }),
+    div([
+      div({ style: { fontWeight: 600 } }, [labelText]),
+      children
+    ])
+
   ])
 }
 
@@ -919,7 +933,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   // TODO PD: WIP- the divs need to be radio buttons and add logic to show them at the correct time
-  //TODO PD: desctructure the oldEnviornmenntConfig runtime and PD
+  //TODO PD: convert these ther options ot use fancy radio
   newDeleteText() {
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     const optionContainer = { backgroundColor: colors.warning(), borderRadius: 3 }
@@ -927,8 +941,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       Utils.cond(
         [oldRuntime && oldPersistentDisk, () => {
           return h(Fragment, [
-            div({ style: optionContainer }, [
-              div({ style: { fontWeight: 600 } }, ['Keep persistent disk, delete application configuration and cloud compute']),
+            h(FancyRadio, { labelText: 'Keep persistent disk, delete application configuration and cloud compute'}, [
               p([
                 'Your application configuration and cloud compute are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type. \n',
                 'You will continue to incur persistent disk cost at '
@@ -958,23 +971,22 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             }, ['Learn more about workspace buckets']),
             p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks. You will no longer incur any costs from this cloud environment.'])
           ])
-        }]
-      ),
-      //TODO PD: Finish filling out the cond
-
-      div([p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
-        'Deleting your runtime will also ',
-        span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
-        '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
-        h(Link, {
-          href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-          ...Utils.newTabLinkProps
-        }, ['move them to the workspace bucket.'])
-      ]),
-      p({ style: { margin: '14px 0px 0px', lineHeight: '1.5rem' } },
-        ['Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, ' +
-          'which will take several minutes.'])])
-
+        }],
+        () => {
+          return div([p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
+            'Deleting your runtime will also ',
+            span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
+            '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+            h(Link, {
+              href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+              ...Utils.newTabLinkProps
+            }, ['move them to the workspace bucket.'])
+          ]),
+          p({ style: { margin: '14px 0px 0px', lineHeight: '1.5rem' } },
+            ['Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, ' +
+              'which will take several minutes.'])])
+        }
+      )
     ])])
   }
 })
