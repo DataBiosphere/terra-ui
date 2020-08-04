@@ -257,7 +257,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
     return {
-      runtime: !_.includes(viewMode, ['deleteRuntime', 'deletePersistentDisk', 'deleteEnvironmentOptions']) ? {
+      runtime: (viewMode !== 'deleteEnvironmentOptions') ? {
         cloudService,
         ...(cloudService === cloudServices.GCE ? {
           machineType: masterMachineType,
@@ -515,9 +515,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       return h(Fragment, [
         div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
           !!currentCluster && !this.getCurrentPersistentDisk() &&
-          h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteRuntime' }) }, ['Delete Runtime']),
+          h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' }) }, ['Delete Runtime']),
           !currentCluster && !!this.getCurrentPersistentDisk() &&
-          h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deletePersistentDisk' }) }, ['Delete Persistent Disk']),
+          h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' }) }, ['Delete Persistent Disk']),
           !!currentCluster && !!this.getCurrentPersistentDisk() &&
           h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' }) }, ['Delete Environment Options']),
           div({ style: { flex: 1 } }),
@@ -779,21 +779,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         // 2. You have a PD that's being shrunk, so it needs to be deleted and you will lose data
         // 3. You have a machine that needs to be rebuilt/updated, you will not lose data but will be unable to use the machine for a few mins
       ])],
-      ['deleteRuntime', () => h(Fragment, [
+      ['deleteEnvironmentOptions', () => h(Fragment, [
         h(deleteText),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
           h(ButtonPrimary, { onClick: () => onSuccess(this.deleteCluster()) }, ['DELETE'])
-        ])
-      ])],
-      ['deletePersistentDisk', () => h(Fragment, [
-        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL'])
-        ])
-      ])],
-      ['deleteEnvironmentOptions', () => h(Fragment, [
-        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL'])
         ])
       ])],
       [Utils.DEFAULT, () => h(Fragment, [
