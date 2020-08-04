@@ -11,7 +11,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { cloudServices, machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { DEFAULT_DISK_SIZE, deleteText, findMachineType, newDeleteText, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
+import { DEFAULT_DISK_SIZE, deleteText, findMachineType, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { deletePDText } from 'src/libs/disk-utils'
 import { withErrorReporting } from 'src/libs/error'
@@ -782,7 +782,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         // 3. You have a machine that needs to be rebuilt/updated, you will not lose data but will be unable to use the machine for a few mins
       ])],
       ['deleteEnvironmentOptions', () => h(Fragment, [
-        h(newDeleteText),
+        this.newDeleteText(),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
           h(ButtonPrimary, { onClick: () => onSuccess(this.deleteCluster()) }, ['DELETE'])
@@ -915,5 +915,45 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     } else {
       this.applyChanges()
     }
+  }
+  
+  // TODO PD: WIP- the divs need to be radio buttons and add logic to show them at the correct time
+  newDeleteText() {
+    const { currentCluster } = this.props // TODO PD: considering using oldEnvironmentConfig instead
+    const optionContainer = { backgroundColor: colors.warning(), borderRadius: 3 }
+    return h(Fragment, [p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
+      div({ style: optionContainer },
+        [div({ style: { fontWeight: 600 } }, ['Keep persistent disk, delete application configuration and cloud compute']),
+          p(['Your application configuration and cloud compute are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type. \n' +
+          'You will continue to incur persistent disk cost at '])]), // TODO PD: add the cost object
+      !!currentCluster && !this.getCurrentPersistentDisk() && div({ style: optionContainer }, [div({ style: { fontWeight: 600 } }, ['Delete cloud environment including persistent disk']),
+        p(['Deletes your persistent disk (and its associated data), application configuration and cloud compute. To permanently save your data, copy it to the workspace bucket. \n']),
+        h(Link, {
+          href: '',
+          ...Utils.newTabLinkProps
+        }, ['Learn more about workspace buckets']),
+        p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.\n' +
+        'You will no longer incur any costs from this cloud environment.'])]),
+      div({ style: optionContainer }, [div({ style: { fontWeight: 600 } }, ['Delete persistent disk']),
+        p(['Your persistent disk (and its associated data) are deleted. If you want to permanently save your data before deleting your disk, create a new runtime environment to access the disk and copy your data to the workspace bucket.']),
+        h(Link, {
+          href: '',
+          ...Utils.newTabLinkProps
+        }, ['Learn more about workspace buckets']),
+        p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks. You will no longer incur any costs from this cloud environment.'])]),
+      div([p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
+        'Deleting your runtime will also ',
+        span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
+        '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+        h(Link, {
+          href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+          ...Utils.newTabLinkProps
+        }, ['move them to the workspace bucket.'])
+      ]),
+      p({ style: { margin: '14px 0px 0px', lineHeight: '1.5rem' } },
+        ['Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, ' +
+          'which will take several minutes.'])])
+
+    ])])
   }
 })
