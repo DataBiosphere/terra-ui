@@ -100,7 +100,17 @@ export const deleteText = () => {
 export const newDeleteText = () => {
   const optionContainer = { backgroundColor: colors.warning(), borderRadius: 3 }
   return h(Fragment, [p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
-    div({ style: optionContainer }, ['helloworld1']),
-    div({ style: optionContainer }, ['helloworld2'])
+    div({ style: optionContainer },
+      [div({ style: { fontWeight: 600 } }, ['Keep persistent disk, delete application configuration and cloud compute']),
+        p(['Your application configuration and cloud compute are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type. \n' +
+        'You will continue to incur persistent disk cost at '])]), // TODO PD: add the cost object
+    div({ style: optionContainer }, [div({ style: { fontWeight: 600 } }, ['Delete cloud environment including persistent disk']),
+      p(['Deletes your persistent disk (and its associated data), application configuration and cloud compute. To permanently save your data, copy it to the workspace bucket. \n']),
+      h(Link, {
+        href: '',
+        ...Utils.newTabLinkProps
+      }, ['Learn more about workspace buckets']),
+      p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.\n' +
+      'You will no longer incur any costs from this cloud environment.'])])
   ])])
 }
