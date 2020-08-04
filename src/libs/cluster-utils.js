@@ -46,6 +46,7 @@ export const findMachineType = name => {
 }
 
 export const runtimeConfigCost = config => {
+  // TODO PD (low priority): Should rewrite the cost calculation to not use normalize
   const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = normalizeRuntimeConfig(config)
   const { price: masterPrice } = findMachineType(masterMachineType)
   const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)

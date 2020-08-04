@@ -134,7 +134,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       _.last(_.sortBy('auditInfo.createdDate', persistentDisks))
   }
 
-  //TODO PD: WIP should rewrite the cost calculation to not use normalize
   getPendingRuntimeConfig() {
     const { runtime: newRuntime } = this.getNewEnvironmentConfig()
     return {
@@ -144,7 +143,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         machineType: newRuntime.machineType,
         ...(newRuntime.diskSize ? {
           diskSize: newRuntime.diskSize
-        } : {} )
+        } : {})
       } : {
         masterMachineType: newRuntime.masterMachineType,
         masterDiskSize: newRuntime.masterDiskSize,
@@ -677,6 +676,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
         }, [
           span({ style: { ...styles.label, marginRight: '0.25rem', textTransform: 'uppercase' } }, ['cost:']),
+          // TODO PD: This should take into account PD and isn't right now.
           `${Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))} per hour`
         ]),
         !!isPersistentDisk && h(IdContainer, [
