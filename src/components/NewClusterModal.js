@@ -511,14 +511,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const bottomButtons = () => {
       const canUpdate = this.canUpdate()
+      const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
 
       return h(Fragment, [
         div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
-          (!!currentCluster || !!this.getCurrentPersistentDisk()) &&
+          (!!oldRuntime || !!oldPersistentDisk) &&
           h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' }) }, [
             Utils.cond(
-              [!!currentCluster && !this.getCurrentPersistentDisk(), 'Delete Runtime'],
-              [!currentCluster && !!this.getCurrentPersistentDisk(), 'Delete Persistent Disk'],
+              [!!oldRuntime && !oldPersistentDisk, 'Delete Runtime'],
+              [!oldRuntime && !!oldPersistentDisk, 'Delete Persistent Disk'],
               'Delete Environment Options'
             )
           ]),
@@ -916,17 +917,30 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       this.applyChanges()
     }
   }
-  
+
   // TODO PD: WIP- the divs need to be radio buttons and add logic to show them at the correct time
+  //TODO PD: desctructure the oldEnviornmenntConfig runtime and PD
   newDeleteText() {
-    const { currentCluster } = this.props // TODO PD: considering using oldEnvironmentConfig instead
     const optionContainer = { backgroundColor: colors.warning(), borderRadius: 3 }
     return h(Fragment, [p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
+      Utils.cond(
+        [this.getOldEnvironmentConfig().runtime && !this.getOldEnvironmentConfig().persistentDisk, () => div({ style: optionContainer }, [div({ style: { fontWeight: 600 } }, ['Delete cloud environment including persistent disk']),
+          p(['Deletes your persistent disk (and its associated data), application configuration and cloud compute. To permanently save your data, copy it to the workspace bucket. \n']),
+          h(Link, {
+            href: '',
+            ...Utils.newTabLinkProps
+          }, ['Learn more about workspace buckets']),
+          p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.\n' +
+          'You will no longer incur any costs from this cloud environment.'])])]
+      ),
+      //TODO PD: Finish filling out the cond
+
+
       div({ style: optionContainer },
         [div({ style: { fontWeight: 600 } }, ['Keep persistent disk, delete application configuration and cloud compute']),
           p(['Your application configuration and cloud compute are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type. \n' +
           'You will continue to incur persistent disk cost at '])]), // TODO PD: add the cost object
-      !!currentCluster && !this.getCurrentPersistentDisk() && div({ style: optionContainer }, [div({ style: { fontWeight: 600 } }, ['Delete cloud environment including persistent disk']),
+      this.getOldEnvironmentConfig().runtime && !this.getOldEnvironmentConfig().persistentDisk && div({ style: optionContainer }, [div({ style: { fontWeight: 600 } }, ['Delete cloud environment including persistent disk']),
         p(['Deletes your persistent disk (and its associated data), application configuration and cloud compute. To permanently save your data, copy it to the workspace bucket. \n']),
         h(Link, {
           href: '',
