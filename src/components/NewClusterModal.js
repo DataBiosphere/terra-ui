@@ -3,6 +3,7 @@ import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { b, div, fieldset, h, label, legend, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, RadioButton, Select, spinnerOverlay } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -682,6 +683,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         !!isPersistentDisk && h(IdContainer, [
           id => h(div, { style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
             label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
+            div({ style: { marginTop: '0.5rem' } }, [
+              'A safeguard to store and protect your data. ',
+              h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
+            ]),
             h(NumberInput, {
               id,
               min: 10,
@@ -707,11 +712,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         makeImageInfo({ margin: '1rem 0 0.5rem' }),
         packages && h(ImageDepViewer, { packageLink: packages })
       ])],
-      ['aboutPersistentDisk', () => h(Fragment, [
+      ['aboutPersistentDisk', () => div({ style: { lineHeight: 1.5 } }, [
         p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you deleting compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
         p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
         p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
-        p(['Learn more about about persistent disks in the Terra Support site'])
+        h(Link, { href: 'TODO PD', ...Utils.newTabLinkProps }, [
+          'Learn more about about persistent disks in the Terra Support site',
+          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+        ])
       ])],
       ['switchFromGCEToDataproc', () => h(Fragment, [
         div(['You have requested to replace your existing application and cloud compute configurations to ones that support Hail.' +
@@ -868,12 +876,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return h(Fragment, [
       h(TitleBar, {
         title: Utils.switchCase(viewMode,
-          ['packages', () => 'INSTALLED PACKAGES'],
-          ['customImageWarning', () => 'WARNING!'],
-          ['delete', () => 'DELETE RUNTIME?'],
-          ['update', () => 'UPDATE RUNTIME?'],
+          ['packages', () => 'Installed packages'],
+          ['aboutPersistentDisk', () => 'About persistent disks'],
+          ['customImageWarning', () => 'Warning!'],
+          ['delete', () => 'Delete runtime?'],
+          ['update', () => 'Update runtime?'],
           ['switchFromGCEToDataproc', () => 'Replace application configuration and cloud compute for Hail'],
-          [Utils.DEFAULT, () => 'RUNTIME CONFIGURATION']
+          [Utils.DEFAULT, () => 'Runtime configuration']
         ),
         onDismiss,
         onPrevious: !!viewMode ? () => this.setState({ viewMode: undefined }) : undefined
