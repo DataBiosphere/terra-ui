@@ -778,9 +778,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['UPDATE'])
         ])
         // TODO PD: display these messages:
-        // 1. You have a machine with builtin disk, that needs to be deleted, so you will lose data
-        // 2. You have a PD that's being shrunk, so it needs to be deleted and you will lose data
-        // 3. You have a machine that needs to be rebuilt/updated, you will not lose data but will be unable to use the machine for a few mins
+        // 1. See SATURN-1781
+        // 2. See SATURN 1782
+        // 3. See SATURN 1783
       ])],
       ['deleteEnvironmentOptions', () => h(Fragment, [
         this.newDeleteText(),
