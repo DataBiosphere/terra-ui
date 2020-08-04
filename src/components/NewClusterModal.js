@@ -921,40 +921,47 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   // TODO PD: WIP- the divs need to be radio buttons and add logic to show them at the correct time
   //TODO PD: desctructure the oldEnviornmenntConfig runtime and PD
   newDeleteText() {
+    const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     const optionContainer = { backgroundColor: colors.warning(), borderRadius: 3 }
     return h(Fragment, [p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
       Utils.cond(
-        [this.getOldEnvironmentConfig().runtime && !this.getOldEnvironmentConfig().persistentDisk, () => div({ style: optionContainer }, [div({ style: { fontWeight: 600 } }, ['Delete cloud environment including persistent disk']),
-          p(['Deletes your persistent disk (and its associated data), application configuration and cloud compute. To permanently save your data, copy it to the workspace bucket. \n']),
-          h(Link, {
-            href: '',
-            ...Utils.newTabLinkProps
-          }, ['Learn more about workspace buckets']),
-          p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.\n' +
-          'You will no longer incur any costs from this cloud environment.'])])]
+        [oldRuntime && oldPersistentDisk, () => {
+          return h(Fragment, [
+            div({ style: optionContainer }, [
+              div({ style: { fontWeight: 600 } }, ['Keep persistent disk, delete application configuration and cloud compute']),
+              p([
+                'Your application configuration and cloud compute are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type. \n',
+                'You will continue to incur persistent disk cost at '
+              ])
+            ]), // TODO PD: add the cost object
+            div({ style: optionContainer }, [
+              div({ style: { fontWeight: 600 } }, ['Delete cloud environment including persistent disk']),
+              p(['Deletes your persistent disk (and its associated data), application configuration and cloud compute. To permanently save your data, copy it to the workspace bucket. \n']),
+              h(Link, {
+                href: '',
+                ...Utils.newTabLinkProps
+              }, ['Learn more about workspace buckets']),
+              p([
+                'Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.\n',
+                'You will no longer incur any costs from this cloud environment.'
+              ])
+            ])
+          ])
+        }],
+        [!oldRuntime && oldPersistentDisk, () => {
+          return div({ style: optionContainer }, [
+            div({ style: { fontWeight: 600 } }, ['Delete persistent disk']),
+            p(['Your persistent disk (and its associated data) are deleted. If you want to permanently save your data before deleting your disk, create a new runtime environment to access the disk and copy your data to the workspace bucket.']),
+            h(Link, {
+              href: '',
+              ...Utils.newTabLinkProps
+            }, ['Learn more about workspace buckets']),
+            p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks. You will no longer incur any costs from this cloud environment.'])
+          ])
+        }]
       ),
       //TODO PD: Finish filling out the cond
 
-
-      div({ style: optionContainer },
-        [div({ style: { fontWeight: 600 } }, ['Keep persistent disk, delete application configuration and cloud compute']),
-          p(['Your application configuration and cloud compute are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type. \n' +
-          'You will continue to incur persistent disk cost at '])]), // TODO PD: add the cost object
-      this.getOldEnvironmentConfig().runtime && !this.getOldEnvironmentConfig().persistentDisk && div({ style: optionContainer }, [div({ style: { fontWeight: 600 } }, ['Delete cloud environment including persistent disk']),
-        p(['Deletes your persistent disk (and its associated data), application configuration and cloud compute. To permanently save your data, copy it to the workspace bucket. \n']),
-        h(Link, {
-          href: '',
-          ...Utils.newTabLinkProps
-        }, ['Learn more about workspace buckets']),
-        p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.\n' +
-        'You will no longer incur any costs from this cloud environment.'])]),
-      div({ style: optionContainer }, [div({ style: { fontWeight: 600 } }, ['Delete persistent disk']),
-        p(['Your persistent disk (and its associated data) are deleted. If you want to permanently save your data before deleting your disk, create a new runtime environment to access the disk and copy your data to the workspace bucket.']),
-        h(Link, {
-          href: '',
-          ...Utils.newTabLinkProps
-        }, ['Learn more about workspace buckets']),
-        p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks. You will no longer incur any costs from this cloud environment.'])]),
       div([p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
         'Deleting your runtime will also ',
         span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
