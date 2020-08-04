@@ -1,9 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, p, span } from 'react-hyperscript-helpers'
+import { h, p, span } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { cloudServices, dataprocCpuPrice, machineTypes, storagePrice } from 'src/data/machines'
-import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
 

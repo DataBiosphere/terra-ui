@@ -11,11 +11,9 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { cloudServices, machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { DEFAULT_DISK_SIZE, deleteText, findMachineType, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
+import { DEFAULT_DISK_SIZE, findMachineType, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
-import { deletePDText } from 'src/libs/disk-utils'
 import { withErrorReporting } from 'src/libs/error'
-import { notify } from 'src/libs/notifications'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -932,24 +930,24 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
-  // TODO PD: WIP- the divs need to be radio buttons and add logic to show them at the correct time
-  //TODO PD: convert these ther options ot use fancy radio
+  // TODO PD: WIP - make radio buttons work!!
+  //TODO PD: language doesn't match in the case of a runtime with a detached disk
   newDeleteText() {
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
-    const optionContainer = { backgroundColor: colors.warning(), borderRadius: 3 }
     return h(Fragment, [p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
       Utils.cond(
         [oldRuntime && oldPersistentDisk, () => {
           return h(Fragment, [
-            h(FancyRadio, { labelText: 'Keep persistent disk, delete application configuration and cloud compute'}, [
+            h(FancyRadio, { labelText: 'Keep persistent disk, delete application configuration and cloud compute' }, [
               p([
-                'Your application configuration and cloud compute are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type. \n',
+                'Your application configuration and cloud compute are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.',
                 'You will continue to incur persistent disk cost at '
               ])
             ]), // TODO PD: add the cost object
-            div({ style: optionContainer }, [
-              div({ style: { fontWeight: 600 } }, ['Delete cloud environment including persistent disk']),
-              p(['Deletes your persistent disk (and its associated data), application configuration and cloud compute. To permanently save your data, copy it to the workspace bucket. \n']),
+            h(FancyRadio, { labelText: 'Delete cloud environment including persistent disk' }, [
+              p([
+                'Deletes your persistent disk (and its associated data), application configuration and cloud compute. To permanently save your data, copy it to the workspace bucket.'
+              ]),
               h(Link, {
                 href: '',
                 ...Utils.newTabLinkProps
@@ -962,9 +960,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ])
         }],
         [!oldRuntime && oldPersistentDisk, () => {
-          return div({ style: optionContainer }, [
-            div({ style: { fontWeight: 600 } }, ['Delete persistent disk']),
-            p(['Your persistent disk (and its associated data) are deleted. If you want to permanently save your data before deleting your disk, create a new runtime environment to access the disk and copy your data to the workspace bucket.']),
+          return h(FancyRadio, { labelText: 'Delete persistent disk' }, [
+            p([
+              'Your persistent disk (and its associated data) are deleted. If you want to permanently save your data before deleting your disk, create a new runtime environment to access the disk and copy your data to the workspace bucket.'
+            ]),
             h(Link, {
               href: '',
               ...Utils.newTabLinkProps
