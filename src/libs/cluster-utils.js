@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { h, p, span } from 'react-hyperscript-helpers'
+import { div, h, p, span } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { cloudServices, dataprocCpuPrice, machineTypes, storagePrice } from 'src/data/machines'
+import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
 
@@ -94,4 +95,12 @@ export const deleteText = () => {
   p({ style: { margin: '14px 0px 0px', lineHeight: '1.5rem' } },
     ['Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, ' +
       'which will take several minutes.'])])
+}
+
+export const newDeleteText = () => {
+  const optionContainer = { backgroundColor: colors.warning(), borderRadius: 3 }
+  return h(Fragment, [p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
+    div({ style: optionContainer }, ['helloworld1']),
+    div({ style: optionContainer }, ['helloworld2'])
+  ])])
 }

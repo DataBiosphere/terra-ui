@@ -11,7 +11,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { cloudServices, machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { DEFAULT_DISK_SIZE, deleteText, findMachineType, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
+import { DEFAULT_DISK_SIZE, deleteText, findMachineType, newDeleteText, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { deletePDText } from 'src/libs/disk-utils'
 import { withErrorReporting } from 'src/libs/error'
@@ -782,7 +782,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         // 3. You have a machine that needs to be rebuilt/updated, you will not lose data but will be unable to use the machine for a few mins
       ])],
       ['deleteEnvironmentOptions', () => h(Fragment, [
-        h(deleteText),
+        h(newDeleteText),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
           h(ButtonPrimary, { onClick: () => onSuccess(this.deleteCluster()) }, ['DELETE'])
