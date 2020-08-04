@@ -82,6 +82,7 @@ export const collapsedClusterStatus = cluster => {
   return cluster && (cluster.patchInProgress ? 'LeoReconfiguring' : cluster.status) // NOTE: preserves null vs undefined
 }
 
+//TODO PD: use this text for deleting old runtimes or DP that don't have PDs
 export const deleteText = () => {
   return h(Fragment, [p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
     'Deleting your runtime will also ',
@@ -111,6 +112,26 @@ export const newDeleteText = () => {
         ...Utils.newTabLinkProps
       }, ['Learn more about workspace buckets']),
       p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.\n' +
-      'You will no longer incur any costs from this cloud environment.'])])
+      'You will no longer incur any costs from this cloud environment.'])]),
+    div({ style: optionContainer }, [div({ style: { fontWeight: 600 } }, ['Delete persistent disk']),
+      p(['Your persistent disk (and its associated data) are deleted. If you want to permanently save your data before deleting your disk, create a new runtime environment to access the disk and copy your data to the workspace bucket.']),
+      h(Link, {
+        href: '',
+        ...Utils.newTabLinkProps
+      }, ['Learn more about workspace buckets']),
+      p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks. You will no longer incur any costs from this cloud environment.'])]),
+    div( [p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
+      'Deleting your runtime will also ',
+      span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
+      '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+      h(Link, {
+        href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+        ...Utils.newTabLinkProps
+      }, ['move them to the workspace bucket.'])
+    ]),
+      p({ style: { margin: '14px 0px 0px', lineHeight: '1.5rem' } },
+        ['Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, ' +
+        'which will take several minutes.'])])
+
   ])])
 }

@@ -718,7 +718,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you deleting compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
         p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
         p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
-        h(Link, { href: 'TODO PD', ...Utils.newTabLinkProps }, [
+        h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360047318551', ...Utils.newTabLinkProps }, [
           'Learn more about about persistent disks in the Terra Support site',
           icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ])
