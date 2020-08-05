@@ -99,9 +99,9 @@ const FancyRadio = ({ labelText, children, name, checked, onChange, style = {} }
   return div({ style: { ...optionContainer, ...style } }, [
     // TODO PD: link id to radio and label for accessibility
     h(IdContainer, [id => h(Fragment, [
-      input({ type: 'radio', name, checked, onChange }),
+      input({ type: 'radio', name, checked, onChange, id }),
       div({ style: { marginLeft: '.75rem' } }, [
-        div({ style: { fontWeight: 600, fontSize: 16 } }, [labelText]),
+        label({ style: { fontWeight: 600, fontSize: 16 }, htmlFor: id }, [labelText]),
         children
       ])
     ])])
@@ -447,9 +447,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             makeHeader('willDeletePersistentDisk'),
             makeJSON(!!this.willDeletePersistentDisk()),
             makeHeader('willRequireDowntime'),
-            makeJSON(!!this.willRequireDowntime()),
-            makeHeader('getPendingRuntimeConfig'),
-            makeJSON(this.getPendingRuntimeConfig())
+            makeJSON(!!this.willRequireDowntime())
+            //makeHeader('getPendingRuntimeConfig'),
+            //makeJSON(this.getPendingRuntimeConfig())
           ]) :
         h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } },
           ['D'])
@@ -933,7 +933,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
-  // TODO PD: WIP - make radio buttons work!!
+  // TODO PD: test that the environment config looks right with the various delete cases
   //TODO PD: language doesn't match in the case of a runtime with a detached disk
   newDeleteText() {
     const { deleteDiskSelected } = this.state
@@ -975,7 +975,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ])
         }],
         [!oldRuntime && oldPersistentDisk, () => {
-          return h(FancyRadio, { labelText: 'Delete persistent disk' }, [
+          return h(FancyRadio, {
+            name: 'delete-persistent-disk',
+            labelText: 'Delete persistent disk',
+            checked: deleteDiskSelected,
+            onChange: () => this.setState({ deleteDiskSelected: true })
+          }, [
             p([
               'Your persistent disk (and its associated data) are deleted. If you want to permanently save your data before deleting your disk, create a new runtime environment to access the disk and copy your data to the workspace bucket.'
             ]),
