@@ -94,11 +94,11 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
 
 //TODO PD: WIP fix styling
 const FancyRadio = ({ labelText, children, style = {} }) => {
-  const optionContainer = { backgroundColor: colors.warning(.2), borderRadius: 3, display: 'flex', padding: '1.5rem' }
+  const optionContainer = { backgroundColor: colors.warning(.2), borderRadius: 3, display: 'flex', alignItems: 'baseline', padding: '1.5rem' }
 
   return div({ style: { ...optionContainer, ...style } }, [
     input({ type: 'radio' }),
-    div([
+    div({ style: { marginLeft: '.75rem' } }, [
       div({ style: { fontWeight: 600, fontSize: 16 } }, [labelText]),
       children
     ])
