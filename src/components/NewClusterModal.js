@@ -93,16 +93,18 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
 }
 
 //TODO PD: WIP fix styling
-const FancyRadio = ({ labelText, children, style = {} }) => {
-  const optionContainer = { backgroundColor: colors.warning(.2), borderRadius: 3, display: 'flex', alignItems: 'baseline', padding: '1.5rem' }
+const FancyRadio = ({ labelText, children, name, checked, onChange, style = {} }) => {
+  const optionContainer = { backgroundColor: colors.warning(.2), borderRadius: 3, display: 'flex', alignItems: 'baseline', padding: '.75rem' }
 
   return div({ style: { ...optionContainer, ...style } }, [
-    input({ type: 'radio' }),
-    div({ style: { marginLeft: '.75rem' } }, [
-      div({ style: { fontWeight: 600, fontSize: 16 } }, [labelText]),
-      children
-    ])
-
+    // TODO PD: link id to radio and label for accessibility
+    h(IdContainer, [id => h(Fragment, [
+      input({ type: 'radio', name, checked, onChange }),
+      div({ style: { marginLeft: '.75rem' } }, [
+        div({ style: { fontWeight: 600, fontSize: 16 } }, [labelText]),
+        children
+      ])
+    ])])
   ])
 }
 
@@ -934,18 +936,30 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   // TODO PD: WIP - make radio buttons work!!
   //TODO PD: language doesn't match in the case of a runtime with a detached disk
   newDeleteText() {
+    const { deleteDiskSelected } = this.state
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     return h(Fragment, [p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
       Utils.cond(
         [oldRuntime && oldPersistentDisk, () => {
           return h(Fragment, [
-            h(FancyRadio, { labelText: 'Keep persistent disk, delete application configuration and cloud compute' }, [
+            h(FancyRadio, {
+              name: 'delete-persistent-disk',
+              labelText: 'Keep persistent disk, delete application configuration and cloud compute',
+              checked: !deleteDiskSelected,
+              onChange: () => this.setState({ deleteDiskSelected: false })
+            }, [
               p([
                 'Your application configuration and cloud compute are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.',
                 'You will continue to incur persistent disk cost at '
               ])
             ]), // TODO PD: add the cost object
-            h(FancyRadio, { labelText: 'Delete cloud environment including persistent disk', style: { marginTop: '1rem' } }, [
+            h(FancyRadio, {
+              name: 'delete-persistent-disk',
+              labelText: 'Delete cloud environment including persistent disk',
+              checked: deleteDiskSelected,
+              onChange: () => this.setState({ deleteDiskSelected: true }),
+              style: { marginTop: '1rem' }
+            }, [
               p([
                 'Deletes your persistent disk (and its associated data), application configuration and cloud compute. To permanently save your data, copy it to the workspace bucket.'
               ]),
