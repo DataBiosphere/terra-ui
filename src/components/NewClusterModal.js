@@ -94,12 +94,12 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
 
 //TODO PD: WIP fix styling
 const FancyRadio = ({ labelText, children }) => {
-  const optionContainer = { backgroundColor: colors.warning(.2), borderRadius: 3, display: 'flex', margin: '1rem', padding: '1rem' }
+  const optionContainer = { backgroundColor: colors.warning(.2), borderRadius: 3, display: 'flex', margin: '1rem', padding: '1.5rem' }
 
   return div({ style: optionContainer }, [
     input({ type: 'radio' }),
     div([
-      div({ style: { fontWeight: 600 } }, [labelText]),
+      div({ style: { fontWeight: 600, fontSize: 16 } }, [labelText]),
       children
     ])
 
@@ -109,6 +109,7 @@ const FancyRadio = ({ labelText, children }) => {
 const CUSTOM_MODE = '__custom_mode__'
 const PROJECT_SPECIFIC_MODE = '__project_specific_mode__'
 
+// TODO PD: figure out a way to get the orange backgound color in warning modes
 export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
   static propTypes = {
     currentCluster: PropTypes.object,
