@@ -93,10 +93,10 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
 }
 
 //TODO PD: WIP fix styling
-const FancyRadio = ({ labelText, children }) => {
-  const optionContainer = { backgroundColor: colors.warning(.2), borderRadius: 3, display: 'flex', margin: '1rem', padding: '1.5rem' }
+const FancyRadio = ({ labelText, children, style = {} }) => {
+  const optionContainer = { backgroundColor: colors.warning(.2), borderRadius: 3, display: 'flex', padding: '1.5rem' }
 
-  return div({ style: optionContainer }, [
+  return div({ style: { ...optionContainer, ...style } }, [
     input({ type: 'radio' }),
     div([
       div({ style: { fontWeight: 600, fontSize: 16 } }, [labelText]),
@@ -879,7 +879,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])]
     )
 
-    return h(Fragment, [
+    return div( { style: { display: 'flex', flexDirection: 'column', flex: 1, backgroundColor: viewMode === 'deleteEnvironmentOptions' ? colors.warning(.1) : undefined } }, [
       h(TitleBar, {
         title: Utils.switchCase(viewMode,
           ['packages', () => 'Installed packages'],
@@ -945,7 +945,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 'You will continue to incur persistent disk cost at '
               ])
             ]), // TODO PD: add the cost object
-            h(FancyRadio, { labelText: 'Delete cloud environment including persistent disk' }, [
+            h(FancyRadio, { labelText: 'Delete cloud environment including persistent disk', style: { marginTop: '1rem' } }, [
               p([
                 'Deletes your persistent disk (and its associated data), application configuration and cloud compute. To permanently save your data, copy it to the workspace bucket.'
               ]),
