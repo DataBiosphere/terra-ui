@@ -881,7 +881,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])]
     )
 
-    return div( { style: { display: 'flex', flexDirection: 'column', flex: 1, backgroundColor: viewMode === 'deleteEnvironmentOptions' ? colors.warning(.1) : undefined } }, [
+    return div({ style: { display: 'flex', flexDirection: 'column', flex: 1, backgroundColor: viewMode === 'deleteEnvironmentOptions' ? colors.warning(.1) : undefined } }, [
       h(TitleBar, {
         title: Utils.switchCase(viewMode,
           ['packages', () => 'Installed packages'],
@@ -938,7 +938,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   newDeleteText() {
     const { deleteDiskSelected } = this.state
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
-    return h(Fragment, [p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
+    return div({ style: { lineHeight: '1.5rem' } }, [
       Utils.cond(
         [oldRuntime && oldPersistentDisk, () => {
           return h(Fragment, [
@@ -992,20 +992,22 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ])
         }],
         () => {
-          return div([p({ style: { margin: '0px', lineHeight: '1.5rem' } }, [
-            'Deleting your runtime will also ',
-            span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
-            '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
-            h(Link, {
-              href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-              ...Utils.newTabLinkProps
-            }, ['move them to the workspace bucket.'])
-          ]),
-          p({ style: { margin: '14px 0px 0px', lineHeight: '1.5rem' } },
-            ['Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, ' +
-              'which will take several minutes.'])])
+          return h(Fragment, [
+            p([
+              'Deleting your runtime will also ',
+              span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
+              '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+              h(Link, {
+                href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+                ...Utils.newTabLinkProps
+              }, ['move them to the workspace bucket.'])
+            ]),
+            p([
+              'Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, which will take several minutes.'
+            ])
+          ])
         }
       )
-    ])])
+    ])
   }
 })
