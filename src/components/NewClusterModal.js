@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { b, div, fieldset, h, input, label, legend, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, RadioButton, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
@@ -460,12 +460,48 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ])
   }
 
+  renderDeleteDiskChoices() {
+    const { deleteDiskSelected } = this.state
+    return h(Fragment, [
+      h(FancyRadio, {
+        name: 'delete-persistent-disk',
+        labelText: 'Keep persistent disk, delete application configuration and cloud compute',
+        checked: !deleteDiskSelected,
+        onChange: () => this.setState({ deleteDiskSelected: false })
+      }, [
+        p([
+          'Your application configuration and cloud compute are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.',
+          'You will continue to incur persistent disk cost at '
+        ])
+      ]), // TODO PD: add the cost object
+      h(FancyRadio, {
+        name: 'delete-persistent-disk',
+        labelText: 'Delete cloud environment including persistent disk',
+        checked: deleteDiskSelected,
+        onChange: () => this.setState({ deleteDiskSelected: true }),
+        style: { marginTop: '1rem' }
+      }, [
+        p([
+          'Deletes your persistent disk (and its associated data), application configuration and cloud compute. To permanently save your data, copy it to the workspace bucket.'
+        ]),
+        h(Link, {
+          href: '',
+          ...Utils.newTabLinkProps
+        }, ['Learn more about workspace buckets']),
+        p([
+          'Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.\n',
+          'You will no longer incur any costs from this cloud environment.'
+        ])
+      ])
+    ])
+  }
+
   render() {
     const { currentCluster, onDismiss, onSuccess } = this.props
     const {
       profile, masterMachineType, masterDiskSize, selectedPersistentDiskSize, sparkMode, workerMachineType,
       numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, loading, deleteDiskSelected
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, loading
     } = this.state
     const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
@@ -743,23 +779,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ])
       ])],
-      ['switchFromGCEToDataproc', () => h(Fragment, [
-        div(['You have requested to replace your existing application and cloud compute configurations to ones that support Hail.' +
-        ' Unfortunately, the type of cloud compute (spark) that is required for Hail does not support the persistent disk feature.']),
-        div({ style: { marginTop: '.5rem' } }, [h(RadioButton, {
-          text: 'Keep persistent disk, delete application configuration and cloud compute',
-          name: 'delete-disk-selected-false',
-          checked: !deleteDiskSelected,
-          onChange: () => this.setState({ deleteDiskSelected: false }),
-          labelStyle: { marginLeft: '.75rem' }
-        })]),
-        div({ style: { marginTop: '.5rem' } }, [h(RadioButton, {
-          text: `Delete cloud environment including persistent disk`,
-          name: 'delete-disk-selected-true',
-          checked: deleteDiskSelected,
-          onChange: () => this.setState({ deleteDiskSelected: true }),
-          labelStyle: { marginLeft: '.75rem' }
-        })]),
+      ['switchFromGCEToDataproc', () => div({ style: { lineHeight: 1.5 } }, [
+        div([
+          'You have requested to replace your existing application and cloud compute configurations to ones that support Spark. ',
+          'Unfortunately, this type of cloud compute does not support the persistent disk feature.'
+        ]),
+        div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
+        this.renderDeleteDiskChoices(),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Cancel']),
           h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
@@ -885,15 +911,20 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])]
     )
 
-    return div({ style: { display: 'flex', flexDirection: 'column', flex: 1, backgroundColor: viewMode === 'deleteEnvironmentOptions' ? colors.warning(.1) : undefined } }, [
+    return div({
+      style: {
+        display: 'flex', flexDirection: 'column', flex: 1,
+        backgroundColor: _.includes(viewMode, ['deleteEnvironmentOptions', 'switchFromGCEToDataproc', 'environmentWarning', 'customImageWarning']) ? colors.warning(.1) : undefined
+      }
+    }, [
       h(TitleBar, {
         title: Utils.switchCase(viewMode,
           ['packages', () => 'Installed packages'],
           ['aboutPersistentDisk', () => 'About persistent disks'],
           ['customImageWarning', () => 'Warning!'],
-          ['delete', () => 'Delete runtime?'],
-          ['update', () => 'Update runtime?'],
-          ['switchFromGCEToDataproc', () => 'Replace application configuration and cloud compute for Hail'],
+          ['environmentWarning', () => 'Warning!'],
+          ['deleteEnvironmentOptions', () => 'Delete environment options'],
+          ['switchFromGCEToDataproc', () => 'Replace application configuration and cloud compute for Spark'],
           [Utils.DEFAULT, () => 'Runtime configuration']
         ),
         onDismiss,
@@ -944,40 +975,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     return div({ style: { lineHeight: '1.5rem' } }, [
       Utils.cond(
-        [oldRuntime && oldPersistentDisk, () => {
-          return h(Fragment, [
-            h(FancyRadio, {
-              name: 'delete-persistent-disk',
-              labelText: 'Keep persistent disk, delete application configuration and cloud compute',
-              checked: !deleteDiskSelected,
-              onChange: () => this.setState({ deleteDiskSelected: false })
-            }, [
-              p([
-                'Your application configuration and cloud compute are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.',
-                'You will continue to incur persistent disk cost at '
-              ])
-            ]), // TODO PD: add the cost object
-            h(FancyRadio, {
-              name: 'delete-persistent-disk',
-              labelText: 'Delete cloud environment including persistent disk',
-              checked: deleteDiskSelected,
-              onChange: () => this.setState({ deleteDiskSelected: true }),
-              style: { marginTop: '1rem' }
-            }, [
-              p([
-                'Deletes your persistent disk (and its associated data), application configuration and cloud compute. To permanently save your data, copy it to the workspace bucket.'
-              ]),
-              h(Link, {
-                href: '',
-                ...Utils.newTabLinkProps
-              }, ['Learn more about workspace buckets']),
-              p([
-                'Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.\n',
-                'You will no longer incur any costs from this cloud environment.'
-              ])
-            ])
-          ])
-        }],
+        [oldRuntime && oldPersistentDisk, () => this.renderDeleteDiskChoices()],
         [!oldRuntime && oldPersistentDisk, () => {
           return h(FancyRadio, {
             name: 'delete-persistent-disk',
