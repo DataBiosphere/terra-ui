@@ -213,9 +213,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
     const shouldUpdatePersistentDisk = oldPersistentDisk && this.canUpdatePersistentDisk() && !_.isEqual(newPersistentDisk, oldPersistentDisk)
     const shouldDeletePersistentDisk = oldPersistentDisk && !this.canUpdatePersistentDisk()
-    const shouldUpdateRuntime = oldRuntime && this.canUpdate() && !_.isEqual(newRuntime, oldRuntime)
-    const shouldDeleteRuntime = oldRuntime && !this.canUpdate()
-    const shouldCreateRuntime = !this.canUpdate() //TODO PD: change this if/when we want this to handle deletes as well
+    const shouldUpdateRuntime = oldRuntime && this.canUpdateRuntime() && !_.isEqual(newRuntime, oldRuntime)
+    const shouldDeleteRuntime = oldRuntime && !this.canUpdateRuntime()
+    const shouldCreateRuntime = !this.canUpdateRuntime() //TODO PD: change this if/when we want this to handle deletes as well
 
     const runtimeConfig = {
       cloudService: newRuntime.cloudService,
@@ -342,7 +342,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return currentCluster?.runtimeConfig.persistentDiskId
   }
 
-  canUpdate() {
+  canUpdateRuntime() {
     const { runtime: oldRuntime } = this.getOldEnvironmentConfig()
     const { runtime: newRuntime } = this.getNewEnvironmentConfig()
 
@@ -391,7 +391,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { runtime: newRuntime } = this.getNewEnvironmentConfig()
 
     // TODO PD: should we consider runtime status here?
-    return this.canUpdate() &&
+    return this.canUpdateRuntime() &&
       (oldRuntime.cloudService === cloudServices.GCE ?
         oldRuntime.machineType !== newRuntime.machineType :
         oldRuntime.masterMachineType !== newRuntime.masterMachineType)
@@ -444,8 +444,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             makeJSON(this.getOldEnvironmentConfig()),
             makeHeader('New Environment Config'),
             makeJSON(this.getNewEnvironmentConfig()),
-            makeHeader('canUpdate'),
-            makeJSON(this.canUpdate()),
+            makeHeader('canUpdateRuntime'),
+            makeJSON(this.canUpdateRuntime()),
             makeHeader('willDeleteBuiltinDisk'),
             makeJSON(!!this.willDeleteBuiltinDisk()),
             makeHeader('willDeletePersistentDisk'),
@@ -565,7 +565,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     ])
 
     const bottomButtons = () => {
-      const canUpdate = this.canUpdate()
       const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
 
       return h(Fragment, [
@@ -584,7 +583,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             disabled: !this.hasChanges() || !!errors,
             tooltip: Utils.summarizeErrors(errors),
             onClick: () => {
-              if (isSelectedImageInputted && !canUpdate) {
+              if (isSelectedImageInputted && !this.canUpdateRuntime()) {
                 this.setState({ viewMode: 'customImageWarning' })
               } else {
                 this.warnOrApplyChanges()
@@ -950,12 +949,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   willDeleteBuiltinDisk() {
     const oldConfig = this.getOldEnvironmentConfig()
-    return (oldConfig.runtime?.diskSize || oldConfig.runtime?.masterDiskSize) && !this.canUpdate()
+    return (oldConfig.runtime?.diskSize || oldConfig.runtime?.masterDiskSize) && !this.canUpdateRuntime()
   }
 
   willRequireDowntime() {
     const oldConfig = this.getOldEnvironmentConfig()
-    return oldConfig.runtime && (!this.canUpdate() || this.isStopRequired())
+    return oldConfig.runtime && (!this.canUpdateRuntime() || this.isStopRequired())
   }
 
   warnOrApplyChanges() {
