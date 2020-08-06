@@ -212,7 +212,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
     const shouldUpdatePersistentDisk = oldPersistentDisk && this.canUpdatePersistentDisk() && !_.isEqual(newPersistentDisk, oldPersistentDisk)
-    const shouldDeletePersistentDiskLocal = oldPersistentDisk && !this.canUpdatePersistentDisk()
+    const shouldDeletePersistentDisk = oldPersistentDisk && !this.canUpdatePersistentDisk()
     const shouldUpdateRuntime = oldRuntime && this.canUpdate() && !_.isEqual(newRuntime, oldRuntime)
     const shouldDeleteRuntime = oldRuntime && !this.canUpdate()
     const shouldCreateRuntime = !this.canUpdate() //TODO PD: change this if/when we want this to handle deletes as well
@@ -224,7 +224,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ...(newRuntime.diskSize ? {
           diskSize: newRuntime.diskSize
         } : {
-          persistentDisk: oldPersistentDisk && !shouldDeletePersistentDiskLocal ? {
+          persistentDisk: oldPersistentDisk && !shouldDeletePersistentDisk ? {
             name: currentPersistentDisk.name
           } : {
             name: Utils.generatePersistentDiskName(),
@@ -244,9 +244,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       })
     }
     if (shouldDeleteRuntime) {
-      await this.deleteCluster(this.hasAttachedDisk() && shouldDeletePersistentDiskLocal)
+      await this.deleteCluster(this.hasAttachedDisk() && shouldDeletePersistentDisk)
     }
-    if (shouldDeletePersistentDiskLocal && !this.hasAttachedDisk()) {
+    if (shouldDeletePersistentDisk && !this.hasAttachedDisk()) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
     }
     if (shouldUpdatePersistentDisk) {
@@ -386,7 +386,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   // original diagram (without PD) for update runtime logic: https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
-  newIsStopRequired() {
+  isStopRequired() {
     const { runtime: oldRuntime } = this.getOldEnvironmentConfig()
     const { runtime: newRuntime } = this.getNewEnvironmentConfig()
 
@@ -794,7 +794,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Cancel']),
-          h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['UPDATE'])
+          h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
         ])
         // TODO PD: display these messages:
         // 1. See SATURN-1781
@@ -805,7 +805,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         this.newDeleteText(),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Cancel']),
-          h(ButtonPrimary, { onClick: () => onSuccess(this.deleteCluster()) }, ['DELETE'])
+          h(ButtonPrimary, { onClick: () => onSuccess(this.deleteCluster()) }, ['Delete'])
         ])
       ])],
       [Utils.DEFAULT, () => h(Fragment, [
@@ -924,7 +924,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   willRequireDowntime() {
     const oldConfig = this.getOldEnvironmentConfig()
-    return oldConfig.runtime && (!this.canUpdate() || this.newIsStopRequired())
+    return oldConfig.runtime && (!this.canUpdate() || this.isStopRequired())
   }
 
   warnOrApplyChanges() {
