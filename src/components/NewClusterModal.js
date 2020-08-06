@@ -757,8 +757,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           labelStyle: { marginLeft: '.75rem' }
         })]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
-          h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['UPDATE'])
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Cancel']),
+          h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
         ])
       ])],
       ['customImageWarning', () => h(Fragment, [
@@ -770,7 +770,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ]),
         h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
         p({ style: { lineHeight: 1.5 } }, [
-          'If you\'re confident that your image is safe, click ', b([!!currentCluster ? 'NEXT' : 'CREATE']),
+          'If you\'re confident that your image is safe, click ', b([!!currentCluster ? 'Next' : 'Create']),
           ' to use it. Otherwise, click ', b(['BACK']), ' to select another image.'
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
@@ -789,7 +789,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           [this.willRequireDowntime(), () => div('willRequireDowntime')]
         ),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Cancel']),
           h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['UPDATE'])
         ])
         // TODO PD: display these messages:
@@ -800,7 +800,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ['deleteEnvironmentOptions', () => h(Fragment, [
         this.newDeleteText(),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['CANCEL']),
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Cancel']),
           h(ButtonPrimary, { onClick: () => onSuccess(this.deleteCluster()) }, ['DELETE'])
         ])
       ])],
