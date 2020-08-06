@@ -92,12 +92,16 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
   ])
 }
 
-//TODO PD: WIP fix styling
 const FancyRadio = ({ labelText, children, name, checked, onChange, style = {} }) => {
-  const optionContainer = { backgroundColor: colors.warning(.2), borderRadius: 3, display: 'flex', alignItems: 'baseline', padding: '.75rem' }
-
-  return div({ style: { ...optionContainer, ...style } }, [
-    // TODO PD: link id to radio and label for accessibility
+  return div({
+    style: {
+      backgroundColor: colors.warning(.2),
+      borderRadius: 3, border: `1px solid ${checked ? colors.accent() : 'transparent'}`,
+      boxShadow: checked ? Style.standardShadow : undefined,
+      display: 'flex', alignItems: 'baseline', padding: '.75rem',
+      ...style
+    }
+  }, [
     h(IdContainer, [id => h(Fragment, [
       input({ type: 'radio', name, checked, onChange, id }),
       div({ style: { marginLeft: '.75rem' } }, [
@@ -628,7 +632,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   options: [
                     { value: false, label: 'Standard VM', isDisabled: requiresSpark },
                     { value: 'master', label: 'Spark master node' },
-                    { value: 'cluster', label: 'Configure as spark cluster' }
+                    { value: 'cluster', label: 'Spark cluster' }
                   ]
                 })
               ])
