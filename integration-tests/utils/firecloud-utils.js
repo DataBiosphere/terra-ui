@@ -21,7 +21,7 @@ const signIntoFirecloud = async (page, token) => {
    * user-status). Instead of reworking the sign-in logic for a case that (for the most part) only
    * a computer will operate fast enough to encounter, we'll just slow the computer down a little.
    */
-  await delay(1000) // wait a second for full load not accounted for by spinners
+  await delay(2000) // wait two seconds for full load not accounted for by spinners; local and CircleCI seem okay with 1 second, but Bueller needs 2 seconds
   await page.evaluate(token => window.forceSignedIn(token), token) // Note: function for Fire Cloud is forceSignedIn() while Terra is forceSignIn()
 }
 
