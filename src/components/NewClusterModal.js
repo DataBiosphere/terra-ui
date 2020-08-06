@@ -184,16 +184,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return Ajax().Clusters.cluster(googleProject, runtimeName).delete(deleteDisk)
   }
 
-  getCorrectImage() {
-    const { selectedLeoImage, customEnvImage } = this.state
-    return selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE ? customEnvImage : selectedLeoImage
-  }
-
-  generateClusterLabels() {
-    const { selectedLeoImage } = this.state
-    return { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` }
-  }
-
   applyChanges = _.flow(
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating runtime')
@@ -208,6 +198,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   async createOrUpdate() {
     const { namespace, currentCluster } = this.props
+    const { selectedLeoImage } = this.state
     const currentPersistentDisk = this.getCurrentPersistentDisk()
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
@@ -260,8 +251,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     if (shouldCreateRuntime) {
       await Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         runtimeConfig,
-        toolDockerImage: this.getCorrectImage(),
-        labels: this.generateClusterLabels(),
+        toolDockerImage: newRuntime.toolDockerImage,
+        labels: { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` },
         ...(newRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: newRuntime.jupyterUserScriptUri } : {})
       })
     }
@@ -271,7 +262,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const {
       deleteDiskSelected, selectedPersistentDiskSize, viewMode, masterMachineType,
       masterDiskSize, sparkMode, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType,
-      workerDiskSize, jupyterUserScriptUri
+      workerDiskSize, jupyterUserScriptUri, selectedLeoImage, customEnvImage
     } = this.state
 
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
@@ -295,7 +286,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             workerDiskSize
           })
         }),
-        toolDockerImage: this.getCorrectImage(),
+        toolDockerImage: _.includes(selectedLeoImage, [CUSTOM_MODE, PROJECT_SPECIFIC_MODE]) ? customEnvImage : selectedLeoImage,
         ...(jupyterUserScriptUri && { jupyterUserScriptUri })
       } : undefined,
       persistentDisk: this.shouldUsePersistentDisk() || (this.getCurrentPersistentDisk() && !deleteDiskSelected) ? {
