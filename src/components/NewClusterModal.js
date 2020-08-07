@@ -141,6 +141,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       sparkMode: cloudService === cloudServices.GCE ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
       ...currentConfig,
       masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize || DEFAULT_DISK_SIZE,
+      // TODO PD: need to clear or ignore this value when cancelling out of the screen after setting it
       deleteDiskSelected: false
     }
   }
@@ -264,7 +265,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       masterDiskSize, sparkMode, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType,
       workerDiskSize, jupyterUserScriptUri, selectedLeoImage, customEnvImage
     } = this.state
-
+    const { persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
     return {
       runtime: (viewMode !== 'deleteEnvironmentOptions') ? {
@@ -289,9 +290,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         toolDockerImage: _.includes(selectedLeoImage, [CUSTOM_MODE, PROJECT_SPECIFIC_MODE]) ? customEnvImage : selectedLeoImage,
         ...(jupyterUserScriptUri && { jupyterUserScriptUri })
       } : undefined,
-      persistentDisk: this.shouldUsePersistentDisk() || (this.getCurrentPersistentDisk() && !deleteDiskSelected) ? {
-        size: this.shouldUsePersistentDisk() ? selectedPersistentDiskSize : this.getCurrentPersistentDisk().size
-      } : undefined
+      persistentDisk: Utils.cond(
+        [deleteDiskSelected, () => undefined],
+        [viewMode !== 'deleteEnvironmentOptions' && this.shouldUsePersistentDisk(), () => ({ size: selectedPersistentDiskSize })],
+        () => oldPersistentDisk
+      )
     }
   }
 
@@ -958,7 +961,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
-  // TODO PD: test that the environment config looks right with the various delete cases
   //TODO PD: language doesn't match in the case of a runtime with a detached disk
   newDeleteText() {
     const { deleteDiskSelected } = this.state
