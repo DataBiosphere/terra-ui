@@ -258,7 +258,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return {
       runtime: Utils.cond(
         // TODO PD: fix this logic! See above TODO for goals
-        [(false), () => undefined],
         [(viewMode !== 'deleteEnvironmentOptions'), () => {
           return {
             cloudService,
@@ -283,6 +282,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ...(jupyterUserScriptUri && { jupyterUserScriptUri })
           }
         }],
+        [(false), () => undefined],
         () => oldRuntime
       ),
       persistentDisk: Utils.cond(
