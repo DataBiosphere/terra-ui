@@ -246,6 +246,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess()
   })
 
+  // TODO PD: fix case of deleting JUST the disk when you have a runtime and a detached disk
   getNewEnvironmentConfig() {
     const {
       deleteDiskSelected, selectedPersistentDiskSize, viewMode, masterMachineType,
@@ -957,8 +958,31 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     return div({ style: { lineHeight: '1.5rem' } }, [
       Utils.cond(
-        [oldRuntime && oldPersistentDisk && oldRuntime.persistentDiskAttached, () => {
-          // TODO PD: implement radio buttons for detached disk with hail running
+        [oldRuntime && oldPersistentDisk && !oldRuntime.persistentDiskAttached, () => {
+          return h(Fragment, [
+            h(FancyRadio, {
+              name: 'delete-persistent-disk',
+              labelText: 'Delete application configuration and cloud compute',
+              checked: !deleteDiskSelected,
+              onChange: () => this.setState({ deleteDiskSelected: false })
+            }, [
+              p(['Your application configuration and cloud compute are deleted.'])
+            ]),
+            h(FancyRadio, {
+              name: 'delete-persistent-disk',
+              labelText: 'Delete persistent disk',
+              checked: deleteDiskSelected,
+              onChange: () => this.setState({ deleteDiskSelected: true }),
+              style: { marginTop: '1rem' }
+            }, [
+              p(['Deletes your persistent disk (and it’s associated data). To permanently save your data, copy it to the workspace bucket. Since the persistent disk is not attached, the application configuration and cloud compute will remain. ']),
+              h(Link, {
+                href: '',
+                ...Utils.newTabLinkProps
+              }, ['Learn more about workspace buckets']),
+              p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks. You will no longer incur any costs from this persistent disk.'])
+            ])
+          ])
         }],
         [oldRuntime && oldPersistentDisk, () => this.renderDeleteDiskChoices()],
         [!oldRuntime && oldPersistentDisk, () => {
