@@ -178,26 +178,20 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
-  deleteCluster(deleteDisk) {
-    const { currentCluster } = this.props
-    const { googleProject, runtimeName } = currentCluster
-
-    return Ajax().Clusters.cluster(googleProject, runtimeName).delete(deleteDisk)
-  }
-
   applyChanges = _.flow(
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating runtime')
   )(async () => {
     const { onSuccess } = this.props
 
-    await this.createOrUpdate()
+    await this.createOrUpdateOrDelete()
 
     //TODO PD: investigate react setState-after-unmount error
     onSuccess()
   })
 
-  async createOrUpdate() {
+  // TODO PD: retest deletion of runtime
+  async createOrUpdateOrDelete() {
     const { namespace, currentCluster } = this.props
     const { selectedLeoImage } = this.state
     const currentPersistentDisk = this.getCurrentPersistentDisk()
@@ -207,9 +201,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const shouldDeletePersistentDisk = oldPersistentDisk && !this.canUpdatePersistentDisk()
     const shouldUpdateRuntime = oldRuntime && this.canUpdateRuntime() && !_.isEqual(newRuntime, oldRuntime)
     const shouldDeleteRuntime = oldRuntime && !this.canUpdateRuntime()
-    const shouldCreateRuntime = !this.canUpdateRuntime() //TODO PD: change this if/when we want this to handle deletes as well
+    const shouldCreateRuntime = !this.canUpdateRuntime() && newRuntime //TODO PD: change this if/when we want this to handle deletes as well
 
-    const runtimeConfig = {
+    const runtimeConfig = newRuntime && {
       cloudService: newRuntime.cloudService,
       ...(newRuntime.cloudService === cloudServices.GCE ? {
         machineType: newRuntime.machineType,
@@ -236,7 +230,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       })
     }
     if (shouldDeleteRuntime) {
-      await this.deleteCluster(this.hasAttachedDisk() && shouldDeletePersistentDisk)
+      await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
     }
     if (shouldDeletePersistentDisk && !this.hasAttachedDisk()) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
@@ -491,7 +485,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   render() {
-    const { currentCluster, onDismiss, onSuccess } = this.props
+    const { currentCluster, onDismiss } = this.props
     const {
       profile, masterMachineType, masterDiskSize, selectedPersistentDiskSize, sparkMode, workerMachineType,
       numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
@@ -826,7 +820,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           // NOTE: deleteDiskSelected is also cleared via the TitleBar back button
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined, deleteDiskSelected: false }) }, ['Cancel']),
-          h(ButtonPrimary, { onClick: () => onSuccess(this.deleteCluster()) }, ['Delete'])
+          h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Delete'])
         ])
       ])],
       [Utils.DEFAULT, () => h(Fragment, [
