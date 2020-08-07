@@ -253,31 +253,38 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       masterDiskSize, sparkMode, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType,
       workerDiskSize, jupyterUserScriptUri, selectedLeoImage, customEnvImage
     } = this.state
-    const { persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
+    const { persistentDisk: oldPersistentDisk, runtime: oldRuntime } = this.getOldEnvironmentConfig()
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
     return {
-      runtime: (viewMode !== 'deleteEnvironmentOptions') ? {
-        cloudService,
-        ...(cloudService === cloudServices.GCE ? {
-          machineType: masterMachineType,
-          ...(this.shouldUsePersistentDisk() ? {
-            persistentDiskAttached: true
-          } : {
-            diskSize: masterDiskSize
-          })
-        } : {
-          masterMachineType,
-          masterDiskSize,
-          numberOfWorkers,
-          ...(numberOfWorkers && {
-            numberOfPreemptibleWorkers,
-            workerMachineType,
-            workerDiskSize
-          })
-        }),
-        toolDockerImage: _.includes(selectedLeoImage, [CUSTOM_MODE, PROJECT_SPECIFIC_MODE]) ? customEnvImage : selectedLeoImage,
-        ...(jupyterUserScriptUri && { jupyterUserScriptUri })
-      } : undefined,
+      runtime: Utils.cond(
+        // TODO PD: fix this logic! See above TODO for goals
+        [(false), () => undefined],
+        [(viewMode !== 'deleteEnvironmentOptions'), () => {
+          return {
+            cloudService,
+            ...(cloudService === cloudServices.GCE ? {
+              machineType: masterMachineType,
+              ...(this.shouldUsePersistentDisk() ? {
+                persistentDiskAttached: true
+              } : {
+                diskSize: masterDiskSize
+              })
+            } : {
+              masterMachineType,
+              masterDiskSize,
+              numberOfWorkers,
+              ...(numberOfWorkers && {
+                numberOfPreemptibleWorkers,
+                workerMachineType,
+                workerDiskSize
+              })
+            }),
+            toolDockerImage: _.includes(selectedLeoImage, [CUSTOM_MODE, PROJECT_SPECIFIC_MODE]) ? customEnvImage : selectedLeoImage,
+            ...(jupyterUserScriptUri && { jupyterUserScriptUri })
+          }
+        }],
+        () => oldRuntime
+      ),
       persistentDisk: Utils.cond(
         [deleteDiskSelected, () => undefined],
         [viewMode !== 'deleteEnvironmentOptions' && this.shouldUsePersistentDisk(), () => ({ size: selectedPersistentDiskSize })],
