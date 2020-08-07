@@ -178,6 +178,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
+  // TODO PD: test the actions in the case of deleting in the case of runtime with detached disk
   applyChanges = _.flow(
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating runtime')
@@ -246,7 +247,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess()
   })
 
-  // TODO PD: fix case of deleting JUST the disk when you have a runtime and a detached disk
   getNewEnvironmentConfig() {
     const {
       deleteDiskSelected, selectedPersistentDiskSize, viewMode, masterMachineType,
@@ -257,7 +257,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
     return {
       runtime: Utils.cond(
-        // TODO PD: fix this logic! See above TODO for goals
         [(viewMode !== 'deleteEnvironmentOptions'), () => {
           return {
             cloudService,
@@ -282,7 +281,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ...(jupyterUserScriptUri && { jupyterUserScriptUri })
           }
         }],
-        [(false), () => undefined],
+        [!deleteDiskSelected || oldRuntime?.persistentDiskAttached, () => undefined],
         () => oldRuntime
       ),
       persistentDisk: Utils.cond(
