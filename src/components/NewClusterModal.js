@@ -957,6 +957,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     return div({ style: { lineHeight: '1.5rem' } }, [
       Utils.cond(
+        [oldRuntime && oldPersistentDisk && oldRuntime.persistentDiskAttached, () => {
+          // TODO PD: implement radio buttons for detached disk with hail running
+        }],
         [oldRuntime && oldPersistentDisk, () => this.renderDeleteDiskChoices()],
         [!oldRuntime && oldPersistentDisk, () => {
           return h(FancyRadio, {
