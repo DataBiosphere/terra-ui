@@ -780,7 +780,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
         this.renderDeleteDiskChoices(),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Cancel']),
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined, deleteDiskSelected: false }) }, ['Cancel']),
           h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
         ])
       ])],
@@ -823,7 +823,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ['deleteEnvironmentOptions', () => h(Fragment, [
         this.newDeleteText(),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Cancel']),
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined, deleteDiskSelected: false }) }, ['Cancel']),
           h(ButtonPrimary, { onClick: () => onSuccess(this.deleteCluster()) }, ['Delete'])
         ])
       ])],
