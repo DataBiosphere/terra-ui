@@ -182,26 +182,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating runtime')
   )(async () => {
-    const { onSuccess } = this.props
-
-    await this.createOrUpdateOrDelete()
-
-    //TODO PD: investigate react setState-after-unmount error
-    onSuccess()
-  })
-
-  // TODO PD: retest deletion of runtime
-  async createOrUpdateOrDelete() {
-    const { namespace, currentCluster } = this.props
+    const { onSuccess, namespace, currentCluster } = this.props
     const { selectedLeoImage } = this.state
     const currentPersistentDisk = this.getCurrentPersistentDisk()
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
-    const shouldUpdatePersistentDisk = oldPersistentDisk && this.canUpdatePersistentDisk() && !_.isEqual(newPersistentDisk, oldPersistentDisk)
+    const shouldUpdatePersistentDisk = this.canUpdatePersistentDisk() && !_.isEqual(newPersistentDisk, oldPersistentDisk)
     const shouldDeletePersistentDisk = oldPersistentDisk && !this.canUpdatePersistentDisk()
-    const shouldUpdateRuntime = oldRuntime && this.canUpdateRuntime() && !_.isEqual(newRuntime, oldRuntime)
+    const shouldUpdateRuntime = this.canUpdateRuntime() && !_.isEqual(newRuntime, oldRuntime)
     const shouldDeleteRuntime = oldRuntime && !this.canUpdateRuntime()
-    const shouldCreateRuntime = !this.canUpdateRuntime() && newRuntime //TODO PD: change this if/when we want this to handle deletes as well
+    const shouldCreateRuntime = !this.canUpdateRuntime() && newRuntime
 
     const runtimeConfig = newRuntime && {
       cloudService: newRuntime.cloudService,
@@ -251,7 +241,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ...(newRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: newRuntime.jupyterUserScriptUri } : {})
       })
     }
-  }
+
+    //TODO PD: investigate react setState-after-unmount error
+    onSuccess()
+  })
 
   getNewEnvironmentConfig() {
     const {
