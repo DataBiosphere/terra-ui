@@ -115,7 +115,6 @@ const FancyRadio = ({ labelText, children, name, checked, onChange, style = {} }
 const CUSTOM_MODE = '__custom_mode__'
 const PROJECT_SPECIFIC_MODE = '__project_specific_mode__'
 
-// TODO PD: figure out a way to get the orange backgound color in warning modes
 export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
   static propTypes = {
     currentCluster: PropTypes.object,
@@ -141,7 +140,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       sparkMode: cloudService === cloudServices.GCE ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
       ...currentConfig,
       masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize || DEFAULT_DISK_SIZE,
-      // TODO PD: need to clear or ignore this value when cancelling out of the screen after setting it
       deleteDiskSelected: false
     }
   }
@@ -178,7 +176,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
-  // TODO PD: test the actions in the case of deleting in the case of runtime with detached disk
   applyChanges = _.flow(
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating runtime')
@@ -595,6 +592,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(IdContainer, [
             id => h(Fragment, [
               label({ htmlFor: id, style: styles.label }, 'Profile'),
+              // TODO PD: shorten the profile select and move the cost widget up
               div({ style: { gridColumnEnd: 'span 5' } }, [
                 h(Select, {
                   id,
@@ -827,6 +825,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({ style: { marginBottom: '1rem' } }, [
           'Create cloud compute to launch Jupyter Notebooks or a Project-Specific software application.'
         ]),
+        // TODO PD: Add the white box from the design
         h(IdContainer, [
           id => h(Fragment, [
             div({ style: { marginBottom: '0.5rem' } }, [
@@ -958,7 +957,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
-  //TODO PD: language doesn't match in the case of a runtime with a detached disk
   newDeleteText() {
     const { deleteDiskSelected } = this.state
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
