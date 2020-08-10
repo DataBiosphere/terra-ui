@@ -589,8 +589,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         h(IdContainer, [
           id => h(Fragment, [
             label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, 'Compute profile'),
-            // TODO PD: shorten the profile select and move the cost widget up
-            div({ style: { gridColumnEnd: 'span 6' } }, [
+            div({ style: { gridColumnEnd: 'span 4' } }, [
               h(Select, {
                 id,
                 value: profile,
@@ -609,6 +608,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   { value: 'custom', label: 'Custom' }
                 ]
               })
+            ]),
+            // TODO PD: continue styling the cost widget
+            div({ style: { gridColumnEnd: 'span 2' } }, [
+              div({
+                style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
+              }, [
+                span({ style: { ...styles.label, marginRight: '0.25rem', textTransform: 'uppercase' } }, ['cost:']),
+                // TODO PD: This should take into account PD and isn't right now.
+                `${Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))} per hour`
+              ])
             ])
           ])
         ]),
@@ -658,17 +667,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ]),
       // TODO PD: keep fine-tuning styles here
-      sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0, position: 'relative' } }, [
+      sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
         legend({
           style: {
-            position: 'absolute', top: '-0.5rem', left: '0.5rem', ...styles.label
+            padding: 0, ...styles.label
           }
         }, ['Worker config']),
         // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
         div({
           style: {
-            display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.25rem', gridGap: '0.8rem', alignItems: 'center',
-            padding: '1rem 0.8rem 0.8rem'
+            display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.25rem', gridGap: '0.8rem', alignItems: 'center', marginTop: '.5rem'
           }
         }, [
           h(IdContainer, [
@@ -712,13 +720,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             onChangeDiskSize: v => this.setState({ workerDiskSize: v })
           })
         ])
-      ]),
-      div({
-        style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
-      }, [
-        span({ style: { ...styles.label, marginRight: '0.25rem', textTransform: 'uppercase' } }, ['cost:']),
-        // TODO PD: This should take into account PD and isn't right now.
-        `${Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))} per hour`
       ]),
       !!isPersistentDisk && h(IdContainer, [
         id => h(div, { style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
