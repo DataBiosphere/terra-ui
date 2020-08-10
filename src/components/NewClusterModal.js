@@ -862,7 +862,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({ style: { marginBottom: '1rem' } }, [
           'Cloud environments consist of an application, cloud compute and a persistent disk'
         ]),
-        div( {style: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' }}, [
+        div({ style: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' } }, [
           h(IdContainer, [
             id => h(Fragment, [
               div({ style: { marginBottom: '0.5rem' } }, [
