@@ -582,172 +582,165 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
 
     const runtimeConfig = () => h(Fragment, [
-      div({
-        style: {
-          padding: '1rem', marginTop: '1rem',
-          border: `2px solid ${colors.dark(0.3)}`, borderRadius: 9
-        }
-      }, [
-        div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['COMPUTE POWER']),
-        div({ style: { marginBottom: '1rem' } }, ['Select from one of the default runtime profiles or define your own']),
-        div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
-          h(IdContainer, [
-            id => h(Fragment, [
-              label({ htmlFor: id, style: styles.label }, 'Profile'),
-              // TODO PD: shorten the profile select and move the cost widget up
-              div({ style: { gridColumnEnd: 'span 5' } }, [
-                h(Select, {
-                  id,
-                  value: profile,
-                  onChange: ({ value }) => {
-                    this.setState({
-                      profile: value,
-                      ...(value === 'custom' ?
-                        {} :
-                        { masterMachineType: _.find({ name: value }, profiles).runtimeConfig.masterMachineType })
-                    })
-                  },
-                  isSearchable: false,
-                  isClearable: false,
-                  options: [
-                    ..._.map(({ name, label }) => ({ value: name, label: `${label} computer power` }), profiles),
-                    { value: 'custom', label: 'Custom' }
-                  ]
-                })
-              ])
-            ])
-          ]),
-          h(MachineSelector, {
-            machineType: masterMachineType,
-            onChangeMachineType: v => this.setState({ masterMachineType: v }),
-            isPersistentDisk,
-            diskSize: isPersistentDisk ? selectedPersistentDiskSize : masterDiskSize,
-            onChangeDiskSize: v => this.setState(isPersistentDisk ? { selectedPersistentDiskSize: v } : { masterDiskSize: v }),
-            readOnly: profile !== 'custom'
-          }),
-          profile === 'custom' && h(IdContainer, [
-            id => h(Fragment, [
-              label({ htmlFor: id, style: styles.label }, 'Startup\nscript'),
-              div({ style: { gridColumnEnd: 'span 5' } }, [
-                h(TextInput, {
-                  id,
-                  placeholder: 'URI',
-                  value: jupyterUserScriptUri,
-                  onChange: v => this.setState({ jupyterUserScriptUri: v })
-                })
-              ])
-            ])
-          ]),
-          h(IdContainer, [
-            id => h(Fragment, [
-              label({ htmlFor: id, style: styles.label }, 'Runtime\ntype'),
-              div({ style: { gridColumnEnd: 'span 3' } }, [
-                h(Select, {
-                  id,
-                  isSearchable: false,
-                  value: sparkMode,
-                  // TODO PD: don't reset number of workers
-                  onChange: ({ value }) => this.setState({
-                    sparkMode: value,
-                    numberOfWorkers: value === 'cluster' ? 2 : 0,
-                    numberOfPreemptibleWorkers: 0
-                  }),
-                  options: [
-                    { value: false, label: 'Standard VM', isDisabled: requiresSpark },
-                    { value: 'master', label: 'Spark master node' },
-                    { value: 'cluster', label: 'Spark cluster' }
-                  ]
-                })
-              ])
-            ])
-          ])
-        ]),
-        sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0, position: 'relative' } }, [
-          legend({
-            style: {
-              position: 'absolute', top: '-0.5rem', left: '0.5rem', padding: '0 0.5rem 0 0.25rem', backgroundColor: colors.light(), ...styles.label
-            }
-          }, ['Worker config']),
-          // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
-          div({
-            style: {
-              display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.25rem', gridGap: '0.8rem', alignItems: 'center',
-              padding: '1rem 0.8rem 0.8rem',
-              border: `2px solid ${colors.dark(0.3)}`, borderRadius: 7
-            }
-          }, [
-            h(IdContainer, [
-              id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, 'Workers'),
-                h(NumberInput, {
-                  id,
-                  min: 2,
-                  isClearable: false,
-                  onlyInteger: true,
-                  value: numberOfWorkers,
-                  onChange: v => this.setState({
-                    numberOfWorkers: v,
-                    numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+      div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['Cloud compute configuration']),
+      div({ style: { marginBottom: '1rem' } }, ['Select from one of the default runtime profiles or define your own']),
+      div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
+        h(IdContainer, [
+          id => h(Fragment, [
+            label({ htmlFor: id, style: styles.label }, 'Profile'),
+            // TODO PD: shorten the profile select and move the cost widget up
+            div({ style: { gridColumnEnd: 'span 5' } }, [
+              h(Select, {
+                id,
+                value: profile,
+                onChange: ({ value }) => {
+                  this.setState({
+                    profile: value,
+                    ...(value === 'custom' ?
+                      {} :
+                      { masterMachineType: _.find({ name: value }, profiles).runtimeConfig.masterMachineType })
                   })
-                })
-              ])
-            ]),
-            h(IdContainer, [
-              id => h(Fragment, [
-                label({
-                  htmlFor: id,
-                  style: styles.label
-                }, 'Preemptible'),
-                h(NumberInput, {
-                  id,
-                  min: 0,
-                  max: numberOfWorkers,
-                  isClearable: false,
-                  onlyInteger: true,
-                  value: numberOfPreemptibleWorkers,
-                  onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
-                })
-              ])
-            ]),
-            div({ style: { gridColumnEnd: 'span 2' } }),
-            h(MachineSelector, {
-              machineType: workerMachineType,
-              onChangeMachineType: v => this.setState({ workerMachineType: v }),
-              diskSize: workerDiskSize,
-              onChangeDiskSize: v => this.setState({ workerDiskSize: v })
-            })
+                },
+                isSearchable: false,
+                isClearable: false,
+                options: [
+                  ..._.map(({ name, label }) => ({ value: name, label: `${label} computer power` }), profiles),
+                  { value: 'custom', label: 'Custom' }
+                ]
+              })
+            ])
           ])
         ]),
-        div({
-          style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
-        }, [
-          span({ style: { ...styles.label, marginRight: '0.25rem', textTransform: 'uppercase' } }, ['cost:']),
-          // TODO PD: This should take into account PD and isn't right now.
-          `${Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))} per hour`
-        ]),
-        !!isPersistentDisk && h(IdContainer, [
-          id => h(div, { style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
-            label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
-            div({ style: { marginTop: '0.5rem' } }, [
-              'A safeguard to store and protect your data. ',
-              h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
-            ]),
-            h(NumberInput, {
-              id,
-              min: 10,
-              max: 64000,
-              isClearable: false,
-              onlyInteger: true,
-              value: selectedPersistentDiskSize,
-              style: { marginTop: '0.5rem', width: '5rem' },
-              onChange: value => this.setState({ selectedPersistentDiskSize: value })
-            })
+        h(MachineSelector, {
+          machineType: masterMachineType,
+          onChangeMachineType: v => this.setState({ masterMachineType: v }),
+          isPersistentDisk,
+          diskSize: isPersistentDisk ? selectedPersistentDiskSize : masterDiskSize,
+          onChangeDiskSize: v => this.setState(isPersistentDisk ? { selectedPersistentDiskSize: v } : { masterDiskSize: v }),
+          readOnly: profile !== 'custom'
+        }),
+        profile === 'custom' && h(IdContainer, [
+          id => h(Fragment, [
+            label({ htmlFor: id, style: styles.label }, 'Startup\nscript'),
+            div({ style: { gridColumnEnd: 'span 5' } }, [
+              h(TextInput, {
+                id,
+                placeholder: 'URI',
+                value: jupyterUserScriptUri,
+                onChange: v => this.setState({ jupyterUserScriptUri: v })
+              })
+            ])
           ])
         ]),
-        !sparkMode && !isPersistentDisk && div([
-          p(['Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.']),
-          h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
+        h(IdContainer, [
+          id => h(Fragment, [
+            label({ htmlFor: id, style: styles.label }, 'Runtime\ntype'),
+            div({ style: { gridColumnEnd: 'span 3' } }, [
+              h(Select, {
+                id,
+                isSearchable: false,
+                value: sparkMode,
+                // TODO PD: don't reset number of workers
+                onChange: ({ value }) => this.setState({
+                  sparkMode: value,
+                  numberOfWorkers: value === 'cluster' ? 2 : 0,
+                  numberOfPreemptibleWorkers: 0
+                }),
+                options: [
+                  { value: false, label: 'Standard VM', isDisabled: requiresSpark },
+                  { value: 'master', label: 'Spark master node' },
+                  { value: 'cluster', label: 'Spark cluster' }
+                ]
+              })
+            ])
+          ])
         ])
+      ]),
+      sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0, position: 'relative' } }, [
+        legend({
+          style: {
+            position: 'absolute', top: '-0.5rem', left: '0.5rem', padding: '0 0.5rem 0 0.25rem', backgroundColor: colors.light(), ...styles.label
+          }
+        }, ['Worker config']),
+        // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
+        div({
+          style: {
+            display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.25rem', gridGap: '0.8rem', alignItems: 'center',
+            padding: '1rem 0.8rem 0.8rem',
+            border: `2px solid ${colors.dark(0.3)}`, borderRadius: 7
+          }
+        }, [
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: styles.label }, 'Workers'),
+              h(NumberInput, {
+                id,
+                min: 2,
+                isClearable: false,
+                onlyInteger: true,
+                value: numberOfWorkers,
+                onChange: v => this.setState({
+                  numberOfWorkers: v,
+                  numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+                })
+              })
+            ])
+          ]),
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({
+                htmlFor: id,
+                style: styles.label
+              }, 'Preemptible'),
+              h(NumberInput, {
+                id,
+                min: 0,
+                max: numberOfWorkers,
+                isClearable: false,
+                onlyInteger: true,
+                value: numberOfPreemptibleWorkers,
+                onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
+              })
+            ])
+          ]),
+          div({ style: { gridColumnEnd: 'span 2' } }),
+          h(MachineSelector, {
+            machineType: workerMachineType,
+            onChangeMachineType: v => this.setState({ workerMachineType: v }),
+            diskSize: workerDiskSize,
+            onChangeDiskSize: v => this.setState({ workerDiskSize: v })
+          })
+        ])
+      ]),
+      div({
+        style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
+      }, [
+        span({ style: { ...styles.label, marginRight: '0.25rem', textTransform: 'uppercase' } }, ['cost:']),
+        // TODO PD: This should take into account PD and isn't right now.
+        `${Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))} per hour`
+      ]),
+      !!isPersistentDisk && h(IdContainer, [
+        id => h(div, { style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
+          label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
+          div({ style: { marginTop: '0.5rem' } }, [
+            'A safeguard to store and protect your data. ',
+            h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
+          ]),
+          h(NumberInput, {
+            id,
+            min: 10,
+            max: 64000,
+            isClearable: false,
+            onlyInteger: true,
+            value: selectedPersistentDiskSize,
+            style: { marginTop: '0.5rem', width: '5rem' },
+            onChange: value => this.setState({ selectedPersistentDiskSize: value })
+          })
+        ])
+      ]),
+      !sparkMode && !isPersistentDisk && div([
+        p(['Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.']),
+        h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
       ])
     ])
 
@@ -863,17 +856,18 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])],
       [Utils.DEFAULT, () => h(Fragment, [
         // TODO PD: test all title bars now that they're inline
-        h(TitleBar, { style: styles.titleBar, title: 'Runtime configuration', onDismiss }),
+        // TODO PD: revisit the term 'cloud environment' and the mention of 'Jupyter' specifically
+        h(TitleBar, { style: styles.titleBar, title: 'Create a cloud environment for Jupyter notebooks', onDismiss }),
         div({ style: { marginBottom: '1rem' } }, [
-          'Create cloud compute to launch Jupyter Notebooks or a Project-Specific software application.'
+          'Cloud environments consist of an application, cloud compute and a persistent disk'
         ]),
         // TODO PD: Add the white box from the design
         h(IdContainer, [
           id => h(Fragment, [
             div({ style: { marginBottom: '0.5rem' } }, [
-              label({ htmlFor: id, style: styles.label }, 'ENVIRONMENT'),
+              label({ htmlFor: id, style: styles.label }, 'Application configuration'),
               h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-                'Environment defines the software application + programming languages + packages used when you create your runtime. '
+                'The software application + programming languages + packages used when you create your runtime. '
               ])
             ]),
             div({ style: { height: 45 } }, [makeGroupedEnvSelect(id)])
