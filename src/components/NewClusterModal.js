@@ -861,76 +861,77 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         div({ style: { marginBottom: '1rem' } }, [
           'Cloud environments consist of an application, cloud compute and a persistent disk'
         ]),
-        // TODO PD: Add the white box from the design
-        h(IdContainer, [
-          id => h(Fragment, [
-            div({ style: { marginBottom: '0.5rem' } }, [
-              label({ htmlFor: id, style: styles.label }, 'Application configuration'),
-              h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-                'The software application + programming languages + packages used when you create your runtime. '
-              ])
-            ]),
-            div({ style: { height: 45 } }, [makeGroupedEnvSelect(id)])
-          ])
-        ]),
-        Utils.switchCase(selectedLeoImage,
-          [CUSTOM_MODE, () => {
-            return h(Fragment, [
-              h(IdContainer, [
-                id => h(Fragment, [
-                  label({ htmlFor: id, style: { ...styles.label, display: 'block', margin: '0.5rem 0' } }, 'CONTAINER IMAGE'),
-                  div({ style: { height: 52, marginBottom: '0.5rem' } }, [
-                    h(ValidatedInput, {
-                      inputProps: {
-                        id,
-                        placeholder: '<image name>:<tag>',
-                        value: customEnvImage,
-                        onChange: customEnvImage => this.setState({ customEnvImage })
-                      },
-                      error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
-                    })
-                  ])
+        div( {style: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' }}, [
+          h(IdContainer, [
+            id => h(Fragment, [
+              div({ style: { marginBottom: '0.5rem' } }, [
+                label({ htmlFor: id, style: styles.label }, 'Application configuration'),
+                h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+                  'The software application + programming languages + packages used when you create your runtime. '
                 ])
               ]),
-              div({ style: { margin: '0.5rem' } }, [
-                'Custom environments ', b(['must ']), 'be based off one of the ',
-                h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images']),
-                ' or a ',
-                h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-Specific image'])
+              div({ style: { height: 45 } }, [makeGroupedEnvSelect(id)])
+            ])
+          ]),
+          Utils.switchCase(selectedLeoImage,
+            [CUSTOM_MODE, () => {
+              return h(Fragment, [
+                h(IdContainer, [
+                  id => h(Fragment, [
+                    label({ htmlFor: id, style: { ...styles.label, display: 'block', margin: '0.5rem 0' } }, 'CONTAINER IMAGE'),
+                    div({ style: { height: 52, marginBottom: '0.5rem' } }, [
+                      h(ValidatedInput, {
+                        inputProps: {
+                          id,
+                          placeholder: '<image name>:<tag>',
+                          value: customEnvImage,
+                          onChange: customEnvImage => this.setState({ customEnvImage })
+                        },
+                        error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
+                      })
+                    ])
+                  ])
+                ]),
+                div([
+                  'Custom environments ', b(['must ']), 'be based off one of the ',
+                  h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images']),
+                  ' or a ',
+                  h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-Specific image'])
+                ])
               ])
-            ])
-          }],
-          [PROJECT_SPECIFIC_MODE, () => {
-            return div({ style: { lineHeight: 1.5 } }, [
-              'Some consortium projects, such as ',
-              h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['AnVIL']),
-              ', have created environments that are specific to their project. If you want to use one of these:',
-              div({ style: { marginTop: '0.5rem' } }, [
-                '1. Find the environment image (',
-                h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['view image list']),
-                ') '
-              ]),
-              div({ style: { margin: '0.5rem 0' } }, ['2. Copy the URL from the github repository']),
-              div({ style: { margin: '0.5rem 0' } }, ['3. Enter the URL for the image in the text box below']),
-              h(ValidatedInput, {
-                inputProps: {
-                  placeholder: 'Paste image path here',
-                  value: customEnvImage,
-                  onChange: customEnvImage => this.setState({ customEnvImage })
-                },
-                error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
-              })
-            ])
-          }],
-          [Utils.DEFAULT, () => {
-            return h(Fragment, [
-              div({ style: { display: 'flex' } }, [
-                h(Link, { onClick: () => this.setState({ viewMode: 'packages' }) }, ['What’s installed on this environment?']),
-                makeImageInfo({ marginLeft: 'auto' })
+            }],
+            [PROJECT_SPECIFIC_MODE, () => {
+              return div({ style: { lineHeight: 1.5 } }, [
+                'Some consortium projects, such as ',
+                h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['AnVIL']),
+                ', have created environments that are specific to their project. If you want to use one of these:',
+                div({ style: { marginTop: '0.5rem' } }, [
+                  '1. Find the environment image (',
+                  h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['view image list']),
+                  ') '
+                ]),
+                div({ style: { margin: '0.5rem 0' } }, ['2. Copy the URL from the github repository']),
+                div({ style: { margin: '0.5rem 0' } }, ['3. Enter the URL for the image in the text box below']),
+                h(ValidatedInput, {
+                  inputProps: {
+                    placeholder: 'Paste image path here',
+                    value: customEnvImage,
+                    onChange: customEnvImage => this.setState({ customEnvImage })
+                  },
+                  error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
+                })
               ])
-            ])
-          }]),
-        runtimeConfig(),
+            }],
+            [Utils.DEFAULT, () => {
+              return h(Fragment, [
+                div({ style: { display: 'flex' } }, [
+                  h(Link, { onClick: () => this.setState({ viewMode: 'packages' }) }, ['What’s installed on this environment?']),
+                  makeImageInfo({ marginLeft: 'auto' })
+                ])
+              ])
+            }]),
+          runtimeConfig()
+        ]),
         bottomButtons()
       ])]
     )
