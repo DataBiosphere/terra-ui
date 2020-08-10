@@ -612,11 +612,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             // TODO PD: continue styling the cost widget
             div({ style: { gridColumnEnd: 'span 2' } }, [
               div({
-                style: { backgroundColor: colors.dark(0.2), borderRadius: 100, width: 'fit-content', padding: '0.75rem 1.25rem', ...styles.row }
+                style: { backgroundColor: colors.accent(0.1), borderRadius: 5, width: 'fit-content', padding: '0.75rem 1.25rem', color: colors.accent(), ...styles.row }
               }, [
-                span({ style: { ...styles.label, marginRight: '0.25rem', textTransform: 'uppercase' } }, ['cost:']),
+                span({ style: { ...styles.label, marginRight: '0.25rem', textTransform: 'uppercase' } }, [`${Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))}`]),
                 // TODO PD: This should take into account PD and isn't right now.
-                `${Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))} per hour`
+                ` per hour`
               ])
             ])
           ])
