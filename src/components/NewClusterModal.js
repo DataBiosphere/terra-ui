@@ -28,7 +28,8 @@ const styles = {
   label: { fontWeight: 600, whiteSpace: 'pre' },
   disabledInputs: {
     border: `1px solid ${colors.dark(0.2)}`, borderRadius: 4, padding: '0.5rem'
-  }
+  },
+  titleBar: { marginBottom: '1rem' }
 }
 
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
@@ -751,11 +752,23 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const contents = Utils.switchCase(viewMode,
       ['packages', () => h(Fragment, [
+        h(TitleBar, {
+          style: styles.titleBar,
+          title: 'Installed packages',
+          onDismiss,
+          onPrevious: () => this.setState({ viewMode: undefined })
+        }),
         makeEnvSelect(),
         makeImageInfo({ margin: '1rem 0 0.5rem' }),
         packages && h(ImageDepViewer, { packageLink: packages })
       ])],
       ['aboutPersistentDisk', () => div({ style: { lineHeight: 1.5 } }, [
+        h(TitleBar, {
+          style: styles.titleBar,
+          title: 'About persistent disks',
+          onDismiss,
+          onPrevious: () => this.setState({ viewMode: undefined })
+        }),
         p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you deleting compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
         p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
         p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
@@ -765,6 +778,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])],
       ['switchFromGCEToDataproc', () => div({ style: { lineHeight: 1.5 } }, [
+        h(TitleBar, {
+          style: styles.titleBar,
+          title: 'Replace application configuration and cloud compute for Spark',
+          onDismiss,
+          // TODO PD: should this only send you back one step?
+          onPrevious: () => this.setState({ viewMode: undefined, deleteDiskSelected: false })
+        }),
         div([
           'You have requested to replace your existing application and cloud compute configurations to ones that support Spark. ',
           'Unfortunately, this type of cloud compute does not support the persistent disk feature.'
@@ -778,6 +798,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])],
       ['customImageWarning', () => h(Fragment, [
+        h(TitleBar, {
+          style: styles.titleBar,
+          title: 'Warning!',
+          onDismiss,
+          onPrevious: () => this.setState({ viewMode: undefined })
+        }),
         p({ style: { marginTop: 0, lineHeight: 1.5 } }, [
           `You are about to create a virtual machine using an unverified Docker image.
             Please make sure that it was created by you or someone you trust, using one of our `,
@@ -799,6 +825,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])],
       ['environmentWarning', () => h(Fragment, [
+        h(TitleBar, {
+          style: styles.titleBar,
+          title: 'Warning!',
+          onDismiss,
+          // TODO PD: should this only send you back one step?
+          onPrevious: this.setState({ viewMode: undefined })
+        }),
         Utils.cond(
           [this.willDeleteBuiltinDisk(), () => div('willDeleteBuiltinDisk')],
           [this.willDeletePersistentDisk(), () => div('willDeletePersistentDisk')],
@@ -814,6 +847,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         // 3. See SATURN 1783
       ])],
       ['deleteEnvironmentOptions', () => h(Fragment, [
+        h(TitleBar, {
+          style: styles.titleBar,
+          title: 'Delete environment options',
+          onDismiss,
+          onPrevious: () => this.setState({ viewMode: undefined, deleteDiskSelected: false })
+        }),
         this.newDeleteText(),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           // NOTE: deleteDiskSelected is also cleared via the TitleBar back button
@@ -822,6 +861,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])],
       [Utils.DEFAULT, () => h(Fragment, [
+        // TODO PD: test all title bars now that they're inline
+        h(TitleBar, { style: styles.titleBar, title: 'Runtime configuration', onDismiss }),
         div({ style: { marginBottom: '1rem' } }, [
           'Create cloud compute to launch Jupyter Notebooks or a Project-Specific software application.'
         ]),
@@ -905,21 +946,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         backgroundColor: _.includes(viewMode, ['deleteEnvironmentOptions', 'switchFromGCEToDataproc', 'environmentWarning', 'customImageWarning']) ? colors.warning(.1) : undefined
       }
     }, [
-      // TODO PD: should we inline the TitleBar into each viewMode, instead of having a switchCase here?
-      h(TitleBar, {
-        title: Utils.switchCase(viewMode,
-          ['packages', () => 'Installed packages'],
-          ['aboutPersistentDisk', () => 'About persistent disks'],
-          ['customImageWarning', () => 'Warning!'],
-          ['environmentWarning', () => 'Warning!'],
-          ['deleteEnvironmentOptions', () => 'Delete environment options'],
-          ['switchFromGCEToDataproc', () => 'Replace application configuration and cloud compute for Spark'],
-          [Utils.DEFAULT, () => 'Runtime configuration']
-        ),
-        onDismiss,
-        onPrevious: !!viewMode ? () => this.setState({ viewMode: undefined, deleteDiskSelected: false }) : undefined
-      }),
-      div({ style: { padding: '0.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents]),
+      div({ style: { padding: '1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents]),
       loading && spinnerOverlay,
       this.renderDebugger()
     ])

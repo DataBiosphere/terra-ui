@@ -4,10 +4,10 @@ import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 
 
-const TitleBar = ({ onPrevious, title, onDismiss, titleExtras }) => {
+const TitleBar = ({ onPrevious, title, onDismiss, titleExtras, style = {} }) => {
   return div({
     style: {
-      display: 'flex', alignItems: 'baseline', flex: 'none', padding: '1.5rem 1.5rem 0rem'
+      display: 'flex', alignItems: 'baseline', flex: 'none', ...style
     }
   }, [
     div({ style: { fontSize: '1rem', fontWeight: 600 } }, [title]),
