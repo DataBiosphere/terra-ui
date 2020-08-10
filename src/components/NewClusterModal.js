@@ -657,18 +657,18 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ])
         ])
       ]),
+      // TODO PD: keep fine-tuning styles here
       sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0, position: 'relative' } }, [
         legend({
           style: {
-            position: 'absolute', top: '-0.5rem', left: '0.5rem', padding: '0 0.5rem 0 0.25rem', backgroundColor: colors.light(), ...styles.label
+            position: 'absolute', top: '-0.5rem', left: '0.5rem', ...styles.label
           }
         }, ['Worker config']),
         // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
         div({
           style: {
             display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.25rem', gridGap: '0.8rem', alignItems: 'center',
-            padding: '1rem 0.8rem 0.8rem',
-            border: `2px solid ${colors.dark(0.3)}`, borderRadius: 7
+            padding: '1rem 0.8rem 0.8rem'
           }
         }, [
           h(IdContainer, [
