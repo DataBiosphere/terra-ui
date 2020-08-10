@@ -582,7 +582,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
 
     const runtimeConfig = () => h(Fragment, [
-      div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['Cloud compute configuration']),
+      div({ style: { fontSize: '0.875rem', fontWeight: 600, marginTop: '1rem', marginBottom: '0.5rem' } }, ['Cloud compute configuration']),
       div({ style: { marginBottom: '1rem' } }, ['Select from one of the default runtime profiles or define your own']),
       div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
         h(IdContainer, [
@@ -634,7 +634,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ]),
         h(IdContainer, [
           id => h(Fragment, [
-            label({ htmlFor: id, style: styles.label }, 'Runtime\ntype'),
+            label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, 'Compute type'),
             div({ style: { gridColumnEnd: 'span 3' } }, [
               h(Select, {
                 id,
@@ -879,7 +879,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 h(IdContainer, [
                   id => h(Fragment, [
                     label({ htmlFor: id, style: { ...styles.label, display: 'block', margin: '0.5rem 0' } }, 'CONTAINER IMAGE'),
-                    div({ style: { height: 52, marginBottom: '0.5rem' } }, [
+                    div({ style: { height: 52 } }, [
                       h(ValidatedInput, {
                         inputProps: {
                           id,
