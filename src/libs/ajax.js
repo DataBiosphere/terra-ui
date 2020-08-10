@@ -118,7 +118,7 @@ const runtimeDetails = {
 const pdOverrides = _.mapValues(({ runtimes, disks }) => {
   const stub = v => () => async (url, { method = 'GET', body }) => {
     console.log({ method, url, body: body && JSON.parse(body) })
-    await Utils.delay(3000)
+    await Utils.delay(1000)
     return new Response(JSON.stringify(v))
   }
   return [

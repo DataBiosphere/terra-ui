@@ -515,7 +515,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
     })
 
-    const isSelectedImageInputted = selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE
+    const isCustomImage = selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE
 
     const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
     const errors = validate(
@@ -523,7 +523,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       {
         masterMachineType: machineTypeConstraints,
         workerMachineType: machineTypeConstraints,
-        customEnvImage: isSelectedImageInputted ? { format: { pattern: imageValidationRegexp } } : {}
+        customEnvImage: isCustomImage ? { format: { pattern: imageValidationRegexp } } : {}
       },
       {
         prettify: v => ({ customEnvImage: 'Container image', masterMachineType: 'Main CPU/memory', workerMachineType: 'Worker CPU/memory' }[v] ||
@@ -552,6 +552,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const bottomButtons = () => {
       const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
+      const { runtime: newRuntime } = this.getNewEnvironmentConfig()
 
       return h(Fragment, [
         div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
@@ -569,7 +570,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             disabled: !this.hasChanges() || !!errors,
             tooltip: Utils.summarizeErrors(errors),
             onClick: () => {
-              if (isSelectedImageInputted && !this.canUpdateRuntime()) {
+              if (isCustomImage && oldRuntime.toolDockerImage !== newRuntime.toolDockerImage) {
                 this.setState({ viewMode: 'customImageWarning' })
               } else {
                 this.warnOrApplyChanges()
@@ -830,7 +831,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           title: 'Warning!',
           onDismiss,
           // TODO PD: should this only send you back one step?
-          onPrevious: this.setState({ viewMode: undefined })
+          onPrevious: () => this.setState({ viewMode: undefined })
         }),
         Utils.cond(
           [this.willDeleteBuiltinDisk(), () => div('willDeleteBuiltinDisk')],
