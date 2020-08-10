@@ -584,12 +584,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const runtimeConfig = () => h(Fragment, [
       div({ style: { fontSize: '0.875rem', fontWeight: 600, marginTop: '1rem', marginBottom: '0.5rem' } }, ['Cloud compute configuration']),
       div({ style: { marginBottom: '1rem' } }, ['Select from one of the default runtime profiles or define your own']),
+      // TODO PD: decrease space between label above input
       div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
         h(IdContainer, [
           id => h(Fragment, [
-            label({ htmlFor: id, style: styles.label }, 'Profile'),
+            label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, 'Compute profile'),
             // TODO PD: shorten the profile select and move the cost widget up
-            div({ style: { gridColumnEnd: 'span 5' } }, [
+            div({ style: { gridColumnEnd: 'span 6' } }, [
               h(Select, {
                 id,
                 value: profile,
@@ -621,8 +622,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         }),
         profile === 'custom' && h(IdContainer, [
           id => h(Fragment, [
-            label({ htmlFor: id, style: styles.label }, 'Startup\nscript'),
-            div({ style: { gridColumnEnd: 'span 5' } }, [
+            label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, 'Startup script'),
+            div({ style: { gridColumnEnd: 'span 6' } }, [
               h(TextInput, {
                 id,
                 placeholder: 'URI',
