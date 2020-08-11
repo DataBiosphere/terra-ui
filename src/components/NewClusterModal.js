@@ -199,7 +199,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const shouldDeleteRuntime = oldRuntime && !this.canUpdateRuntime()
     const shouldCreateRuntime = !this.canUpdateRuntime() && newRuntime
 
-    // TODO PD: extract this into a function and re-use to calculate new environment cost
+    // TODO PD: extract this into a function and re-use to calculate new environment cost??
     const runtimeConfig = newRuntime && {
       cloudService: newRuntime.cloudService,
       ...(newRuntime.cloudService === cloudServices.GCE ? {
