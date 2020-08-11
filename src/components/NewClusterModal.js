@@ -29,6 +29,9 @@ const styles = {
   },
   // TODO PD: see if we can do something besides a fixed width
   costStyling: { backgroundColor: colors.accent(0.1), width: 183 },
+  costLineItem: { display: 'flex', justifyContent: 'space-between', textTransform: 'uppercase', fontSize: 10, marginTop: '1rem' },
+  costLineItemLabel: { width: '60%' },
+  costLineItemPrice: { width: '40%', textAlign: 'right' },
   label: { fontWeight: 600, whiteSpace: 'pre' },
   disabledInputs: {
     border: `1px solid ${colors.dark(0.2)}`, borderRadius: 4, padding: '0.5rem'
@@ -622,17 +625,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   div({ style: { fontWeight: 600 } }, ['Cost breakdown']),
                   // TODO PD: Add total cost and fix font style
                   // TODO PD: Double-check using this.getNewEnvironmentConfig().runtime
-                  div({ style: { display: 'flex', justifyContent: 'space-between', textTransform: 'uppercase' } }, [
-                    div(['VM cost per hour']),
-                    div([Utils.formatUSD(runtimeCostBreakdown(this.getNewEnvironmentConfig().runtime).running)])
+                  div({ style: styles.costLineItem }, [
+                    div({ style: styles.costLineItemLabel }, ['VM cost per hour']),
+                    div({ style: styles.costLineItemPrice }, [Utils.formatUSD(runtimeCostBreakdown(this.getNewEnvironmentConfig().runtime).running)])
                   ]),
-                  div({ style: { display: 'flex', justifyContent: 'space-between', textTransform: 'uppercase' } }, [
-                    div(['Paused VM cost per hour']),
-                    div([Utils.formatUSD(runtimeCostBreakdown(this.getNewEnvironmentConfig().runtime).stopped)])
+                  div({ style: styles.costLineItem }, [
+                    div({ style: styles.costLineItemLabel }, ['Paused VM cost per hour']),
+                    div({ style: styles.costLineItemPrice }, [Utils.formatUSD(runtimeCostBreakdown(this.getNewEnvironmentConfig().runtime).stopped)])
                   ]),
-                  div({ style: { display: 'flex', justifyContent: 'space-between', textTransform: 'uppercase' } }, [
-                    div(['Detachable disk cost per hour']),
-                    div([Utils.formatUSD(persistentDiskCost(this.getCurrentPersistentDisk()))])
+                  div({ style: styles.costLineItem }, [
+                    div({ style: styles.costLineItemLabel }, ['Detachable disk cost per hour']),
+                    div({ style: styles.costLineItemPrice }, [Utils.formatUSD(persistentDiskCost(this.getCurrentPersistentDisk()))])
                   ])
                 ])
               }, [
