@@ -29,9 +29,9 @@ const styles = {
   },
   // TODO PD: see if we can do something besides a fixed width
   costStyling: { backgroundColor: colors.accent(0.1), width: 183 },
-  costLineItem: { display: 'flex', justifyContent: 'space-between', textTransform: 'uppercase', fontSize: 10, marginTop: '1rem' },
-  costLineItemLabel: { width: '60%' },
-  costLineItemPrice: { width: '40%', textAlign: 'right' },
+  costLineItem: { display: 'flex', justifyContent: 'space-between', textTransform: 'uppercase', marginTop: '1rem' },
+  costLineItemLabel: { width: '60%', fontWeight: 500, fontSize: 10 },
+  costLineItemPrice: { width: '40%', textAlign: 'right', fontWeight: 500, fontSize: 12 },
   label: { fontWeight: 600, whiteSpace: 'pre' },
   disabledInputs: {
     border: `1px solid ${colors.dark(0.2)}`, borderRadius: 4, padding: '0.5rem'
@@ -636,6 +636,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   div({ style: styles.costLineItem }, [
                     div({ style: styles.costLineItemLabel }, ['Detachable disk cost per hour']),
                     div({ style: styles.costLineItemPrice }, [Utils.formatUSD(persistentDiskCost(this.getCurrentPersistentDisk()))])
+                  ]),
+                  div({ style: styles.costLineItem }, [
+                    div({ style: styles.costLineItemLabel }, ['Total Cost']),
+                    // TODO PD: Add total cost
+                    div({ style: styles.costLineItemPrice }, ['NaN'])
                   ])
                 ])
               }, [
