@@ -29,9 +29,9 @@ const styles = {
   },
   // TODO PD: see if we can do something besides a fixed width
   costStyling: { backgroundColor: colors.accent(0.1), width: 183 },
-  costLineItem: { display: 'flex', justifyContent: 'space-between', textTransform: 'uppercase', marginTop: '1rem' },
-  costLineItemLabel: { width: '60%', fontWeight: 500, fontSize: 10 },
-  costLineItemPrice: { width: '40%', textAlign: 'right', fontWeight: 500, fontSize: 12 },
+  costLineItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', textTransform: 'uppercase', marginTop: '1rem', fontWeight: 500 },
+  costLineItemLabel: { width: '60%', fontSize: 10 },
+  costLineItemPrice: { width: '40%', textAlign: 'right', fontSize: 12 },
   label: { fontWeight: 600, whiteSpace: 'pre' },
   disabledInputs: {
     border: `1px solid ${colors.dark(0.2)}`, borderRadius: 4, padding: '0.5rem'
@@ -199,6 +199,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const shouldDeleteRuntime = oldRuntime && !this.canUpdateRuntime()
     const shouldCreateRuntime = !this.canUpdateRuntime() && newRuntime
 
+    // TODO PD: extract this into a function and re-use to calculate new environment cost
     const runtimeConfig = newRuntime && {
       cloudService: newRuntime.cloudService,
       ...(newRuntime.cloudService === cloudServices.GCE ? {
@@ -589,6 +590,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
 
     const runtimeConfig = () => {
+      // TODO PD: Double-check using this.getNewEnvironmentConfig().runtime
       const vmCost = runtimeCostBreakdown(this.getNewEnvironmentConfig().runtime)
       const pdCost = persistentDiskCost(this.getCurrentPersistentDisk())
       return h(Fragment, [
@@ -626,8 +628,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   // TODO PD: Add content.
                   content: div({ style: { ...styles.costStyling, padding: '0.5rem' } }, [
                     div({ style: { fontWeight: 600 } }, ['Cost breakdown']),
-                    // TODO PD: Add total cost and fix font style
-                    // TODO PD: Double-check using this.getNewEnvironmentConfig().runtime
                     div({ style: styles.costLineItem }, [
                       div({ style: styles.costLineItemLabel }, ['VM cost per hour']),
                       div({ style: styles.costLineItemPrice },
@@ -643,10 +643,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                       div({ style: styles.costLineItemPrice }, [Utils.formatUSD(pdCost)])
                     ]),
                     div({ style: { width: '100%', borderBottom: `1px solid ${colors.accent()}`, height: 0, marginTop: '0.7rem' } }),
-                    div({ style: { ...styles.costLineItem, marginTop: '0.7rem' } }, [
-                      // TODO PD: Shorter, still accurate name... including units!
-                      div({ style: { ...styles.costLineItemLabel, fontSize: 12, fontWeight: 600 } }, ['Total Cost while running']),
-                      div({ style: { ...styles.costLineItemPrice, fontWeight: 600 } }, [Utils.formatUSD(vmCost.running + pdCost)])
+                    div({ style: { ...styles.costLineItem, marginTop: '0.7rem', fontWeight: 600 } }, [
+                      div({ style: { ...styles.costLineItemLabel, fontSize: 12 } }, ['Total cost per hour (running)']),
+                      div({ style: { ...styles.costLineItemPrice } }, [Utils.formatUSD(vmCost.running + pdCost)])
                     ])
                   ])
                 }, [
