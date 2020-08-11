@@ -334,7 +334,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       isClearable: false,
       options: [
         {
-          label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }),
+          label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }),
             _.filter(({ isCommunity }) => !isCommunity, leoImages))
         },
         {
