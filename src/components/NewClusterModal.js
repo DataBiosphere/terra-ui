@@ -2,12 +2,12 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { b, div, fieldset, h, input, label, legend, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Clickable, GroupedSelect, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { InfoBox } from 'src/components/PopupTrigger'
+import PopupTrigger, { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { cloudServices, machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
@@ -611,21 +611,23 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ]),
             // TODO PD: continue styling the cost widget
             div({ style: { gridColumnEnd: 'span 2' } }, [
-              div({
-                style: {
-                  display: 'flex', alignItems: 'baseline',
-                  backgroundColor: colors.accent(0.1), color: colors.accent(),
-                  borderRadius: 5,
-                  padding: '0.5rem 1rem'
-                }
+              h(PopupTrigger, {
+                side: 'bottom',
+                // TODO PD: Add content.
+                content: div({ style: { backgroundColor: colors.accent(0.1), padding: '0.5rem' } })
               }, [
-                span({ style: { ...styles.label, marginRight: '0.25rem', fontSize: 22 } }, [`${Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))}`]),
-                // TODO PD: This should take into account PD and isn't right now.
-                span({style: { fontWeight: 600 }}, [' per hr']),
-                // TODO PD: fix placement of icon
-                // TODO PD: think more about InfoBox and how we pass style props to it
-                h(InfoBox, { side: 'bottom' }, [
-                  'Cost details here! '
+                h(Clickable, {
+                  as: 'div', style: {
+                    display: 'flex', alignItems: 'baseline',
+                    backgroundColor: colors.accent(0.1), color: colors.accent(),
+                    borderRadius: 5,
+                    padding: '0.5rem 1rem'
+                  }
+                }, [
+                  span({ style: { ...styles.label, marginRight: '0.25rem', fontSize: 22 } }, [`${Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))}`]),
+                  // TODO PD: This should take into account PD and isn't right now.
+                  span({ style: { fontWeight: 600 } }, [' per hr']),
+                  icon('info-circle', { style: { marginLeft: 'auto' } })
                 ])
               ])
             ])
