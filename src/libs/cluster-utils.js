@@ -67,6 +67,10 @@ export const runtimeCostBreakdown = config => {
   }
 }
 
+export const persistentDiskCost = config => {
+  return config.size * storagePrice
+}
+
 export const clusterCost = ({ runtimeConfig, status }) => {
   switch (status) {
     case 'Stopped':
@@ -105,4 +109,3 @@ export const deleteText = () => {
     ['Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, ' +
       'which will take several minutes.'])])
 }
-

@@ -11,7 +11,7 @@ import PopupTrigger, { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { cloudServices, machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { DEFAULT_DISK_SIZE, findMachineType, normalizeRuntimeConfig, runtimeConfigCost } from 'src/libs/cluster-utils'
+import { DEFAULT_DISK_SIZE, findMachineType, normalizeRuntimeConfig, persistentDiskCost, runtimeConfigCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
@@ -617,7 +617,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 side: 'bottom',
                 // TODO PD: Add content.
                 content: div({ style: { ...styles.costStyling, padding: '0.5rem' } }, [
-                  div({ style: { fontWeight: 600 } }, ['Cost breakdown'])
+                  div({ style: { fontWeight: 600 } }, ['Cost breakdown']),
+                  // TODO PD: test out persistentDiskCost here
+                  div([persistentDiskCost({})])
                 ])
               }, [
                 h(Clickable, {
