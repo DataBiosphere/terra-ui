@@ -642,10 +642,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                       div({ style: styles.costLineItemLabel }, ['Detachable disk cost per hour']),
                       div({ style: styles.costLineItemPrice }, [Utils.formatUSD(pdCost)])
                     ]),
-                    div({ style: { width: '100%', borderBottom: `1px solid ${colors.accent()}`, height: 0, marginTop: '1rem' } }),
-                    div({ style: styles.costLineItem }, [
-                      div({ style: styles.costLineItemLabel }, ['Total Cost while running']),
-                      div({ style: styles.costLineItemPrice }, [Utils.formatUSD(vmCost.running + pdCost)])
+                    div({ style: { width: '100%', borderBottom: `1px solid ${colors.accent()}`, height: 0, marginTop: '0.7rem' } }),
+                    div({ style: { ...styles.costLineItem, marginTop: '0.7rem' } }, [
+                      // TODO PD: Shorter, still accurate name... including units!
+                      div({ style: { ...styles.costLineItemLabel, fontSize: 12, fontWeight: 600 } }, ['Total Cost while running']),
+                      div({ style: { ...styles.costLineItemPrice, fontWeight: 600 } }, [Utils.formatUSD(vmCost.running + pdCost)])
                     ])
                   ])
                 }, [
