@@ -161,6 +161,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       _.last(_.sortBy('auditInfo.createdDate', persistentDisks))
   }
 
+  /**
+   * Transform the new environment config into the shape of runtime config
+   * returned from leonardo. Specifically used as an input to cost calculation
+   * for potential new configurations.
+   */
   getPendingRuntimeConfig() {
     const { runtime: newRuntime } = this.getNewEnvironmentConfig()
     return {
@@ -199,7 +204,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const shouldDeleteRuntime = oldRuntime && !this.canUpdateRuntime()
     const shouldCreateRuntime = !this.canUpdateRuntime() && newRuntime
 
-    // TODO PD: extract this into a function and re-use to calculate new environment cost??
+    // TODO PD: test the generation of runtime config for update vs create
     const runtimeConfig = newRuntime && {
       cloudService: newRuntime.cloudService,
       ...(newRuntime.cloudService === cloudServices.GCE ? {
@@ -590,8 +595,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
 
     const runtimeConfig = () => {
-      // TODO PD: Double-check using this.getNewEnvironmentConfig().runtime
-      const vmCost = runtimeCostBreakdown(this.getNewEnvironmentConfig().runtime)
+      const vmCost = runtimeCostBreakdown(this.getPendingRuntimeConfig())
       const pdCost = persistentDiskCost(this.getCurrentPersistentDisk())
       return h(Fragment, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600, marginTop: '1rem', marginBottom: '0.5rem' } }, ['Cloud compute configuration']),
