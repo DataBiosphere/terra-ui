@@ -11,7 +11,9 @@ import PopupTrigger, { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { cloudServices, machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { DEFAULT_DISK_SIZE, findMachineType, normalizeRuntimeConfig, persistentDiskCost, runtimeConfigCost } from 'src/libs/cluster-utils'
+import {
+  DEFAULT_DISK_SIZE, findMachineType, normalizeRuntimeConfig, persistentDiskCost, runtimeConfigCost, runtimeCostBreakdown
+} from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
@@ -618,9 +620,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 // TODO PD: Add content.
                 content: div({ style: { ...styles.costStyling, padding: '0.5rem' } }, [
                   div({ style: { fontWeight: 600 } }, ['Cost breakdown']),
-                  // TODO PD: test out persistentDiskCost here
-                  // TODO PD: Add other costs here and fix font style
-                  div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+                  // TODO PD: Add total cost and fix font style
+                  // TODO PD: Double-check using this.getNewEnvironmentConfig().runtime
+                  div({ style: { display: 'flex', justifyContent: 'space-between', textTransform: 'uppercase' } }, [
+                    div(['VM cost per hour']),
+                    div([Utils.formatUSD(runtimeCostBreakdown(this.getNewEnvironmentConfig().runtime).running)])
+                  ]),
+                  div({ style: { display: 'flex', justifyContent: 'space-between', textTransform: 'uppercase' } }, [
+                    div(['Paused VM cost per hour']),
+                    div([Utils.formatUSD(runtimeCostBreakdown(this.getNewEnvironmentConfig().runtime).stopped)])
+                  ]),
+                  div({ style: { display: 'flex', justifyContent: 'space-between', textTransform: 'uppercase' } }, [
                     div(['Detachable disk cost per hour']),
                     div([Utils.formatUSD(persistentDiskCost(this.getCurrentPersistentDisk()))])
                   ])
