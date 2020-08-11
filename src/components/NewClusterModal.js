@@ -621,10 +621,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               }, [
                 span({ style: { ...styles.label, marginRight: '0.25rem', fontSize: 22 } }, [`${Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))}`]),
                 // TODO PD: This should take into account PD and isn't right now.
-                // TODO PD: Add font weight to per/hr (and maybe just say "/hr"?)
-                ` per/hr`,
+                // TODO PD: Add font weight to per/hr
+                span({style: {}}, [` per hr`]),
                 // TODO PD: fix placement of icon
-                h(InfoBox, { style: { marginRight: '1rem' }, side: 'bottom' }, [
+                h(InfoBox, { style: { marginLeft: '1rem' }, side: 'bottom' }, [
                   'Cost details here! '
                 ])
               ])
