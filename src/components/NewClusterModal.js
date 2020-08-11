@@ -616,7 +616,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               h(PopupTrigger, {
                 side: 'bottom',
                 // TODO PD: Add content.
-                content: div({ style: { ...styles.costStyling, padding: '0.5rem' } })
+                content: div({ style: { ...styles.costStyling, padding: '0.5rem' } }, [
+                  div({ style: { fontWeight: 600 } }, ['Cost breakdown'])
+                ])
               }, [
                 h(Clickable, {
                   as: 'div', style: {
