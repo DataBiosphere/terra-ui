@@ -59,6 +59,14 @@ export const runtimeConfigCost = config => {
   ])
 }
 
+// TODO PD: evaluate if this is the right way to handle this
+export const runtimeCostBreakdown = config => {
+  return {
+    running: runtimeConfigCost(config),
+    stopped: ongoingCost(config)
+  }
+}
+
 export const clusterCost = ({ runtimeConfig, status }) => {
   switch (status) {
     case 'Stopped':
