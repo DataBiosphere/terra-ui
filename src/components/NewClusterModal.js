@@ -25,6 +25,8 @@ const styles = {
     alignItems: 'center',
     marginTop: '1rem'
   },
+  // TODO PD: see if we can do something besides a fixed width
+  costStyling: { backgroundColor: colors.accent(0.1), width: 183 },
   label: { fontWeight: 600, whiteSpace: 'pre' },
   disabledInputs: {
     border: `1px solid ${colors.dark(0.2)}`, borderRadius: 4, padding: '0.5rem'
@@ -614,12 +616,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               h(PopupTrigger, {
                 side: 'bottom',
                 // TODO PD: Add content.
-                content: div({ style: { backgroundColor: colors.accent(0.1), padding: '0.5rem' } })
+                content: div({ style: { ...styles.costStyling, padding: '0.5rem' } })
               }, [
                 h(Clickable, {
                   as: 'div', style: {
+                    ...styles.costStyling,
                     display: 'flex', alignItems: 'baseline',
-                    backgroundColor: colors.accent(0.1), color: colors.accent(),
+                    color: colors.accent(),
                     borderRadius: 5,
                     padding: '0.5rem 1rem'
                   }
