@@ -619,7 +619,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 content: div({ style: { ...styles.costStyling, padding: '0.5rem' } }, [
                   div({ style: { fontWeight: 600 } }, ['Cost breakdown']),
                   // TODO PD: test out persistentDiskCost here
-                  div([persistentDiskCost({})])
+                  // TODO PD: Add other costs here and fix font style
+                  div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+                    div(['Detachable disk cost per hour']),
+                    div([Utils.formatUSD(persistentDiskCost(this.getCurrentPersistentDisk()))])
+                  ])
                 ])
               }, [
                 h(Clickable, {
@@ -631,7 +635,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                     padding: '0.5rem 1rem'
                   }
                 }, [
-                  span({ style: { ...styles.label, marginRight: '0.25rem', fontSize: 22 } }, [`${Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))}`]),
+                  span({ style: { ...styles.label, marginRight: '0.25rem', fontSize: 22 } },
+                    [`${Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))}`]),
                   // TODO PD: This should take into account PD and isn't right now.
                   span({ style: { fontWeight: 600 } }, [' per hr']),
                   icon('info-circle', { style: { marginLeft: 'auto' } })
@@ -808,7 +813,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         this.renderDeleteDiskChoices(),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           // NOTE: deleteDiskSelected is also cleared via the TitleBar back button
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined, deleteDiskSelected: false }) }, ['Cancel']),
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined, deleteDiskSelected: false }) },
+            ['Cancel']),
           h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
         ])
       ])],
@@ -871,7 +877,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         this.newDeleteText(),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           // NOTE: deleteDiskSelected is also cleared via the TitleBar back button
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined, deleteDiskSelected: false }) }, ['Cancel']),
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined, deleteDiskSelected: false }) },
+            ['Cancel']),
           h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Delete'])
         ])
       ])],
@@ -960,7 +967,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return div({
       style: {
         display: 'flex', flexDirection: 'column', flex: 1,
-        backgroundColor: _.includes(viewMode, ['deleteEnvironmentOptions', 'switchFromGCEToDataproc', 'environmentWarning', 'customImageWarning']) ? colors.warning(.1) : undefined
+        backgroundColor: _.includes(viewMode, ['deleteEnvironmentOptions', 'switchFromGCEToDataproc', 'environmentWarning', 'customImageWarning']) ?
+          colors.warning(.1) :
+          undefined
       }
     }, [
       div({ style: { padding: '1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents]),
