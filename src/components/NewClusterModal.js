@@ -129,6 +129,7 @@ const PROJECT_SPECIFIC_MODE = '__project_specific_mode__'
 export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
   static propTypes = {
     currentCluster: PropTypes.object,
+    clusters: PropTypes.array,
     persistentDisks: PropTypes.array,
     namespace: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
@@ -137,7 +138,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   constructor(props) {
     super(props)
-    const { currentCluster } = props
+    const currentCluster = this.getCurrentCluster()
     const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
     const { masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
     const matchingProfile = _.find(({ runtimeConfig }) => runtimeConfig.masterMachineType === masterMachineType, profiles)
@@ -162,7 +163,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   // TODO PD: This should probably only choose from unattached persistent disks.
   getCurrentPersistentDisk() {
-    const { currentCluster, persistentDisks } = this.props
+    const currentCluster = this.getCurrentCluster()
+    const { persistentDisks } = this.props
     const id = currentCluster?.runtimeConfig.persistentDiskId
     return id ?
       _.find({ id }, persistentDisks) :
@@ -201,7 +203,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating runtime')
   )(async () => {
-    const { onSuccess, namespace, currentCluster } = this.props
+    const currentCluster = this.getCurrentCluster()
+    const { onSuccess, namespace } = this.props
     const { selectedLeoImage } = this.state
     const currentPersistentDisk = this.getCurrentPersistentDisk()
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
@@ -312,7 +315,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   getOldEnvironmentConfig() {
-    const { currentCluster, currentCluster: { runtimeConfig } = {} } = this.props
+    const currentCluster = this.getCurrentCluster()
+    const runtimeConfig = currentCluster?.runtimeConfig
+    // TODO PD: continue replacing currentCluster from props with getCurrentCluster()
     const { currentClusterDetails } = this.state
     const cloudService = runtimeConfig?.cloudService
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
