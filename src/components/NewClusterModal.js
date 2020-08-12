@@ -29,7 +29,9 @@ const styles = {
   },
   // TODO PD: see if we can do something besides a fixed width
   costStyling: { backgroundColor: colors.accent(0.1), width: 183 },
-  costLineItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', textTransform: 'uppercase', marginTop: '1rem', fontWeight: 500 },
+  costLineItem: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', textTransform: 'uppercase', marginTop: '1rem', fontWeight: 500
+  },
   costLineItemLabel: { width: '60%', fontSize: 10 },
   costLineItemPrice: { width: '40%', textAlign: 'right', fontSize: 12 },
   label: { fontWeight: 600, whiteSpace: 'pre' },
@@ -469,10 +471,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onChange: () => this.setState({ deleteDiskSelected: false })
       }, [
         p([
-          'Your application configuration and cloud compute are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.',
-          'You will continue to incur persistent disk cost at '
-        ])
-      ]), // TODO PD: add the cost object
+          'Your application configuration and cloud compute are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.'
+        ]),
+        p(['You will continue to incur persistent disk cost at ',
+          span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCost(this.getCurrentPersistentDisk())), ' per hour'])])
+      ]), //TODO PD: Go look at other uses of formatUSD to ensure they are NOT string interpolated use the format like above instead
       h(FancyRadio, {
         name: 'delete-persistent-disk',
         labelText: 'Delete cloud environment including persistent disk',
