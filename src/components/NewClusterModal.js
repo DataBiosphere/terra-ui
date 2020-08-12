@@ -350,7 +350,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   hasAttachedDisk() {
-    const { currentCluster } = this.props
+    const currentCluster = this.getCurrentCluster()
     return currentCluster?.runtimeConfig.persistentDiskId
   }
 
@@ -414,7 +414,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   componentDidMount = withErrorReporting('Error loading cluster', async () => {
-    const { currentCluster, namespace } = this.props
+    const { namespace } = this.props
+    const currentCluster = this.getCurrentCluster()
 
     // TODO PD: consider disabling submit button until these calls have finished
     const [currentClusterDetails, newLeoImages] = await Promise.all([
@@ -510,7 +511,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   render() {
-    const { currentCluster, onDismiss } = this.props
+    const { onDismiss } = this.props
+    const currentCluster = this.getCurrentCluster()
     const {
       profile, masterMachineType, masterDiskSize, selectedPersistentDiskSize, sparkMode, workerMachineType,
       numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
@@ -1024,7 +1026,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   shouldUsePersistentDisk() {
     const { sparkMode } = this.state
-    const { currentCluster } = this.props
+    const currentCluster = this.getCurrentCluster()
 
     return !sparkMode && !currentCluster?.runtimeConfig.diskSize
   }

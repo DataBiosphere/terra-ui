@@ -62,6 +62,7 @@ const NotebookLauncher = _.flow(
         ]),
       mode && h(ClusterKicker, { cluster, refreshClusters, onNullCluster: () => setCreateOpen(true) }),
       mode && h(ClusterStatusMonitor, { cluster, onClusterStoppedRunning: () => chooseMode(undefined) }),
+      // TODO PD: pass clusters instead of currentCluster
       h(NewClusterModal, {
         isOpen: createOpen,
         namespace, currentCluster: cluster,
