@@ -12,6 +12,7 @@ import TitleBar from 'src/components/TitleBar'
 import { cloudServices, machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import {
+  currentCluster,
   DEFAULT_DISK_SIZE, findMachineType, normalizeRuntimeConfig, persistentDiskCost, runtimeConfigCost, runtimeCostBreakdown
 } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
@@ -152,6 +153,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize || DEFAULT_DISK_SIZE,
       deleteDiskSelected: false
     }
+  }
+
+  getCurrentCluster() {
+    const { clusters } = this.props
+    return currentCluster(clusters)
   }
 
   // TODO PD: This should probably only choose from unattached persistent disks.

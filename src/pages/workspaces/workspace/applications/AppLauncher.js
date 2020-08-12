@@ -20,7 +20,8 @@ const AppLauncher = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: _.get('app')
   })
-)(({ namespace, refreshClusters, cluster, app }, ref) => {
+  // TODO PD: consider removing cluster from this list and using currentCluster() to extract it from clusters instead
+)(({ namespace, refreshClusters, cluster, clusters, app }, ref) => {
   const [cookieReady, setCookieReady] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -79,7 +80,7 @@ const AppLauncher = _.flow(
         ]),
         h(NewClusterModal, {
           isOpen: showCreate,
-          namespace, currentCluster: cluster,
+          namespace, clusters,
           onDismiss: () => setShowCreate(false),
           onSuccess: _.flow(
             withErrorReporting('Error creating cluster'),
