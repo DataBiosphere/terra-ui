@@ -68,6 +68,7 @@ export const runtimeCostBreakdown = config => {
 }
 
 // TODO PD: investigate bug 'cannot read property size of undefined' when in dataproc
+// TODO PD: examine what value is passed for config (ie what if there's no PD?)
 export const persistentDiskCost = config => {
   return config.size * storagePrice
 }
