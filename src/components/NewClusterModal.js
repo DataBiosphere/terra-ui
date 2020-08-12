@@ -475,7 +475,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ]),
         p(['You will continue to incur persistent disk cost at ',
           span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCost(this.getCurrentPersistentDisk())), ' per hour'])])
-      ]), //TODO PD: Go look at other uses of formatUSD to ensure they are NOT string interpolated use the format like above instead
+      ]),
       h(FancyRadio, {
         name: 'delete-persistent-disk',
         labelText: 'Delete cloud environment including persistent disk',
@@ -666,7 +666,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                     }
                   }, [
                     span({ style: { ...styles.label, marginRight: '0.25rem', fontSize: 22 } },
-                      [`${Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))}`]),
+                      [Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))]),
                     // TODO PD: This should take into account PD and isn't right now.
                     span({ style: { fontWeight: 600 } }, [' per hr']),
                     icon('info-circle', { style: { marginLeft: 'auto' } })
