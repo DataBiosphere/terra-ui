@@ -599,7 +599,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const runtimeConfig = () => {
       const vmCost = runtimeCostBreakdown(this.getPendingRuntimeConfig())
-      const pdCost = persistentDiskCost(this.getCurrentPersistentDisk())
+      // const pdCost = persistentDiskCost(currentPersistentDisk)
+      // TODO PD: Rework this once we figure out what the new design should be
+      const pdCost = 0
       return h(Fragment, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600, marginTop: '1rem', marginBottom: '0.5rem' } }, ['Cloud compute configuration']),
         div({ style: { marginBottom: '1rem' } }, ['Select from one of the default runtime profiles or define your own']),
