@@ -16,7 +16,7 @@ import { findPotentialNotebookLockers, NotebookDuplicator, notebookLockHash } fr
 import PopupTrigger from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { collapsedClusterStatus, usableStatuses } from 'src/libs/cluster-utils'
+import { collapsedClusterStatus, currentCluster, usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -44,8 +44,10 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   })
 )(
-  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace }, accessLevel, canCompute }, cluster, refreshClusters }, ref) => {
+  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace }, accessLevel, canCompute }, cluster, clusters, refreshClusters }, ref) => {
     const [createOpen, setCreateOpen] = useState(false)
+    // TODO PD: replace cluster prop with this const
+    // const cluster = currentCluster(clusters)
     // Status note: undefined means still loading, null means no cluster
     const { runtimeName, labels } = cluster || {}
     const status = collapsedClusterStatus(cluster)
@@ -62,10 +64,9 @@ const NotebookLauncher = _.flow(
         ]),
       mode && h(ClusterKicker, { cluster, refreshClusters, onNullCluster: () => setCreateOpen(true) }),
       mode && h(ClusterStatusMonitor, { cluster, onClusterStoppedRunning: () => chooseMode(undefined) }),
-      // TODO PD: pass clusters instead of currentCluster
       h(NewClusterModal, {
         isOpen: createOpen,
-        namespace, currentCluster: cluster,
+        namespace, clusters,
         onDismiss: () => {
           chooseMode(undefined)
           setCreateOpen(false)
