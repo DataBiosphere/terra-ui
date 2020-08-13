@@ -29,7 +29,7 @@ const styles = {
     marginTop: '1rem'
   },
   // TODO PD: see if we can do something besides a fixed width
-  costStyling: { backgroundColor: colors.accent(0.1), width: 183 },
+  costStyling: { backgroundColor: colors.accent(0.1), display: 'flex' },
   costLineItem: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', textTransform: 'uppercase', marginTop: '1rem', fontWeight: 500
   },
@@ -642,8 +642,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   })
                 ]),
                 // TODO PD: continue styling the cost widget
-                div({ style: { gridColumnEnd: 'span 2' } }, [
-                ])
+                div({ style: { gridColumnEnd: 'span 2' } }, [])
               ])
             ]),
             h(MachineSelector, {
@@ -966,17 +965,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 padding: '0.5rem 1rem'
               }
             }, [
-              span({
-                  style: {
-                    ...styles.label,
-                    marginRight: '0.25rem',
-                    fontSize: 22
-                  }
-                },
-                [Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))]),
-              // TODO PD: This should take into account PD and isn't right now.
-              span({ style: { fontWeight: 600 } }, [' per hr']),
-              icon('info-circle', { style: { marginLeft: 'auto' } })
+              div({ style: { fontSize: 22, ...styles.label } }, [
+                div({ style: { fontSize: 10 } }, ['Running Cloud Compute Cost']),
+                div([
+                  Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())),
+                  span({ style: { fontWeight: 600 } }, [' per hr'])
+                ])
+              ])
             ])
           ]),
 
