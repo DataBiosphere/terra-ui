@@ -29,7 +29,7 @@ const styles = {
     marginTop: '1rem'
   },
   // TODO PD: see if we can do something besides a fixed width
-  costStyling: { backgroundColor: colors.accent(0.1), display: 'flex' },
+  costStyling: { backgroundColor: colors.accent(0.2), display: 'flex' },
   costLineItem: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', textTransform: 'uppercase', marginTop: '1rem', fontWeight: 500
   },
@@ -960,14 +960,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 ...styles.costStyling,
                 display: 'flex',
                 alignItems: 'baseline',
-                color: colors.accent(),
                 borderRadius: 5,
                 padding: '0.5rem 1rem'
               }
             }, [
+              // TODO PD: add other two cost boxes (paused and PD cost)
               div({ style: { fontSize: 22, ...styles.label } }, [
-                div({ style: { fontSize: 10 } }, ['Running Cloud Compute Cost']),
-                div([
+                div({ style: { fontSize: 10, color: colors.dark() } }, ['Running Cloud Compute Cost']),
+                div({ style: { color: colors.accent() } }, [
                   Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())),
                   span({ style: { fontWeight: 600 } }, [' per hr'])
                 ])
