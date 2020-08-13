@@ -90,7 +90,10 @@ export const trimClustersOldestFirst = _.flow(
   _.sortBy('createdDate')
 )
 
-export const currentCluster = _.flow(trimClustersOldestFirst, _.last)
+export const currentCluster = clusters => {
+  // Status note: undefined means still loading, null means no cluster
+  return !clusters ? undefined : (_.flow(trimClustersOldestFirst, _.last)(clusters) || null)
+}
 
 export const collapsedClusterStatus = cluster => {
   return cluster && (cluster.patchInProgress ? 'LeoReconfiguring' : cluster.status) // NOTE: preserves null vs undefined

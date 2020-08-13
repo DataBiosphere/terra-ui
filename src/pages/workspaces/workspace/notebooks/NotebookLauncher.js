@@ -44,13 +44,9 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   })
 )(
-  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace }, accessLevel, canCompute }, cluster, clusters, refreshClusters }, ref) => {
+  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace }, accessLevel, canCompute }, clusters, refreshClusters }, ref) => {
     const [createOpen, setCreateOpen] = useState(false)
-    // TODO PD: replace cluster prop with this const
-    // const cluster = currentCluster(clusters)
-    // TODO PD: consider using the logic below to determine the cluster?
-    // cluster: !clusters ? undefined : (currentCluster(clusters) || null),
-    // Status note: undefined means still loading, null means no cluster
+    const cluster = currentCluster(clusters)
     const { runtimeName, labels } = cluster || {}
     const status = collapsedClusterStatus(cluster)
     const [busy, setBusy] = useState()
