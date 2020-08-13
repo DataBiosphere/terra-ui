@@ -616,197 +616,202 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       // TODO PD: Rework this once we figure out what the new design should be
       const pdCost = 0
       return h(Fragment, [
-        div({ style: { fontSize: '0.875rem', fontWeight: 600, marginTop: '1rem', marginBottom: '0.5rem' } }, ['Cloud compute configuration']),
-        div({ style: { marginBottom: '1rem' } }, ['Select from one of the default runtime profiles or define your own']),
-        // TODO PD: decrease space between label above input
-        div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
-          h(IdContainer, [
-            id => h(Fragment, [
-              label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, 'Compute profile'),
-              div({ style: { gridColumnEnd: 'span 4' } }, [
-                h(Select, {
-                  id,
-                  value: profile,
-                  onChange: ({ value }) => {
-                    this.setState({
-                      profile: value,
-                      ...(value === 'custom' ?
-                        {} :
-                        { masterMachineType: _.find({ name: value }, profiles).runtimeConfig.masterMachineType })
-                    })
-                  },
-                  isSearchable: false,
-                  isClearable: false,
-                  options: [
-                    ..._.map(({ name, label }) => ({ value: name, label: `${label} computer power` }), profiles),
-                    { value: 'custom', label: 'Custom' }
-                  ]
-                })
-              ]),
-              // TODO PD: continue styling the cost widget
-              div({ style: { gridColumnEnd: 'span 2' } }, [
-                h(PopupTrigger, {
-                  side: 'bottom',
-                  // TODO PD: Add content.
-                  content: div({ style: { ...styles.costStyling, padding: '0.5rem' } }, [
-                    div({ style: { fontWeight: 600 } }, ['Cost breakdown']),
-                    div({ style: styles.costLineItem }, [
-                      div({ style: styles.costLineItemLabel }, ['VM cost per hour']),
-                      div({ style: styles.costLineItemPrice },
-                        [Utils.formatUSD(vmCost.running)])
-                    ]),
-                    div({ style: styles.costLineItem }, [
-                      div({ style: styles.costLineItemLabel }, ['Paused VM cost per hour']),
-                      div({ style: styles.costLineItemPrice },
-                        [Utils.formatUSD(vmCost.stopped)])
-                    ]),
-                    div({ style: styles.costLineItem }, [
-                      div({ style: styles.costLineItemLabel }, ['Detachable disk cost per hour']),
-                      div({ style: styles.costLineItemPrice }, [Utils.formatUSD(pdCost)])
-                    ]),
-                    div({ style: { width: '100%', borderBottom: `1px solid ${colors.accent()}`, height: 0, marginTop: '0.7rem' } }),
-                    div({ style: { ...styles.costLineItem, marginTop: '0.7rem', fontWeight: 600 } }, [
-                      div({ style: { ...styles.costLineItemLabel, fontSize: 12 } }, ['Total cost per hour (running)']),
-                      div({ style: { ...styles.costLineItemPrice } }, [Utils.formatUSD(vmCost.running + pdCost)])
+        div({ style: { padding: '1rem', borderRadius: 3, backgroundColor: 'white', marginTop: '1rem' } }, [
+          div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['Cloud compute configuration']),
+          div({ style: { marginBottom: '1rem' } }, ['Select from one of the default runtime profiles or define your own']),
+          // TODO PD: decrease space between label above input
+          div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
+            h(IdContainer, [
+              id => h(Fragment, [
+                label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, 'Compute profile'),
+                div({ style: { gridColumnEnd: 'span 4' } }, [
+                  h(Select, {
+                    id,
+                    value: profile,
+                    onChange: ({ value }) => {
+                      this.setState({
+                        profile: value,
+                        ...(value === 'custom' ?
+                          {} :
+                          { masterMachineType: _.find({ name: value }, profiles).runtimeConfig.masterMachineType })
+                      })
+                    },
+                    isSearchable: false,
+                    isClearable: false,
+                    options: [
+                      ..._.map(({ name, label }) => ({ value: name, label: `${label} computer power` }), profiles),
+                      { value: 'custom', label: 'Custom' }
+                    ]
+                  })
+                ]),
+                // TODO PD: continue styling the cost widget
+                div({ style: { gridColumnEnd: 'span 2' } }, [
+                  h(PopupTrigger, {
+                    side: 'bottom',
+                    // TODO PD: Add content.
+                    content: div({ style: { ...styles.costStyling, padding: '0.5rem' } }, [
+                      div({ style: { fontWeight: 600 } }, ['Cost breakdown']),
+                      div({ style: styles.costLineItem }, [
+                        div({ style: styles.costLineItemLabel }, ['VM cost per hour']),
+                        div({ style: styles.costLineItemPrice },
+                          [Utils.formatUSD(vmCost.running)])
+                      ]),
+                      div({ style: styles.costLineItem }, [
+                        div({ style: styles.costLineItemLabel }, ['Paused VM cost per hour']),
+                        div({ style: styles.costLineItemPrice },
+                          [Utils.formatUSD(vmCost.stopped)])
+                      ]),
+                      div({ style: styles.costLineItem }, [
+                        div({ style: styles.costLineItemLabel }, ['Detachable disk cost per hour']),
+                        div({ style: styles.costLineItemPrice }, [Utils.formatUSD(pdCost)])
+                      ]),
+                      div({ style: { width: '100%', borderBottom: `1px solid ${colors.accent()}`, height: 0, marginTop: '0.7rem' } }),
+                      div({ style: { ...styles.costLineItem, marginTop: '0.7rem', fontWeight: 600 } }, [
+                        div({ style: { ...styles.costLineItemLabel, fontSize: 12 } }, ['Total cost per hour (running)']),
+                        div({ style: { ...styles.costLineItemPrice } }, [Utils.formatUSD(vmCost.running + pdCost)])
+                      ])
+                    ])
+                  }, [
+                    h(Clickable, {
+                      as: 'div', style: {
+                        ...styles.costStyling,
+                        display: 'flex', alignItems: 'baseline',
+                        color: colors.accent(),
+                        borderRadius: 5,
+                        padding: '0.5rem 1rem'
+                      }
+                    }, [
+                      span({ style: { ...styles.label, marginRight: '0.25rem', fontSize: 22 } },
+                        [Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))]),
+                      // TODO PD: This should take into account PD and isn't right now.
+                      span({ style: { fontWeight: 600 } }, [' per hr']),
+                      icon('info-circle', { style: { marginLeft: 'auto' } })
                     ])
                   ])
-                }, [
-                  h(Clickable, {
-                    as: 'div', style: {
-                      ...styles.costStyling,
-                      display: 'flex', alignItems: 'baseline',
-                      color: colors.accent(),
-                      borderRadius: 5,
-                      padding: '0.5rem 1rem'
-                    }
-                  }, [
-                    span({ style: { ...styles.label, marginRight: '0.25rem', fontSize: 22 } },
-                      [Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))]),
-                    // TODO PD: This should take into account PD and isn't right now.
-                    span({ style: { fontWeight: 600 } }, [' per hr']),
-                    icon('info-circle', { style: { marginLeft: 'auto' } })
-                  ])
+                ])
+              ])
+            ]),
+            h(MachineSelector, {
+              machineType: masterMachineType,
+              onChangeMachineType: v => this.setState({ masterMachineType: v }),
+              isPersistentDisk,
+              diskSize: isPersistentDisk ? selectedPersistentDiskSize : masterDiskSize,
+              onChangeDiskSize: v => this.setState(isPersistentDisk ? { selectedPersistentDiskSize: v } : { masterDiskSize: v }),
+              readOnly: profile !== 'custom'
+            }),
+            profile === 'custom' && h(IdContainer, [
+              id => h(Fragment, [
+                label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, 'Startup script'),
+                div({ style: { gridColumnEnd: 'span 6' } }, [
+                  h(TextInput, {
+                    id,
+                    placeholder: 'URI',
+                    value: jupyterUserScriptUri,
+                    onChange: v => this.setState({ jupyterUserScriptUri: v })
+                  })
+                ])
+              ])
+            ]),
+            h(IdContainer, [
+              id => h(Fragment, [
+                label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, 'Compute type'),
+                div({ style: { gridColumnEnd: 'span 3' } }, [
+                  h(Select, {
+                    id,
+                    isSearchable: false,
+                    value: sparkMode,
+                    // TODO PD: don't reset number of workers
+                    onChange: ({ value }) => this.setState({
+                      sparkMode: value,
+                      numberOfWorkers: value === 'cluster' ? 2 : 0,
+                      numberOfPreemptibleWorkers: 0
+                    }),
+                    options: [
+                      { value: false, label: 'Standard VM', isDisabled: requiresSpark },
+                      { value: 'master', label: 'Spark master node' },
+                      { value: 'cluster', label: 'Spark cluster' }
+                    ]
+                  })
                 ])
               ])
             ])
           ]),
-          h(MachineSelector, {
-            machineType: masterMachineType,
-            onChangeMachineType: v => this.setState({ masterMachineType: v }),
-            isPersistentDisk,
-            diskSize: isPersistentDisk ? selectedPersistentDiskSize : masterDiskSize,
-            onChangeDiskSize: v => this.setState(isPersistentDisk ? { selectedPersistentDiskSize: v } : { masterDiskSize: v }),
-            readOnly: profile !== 'custom'
-          }),
-          profile === 'custom' && h(IdContainer, [
-            id => h(Fragment, [
-              label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, 'Startup script'),
-              div({ style: { gridColumnEnd: 'span 6' } }, [
-                h(TextInput, {
-                  id,
-                  placeholder: 'URI',
-                  value: jupyterUserScriptUri,
-                  onChange: v => this.setState({ jupyterUserScriptUri: v })
-                })
-              ])
-            ])
-          ]),
-          h(IdContainer, [
-            id => h(Fragment, [
-              label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, 'Compute type'),
-              div({ style: { gridColumnEnd: 'span 3' } }, [
-                h(Select, {
-                  id,
-                  isSearchable: false,
-                  value: sparkMode,
-                  // TODO PD: don't reset number of workers
-                  onChange: ({ value }) => this.setState({
-                    sparkMode: value,
-                    numberOfWorkers: value === 'cluster' ? 2 : 0,
-                    numberOfPreemptibleWorkers: 0
-                  }),
-                  options: [
-                    { value: false, label: 'Standard VM', isDisabled: requiresSpark },
-                    { value: 'master', label: 'Spark master node' },
-                    { value: 'cluster', label: 'Spark cluster' }
-                  ]
-                })
-              ])
-            ])
-          ])
-        ]),
-        // TODO PD: keep fine-tuning styles here
-        sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
-          legend({
-            style: {
-              padding: 0, ...styles.label
-            }
-          }, ['Worker config']),
-          // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
-          div({
-            style: {
-              display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.25rem', gridGap: '0.8rem', alignItems: 'center', marginTop: '.5rem'
-            }
-          }, [
-            h(IdContainer, [
-              id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, 'Workers'),
-                h(NumberInput, {
-                  id,
-                  min: 2,
-                  isClearable: false,
-                  onlyInteger: true,
-                  value: numberOfWorkers,
-                  onChange: v => this.setState({
-                    numberOfWorkers: v,
-                    numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+          // TODO PD: keep fine-tuning styles here
+          sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
+            legend({
+              style: {
+                padding: 0, ...styles.label
+              }
+            }, ['Worker config']),
+            // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
+            div({
+              style: {
+                display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.25rem', gridGap: '0.8rem', alignItems: 'center', marginTop: '.5rem'
+              }
+            }, [
+              h(IdContainer, [
+                id => h(Fragment, [
+                  label({ htmlFor: id, style: styles.label }, 'Workers'),
+                  h(NumberInput, {
+                    id,
+                    min: 2,
+                    isClearable: false,
+                    onlyInteger: true,
+                    value: numberOfWorkers,
+                    onChange: v => this.setState({
+                      numberOfWorkers: v,
+                      numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+                    })
                   })
-                })
-              ])
-            ]),
-            h(IdContainer, [
-              id => h(Fragment, [
-                label({
-                  htmlFor: id,
-                  style: styles.label
-                }, 'Preemptible'),
-                h(NumberInput, {
-                  id,
-                  min: 0,
-                  max: numberOfWorkers,
-                  isClearable: false,
-                  onlyInteger: true,
-                  value: numberOfPreemptibleWorkers,
-                  onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
-                })
-              ])
-            ]),
-            div({ style: { gridColumnEnd: 'span 2' } }),
-            h(MachineSelector, {
-              machineType: workerMachineType,
-              onChangeMachineType: v => this.setState({ workerMachineType: v }),
-              diskSize: workerDiskSize,
-              onChangeDiskSize: v => this.setState({ workerDiskSize: v })
-            })
+                ])
+              ]),
+              h(IdContainer, [
+                id => h(Fragment, [
+                  label({
+                    htmlFor: id,
+                    style: styles.label
+                  }, 'Preemptible'),
+                  h(NumberInput, {
+                    id,
+                    min: 0,
+                    max: numberOfWorkers,
+                    isClearable: false,
+                    onlyInteger: true,
+                    value: numberOfPreemptibleWorkers,
+                    onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
+                  })
+                ])
+              ]),
+              div({ style: { gridColumnEnd: 'span 2' } }),
+              h(MachineSelector, {
+                machineType: workerMachineType,
+                onChangeMachineType: v => this.setState({ workerMachineType: v }),
+                diskSize: workerDiskSize,
+                onChangeDiskSize: v => this.setState({ workerDiskSize: v })
+              })
+            ])
           ])
         ]),
-        !!isPersistentDisk && h(IdContainer, [
-          id => h(div, { style: { display: 'flex', flexDirection: 'column', marginTop: '1rem' } }, [
-            label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
-            div({ style: { marginTop: '0.5rem' } }, [
-              'A safeguard to store and protect your data. ',
-              h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
-            ]),
-            h(NumberInput, {
-              id,
-              min: 10,
-              max: 64000,
-              isClearable: false,
-              onlyInteger: true,
-              value: selectedPersistentDiskSize,
-              style: { marginTop: '0.5rem', width: '5rem' },
-              onChange: value => this.setState({ selectedPersistentDiskSize: value })
-            })
+        !!isPersistentDisk &&
+        div({ style: { padding: '1rem', borderRadius: 3, backgroundColor: 'white', marginTop: '1rem' } }, [
+          h(IdContainer, [
+            id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
+              label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
+              div({ style: { marginTop: '0.5rem' } }, [
+                'A safeguard to store and protect your data. ',
+                h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
+              ]),
+              h(NumberInput, {
+                id,
+                min: 10,
+                max: 64000,
+                isClearable: false,
+                onlyInteger: true,
+                value: selectedPersistentDiskSize,
+                style: { marginTop: '0.5rem', width: '5rem' },
+                onChange: value => this.setState({ selectedPersistentDiskSize: value })
+              })
+            ])
           ])
         ]),
         !sparkMode && !isPersistentDisk && div([
@@ -1003,9 +1008,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   makeImageInfo({ marginLeft: 'auto' })
                 ])
               ])
-            }]),
-          runtimeConfig()
+            }]
+          )
         ]),
+        runtimeConfig(),
         bottomButtons()
       ])]
     )
