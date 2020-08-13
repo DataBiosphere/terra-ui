@@ -148,6 +148,7 @@ const pdOverrides = _.mapValues(({ runtimes, disks }) => {
   gceAndAttachedDisk: { runtimes: [gceRuntimeWithPd], disks: [disk] },
   dataprocAndDisk: { runtimes: [dataprocRuntime], disks: [disk] },
   attachedDiskEdgeCase: { runtimes: [gceRuntime, gceRuntimeWithPd], disks: [disk] }
+  // TODO PD: test if bug is fixed, need two runtimes, one with status of 'deleting'
 })
 
 window.ajaxOverrideUtils = {
