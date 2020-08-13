@@ -290,8 +290,9 @@ export default class ClusterManager extends PureComponent {
 
     return div({ style: styles.container }, [
       // TODO PD: Need to protect against persistentDisks being undefined (needs to be a list always like the clusters)
-      // TODO PD: consider coercing both clusters and pds into arrays before ClusterManager, currently activeclusters is coerced in this.getActiveClustersOldestFirst()
-      activeClusters.length > 1 && persistentDisks.length > 1 && h(Link, {
+      // TODO PD: Need get active PDs to protect against disks in 'deleting' status
+      // TODO PD: add this back on following line once above TODO is fixed: && persistentDisks.length > 1
+      activeClusters.length > 1 && h(Link, {
         style: { marginRight: '1rem' },
         href: Nav.getLink('clusters'),
         tooltip: 'Multiple runtimes and/or persistent disks found in this billing project. Click to select which to delete.'
