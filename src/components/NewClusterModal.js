@@ -164,11 +164,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   // TODO PD: This should probably only choose from unattached persistent disks.
   getCurrentPersistentDisk() {
     const currentCluster = this.getCurrentCluster()
-    const { persistentDisks } = this.props
+    const { clusters, persistentDisks } = this.props
     const id = currentCluster?.runtimeConfig.persistentDiskId
+    // TODO: test this (and remove the TODO above
+    const attachedIds = _.without([undefined], _.map(cluster => cluster.runtimeConfig.persistentDiskId, clusters))
     return id ?
       _.find({ id }, persistentDisks) :
-      _.last(_.sortBy('auditInfo.createdDate', persistentDisks))
+      _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id }) => !_.includes(id, attachedIds), persistentDisks)))
   }
 
   /**
