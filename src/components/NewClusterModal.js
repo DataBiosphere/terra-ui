@@ -161,7 +161,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return currentCluster(clusters)
   }
 
-  // TODO PD: This should probably only choose from unattached persistent disks.
   getCurrentPersistentDisk() {
     const currentCluster = this.getCurrentCluster()
     const { clusters, persistentDisks } = this.props

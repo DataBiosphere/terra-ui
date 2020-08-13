@@ -289,6 +289,7 @@ export default class ClusterManager extends PureComponent {
     const appLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: appName })
 
     return div({ style: styles.container }, [
+      // TODO PD: Add similar logic for disks
       activeClusters.length > 1 && h(Link, {
         style: { marginRight: '1rem' },
         href: Nav.getLink('clusters'),
