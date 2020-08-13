@@ -88,7 +88,7 @@ const gceRuntime = {
 const gceRuntimeWithPd = _.flow(
   _.unset(['runtimeConfig', 'diskSize']),
   _.set(['runtimeConfig', 'persistentDiskId'], 21),
-  _.set(['runtimeConfig', 'auditInfo', 'createDate'], '2020-06-01T13:05:45.619Z')
+  _.set(['runtimeConfig', 'auditInfo', 'createdDate'], '2020-06-01T13:05:45.619Z')
 )(gceRuntime)
 
 const disk = {
@@ -147,8 +147,8 @@ const pdOverrides = _.mapValues(({ runtimes, disks }) => {
   gceAndDisk: { runtimes: [gceRuntime], disks: [disk] },
   gceAndAttachedDisk: { runtimes: [gceRuntimeWithPd], disks: [disk] },
   dataprocAndDisk: { runtimes: [dataprocRuntime], disks: [disk] },
-  attachedDiskEdgeCase: { runtimes: [gceRuntime, gceRuntimeWithPd], disks: [disk] }
-  // TODO PD: test if bug is fixed, need two runtimes, one with status of 'deleting'
+  attachedDiskEdgeCase: { runtimes: [gceRuntimeWithPd, gceRuntime], disks: [disk] }
+  // TODO PD: test if bug is fixed, need two runtimes
 })
 
 window.ajaxOverrideUtils = {
