@@ -85,7 +85,6 @@ export const clusterCost = ({ runtimeConfig, status }) => {
   }
 }
 
-// TODO PD: Test changing from 'createdDate' -> 'auditInfo.createdDate'
 export const trimClustersOldestFirst = _.flow(
   _.remove({ status: 'Deleting' }),
   _.sortBy('auditInfo.createdDate')

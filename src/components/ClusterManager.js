@@ -289,11 +289,12 @@ export default class ClusterManager extends PureComponent {
     const appLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: appName })
 
     return div({ style: styles.container }, [
-      // TODO PD: Add similar logic for disks
-      activeClusters.length > 1 && h(Link, {
+      // TODO PD: Need to protect against persistentDisks being undefined (needs to be a list always like the clusters)
+      // TODO PD: consider coercing both clusters and pds into arrays before ClusterManager, currently activeclusters is coerced in this.getActiveClustersOldestFirst()
+      activeClusters.length > 1 && persistentDisks.length > 1 && h(Link, {
         style: { marginRight: '1rem' },
         href: Nav.getLink('clusters'),
-        tooltip: 'Multiple runtimes found in this billing project. Click to select which to delete.'
+        tooltip: 'Multiple runtimes and/or persistent disks found in this billing project. Click to select which to delete.'
       }, [icon('warning-standard', { size: 24, style: { color: colors.danger() } })]),
       h(Link, {
         href: appLaunchLink,
