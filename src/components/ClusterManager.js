@@ -281,6 +281,7 @@ export default class ClusterManager extends PureComponent {
     }
     const totalCost = _.sum(_.map(clusterCost, clusters))
     const activeClusters = this.getActiveClustersOldestFirst()
+    const activeDisks = _.remove({ status: 'Deleting' }, persistentDisks)
     const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring } = _.countBy(collapsedClusterStatus, activeClusters)
     const isDisabled = !canCompute || creating || busy || updating || reconfiguring
 
@@ -289,10 +290,7 @@ export default class ClusterManager extends PureComponent {
     const appLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: appName })
 
     return div({ style: styles.container }, [
-      // TODO PD: Need to protect against persistentDisks being undefined (needs to be a list always like the clusters)
-      // TODO PD: Need get active PDs to protect against disks in 'deleting' status
-      // TODO PD: add this back on following line once above TODO is fixed: && persistentDisks.length > 1
-      activeClusters.length > 1 && h(Link, {
+      (activeClusters.length > 1 || activeDisks.length > 1) && h(Link, {
         style: { marginRight: '1rem' },
         href: Nav.getLink('clusters'),
         tooltip: 'Multiple runtimes and/or persistent disks found in this billing project. Click to select which to delete.'

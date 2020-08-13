@@ -410,11 +410,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), clusterDetails?.runtimeImages)?.imageUrl
   }
 
-  componentDidMount = withErrorReporting('Error loading cluster', async () => {
+  componentDidMount = _.flow(
+    withErrorReporting('Error loading cluster'),
+    // TODO PD: can we be more selective about what we disable while loading this info?
+    Utils.withBusyState(v => this.setState({ loading: v }))
+  )(async () => {
     const { namespace } = this.props
     const currentCluster = this.getCurrentCluster()
 
-    // TODO PD: consider disabling submit button until these calls have finished
     const [currentClusterDetails, newLeoImages] = await Promise.all([
       currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.runtimeName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())

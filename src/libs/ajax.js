@@ -146,7 +146,7 @@ const pdOverrides = _.mapValues(({ runtimes, disks }) => {
   gceAndDisk: { runtimes: [gceRuntime], disks: [disk] },
   gceAndAttachedDisk: { runtimes: [gceRuntimeWithPd], disks: [disk] },
   dataprocAndDisk: { runtimes: [dataprocRuntime], disks: [disk] },
-  attachedDiskEdgeCase: { runtimes: [gceRuntimeWithPd, dataprocRuntime], disks: [disk, disk] }
+  attachedDiskEdgeCase: { runtimes: [gceRuntimeWithPd, dataprocRuntime], disks: [disk] }
 })
 
 window.ajaxOverrideUtils = {
@@ -160,7 +160,7 @@ window.ajaxOverrideUtils = {
       wrappedFetch(...args)
   })
 }
-//ajaxOverridesStore.set(pdOverrides.attachedDiskEdgeCase)
+ajaxOverridesStore.set(pdOverrides.attachedDiskEdgeCase)
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
