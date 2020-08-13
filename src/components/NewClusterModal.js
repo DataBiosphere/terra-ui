@@ -317,7 +317,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   getOldEnvironmentConfig() {
     const currentCluster = this.getCurrentCluster()
     const runtimeConfig = currentCluster?.runtimeConfig
-    // TODO PD: continue replacing currentCluster from props with getCurrentCluster()
     const { currentClusterDetails } = this.state
     const cloudService = runtimeConfig?.cloudService
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
@@ -402,7 +401,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { runtime: oldRuntime } = this.getOldEnvironmentConfig()
     const { runtime: newRuntime } = this.getNewEnvironmentConfig()
 
-    // TODO PD: should we consider runtime status here?
+    // TODO PD: should we consider runtime status here? Consider what to do in the case of autopause
     return this.canUpdateRuntime() &&
       (oldRuntime.cloudService === cloudServices.GCE ?
         oldRuntime.machineType !== newRuntime.machineType :
