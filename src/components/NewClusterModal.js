@@ -39,7 +39,8 @@ const styles = {
   disabledInputs: {
     border: `1px solid ${colors.dark(0.2)}`, borderRadius: 4, padding: '0.5rem'
   },
-  titleBar: { marginBottom: '1rem' }
+  titleBar: { marginBottom: '1rem' },
+  whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white', marginTop: '1rem' }
 }
 
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
@@ -611,12 +612,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
 
     const runtimeConfig = () => {
-      const vmCost = runtimeCostBreakdown(this.getPendingRuntimeConfig())
-      // const pdCost = persistentDiskCost(currentPersistentDisk)
-      // TODO PD: Rework this once we figure out what the new design should be
-      const pdCost = 0
       return h(Fragment, [
-        div({ style: { padding: '1rem', borderRadius: 3, backgroundColor: 'white', marginTop: '1rem' } }, [
+        div({ style: styles.whiteBoxContainer }, [
           div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['Cloud compute configuration']),
           div({ style: { marginBottom: '1rem' } }, ['Select from one of the default runtime profiles or define your own']),
           // TODO PD: decrease space between label above input
@@ -646,48 +643,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 ]),
                 // TODO PD: continue styling the cost widget
                 div({ style: { gridColumnEnd: 'span 2' } }, [
-                  h(PopupTrigger, {
-                    side: 'bottom',
-                    // TODO PD: Add content.
-                    content: div({ style: { ...styles.costStyling, padding: '0.5rem' } }, [
-                      div({ style: { fontWeight: 600 } }, ['Cost breakdown']),
-                      div({ style: styles.costLineItem }, [
-                        div({ style: styles.costLineItemLabel }, ['VM cost per hour']),
-                        div({ style: styles.costLineItemPrice },
-                          [Utils.formatUSD(vmCost.running)])
-                      ]),
-                      div({ style: styles.costLineItem }, [
-                        div({ style: styles.costLineItemLabel }, ['Paused VM cost per hour']),
-                        div({ style: styles.costLineItemPrice },
-                          [Utils.formatUSD(vmCost.stopped)])
-                      ]),
-                      div({ style: styles.costLineItem }, [
-                        div({ style: styles.costLineItemLabel }, ['Detachable disk cost per hour']),
-                        div({ style: styles.costLineItemPrice }, [Utils.formatUSD(pdCost)])
-                      ]),
-                      div({ style: { width: '100%', borderBottom: `1px solid ${colors.accent()}`, height: 0, marginTop: '0.7rem' } }),
-                      div({ style: { ...styles.costLineItem, marginTop: '0.7rem', fontWeight: 600 } }, [
-                        div({ style: { ...styles.costLineItemLabel, fontSize: 12 } }, ['Total cost per hour (running)']),
-                        div({ style: { ...styles.costLineItemPrice } }, [Utils.formatUSD(vmCost.running + pdCost)])
-                      ])
-                    ])
-                  }, [
-                    h(Clickable, {
-                      as: 'div', style: {
-                        ...styles.costStyling,
-                        display: 'flex', alignItems: 'baseline',
-                        color: colors.accent(),
-                        borderRadius: 5,
-                        padding: '0.5rem 1rem'
-                      }
-                    }, [
-                      span({ style: { ...styles.label, marginRight: '0.25rem', fontSize: 22 } },
-                        [Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))]),
-                      // TODO PD: This should take into account PD and isn't right now.
-                      span({ style: { fontWeight: 600 } }, [' per hr']),
-                      icon('info-circle', { style: { marginLeft: 'auto' } })
-                    ])
-                  ])
                 ])
               ])
             ]),
@@ -793,7 +748,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ])
         ]),
         !!isPersistentDisk &&
-        div({ style: { padding: '1rem', borderRadius: 3, backgroundColor: 'white', marginTop: '1rem' } }, [
+        div({ style: styles.whiteBoxContainer }, [
           h(IdContainer, [
             id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
               label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
@@ -933,87 +888,183 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Delete'])
         ])
       ])],
-      [Utils.DEFAULT, () => h(Fragment, [
-        // TODO PD: test all title bars now that they're inline
-        // TODO PD: revisit the term 'cloud environment' and the mention of 'Jupyter' specifically
-        h(TitleBar, { style: styles.titleBar, title: 'Create a cloud environment for Jupyter notebooks', onDismiss }),
-        div({ style: { marginBottom: '1rem' } }, [
-          'Cloud environments consist of an application, cloud compute and a persistent disk'
-        ]),
-        div({ style: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' } }, [
-          h(IdContainer, [
-            id => h(Fragment, [
-              div({ style: { marginBottom: '0.5rem' } }, [
-                label({ htmlFor: id, style: styles.label }, 'Application configuration'),
-                h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-                  'The software application + programming languages + packages used when you create your runtime. '
-                ])
+      [Utils.DEFAULT, () => {
+        const vmCost = runtimeCostBreakdown(this.getPendingRuntimeConfig())
+        // const pdCost = persistentDiskCost(currentPersistentDisk)
+        // TODO PD: Rework this once we figure out what the new design should be
+        const pdCost = 0
+
+        return h(Fragment, [
+          // TODO PD: test all title bars now that they're inline
+          // TODO PD: revisit the term 'cloud environment' and the mention of 'Jupyter' specifically
+          h(TitleBar, {
+            style: styles.titleBar,
+            title: 'Create a cloud environment for Jupyter notebooks',
+            onDismiss
+          }),
+          div([
+            'Cloud environments consist of an application, cloud compute and a persistent disk'
+          ]),
+
+          h(PopupTrigger, {
+            side: 'bottom',
+            // TODO PD: Add content.
+            content: div({
+              style: {
+                ...styles.costStyling,
+                padding: '0.5rem'
+              }
+            }, [
+              div({ style: { fontWeight: 600 } }, ['Cost breakdown']),
+              div({ style: styles.costLineItem }, [
+                div({ style: styles.costLineItemLabel }, ['VM cost per hour']),
+                div({ style: styles.costLineItemPrice },
+                  [Utils.formatUSD(vmCost.running)])
               ]),
-              div({ style: { height: 45 } }, [makeGroupedEnvSelect(id)])
+              div({ style: styles.costLineItem }, [
+                div({ style: styles.costLineItemLabel }, ['Paused VM cost per hour']),
+                div({ style: styles.costLineItemPrice },
+                  [Utils.formatUSD(vmCost.stopped)])
+              ]),
+              div({ style: styles.costLineItem }, [
+                div({ style: styles.costLineItemLabel }, ['Detachable disk cost per hour']),
+                div({ style: styles.costLineItemPrice }, [Utils.formatUSD(pdCost)])
+              ]),
+              div({
+                style: {
+                  width: '100%',
+                  borderBottom: `1px solid ${colors.accent()}`,
+                  height: 0,
+                  marginTop: '0.7rem'
+                }
+              }),
+              div({
+                style: {
+                  ...styles.costLineItem,
+                  marginTop: '0.7rem',
+                  fontWeight: 600
+                }
+              }, [
+                div({
+                  style: {
+                    ...styles.costLineItemLabel,
+                    fontSize: 12
+                  }
+                }, ['Total cost per hour (running)']),
+                div({ style: { ...styles.costLineItemPrice } }, [Utils.formatUSD(vmCost.running + pdCost)])
+              ])
+            ])
+          }, [
+            h(Clickable, {
+              as: 'div',
+              style: {
+                ...styles.costStyling,
+                display: 'flex',
+                alignItems: 'baseline',
+                color: colors.accent(),
+                borderRadius: 5,
+                padding: '0.5rem 1rem'
+              }
+            }, [
+              span({
+                  style: {
+                    ...styles.label,
+                    marginRight: '0.25rem',
+                    fontSize: 22
+                  }
+                },
+                [Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))]),
+              // TODO PD: This should take into account PD and isn't right now.
+              span({ style: { fontWeight: 600 } }, [' per hr']),
+              icon('info-circle', { style: { marginLeft: 'auto' } })
             ])
           ]),
-          Utils.switchCase(selectedLeoImage,
-            [CUSTOM_MODE, () => {
-              return h(Fragment, [
-                h(IdContainer, [
-                  id => h(Fragment, [
-                    label({ htmlFor: id, style: { ...styles.label, display: 'block', margin: '0.5rem 0' } }, 'CONTAINER IMAGE'),
-                    div({ style: { height: 52 } }, [
-                      h(ValidatedInput, {
-                        inputProps: {
-                          id,
-                          placeholder: '<image name>:<tag>',
-                          value: customEnvImage,
-                          onChange: customEnvImage => this.setState({ customEnvImage })
-                        },
-                        error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
-                      })
-                    ])
+
+          div({ style: styles.whiteBoxContainer }, [
+            h(IdContainer, [
+              id => h(Fragment, [
+                div({ style: { marginBottom: '0.5rem' } }, [
+                  label({
+                    htmlFor: id,
+                    style: styles.label
+                  }, 'Application configuration'),
+                  h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+                    'The software application + programming languages + packages used when you create your runtime. '
                   ])
                 ]),
-                div([
-                  'Custom environments ', b(['must ']), 'be based off one of the ',
-                  h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images']),
-                  ' or a ',
-                  h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-Specific image'])
+                div({ style: { height: 45 } }, [makeGroupedEnvSelect(id)])
+              ])
+            ]),
+            Utils.switchCase(selectedLeoImage,
+              [CUSTOM_MODE, () => {
+                return h(Fragment, [
+                  h(IdContainer, [
+                    id => h(Fragment, [
+                      label({
+                        htmlFor: id,
+                        style: {
+                          ...styles.label,
+                          display: 'block',
+                          margin: '0.5rem 0'
+                        }
+                      }, 'CONTAINER IMAGE'),
+                      div({ style: { height: 52 } }, [
+                        h(ValidatedInput, {
+                          inputProps: {
+                            id,
+                            placeholder: '<image name>:<tag>',
+                            value: customEnvImage,
+                            onChange: customEnvImage => this.setState({ customEnvImage })
+                          },
+                          error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
+                        })
+                      ])
+                    ])
+                  ]),
+                  div([
+                    'Custom environments ', b(['must ']), 'be based off one of the ',
+                    h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images']),
+                    ' or a ',
+                    h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-Specific image'])
+                  ])
                 ])
-              ])
-            }],
-            [PROJECT_SPECIFIC_MODE, () => {
-              return div({ style: { lineHeight: 1.5 } }, [
-                'Some consortium projects, such as ',
-                h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['AnVIL']),
-                ', have created environments that are specific to their project. If you want to use one of these:',
-                div({ style: { marginTop: '0.5rem' } }, [
-                  '1. Find the environment image (',
-                  h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['view image list']),
-                  ') '
-                ]),
-                div({ style: { margin: '0.5rem 0' } }, ['2. Copy the URL from the github repository']),
-                div({ style: { margin: '0.5rem 0' } }, ['3. Enter the URL for the image in the text box below']),
-                h(ValidatedInput, {
-                  inputProps: {
-                    placeholder: 'Paste image path here',
-                    value: customEnvImage,
-                    onChange: customEnvImage => this.setState({ customEnvImage })
-                  },
-                  error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
-                })
-              ])
-            }],
-            [Utils.DEFAULT, () => {
-              return h(Fragment, [
-                div({ style: { display: 'flex' } }, [
-                  h(Link, { onClick: () => this.setState({ viewMode: 'packages' }) }, ['What’s installed on this environment?']),
-                  makeImageInfo({ marginLeft: 'auto' })
+              }],
+              [PROJECT_SPECIFIC_MODE, () => {
+                return div({ style: { lineHeight: 1.5 } }, [
+                  'Some consortium projects, such as ',
+                  h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['AnVIL']),
+                  ', have created environments that are specific to their project. If you want to use one of these:',
+                  div({ style: { marginTop: '0.5rem' } }, [
+                    '1. Find the environment image (',
+                    h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['view image list']),
+                    ') '
+                  ]),
+                  div({ style: { margin: '0.5rem 0' } }, ['2. Copy the URL from the github repository']),
+                  div({ style: { margin: '0.5rem 0' } }, ['3. Enter the URL for the image in the text box below']),
+                  h(ValidatedInput, {
+                    inputProps: {
+                      placeholder: 'Paste image path here',
+                      value: customEnvImage,
+                      onChange: customEnvImage => this.setState({ customEnvImage })
+                    },
+                    error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
+                  })
                 ])
-              ])
-            }]
-          )
-        ]),
-        runtimeConfig(),
-        bottomButtons()
-      ])]
+              }],
+              [Utils.DEFAULT, () => {
+                return h(Fragment, [
+                  div({ style: { display: 'flex' } }, [
+                    h(Link, { onClick: () => this.setState({ viewMode: 'packages' }) }, ['What’s installed on this environment?']),
+                    makeImageInfo({ marginLeft: 'auto' })
+                  ])
+                ])
+              }]
+            )
+          ]),
+          runtimeConfig(),
+          bottomButtons()
+        ])
+      }]
     )
 
     return div({
