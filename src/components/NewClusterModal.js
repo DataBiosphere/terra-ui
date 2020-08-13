@@ -165,7 +165,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const currentCluster = this.getCurrentCluster()
     const { clusters, persistentDisks } = this.props
     const id = currentCluster?.runtimeConfig.persistentDiskId
-    // TODO: test this (and remove the TODO above
     const attachedIds = _.without([undefined], _.map(cluster => cluster.runtimeConfig.persistentDiskId, clusters))
     return id ?
       _.find({ id }, persistentDisks) :
@@ -361,19 +360,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return !(
       !oldRuntime ||
       !newRuntime ||
-      oldRuntime.cloudService !== newRuntime.cloudService ||
+      newRuntime.cloudService !== oldRuntime.cloudService ||
       newRuntime.toolDockerImage !== oldRuntime.toolDockerImage ||
       newRuntime.jupyterUserScriptUri !== oldRuntime.jupyterUserScriptUri ||
-      (oldRuntime.cloudService === cloudServices.GCE ? (
+      (newRuntime.cloudService === cloudServices.GCE ? (
         newRuntime.persistentDiskAttached !== oldRuntime.persistentDiskAttached ||
-        (oldRuntime.persistentDiskAttached && !this.canUpdatePersistentDisk()) ||
-        newRuntime.diskSize < oldRuntime.diskSize
+        (newRuntime.persistentDiskAttached ? !this.canUpdatePersistentDisk() : newRuntime.diskSize < oldRuntime.diskSize)
       ) : (
-        // TODO PD: is this code clear enough? (re: order of comparisons, order of new vs old, etc)
         newRuntime.masterDiskSize < oldRuntime.masterDiskSize ||
-        (oldRuntime.numberOfWorkers === 0 && newRuntime.numberOfWorkers > 0) ||
-        (oldRuntime.numberOfWorkers > 0 && newRuntime.numberOfWorkers === 0) ||
-        oldRuntime.workerMachineType !== newRuntime.workerMachineType ||
+        (newRuntime.numberOfWorkers > 0 && oldRuntime.numberOfWorkers === 0) ||
+        (newRuntime.numberOfWorkers === 0 && oldRuntime.numberOfWorkers > 0) ||
+        newRuntime.workerMachineType !== oldRuntime.workerMachineType ||
         newRuntime.workerDiskSize !== oldRuntime.workerDiskSize
       ))
     )
