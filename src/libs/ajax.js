@@ -85,7 +85,11 @@ const gceRuntime = {
   patchInProgress: false
 }
 
-const gceRuntimeWithPd = _.flow(_.unset(['runtimeConfig', 'diskSize']), _.set(['runtimeConfig', 'persistentDiskId'], 21))(gceRuntime)
+const gceRuntimeWithPd = _.flow(
+  _.unset(['runtimeConfig', 'diskSize']),
+  _.set(['runtimeConfig', 'persistentDiskId'], 21),
+  _.set(['runtimeConfig', 'auditInfo', 'createDate'], '2020-06-01T13:05:45.619Z')
+)(gceRuntime)
 
 const disk = {
   id: 21,
@@ -108,7 +112,10 @@ const runtimeDetails = {
   runtimeImages: [
     { imageType: 'Jupyter', imageUrl: 'us.gcr.io/broad-dsp-gcr-public/terra-jupyter-gatk:1.0.3', timestamp: '2020-07-17T15:07:52.241Z' },
     { imageType: 'Proxy', imageUrl: 'broadinstitute/openidc-proxy:2.3.1_2', timestamp: '2020-07-17T15:07:52.241Z' },
-    { imageType: 'VM', imageUrl: 'projects/broad-dsp-gcr-public/global/images/custom-leo-image-dataproc-1-4-15-debian9-2020-07-02', timestamp: '2020-07-17T15:07:53.046Z' },
+    {
+      imageType: 'VM', imageUrl: 'projects/broad-dsp-gcr-public/global/images/custom-leo-image-dataproc-1-4-15-debian9-2020-07-02',
+      timestamp: '2020-07-17T15:07:53.046Z'
+    },
     { imageType: 'Welder', imageUrl: 'us.gcr.io/broad-dsp-gcr-public/welder-server:5426cf0', timestamp: '2020-07-17T15:07:52.241Z' }
   ],
   jupyterUserScriptUri: null
@@ -139,7 +146,8 @@ const pdOverrides = _.mapValues(({ runtimes, disks }) => {
   disk: { runtimes: [], disks: [disk] },
   gceAndDisk: { runtimes: [gceRuntime], disks: [disk] },
   gceAndAttachedDisk: { runtimes: [gceRuntimeWithPd], disks: [disk] },
-  dataprocAndDisk: { runtimes: [dataprocRuntime], disks: [disk] }
+  dataprocAndDisk: { runtimes: [dataprocRuntime], disks: [disk] },
+  attachedDiskEdgeCase: { runtimes: [gceRuntime, gceRuntimeWithPd], disks: [disk] }
 })
 
 window.ajaxOverrideUtils = {
@@ -153,7 +161,7 @@ window.ajaxOverrideUtils = {
       wrappedFetch(...args)
   })
 }
-ajaxOverridesStore.set(pdOverrides.gceAndDisk)
+ajaxOverridesStore.set(pdOverrides.attachedDiskEdgeCase)
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
@@ -1195,7 +1203,8 @@ const Clusters = signal => ({
       },
 
       delete: deleteDisk => {
-        return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`, _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
+        return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
+          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
       }
     }
   },
@@ -1259,7 +1268,8 @@ const Disks = signal => ({
         return fetchLeo(`api/google/v1/disks/${project}/${name}`, _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }]))
       },
       update: size => {
-        return fetchLeo(`api/google/v1/disks/${project}/${name}`, _.mergeAll([authOpts(), jsonBody({ size }), appIdentifier, { signal, method: 'PATCH' }]))
+        return fetchLeo(`api/google/v1/disks/${project}/${name}`,
+          _.mergeAll([authOpts(), jsonBody({ size }), appIdentifier, { signal, method: 'PATCH' }]))
       }
     }
   }
