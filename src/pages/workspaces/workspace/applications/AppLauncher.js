@@ -6,7 +6,7 @@ import { ClusterKicker, ClusterStatusMonitor, PeriodicCookieSetter, PlaygroundHe
 import { Link, spinnerOverlay } from 'src/components/common'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { Ajax } from 'src/libs/ajax'
-import { collapsedClusterStatus, usableStatuses } from 'src/libs/cluster-utils'
+import { collapsedClusterStatus, currentCluster, usableStatuses } from 'src/libs/cluster-utils'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -21,11 +21,12 @@ const AppLauncher = _.flow(
     title: _.get('app')
   })
   // TODO PD: consider removing cluster from this list and using currentCluster() to extract it from clusters instead
-)(({ namespace, refreshClusters, cluster, clusters, app }, ref) => {
+)(({ namespace, refreshClusters, clusters, persistentDisks, app }, ref) => {
   const [cookieReady, setCookieReady] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
 
+  const cluster = currentCluster(clusters)
   const clusterStatus = collapsedClusterStatus(cluster) // preserve null vs undefined
   const runtimeName = cluster?.runtimeName
 
@@ -80,7 +81,7 @@ const AppLauncher = _.flow(
         ]),
         h(NewClusterModal, {
           isOpen: showCreate,
-          namespace, clusters,
+          namespace, clusters, persistentDisks,
           onDismiss: () => setShowCreate(false),
           onSuccess: _.flow(
             withErrorReporting('Error creating cluster'),

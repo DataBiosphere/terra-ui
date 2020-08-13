@@ -264,8 +264,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         workspace && h(WrappedComponent, {
           ref: child,
           workspace, refreshWorkspace, refreshClusters,
-          cluster: !clusters ? undefined : (currentCluster(clusters) || null),
-          clusters,
+          clusters, persistentDisks,
           ...props
         }),
         loadingWorkspace && spinnerOverlay
