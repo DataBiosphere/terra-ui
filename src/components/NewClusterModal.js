@@ -7,7 +7,7 @@ import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import PopupTrigger, { InfoBox } from 'src/components/PopupTrigger'
+import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { cloudServices, machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
@@ -615,8 +615,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       return h(Fragment, [
         div({ style: styles.whiteBoxContainer }, [
           div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['Cloud compute configuration']),
+          // TODO PD: remove the profile select
           div({ style: { marginBottom: '1rem' } }, ['Select from one of the default runtime profiles or define your own']),
-          // TODO PD: decrease space between label above input
           div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
             h(IdContainer, [
               id => h(Fragment, [
@@ -641,7 +641,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                     ]
                   })
                 ]),
-                // TODO PD: continue styling the cost widget
                 div({ style: { gridColumnEnd: 'span 2' } }, [])
               ])
             ]),
@@ -896,6 +895,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         return h(Fragment, [
           // TODO PD: test all title bars now that they're inline
           // TODO PD: revisit the term 'cloud environment' and the mention of 'Jupyter' specifically
+          // TODO PD: apply fixed header style from mocks
           h(TitleBar, {
             style: styles.titleBar,
             title: 'Create a cloud environment for Jupyter notebooks',
@@ -905,72 +905,37 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             'Cloud environments consist of an application, cloud compute and a persistent disk'
           ]),
 
-          h(PopupTrigger, {
-            side: 'bottom',
-            // TODO PD: Add content.
-            content: div({
-              style: {
-                ...styles.costStyling,
-                padding: '0.5rem'
-              }
-            }, [
-              div({ style: { fontWeight: 600 } }, ['Cost breakdown']),
-              div({ style: styles.costLineItem }, [
-                div({ style: styles.costLineItemLabel }, ['VM cost per hour']),
-                div({ style: styles.costLineItemPrice },
-                  [Utils.formatUSD(vmCost.running)])
-              ]),
-              div({ style: styles.costLineItem }, [
-                div({ style: styles.costLineItemLabel }, ['Paused VM cost per hour']),
-                div({ style: styles.costLineItemPrice },
-                  [Utils.formatUSD(vmCost.stopped)])
-              ]),
-              div({ style: styles.costLineItem }, [
-                div({ style: styles.costLineItemLabel }, ['Detachable disk cost per hour']),
-                div({ style: styles.costLineItemPrice }, [Utils.formatUSD(pdCost)])
-              ]),
-              div({
-                style: {
-                  width: '100%',
-                  borderBottom: `1px solid ${colors.accent()}`,
-                  height: 0,
-                  marginTop: '0.7rem'
-                }
-              }),
-              div({
-                style: {
-                  ...styles.costLineItem,
-                  marginTop: '0.7rem',
-                  fontWeight: 600
-                }
-              }, [
-                div({
-                  style: {
-                    ...styles.costLineItemLabel,
-                    fontSize: 12
-                  }
-                }, ['Total cost per hour (running)']),
-                div({ style: { ...styles.costLineItemPrice } }, [Utils.formatUSD(vmCost.running + pdCost)])
-              ])
-            ])
+          // TODO PD: continue fixing up styles
+          h(Clickable, {
+            as: 'div',
+            style: {
+              ...styles.costStyling,
+              display: 'flex',
+              alignItems: 'baseline',
+              borderRadius: 5,
+              padding: '0.5rem 1rem'
+            }
           }, [
-            h(Clickable, {
-              as: 'div',
-              style: {
-                ...styles.costStyling,
-                display: 'flex',
-                alignItems: 'baseline',
-                borderRadius: 5,
-                padding: '0.5rem 1rem'
-              }
-            }, [
-              // TODO PD: add other two cost boxes (paused and PD cost)
-              div({ style: { fontSize: 22, ...styles.label } }, [
-                div({ style: { fontSize: 10, color: colors.dark() } }, ['Running Cloud Compute Cost']),
-                div({ style: { color: colors.accent() } }, [
-                  Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())),
-                  span({ style: { fontWeight: 600 } }, [' per hr'])
-                ])
+            div({ style: { fontSize: 22, ...styles.label } }, [
+              div({ style: { fontSize: 10, color: colors.dark() } }, ['Running cloud compute cost']),
+              div({ style: { color: colors.accent() } }, [
+                Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())),
+                span({ style: { fontWeight: 600 } }, [' per hr'])
+              ])
+            ]),
+            div({ style: { fontSize: 22, ...styles.label } }, [
+              div({ style: { fontSize: 10, color: colors.dark() } }, ['Paused cloud compute cost']),
+              div({ style: { color: colors.accent() } }, [
+                Utils.formatUSD(vmCost.stopped),
+                span({ style: { fontWeight: 600 } }, [' per hr'])
+              ])
+            ]),
+            div({ style: { fontSize: 22, ...styles.label } }, [
+              div({ style: { fontSize: 10, color: colors.dark() } }, ['Persistent disk cost']),
+              div({ style: { color: colors.accent() } }, [
+                // TODO PD: compute monthly cost
+                Utils.formatUSD(pdCost),
+                span({ style: { fontWeight: 600 } }, [' per hr'])
               ])
             ])
           ]),
