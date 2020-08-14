@@ -15,7 +15,7 @@ import { clusterCost, currentCluster, persistentDiskCostMonthly } from 'src/libs
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
-import { formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
+import { cond, formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
 
 const DeleteDiskModal = ({ disk: { googleProject, name }, onDismiss, onSuccess }) => {
@@ -228,10 +228,15 @@ const Clusters = () => {
               headerRenderer: () => null,
               cellRenderer: ({ rowIndex }) => {
                 const { id, status } = filteredDisks[rowIndex]
+                // TODO PD: there should be some way of identifying which disk is connected to which runtime
+                const error = cond(
+                  [status === 'Creating', () => 'Cannot delete this disk because it is still being created'],
+                  [_.some({ runtimeConfig: { persistentDiskId: id } }, clusters), 'Cannot delete this disk because it is attached to a runtime. You must delete the runtime first.']
+                )
                 return status !== 'Deleting' && h(Link, {
                   'aria-label': 'Delete persistent disk',
-                  // TODO PD: disable if attached, or in an invalid state
-                  tooltip: 'Delete persistent disk',
+                  disabled: !!error,
+                  tooltip: error || 'Delete persistent disk',
                   onClick: () => setDeleteDiskId(id)
                 }, [icon('trash')])
               }
