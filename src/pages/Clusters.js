@@ -153,6 +153,14 @@ const Clusters = () => {
               }
             },
             {
+              size: { basis: 120, grow: 0 },
+              headerRenderer: () => h(Sortable, { sort: diskSort, field: 'size', onSort: setDiskSort }, ['Size (GB)']),
+              cellRenderer: ({ rowIndex }) => {
+                const disk = filteredDisks[rowIndex]
+                return disk.size
+              }
+            },
+            {
               size: { basis: 150, grow: 0 },
               headerRenderer: () => h(Sortable, { sort: diskSort, field: 'status', onSort: setDiskSort }, ['Status']),
               cellRenderer: ({ rowIndex }) => {
