@@ -18,6 +18,16 @@ import * as Style from 'src/libs/style'
 import { cond, formatUSD, makeCompleteDate, newTabLinkProps, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
 
+const SaveNotice = () => {
+  return p([
+    'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
+    h(Link, {
+      href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+      ...newTabLinkProps
+    }, ['move them to the workspace bucket.'])
+  ])
+}
+
 const DeleteClusterModal = ({ cluster: { googleProject, runtimeName, runtimeConfig: { persistentDiskId } }, onDismiss, onSuccess }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
@@ -33,22 +43,19 @@ const DeleteClusterModal = ({ cluster: { googleProject, runtimeName, runtimeConf
     onDismiss,
     okButton: deleteCluster
   }, [
-    persistentDiskId ?
-      h(LabeledCheckbox, { checked: deleteDisk, onChange: setDeleteDisk }, [
-        span({ style: { fontWeight: 600 } }, [' Also delete the persistent disk and all files on it'])
-      ]) :
-      p({ style: { lineHeight: '1.5rem' } }, [
-        'Deleting your runtime will also ',
-        span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
-        '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
-        h(Link, {
-          href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-          ...newTabLinkProps
-        }, ['move them to the workspace bucket.'])
-      ]),
-    p({ style: { lineHeight: '1.5rem' } }, [
-      'Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, ',
-      'which will take several minutes.'
+    div({ style: { lineHeight: 1.5 } }, [
+      persistentDiskId ?
+        h(LabeledCheckbox, { checked: deleteDisk, onChange: setDeleteDisk }, [
+          span({ style: { fontWeight: 600 } }, [' Also delete the persistent disk and all files on it'])
+        ]) :
+        p([
+          'Deleting this runtime will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
+        ]),
+      h(SaveNotice),
+      p([
+        'Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, ',
+        'which will take several minutes.'
+      ])
     ]),
     deleting && spinnerOverlay
   ])
@@ -68,8 +75,10 @@ const DeleteDiskModal = ({ disk: { googleProject, name }, onDismiss, onSuccess }
     onDismiss,
     okButton: deleteDisk
   }, [
-    // TODO PD: make this message a bit more informative, maybe include link describing how to save files
-    div(['This will delete all files on the persistent disk.']),
+    p([
+      'Deleting the persistent disk will ', span({ style: { fontWeight: 600 } }, ['delete all files on it.'])
+    ]),
+    h(SaveNotice),
     busy && spinnerOverlay
   ])
 }
