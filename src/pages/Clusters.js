@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
-import { ClusterErrorModal, DeleteClusterModal } from 'src/components/ClusterManager'
+import { div, h, p, span } from 'react-hyperscript-helpers'
+import { ClusterErrorModal } from 'src/components/ClusterManager'
 import { Clickable, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
@@ -15,8 +15,40 @@ import { clusterCost, currentCluster, persistentDiskCostMonthly } from 'src/libs
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
-import { cond, formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
+import { cond, formatUSD, makeCompleteDate, newTabLinkProps, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
+
+const DeleteClusterModal = ({ cluster: { googleProject, runtimeName }, onDismiss, onSuccess }) => {
+  const [deleting, setDeleting] = useState()
+  const deleteCluster = _.flow(
+    withBusyState(setDeleting),
+    withErrorReporting('Error deleting notebook runtime')
+  )(async () => {
+    await Ajax().Clusters.cluster(googleProject, runtimeName).delete()
+    onSuccess()
+  })
+  return h(Modal, {
+    title: 'Delete notebook runtime?',
+    onDismiss,
+    okButton: deleteCluster
+  }, [
+    // TODO PD: This should offer the option to delete attached persistent disk if applicable
+    p({ style: { lineHeight: '1.5rem' } }, [
+      'Deleting your runtime will also ',
+      span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
+      '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+      h(Link, {
+        href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+        ...newTabLinkProps
+      }, ['move them to the workspace bucket.'])
+    ]),
+    p({ style: { lineHeight: '1.5rem' } }, [
+      'Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, ',
+      'which will take several minutes.'
+    ]),
+    deleting && spinnerOverlay
+  ])
+}
 
 const DeleteDiskModal = ({ disk: { googleProject, name }, onDismiss, onSuccess }) => {
   const [busy, setBusy] = useState(false)

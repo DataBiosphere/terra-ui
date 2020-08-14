@@ -12,7 +12,7 @@ import { dataSyncingDocUrl } from 'src/data/machines'
 import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
-import { clusterCost, collapsedClusterStatus, currentCluster, deleteText, trimClustersOldestFirst } from 'src/libs/cluster-utils'
+import { clusterCost, collapsedClusterStatus, currentCluster, trimClustersOldestFirst } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -83,25 +83,6 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   }, [
     div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word', overflowY: 'auto', maxHeight: 500, background: colors.light() } }, [error]),
     loadingClusterDetails && spinnerOverlay
-  ])
-}
-
-export const DeleteClusterModal = ({ cluster: { googleProject, runtimeName }, onDismiss, onSuccess }) => {
-  const [deleting, setDeleting] = useState()
-  const deleteCluster = _.flow(
-    Utils.withBusyState(setDeleting),
-    withErrorReporting('Error deleting notebook runtime')
-  )(async () => {
-    await Ajax().Clusters.cluster(googleProject, runtimeName).delete()
-    onSuccess()
-  })
-  return h(Modal, {
-    title: 'Delete Notebook Runtime?',
-    onDismiss,
-    okButton: deleteCluster
-  }, [
-    h(deleteText),
-    deleting && spinnerOverlay
   ])
 }
 
