@@ -871,9 +871,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])],
       [Utils.DEFAULT, () => {
-        //const pdCost = persistentDiskCost(this.getCurrentPersistentDisk())
+        const pdCost = persistentDiskCost(this.getNewEnvironmentConfig()?.persistentDisk)
         // TODO PD: Rework this once we figure out what the new design should be
-        const pdCost = 0
+        // const pdCost = 0
 
         return h(Fragment, [
           // TODO PD: test all title bars now that they're inline
