@@ -150,6 +150,28 @@ const Clusters = () => {
                 const disk = filteredDisks[rowIndex]
                 return disk.googleProject
               }
+            },
+            {
+              size: { basis: 150, grow: 0 },
+              headerRenderer: () => h(Sortable, { sort: diskSort, field: 'status', onSort: setDiskSort }, ['Status']),
+              cellRenderer: ({ rowIndex }) => {
+                const disk = filteredDisks[rowIndex]
+                return disk.status
+              }
+            },
+            {
+              size: { basis: 250, grow: 0 },
+              headerRenderer: () => h(Sortable, { sort: diskSort, field: 'created', onSort: setDiskSort }, ['Created']),
+              cellRenderer: ({ rowIndex }) => {
+                return makeCompleteDate(filteredDisks[rowIndex].auditInfo.createdDate)
+              }
+            },
+            {
+              size: { basis: 250, grow: 0 },
+              headerRenderer: () => h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
+              cellRenderer: ({ rowIndex }) => {
+                return makeCompleteDate(filteredDisks[rowIndex].auditInfo.dateAccessed)
+              }
             }
           ]
         })
