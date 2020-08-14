@@ -226,6 +226,7 @@ const Clusters = () => {
               headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
               cellRenderer: ({ rowIndex }) => {
                 const disk = filteredDisks[rowIndex]
+                // TODO PD: add warning icons for multiple disks
                 return disk.googleProject
               }
             },
