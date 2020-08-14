@@ -33,13 +33,13 @@ const DeleteClusterModal = ({ cluster: { googleProject, runtimeName, runtimeConf
   const [deleting, setDeleting] = useState()
   const deleteCluster = _.flow(
     withBusyState(setDeleting),
-    withErrorReporting('Error deleting notebook runtime')
+    withErrorReporting('Error deleting cloud environment')
   )(async () => {
     await Ajax().Clusters.cluster(googleProject, runtimeName).delete(deleteDisk)
     onSuccess()
   })
   return h(Modal, {
-    title: 'Delete notebook runtime?',
+    title: 'Delete cloud environment?',
     onDismiss,
     okButton: deleteCluster
   }, [
@@ -49,11 +49,11 @@ const DeleteClusterModal = ({ cluster: { googleProject, runtimeName, runtimeConf
           span({ style: { fontWeight: 600 } }, [' Also delete the persistent disk and all files on it'])
         ]) :
         p([
-          'Deleting this runtime will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
+          'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
       h(SaveNotice),
       p([
-        'Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, ',
+        'Deleting your cloud environment will stop all running notebooks and associated costs. You can recreate your cloud environment later, ',
         'which will take several minutes.'
       ])
     ]),
@@ -116,7 +116,7 @@ const Clusters = () => {
     }
   })
 
-  const loadClusters = withErrorReporting('Error loading notebook runtimes', refreshClusters)
+  const loadClusters = withErrorReporting('Error loading cloud environments', refreshClusters)
 
   useOnMount(() => { loadClusters() })
   usePollingEffect(withErrorIgnoring(refreshClusters), { ms: 30000 })
@@ -145,9 +145,9 @@ const Clusters = () => {
   const disksByProject = _.groupBy('googleProject', disks)
 
   return h(FooterWrapper, [
-    h(TopBar, { title: 'Notebook Runtimes' }),
+    h(TopBar, { title: 'Cloud Environments' }),
     div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
-      div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', marginBottom: '1rem' } }, ['Your notebook runtimes']),
+      div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', marginBottom: '1rem' } }, ['Your cloud environments']),
       clusters && h(SimpleFlexTable, {
         rowCount: filteredClusters.length,
         columns: [
@@ -160,7 +160,7 @@ const Clusters = () => {
               return h(Fragment, [
                 cluster.googleProject,
                 inactive && h(TooltipTrigger, {
-                  content: 'This billing project has multiple active runtime environments. Only the most recently created one will be used.'
+                  content: 'This billing project has multiple active cloud environments. Only the most recently created one will be used.'
                 }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
               ])
             }
@@ -210,8 +210,8 @@ const Clusters = () => {
               const { id, status } = filteredClusters[rowIndex]
               return status !== 'Deleting' && h(Link, {
                 disabled: status === 'Creating',
-                'aria-label': 'Delete notebook runtime',
-                tooltip: status === 'Creating' ? 'Cannot delete a runtime while it is being created' : 'Delete notebook runtime',
+                'aria-label': 'Delete cloud environment',
+                tooltip: status === 'Creating' ? 'Cannot delete a cloud environment while it is being created' : 'Delete cloud environment',
                 onClick: () => setDeleteClusterId(id)
               }, [icon('trash')])
             }
@@ -282,7 +282,7 @@ const Clusters = () => {
               // TODO PD: there should be some way of identifying which disk is connected to which runtime
               const error = cond(
                 [status === 'Creating', () => 'Cannot delete this disk because it is still being created'],
-                [_.some({ runtimeConfig: { persistentDiskId: id } }, clusters), 'Cannot delete this disk because it is attached to a runtime. You must delete the runtime first.']
+                [_.some({ runtimeConfig: { persistentDiskId: id } }, clusters), 'Cannot delete this disk because it is attached. You must delete the cloud environment first.']
               )
               return status !== 'Deleting' && h(Link, {
                 'aria-label': 'Delete persistent disk',
@@ -324,6 +324,6 @@ export const navPaths = [
     name: 'clusters',
     path: '/clusters',
     component: Clusters,
-    title: 'Runtime environments'
+    title: 'Cloud environments'
   }
 ]

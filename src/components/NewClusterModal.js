@@ -207,7 +207,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   applyChanges = _.flow(
     Utils.withBusyState(() => this.setState({ loading: true })),
-    withErrorReporting('Error creating runtime')
+    withErrorReporting('Error creating cloud environment')
   )(async () => {
     const currentCluster = this.getCurrentCluster()
     const { onSuccess, namespace } = this.props
@@ -629,7 +629,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             div({ style: { marginBottom: '0.5rem' } }, [
               label({ htmlFor: id, style: styles.label }, ['Application']),
               h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-                'The software application + programming languages + packages used when you create your runtime. '
+                'The software application + programming languages + packages used when you create your cloud environment. '
               ])
             ]),
             div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: true })])
@@ -1098,7 +1098,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         packages && h(ImageDepViewer, { packageLink: packages })
       ])
     }
-
     return div({
       style: {
         display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem',

@@ -174,7 +174,7 @@ const useCloudEnvironmentPolling = namespace => {
       throw error
     }
   }
-  const refreshClusters = withErrorReporting('Error loading notebook runtimes', load)
+  const refreshClusters = withErrorReporting('Error loading cloud environments', load)
   const refreshClustersSilently = withErrorIgnoring(load)
   Utils.useOnMount(() => {
     refreshClusters()
