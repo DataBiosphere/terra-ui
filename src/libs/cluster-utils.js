@@ -28,7 +28,7 @@ export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, ma
   }
 }
 
-const ongoingCost = config => {
+export const ongoingCost = config => {
   const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize } = normalizeRuntimeConfig(
     config)
   const { cpu: masterCpu } = findMachineType(masterMachineType)

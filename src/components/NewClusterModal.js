@@ -13,7 +13,7 @@ import { cloudServices, machineTypes, profiles } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import {
   currentCluster,
-  DEFAULT_DISK_SIZE, findMachineType, normalizeRuntimeConfig, persistentDiskCost, runtimeConfigCost, runtimeCostBreakdown
+  DEFAULT_DISK_SIZE, findMachineType, normalizeRuntimeConfig, ongoingCost, persistentDiskCost, runtimeConfigCost, runtimeCostBreakdown
 } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -23,18 +23,6 @@ import validate from 'validate.js'
 
 
 const styles = {
-  row: {
-    display: 'flex',
-    alignItems: 'center',
-    marginTop: '1rem'
-  },
-  // TODO PD: see if we can do something besides a fixed width
-  costStyling: { backgroundColor: colors.accent(0.2), display: 'flex' },
-  costLineItem: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', textTransform: 'uppercase', marginTop: '1rem', fontWeight: 500
-  },
-  costLineItemLabel: { width: '60%', fontSize: 10 },
-  costLineItemPrice: { width: '40%', textAlign: 'right', fontSize: 12 },
   label: { fontWeight: 600, whiteSpace: 'pre' },
   disabledInputs: {
     border: `1px solid ${colors.dark(0.2)}`, borderRadius: 4, padding: '0.5rem'
@@ -883,7 +871,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])],
       [Utils.DEFAULT, () => {
-        const vmCost = runtimeCostBreakdown(this.getPendingRuntimeConfig())
         // const pdCost = persistentDiskCost(currentPersistentDisk)
         // TODO PD: Rework this once we figure out what the new design should be
         const pdCost = 0
@@ -900,19 +887,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           div(['Cloud environments consist of an application, cloud compute and a persistent disk']),
 
           // TODO PD: continue fixing up styles
-          h(Clickable, {
-            as: 'div',
+          div({
             style: {
-              ...styles.costStyling,
+              backgroundColor: colors.accent(0.2),
               display: 'flex',
               alignItems: 'baseline',
-              justifyContent: 'space-between',
               borderRadius: 5,
               padding: '0.5rem 1rem'
             }
           }, [
             _.map(({ cost, label }) => {
-              return div({ key: label, style: { fontSize: 22, ...styles.label } }, [
+              return div({ key: label, style: { flex: 1, fontSize: 22, ...styles.label } }, [
                 div({ style: { fontSize: 10, color: colors.dark() } }, [label]),
                 div({ style: { color: colors.accent(), marginTop: '0.25rem' } }, [
                   Utils.formatUSD(cost),
@@ -921,7 +906,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               ])
             }, [
               { label: 'Running cloud compute cost', cost: runtimeConfigCost(this.getPendingRuntimeConfig()) },
-              { label: 'Paused cloud compute cost', cost: vmCost.stopped },
+              { label: 'Paused cloud compute cost', cost: ongoingCost(this.getPendingRuntimeConfig()) },
               // TODO PD: compute monthly cost
               { label: 'Persistent disk cost', cost: pdCost }
             ])
