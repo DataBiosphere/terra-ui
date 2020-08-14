@@ -20,6 +20,7 @@ import { formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, us
 const Clusters = () => {
   const signal = useCancellation()
   const [clusters, setClusters] = useState()
+  const [disks, setDisks] = useState()
   const [loading, setLoading] = useState(false)
   const [errorClusterId, setErrorClusterId] = useState()
   const getErrorClusterId = useGetter(errorClusterId)
@@ -28,8 +29,13 @@ const Clusters = () => {
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
 
   const refreshClusters = withBusyState(setLoading, async () => {
-    const newClusters = await Ajax(signal).Clusters.list({ creator: getUser().email })
+    const creator = getUser().email
+    const [newClusters, newDisks] = await Promise.all([
+      Ajax(signal).Clusters.list({ creator }),
+      Ajax(signal).Disks.list({ creator })
+    ])
     setClusters(newClusters)
+    setDisks(newDisks)
     if (!_.some({ id: getErrorClusterId() }, newClusters)) {
       setErrorClusterId(undefined)
     }
@@ -50,6 +56,9 @@ const Clusters = () => {
     accessed: 'auditInfo.dateAccessed',
     cost: clusterCost
   }[sort.field]], [sort.direction], clusters)
+
+  // TODO PD: actually sort this
+  const filteredDisks = disks
 
   const totalCost = _.sum(_.map(clusterCost, clusters))
 
