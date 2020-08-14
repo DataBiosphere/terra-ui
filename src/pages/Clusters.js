@@ -27,6 +27,7 @@ const Clusters = () => {
   const [deleteClusterId, setDeleteClusterId] = useState()
   const getDeleteClusterId = useGetter(deleteClusterId)
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
+  const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' })
 
   const refreshClusters = withBusyState(setLoading, async () => {
     const creator = getUser().email
@@ -135,6 +136,19 @@ const Clusters = () => {
                   tooltip: status === 'Creating' ? 'Cannot delete a runtime while it is being created' : 'Delete notebook runtime',
                   onClick: () => setDeleteClusterId(id)
                 }, [icon('trash')])
+              }
+            }
+          ]
+        }),
+        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0' } }, ['Your persistent disks']),
+        disks && h(SimpleFlexTable, {
+          rowCount: filteredDisks.length,
+          columns: [
+            {
+              headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
+              cellRenderer: ({ rowIndex }) => {
+                const disk = filteredDisks[rowIndex]
+                return disk.googleProject
               }
             }
           ]
