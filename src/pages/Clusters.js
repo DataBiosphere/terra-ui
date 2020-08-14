@@ -10,7 +10,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
-import { clusterCost, currentCluster } from 'src/libs/cluster-utils'
+import { clusterCost, currentCluster, persistentDiskCostMonthly } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
@@ -62,6 +62,7 @@ const Clusters = () => {
   const filteredDisks = disks
 
   const totalCost = _.sum(_.map(clusterCost, clusters))
+  const totalDiskCost = _.sum(_.map(persistentDiskCostMonthly, disks))
 
   const clustersByProject = _.groupBy('googleProject', clusters)
 
@@ -171,6 +172,15 @@ const Clusters = () => {
               headerRenderer: () => h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
               cellRenderer: ({ rowIndex }) => {
                 return makeCompleteDate(filteredDisks[rowIndex].auditInfo.dateAccessed)
+              }
+            },
+            {
+              size: { basis: 250, grow: 0 },
+              headerRenderer: () => {
+                return h(Sortable, { sort: diskSort, field: 'cost', onSort: setDiskSort }, [`Cost / month (${formatUSD(totalDiskCost)} total)`])
+              },
+              cellRenderer: ({ rowIndex }) => {
+                return formatUSD(persistentDiskCostMonthly(filteredDisks[rowIndex]))
               }
             }
           ]
