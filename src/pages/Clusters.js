@@ -26,6 +26,8 @@ const Clusters = () => {
   const getErrorClusterId = useGetter(errorClusterId)
   const [deleteClusterId, setDeleteClusterId] = useState()
   const getDeleteClusterId = useGetter(deleteClusterId)
+  const [deleteDiskId, setDeleteDiskId] = useState()
+  const getDeleteDiskId = useGetter(deleteDiskId)
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' })
 
@@ -42,6 +44,9 @@ const Clusters = () => {
     }
     if (!_.some({ id: getDeleteClusterId() }, newClusters)) {
       setDeleteClusterId(undefined)
+    }
+    if (!_.some({ id: getDeleteDiskId() }, newDisks)) {
+      setDeleteDiskId(undefined)
     }
   })
 
@@ -189,6 +194,19 @@ const Clusters = () => {
               },
               cellRenderer: ({ rowIndex }) => {
                 return formatUSD(persistentDiskCostMonthly(filteredDisks[rowIndex]))
+              }
+            },
+            {
+              size: { basis: 50, grow: 0 },
+              headerRenderer: () => null,
+              cellRenderer: ({ rowIndex }) => {
+                const { id, status } = filteredDisks[rowIndex]
+                return status !== 'Deleting' && h(Link, {
+                  'aria-label': 'Delete persistent disk',
+                  // TODO PD: disable if attached, or in an invalid state
+                  tooltip: 'Delete persistent disk',
+                  onClick: () => setDeleteDiskId(id)
+                }, [icon('trash')])
               }
             }
           ]
