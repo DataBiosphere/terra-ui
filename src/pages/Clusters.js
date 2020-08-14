@@ -5,6 +5,7 @@ import { ClusterErrorModal, DeleteClusterModal } from 'src/components/ClusterMan
 import { Clickable, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
+import Modal from 'src/components/Modal'
 import { SimpleFlexTable, Sortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
@@ -16,6 +17,26 @@ import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import { formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
+
+const DeleteDiskModal = ({ disk: { googleProject, name }, onDismiss, onSuccess }) => {
+  const [busy, setBusy] = useState(false)
+  const deleteDisk = _.flow(
+    withBusyState(setBusy),
+    withErrorReporting('Error deleting persistent disk')
+  )(async () => {
+    await Ajax().Disks.disk(googleProject, name).delete()
+    onSuccess()
+  })
+  return h(Modal, {
+    title: 'Delete persistent disk?',
+    onDismiss,
+    okButton: deleteDisk
+  }, [
+    // TODO PD: make this message a bit more informative, maybe include link describing how to save files
+    div(['This will delete all files on the persistent disk.']),
+    busy && spinnerOverlay
+  ])
+}
 
 const Clusters = () => {
   const signal = useCancellation()
@@ -221,6 +242,14 @@ const Clusters = () => {
         onDismiss: () => setDeleteClusterId(undefined),
         onSuccess: () => {
           setDeleteClusterId(undefined)
+          loadClusters()
+        }
+      }),
+      deleteDiskId && h(DeleteDiskModal, {
+        disk: _.find({ id: deleteDiskId }, disks),
+        onDismiss: () => setDeleteDiskId(undefined),
+        onSuccess: () => {
+          setDeleteDiskId(undefined)
           loadClusters()
         }
       }),
