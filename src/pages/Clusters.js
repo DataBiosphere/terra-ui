@@ -84,8 +84,14 @@ const Clusters = () => {
     cost: clusterCost
   }[sort.field]], [sort.direction], clusters)
 
-  // TODO PD: actually sort this
-  const filteredDisks = disks
+  const filteredDisks = _.orderBy([{
+    project: 'googleProject',
+    status: 'status',
+    created: 'auditInfo.createdDate',
+    accessed: 'auditInfo.dateAccessed',
+    cost: persistentDiskCostMonthly,
+    size: 'size'
+  }[diskSort.field]], [diskSort.direction], disks)
 
   const totalCost = _.sum(_.map(clusterCost, clusters))
   const totalDiskCost = _.sum(_.map(persistentDiskCostMonthly, disks))
