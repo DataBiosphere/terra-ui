@@ -87,7 +87,7 @@ const gceRuntime = {
 
 const gceRuntimeWithPd = _.flow(
   _.unset(['runtimeConfig', 'diskSize']),
-  _.set(['runtimeConfig', 'persistentDiskId'], 21),
+  _.set(['runtimeConfig', 'persistentDiskId'], 21)
 )(gceRuntime)
 
 const disk = {

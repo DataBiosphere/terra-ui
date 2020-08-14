@@ -59,7 +59,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
   return h(Fragment, [
     h(IdContainer, [
       id => h(Fragment, [
-        label({ htmlFor: id, style: styles.label }, 'CPUs'),
+        label({ htmlFor: id, style: styles.label }, ['CPUs']),
         readOnly ? div({ style: styles.disabledInputs }, [currentCpu]) :
           div([
             h(Select, {
@@ -74,7 +74,7 @@ const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeD
     ]),
     h(IdContainer, [
       id => h(Fragment, [
-        label({ htmlFor: id, style: styles.label }, 'Memory (GB)'),
+        label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
         readOnly ? div({ style: styles.disabledInputs }, [currentMemory]) :
           div([
             h(Select, {
@@ -484,10 +484,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onChange: () => this.setState({ deleteDiskSelected: false })
       }, [
         p([
-          'Your application configuration and cloud compute are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.'
+          'Your application configuration and cloud compute are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. ',
+          'The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.'
         ]),
-        p(['You will continue to incur persistent disk cost at ',
-          span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCost(this.getCurrentPersistentDisk())), ' per hour'])])
+        p([
+          'You will continue to incur persistent disk cost at ',
+          span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCost(this.getCurrentPersistentDisk())), ' per hour'])
+        ])
       ]),
       h(FancyRadio, {
         name: 'delete-persistent-disk',
@@ -568,11 +571,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       onChange: onEnvChange,
       isSearchable: true,
       isClearable: false,
-      options: [{ label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
+      options: [
+        { label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
         {
-          label: 'OTHER ENVIRONMENTS',
-          options: [{ label: 'Custom Environment', value: CUSTOM_MODE }, { label: 'Project-Specific Environment', value: PROJECT_SPECIFIC_MODE }]
-        }]
+          label: 'OTHER ENVIRONMENTS', options: [
+            { label: 'Custom Environment', value: CUSTOM_MODE },
+            { label: 'Project-Specific Environment', value: PROJECT_SPECIFIC_MODE }
+          ]
+        }
+      ]
     })
 
     const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
@@ -586,12 +593,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
       return h(Fragment, [
         div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
-          (!!oldRuntime || !!oldPersistentDisk) &&
-          h(ButtonSecondary, { onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' }) }, [
+          (!!oldRuntime || !!oldPersistentDisk) && h(ButtonSecondary, {
+            onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' })
+          }, [
             Utils.cond(
-              [!!oldRuntime && !oldPersistentDisk, 'Delete Runtime'],
-              [!oldRuntime && !!oldPersistentDisk, 'Delete Persistent Disk'],
-              'Delete Environment Options'
+              [!!oldRuntime && !oldPersistentDisk, () => 'Delete Runtime'],
+              [!oldRuntime && !!oldPersistentDisk, () => 'Delete Persistent Disk'],
+              () => 'Delete Environment Options'
             )
           ]),
           div({ style: { flex: 1 } }),
@@ -620,7 +628,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
             h(IdContainer, [
               id => h(Fragment, [
-                label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, 'Compute profile'),
+                label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, ['Compute profile']),
                 div({ style: { gridColumnEnd: 'span 4' } }, [
                   h(Select, {
                     id,
@@ -654,7 +662,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             }),
             profile === 'custom' && h(IdContainer, [
               id => h(Fragment, [
-                label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, 'Startup script'),
+                label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, ['Startup script']),
                 div({ style: { gridColumnEnd: 'span 6' } }, [
                   h(TextInput, {
                     id,
@@ -667,7 +675,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ]),
             h(IdContainer, [
               id => h(Fragment, [
-                label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, 'Compute type'),
+                label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, ['Compute type']),
                 div({ style: { gridColumnEnd: 'span 3' } }, [
                   h(Select, {
                     id,
@@ -691,11 +699,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ]),
           // TODO PD: keep fine-tuning styles here
           sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
-            legend({
-              style: {
-                padding: 0, ...styles.label
-              }
-            }, ['Worker config']),
+            legend({ style: { padding: 0, ...styles.label } }, ['Worker config']),
             // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
             div({
               style: {
@@ -704,7 +708,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             }, [
               h(IdContainer, [
                 id => h(Fragment, [
-                  label({ htmlFor: id, style: styles.label }, 'Workers'),
+                  label({ htmlFor: id, style: styles.label }, ['Workers']),
                   h(NumberInput, {
                     id,
                     min: 2,
@@ -720,10 +724,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               ]),
               h(IdContainer, [
                 id => h(Fragment, [
-                  label({
-                    htmlFor: id,
-                    style: styles.label
-                  }, 'Preemptible'),
+                  label({ htmlFor: id, style: styles.label }, ['Preemptible']),
                   h(NumberInput, {
                     id,
                     min: 0,
@@ -745,8 +746,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ])
           ])
         ]),
-        !!isPersistentDisk &&
-        div({ style: styles.whiteBoxContainer }, [
+        !!isPersistentDisk && div({ style: styles.whiteBoxContainer }, [
           h(IdContainer, [
             id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
               label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
@@ -830,23 +830,19 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
         p({ style: { marginTop: 0, lineHeight: 1.5 } }, [
-          `You are about to create a virtual machine using an unverified Docker image.
-            Please make sure that it was created by you or someone you trust, using one of our `,
+          'You are about to create a virtual machine using an unverified Docker image. ',
+          'Please make sure that it was created by you or someone you trust, using one of our ',
           h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
           ' Custom Docker images could potentially cause serious security issues.'
         ]),
         h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
         p({ style: { lineHeight: 1.5 } }, [
           'If you\'re confident that your image is safe, click ', b([!!currentCluster ? 'Next' : 'Create']),
-          ' to use it. Otherwise, click ', b(['BACK']), ' to select another image.'
+          ' to use it. Otherwise, click ', b(['Back']), ' to select another image.'
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Back']),
-          h(ButtonPrimary, {
-            onClick: () => {
-              this.warnOrApplyChanges()
-            }
-          }, [!!currentCluster ? 'Next' : 'Create'])
+          h(ButtonPrimary, { onClick: () => this.warnOrApplyChanges() }, [!!currentCluster ? 'Next' : 'Create'])
         ])
       ])],
       ['environmentWarning', () => h(Fragment, [
@@ -901,9 +897,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             title: 'Create a cloud environment for Jupyter notebooks',
             onDismiss
           }),
-          div([
-            'Cloud environments consist of an application, cloud compute and a persistent disk'
-          ]),
+          div(['Cloud environments consist of an application, cloud compute and a persistent disk']),
 
           // TODO PD: continue fixing up styles
           h(Clickable, {
@@ -944,10 +938,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             h(IdContainer, [
               id => h(Fragment, [
                 div({ style: { marginBottom: '0.5rem' } }, [
-                  label({
-                    htmlFor: id,
-                    style: styles.label
-                  }, 'Application configuration'),
+                  label({ htmlFor: id, style: styles.label }, ['Application configuration']),
                   h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
                     'The software application + programming languages + packages used when you create your runtime. '
                   ])
@@ -960,14 +951,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 return h(Fragment, [
                   h(IdContainer, [
                     id => h(Fragment, [
-                      label({
-                        htmlFor: id,
-                        style: {
-                          ...styles.label,
-                          display: 'block',
-                          margin: '0.5rem 0'
-                        }
-                      }, 'CONTAINER IMAGE'),
+                      label({ htmlFor: id, style: { ...styles.label, display: 'block', margin: '0.5rem 0' } }, ['CONTAINER IMAGE']),
                       div({ style: { height: 52 } }, [
                         h(ValidatedInput, {
                           inputProps: {
