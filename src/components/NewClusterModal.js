@@ -871,7 +871,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])],
       [Utils.DEFAULT, () => {
-        // const pdCost = persistentDiskCost(currentPersistentDisk)
+        //const pdCost = persistentDiskCost(this.getCurrentPersistentDisk())
         // TODO PD: Rework this once we figure out what the new design should be
         const pdCost = 0
 
@@ -897,11 +897,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             }
           }, [
             _.map(({ cost, label }) => {
-              return div({ key: label, style: { flex: 1, fontSize: 22, ...styles.label } }, [
+              return div({ key: label, style: { flex: 1, ...styles.label } }, [
                 div({ style: { fontSize: 10, color: colors.dark() } }, [label]),
                 div({ style: { color: colors.accent(), marginTop: '0.25rem' } }, [
-                  Utils.formatUSD(cost),
-                  span({ style: { fontWeight: 600 } }, [' per hr'])
+                  span({ style: { fontSize: 20 } }, Utils.formatUSD(cost)),
+                  span({ style: { fontSize: 14 } }, [' per hr'])
                 ])
               ])
             }, [
