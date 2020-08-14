@@ -619,6 +619,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])
     }
 
+    const costLabel = (cost, title) => {
+      return div({ style: { fontSize: 22, ...styles.label } }, [
+        div({ style: { fontSize: 10, color: colors.dark() } }, [title]),
+        div({ style: { color: colors.accent(), marginTop: '0.25rem' } }, [
+          Utils.formatUSD(cost),
+          span({ style: { fontWeight: 600 } }, [' per hr'])
+        ])
+      ])
+    }
+
     const runtimeConfig = () => {
       return h(Fragment, [
         div({ style: styles.whiteBoxContainer }, [
@@ -911,29 +921,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               padding: '0.5rem 1rem'
             }
           }, [
-            //TODO PD: Consider pulling out these repeated styles into a constant
-            div({ style: { fontSize: 22, ...styles.label } }, [
-              div({ style: { fontSize: 10, color: colors.dark() } }, ['Running cloud compute cost']),
-              div({ style: { color: colors.accent(), marginTop: '0.25rem' } }, [
-                Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())),
-                span({ style: { fontWeight: 600 } }, [' per hr'])
-              ])
-            ]),
-            div({ style: { fontSize: 22, ...styles.label } }, [
-              div({ style: { fontSize: 10, color: colors.dark() } }, ['Paused cloud compute cost']),
-              div({ style: { color: colors.accent(), marginTop: '0.25rem' } }, [
-                Utils.formatUSD(vmCost.stopped),
-                span({ style: { fontWeight: 600 } }, [' per hr'])
-              ])
-            ]),
-            div({ style: { fontSize: 22, ...styles.label } }, [
-              div({ style: { fontSize: 10, color: colors.dark() } }, ['Persistent disk cost']),
-              div({ style: { color: colors.accent(), marginTop: '0.25rem' } }, [
-                // TODO PD: compute monthly cost
-                Utils.formatUSD(pdCost),
-                span({ style: { fontWeight: 600 } }, [' per hr'])
-              ])
-            ])
+            //TODO PD: Consider using map but keep in mind persistent disk is a different unit
+            costLabel(runtimeConfigCost(this.getPendingRuntimeConfig()), 'Running cloud compute cost'),
+            costLabel(vmCost.stopped, 'Paused cloud compute cost'),
+            // TODO PD: compute monthly cost
+            costLabel(pdCost, 'Persistent disk cost'),
           ]),
 
           div({ style: styles.whiteBoxContainer }, [
