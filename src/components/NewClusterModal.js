@@ -42,54 +42,6 @@ const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:
 
 const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
 
-const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, isPersistentDisk }) => {
-  const { cpu: currentCpu, memory: currentMemory } = findMachineType(machineType)
-  return h(Fragment, [
-    h(IdContainer, [
-      id => h(Fragment, [
-        label({ htmlFor: id, style: styles.label }, ['CPUs']),
-        div([
-          h(Select, {
-            id,
-            isSearchable: false,
-            value: currentCpu,
-            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, validMachineTypes)?.name || machineType),
-            options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validMachineTypes)
-          })
-        ])
-      ])
-    ]),
-    h(IdContainer, [
-      id => h(Fragment, [
-        label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
-        div([
-          h(Select, {
-            id,
-            isSearchable: false,
-            value: currentMemory,
-            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, validMachineTypes)?.name || machineType),
-            options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
-          })
-        ])
-      ])
-    ]),
-    !isPersistentDisk ? h(IdContainer, [
-      id => h(Fragment, [
-        label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
-        h(NumberInput, {
-          id,
-          min: 10,
-          max: 64000,
-          isClearable: false,
-          onlyInteger: true,
-          value: diskSize,
-          onChange: onChangeDiskSize
-        })
-      ])
-    ]) : div({ style: { gridColumnEnd: 'span 2' } })
-  ])
-}
-
 const FancyRadio = ({ labelText, children, name, checked, onChange, style = {} }) => {
   return div({
     style: {
@@ -699,10 +651,58 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
 
     const renderRuntimeSection = () => {
+      const renderMachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, isPersistentDisk }) => {
+        const { cpu: currentCpu, memory: currentMemory } = findMachineType(machineType)
+        return h(Fragment, [
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: styles.label }, ['CPUs']),
+              div([
+                h(Select, {
+                  id,
+                  isSearchable: false,
+                  value: currentCpu,
+                  onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, validMachineTypes)?.name || machineType),
+                  options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validMachineTypes)
+                })
+              ])
+            ])
+          ]),
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
+              div([
+                h(Select, {
+                  id,
+                  isSearchable: false,
+                  value: currentMemory,
+                  onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, validMachineTypes)?.name || machineType),
+                  options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
+                })
+              ])
+            ])
+          ]),
+          !isPersistentDisk ? h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
+              h(NumberInput, {
+                id,
+                min: 10,
+                max: 64000,
+                isClearable: false,
+                onlyInteger: true,
+                value: diskSize,
+                onChange: onChangeDiskSize
+              })
+            ])
+          ]) : div({ style: { gridColumnEnd: 'span 2' } })
+        ])
+      }
+
       return div({ style: styles.whiteBoxContainer }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute configuration']),
         div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center', marginTop: '0.75rem' } }, [
-          h(MachineSelector, {
+          renderMachineSelector({
             machineType: masterMachineType,
             onChangeMachineType: v => this.setState({ masterMachineType: v }),
             isPersistentDisk,
@@ -786,7 +786,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               ])
             ]),
             div({ style: { gridColumnEnd: 'span 2' } }),
-            h(MachineSelector, {
+            renderMachineSelector({
               machineType: workerMachineType,
               onChangeMachineType: v => this.setState({ workerMachineType: v }),
               diskSize: workerDiskSize,
