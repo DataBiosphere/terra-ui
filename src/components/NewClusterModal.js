@@ -610,36 +610,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const runtimeConfig = () => {
       return h(Fragment, [
         div({ style: styles.whiteBoxContainer }, [
-          div({ style: { fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' } }, ['Cloud compute configuration']),
+          div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute configuration']),
           // TODO PD: remove the profile select
-          div({ style: { marginBottom: '1rem' } }, ['Select from one of the default runtime profiles or define your own']),
-          div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' } }, [
-            h(IdContainer, [
-              id => h(Fragment, [
-                label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, ['Compute profile']),
-                div({ style: { gridColumnEnd: 'span 4' } }, [
-                  h(Select, {
-                    id,
-                    value: profile,
-                    onChange: ({ value }) => {
-                      this.setState({
-                        profile: value,
-                        ...(value === 'custom' ?
-                          {} :
-                          { masterMachineType: _.find({ name: value }, profiles).runtimeConfig.masterMachineType })
-                      })
-                    },
-                    isSearchable: false,
-                    isClearable: false,
-                    options: [
-                      ..._.map(({ name, label }) => ({ value: name, label: `${label} computer power` }), profiles),
-                      { value: 'custom', label: 'Custom' }
-                    ]
-                  })
-                ]),
-                div({ style: { gridColumnEnd: 'span 2' } }, [])
-              ])
-            ]),
+          div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center', marginTop: '0.75rem' } }, [
+            // TODO PD: delete more stuff about profile select
             h(MachineSelector, {
               machineType: masterMachineType,
               onChangeMachineType: v => this.setState({ masterMachineType: v }),
