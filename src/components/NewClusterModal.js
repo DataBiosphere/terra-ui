@@ -17,6 +17,7 @@ import {
 } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -235,9 +236,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
     if (shouldDeleteRuntime) {
       await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentDelete, { isDeleteRuntime: shouldDeleteRuntime, isDeleteAttachedPersistentDisk: (this.hasAttachedDisk() && shouldDeletePersistentDisk) })
     }
     if (shouldDeletePersistentDisk && !this.hasAttachedDisk()) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentDelete, { isDeleteFloatingPersistentDisk: (shouldDeletePersistentDisk && !this.hasAttachedDisk()) })
+
     }
     if (shouldUpdatePersistentDisk) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).update(newPersistentDisk.size)
