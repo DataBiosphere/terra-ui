@@ -211,7 +211,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
         [makeMenuIcon('export'), 'Copy to another workspace']
       )],
       [!!clusterStatus && cluster.labels.tool !== 'Jupyter', () => h(StatusMessage, { hideSpinner: true }, [
-        'Your cloud environment doesn\'t appear to be running Jupyter. Create a new cloud environment with Jupyter on it to edit this notebook.'
+        'Your cloud compute doesn\'t appear to be running Jupyter. Create a new cloud environment with Jupyter on it to edit this notebook.'
       ])],
       [!mode || [null, 'Stopped'].includes(clusterStatus), () => h(Fragment, [
         Utils.cond(
