@@ -330,6 +330,7 @@ export default class ClusterManager extends PureComponent {
       h(NewClusterModal, {
         isOpen: createModalDrawerOpen,
         namespace,
+        name,
         clusters,
         persistentDisks,
         onDismiss: () => this.setState({ createModalDrawerOpen: false }),

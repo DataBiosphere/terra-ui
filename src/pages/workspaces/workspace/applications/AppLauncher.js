@@ -21,7 +21,7 @@ const AppLauncher = _.flow(
     title: _.get('app')
   })
   // TODO PD: consider removing cluster from this list and using currentCluster() to extract it from clusters instead
-)(({ namespace, refreshClusters, clusters, persistentDisks, app }, ref) => {
+)(({ namespace, name, refreshClusters, clusters, persistentDisks, app }, ref) => {
   const [cookieReady, setCookieReady] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -81,7 +81,7 @@ const AppLauncher = _.flow(
         ]),
         h(NewClusterModal, {
           isOpen: showCreate,
-          namespace, clusters, persistentDisks,
+          namespace, name, clusters, persistentDisks,
           onDismiss: () => setShowCreate(false),
           onSuccess: _.flow(
             withErrorReporting('Error creating cluster'),

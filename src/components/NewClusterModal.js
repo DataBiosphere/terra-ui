@@ -17,6 +17,7 @@ import {
 } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -821,6 +822,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const renderDeleteEnvironmentOptions = () => {
       const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
+  }
+    const makeWorkspaceObj = () => {
+      const { namespace, name } = this.props
+      return { workspace: {namespace, name} }
+    }
+
+    const runtimeConfig = () => {
       return h(Fragment, [
         h(TitleBar, {
           style: styles.titleBar,
@@ -937,6 +945,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           // 1. See SATURN-1781
           // 2. See SATURN 1782
           // 3. See SATURN 1783
+
+// Add event for capturing the event of viewing the about persistent disk page
         ])
     }
 

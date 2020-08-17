@@ -44,7 +44,7 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   })
 )(
-  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace }, accessLevel, canCompute }, clusters, persistentDisks, refreshClusters }, ref) => {
+  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, clusters, persistentDisks, refreshClusters }, ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const cluster = currentCluster(clusters)
     const { runtimeName, labels } = cluster || {}
@@ -64,7 +64,7 @@ const NotebookLauncher = _.flow(
       mode && h(ClusterStatusMonitor, { cluster, onClusterStoppedRunning: () => chooseMode(undefined) }),
       h(NewClusterModal, {
         isOpen: createOpen,
-        namespace, clusters, persistentDisks,
+        namespace, name, clusters, persistentDisks,
         onDismiss: () => {
           chooseMode(undefined)
           setCreateOpen(false)
