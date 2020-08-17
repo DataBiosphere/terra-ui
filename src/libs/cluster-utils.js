@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { h, p, span } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
-import { cloudServices, dataprocCpuPrice, machineTypes, storagePrice } from 'src/data/machines'
+import { cloudServices, dataprocCpuPrice, machineTypes, monthlyStoragePrice, storagePrice } from 'src/data/machines'
 import * as Utils from 'src/libs/utils'
 
 
@@ -65,6 +65,10 @@ export const runtimeCostBreakdown = config => {
     running: runtimeConfigCost(config),
     stopped: ongoingCost(config)
   }
+}
+
+export const persistentDiskCostMonthly = config => {
+  return config.size * monthlyStoragePrice
 }
 
 // TODO PD: investigate bug 'cannot read property size of undefined' when in dataproc
