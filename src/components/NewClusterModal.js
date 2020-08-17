@@ -505,7 +505,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const {
       masterMachineType, masterDiskSize, selectedPersistentDiskSize, sparkMode, workerMachineType,
       numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, loading
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, loading, deleteDiskSelected
     } = this.state
     const { version, updated, packages, requiresSpark } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
@@ -672,38 +672,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       div(['Version: ', version || null])
     ])
 
-    const bottomButtons = () => {
-      const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
-      const { runtime: newRuntime } = this.getNewEnvironmentConfig()
-
-      return h(Fragment, [
-        div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
-          (!!oldRuntime || !!oldPersistentDisk) && h(ButtonSecondary, {
-            onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' })
-          }, [
-            Utils.cond(
-              [!!oldRuntime && !oldPersistentDisk, () => 'Delete Runtime'],
-              [!oldRuntime && !!oldPersistentDisk, () => 'Delete Persistent Disk'],
-              () => 'Delete Environment Options'
-            )
-          ]),
-          div({ style: { flex: 1 } }),
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: onDismiss }, 'Cancel'),
-          h(ButtonPrimary, {
-            disabled: !this.hasChanges() || !!errors,
-            tooltip: Utils.summarizeErrors(errors),
-            onClick: () => {
-              if (isCustomImage && oldRuntime.toolDockerImage !== newRuntime.toolDockerImage) {
-                this.setState({ viewMode: 'customImageWarning' })
-              } else {
-                this.warnOrApplyChanges()
-              }
-            }
-          }, [!currentCluster ? 'Create' : 'Update'])
-        ])
-      ])
-    }
-
     const renderRuntimeSection = () => {
       return div({ style: styles.whiteBoxContainer }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute configuration']),
@@ -790,7 +758,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ]),
             div({ style: { gridColumnEnd: 'span 2' } }),
             h(MachineSelector, { value: workerMachineType, onChange: v => this.setState({ workerMachineType: v }) }),
-            h(DiskSelector, { value: workerDiskSize, onChange: v => this.setState({ workerDiskSize: v })})
+            h(DiskSelector, { value: workerDiskSize, onChange: v => this.setState({ workerDiskSize: v }) })
           ])
         ])
       ])
@@ -816,6 +784,120 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               onChange: value => this.setState({ selectedPersistentDiskSize: value })
             })
           ])
+        ])
+      ])
+    }
+
+    const bottomButtons = () => {
+      const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
+      const { runtime: newRuntime } = this.getNewEnvironmentConfig()
+
+      return h(Fragment, [
+        div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
+          (!!oldRuntime || !!oldPersistentDisk) && h(ButtonSecondary, {
+            onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' })
+          }, [
+            Utils.cond(
+              [!!oldRuntime && !oldPersistentDisk, () => 'Delete Runtime'],
+              [!oldRuntime && !!oldPersistentDisk, () => 'Delete Persistent Disk'],
+              () => 'Delete Environment Options'
+            )
+          ]),
+          div({ style: { flex: 1 } }),
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: onDismiss }, 'Cancel'),
+          h(ButtonPrimary, {
+            disabled: !this.hasChanges() || !!errors,
+            tooltip: Utils.summarizeErrors(errors),
+            onClick: () => {
+              if (isCustomImage && oldRuntime.toolDockerImage !== newRuntime.toolDockerImage) {
+                this.setState({ viewMode: 'customImageWarning' })
+              } else {
+                this.warnOrApplyChanges()
+              }
+            }
+          }, [!currentCluster ? 'Create' : 'Update'])
+        ])
+      ])
+    }
+
+    const renderDeleteEnvironmentOptions = () => {
+      const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
+      return h(Fragment, [
+        h(TitleBar, {
+          style: styles.titleBar,
+          title: 'Delete environment options',
+          onDismiss,
+          onPrevious: () => this.setState({ viewMode: undefined, deleteDiskSelected: false })
+        }),
+        div({ style: { lineHeight: '1.5rem' } }, [
+          Utils.cond(
+            [oldRuntime && oldPersistentDisk && !oldRuntime.persistentDiskAttached, () => {
+              return h(Fragment, [
+                h(FancyRadio, {
+                  name: 'delete-persistent-disk',
+                  labelText: 'Delete application configuration and cloud compute',
+                  checked: !deleteDiskSelected,
+                  onChange: () => this.setState({ deleteDiskSelected: false })
+                }, [
+                  p(['Your application configuration and cloud compute are deleted.'])
+                ]),
+                h(FancyRadio, {
+                  name: 'delete-persistent-disk',
+                  labelText: 'Delete persistent disk',
+                  checked: deleteDiskSelected,
+                  onChange: () => this.setState({ deleteDiskSelected: true }),
+                  style: { marginTop: '1rem' }
+                }, [
+                  p(['Deletes your persistent disk (and it’s associated data). To permanently save your data, copy it to the workspace bucket. Since the persistent disk is not attached, the application configuration and cloud compute will remain. ']),
+                  h(Link, {
+                    href: '',
+                    ...Utils.newTabLinkProps
+                  }, ['Learn more about workspace buckets']),
+                  p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks. You will no longer incur any costs from this persistent disk.'])
+                ])
+              ])
+            }],
+            [oldRuntime && oldPersistentDisk, () => this.renderDeleteDiskChoices()],
+            [!oldRuntime && oldPersistentDisk, () => {
+              return h(FancyRadio, {
+                name: 'delete-persistent-disk',
+                labelText: 'Delete persistent disk',
+                checked: deleteDiskSelected,
+                onChange: () => this.setState({ deleteDiskSelected: true })
+              }, [
+                p([
+                  'Your persistent disk (and its associated data) are deleted. If you want to permanently save your data before deleting your disk, create a new runtime environment to access the disk and copy your data to the workspace bucket.'
+                ]),
+                h(Link, {
+                  href: '',
+                  ...Utils.newTabLinkProps
+                }, ['Learn more about workspace buckets']),
+                p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks. You will no longer incur any costs from this cloud environment.'])
+              ])
+            }],
+            () => {
+              return h(Fragment, [
+                p([
+                  'Deleting your runtime will also ',
+                  span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
+                  '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
+                  h(Link, {
+                    href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+                    ...Utils.newTabLinkProps
+                  }, ['move them to the workspace bucket.'])
+                ]),
+                p([
+                  'Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, which will take several minutes.'
+                ])
+              ])
+            }
+          )
+        ]),
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          // NOTE: deleteDiskSelected is also cleared via the TitleBar back button
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined, deleteDiskSelected: false }) },
+            ['Cancel']),
+          h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Delete'])
         ])
       ])
     }
@@ -913,21 +995,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         // 2. See SATURN 1782
         // 3. See SATURN 1783
       ])],
-      ['deleteEnvironmentOptions', () => h(Fragment, [
-        h(TitleBar, {
-          style: styles.titleBar,
-          title: 'Delete environment options',
-          onDismiss,
-          onPrevious: () => this.setState({ viewMode: undefined, deleteDiskSelected: false })
-        }),
-        this.newDeleteText(),
-        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          // NOTE: deleteDiskSelected is also cleared via the TitleBar back button
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined, deleteDiskSelected: false }) },
-            ['Cancel']),
-          h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Delete'])
-        ])
-      ])],
+      ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
       [Utils.DEFAULT, () => {
         return h(Fragment, [
           // TODO PD: test all title bars now that they're inline
@@ -998,74 +1066,5 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     } else {
       this.applyChanges()
     }
-  }
-
-  newDeleteText() {
-    const { deleteDiskSelected } = this.state
-    const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
-    return div({ style: { lineHeight: '1.5rem' } }, [
-      Utils.cond(
-        [oldRuntime && oldPersistentDisk && !oldRuntime.persistentDiskAttached, () => {
-          return h(Fragment, [
-            h(FancyRadio, {
-              name: 'delete-persistent-disk',
-              labelText: 'Delete application configuration and cloud compute',
-              checked: !deleteDiskSelected,
-              onChange: () => this.setState({ deleteDiskSelected: false })
-            }, [
-              p(['Your application configuration and cloud compute are deleted.'])
-            ]),
-            h(FancyRadio, {
-              name: 'delete-persistent-disk',
-              labelText: 'Delete persistent disk',
-              checked: deleteDiskSelected,
-              onChange: () => this.setState({ deleteDiskSelected: true }),
-              style: { marginTop: '1rem' }
-            }, [
-              p(['Deletes your persistent disk (and it’s associated data). To permanently save your data, copy it to the workspace bucket. Since the persistent disk is not attached, the application configuration and cloud compute will remain. ']),
-              h(Link, {
-                href: '',
-                ...Utils.newTabLinkProps
-              }, ['Learn more about workspace buckets']),
-              p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks. You will no longer incur any costs from this persistent disk.'])
-            ])
-          ])
-        }],
-        [oldRuntime && oldPersistentDisk, () => this.renderDeleteDiskChoices()],
-        [!oldRuntime && oldPersistentDisk, () => {
-          return h(FancyRadio, {
-            name: 'delete-persistent-disk',
-            labelText: 'Delete persistent disk',
-            checked: deleteDiskSelected,
-            onChange: () => this.setState({ deleteDiskSelected: true })
-          }, [
-            p([
-              'Your persistent disk (and its associated data) are deleted. If you want to permanently save your data before deleting your disk, create a new runtime environment to access the disk and copy your data to the workspace bucket.'
-            ]),
-            h(Link, {
-              href: '',
-              ...Utils.newTabLinkProps
-            }, ['Learn more about workspace buckets']),
-            p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks. You will no longer incur any costs from this cloud environment.'])
-          ])
-        }],
-        () => {
-          return h(Fragment, [
-            p([
-              'Deleting your runtime will also ',
-              span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
-              '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
-              h(Link, {
-                href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-                ...Utils.newTabLinkProps
-              }, ['move them to the workspace bucket.'])
-            ]),
-            p([
-              'Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, which will take several minutes.'
-            ])
-          ])
-        }
-      )
-    ])
   }
 })
