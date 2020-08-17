@@ -477,7 +477,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ]),
         p([
           'You will continue to incur persistent disk cost at ',
-          span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCost(this.getCurrentPersistentDisk())), ' per hour'])
+          span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCostMonthly(this.getCurrentPersistentDisk())), ' per month'])
         ])
       ]),
       h(FancyRadio, {
@@ -882,29 +882,27 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           }),
           div(['Cloud environments consist of an application, cloud compute and a persistent disk']),
 
-          // TODO PD: continue fixing up styles
           div({
             style: {
               backgroundColor: colors.accent(0.2),
               display: 'flex',
-              alignItems: 'baseline',
               borderRadius: 5,
-              padding: '0.5rem 1rem'
+              padding: '0.5rem 1rem',
+              marginTop: '1rem'
             }
           }, [
             _.map(({ cost, label, unitLabel }) => {
               return div({ key: label, style: { flex: 1, ...styles.label } }, [
-                div({ style: { fontSize: 10, color: colors.dark() } }, [label]),
+                div({ style: { fontSize: 10 } }, [label]),
                 div({ style: { color: colors.accent(), marginTop: '0.25rem' } }, [
-                  span({ style: { fontSize: 20 } }, Utils.formatUSD(cost)),
-                  span({ style: { fontSize: 14 } }, [' ', unitLabel])
+                  span({ style: { fontSize: 20 } }, [cost]),
+                  span([' ', unitLabel])
                 ])
               ])
             }, [
-              { label: 'Running cloud compute cost', cost: runtimeConfigCost(this.getPendingRuntimeConfig()), unitLabel: 'per hr' },
-              { label: 'Paused cloud compute cost', cost: ongoingCost(this.getPendingRuntimeConfig()), unitLabel: 'per hr' },
-              // TODO PD: compute monthly cost
-              { label: 'Persistent disk cost', cost: persistentDiskCostMonthly(this.getNewEnvironmentConfig().persistentDisk), unitLabel: 'per month' }
+              { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
+              { label: 'Paused cloud compute cost', cost: Utils.formatUSD(ongoingCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
+              { label: 'Persistent disk cost', cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(this.getNewEnvironmentConfig().persistentDisk)) : 'N/A', unitLabel: isPersistentDisk ? 'per month' : '' }
             ])
           ]),
 
