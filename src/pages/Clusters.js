@@ -146,156 +146,154 @@ const Clusters = () => {
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Notebook Runtimes' }),
-    div({ role: 'main', style: { padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
+    div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
       div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', marginBottom: '1rem' } }, ['Your notebook runtimes']),
-      div({ style: { flex: 1 } }, [
-        clusters && h(SimpleFlexTable, {
-          rowCount: filteredClusters.length,
-          columns: [
-            {
-              headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
-              cellRenderer: ({ rowIndex }) => {
-                const cluster = filteredClusters[rowIndex]
-                const inactive = !_.includes(cluster.status, ['Deleting', 'Error']) &&
-                  currentCluster(clustersByProject[cluster.googleProject]) !== cluster
-                return h(Fragment, [
-                  cluster.googleProject,
-                  inactive && h(TooltipTrigger, {
-                    content: 'This billing project has multiple active runtime environments. Only the most recently created one will be used.'
-                  }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
-                ])
-              }
-            },
-            {
-              size: { basis: 150, grow: 0 },
-              headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
-              cellRenderer: ({ rowIndex }) => {
-                const cluster = filteredClusters[rowIndex]
-                return h(Fragment, [
-                  cluster.status,
-                  cluster.status === 'Error' && h(Clickable, {
-                    tooltip: 'View error',
-                    'aria-label': 'View error',
-                    onClick: () => setErrorClusterId(cluster.id)
-                  }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
-                ])
-              }
-            },
-            {
-              size: { basis: 250, grow: 0 },
-              headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Created']),
-              cellRenderer: ({ rowIndex }) => {
-                return makeCompleteDate(filteredClusters[rowIndex].auditInfo.createdDate)
-              }
-            },
-            {
-              size: { basis: 250, grow: 0 },
-              headerRenderer: () => h(Sortable, { sort, field: 'accessed', onSort: setSort }, ['Last accessed']),
-              cellRenderer: ({ rowIndex }) => {
-                return makeCompleteDate(filteredClusters[rowIndex].auditInfo.dateAccessed)
-              }
-            },
-            {
-              size: { basis: 240, grow: 0 },
-              headerRenderer: () => {
-                return h(Sortable, { sort, field: 'cost', onSort: setSort }, [`Cost / hr (${formatUSD(totalCost)} total)`])
-              },
-              cellRenderer: ({ rowIndex }) => {
-                return formatUSD(clusterCost(filteredClusters[rowIndex]))
-              }
-            },
-            {
-              size: { basis: 50, grow: 0 },
-              headerRenderer: () => null,
-              cellRenderer: ({ rowIndex }) => {
-                const { id, status } = filteredClusters[rowIndex]
-                return status !== 'Deleting' && h(Link, {
-                  disabled: status === 'Creating',
-                  'aria-label': 'Delete notebook runtime',
-                  tooltip: status === 'Creating' ? 'Cannot delete a runtime while it is being created' : 'Delete notebook runtime',
-                  onClick: () => setDeleteClusterId(id)
-                }, [icon('trash')])
-              }
+      clusters && h(SimpleFlexTable, {
+        rowCount: filteredClusters.length,
+        columns: [
+          {
+            headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
+            cellRenderer: ({ rowIndex }) => {
+              const cluster = filteredClusters[rowIndex]
+              const inactive = !_.includes(cluster.status, ['Deleting', 'Error']) &&
+                currentCluster(clustersByProject[cluster.googleProject]) !== cluster
+              return h(Fragment, [
+                cluster.googleProject,
+                inactive && h(TooltipTrigger, {
+                  content: 'This billing project has multiple active runtime environments. Only the most recently created one will be used.'
+                }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
+              ])
             }
-          ]
-        }),
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0' } }, ['Your persistent disks']),
-        disks && h(SimpleFlexTable, {
-          rowCount: filteredDisks.length,
-          columns: [
-            {
-              headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
-              cellRenderer: ({ rowIndex }) => {
-                const disk = filteredDisks[rowIndex]
-                const multiple = _.remove({ status: 'Deleting' }, disksByProject[disk.googleProject]).length > 1
-                return h(Fragment, [
-                  disk.googleProject,
-                  disk.status !== 'Deleting' && multiple && h(TooltipTrigger, {
-                    content: 'This billing project has multiple active persistent disks. Only one will be used.'
-                  }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
-                ])
-              }
-            },
-            {
-              size: { basis: 120, grow: 0 },
-              headerRenderer: () => h(Sortable, { sort: diskSort, field: 'size', onSort: setDiskSort }, ['Size (GB)']),
-              cellRenderer: ({ rowIndex }) => {
-                const disk = filteredDisks[rowIndex]
-                return disk.size
-              }
-            },
-            {
-              size: { basis: 150, grow: 0 },
-              headerRenderer: () => h(Sortable, { sort: diskSort, field: 'status', onSort: setDiskSort }, ['Status']),
-              cellRenderer: ({ rowIndex }) => {
-                const disk = filteredDisks[rowIndex]
-                return disk.status
-              }
-            },
-            {
-              size: { basis: 250, grow: 0 },
-              headerRenderer: () => h(Sortable, { sort: diskSort, field: 'created', onSort: setDiskSort }, ['Created']),
-              cellRenderer: ({ rowIndex }) => {
-                return makeCompleteDate(filteredDisks[rowIndex].auditInfo.createdDate)
-              }
-            },
-            {
-              size: { basis: 250, grow: 0 },
-              headerRenderer: () => h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
-              cellRenderer: ({ rowIndex }) => {
-                return makeCompleteDate(filteredDisks[rowIndex].auditInfo.dateAccessed)
-              }
-            },
-            {
-              size: { basis: 250, grow: 0 },
-              headerRenderer: () => {
-                return h(Sortable, { sort: diskSort, field: 'cost', onSort: setDiskSort }, [`Cost / month (${formatUSD(totalDiskCost)} total)`])
-              },
-              cellRenderer: ({ rowIndex }) => {
-                return formatUSD(persistentDiskCostMonthly(filteredDisks[rowIndex]))
-              }
-            },
-            {
-              size: { basis: 50, grow: 0 },
-              headerRenderer: () => null,
-              cellRenderer: ({ rowIndex }) => {
-                const { id, status } = filteredDisks[rowIndex]
-                // TODO PD: there should be some way of identifying which disk is connected to which runtime
-                const error = cond(
-                  [status === 'Creating', () => 'Cannot delete this disk because it is still being created'],
-                  [_.some({ runtimeConfig: { persistentDiskId: id } }, clusters), 'Cannot delete this disk because it is attached to a runtime. You must delete the runtime first.']
-                )
-                return status !== 'Deleting' && h(Link, {
-                  'aria-label': 'Delete persistent disk',
-                  disabled: !!error,
-                  tooltip: error || 'Delete persistent disk',
-                  onClick: () => setDeleteDiskId(id)
-                }, [icon('trash')])
-              }
+          },
+          {
+            size: { basis: 150, grow: 0 },
+            headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
+            cellRenderer: ({ rowIndex }) => {
+              const cluster = filteredClusters[rowIndex]
+              return h(Fragment, [
+                cluster.status,
+                cluster.status === 'Error' && h(Clickable, {
+                  tooltip: 'View error',
+                  'aria-label': 'View error',
+                  onClick: () => setErrorClusterId(cluster.id)
+                }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
+              ])
             }
-          ]
-        })
-      ]),
+          },
+          {
+            size: { basis: 250, grow: 0 },
+            headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Created']),
+            cellRenderer: ({ rowIndex }) => {
+              return makeCompleteDate(filteredClusters[rowIndex].auditInfo.createdDate)
+            }
+          },
+          {
+            size: { basis: 250, grow: 0 },
+            headerRenderer: () => h(Sortable, { sort, field: 'accessed', onSort: setSort }, ['Last accessed']),
+            cellRenderer: ({ rowIndex }) => {
+              return makeCompleteDate(filteredClusters[rowIndex].auditInfo.dateAccessed)
+            }
+          },
+          {
+            size: { basis: 240, grow: 0 },
+            headerRenderer: () => {
+              return h(Sortable, { sort, field: 'cost', onSort: setSort }, [`Cost / hr (${formatUSD(totalCost)} total)`])
+            },
+            cellRenderer: ({ rowIndex }) => {
+              return formatUSD(clusterCost(filteredClusters[rowIndex]))
+            }
+          },
+          {
+            size: { basis: 50, grow: 0 },
+            headerRenderer: () => null,
+            cellRenderer: ({ rowIndex }) => {
+              const { id, status } = filteredClusters[rowIndex]
+              return status !== 'Deleting' && h(Link, {
+                disabled: status === 'Creating',
+                'aria-label': 'Delete notebook runtime',
+                tooltip: status === 'Creating' ? 'Cannot delete a runtime while it is being created' : 'Delete notebook runtime',
+                onClick: () => setDeleteClusterId(id)
+              }, [icon('trash')])
+            }
+          }
+        ]
+      }),
+      div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0' } }, ['Your persistent disks']),
+      disks && h(SimpleFlexTable, {
+        rowCount: filteredDisks.length,
+        columns: [
+          {
+            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
+            cellRenderer: ({ rowIndex }) => {
+              const disk = filteredDisks[rowIndex]
+              const multiple = _.remove({ status: 'Deleting' }, disksByProject[disk.googleProject]).length > 1
+              return h(Fragment, [
+                disk.googleProject,
+                disk.status !== 'Deleting' && multiple && h(TooltipTrigger, {
+                  content: 'This billing project has multiple active persistent disks. Only one will be used.'
+                }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
+              ])
+            }
+          },
+          {
+            size: { basis: 120, grow: 0 },
+            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'size', onSort: setDiskSort }, ['Size (GB)']),
+            cellRenderer: ({ rowIndex }) => {
+              const disk = filteredDisks[rowIndex]
+              return disk.size
+            }
+          },
+          {
+            size: { basis: 150, grow: 0 },
+            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'status', onSort: setDiskSort }, ['Status']),
+            cellRenderer: ({ rowIndex }) => {
+              const disk = filteredDisks[rowIndex]
+              return disk.status
+            }
+          },
+          {
+            size: { basis: 250, grow: 0 },
+            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'created', onSort: setDiskSort }, ['Created']),
+            cellRenderer: ({ rowIndex }) => {
+              return makeCompleteDate(filteredDisks[rowIndex].auditInfo.createdDate)
+            }
+          },
+          {
+            size: { basis: 250, grow: 0 },
+            headerRenderer: () => h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
+            cellRenderer: ({ rowIndex }) => {
+              return makeCompleteDate(filteredDisks[rowIndex].auditInfo.dateAccessed)
+            }
+          },
+          {
+            size: { basis: 250, grow: 0 },
+            headerRenderer: () => {
+              return h(Sortable, { sort: diskSort, field: 'cost', onSort: setDiskSort }, [`Cost / month (${formatUSD(totalDiskCost)} total)`])
+            },
+            cellRenderer: ({ rowIndex }) => {
+              return formatUSD(persistentDiskCostMonthly(filteredDisks[rowIndex]))
+            }
+          },
+          {
+            size: { basis: 50, grow: 0 },
+            headerRenderer: () => null,
+            cellRenderer: ({ rowIndex }) => {
+              const { id, status } = filteredDisks[rowIndex]
+              // TODO PD: there should be some way of identifying which disk is connected to which runtime
+              const error = cond(
+                [status === 'Creating', () => 'Cannot delete this disk because it is still being created'],
+                [_.some({ runtimeConfig: { persistentDiskId: id } }, clusters), 'Cannot delete this disk because it is attached to a runtime. You must delete the runtime first.']
+              )
+              return status !== 'Deleting' && h(Link, {
+                'aria-label': 'Delete persistent disk',
+                disabled: !!error,
+                tooltip: error || 'Delete persistent disk',
+                onClick: () => setDeleteDiskId(id)
+              }, [icon('trash')])
+            }
+          }
+        ]
+      }),
       errorClusterId && h(ClusterErrorModal, {
         cluster: _.find({ id: errorClusterId }, clusters),
         onDismiss: () => setErrorClusterId(undefined)
