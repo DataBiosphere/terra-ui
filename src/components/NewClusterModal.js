@@ -31,6 +31,7 @@ const styles = {
   whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white', marginTop: '1rem' }
 }
 
+// TODO PD: Consider moving these into a resources file
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
 const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
@@ -42,6 +43,59 @@ const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:
 
 const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
 
+// TODO PD: Move MachineSelector and DiskSelector out of this file?
+const MachineSelector = ({ value, onChange }) => {
+  const { cpu: currentCpu, memory: currentMemory } = findMachineType(value)
+  return h(Fragment, [
+    h(IdContainer, [
+      id => h(Fragment, [
+        label({ htmlFor: id, style: styles.label }, ['CPUs']),
+        div([
+          h(Select, {
+            id,
+            isSearchable: false,
+            value: currentCpu,
+            onChange: option => onChange(_.find({ cpu: option.value }, validMachineTypes)?.name || value),
+            options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validMachineTypes)
+          })
+        ])
+      ])
+    ]),
+    h(IdContainer, [
+      id => h(Fragment, [
+        label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
+        div([
+          h(Select, {
+            id,
+            isSearchable: false,
+            value: currentMemory,
+            onChange: option => onChange(_.find({ cpu: currentCpu, memory: option.value }, validMachineTypes)?.name || value),
+            options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
+          })
+        ])
+      ])
+    ])
+  ])
+}
+
+const DiskSelector = ({ value, onChange }) => {
+  return h(IdContainer, [
+    id => h(Fragment, [
+      label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
+      h(NumberInput, {
+        id,
+        min: 10,
+        max: 64000,
+        isClearable: false,
+        onlyInteger: true,
+        value,
+        onChange
+      })
+    ])
+  ])
+}
+
+// TODO PD: Should this move this into input.js?
 const FancyRadio = ({ labelText, children, name, checked, onChange, style = {} }) => {
   return div({
     style: {
@@ -651,62 +705,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
 
     const renderRuntimeSection = () => {
-      const renderMachineSelector = ({ value, onChange }) => {
-        const { cpu: currentCpu, memory: currentMemory } = findMachineType(value)
-        return h(Fragment, [
-          h(IdContainer, [
-            id => h(Fragment, [
-              label({ htmlFor: id, style: styles.label }, ['CPUs']),
-              div([
-                h(Select, {
-                  id,
-                  isSearchable: false,
-                  value: currentCpu,
-                  onChange: option => onChange(_.find({ cpu: option.value }, validMachineTypes)?.name || value),
-                  options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validMachineTypes)
-                })
-              ])
-            ])
-          ]),
-          h(IdContainer, [
-            id => h(Fragment, [
-              label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
-              div([
-                h(Select, {
-                  id,
-                  isSearchable: false,
-                  value: currentMemory,
-                  onChange: option => onChange(_.find({ cpu: currentCpu, memory: option.value }, validMachineTypes)?.name || value),
-                  options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
-                })
-              ])
-            ])
-          ])
-        ])
-      }
-      const renderDiskSelector = ({ value, onChange }) => {
-        return h(IdContainer, [
-          id => h(Fragment, [
-            label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
-            h(NumberInput, {
-              id,
-              min: 10,
-              max: 64000,
-              isClearable: false,
-              onlyInteger: true,
-              value,
-              onChange
-            })
-          ])
-        ])
-      }
-
       return div({ style: styles.whiteBoxContainer }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute configuration']),
         div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center', marginTop: '0.75rem' } }, [
-          renderMachineSelector({ value: masterMachineType, onChange: v => this.setState({ masterMachineType: v }) }),
+          h(MachineSelector, { value: masterMachineType, onChange: v => this.setState({ masterMachineType: v }) }),
           !isPersistentDisk ?
-            renderDiskSelector({ value: masterDiskSize, onChange: v => this.setState({ masterDiskSize: v }) }) :
+            h(DiskSelector, { value: masterDiskSize, onChange: v => this.setState({ masterDiskSize: v }) }) :
             div({ style: { gridColumnEnd: 'span 2' } }),
           h(IdContainer, [
             id => h(Fragment, [
@@ -785,8 +789,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               ])
             ]),
             div({ style: { gridColumnEnd: 'span 2' } }),
-            renderMachineSelector({ value: workerMachineType, onChange: v => this.setState({ workerMachineType: v }) }),
-            renderDiskSelector({ value: workerDiskSize, onChange: v => this.setState({ workerDiskSize: v })})
+            h(MachineSelector, { value: workerMachineType, onChange: v => this.setState({ workerMachineType: v }) }),
+            h(DiskSelector, { value: workerDiskSize, onChange: v => this.setState({ workerDiskSize: v })})
           ])
         ])
       ])
