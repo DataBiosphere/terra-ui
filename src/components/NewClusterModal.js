@@ -804,7 +804,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             )
           ]),
           div({ style: { flex: 1 } }),
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: onDismiss }, 'Cancel'),
           h(ButtonPrimary, {
             disabled: !this.hasChanges() || !!errors,
             tooltip: Utils.summarizeErrors(errors),
@@ -894,16 +893,30 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           )
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          // NOTE: deleteDiskSelected is also cleared via the TitleBar back button
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined, deleteDiskSelected: false }) },
-            ['Cancel']),
           h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Delete'])
         ])
       ])
     }
     const renderEnvironmentWarning = () => {
       return this.willDetachPersistentDisk() ?
-        renderSwitchFromGCEToDataproc() :
+        div({ style: { lineHeight: 1.5 } }, [
+          h(TitleBar, {
+            style: styles.titleBar,
+            title: 'Replace application configuration and cloud compute for Spark',
+            onDismiss,
+            // TODO PD: should this only send you back one step?
+            onPrevious: () => this.setState({ viewMode: undefined, deleteDiskSelected: false })
+          }),
+          div([
+            'You have requested to replace your existing application and cloud compute configurations to ones that support Spark. ',
+            'Unfortunately, this type of cloud compute does not support the persistent disk feature.'
+          ]),
+          div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
+          this.renderDeleteDiskChoices(),
+          div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+            h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
+          ])
+        ]) :
         h(Fragment, [
           h(TitleBar, {
             style: styles.titleBar,
@@ -918,7 +931,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             [this.willRequireDowntime(), () => div('willRequireDowntime')]
           ),
           div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-            h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Cancel']),
             h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
           ])
           // TODO PD: display these messages:
@@ -943,16 +955,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ' Custom Docker images could potentially cause serious security issues.'
         ]),
         h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
+        // TODO PD: rethink this language now that the Back button is gone
         p({ style: { lineHeight: 1.5 } }, [
           'If you\'re confident that your image is safe, click ', b([!!currentCluster ? 'Next' : 'Create']),
           ' to use it. Otherwise, click ', b(['Back']), ' to select another image.'
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Back']),
           h(ButtonPrimary, { onClick: () => this.warnOrApplyChanges() }, [!!currentCluster ? 'Next' : 'Create'])
         ])
       ])
     }
+
     const renderMainForm = () => {
       return h(Fragment, [
         // TODO PD: test all title bars now that they're inline
@@ -977,6 +990,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         bottomButtons()
       ])
     }
+
     const renderAboutPersistentDisk = () => {
       return div({ style: { lineHeight: 1.5 } }, [
         h(TitleBar, {
@@ -994,29 +1008,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])
     }
-    const renderSwitchFromGCEToDataproc = () => {
-      return div({ style: { lineHeight: 1.5 } }, [
-        h(TitleBar, {
-          style: styles.titleBar,
-          title: 'Replace application configuration and cloud compute for Spark',
-          onDismiss,
-          // TODO PD: should this only send you back one step?
-          onPrevious: () => this.setState({ viewMode: undefined, deleteDiskSelected: false })
-        }),
-        div([
-          'You have requested to replace your existing application and cloud compute configurations to ones that support Spark. ',
-          'Unfortunately, this type of cloud compute does not support the persistent disk feature.'
-        ]),
-        div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
-        this.renderDeleteDiskChoices(),
-        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          // NOTE: deleteDiskSelected is also cleared via the TitleBar back button
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined, deleteDiskSelected: false }) },
-            ['Cancel']),
-          h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
-        ])
-      ])
-    }
+
     const renderPackages = () => {
       return h(Fragment, [
         h(TitleBar, {
@@ -1034,7 +1026,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return div({
       style: {
         display: 'flex', flexDirection: 'column', flex: 1,
-        backgroundColor: _.includes(viewMode, ['deleteEnvironmentOptions', 'switchFromGCEToDataproc', 'environmentWarning', 'customImageWarning']) ?
+        backgroundColor: _.includes(viewMode, ['deleteEnvironmentOptions', 'environmentWarning', 'customImageWarning']) ?
           colors.warning(.1) :
           undefined
       }
