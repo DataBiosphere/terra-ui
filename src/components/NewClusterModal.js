@@ -902,28 +902,30 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])
     }
     const renderEnvironmentWarning = () => {
-      return h(Fragment, [
-        h(TitleBar, {
-          style: styles.titleBar,
-          title: 'Warning!',
-          onDismiss,
-          // TODO PD: should this only send you back one step?
-          onPrevious: () => this.setState({ viewMode: undefined })
-        }),
-        Utils.cond(
-          [this.willDeleteBuiltinDisk(), () => div('willDeleteBuiltinDisk')],
-          [this.willDeletePersistentDisk(), () => div('willDeletePersistentDisk')],
-          [this.willRequireDowntime(), () => div('willRequireDowntime')]
-        ),
-        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Cancel']),
-          h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
+      return this.willDetachPersistentDisk() ?
+        renderSwitchFromGCEToDataproc() :
+        h(Fragment, [
+          h(TitleBar, {
+            style: styles.titleBar,
+            title: 'Warning!',
+            onDismiss,
+            // TODO PD: should this only send you back one step?
+            onPrevious: () => this.setState({ viewMode: undefined })
+          }),
+          Utils.cond(
+            [this.willDeleteBuiltinDisk(), () => div('willDeleteBuiltinDisk')],
+            [this.willDeletePersistentDisk(), () => div('willDeletePersistentDisk')],
+            [this.willRequireDowntime(), () => div('willRequireDowntime')]
+          ),
+          div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+            h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Cancel']),
+            h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
+          ])
+          // TODO PD: display these messages:
+          // 1. See SATURN-1781
+          // 2. See SATURN 1782
+          // 3. See SATURN 1783
         ])
-        // TODO PD: display these messages:
-        // 1. See SATURN-1781
-        // 2. See SATURN 1782
-        // 3. See SATURN 1783
-      ])
     }
 
     const renderCustomImageWarning = () => {
@@ -1041,7 +1043,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         Utils.switchCase(viewMode,
           ['packages', renderPackages],
           ['aboutPersistentDisk', renderAboutPersistentDisk],
-          ['switchFromGCEToDataproc', renderSwitchFromGCEToDataproc],
           ['customImageWarning', renderCustomImageWarning],
           ['environmentWarning', renderEnvironmentWarning],
           ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
@@ -1051,6 +1052,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       loading && spinnerOverlay,
       this.renderDebugger()
     ])
+  }
+
+  willDetachPersistentDisk() {
+    return this.getNewEnvironmentConfig().runtime.cloudService === cloudServices.DATAPROC && this.hasAttachedDisk()
   }
 
   shouldUsePersistentDisk() {
@@ -1076,9 +1081,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   warnOrApplyChanges() {
-    if (this.getNewEnvironmentConfig().runtime.cloudService === cloudServices.DATAPROC && this.hasAttachedDisk()) {
-      this.setState({ viewMode: 'switchFromGCEToDataproc' })
-    } else if (this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime()) {
+    if (this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime() || this.willDetachPersistentDisk()) {
       this.setState({ viewMode: 'environmentWarning' })
     } else {
       this.applyChanges()
