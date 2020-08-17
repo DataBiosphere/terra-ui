@@ -37,7 +37,8 @@ export const machineTypes = _.map(({ price, preemptiblePrice, ...details }) => (
   ...details
 }), machineBases) // adding prices for ephemeral IP's, per https://cloud.google.com/compute/network-pricing#ipaddress
 
-export const storagePrice = 0.04 / 730 // per GB hour, from https://cloud.google.com/compute/pricing
+export const monthlyStoragePrice = 0.04 // from https://cloud.google.com/compute/pricing
+export const storagePrice = monthlyStoragePrice / 730 // per GB hour using 730 hours per month from https://cloud.google.com/compute/pricing
 export const dataprocCpuPrice = 0.01 // dataproc costs $0.01 per cpu per hour
 
 export const profiles = [
