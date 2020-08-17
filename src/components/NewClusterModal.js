@@ -2,18 +2,18 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { b, div, fieldset, h, input, label, legend, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Clickable, GroupedSelect, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
-import { cloudServices, machineTypes, profiles } from 'src/data/machines'
+import { cloudServices, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import {
   currentCluster,
-  DEFAULT_DISK_SIZE, findMachineType, normalizeRuntimeConfig, ongoingCost, persistentDiskCost, persistentDiskCostMonthly, runtimeConfigCost, runtimeCostBreakdown
+  DEFAULT_DISK_SIZE, findMachineType, normalizeRuntimeConfig, ongoingCost, persistentDiskCostMonthly, runtimeConfigCost
 } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -42,37 +42,35 @@ const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:
 
 const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
 
-const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, readOnly, isPersistentDisk }) => {
+const MachineSelector = ({ machineType, onChangeMachineType, diskSize, onChangeDiskSize, isPersistentDisk }) => {
   const { cpu: currentCpu, memory: currentMemory } = findMachineType(machineType)
   return h(Fragment, [
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, ['CPUs']),
-        readOnly ? div({ style: styles.disabledInputs }, [currentCpu]) :
-          div([
-            h(Select, {
-              id,
-              isSearchable: false,
-              value: currentCpu,
-              onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, validMachineTypes)?.name || machineType),
-              options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validMachineTypes)
-            })
-          ])
+        div([
+          h(Select, {
+            id,
+            isSearchable: false,
+            value: currentCpu,
+            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: value }, validMachineTypes)?.name || machineType),
+            options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validMachineTypes)
+          })
+        ])
       ])
     ]),
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
-        readOnly ? div({ style: styles.disabledInputs }, [currentMemory]) :
-          div([
-            h(Select, {
-              id,
-              isSearchable: false,
-              value: currentMemory,
-              onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, validMachineTypes)?.name || machineType),
-              options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
-            })
-          ])
+        div([
+          h(Select, {
+            id,
+            isSearchable: false,
+            value: currentMemory,
+            onChange: ({ value }) => onChangeMachineType(_.find({ cpu: currentCpu, memory: value }, validMachineTypes)?.name || machineType),
+            options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
+          })
+        ])
       ])
     ]),
     !isPersistentDisk ? h(IdContainer, [
@@ -128,15 +126,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   constructor(props) {
     super(props)
     const currentCluster = this.getCurrentCluster()
-    const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
-    const { masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
-    const matchingProfile = _.find(({ runtimeConfig }) => runtimeConfig.masterMachineType === masterMachineType, profiles)
+    const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || { masterMachineType: 'n1-standard-4' })
+    const { numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
     this.state = {
       loading: false,
       selectedPersistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : DEFAULT_DISK_SIZE,
-      profile: matchingProfile?.name || 'custom',
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
       sparkMode: cloudService === cloudServices.GCE ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
       ...currentConfig,
@@ -414,7 +410,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     this.setState({ leoImages: newLeoImages, currentClusterDetails })
     if (currentClusterDetails) {
-      const { jupyterUserScriptUri } = currentClusterDetails
       const imageUrl = this.getImageUrl(currentClusterDetails)
       if (_.find({ image: imageUrl }, newLeoImages)) {
         this.setState({ selectedLeoImage: imageUrl })
@@ -422,10 +417,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         this.setState({ selectedLeoImage: PROJECT_SPECIFIC_MODE, customEnvImage: imageUrl })
       } else {
         this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl })
-      }
-
-      if (jupyterUserScriptUri) {
-        this.setState({ jupyterUserScriptUri, profile: 'custom' })
       }
     } else {
       this.setState({ selectedLeoImage: _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image })
@@ -506,7 +497,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { onDismiss } = this.props
     const currentCluster = this.getCurrentCluster()
     const {
-      profile, masterMachineType, masterDiskSize, selectedPersistentDiskSize, sparkMode, workerMachineType,
+      masterMachineType, masterDiskSize, selectedPersistentDiskSize, sparkMode, workerMachineType,
       numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
       jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, loading
     } = this.state
@@ -611,18 +602,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       return h(Fragment, [
         div({ style: styles.whiteBoxContainer }, [
           div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute configuration']),
-          // TODO PD: remove the profile select
           div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center', marginTop: '0.75rem' } }, [
-            // TODO PD: delete more stuff about profile select
             h(MachineSelector, {
               machineType: masterMachineType,
               onChangeMachineType: v => this.setState({ masterMachineType: v }),
               isPersistentDisk,
               diskSize: isPersistentDisk ? selectedPersistentDiskSize : masterDiskSize,
-              onChangeDiskSize: v => this.setState(isPersistentDisk ? { selectedPersistentDiskSize: v } : { masterDiskSize: v }),
-              readOnly: profile !== 'custom'
+              onChangeDiskSize: v => this.setState(isPersistentDisk ? { selectedPersistentDiskSize: v } : { masterDiskSize: v })
             }),
-            profile === 'custom' && h(IdContainer, [
+            h(IdContainer, [
               id => h(Fragment, [
                 label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, ['Startup script']),
                 div({ style: { gridColumnEnd: 'span 6' } }, [

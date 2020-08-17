@@ -41,30 +41,6 @@ export const monthlyStoragePrice = 0.04 // from https://cloud.google.com/compute
 export const storagePrice = monthlyStoragePrice / 730 // per GB hour using 730 hours per month from https://cloud.google.com/compute/pricing
 export const dataprocCpuPrice = 0.01 // dataproc costs $0.01 per cpu per hour
 
-export const profiles = [
-  {
-    name: 'moderate',
-    label: 'Default (Moderate)',
-    runtimeConfig: {
-      masterMachineType: 'n1-standard-4'
-    }
-  },
-  {
-    name: 'increased',
-    label: 'Increased',
-    runtimeConfig: {
-      masterMachineType: 'n1-standard-16'
-    }
-  },
-  {
-    name: 'high',
-    label: 'High',
-    runtimeConfig: {
-      masterMachineType: 'n1-standard-64'
-    }
-  }
-]
-
 export const version = '6' // updated jupyter-iframe-extension.js
 
 export const dataSyncingDocUrl = 'https://support.terra.bio/hc/en-us/articles/360034505132--Lock-and-Playground-Notebook-Modes'
