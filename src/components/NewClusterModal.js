@@ -901,56 +901,33 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ])
       ])
     }
-
-    const contents = Utils.switchCase(viewMode,
-      ['packages', () => h(Fragment, [
+    const renderEnvironmentWarning = () => {
+      return h(Fragment, [
         h(TitleBar, {
           style: styles.titleBar,
-          title: 'Installed packages',
-          onDismiss,
-          onPrevious: () => this.setState({ viewMode: undefined })
-        }),
-        makeEnvSelect(),
-        makeImageInfo({ margin: '1rem 0 0.5rem' }),
-        packages && h(ImageDepViewer, { packageLink: packages })
-      ])],
-      ['aboutPersistentDisk', () => div({ style: { lineHeight: 1.5 } }, [
-        h(TitleBar, {
-          style: styles.titleBar,
-          title: 'About persistent disks',
-          onDismiss,
-          onPrevious: () => this.setState({ viewMode: undefined })
-        }),
-        p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you deleting compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
-        p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
-        p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
-        h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360047318551', ...Utils.newTabLinkProps }, [
-          'Learn more about about persistent disks in the Terra Support site',
-          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-        ])
-      ])],
-      ['switchFromGCEToDataproc', () => div({ style: { lineHeight: 1.5 } }, [
-        h(TitleBar, {
-          style: styles.titleBar,
-          title: 'Replace application configuration and cloud compute for Spark',
+          title: 'Warning!',
           onDismiss,
           // TODO PD: should this only send you back one step?
-          onPrevious: () => this.setState({ viewMode: undefined, deleteDiskSelected: false })
+          onPrevious: () => this.setState({ viewMode: undefined })
         }),
-        div([
-          'You have requested to replace your existing application and cloud compute configurations to ones that support Spark. ',
-          'Unfortunately, this type of cloud compute does not support the persistent disk feature.'
-        ]),
-        div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
-        this.renderDeleteDiskChoices(),
+        Utils.cond(
+          [this.willDeleteBuiltinDisk(), () => div('willDeleteBuiltinDisk')],
+          [this.willDeletePersistentDisk(), () => div('willDeletePersistentDisk')],
+          [this.willRequireDowntime(), () => div('willRequireDowntime')]
+        ),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          // NOTE: deleteDiskSelected is also cleared via the TitleBar back button
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined, deleteDiskSelected: false }) },
-            ['Cancel']),
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Cancel']),
           h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
         ])
-      ])],
-      ['customImageWarning', () => h(Fragment, [
+        // TODO PD: display these messages:
+        // 1. See SATURN-1781
+        // 2. See SATURN 1782
+        // 3. See SATURN 1783
+      ])
+    }
+
+    const renderCustomImageWarning = () => {
+      return h(Fragment, [
         h(TitleBar, {
           style: styles.titleBar,
           title: 'Warning!',
@@ -972,55 +949,85 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Back']),
           h(ButtonPrimary, { onClick: () => this.warnOrApplyChanges() }, [!!currentCluster ? 'Next' : 'Create'])
         ])
-      ])],
-      ['environmentWarning', () => h(Fragment, [
+      ])
+    }
+    const renderMainForm = () => {
+      return h(Fragment, [
+        // TODO PD: test all title bars now that they're inline
+        // TODO PD: revisit the term 'cloud environment' and the mention of 'Jupyter' specifically
+        // TODO PD: apply fixed header style from mocks
         h(TitleBar, {
           style: styles.titleBar,
-          title: 'Warning!',
+          title: 'Create a cloud environment for Jupyter notebooks',
+          onDismiss
+        }),
+        div(['Cloud environments consist of an application, cloud compute and a persistent disk']),
+
+        renderCostBreakdown(),
+        renderApplicationSection(),
+        renderRuntimeSection(),
+        !!isPersistentDisk && renderPersistentDiskSection(),
+        // TODO PD: What do we do with this?
+        !sparkMode && !isPersistentDisk && div([
+          p(['Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.']),
+          h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
+        ]),
+        bottomButtons()
+      ])
+    }
+    const renderAboutPersistentDisk = () => {
+      return div({ style: { lineHeight: 1.5 } }, [
+        h(TitleBar, {
+          style: styles.titleBar,
+          title: 'About persistent disks',
           onDismiss,
-          // TODO PD: should this only send you back one step?
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
-        Utils.cond(
-          [this.willDeleteBuiltinDisk(), () => div('willDeleteBuiltinDisk')],
-          [this.willDeletePersistentDisk(), () => div('willDeletePersistentDisk')],
-          [this.willRequireDowntime(), () => div('willRequireDowntime')]
-        ),
+        p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you deleting compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
+        p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
+        p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
+        h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360047318551', ...Utils.newTabLinkProps }, [
+          'Learn more about about persistent disks in the Terra Support site',
+          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+        ])
+      ])
+    }
+    const renderSwitchFromGCEToDataproc = () => {
+      return div({ style: { lineHeight: 1.5 } }, [
+        h(TitleBar, {
+          style: styles.titleBar,
+          title: 'Replace application configuration and cloud compute for Spark',
+          onDismiss,
+          // TODO PD: should this only send you back one step?
+          onPrevious: () => this.setState({ viewMode: undefined, deleteDiskSelected: false })
+        }),
+        div([
+          'You have requested to replace your existing application and cloud compute configurations to ones that support Spark. ',
+          'Unfortunately, this type of cloud compute does not support the persistent disk feature.'
+        ]),
+        div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
+        this.renderDeleteDiskChoices(),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined }) }, ['Cancel']),
+          // NOTE: deleteDiskSelected is also cleared via the TitleBar back button
+          h(ButtonSecondary, { style: { marginRight: '2rem' }, onClick: () => this.setState({ viewMode: undefined, deleteDiskSelected: false }) },
+            ['Cancel']),
           h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
         ])
-        // TODO PD: display these messages:
-        // 1. See SATURN-1781
-        // 2. See SATURN 1782
-        // 3. See SATURN 1783
-      ])],
-      ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
-      [Utils.DEFAULT, () => {
-        return h(Fragment, [
-          // TODO PD: test all title bars now that they're inline
-          // TODO PD: revisit the term 'cloud environment' and the mention of 'Jupyter' specifically
-          // TODO PD: apply fixed header style from mocks
-          h(TitleBar, {
-            style: styles.titleBar,
-            title: 'Create a cloud environment for Jupyter notebooks',
-            onDismiss
-          }),
-          div(['Cloud environments consist of an application, cloud compute and a persistent disk']),
-
-          renderCostBreakdown(),
-          renderApplicationSection(),
-          renderRuntimeSection(),
-          !!isPersistentDisk && renderPersistentDiskSection(),
-          // TODO PD: What do we do with this?
-          !sparkMode && !isPersistentDisk && div([
-            p(['Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.']),
-            h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
-          ]),
-          bottomButtons()
-        ])
-      }]
-    )
+      ])
+    }
+    const renderPackages = () => {
+      return h(Fragment, [
+        h(TitleBar, {
+          style: styles.titleBar,
+          title: 'Installed packages',
+          onDismiss,
+          onPrevious: () => this.setState({ viewMode: undefined })
+        }),
+        makeEnvSelect(),
+        makeImageInfo({ margin: '1rem 0 0.5rem' }),
+        packages && h(ImageDepViewer, { packageLink: packages })
+      ])
+    }
 
     return div({
       style: {
@@ -1030,7 +1037,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           undefined
       }
     }, [
-      div({ style: { padding: '1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents]),
+      div({ style: { padding: '1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
+        Utils.switchCase(viewMode,
+          ['packages', renderPackages],
+          ['aboutPersistentDisk', renderAboutPersistentDisk],
+          ['switchFromGCEToDataproc', renderSwitchFromGCEToDataproc],
+          ['customImageWarning', renderCustomImageWarning],
+          ['environmentWarning', renderEnvironmentWarning],
+          ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
+          [Utils.DEFAULT, renderMainForm]
+        )
+      ]),
       loading && spinnerOverlay,
       this.renderDebugger()
     ])
