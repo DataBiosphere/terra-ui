@@ -561,6 +561,106 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ]
     })
 
+    const renderCostBreakdown = () => {
+      return div({
+        style: {
+          backgroundColor: colors.accent(0.2),
+          display: 'flex',
+          borderRadius: 5,
+          padding: '0.5rem 1rem',
+          marginTop: '1rem'
+        }
+      }, [
+        _.map(({ cost, label, unitLabel }) => {
+          return div({ key: label, style: { flex: 1, ...styles.label } }, [
+            div({ style: { fontSize: 10 } }, [label]),
+            div({ style: { color: colors.accent(), marginTop: '0.25rem' } }, [
+              span({ style: { fontSize: 20 } }, [cost]),
+              span([' ', unitLabel])
+            ])
+          ])
+        }, [
+          { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
+          { label: 'Paused cloud compute cost', cost: Utils.formatUSD(ongoingCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
+          { label: 'Persistent disk cost', cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(this.getNewEnvironmentConfig().persistentDisk)) : 'N/A', unitLabel: isPersistentDisk ? 'per month' : '' }
+        ])
+      ])
+    }
+
+    const renderApplicationSection = () => {
+      return div({ style: styles.whiteBoxContainer }, [
+        h(IdContainer, [
+          id => h(Fragment, [
+            div({ style: { marginBottom: '0.5rem' } }, [
+              label({ htmlFor: id, style: styles.label }, ['Application configuration']),
+              h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+                'The software application + programming languages + packages used when you create your runtime. '
+              ])
+            ]),
+            div({ style: { height: 45 } }, [makeGroupedEnvSelect(id)])
+          ])
+        ]),
+        Utils.switchCase(selectedLeoImage,
+          [CUSTOM_MODE, () => {
+            return h(Fragment, [
+              h(IdContainer, [
+                id => h(Fragment, [
+                  label({ htmlFor: id, style: { ...styles.label, display: 'block', margin: '0.5rem 0' } }, ['CONTAINER IMAGE']),
+                  div({ style: { height: 52 } }, [
+                    h(ValidatedInput, {
+                      inputProps: {
+                        id,
+                        placeholder: '<image name>:<tag>',
+                        value: customEnvImage,
+                        onChange: customEnvImage => this.setState({ customEnvImage })
+                      },
+                      error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
+                    })
+                  ])
+                ])
+              ]),
+              div([
+                'Custom environments ', b(['must ']), 'be based off one of the ',
+                h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images']),
+                ' or a ',
+                h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-Specific image'])
+              ])
+            ])
+          }],
+          [PROJECT_SPECIFIC_MODE, () => {
+            return div({ style: { lineHeight: 1.5 } }, [
+              'Some consortium projects, such as ',
+              h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['AnVIL']),
+              ', have created environments that are specific to their project. If you want to use one of these:',
+              div({ style: { marginTop: '0.5rem' } }, [
+                '1. Find the environment image (',
+                h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['view image list']),
+                ') '
+              ]),
+              div({ style: { margin: '0.5rem 0' } }, ['2. Copy the URL from the github repository']),
+              div({ style: { margin: '0.5rem 0' } }, ['3. Enter the URL for the image in the text box below']),
+              h(ValidatedInput, {
+                inputProps: {
+                  placeholder: 'Paste image path here',
+                  value: customEnvImage,
+                  onChange: customEnvImage => this.setState({ customEnvImage })
+                },
+                error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
+              })
+            ])
+          }],
+          [Utils.DEFAULT, () => {
+            return h(Fragment, [
+              div({ style: { display: 'flex' } }, [
+                h(Link, { onClick: () => this.setState({ viewMode: 'packages' }) }, ['What’s installed on this environment?']),
+                makeImageInfo({ marginLeft: 'auto' })
+              ])
+            ])
+          }]
+        )
+      ])
+    }
+
     const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
       div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
       div(['Version: ', version || null])
@@ -598,128 +698,125 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])
     }
 
-    const runtimeConfig = () => {
-      return h(Fragment, [
-        div({ style: styles.whiteBoxContainer }, [
-          div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute configuration']),
-          div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center', marginTop: '0.75rem' } }, [
-            h(MachineSelector, {
-              machineType: masterMachineType,
-              onChangeMachineType: v => this.setState({ masterMachineType: v }),
-              isPersistentDisk,
-              diskSize: isPersistentDisk ? selectedPersistentDiskSize : masterDiskSize,
-              onChangeDiskSize: v => this.setState(isPersistentDisk ? { selectedPersistentDiskSize: v } : { masterDiskSize: v })
-            }),
+    const renderRuntimeSection = () => {
+      return div({ style: styles.whiteBoxContainer }, [
+        div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute configuration']),
+        div({ style: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.5rem', gridGap: '1rem', alignItems: 'center', marginTop: '0.75rem' } }, [
+          h(MachineSelector, {
+            machineType: masterMachineType,
+            onChangeMachineType: v => this.setState({ masterMachineType: v }),
+            isPersistentDisk,
+            diskSize: isPersistentDisk ? selectedPersistentDiskSize : masterDiskSize,
+            onChangeDiskSize: v => this.setState(isPersistentDisk ? { selectedPersistentDiskSize: v } : { masterDiskSize: v })
+          }),
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, ['Startup script']),
+              div({ style: { gridColumnEnd: 'span 6' } }, [
+                h(TextInput, {
+                  id,
+                  placeholder: 'URI',
+                  value: jupyterUserScriptUri,
+                  onChange: v => this.setState({ jupyterUserScriptUri: v })
+                })
+              ])
+            ])
+          ]),
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, ['Compute type']),
+              div({ style: { gridColumnEnd: 'span 3' } }, [
+                h(Select, {
+                  id,
+                  isSearchable: false,
+                  value: sparkMode,
+                  // TODO PD: don't reset number of workers
+                  onChange: ({ value }) => this.setState({
+                    sparkMode: value,
+                    numberOfWorkers: value === 'cluster' ? 2 : 0,
+                    numberOfPreemptibleWorkers: 0
+                  }),
+                  options: [
+                    { value: false, label: 'Standard VM', isDisabled: requiresSpark },
+                    { value: 'master', label: 'Spark master node' },
+                    { value: 'cluster', label: 'Spark cluster' }
+                  ]
+                })
+              ])
+            ])
+          ])
+        ]),
+        // TODO PD: keep fine-tuning styles here
+        sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
+          legend({ style: { padding: 0, ...styles.label } }, ['Worker config']),
+          // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
+          div({
+            style: {
+              display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.25rem', gridGap: '0.8rem', alignItems: 'center', marginTop: '.5rem'
+            }
+          }, [
             h(IdContainer, [
               id => h(Fragment, [
-                label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, ['Startup script']),
-                div({ style: { gridColumnEnd: 'span 6' } }, [
-                  h(TextInput, {
-                    id,
-                    placeholder: 'URI',
-                    value: jupyterUserScriptUri,
-                    onChange: v => this.setState({ jupyterUserScriptUri: v })
+                label({ htmlFor: id, style: styles.label }, ['Workers']),
+                h(NumberInput, {
+                  id,
+                  min: 2,
+                  isClearable: false,
+                  onlyInteger: true,
+                  value: numberOfWorkers,
+                  onChange: v => this.setState({
+                    numberOfWorkers: v,
+                    numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
                   })
-                ])
+                })
               ])
             ]),
             h(IdContainer, [
               id => h(Fragment, [
-                label({ htmlFor: id, style: { gridColumnEnd: 'span 6', ...styles.label } }, ['Compute type']),
-                div({ style: { gridColumnEnd: 'span 3' } }, [
-                  h(Select, {
-                    id,
-                    isSearchable: false,
-                    value: sparkMode,
-                    // TODO PD: don't reset number of workers
-                    onChange: ({ value }) => this.setState({
-                      sparkMode: value,
-                      numberOfWorkers: value === 'cluster' ? 2 : 0,
-                      numberOfPreemptibleWorkers: 0
-                    }),
-                    options: [
-                      { value: false, label: 'Standard VM', isDisabled: requiresSpark },
-                      { value: 'master', label: 'Spark master node' },
-                      { value: 'cluster', label: 'Spark cluster' }
-                    ]
-                  })
-                ])
+                label({ htmlFor: id, style: styles.label }, ['Preemptible']),
+                h(NumberInput, {
+                  id,
+                  min: 0,
+                  max: numberOfWorkers,
+                  isClearable: false,
+                  onlyInteger: true,
+                  value: numberOfPreemptibleWorkers,
+                  onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
+                })
               ])
-            ])
-          ]),
-          // TODO PD: keep fine-tuning styles here
-          sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
-            legend({ style: { padding: 0, ...styles.label } }, ['Worker config']),
-            // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
-            div({
-              style: {
-                display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1.2fr 1fr 5.25rem', gridGap: '0.8rem', alignItems: 'center', marginTop: '.5rem'
-              }
-            }, [
-              h(IdContainer, [
-                id => h(Fragment, [
-                  label({ htmlFor: id, style: styles.label }, ['Workers']),
-                  h(NumberInput, {
-                    id,
-                    min: 2,
-                    isClearable: false,
-                    onlyInteger: true,
-                    value: numberOfWorkers,
-                    onChange: v => this.setState({
-                      numberOfWorkers: v,
-                      numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
-                    })
-                  })
-                ])
-              ]),
-              h(IdContainer, [
-                id => h(Fragment, [
-                  label({ htmlFor: id, style: styles.label }, ['Preemptible']),
-                  h(NumberInput, {
-                    id,
-                    min: 0,
-                    max: numberOfWorkers,
-                    isClearable: false,
-                    onlyInteger: true,
-                    value: numberOfPreemptibleWorkers,
-                    onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
-                  })
-                ])
-              ]),
-              div({ style: { gridColumnEnd: 'span 2' } }),
-              h(MachineSelector, {
-                machineType: workerMachineType,
-                onChangeMachineType: v => this.setState({ workerMachineType: v }),
-                diskSize: workerDiskSize,
-                onChangeDiskSize: v => this.setState({ workerDiskSize: v })
-              })
-            ])
+            ]),
+            div({ style: { gridColumnEnd: 'span 2' } }),
+            h(MachineSelector, {
+              machineType: workerMachineType,
+              onChangeMachineType: v => this.setState({ workerMachineType: v }),
+              diskSize: workerDiskSize,
+              onChangeDiskSize: v => this.setState({ workerDiskSize: v })
+            })
           ])
-        ]),
-        !!isPersistentDisk && div({ style: styles.whiteBoxContainer }, [
-          h(IdContainer, [
-            id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
-              label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
-              div({ style: { marginTop: '0.5rem' } }, [
-                'A safeguard to store and protect your data. ',
-                h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
-              ]),
-              h(NumberInput, {
-                id,
-                min: 10,
-                max: 64000,
-                isClearable: false,
-                onlyInteger: true,
-                value: selectedPersistentDiskSize,
-                style: { marginTop: '0.5rem', width: '5rem' },
-                onChange: value => this.setState({ selectedPersistentDiskSize: value })
-              })
-            ])
+        ])
+      ])
+    }
+
+    const renderPersistentDiskSection = () => {
+      return div({ style: styles.whiteBoxContainer }, [
+        h(IdContainer, [
+          id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
+            label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
+            div({ style: { marginTop: '0.5rem' } }, [
+              'A safeguard to store and protect your data. ',
+              h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
+            ]),
+            h(NumberInput, {
+              id,
+              min: 10,
+              max: 64000,
+              isClearable: false,
+              onlyInteger: true,
+              value: selectedPersistentDiskSize,
+              style: { marginTop: '0.5rem', width: '5rem' },
+              onChange: value => this.setState({ selectedPersistentDiskSize: value })
+            })
           ])
-        ]),
-        !sparkMode && !isPersistentDisk && div([
-          p(['Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.']),
-          h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
         ])
       ])
     }
@@ -844,102 +941,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           }),
           div(['Cloud environments consist of an application, cloud compute and a persistent disk']),
 
-          div({
-            style: {
-              backgroundColor: colors.accent(0.2),
-              display: 'flex',
-              borderRadius: 5,
-              padding: '0.5rem 1rem',
-              marginTop: '1rem'
-            }
-          }, [
-            _.map(({ cost, label, unitLabel }) => {
-              return div({ key: label, style: { flex: 1, ...styles.label } }, [
-                div({ style: { fontSize: 10 } }, [label]),
-                div({ style: { color: colors.accent(), marginTop: '0.25rem' } }, [
-                  span({ style: { fontSize: 20 } }, [cost]),
-                  span([' ', unitLabel])
-                ])
-              ])
-            }, [
-              { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
-              { label: 'Paused cloud compute cost', cost: Utils.formatUSD(ongoingCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
-              { label: 'Persistent disk cost', cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(this.getNewEnvironmentConfig().persistentDisk)) : 'N/A', unitLabel: isPersistentDisk ? 'per month' : '' }
-            ])
+          renderCostBreakdown(),
+          renderApplicationSection(),
+          renderRuntimeSection(),
+          !!isPersistentDisk && renderPersistentDiskSection(),
+          // TODO PD: What do we do with this?
+          !sparkMode && !isPersistentDisk && div([
+            p(['Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.']),
+            h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
           ]),
-
-          div({ style: styles.whiteBoxContainer }, [
-            h(IdContainer, [
-              id => h(Fragment, [
-                div({ style: { marginBottom: '0.5rem' } }, [
-                  label({ htmlFor: id, style: styles.label }, ['Application configuration']),
-                  h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-                    'The software application + programming languages + packages used when you create your runtime. '
-                  ])
-                ]),
-                div({ style: { height: 45 } }, [makeGroupedEnvSelect(id)])
-              ])
-            ]),
-            Utils.switchCase(selectedLeoImage,
-              [CUSTOM_MODE, () => {
-                return h(Fragment, [
-                  h(IdContainer, [
-                    id => h(Fragment, [
-                      label({ htmlFor: id, style: { ...styles.label, display: 'block', margin: '0.5rem 0' } }, ['CONTAINER IMAGE']),
-                      div({ style: { height: 52 } }, [
-                        h(ValidatedInput, {
-                          inputProps: {
-                            id,
-                            placeholder: '<image name>:<tag>',
-                            value: customEnvImage,
-                            onChange: customEnvImage => this.setState({ customEnvImage })
-                          },
-                          error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
-                        })
-                      ])
-                    ])
-                  ]),
-                  div([
-                    'Custom environments ', b(['must ']), 'be based off one of the ',
-                    h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images']),
-                    ' or a ',
-                    h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-Specific image'])
-                  ])
-                ])
-              }],
-              [PROJECT_SPECIFIC_MODE, () => {
-                return div({ style: { lineHeight: 1.5 } }, [
-                  'Some consortium projects, such as ',
-                  h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['AnVIL']),
-                  ', have created environments that are specific to their project. If you want to use one of these:',
-                  div({ style: { marginTop: '0.5rem' } }, [
-                    '1. Find the environment image (',
-                    h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['view image list']),
-                    ') '
-                  ]),
-                  div({ style: { margin: '0.5rem 0' } }, ['2. Copy the URL from the github repository']),
-                  div({ style: { margin: '0.5rem 0' } }, ['3. Enter the URL for the image in the text box below']),
-                  h(ValidatedInput, {
-                    inputProps: {
-                      placeholder: 'Paste image path here',
-                      value: customEnvImage,
-                      onChange: customEnvImage => this.setState({ customEnvImage })
-                    },
-                    error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
-                  })
-                ])
-              }],
-              [Utils.DEFAULT, () => {
-                return h(Fragment, [
-                  div({ style: { display: 'flex' } }, [
-                    h(Link, { onClick: () => this.setState({ viewMode: 'packages' }) }, ['What’s installed on this environment?']),
-                    makeImageInfo({ marginLeft: 'auto' })
-                  ])
-                ])
-              }]
-            )
-          ]),
-          runtimeConfig(),
           bottomButtons()
         ])
       }]
