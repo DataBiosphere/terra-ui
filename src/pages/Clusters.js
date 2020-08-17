@@ -142,6 +142,7 @@ const Clusters = () => {
   const totalDiskCost = _.sum(_.map(persistentDiskCostMonthly, disks))
 
   const clustersByProject = _.groupBy('googleProject', clusters)
+  const disksByProject = _.groupBy('googleProject', disks)
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Notebook Runtimes' }),
@@ -226,8 +227,13 @@ const Clusters = () => {
               headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
               cellRenderer: ({ rowIndex }) => {
                 const disk = filteredDisks[rowIndex]
-                // TODO PD: add warning icons for multiple disks
-                return disk.googleProject
+                const multiple = _.remove({ status: 'Deleting' }, disksByProject[disk.googleProject]).length > 1
+                return h(Fragment, [
+                  disk.googleProject,
+                  disk.status !== 'Deleting' && multiple && h(TooltipTrigger, {
+                    content: 'This billing project has multiple active persistent disks. Only one will be used.'
+                  }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
+                ])
               }
             },
             {
