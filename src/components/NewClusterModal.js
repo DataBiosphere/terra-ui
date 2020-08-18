@@ -471,7 +471,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return h(Fragment, [
       h(FancyRadio, {
         name: 'delete-persistent-disk',
-        labelText: 'Keep persistent disk, delete application configuration and cloud compute',
+        labelText: 'Keep persistent disk, delete application and compute profile',
         checked: !deleteDiskSelected,
         onChange: () => this.setState({ deleteDiskSelected: false })
       }, [
@@ -486,7 +486,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ]),
       h(FancyRadio, {
         name: 'delete-persistent-disk',
-        labelText: 'Delete cloud environment including persistent disk',
+        labelText: 'Delete everything, including persistent disk',
         checked: deleteDiskSelected,
         onChange: () => this.setState({ deleteDiskSelected: true }),
         style: { marginTop: '1rem' }
@@ -883,7 +883,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         h(Fragment, [
           h(TitleBar, {
             style: styles.titleBar,
-            title: h(WarningTitle, ['Replace application configuration and cloud compute for Spark']),
+            title: h(WarningTitle, ['Replace application and cloud compute profile for Spark']),
             onDismiss,
             // TODO PD: should this only send you back one step?
             onPrevious: () => this.setState({ viewMode: undefined, deleteDiskSelected: false })
@@ -910,8 +910,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           }),
           Utils.cond(
             [this.willDeleteBuiltinDisk(), () => div('willDeleteBuiltinDisk')],
-            [this.willDeletePersistentDisk(), () => div('willDeletePersistentDisk')],
-            [this.willRequireDowntime(), () => div('willRequireDowntime')]
+            [this.willDeletePersistentDisk(), () => div([
+              p(['Reducing the size of a persistent disk requires it to be deleted and recreated. This will delete all files on the disk.']),
+              p(['To avoid losing data, save important data to your workspace bucket.'])
+            ])],
+            [this.willRequireDowntime(), () => div([
+              // TODO PD: Refine this a little bit more
+              p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
+              p(['Existing data will be preserved.'])
+            ])]
           ),
           div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
             h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
@@ -927,7 +934,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       return h(Fragment, [
         h(TitleBar, {
           style: styles.titleBar,
-          title: h(WarningTitle, ['Unverified Docker Image']),
+          title: h(WarningTitle, ['Unverified Docker image']),
           onDismiss,
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
@@ -976,12 +983,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         }, [!currentCluster ? 'Create' : 'Update'])
       }
       return h(Fragment, [
-        // TODO PD: test all title bars now that they're inline
-        // TODO PD: revisit the term 'cloud environment' and the mention of 'Jupyter' specifically
         // TODO PD: apply fixed header style from mocks
         h(TitleBar, {
           style: styles.titleBar,
-          title: 'Create a cloud environment for Jupyter notebooks',
+          title: 'Cloud environment',
           onDismiss
         }),
         div(['Cloud environments consist of an application, cloud compute and a persistent disk']),
@@ -1046,7 +1051,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       return div({ style: { lineHeight: 1.5 } }, [
         h(TitleBar, {
           style: styles.titleBar,
-          title: 'About persistent disks',
+          title: 'About persistent disk',
           onDismiss,
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
