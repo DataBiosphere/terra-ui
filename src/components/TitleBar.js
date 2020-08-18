@@ -4,6 +4,7 @@ import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 
 
+// TODO PD: visit other usage of TitleBar on data page and fix styling
 const TitleBar = ({ onPrevious, title, onDismiss, titleExtras, style = {} }) => {
   return div({
     style: {
@@ -12,16 +13,18 @@ const TitleBar = ({ onPrevious, title, onDismiss, titleExtras, style = {} }) => 
   }, [
     div({ style: { fontSize: 18, fontWeight: 600 } }, [title]),
     titleExtras,
-    onPrevious && h(Link, {
-      'aria-label': 'Back',
-      style: { marginLeft: 'auto', marginRight: '2rem' },
-      onClick: onPrevious
-    }, [icon('arrowLeftRegular', { size: '22' })]),
-    onDismiss && h(Link, {
-      'aria-label': 'Close',
-      style: { marginLeft: onPrevious ? undefined: 'auto' },
-      onClick: onDismiss
-    }, [icon('times', { size: '25' })])
+    div({ style: { marginLeft: 'auto', display: 'flex', alignItems: 'center' } }, [
+      onPrevious && h(Link, {
+        'aria-label': 'Back',
+        style: { marginLeft: '2rem' },
+        onClick: onPrevious
+      }, [icon('arrowLeftRegular', { size: '22' })]),
+      onDismiss && h(Link, {
+        'aria-label': 'Close',
+        style: { marginLeft: '2rem' },
+        onClick: onDismiss
+      }, [icon('times', { size: '25' })])
+    ])
   ])
 }
 

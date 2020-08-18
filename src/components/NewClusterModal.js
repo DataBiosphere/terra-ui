@@ -118,15 +118,10 @@ const FancyRadio = ({ labelText, children, name, checked, onChange, style = {} }
 }
 
 const WarningTitle = ({ children }) => {
-  return div({
-    style: {
-      display: 'flex',
-      alignItems: 'center'
-    }
-  }, [icon('warning-standard', {
-    size: 36,
-    style: { color: colors.warning(), marginRight: '0.5rem' }
-  }), [children]])
+  return div({ style: { display: 'flex', alignItems: 'center' } }, [
+    icon('warning-standard', { size: 36, style: { color: colors.warning(), marginRight: '0.75rem' } }),
+    children
+  ])
 }
 
 const CUSTOM_MODE = '__custom_mode__'
@@ -810,7 +805,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       return h(Fragment, [
         h(TitleBar, {
           style: styles.titleBar,
-          title: 'Delete environment options',
+          title: h(WarningTitle, ['Delete environment options']),
           onDismiss,
           onPrevious: () => this.setState({ viewMode: undefined, deleteDiskSelected: false })
         }),
@@ -885,28 +880,30 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
     const renderEnvironmentWarning = () => {
       return this.willDetachPersistentDisk() ?
-        div({ style: { lineHeight: 1.5 } }, [
+        h(Fragment, [
           h(TitleBar, {
             style: styles.titleBar,
-            title: 'Replace application configuration and cloud compute for Spark',
+            title: h(WarningTitle, ['Replace application configuration and cloud compute for Spark']),
             onDismiss,
             // TODO PD: should this only send you back one step?
             onPrevious: () => this.setState({ viewMode: undefined, deleteDiskSelected: false })
           }),
-          div([
-            'You have requested to replace your existing application and cloud compute configurations to ones that support Spark. ',
-            'Unfortunately, this type of cloud compute does not support the persistent disk feature.'
-          ]),
-          div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
-          this.renderDeleteDiskChoices(),
-          div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-            h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
+          div({ style: { lineHeight: 1.5 } }, [
+            div([
+              'You have requested to replace your existing application and cloud compute configurations to ones that support Spark. ',
+              'Unfortunately, this type of cloud compute does not support the persistent disk feature.'
+            ]),
+            div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
+            this.renderDeleteDiskChoices(),
+            div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+              h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
+            ])
           ])
         ]) :
         h(Fragment, [
           h(TitleBar, {
             style: styles.titleBar,
-            title: 'Warning!',
+            title: h(WarningTitle, ['Warning!']),
             onDismiss,
             // TODO PD: should this only send you back one step?
             onPrevious: () => this.setState({ viewMode: undefined })
