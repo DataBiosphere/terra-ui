@@ -172,7 +172,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return {
       cloudService: newRuntime.cloudService,
       ...(newRuntime.cloudService === cloudServices.GCE ? {
-        bootDiskSize: 50, //TODO PD: check if we only expect this on GCE and is 50 the right default value?
+        bootDiskSize: 50,
         machineType: newRuntime.machineType,
         ...(newRuntime.diskSize ? {
           diskSize: newRuntime.diskSize
@@ -218,8 +218,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             name: currentPersistentDisk.name
           } : {
             name: Utils.generatePersistentDiskName(),
-            size: newPersistentDisk.size // in GB
-            // diskType and blockSize are not required per leo team
+            size: newPersistentDisk.size
           }
         })
       } : {
@@ -403,7 +402,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   componentDidMount = _.flow(
     withErrorReporting('Error loading cluster'),
-    // TODO PD: can we be more selective about what we disable while loading this info?
     Utils.withBusyState(v => this.setState({ loading: v }))
   )(async () => {
     const { namespace } = this.props
