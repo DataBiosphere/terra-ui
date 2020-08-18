@@ -912,7 +912,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       return h(Fragment, [
         h(TitleBar, {
           style: styles.titleBar,
-          title: 'Warning!',
+          title: div([icon('warning-standard', { size: 36, style: { color: colors.warning() } }), 'Warning!']),
           onDismiss,
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
@@ -943,7 +943,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           disabled: !this.hasChanges() || !!errors,
           tooltip: Utils.summarizeErrors(errors),
           onClick: () => {
-            if (isCustomImage && oldRuntime.toolDockerImage !== newRuntime.toolDockerImage) {
+            if (isCustomImage && oldRuntime?.toolDockerImage !== newRuntime.toolDockerImage) {
               this.setState({ viewMode: 'customImageWarning' })
             } else {
               this.warnOrApplyChanges()
