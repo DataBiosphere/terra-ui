@@ -772,7 +772,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
             div({ style: { marginTop: '0.5rem' } }, [
               'A safeguard to store and protect your data. ',
-              h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
+              h(Link, {
+                onClick: () => (
+                  this.setState({ viewMode: 'aboutPersistentDisk' }),
+                  Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
+                    ...extractWorkspaceDetails(makeWorkspaceObj()),
+                    currentlyHasAttachedDisk: !!this.hasAttachedDisk()
+                  })
+                )
+              }, ['Learn more'])
             ]),
             h(NumberInput, {
               id,
@@ -820,15 +828,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])
     }
 
-    const renderDeleteEnvironmentOptions = () => {
-      const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
-  }
     const makeWorkspaceObj = () => {
       const { namespace, name } = this.props
-      return { workspace: {namespace, name} }
+      return { workspace: { namespace, name } }
     }
 
-    const runtimeConfig = () => {
+    const renderDeleteEnvironmentOptions = () => {
+      const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
+
       return h(Fragment, [
         h(TitleBar, {
           style: styles.titleBar,
@@ -946,7 +953,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           // 2. See SATURN 1782
           // 3. See SATURN 1783
 
-// Add event for capturing the event of viewing the about persistent disk page
+          // Add event for capturing the event of viewing the about persistent disk page
         ])
     }
 
@@ -995,7 +1002,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         // TODO PD: What do we do with this?
         !sparkMode && !isPersistentDisk && div([
           p(['Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.']),
-          h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
+          h(Link, {
+            onClick: () => (
+              this.setState({ viewMode: 'aboutPersistentDisk' }),
+              Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
+                ...extractWorkspaceDetails(makeWorkspaceObj()),
+                currentlyHasAttachedDisk: !!this.hasAttachedDisk()
+              })
+            )
+          },
+          ['Learn more'])
         ]),
         bottomButtons()
       ])
