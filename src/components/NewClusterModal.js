@@ -124,7 +124,7 @@ const WarningTitle = ({ children }) => {
     }
   }, [icon('warning-standard', {
     size: 36,
-    style: { color: colors.warning() }
+    style: { color: colors.warning(), marginRight: '0.5rem' }
   }), [children]])
 }
 
@@ -924,7 +924,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       return h(Fragment, [
         h(TitleBar, {
           style: styles.titleBar,
-          title: h(WarningTitle, ['Warning!']),
+          title: h(WarningTitle, ['Unverified Docker Image']),
           onDismiss,
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
