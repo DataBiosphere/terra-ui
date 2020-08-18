@@ -952,8 +952,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           // 1. See SATURN-1781
           // 2. See SATURN 1782
           // 3. See SATURN 1783
-
-          // Add event for capturing the event of viewing the about persistent disk page
         ])
     }
 
