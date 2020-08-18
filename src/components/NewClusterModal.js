@@ -771,9 +771,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
             div({ style: { marginTop: '0.5rem' } }, [
               'A safeguard to store and protect your data. ',
-              h(Link, {
-                onClick: () => handleLearnMoreAboutPersistentDisk()
-              }, ['Learn more'])
+              h(Link, { onClick: () => handleLearnMoreAboutPersistentDisk() }, ['Learn more'])
             ]),
             h(NumberInput, {
               id,
@@ -1016,7 +1014,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             // TODO PD: What do we do with this?
             !sparkMode && !isPersistentDisk && div([
               p(['Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.']),
-              h(Link, { onClick: () => this.setState({ viewMode: 'aboutPersistentDisk' }) }, ['Learn more'])
+              h(Link, { onClick: () => handleLearnMoreAboutPersistentDisk() }, ['Learn more'])
             ])
           ]),
         div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
