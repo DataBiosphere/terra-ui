@@ -589,7 +589,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         }, [
           { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
           { label: 'Paused cloud compute cost', cost: Utils.formatUSD(ongoingCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
-          { label: 'Persistent disk cost', cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(this.getNewEnvironmentConfig().persistentDisk)) : 'N/A', unitLabel: isPersistentDisk ? 'per month' : '' }
+          {
+            label: 'Persistent disk cost',
+            cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(this.getNewEnvironmentConfig().persistentDisk)) : 'N/A',
+            unitLabel: isPersistentDisk ? 'per month' : ''
+          }
         ])
       ])
     }
@@ -773,13 +777,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             div({ style: { marginTop: '0.5rem' } }, [
               'A safeguard to store and protect your data. ',
               h(Link, {
-                onClick: () => (
-                  this.setState({ viewMode: 'aboutPersistentDisk' }),
-                  Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
+                onClick: async () => {
+                  this.setState({ viewMode: 'aboutPersistentDisk' })
+                  await Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
                     ...extractWorkspaceDetails(makeWorkspaceObj()),
                     currentlyHasAttachedDisk: !!this.hasAttachedDisk()
                   })
-                )
+                }
               }, ['Learn more'])
             ]),
             h(NumberInput, {
@@ -1001,15 +1005,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         !sparkMode && !isPersistentDisk && div([
           p(['Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.']),
           h(Link, {
-            onClick: () => (
-              this.setState({ viewMode: 'aboutPersistentDisk' }),
-              Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
+            onClick: async () => {
+              this.setState({ viewMode: 'aboutPersistentDisk' })
+              await Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
                 ...extractWorkspaceDetails(makeWorkspaceObj()),
                 currentlyHasAttachedDisk: !!this.hasAttachedDisk()
               })
-            )
-          },
-          ['Learn more'])
+            }
+          }, ['Learn more'])
         ]),
         bottomButtons()
       ])
