@@ -7,14 +7,14 @@ import { icon } from 'src/components/icons'
 const TitleBar = ({ onPrevious, title, onDismiss, titleExtras, style = {} }) => {
   return div({
     style: {
-      display: 'flex', alignItems: 'baseline', flex: 'none', ...style
+      display: 'flex', alignItems: 'flex-start', flex: 'none', ...style
     }
   }, [
-    div({ style: { fontSize: '1rem', fontWeight: 600 } }, [title]),
+    div({ style: { fontSize: 18, fontWeight: 600 } }, [title]),
     titleExtras,
     onPrevious && h(Link, {
       'aria-label': 'Back',
-      style: { marginLeft: 'auto', marginRight: '2rem', alignSelf: 'center' },
+      style: { marginLeft: 'auto', marginRight: '2rem' },
       onClick: onPrevious
     }, [icon('arrowLeftRegular', { size: '22' })]),
     onDismiss && h(Link, {

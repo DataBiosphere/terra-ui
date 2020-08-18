@@ -116,6 +116,18 @@ const FancyRadio = ({ labelText, children, name, checked, onChange, style = {} }
   ])
 }
 
+const WarningTitle = ({ children }) => {
+  return div({
+    style: {
+      display: 'flex',
+      alignItems: 'center'
+    }
+  }, [icon('warning-standard', {
+    size: 36,
+    style: { color: colors.warning() }
+  }), [children]])
+}
+
 const CUSTOM_MODE = '__custom_mode__'
 const PROJECT_SPECIFIC_MODE = '__project_specific_mode__'
 
@@ -912,7 +924,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       return h(Fragment, [
         h(TitleBar, {
           style: styles.titleBar,
-          title: div([icon('warning-standard', { size: 36, style: { color: colors.warning() } }), 'Warning!']),
+          title: h(WarningTitle, ['Warning!']),
           onDismiss,
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
