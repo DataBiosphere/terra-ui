@@ -777,13 +777,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             div({ style: { marginTop: '0.5rem' } }, [
               'A safeguard to store and protect your data. ',
               h(Link, {
-                onClick: async () => {
-                  this.setState({ viewMode: 'aboutPersistentDisk' })
-                  await Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
-                    ...extractWorkspaceDetails(makeWorkspaceObj()),
-                    currentlyHasAttachedDisk: !!this.hasAttachedDisk()
-                  })
-                }
+                onClick: () => handleLearnMoreAboutPersistentDisk()
               }, ['Learn more'])
             ]),
             h(NumberInput, {
@@ -985,6 +979,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])
     }
 
+
+    const handleLearnMoreAboutPersistentDisk = () => {
+      this.setState({ viewMode: 'aboutPersistentDisk' })
+      Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
+        ...extractWorkspaceDetails(makeWorkspaceObj()),
+        currentlyHasAttachedDisk: !!this.hasAttachedDisk()
+      })
+    }
+
     const renderMainForm = () => {
       return h(Fragment, [
         // TODO PD: test all title bars now that they're inline
@@ -1005,13 +1008,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         !sparkMode && !isPersistentDisk && div([
           p(['Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.']),
           h(Link, {
-            onClick: async () => {
-              this.setState({ viewMode: 'aboutPersistentDisk' })
-              await Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
-                ...extractWorkspaceDetails(makeWorkspaceObj()),
-                currentlyHasAttachedDisk: !!this.hasAttachedDisk()
-              })
-            }
+            onClick: () => handleLearnMoreAboutPersistentDisk()
           }, ['Learn more'])
         ]),
         bottomButtons()
