@@ -494,6 +494,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         p([
           'Deletes your persistent disk (and its associated data), application configuration and cloud compute. To permanently save your data, copy it to the workspace bucket.'
         ]),
+        // TODO PD: add correct href
         h(Link, {
           href: '',
           ...Utils.newTabLinkProps
@@ -898,16 +899,32 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         h(Fragment, [
           h(TitleBar, {
             style: styles.titleBar,
-            title: h(WarningTitle, ['Warning!']),
+            title: h(WarningTitle, [Utils.cond(
+              [this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk(), () => 'Data will be deleted'],
+              [this.willRequireDowntime(), () => 'Change requires downtime']
+            )]),
             onDismiss,
             // TODO PD: should this only send you back one step?
             onPrevious: () => this.setState({ viewMode: undefined })
           }),
           Utils.cond(
-            [this.willDeleteBuiltinDisk(), () => div('willDeleteBuiltinDisk')],
+            [this.willDeleteBuiltinDisk(), () => div([
+              p(['Making a change to your cloud environment will require deleting your builtin disk. To avoid losing data, save important data to your workspace bucket.']),
+              // TODO PD: add correct href
+              h(Link, {
+                href: '',
+                ...Utils.newTabLinkProps
+              }, ['Learn more about workspace buckets'])
+              // TODO PD: conditionally suggest using a persistent disk if using a GCE runtime
+            ])],
             [this.willDeletePersistentDisk(), () => div([
               p(['Reducing the size of a persistent disk requires it to be deleted and recreated. This will delete all files on the disk.']),
-              p(['To avoid losing data, save important data to your workspace bucket.'])
+              p(['To avoid losing data, save important data to your workspace bucket.']),
+              // TODO PD: add correct href
+              h(Link, {
+                href: '',
+                ...Utils.newTabLinkProps
+              }, ['Learn more about workspace buckets'])
             ])],
             [this.willRequireDowntime(), () => div([
               // TODO PD: Refine this a little bit more
