@@ -188,13 +188,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const currentClusterConfig = normalizeRuntimeConfig(currentCluster.runtimeConfig)
     const userSelectedConfig = normalizeRuntimeConfig(this.getRuntimeConfig())
 
-    const cantWorkersUpdate = currentClusterConfig.numberOfWorkers !== userSelectedConfig.numberOfWorkers &&
-      (currentClusterConfig.numberOfWorkers < 2 || userSelectedConfig.numberOfWorkers < 2)
+    const cantWorkersUpdate = (currentCluster.status === 'Stopped' && (currentClusterConfig.numberOfWorkers !== userSelectedConfig.numberOfWorkers)) || (currentClusterConfig.numberOfWorkers !== userSelectedConfig.numberOfWorkers &&
+      (currentClusterConfig.numberOfWorkers < 2 || userSelectedConfig.numberOfWorkers < 2))
 
+    const isClusterRunning = currentCluster.status === 'Running'
     const hasUnUpdateableResourceChanged =
-      currentClusterConfig.workerDiskSize !== userSelectedConfig.workerDiskSize ||
-      currentClusterConfig.workerMachineType !== userSelectedConfig.workerMachineType ||
-      currentClusterConfig.numberOfWorkerLocalSSDs !== userSelectedConfig.numberOfWorkerLocalSSDs
+      (currentClusterConfig.workerDiskSize !== userSelectedConfig.workerDiskSize && isClusterRunning) ||
+      (currentClusterConfig.workerMachineType !== userSelectedConfig.workerMachineType && isClusterRunning) ||
+      (currentClusterConfig.numberOfWorkerLocalSSDs !== userSelectedConfig.numberOfWorkerLocalSSDs && isClusterRunning)
 
     const hasWorkers = currentClusterConfig.numberOfWorkers >= 2 || currentClusterConfig.numberOfPreemptibleWorkers >= 2
     const hasWorkersResourceChanged = hasWorkers && hasUnUpdateableResourceChanged
@@ -205,6 +206,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const cantUpdate = cantWorkersUpdate || hasWorkersResourceChanged || hasDiskSizeDecreased || hasCloudServiceChanged ||
       this.hasImageChanged() || this.hasStartUpScriptChanged()
+
     return !cantUpdate
   }
 
@@ -352,6 +354,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const bottomButtons = () => {
       const canUpdate = this.canUpdate()
+      console.log(`can update ${canUpdate}`)
       const updateOrReplace = canUpdate ? 'update' : 'replace'
 
       return h(Fragment, [
