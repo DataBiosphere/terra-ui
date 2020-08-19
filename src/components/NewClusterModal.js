@@ -198,7 +198,21 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       })
     }
   }
+/*
+  getMixpanelMetrics() {
+    const newRuntime = this.getNewEnvironmentConfig()
 
+    return {
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentUpdate, {
+        //isDefaultConfig: , // check against default machinetype
+        computeType: newRuntime.cloudService,
+        machineType: newRuntime.cloudService === cloudServices.GCE ? newRuntime.machineType : newRuntime.masterMachineType,
+        diskSize: newRuntime.cloudService === cloudServices.dataproc ? newRuntime.masterDiskSize : newRuntime.diskSize,
+        runtimeCostPerHour: Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig()))
+      })
+    }
+  }
+*/
   applyChanges = _.flow(
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating runtime')
@@ -246,14 +260,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
     if (shouldDeletePersistentDisk && !this.hasAttachedDisk()) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentDelete, { isDeleteFloatingPersistentDisk: (shouldDeletePersistentDisk && !this.hasAttachedDisk()) })
     }
     if (shouldUpdatePersistentDisk) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).update(newPersistentDisk.size)
     }
     if (shouldUpdateRuntime) {
       await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).update({
-        runtimeConfig
-      })
+        runtimeConfig })
     }
     if (shouldCreateRuntime) {
       await Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
