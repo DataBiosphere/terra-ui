@@ -992,7 +992,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               this.warnOrApplyChanges()
             }
           }
-        }, [!currentCluster ? 'Create' : 'Update'])
+        }, [this.shouldShowEnvironmentWarning() ? 'Next' : (!currentCluster ? 'Create' : 'Update')])
       }
       return h(Fragment, [
         // TODO PD: apply fixed header style from mocks
@@ -1140,8 +1140,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return oldConfig.runtime && (!this.canUpdateRuntime() || this.isStopRequired())
   }
 
+  shouldShowEnvironmentWarning() {
+    return this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime() || this.willDetachPersistentDisk()
+  }
+
   warnOrApplyChanges() {
-    if (this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime() || this.willDetachPersistentDisk()) {
+    if (this.shouldShowEnvironmentWarning()) {
       this.setState({ viewMode: 'environmentWarning' })
     } else {
       this.applyChanges()
