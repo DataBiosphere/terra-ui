@@ -518,28 +518,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const isPersistentDisk = this.shouldUsePersistentDisk()
 
-    const onEnvChange = ({ value }) => {
-      const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
-      const isCluster = sparkMode === 'cluster'
-      // TODO PD: Evaluate it going to GCE on change from dataproc to custom image
-      this.setState({
-        selectedLeoImage: value, customEnvImage: '',
-        sparkMode: requiresSpark ? (sparkMode || 'master') : false,
-        numberOfWorkers: requiresSpark && isCluster ? (numberOfWorkers || 2) : 0,
-        numberOfPreemptibleWorkers: requiresSpark && isCluster ? (numberOfPreemptibleWorkers || 0) : 0
-      })
-    }
-
-    const makeEnvSelect = id => h(Select, {
-      id,
-      'aria-label': 'Select Environment',
-      value: selectedLeoImage,
-      onChange: onEnvChange,
-      isSearchable: true,
-      isClearable: false,
-      options: _.map(({ label, image }) => ({ label, value: image }), leoImages)
-    })
-
     const isCustomImage = selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE
 
     const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
@@ -556,25 +534,40 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       }
     )
 
-    const makeGroupedEnvSelect = id => h(GroupedSelect, {
-      id,
-      maxMenuHeight: '25rem',
-      value: selectedLeoImage,
-      onChange: onEnvChange,
-      isSearchable: true,
-      isClearable: false,
-      options: [
-        {
-          label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }),
-            _.filter(({ isCommunity }) => !isCommunity, leoImages))
+    const renderImageSelect = ({ includeCustom, ...props }) => {
+      return h(GroupedSelect, {
+        ...props,
+        maxMenuHeight: '25rem',
+        value: selectedLeoImage,
+        onChange: ({ value }) => {
+          const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
+          const isCluster = sparkMode === 'cluster'
+          // TODO PD: Evaluate it going to GCE on change from dataproc to custom image
+          this.setState({
+            selectedLeoImage: value, customEnvImage: '',
+            sparkMode: requiresSpark ? (sparkMode || 'master') : false,
+            numberOfWorkers: requiresSpark && isCluster ? (numberOfWorkers || 2) : 0,
+            numberOfPreemptibleWorkers: requiresSpark && isCluster ? (numberOfPreemptibleWorkers || 0) : 0
+          })
         },
-        {
-          label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)', options: _.map(({ label, image }) => ({ label, value: image }),
-            _.filter(({ isCommunity }) => isCommunity, leoImages))
-        },
-        { label: 'OTHER ENVIRONMENTS', options: [{ label: 'Custom Environment', value: CUSTOM_MODE }, { label: 'Project-Specific Environment', value: PROJECT_SPECIFIC_MODE }] }
-      ]
-    })
+        isSearchable: true,
+        isClearable: false,
+        options: [
+          {
+            label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
+            options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isCommunity }) => !isCommunity, leoImages))
+          },
+          {
+            label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
+            options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isCommunity }) => isCommunity, leoImages))
+          },
+          ...(includeCustom ? [{
+            label: 'OTHER ENVIRONMENTS',
+            options: [{ label: 'Custom Environment', value: CUSTOM_MODE }, { label: 'Project-Specific Environment', value: PROJECT_SPECIFIC_MODE }]
+          }] : [])
+        ]
+      })
+    }
 
     const renderCostBreakdown = () => {
       return div({
@@ -612,7 +605,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 'The software application + programming languages + packages used when you create your runtime. '
               ])
             ]),
-            div({ style: { height: 45 } }, [makeGroupedEnvSelect(id)])
+            div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: true })])
           ])
         ]),
         Utils.switchCase(selectedLeoImage,
@@ -1075,7 +1068,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           onDismiss,
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
-        makeEnvSelect(),
+        renderImageSelect({ 'aria-label': 'Select Environment' }),
         makeImageInfo({ margin: '1rem 0 0.5rem' }),
         packages && h(ImageDepViewer, { packageLink: packages })
       ])
