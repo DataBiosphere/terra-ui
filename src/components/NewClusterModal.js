@@ -276,8 +276,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
     if (shouldUpdateRuntime) {
       await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).update({
-        runtimeConfig
-      })
+        runtimeConfig })
     }
     if (shouldCreateRuntime) {
       await Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
