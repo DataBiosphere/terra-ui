@@ -161,6 +161,7 @@ window.ajaxOverrideUtils = {
   })
 }
 ajaxOverridesStore.set(pdOverrides.nothing)
+ajaxOverridesStore.set(pdOverrides.gce)
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })

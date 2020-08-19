@@ -9,6 +9,7 @@ const eventsList = {
   aboutPersistentDiskView: 'about:persistentDisk:view',
   applicationLaunch: 'application:launch',
   cloudEnvironmentDelete: 'cloud:environment:delete',
+  cloudEnvironmentUpdate: 'cloud:environment:update',
   notebookLaunch: 'notebook:launch',
   notebookRename: 'notebook:rename',
   notebookCopy: 'notebook:copy',
