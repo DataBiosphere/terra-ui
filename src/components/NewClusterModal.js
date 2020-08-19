@@ -959,8 +959,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
         // TODO PD: rethink this language now that the Back button is gone
         p({ style: { lineHeight: 1.5 } }, [
-          'If you\'re confident that your image is safe, click ', b([!!currentCluster ? 'Next' : 'Create']),
-          ' to use it. Otherwise, click ', b(['Back']), ' to select another image.'
+          'If you\'re confident that your image is safe, you may continue using it. ',
+          'Otherwise, click ', b(['Back']), ' to select another image.'
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonPrimary, { onClick: () => this.warnOrApplyChanges() }, [!!currentCluster ? 'Next' : 'Create'])
