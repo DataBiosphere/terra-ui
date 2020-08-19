@@ -564,13 +564,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       isSearchable: true,
       isClearable: false,
       options: [
-        { label: 'JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }), leoImages) },
         {
-          label: 'OTHER ENVIRONMENTS', options: [
-            { label: 'Custom Environment', value: CUSTOM_MODE },
-            { label: 'Project-Specific Environment', value: PROJECT_SPECIFIC_MODE }
-          ]
-        }
+          label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS', options: _.map(({ label, image }) => ({ label, value: image }),
+            _.filter(({ isCommunity }) => !isCommunity, leoImages))
+        },
+        {
+          label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)', options: _.map(({ label, image }) => ({ label, value: image }),
+            _.filter(({ isCommunity }) => isCommunity, leoImages))
+        },
+        { label: 'OTHER ENVIRONMENTS', options: [{ label: 'Custom Environment', value: CUSTOM_MODE }, { label: 'Project-Specific Environment', value: PROJECT_SPECIFIC_MODE }] }
       ]
     })
 

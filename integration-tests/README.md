@@ -49,6 +49,12 @@ TERRA_SA_KEY=$(vault read --format=json secret/dsde/alpha/common/firecloud-accou
 LYLE_SA_KEY=$(vault read --format=json secret/dsde/terra/envs/common/lyle-user-service-account-key | jq .data) \
 yarn test
 ```
+Optionally, additional useful options are:
+```sh
+HEADLESS=false \
+ENVIRONMENT=[local|dev|alpha|perf|staging] \
+```
+By default, the tests will run headless against Terra UI running on your local machine.
 
 #### Debugging
 
