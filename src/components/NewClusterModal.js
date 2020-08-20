@@ -137,8 +137,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   constructor(props) {
     super(props)
     const currentCluster = this.getCurrentCluster()
-    const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || { masterMachineType: 'n1-standard-4' })
-    const { numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
+    const { cloudService, numberOfWorkers, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || { masterMachineType: 'n1-standard-4' })
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
     this.state = {
@@ -148,6 +147,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       sparkMode: cloudService === cloudServices.GCE ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
       ...currentConfig,
       masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize || DEFAULT_DISK_SIZE,
+      numberOfWorkers: numberOfWorkers || 2,
       deleteDiskSelected: false,
       simplifiedForm: !currentCluster
     }
@@ -281,6 +281,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     } = this.state
     const { persistentDisk: oldPersistentDisk, runtime: oldRuntime } = this.getOldEnvironmentConfig()
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
+    const newNumberOfWorkers = sparkMode === 'cluster' ? numberOfWorkers : 0
     return {
       runtime: Utils.cond(
         [(viewMode !== 'deleteEnvironmentOptions'), () => {
@@ -296,8 +297,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             } : {
               masterMachineType,
               masterDiskSize,
-              numberOfWorkers,
-              ...(numberOfWorkers && {
+              numberOfWorkers: newNumberOfWorkers,
+              ...(newNumberOfWorkers && {
                 numberOfPreemptibleWorkers,
                 workerMachineType,
                 workerDiskSize
@@ -569,12 +570,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         value: selectedLeoImage,
         onChange: ({ value }) => {
           const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
-          const isCluster = sparkMode === 'cluster'
           this.setState({
             selectedLeoImage: value, customEnvImage: '',
-            sparkMode: requiresSpark ? (sparkMode || 'master') : false,
-            numberOfWorkers: requiresSpark && isCluster ? (numberOfWorkers || 2) : 0,
-            numberOfPreemptibleWorkers: requiresSpark && isCluster ? (numberOfPreemptibleWorkers || 0) : 0
+            sparkMode: requiresSpark ? (sparkMode || 'master') : false
           })
         },
         isSearchable: true,
@@ -731,12 +729,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   id,
                   isSearchable: false,
                   value: sparkMode,
-                  // TODO PD: don't reset number of workers
-                  onChange: ({ value }) => this.setState({
-                    sparkMode: value,
-                    numberOfWorkers: value === 'cluster' ? 2 : 0,
-                    numberOfPreemptibleWorkers: 0
-                  }),
+                  onChange: ({ value }) => this.setState({ sparkMode: value }),
                   options: [
                     { value: false, label: 'Standard VM', isDisabled: requiresSpark },
                     { value: 'master', label: 'Spark master node' },
