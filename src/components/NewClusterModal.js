@@ -137,6 +137,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess: PropTypes.func.isRequired
   }
 
+  makeWorkspaceObj() {
+    const { namespace, name } = this.props
+    return { workspace: { namespace, name } }
+  }
+
   constructor(props) {
     super(props)
     const currentCluster = this.getCurrentCluster()
@@ -144,7 +149,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
-    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, { existingConfig: !!currentCluster })
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+      existingConfig: !!currentCluster, ...extractWorkspaceDetails(this.makeWorkspaceObj())
+    })
 
     this.state = {
       loading: false,
@@ -593,7 +600,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         }, [
           { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
           { label: 'Paused cloud compute cost', cost: Utils.formatUSD(ongoingCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
-          { label: 'Persistent disk cost', cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(this.getNewEnvironmentConfig().persistentDisk)) : 'N/A', unitLabel: isPersistentDisk ? 'per month' : '' }
+          {
+            label: 'Persistent disk cost',
+            cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(this.getNewEnvironmentConfig().persistentDisk)) : 'N/A',
+            unitLabel: isPersistentDisk ? 'per month' : ''
+          }
         ])
       ])
     }
@@ -789,11 +800,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])
     }
 
-    const makeWorkspaceObj = () => {
-      const { namespace, name } = this.props
-      return { workspace: { namespace, name } }
-    }
-
     const renderDeleteEnvironmentOptions = () => {
       const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
       return h(Fragment, [
@@ -967,7 +973,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const handleLearnMoreAboutPersistentDisk = () => {
       this.setState({ viewMode: 'aboutPersistentDisk' })
       Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
-        ...extractWorkspaceDetails(makeWorkspaceObj()),
+        ...extractWorkspaceDetails(this.makeWorkspaceObj()),
         currentlyHasAttachedDisk: !!this.hasAttachedDisk()
       })
     }
