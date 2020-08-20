@@ -32,7 +32,6 @@ const styles = {
   whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white', marginTop: '1rem' }
 }
 
-// TODO PD: Consider moving these into a resources file
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
 const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
@@ -44,7 +43,6 @@ const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:
 
 const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
 
-// TODO PD: Move MachineSelector and DiskSelector out of this file?
 const MachineSelector = ({ value, onChange }) => {
   const { cpu: currentCpu, memory: currentMemory } = findMachineType(value)
   return h(Fragment, [
@@ -96,7 +94,6 @@ const DiskSelector = ({ value, onChange }) => {
   ])
 }
 
-// TODO PD: Should this move this into input.js?
 const FancyRadio = ({ labelText, children, name, checked, onChange, style = {} }) => {
   return div({
     style: {
@@ -573,7 +570,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onChange: ({ value }) => {
           const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
           const isCluster = sparkMode === 'cluster'
-          // TODO PD: Evaluate it going to GCE on change from dataproc to custom image
           this.setState({
             selectedLeoImage: value, customEnvImage: '',
             sparkMode: requiresSpark ? (sparkMode || 'master') : false,
@@ -954,7 +950,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 }, ['Learn more about workspace buckets'])
               ])],
               [this.willRequireDowntime(), () => h(Fragment, [
-                // TODO PD: Refine this a little bit more
                 p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
                 p(['Your existing data will be preserved during this update.'])
               ])]
@@ -1005,7 +1000,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       return h(Fragment, [
         // TODO PD: apply fixed header style from mocks
         h(TitleBar, {
-          style: styles.titleBar,
+          style: { marginBottom: '0.5rem' },
           title: 'Cloud environment',
           onDismiss
         }),
