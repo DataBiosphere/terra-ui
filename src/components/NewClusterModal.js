@@ -508,7 +508,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   render() {
     const { onDismiss } = this.props
-    const currentCluster = this.getCurrentCluster()
     const {
       masterMachineType, masterDiskSize, selectedPersistentDiskSize, sparkMode, workerMachineType,
       numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
@@ -533,6 +532,31 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           validate.prettify(v))
       }
     )
+
+    const renderActionButton = () => {
+      const { runtime: oldRuntime } = this.getOldEnvironmentConfig()
+      const { runtime: newRuntime } = this.getNewEnvironmentConfig()
+      const commonButtonProps = { disabled: !this.hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) }
+      const mayShowCustomImageWarning = viewMode === undefined
+      const mayShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
+      return Utils.cond(
+        [mayShowCustomImageWarning && isCustomImage && oldRuntime?.toolDockerImage !== newRuntime?.toolDockerImage, () => {
+          return h(ButtonPrimary, { ...commonButtonProps, onClick: () => this.setState({ viewMode: 'customImageWarning' }) }, ['Next'])
+        }],
+        [mayShowEnvironmentWarning && (this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime() || this.willDetachPersistentDisk()), () => {
+          return h(ButtonPrimary, { ...commonButtonProps, onClick: () => this.setState({ viewMode: 'environmentWarning' }) }, ['Next'])
+        }],
+        () => {
+          return h(ButtonPrimary, { ...commonButtonProps, onClick: () => this.applyChanges() }, [
+            Utils.cond(
+              [viewMode === 'deleteEnvironmentOptions', () => 'Delete'],
+              [oldRuntime, () => 'Update'],
+              () => 'Create'
+            )
+          ])
+        }
+      )
+    }
 
     const renderImageSelect = ({ includeCustom, ...props }) => {
       return h(GroupedSelect, {
@@ -865,7 +889,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           )
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Delete'])
+          renderActionButton()
         ])
       ])
     }
@@ -886,7 +910,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
             this.renderDeleteDiskChoices(),
             div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-              h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
+              renderActionButton()
             ])
           ])
         ]) :
@@ -930,7 +954,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             )
           ]),
           div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-            h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
+            renderActionButton()
           ])
         ])
     }
@@ -954,7 +978,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           p(['If you\'re confident that your image is safe, you may continue using it. Otherwise, go back to select another image.'])
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonPrimary, { onClick: () => this.warnOrApplyChanges() }, [!!currentCluster ? 'Next' : 'Create'])
+          renderActionButton()
         ])
       ])
     }
@@ -970,21 +994,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const renderMainForm = () => {
       const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
-      const { runtime: newRuntime } = this.getNewEnvironmentConfig()
       const { cpu, memory } = findMachineType(masterMachineType)
-      const renderActionButton = () => {
-        return h(ButtonPrimary, {
-          disabled: !this.hasChanges() || !!errors,
-          tooltip: Utils.summarizeErrors(errors),
-          onClick: () => {
-            if (isCustomImage && oldRuntime?.toolDockerImage !== newRuntime.toolDockerImage) {
-              this.setState({ viewMode: 'customImageWarning' })
-            } else {
-              this.warnOrApplyChanges()
-            }
-          }
-        }, [this.shouldShowEnvironmentWarning() ? 'Next' : (!currentCluster ? 'Create' : 'Update')])
-      }
       return h(Fragment, [
         // TODO PD: apply fixed header style from mocks
         h(TitleBar, {
@@ -1132,17 +1142,5 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   willRequireDowntime() {
     const oldConfig = this.getOldEnvironmentConfig()
     return oldConfig.runtime && (!this.canUpdateRuntime() || this.isStopRequired())
-  }
-
-  shouldShowEnvironmentWarning() {
-    return this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime() || this.willDetachPersistentDisk()
-  }
-
-  warnOrApplyChanges() {
-    if (this.shouldShowEnvironmentWarning()) {
-      this.setState({ viewMode: 'environmentWarning' })
-    } else {
-      this.applyChanges()
-    }
   }
 })
