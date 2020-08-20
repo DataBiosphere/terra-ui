@@ -124,8 +124,8 @@ const EditModeDisabledModal = ({ onDismiss, onRecreateCluster, onPlayground }) =
     onDismiss,
     showButtons: false
   }, [
-    p('We’ve released important updates that are not compatible with the older runtime associated with this workspace. To enable Edit Mode, please delete your existing runtime and create a new runtime.'),
-    p('If you have any files on your old runtime that you want to keep, you can access your old runtime using the Playground Mode option.'),
+    p('We’ve released important updates that are not compatible with the older cloud environment associated with this workspace. To enable Edit Mode, please delete your existing cloud environment and create a new cloud environment.'),
+    p('If you have any files on your old cloud environment that you want to keep, you can access your old cloud environment using the Playground Mode option.'),
     h(Link, {
       href: dataSyncingDocUrl,
       ...Utils.newTabLinkProps
@@ -142,7 +142,7 @@ const EditModeDisabledModal = ({ onDismiss, onRecreateCluster, onPlayground }) =
       h(ButtonPrimary, {
         style: { padding: '0 1rem', marginLeft: '2rem' },
         onClick: () => onRecreateCluster()
-      }, ['Recreate notebook runtime'])
+      }, ['Recreate cloud environment'])
     ])
   ])
 }
@@ -211,7 +211,7 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
         [makeMenuIcon('export'), 'Copy to another workspace']
       )],
       [!!clusterStatus && cluster.labels.tool !== 'Jupyter', () => h(StatusMessage, { hideSpinner: true }, [
-        'Your notebook runtime doesn\'t appear to be running Jupyter. Create a new runtime with Jupyter on it to edit this notebook.'
+        'Your cloud compute doesn\'t appear to be running Jupyter. Create a new cloud environment with Jupyter on it to edit this notebook.'
       ])],
       [!mode || [null, 'Stopped'].includes(clusterStatus), () => h(Fragment, [
         Utils.cond(
@@ -246,22 +246,22 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
         ])
       ])],
       [_.includes(clusterStatus, usableStatuses), () => {
-        console.assert(false, `Expected notebook runtime to NOT be one of: [${usableStatuses}]`)
+        console.assert(false, `Expected cloud environment to NOT be one of: [${usableStatuses}]`)
         return null
       }],
       [clusterStatus === 'Creating', () => h(StatusMessage, [
-        'Creating notebook runtime environment. You can navigate away and return in 3-5 minutes.'
+        'Creating cloud environment. You can navigate away and return in 3-5 minutes.'
       ])],
       [clusterStatus === 'Starting', () => h(StatusMessage, [
-        'Starting notebook runtime environment, this may take up to 2 minutes.'
+        'Starting cloud environment, this may take up to 2 minutes.'
       ])],
       [clusterStatus === 'Stopping', () => h(StatusMessage, [
-        'Notebook runtime environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'
+        'Cloud environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'
       ])],
       [clusterStatus === 'LeoReconfiguring', () => h(StatusMessage, [
-        'Notebook runtime environment is updating, please wait.'
+        'Cloud environment is updating, please wait.'
       ])],
-      [clusterStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Notebook runtime error.'])]
+      [clusterStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Cloud environment error.'])]
     ),
     div({ style: { flexGrow: 1 } }),
     div({ style: { position: 'relative' } }, [
@@ -393,12 +393,12 @@ const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
 }
 
 const copyingNotebookMessage = div({ style: { paddingTop: '2rem' } }, [
-  h(StatusMessage, ['Copying notebook to runtime environment, almost ready...'])
+  h(StatusMessage, ['Copying notebook to cloud environment, almost ready...'])
 ])
 
 const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { runtimeName, proxyUrl, status, labels } }) => {
-  console.assert(_.includes(status, usableStatuses), `Expected notebook runtime to be one of: [${usableStatuses}]`)
-  console.assert(!labels.welderInstallFailed, 'Expected cluster to have Welder')
+  console.assert(_.includes(status, usableStatuses), `Expected cloud environment to be one of: [${usableStatuses}]`)
+  console.assert(!labels.welderInstallFailed, 'Expected cloud environment to have Welder')
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)
   const [notebookSetupComplete, setNotebookSetupComplete] = useState(false)
@@ -455,8 +455,8 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
 }
 
 const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { runtimeName, proxyUrl, status, labels } }) => {
-  console.assert(status === 'Running', 'Expected notebook runtime to be running')
-  console.assert(!!labels.welderInstallFailed, 'Expected cluster to not have Welder')
+  console.assert(status === 'Running', 'Expected cloud environment to be running')
+  console.assert(!!labels.welderInstallFailed, 'Expected cloud environment to not have Welder')
   const frameRef = useRef()
   const signal = Utils.useCancellation()
   const [busy, setBusy] = useState(false)
@@ -469,7 +469,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
     if (mode === 'edit') {
       notify('error', 'Cannot Edit Notebook', {
         message: h(Fragment, [
-          p(['Recent updates to Terra are not compatible with the older notebook runtime in this workspace. Please recreate your runtime in order to access Edit Mode for this notebook.']),
+          p(['Recent updates to Terra are not compatible with the older cloud environment in this workspace. Please recreate your cloud environment in order to access Edit Mode for this notebook.']),
           h(Link, { href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
         ])
       })

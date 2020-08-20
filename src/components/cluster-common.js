@@ -22,7 +22,7 @@ export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
   const signal = Utils.useCancellation()
   const [busy, setBusy] = useState()
 
-  const startClusterOnce = withErrorReporting('Error starting notebook runtime', async () => {
+  const startClusterOnce = withErrorReporting('Error starting cloud environment', async () => {
     while (!signal.aborted) {
       const currentCluster = getCluster()
       const { googleProject, runtimeName } = currentCluster || {}
