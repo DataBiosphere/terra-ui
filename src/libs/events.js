@@ -7,6 +7,7 @@ import * as Utils from 'src/libs/utils'
 
 const eventsList = {
   applicationLaunch: 'application:launch',
+  cloudEnvironmentConfigOpen: 'cloudEnvironment:Config:Open',
   notebookLaunch: 'notebook:launch',
   notebookRename: 'notebook:rename',
   notebookCopy: 'notebook:copy',

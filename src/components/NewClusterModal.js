@@ -17,6 +17,7 @@ import {
 } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -135,6 +136,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || { masterMachineType: 'n1-standard-4' })
     const { numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
     const currentPersistentDisk = this.getCurrentPersistentDisk()
+
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, { existingConfig: !!currentCluster,  })
 
     this.state = {
       loading: false,
