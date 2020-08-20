@@ -144,7 +144,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
-    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, { existingConfig: !!currentCluster,  })
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, { existingConfig: !!currentCluster })
 
     this.state = {
       loading: false,
