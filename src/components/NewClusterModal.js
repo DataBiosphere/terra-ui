@@ -475,7 +475,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onChange: () => this.setState({ deleteDiskSelected: false })
       }, [
         p([
-          'Your application and cloud compute profile are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. ',
+          'Deletes your application and cloud compute profile, but detaches your persistent disk (and its associated data) from the environment and saves it for later. ',
           'The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.'
         ]),
         p([
@@ -810,8 +810,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   checked: !deleteDiskSelected,
                   onChange: () => this.setState({ deleteDiskSelected: false })
                 }, [
-                  // TODO PD: add language to warn about losing data on builtin disk
-                  p(['Your application and cloud compute profile are deleted.'])
+                  p(['Deletes your application and cloud compute profile. This will also delete any files on the associated hard disk.'])
                 ]),
                 h(FancyRadio, {
                   name: 'delete-persistent-disk',
@@ -838,7 +837,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 onChange: () => this.setState({ deleteDiskSelected: true })
               }, [
                 p([
-                  'Your persistent disk (and its associated data) are deleted. If you want to permanently save your data before deleting your disk, create a new runtime environment to access the disk and copy your data to the workspace bucket.'
+                  'Deletes your persistent disk (and its associated data). If you want to permanently save your data before deleting your disk, create a new runtime environment to access the disk and copy your data to the workspace bucket.'
                 ]),
                 h(Link, {
                   href: '',
@@ -881,8 +880,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           }),
           div({ style: { lineHeight: 1.5 } }, [
             div([
-              'You have requested to replace your existing application and cloud compute configurations to ones that support Spark. ',
-              'Unfortunately, this type of cloud compute does not support the persistent disk feature.'
+              'You have requested to replace your existing application and cloud compute profile to ones that support Spark. ',
+              'This type of cloud compute does not support the persistent disk feature.'
             ]),
             div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
             this.renderDeleteDiskChoices(),
