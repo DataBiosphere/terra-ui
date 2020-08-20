@@ -105,10 +105,10 @@ export const breadcrumb = {
 
 export const modalDrawer = {
   content: {
-    display: 'flex', flex: 1, padding: '0 1.5rem', flexDirection: 'column'
+    display: 'flex', flex: 1, flexDirection: 'column'
   },
   buttonBar: {
-    margin: 'auto -1.5rem 0', borderTop: `1px solid ${colors.dark(0.3)}`, padding: '1.75rem 1.25rem',
+    margin: 'auto -1.5rem 0', borderTop: `1px solid ${colors.dark(0.3)}`, padding: '1.5rem 1.5rem 0',
     display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline'
   }
 }

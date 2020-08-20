@@ -12,7 +12,7 @@ import { dataSyncingDocUrl } from 'src/data/machines'
 import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
-import { clusterCost, collapsedClusterStatus, currentCluster, deleteText, trimClustersOldestFirst } from 'src/libs/cluster-utils'
+import { clusterCost, collapsedClusterStatus, currentCluster, trimClustersOldestFirst } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -77,31 +77,12 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   Utils.useOnMount(() => { loadClusterError() })
 
   return h(Modal, {
-    title: `Notebook Runtime Creation Failed${userscriptError ? ' due to Userscript Error' : ''}`,
+    title: `Notebook Runtime Error${userscriptError ? ' due to Userscript Error' : ''}`,
     showCancel: false,
     onDismiss
   }, [
     div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word', overflowY: 'auto', maxHeight: 500, background: colors.light() } }, [error]),
     loadingClusterDetails && spinnerOverlay
-  ])
-}
-
-export const DeleteClusterModal = ({ cluster: { googleProject, runtimeName }, onDismiss, onSuccess }) => {
-  const [deleting, setDeleting] = useState()
-  const deleteCluster = _.flow(
-    Utils.withBusyState(setDeleting),
-    withErrorReporting('Error deleting notebook runtime')
-  )(async () => {
-    await Ajax().Clusters.cluster(googleProject, runtimeName).delete()
-    onSuccess()
-  })
-  return h(Modal, {
-    title: 'Delete Notebook Runtime?',
-    onDismiss,
-    okButton: deleteCluster
-  }, [
-    h(deleteText),
-    deleting && spinnerOverlay
   ])
 }
 
@@ -153,7 +134,7 @@ export default class ClusterManager extends PureComponent {
     const rStudioLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: 'RStudio' })
 
     if (cluster.status === 'Error' && prevCluster.status !== 'Error' && !_.includes(cluster.id, errorNotifiedClusters.get())) {
-      notify('error', 'Error Creating Notebook Runtime', {
+      notify('error', 'Error Found In Notebook Runtime', {
         message: h(ClusterErrorNotification, { cluster })
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
@@ -330,6 +311,7 @@ export default class ClusterManager extends PureComponent {
       h(NewClusterModal, {
         isOpen: createModalDrawerOpen,
         namespace,
+        name,
         clusters,
         persistentDisks,
         onDismiss: () => this.setState({ createModalDrawerOpen: false }),
