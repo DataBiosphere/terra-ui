@@ -8,6 +8,7 @@ import * as Utils from 'src/libs/utils'
 const eventsList = {
   aboutPersistentDiskView: 'about:persistentDisk:view',
   applicationLaunch: 'application:launch',
+  cloudEnvironmentCreate: 'cloudEnvironment:Create',
   notebookLaunch: 'notebook:launch',
   notebookRename: 'notebook:rename',
   notebookCopy: 'notebook:copy',
