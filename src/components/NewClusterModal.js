@@ -199,6 +199,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
+  /**
+  * Transform new environment config into the shape of a disk returned from Leo.
+  * Used as an input to cost calculation.
+  */
+  getPendingDisk() {
+    const { persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
+    return { size: newPersistentDisk.size }
+  }
+
   applyChanges = _.flow(
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating runtime')
@@ -457,8 +466,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             makeJSON(!!this.willDeletePersistentDisk()),
             makeHeader('willRequireDowntime'),
             makeJSON(!!this.willRequireDowntime())
-            //makeHeader('getPendingRuntimeConfig'),
-            //makeJSON(this.getPendingRuntimeConfig())
           ]) :
         h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } },
           ['D'])
@@ -614,7 +621,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         }, [
           { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
           { label: 'Paused cloud compute cost', cost: Utils.formatUSD(ongoingCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
-          { label: 'Persistent disk cost', cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(this.getNewEnvironmentConfig().persistentDisk)) : 'N/A', unitLabel: isPersistentDisk ? 'per month' : '' }
+          { label: 'Persistent disk cost', cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(this.getPendingDisk())) : 'N/A', unitLabel: isPersistentDisk ? 'per month' : '' }
         ])
       ])
     }
