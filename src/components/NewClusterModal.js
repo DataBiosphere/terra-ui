@@ -252,6 +252,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
     if (shouldDeletePersistentDisk && !this.hasAttachedDisk()) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentDelete, {
+        ...extractWorkspaceDetails(this.makeWorkspaceObj()),
+        isDeleteFloatingPersistentDisk: (shouldDeletePersistentDisk && !this.hasAttachedDisk())
+      })
     }
     if (shouldUpdatePersistentDisk) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).update(newPersistentDisk.size)
