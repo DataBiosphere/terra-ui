@@ -864,7 +864,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 onChange: () => this.setState({ deleteDiskSelected: true })
               }, [
                 p([
-                  'Deletes your persistent disk (and its associated data). If you want to permanently save your data before deleting your disk, create a new runtime environment to access the disk and copy your data to the workspace bucket.'
+                  'Deletes your persistent disk (and its associated data). If you want to permanently save your data before deleting your disk, create a new cloud environment to access the disk and copy your data to the workspace bucket.'
                 ]),
                 h(Link, {
                   href: '',
@@ -876,7 +876,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             () => {
               return h(Fragment, [
                 p([
-                  'Deleting your runtime will also ',
+                  'Deleting your cloud environment will also ',
                   span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
                   '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
                   h(Link, {
@@ -885,7 +885,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   }, ['move them to the workspace bucket.'])
                 ]),
                 p([
-                  'Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, which will take several minutes.'
+                  'Deleting your cloud environment will stop all running notebooks and associated costs. You can recreate your cloud environment later, which will take several minutes.'
                 ])
               ])
             }
@@ -1041,7 +1041,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             renderRuntimeSection(),
             !!isPersistentDisk && renderPersistentDiskSection(),
             !sparkMode && !isPersistentDisk && div({ style: styles.whiteBoxContainer }, [
-              div(['Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.']),
+              div(['Time to upgrade your cloud environment. Terra’s new persistent disk feature will safegard your work and data.']),
               // TODO PD: we should tell people how to get a PD here
               div({ style: { marginTop: '1rem' } }, [
                 h(Link, { onClick: () => handleLearnMoreAboutPersistentDisk() }, ['Learn more'])
