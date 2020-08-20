@@ -354,7 +354,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const bottomButtons = () => {
       const canUpdate = this.canUpdate()
-      console.log(`can update ${canUpdate}`)
       const updateOrReplace = canUpdate ? 'update' : 'replace'
 
       return h(Fragment, [
