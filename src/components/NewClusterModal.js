@@ -264,7 +264,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       })
     }
 
-    //TODO PD: investigate react setState-after-unmount error
     onSuccess()
   })
 

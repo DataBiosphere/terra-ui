@@ -2,7 +2,6 @@ import _ from 'lodash/fp'
 import { cloudServices, dataprocCpuPrice, machineTypes, monthlyStoragePrice, storagePrice } from 'src/data/machines'
 
 
-// TODO (PD): look for other places this might make sense
 export const DEFAULT_DISK_SIZE = 50
 
 export const usableStatuses = ['Updating', 'Running']
@@ -12,7 +11,6 @@ export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, ma
 
   return {
     cloudService: cloudService || cloudServices.GCE,
-    // TODO PD: consider renaming masterMachineType to better represent its value
     masterMachineType: masterMachineType || machineType || 'n1-standard-4',
     masterDiskSize: masterDiskSize || diskSize || 50,
     numberOfWorkers: (isDataproc && numberOfWorkers) || 0,
@@ -41,9 +39,7 @@ export const findMachineType = name => {
   return _.find({ name }, machineTypes) || { name, cpu: '?', memory: '?', price: NaN, preemptiblePrice: NaN }
 }
 
-// TODO PD: return cost breakdown
 export const runtimeConfigCost = config => {
-  // TODO PD (low priority): Should rewrite the cost calculation to not use normalize
   const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType } = normalizeRuntimeConfig(config)
   const { price: masterPrice } = findMachineType(masterMachineType)
   const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
@@ -55,20 +51,10 @@ export const runtimeConfigCost = config => {
   ])
 }
 
-// TODO PD: evaluate if this is the right way to handle this
-export const runtimeCostBreakdown = config => {
-  return {
-    running: runtimeConfigCost(config),
-    stopped: ongoingCost(config)
-  }
-}
-
 export const persistentDiskCostMonthly = config => {
   return config.size * monthlyStoragePrice
 }
 
-// TODO PD: investigate bug 'cannot read property size of undefined' when in dataproc
-// TODO PD: examine what value is passed for config (ie what if there's no PD?)
 export const persistentDiskCost = config => {
   return config.size * storagePrice
 }
