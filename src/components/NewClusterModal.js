@@ -165,7 +165,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const attachedIds = _.without([undefined], _.map(cluster => cluster.runtimeConfig.persistentDiskId, clusters))
     return id ?
       _.find({ id }, persistentDisks) :
-      _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id }) => !_.includes(id, attachedIds), persistentDisks)))
+      _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id }) => !_.includes(id, attachedIds),
+        _.filter(disk => disk.status !== 'Deleting', persistentDisks))))
   }
 
   /**

@@ -107,6 +107,23 @@ const disk = {
   blockSize: 4096
 }
 
+const deletingDisk = {
+  id: 22,
+  googleProject: 'general-dev-billing-account',
+  zone: 'us-central1-a',
+  name: 'fakeDisk2',
+  status: 'Deleting',
+  auditInfo: {
+    creator: 'b.adm.firec@gmail.com',
+    createdDate: '2020-07-17T18:42:14.941807Z',
+    destroyedDate: null,
+    dateAccessed: '2020-07-16T18:42:09.784Z'
+  },
+  size: 505,
+  diskType: 'pd-standard',
+  blockSize: 4096
+}
+
 const runtimeDetails = {
   runtimeImages: [
     { imageType: 'Jupyter', imageUrl: 'us.gcr.io/broad-dsp-gcr-public/terra-jupyter-gatk:1.0.3', timestamp: '2020-07-17T15:07:52.241Z' },
@@ -143,6 +160,7 @@ const pdOverrides = _.mapValues(({ runtimes, disks }) => {
   dataproc: { runtimes: [dataprocRuntime], disks: [] },
   dataprocCluster: { runtimes: [dataprocClusterRuntime], disks: [] },
   disk: { runtimes: [], disks: [disk] },
+  diskAndDeletingDisk: { runtimes: [], disks: [disk, deletingDisk] },
   gceAndDisk: { runtimes: [gceRuntime], disks: [disk] },
   gceAndAttachedDisk: { runtimes: [gceRuntimeWithPd], disks: [disk] },
   dataprocAndDisk: { runtimes: [dataprocRuntime], disks: [disk] },
@@ -160,7 +178,7 @@ window.ajaxOverrideUtils = {
       wrappedFetch(...args)
   })
 }
-ajaxOverridesStore.set(pdOverrides.dataprocCluster)
+ajaxOverridesStore.set(pdOverrides.diskAndDeletingDisk)
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
 const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' } })
