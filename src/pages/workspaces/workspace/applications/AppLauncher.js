@@ -20,7 +20,6 @@ const AppLauncher = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: _.get('app')
   })
-  // TODO PD: consider removing cluster from this list and using currentCluster() to extract it from clusters instead
 )(({ namespace, name, refreshClusters, clusters, persistentDisks, app }, ref) => {
   const [cookieReady, setCookieReady] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
