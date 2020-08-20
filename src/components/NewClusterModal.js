@@ -1089,22 +1089,20 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     return div({
       style: {
-        display: 'flex', flexDirection: 'column', flex: 1,
+        display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem',
         backgroundColor: _.includes(viewMode, ['deleteEnvironmentOptions', 'environmentWarning', 'customImageWarning']) ?
           colors.warning(.1) :
           undefined
       }
     }, [
-      div({ style: { padding: '1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
-        Utils.switchCase(viewMode,
-          ['packages', renderPackages],
-          ['aboutPersistentDisk', renderAboutPersistentDisk],
-          ['customImageWarning', renderCustomImageWarning],
-          ['environmentWarning', renderEnvironmentWarning],
-          ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
-          [Utils.DEFAULT, renderMainForm]
-        )
-      ]),
+      Utils.switchCase(viewMode,
+        ['packages', renderPackages],
+        ['aboutPersistentDisk', renderAboutPersistentDisk],
+        ['customImageWarning', renderCustomImageWarning],
+        ['environmentWarning', renderEnvironmentWarning],
+        ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
+        [Utils.DEFAULT, renderMainForm]
+      ),
       loading && spinnerOverlay,
       this.renderDebugger()
     ])
