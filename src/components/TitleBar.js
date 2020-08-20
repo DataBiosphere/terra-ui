@@ -4,7 +4,6 @@ import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 
 
-// TODO PD: visit other usage of TitleBar on data page and fix styling
 const TitleBar = ({ onPrevious, title, onDismiss, titleExtras, style = {} }) => {
   return div({
     style: {
