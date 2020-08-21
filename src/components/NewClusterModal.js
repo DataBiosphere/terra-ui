@@ -1014,6 +1014,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           !simplifiedForm && renderActionButton()
         ])
       }
+      const renderDiskText = () => {
+        return span({ style: { fontWeight: 600 } }, [selectedPersistentDiskSize, ' GB persistent disk'])
+      }
       return simplifiedForm ?
         div({ style: styles.drawerContent }, [
           renderTitleAndTagline(),
@@ -1028,9 +1031,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   ]),
                   li({ style: { marginTop: '1rem' } }, [
                     'Default compute size of ', span({ style: { fontWeight: 600 } }, [cpu, ' CPUs']), ', ',
-                    span({ style: { fontWeight: 600 } }, [memory, ' GB memory']), ', and a ',
-                    span({ style: { fontWeight: 600 } }, [selectedPersistentDiskSize, ' GB persistent disk']), ' ',
-                    'to keep your data even after you delete your compute'
+                    span({ style: { fontWeight: 600 } }, [memory, ' GB memory']), ', and ',
+                    oldPersistentDisk ?
+                      h(Fragment, ['your existing ', renderDiskText()]) :
+                      h(Fragment, ['a ', renderDiskText(), ' to keep your data even after you delete your compute'])
                   ])
                 ])
               ]),
