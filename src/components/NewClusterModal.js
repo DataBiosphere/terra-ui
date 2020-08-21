@@ -133,6 +133,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess: PropTypes.func.isRequired
   }
 
+  makeWorkspaceObj() {
+    const { namespace, name } = this.props
+    return { workspace: { namespace, name } }
+  }
+
   constructor(props) {
     super(props)
     const currentCluster = this.getCurrentCluster()
@@ -220,6 +225,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const shouldDeleteRuntime = oldRuntime && !this.canUpdateRuntime()
     const shouldCreateRuntime = !this.canUpdateRuntime() && newRuntime
 
+    const { cpu, memory } = findMachineType(newRuntime.cloudService === cloudServices.GCE ? newRuntime.machineType : newRuntime.masterMachineType)
+
     // TODO PD: test the generation of runtime config for update vs create
     const runtimeConfig = newRuntime && {
       cloudService: newRuntime.cloudService,
@@ -246,18 +253,36 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         })
       })
     }
+
     if (shouldDeleteRuntime) {
       await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
     }
     if (shouldDeletePersistentDisk && !this.hasAttachedDisk()) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentDelete, {
+        ...extractWorkspaceDetails(this.makeWorkspaceObj()),
+        isDeleteFloatingPersistentDisk: (shouldDeletePersistentDisk && !this.hasAttachedDisk())
+      })
     }
     if (shouldUpdatePersistentDisk) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).update(newPersistentDisk.size)
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentUpdate, {
+        ...extractWorkspaceDetails(this.makeWorkspaceObj()),
+        ...runtimeConfig.persistentDisk,
+        persistentDiskCostPerMonth: Utils.formatUSD(persistentDiskCostMonthly(this.getNewEnvironmentConfig().persistentDisk))
+      })
     }
     if (shouldUpdateRuntime) {
-      await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).update({
-        runtimeConfig
+      await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).update({ runtimeConfig })
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentUpdate, {
+        ...extractWorkspaceDetails(this.makeWorkspaceObj()),
+        ...newRuntime,
+        //persistentDiskSize: newPersistentDisk,
+        cpu,
+        memory,
+        runtimeCostPerHour: Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())),
+        runtimePausedCostPerHour: Utils.formatUSD(ongoingCost(this.getPendingRuntimeConfig())),
+        persistentDiskCostPerMonth: Utils.formatUSD(persistentDiskCostMonthly(this.getNewEnvironmentConfig().persistentDisk))
       })
     }
     if (shouldCreateRuntime) {
