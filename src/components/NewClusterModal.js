@@ -133,6 +133,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess: PropTypes.func.isRequired
   }
 
+  makeWorkspaceObj() {
+    const { namespace, name } = this.props
+    return { workspace: { namespace, name } }
+  }
+
   constructor(props) {
     super(props)
     const currentCluster = this.getCurrentCluster()
@@ -205,6 +210,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return { size: newPersistentDisk.size }
   }
 
+  getMixpanelDeleteMetrics(isDeleteRuntime, isDeletePersistentDisk) {
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentDelete, {
+      ...extractWorkspaceDetails(this.makeWorkspaceObj()),
+      isDeleteRuntime,
+      isDeletePersistentDisk
+    })
+  }
+
   applyChanges = _.flow(
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating cloud environment')
@@ -247,15 +260,14 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         })
       })
     }
+
+    this.getMixpanelDeleteMetrics(shouldDeleteRuntime, this.willDeletePersistentDisk())
+
     if (shouldDeleteRuntime) {
       await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
     }
     if (shouldDeletePersistentDisk && !this.hasAttachedDisk()) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
-      Ajax().Metrics.captureEvent(Events.cloudEnvironmentDelete, {
-        ...extractWorkspaceDetails(this.makeWorkspaceObj()),
-        isDeletePersistentDisk: (shouldDeletePersistentDisk && !this.hasAttachedDisk())
-      })
     }
     if (shouldUpdatePersistentDisk) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).update(newPersistentDisk.size)
