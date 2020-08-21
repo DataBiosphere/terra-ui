@@ -210,7 +210,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return { size: newPersistentDisk.size }
   }
 
-  getMixpanelDeleteMetrics(isDeleteRuntime, isDeletePersistentDisk) {
+  sendDeleteMetrics(isDeleteRuntime, isDeletePersistentDisk) {
     Ajax().Metrics.captureEvent(Events.cloudEnvironmentDelete, {
       ...extractWorkspaceDetails(this.makeWorkspaceObj()),
       isDeleteRuntime,
@@ -261,7 +261,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       })
     }
 
-    this.getMixpanelDeleteMetrics(shouldDeleteRuntime, this.willDeletePersistentDisk())
+    if (shouldDeleteRuntime || this.willDeletePersistentDisk()) {
+      this.sendDeleteMetrics(shouldDeleteRuntime, this.willDeletePersistentDisk())
+    }
 
     if (shouldDeleteRuntime) {
       await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
