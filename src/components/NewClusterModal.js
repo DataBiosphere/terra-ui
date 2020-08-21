@@ -148,6 +148,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize || DEFAULT_DISK_SIZE,
       numberOfWorkers: numberOfWorkers || 2,
       deleteDiskSelected: false,
+      upgradeDiskSelected: false,
       simplifiedForm: !currentCluster
     }
   }
@@ -1060,11 +1061,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             renderRuntimeSection(),
             !!isPersistentDisk && renderPersistentDiskSection(),
             !sparkMode && !isPersistentDisk && div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
-              div(['Time to upgrade your cloud environment. Terra’s new persistent disk feature will safegard your work and data.']),
-              // TODO PD: we should tell people how to get a PD here
-              div({ style: { marginTop: '1rem' } }, [
+              div([
+                'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safegard your work and data. ',
                 h(Link, { onClick: () => handleLearnMoreAboutPersistentDisk() }, ['Learn more'])
-              ])
+              ]),
+              h(ButtonOutline, {
+                style: { marginTop: '1rem' },
+                tooltip: 'Upgrade your environment to use a persistent disk. This will require a one-time deletion of your current builtin disk, but after that your data will be stored and preserved on the persistent disk.',
+                onClick: () => this.setState({ upgradeDiskSelected: true })
+              }, ['Upgrade'])
             ]),
             renderBottomButtons()
           ])
@@ -1125,10 +1130,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   shouldUsePersistentDisk() {
-    const { sparkMode } = this.state
+    const { sparkMode, upgradeDiskSelected } = this.state
     const currentCluster = this.getCurrentCluster()
 
-    return !sparkMode && !currentCluster?.runtimeConfig.diskSize
+    return !sparkMode && (!currentCluster?.runtimeConfig.diskSize || upgradeDiskSelected)
   }
 
   willDeletePersistentDisk() {
