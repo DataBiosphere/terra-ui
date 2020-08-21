@@ -153,7 +153,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize || DEFAULT_DISK_SIZE,
       numberOfWorkers: numberOfWorkers || 2,
       deleteDiskSelected: false,
-      upgradeDiskSelected: false,
       simplifiedForm: !currentCluster
     }
   }
@@ -210,14 +209,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return { size: newPersistentDisk.size }
   }
 
-  sendDeleteMetrics(isDeleteRuntime, isDeletePersistentDisk) {
-    Ajax().Metrics.captureEvent(Events.cloudEnvironmentDelete, {
-      ...extractWorkspaceDetails(this.makeWorkspaceObj()),
-      isDeleteRuntime,
-      isDeletePersistentDisk
-    })
-  }
-
   applyChanges = _.flow(
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating cloud environment')
@@ -233,6 +224,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const shouldUpdateRuntime = this.canUpdateRuntime() && !_.isEqual(newRuntime, oldRuntime)
     const shouldDeleteRuntime = oldRuntime && !this.canUpdateRuntime()
     const shouldCreateRuntime = !this.canUpdateRuntime() && newRuntime
+
+    const { cpu, memory } = findMachineType(newRuntime.cloudService === cloudServices.GCE ? newRuntime.machineType : newRuntime.masterMachineType)
 
     // TODO PD: test the generation of runtime config for update vs create
     const runtimeConfig = newRuntime && {
@@ -261,22 +254,36 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       })
     }
 
-    if (shouldDeleteRuntime || this.willDeletePersistentDisk()) {
-      this.sendDeleteMetrics(shouldDeleteRuntime, this.willDeletePersistentDisk())
-    }
-
     if (shouldDeleteRuntime) {
       await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
     }
     if (shouldDeletePersistentDisk && !this.hasAttachedDisk()) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentDelete, {
+        ...extractWorkspaceDetails(this.makeWorkspaceObj()),
+        isDeleteFloatingPersistentDisk: (shouldDeletePersistentDisk && !this.hasAttachedDisk())
+      })
     }
     if (shouldUpdatePersistentDisk) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).update(newPersistentDisk.size)
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentUpdate, {
+        ...extractWorkspaceDetails(this.makeWorkspaceObj()),
+        ...runtimeConfig.persistentDisk,
+        persistentDiskCostPerMonth: Utils.formatUSD(persistentDiskCostMonthly(this.getNewEnvironmentConfig().persistentDisk))
+      })
     }
     if (shouldUpdateRuntime) {
-      await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).update({
-        runtimeConfig })
+      await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).update({ runtimeConfig })
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentUpdate, {
+        ...extractWorkspaceDetails(this.makeWorkspaceObj()),
+        ...newRuntime,
+        //persistentDiskSize: newPersistentDisk,
+        cpu,
+        memory,
+        runtimeCostPerHour: Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())),
+        runtimePausedCostPerHour: Utils.formatUSD(ongoingCost(this.getPendingRuntimeConfig())),
+        persistentDiskCostPerMonth: Utils.formatUSD(persistentDiskCostMonthly(this.getNewEnvironmentConfig().persistentDisk))
+      })
     }
     if (shouldCreateRuntime) {
       await Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
@@ -1078,15 +1085,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             renderRuntimeSection(),
             !!isPersistentDisk && renderPersistentDiskSection(),
             !sparkMode && !isPersistentDisk && div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
-              div([
-                'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safegard your work and data. ',
+              div(['Time to upgrade your cloud environment. Terra’s new persistent disk feature will safegard your work and data.']),
+              // TODO PD: we should tell people how to get a PD here
+              div({ style: { marginTop: '1rem' } }, [
                 h(Link, { onClick: () => handleLearnMoreAboutPersistentDisk() }, ['Learn more'])
-              ]),
-              h(ButtonOutline, {
-                style: { marginTop: '1rem' },
-                tooltip: 'Upgrade your environment to use a persistent disk. This will require a one-time deletion of your current builtin disk, but after that your data will be stored and preserved on the persistent disk.',
-                onClick: () => this.setState({ upgradeDiskSelected: true })
-              }, ['Upgrade'])
+              ])
             ]),
             renderBottomButtons()
           ])
@@ -1147,10 +1150,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   shouldUsePersistentDisk() {
-    const { sparkMode, upgradeDiskSelected } = this.state
+    const { sparkMode } = this.state
     const currentCluster = this.getCurrentCluster()
 
-    return !sparkMode && (!currentCluster?.runtimeConfig.diskSize || upgradeDiskSelected)
+    return !sparkMode && !currentCluster?.runtimeConfig.diskSize
   }
 
   willDeletePersistentDisk() {

@@ -160,6 +160,7 @@ window.ajaxOverrideUtils = {
       wrappedFetch(...args)
   })
 }
+ajaxOverridesStore.set(pdOverrides.nothing)
 ajaxOverridesStore.set(pdOverrides.gce)
 
 const authOpts = (token = getUser().token) => ({ headers: { Authorization: `Bearer ${token}` } })
