@@ -133,11 +133,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess: PropTypes.func.isRequired
   }
 
-  makeWorkspaceObj() {
-    const { namespace, name } = this.props
-    return { workspace: { namespace, name } }
-  }
-
   constructor(props) {
     super(props)
     const currentCluster = this.getCurrentCluster()
