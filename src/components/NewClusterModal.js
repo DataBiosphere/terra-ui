@@ -441,6 +441,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { namespace } = this.props
     const currentCluster = this.getCurrentCluster()
 
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+      existingConfig: !!currentCluster, ...extractWorkspaceDetails(this.makeWorkspaceObj())
+    })
+
     const [currentClusterDetails, newLeoImages] = await Promise.all([
       currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.runtimeName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
@@ -825,11 +829,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])
     }
 
-    const makeWorkspaceObj = () => {
-      const { namespace, name } = this.props
-      return { workspace: { namespace, name } }
-    }
-
     const renderDeleteEnvironmentOptions = () => {
       const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
       return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
@@ -1001,7 +1000,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const handleLearnMoreAboutPersistentDisk = () => {
       this.setState({ viewMode: 'aboutPersistentDisk' })
       Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
-        ...extractWorkspaceDetails(makeWorkspaceObj()),
+        ...extractWorkspaceDetails(this.makeWorkspaceObj()),
         currentlyHasAttachedDisk: !!this.hasAttachedDisk()
       })
     }
