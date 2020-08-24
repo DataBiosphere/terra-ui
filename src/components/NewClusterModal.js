@@ -229,9 +229,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       cpu,
       memory,
       persistentDiskSize: newPersistentDisk?.size,
-      runtimeCostPerHour: Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())),
-      runtimePausedCostPerHour: Utils.formatUSD(ongoingCost(this.getPendingRuntimeConfig())),
-      persistentDiskCostPerMonth: (newPersistentDisk && Utils.formatUSD(persistentDiskCostMonthly(newPersistentDisk)))
+      runtimeCostPerHour: runtimeConfigCost(this.getPendingRuntimeConfig()),
+      runtimePausedCostPerHour: ongoingCost(this.getPendingRuntimeConfig()),
+      persistentDiskCostPerMonth: (newPersistentDisk && persistentDiskCostMonthly(this.getPendingDisk()))
     })
   }
 
@@ -282,6 +282,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       this.sendDeleteMetrics(shouldDeleteRuntime, this.willDeletePersistentDisk())
     }
 
+    //TODO KF: move this to renderApplyButton
     if (shouldUpdateRuntime || shouldUpdatePersistentDisk) {
       this.sendUpdateMetrics(newRuntime, newPersistentDisk)
     }
