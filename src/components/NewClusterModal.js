@@ -219,6 +219,22 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     })
   }
 
+  sendUpdateMetrics(newRuntime, newPersistentDisk) {
+    const machineType = newRuntime.cloudService === cloudServices.GCE ? newRuntime.machineType : newRuntime.masterMachineType
+    const { cpu, memory } = findMachineType(machineType)
+
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentUpdate, {
+      ...extractWorkspaceDetails(this.makeWorkspaceObj()),
+      ...newRuntime,
+      cpu,
+      memory,
+      persistentDiskSize: newPersistentDisk?.size,
+      runtimeCostPerHour: Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())),
+      runtimePausedCostPerHour: Utils.formatUSD(ongoingCost(this.getPendingRuntimeConfig())),
+      persistentDiskCostPerMonth: (newPersistentDisk && Utils.formatUSD(persistentDiskCostMonthly(newPersistentDisk)))
+    })
+  }
+
   applyChanges = _.flow(
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating cloud environment')
@@ -266,6 +282,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       this.sendDeleteMetrics(shouldDeleteRuntime, this.willDeletePersistentDisk())
     }
 
+    if (shouldUpdateRuntime || shouldUpdatePersistentDisk) {
+      this.sendUpdateMetrics(newRuntime, newPersistentDisk)
+    }
+
     if (shouldDeleteRuntime) {
       await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
     }
@@ -276,9 +296,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).update(newPersistentDisk.size)
     }
     if (shouldUpdateRuntime) {
-      await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).update({
-        runtimeConfig
-      })
+      await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).update({ runtimeConfig })
     }
     if (shouldCreateRuntime) {
       Ajax().Metrics.captureEvent(Events.cloudEnvironmentCreate, { ...extractWorkspaceDetails(this.makeWorkspaceObj()), ...newRuntime, isDefaultConfig: !!this.state.simplifiedForm, pdSize: '', cost: '' })
