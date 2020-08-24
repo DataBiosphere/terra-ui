@@ -133,11 +133,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess: PropTypes.func.isRequired
   }
 
-  makeWorkspaceObj() {
-    const { namespace, name } = this.props
-    return { workspace: { namespace, name } }
-  }
-
   constructor(props) {
     super(props)
     const currentCluster = this.getCurrentCluster()
@@ -156,6 +151,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       upgradeDiskSelected: false,
       simplifiedForm: !currentCluster
     }
+  }
+
+  makeWorkspaceObj() {
+    const { namespace, name } = this.props
+    return { workspace: { namespace, name } }
   }
 
   getCurrentCluster() {
@@ -281,6 +281,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       })
     }
     if (shouldCreateRuntime) {
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentCreate, { ...extractWorkspaceDetails(this.makeWorkspaceObj()), ...newRuntime, isDefaultConfig: !!this.state.simplifiedForm, pdSize: '', cost: '' })
       await Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         runtimeConfig,
         toolDockerImage: newRuntime.toolDockerImage,
