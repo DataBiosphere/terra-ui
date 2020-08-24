@@ -164,6 +164,10 @@ const useCloudEnvironmentPolling = namespace => {
         Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email }),
         Ajax(signal).Clusters.list({ googleProject: namespace, creator: getUser().email })
       ])
+      // Consider whether we want to filter out deleting clusters and disks here, rather than lower down
+      // It is safe to do so, because detaching a disk from a cluster is a synchronous action, and the
+      // cluster will not be put in deleting state if the disk is still attached, so we don't need to worry
+      // about trying to attach disks that are attached to a deleting disk
       setClusters(newClusters)
       setPersistentDisks(newDisks)
 
@@ -174,7 +178,7 @@ const useCloudEnvironmentPolling = namespace => {
       throw error
     }
   }
-  const refreshClusters = withErrorReporting('Error loading notebook runtimes', load)
+  const refreshClusters = withErrorReporting('Error loading cloud environments', load)
   const refreshClustersSilently = withErrorIgnoring(load)
   Utils.useOnMount(() => {
     refreshClusters()
