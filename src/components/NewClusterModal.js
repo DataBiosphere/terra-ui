@@ -144,10 +144,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { cloudService, numberOfWorkers, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || { masterMachineType: 'n1-standard-4' })
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
-    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
-      existingConfig: !!currentCluster, ...extractWorkspaceDetails(this.makeWorkspaceObj())
-    })
-
     this.state = {
       loading: false,
       selectedPersistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : DEFAULT_DISK_SIZE,
@@ -444,6 +440,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   )(async () => {
     const { namespace } = this.props
     const currentCluster = this.getCurrentCluster()
+
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+      existingConfig: !!currentCluster, ...extractWorkspaceDetails(this.makeWorkspaceObj())
+    })
 
     const [currentClusterDetails, newLeoImages] = await Promise.all([
       currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.runtimeName).details() : null,
