@@ -25,14 +25,12 @@ import validate from 'validate.js'
 
 const styles = {
   label: { fontWeight: 600, whiteSpace: 'pre' },
-  disabledInputs: {
-    border: `1px solid ${colors.dark(0.2)}`, borderRadius: 4, padding: '0.5rem'
-  },
   titleBar: { marginBottom: '1rem' },
-  whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white', marginTop: '1rem' }
+  drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
+  warningView: { backgroundColor: colors.warning(0.1) },
+  whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' }
 }
 
-// TODO PD: Consider moving these into a resources file
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
 const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
@@ -44,7 +42,6 @@ const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:
 
 const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
 
-// TODO PD: Move MachineSelector and DiskSelector out of this file?
 const MachineSelector = ({ value, onChange }) => {
   const { cpu: currentCpu, memory: currentMemory } = findMachineType(value)
   return h(Fragment, [
@@ -96,7 +93,6 @@ const DiskSelector = ({ value, onChange }) => {
   ])
 }
 
-// TODO PD: Should this move this into input.js?
 const FancyRadio = ({ labelText, children, name, checked, onChange, style = {} }) => {
   return div({
     style: {
@@ -137,11 +133,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess: PropTypes.func.isRequired
   }
 
+  makeWorkspaceObj() {
+    const { namespace, name } = this.props
+    return { workspace: { namespace, name } }
+  }
+
   constructor(props) {
     super(props)
     const currentCluster = this.getCurrentCluster()
-    const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || { masterMachineType: 'n1-standard-4' })
-    const { numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
+    const { cloudService, numberOfWorkers, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || { masterMachineType: 'n1-standard-4' })
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
     this.state = {
@@ -151,7 +151,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       sparkMode: cloudService === cloudServices.GCE ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
       ...currentConfig,
       masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize || DEFAULT_DISK_SIZE,
+      numberOfWorkers: numberOfWorkers || 2,
       deleteDiskSelected: false,
+      upgradeDiskSelected: false,
       simplifiedForm: !currentCluster
     }
   }
@@ -173,7 +175,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const attachedIds = _.without([undefined], _.map(cluster => cluster.runtimeConfig.persistentDiskId, clusters))
     return id ?
       _.find({ id }, persistentDisks) :
-      _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id }) => !_.includes(id, attachedIds), persistentDisks)))
+      _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id }) => !_.includes(id, attachedIds),
+        _.filter(disk => disk.status !== 'Deleting', persistentDisks))))
   }
 
   /**
@@ -204,9 +207,26 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
   }
 
+  /**
+  * Transform new environment config into the shape of a disk returned from Leo.
+  * Used as an input to cost calculation.
+  */
+  getPendingDisk() {
+    const { persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
+    return { size: newPersistentDisk.size }
+  }
+
+  sendDeleteMetrics(isDeleteRuntime, isDeletePersistentDisk) {
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentDelete, {
+      ...extractWorkspaceDetails(this.makeWorkspaceObj()),
+      isDeleteRuntime,
+      isDeletePersistentDisk
+    })
+  }
+
   applyChanges = _.flow(
     Utils.withBusyState(() => this.setState({ loading: true })),
-    withErrorReporting('Error creating runtime')
+    withErrorReporting('Error creating cloud environment')
   )(async () => {
     const currentCluster = this.getCurrentCluster()
     const { onSuccess, namespace } = this.props
@@ -246,6 +266,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         })
       })
     }
+
+    if (shouldDeleteRuntime || this.willDeletePersistentDisk()) {
+      this.sendDeleteMetrics(shouldDeleteRuntime, this.willDeletePersistentDisk())
+    }
+
     if (shouldDeleteRuntime) {
       await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
     }
@@ -270,7 +295,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       })
     }
 
-    //TODO PD: investigate react setState-after-unmount error
     onSuccess()
   })
 
@@ -282,6 +306,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     } = this.state
     const { persistentDisk: oldPersistentDisk, runtime: oldRuntime } = this.getOldEnvironmentConfig()
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
+    const newNumberOfWorkers = sparkMode === 'cluster' ? numberOfWorkers : 0
     return {
       runtime: Utils.cond(
         [(viewMode !== 'deleteEnvironmentOptions'), () => {
@@ -297,8 +322,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             } : {
               masterMachineType,
               masterDiskSize,
-              numberOfWorkers,
-              ...(numberOfWorkers && {
+              numberOfWorkers: newNumberOfWorkers,
+              ...(newNumberOfWorkers && {
                 numberOfPreemptibleWorkers,
                 workerMachineType,
                 workerDiskSize
@@ -422,6 +447,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { namespace } = this.props
     const currentCluster = this.getCurrentCluster()
 
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+      existingConfig: !!currentCluster, ...extractWorkspaceDetails(this.makeWorkspaceObj())
+    })
+
     const [currentClusterDetails, newLeoImages] = await Promise.all([
       currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.runtimeName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
@@ -464,8 +493,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             makeJSON(!!this.willDeletePersistentDisk()),
             makeHeader('willRequireDowntime'),
             makeJSON(!!this.willRequireDowntime())
-            //makeHeader('getPendingRuntimeConfig'),
-            //makeJSON(this.getPendingRuntimeConfig())
           ]) :
         h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } },
           ['D'])
@@ -482,7 +509,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         onChange: () => this.setState({ deleteDiskSelected: false })
       }, [
         p([
-          'Your application and cloud compute profile are deleted, and your persistent disk (and its associated data) is detached from the environment and saved for later. ',
+          'Deletes your application and cloud compute profile, but detaches your persistent disk (and its associated data) from the environment and saves it for later. ',
           'The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.'
         ]),
         p([
@@ -515,7 +542,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   render() {
     const { onDismiss } = this.props
-    const currentCluster = this.getCurrentCluster()
     const {
       masterMachineType, masterDiskSize, selectedPersistentDiskSize, sparkMode, workerMachineType,
       numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
@@ -541,6 +567,31 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       }
     )
 
+    const renderActionButton = () => {
+      const { runtime: oldRuntime } = this.getOldEnvironmentConfig()
+      const { runtime: newRuntime } = this.getNewEnvironmentConfig()
+      const commonButtonProps = { disabled: !this.hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) }
+      const mayShowCustomImageWarning = viewMode === undefined
+      const mayShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
+      return Utils.cond(
+        [mayShowCustomImageWarning && isCustomImage && oldRuntime?.toolDockerImage !== newRuntime?.toolDockerImage, () => {
+          return h(ButtonPrimary, { ...commonButtonProps, onClick: () => this.setState({ viewMode: 'customImageWarning' }) }, ['Next'])
+        }],
+        [mayShowEnvironmentWarning && (this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime() || this.willDetachPersistentDisk()), () => {
+          return h(ButtonPrimary, { ...commonButtonProps, onClick: () => this.setState({ viewMode: 'environmentWarning' }) }, ['Next'])
+        }],
+        () => {
+          return h(ButtonPrimary, { ...commonButtonProps, onClick: () => this.applyChanges() }, [
+            Utils.cond(
+              [viewMode === 'deleteEnvironmentOptions', () => 'Delete'],
+              [oldRuntime, () => 'Update'],
+              () => 'Create'
+            )
+          ])
+        }
+      )
+    }
+
     const renderImageSelect = ({ includeCustom, ...props }) => {
       return h(GroupedSelect, {
         ...props,
@@ -548,13 +599,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         value: selectedLeoImage,
         onChange: ({ value }) => {
           const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
-          const isCluster = sparkMode === 'cluster'
-          // TODO PD: Evaluate it going to GCE on change from dataproc to custom image
           this.setState({
             selectedLeoImage: value, customEnvImage: '',
-            sparkMode: requiresSpark ? (sparkMode || 'master') : false,
-            numberOfWorkers: requiresSpark && isCluster ? (numberOfWorkers || 2) : 0,
-            numberOfPreemptibleWorkers: requiresSpark && isCluster ? (numberOfPreemptibleWorkers || 0) : 0
+            sparkMode: requiresSpark ? (sparkMode || 'master') : false
           })
         },
         isSearchable: true,
@@ -597,7 +644,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         }, [
           { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
           { label: 'Paused cloud compute cost', cost: Utils.formatUSD(ongoingCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
-          { label: 'Persistent disk cost', cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(this.getNewEnvironmentConfig().persistentDisk)) : 'N/A', unitLabel: isPersistentDisk ? 'per month' : '' }
+          { label: 'Persistent disk cost', cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(this.getPendingDisk())) : 'N/A', unitLabel: isPersistentDisk ? 'per month' : '' }
         ])
       ])
     }
@@ -609,7 +656,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             div({ style: { marginBottom: '0.5rem' } }, [
               label({ htmlFor: id, style: styles.label }, ['Application']),
               h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-                'The software application + programming languages + packages used when you create your runtime. '
+                'The software application + programming languages + packages used when you create your cloud environment. '
               ])
             ]),
             div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: true })])
@@ -683,7 +730,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const renderRuntimeSection = () => {
       const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '0.8rem', alignItems: 'center' }
-      return div({ style: styles.whiteBoxContainer }, [
+      return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
         div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
           h(MachineSelector, { value: masterMachineType, onChange: v => this.setState({ masterMachineType: v }) }),
@@ -711,12 +758,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   id,
                   isSearchable: false,
                   value: sparkMode,
-                  // TODO PD: don't reset number of workers
-                  onChange: ({ value }) => this.setState({
-                    sparkMode: value,
-                    numberOfWorkers: value === 'cluster' ? 2 : 0,
-                    numberOfPreemptibleWorkers: 0
-                  }),
+                  onChange: ({ value }) => this.setState({ sparkMode: value }),
                   options: [
                     { value: false, label: 'Standard VM', isDisabled: requiresSpark },
                     { value: 'master', label: 'Spark master node' },
@@ -770,7 +812,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
 
     const renderPersistentDiskSection = () => {
-      return div({ style: styles.whiteBoxContainer }, [
+      return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         h(IdContainer, [
           id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
             label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
@@ -795,7 +837,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const renderDeleteEnvironmentOptions = () => {
       const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
-      return h(Fragment, [
+      return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
         h(TitleBar, {
           style: styles.titleBar,
           title: h(WarningTitle, ['Delete environment options']),
@@ -812,8 +854,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   checked: !deleteDiskSelected,
                   onChange: () => this.setState({ deleteDiskSelected: false })
                 }, [
-                  // TODO PD: add language to warn about losing data on builtin disk
-                  p(['Your application and cloud compute profile are deleted.'])
+                  p(['Deletes your application and cloud compute profile. This will also delete any files on the associated hard disk.'])
                 ]),
                 h(FancyRadio, {
                   name: 'delete-persistent-disk',
@@ -840,7 +881,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 onChange: () => this.setState({ deleteDiskSelected: true })
               }, [
                 p([
-                  'Your persistent disk (and its associated data) are deleted. If you want to permanently save your data before deleting your disk, create a new runtime environment to access the disk and copy your data to the workspace bucket.'
+                  'Deletes your persistent disk (and its associated data). If you want to permanently save your data before deleting your disk, create a new cloud environment to access the disk and copy your data to the workspace bucket.'
                 ]),
                 h(Link, {
                   href: '',
@@ -852,7 +893,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             () => {
               return h(Fragment, [
                 p([
-                  'Deleting your runtime will also ',
+                  'Deleting your cloud environment will also ',
                   span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
                   '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
                   h(Link, {
@@ -861,20 +902,20 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   }, ['move them to the workspace bucket.'])
                 ]),
                 p([
-                  'Deleting your runtime will stop all running notebooks and associated costs. You can recreate your runtime later, which will take several minutes.'
+                  'Deleting your cloud environment will stop all running notebooks and associated costs. You can recreate your cloud environment later, which will take several minutes.'
                 ])
               ])
             }
           )
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Delete'])
+          renderActionButton()
         ])
       ])
     }
     const renderEnvironmentWarning = () => {
       return this.willDetachPersistentDisk() ?
-        h(Fragment, [
+        div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
           h(TitleBar, {
             style: styles.titleBar,
             title: h(WarningTitle, ['Replace application and cloud compute profile for Spark']),
@@ -883,17 +924,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           }),
           div({ style: { lineHeight: 1.5 } }, [
             div([
-              'You have requested to replace your existing application and cloud compute configurations to ones that support Spark. ',
-              'Unfortunately, this type of cloud compute does not support the persistent disk feature.'
+              'You have requested to replace your existing application and cloud compute profile to ones that support Spark. ',
+              'This type of cloud compute does not support the persistent disk feature.'
             ]),
             div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
             this.renderDeleteDiskChoices(),
             div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-              h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
+              renderActionButton()
             ])
           ])
         ]) :
-        h(Fragment, [
+        div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
           h(TitleBar, {
             style: styles.titleBar,
             title: h(WarningTitle, [
@@ -926,20 +967,19 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 }, ['Learn more about workspace buckets'])
               ])],
               [this.willRequireDowntime(), () => h(Fragment, [
-                // TODO PD: Refine this a little bit more
                 p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
                 p(['Your existing data will be preserved during this update.'])
               ])]
             )
           ]),
           div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-            h(ButtonPrimary, { onClick: () => this.applyChanges() }, ['Update'])
+            renderActionButton()
           ])
         ])
     }
 
     const renderCustomImageWarning = () => {
-      return h(Fragment, [
+      return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
         h(TitleBar, {
           style: styles.titleBar,
           title: h(WarningTitle, ['Unverified Docker image']),
@@ -957,7 +997,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           p(['If you\'re confident that your image is safe, you may continue using it. Otherwise, go back to select another image.'])
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-          h(ButtonPrimary, { onClick: () => this.warnOrApplyChanges() }, [!!currentCluster ? 'Next' : 'Create'])
+          renderActionButton()
         ])
       ])
     }
@@ -973,73 +1013,19 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     const renderMainForm = () => {
       const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
-      const { runtime: newRuntime } = this.getNewEnvironmentConfig()
       const { cpu, memory } = findMachineType(masterMachineType)
-      const renderActionButton = () => {
-        return h(ButtonPrimary, {
-          disabled: !this.hasChanges() || !!errors,
-          tooltip: Utils.summarizeErrors(errors),
-          onClick: () => {
-            if (isCustomImage && oldRuntime?.toolDockerImage !== newRuntime.toolDockerImage) {
-              this.setState({ viewMode: 'customImageWarning' })
-            } else {
-              this.warnOrApplyChanges()
-            }
-          }
-        }, [this.shouldShowEnvironmentWarning() ? 'Next' : (!currentCluster ? 'Create' : 'Update')])
+      const renderTitleAndTagline = () => {
+        return h(Fragment, [
+          h(TitleBar, {
+            style: { marginBottom: '0.5rem' },
+            title: 'Cloud environment',
+            onDismiss
+          }),
+          div(['Cloud environments consist of an application, cloud compute and a persistent disk'])
+        ])
       }
-      return h(Fragment, [
-        // TODO PD: apply fixed header style from mocks
-        h(TitleBar, {
-          style: styles.titleBar,
-          title: 'Cloud environment',
-          onDismiss
-        }),
-        div(['Cloud environments consist of an application, cloud compute and a persistent disk']),
-        simplifiedForm ?
-          h(Fragment, [
-            div({ style: styles.whiteBoxContainer }, [
-              div({ style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' } }, [
-                div({ style: { marginRight: '2rem' } }, [
-                  div({ style: { fontSize: 16, fontWeight: 600 } }, ['Use default resource']),
-                  ul({ style: { paddingLeft: '1rem', marginBottom: 0, lineHeight: 1.5 } }, [
-                    li([
-                      div([packageLabel]),
-                      h(Link, { onClick: () => this.setState({ viewMode: 'packages' }) }, ['What’s installed on this environment?'])
-                    ]),
-                    li({ style: { marginTop: '1rem' } }, [
-                      'Default compute size of ', span({ style: { fontWeight: 600 } }, [cpu, ' CPUs']), ', ',
-                      span({ style: { fontWeight: 600 } }, [memory, ' GB memory']), ', and a ',
-                      span({ style: { fontWeight: 600 } }, [selectedPersistentDiskSize, ' GB persistent disk']), ' ',
-                      'to keep your data even after you delete your compute'
-                    ])
-                  ])
-                ]),
-                renderActionButton()
-              ]),
-              renderCostBreakdown()
-            ]),
-            div({ style: styles.whiteBoxContainer }, [
-              div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
-                div({ style: { fontSize: 16, fontWeight: 600 } }, ['Create custom resource']),
-                h(ButtonOutline, { onClick: () => this.setState({ simplifiedForm: false }) }, ['Customize'])
-              ])
-            ])
-          ]) :
-          h(Fragment, [
-            renderCostBreakdown(),
-            renderApplicationSection(),
-            renderRuntimeSection(),
-            !!isPersistentDisk && renderPersistentDiskSection(),
-            !sparkMode && !isPersistentDisk && div({ style: styles.whiteBoxContainer }, [
-              div(['Time to upgrade your compute runtime. Terra’s new persistent disk feature will safegard your work and data.']),
-              // TODO PD: we should tell people how to get a PD here
-              div({ style: { marginTop: '1rem' } }, [
-                h(Link, { onClick: () => handleLearnMoreAboutPersistentDisk() }, ['Learn more'])
-              ])
-            ])
-          ]),
-        div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
+      const renderBottomButtons = () => {
+        return div({ style: { display: 'flex', marginTop: '2rem' } }, [
           (!!oldRuntime || !!oldPersistentDisk) && h(ButtonSecondary, {
             onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' })
           }, [
@@ -1052,11 +1038,70 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           div({ style: { flex: 1 } }),
           !simplifiedForm && renderActionButton()
         ])
-      ])
+      }
+      const renderDiskText = () => {
+        return span({ style: { fontWeight: 600 } }, [selectedPersistentDiskSize, ' GB persistent disk'])
+      }
+      return simplifiedForm ?
+        div({ style: styles.drawerContent }, [
+          renderTitleAndTagline(),
+          div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+            div({ style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' } }, [
+              div({ style: { marginRight: '2rem' } }, [
+                div({ style: { fontSize: 16, fontWeight: 600 } }, ['Use default resource']),
+                ul({ style: { paddingLeft: '1rem', marginBottom: 0, lineHeight: 1.5 } }, [
+                  li([
+                    div([packageLabel]),
+                    h(Link, { onClick: () => this.setState({ viewMode: 'packages' }) }, ['What’s installed on this environment?'])
+                  ]),
+                  li({ style: { marginTop: '1rem' } }, [
+                    'Default compute size of ', span({ style: { fontWeight: 600 } }, [cpu, ' CPUs']), ', ',
+                    span({ style: { fontWeight: 600 } }, [memory, ' GB memory']), ', and ',
+                    oldPersistentDisk ?
+                      h(Fragment, ['your existing ', renderDiskText()]) :
+                      h(Fragment, ['a ', renderDiskText(), ' to keep your data even after you delete your compute'])
+                  ])
+                ])
+              ]),
+              renderActionButton()
+            ]),
+            renderCostBreakdown()
+          ]),
+          div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+            div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
+              div({ style: { fontSize: 16, fontWeight: 600 } }, ['Create custom resource']),
+              h(ButtonOutline, { onClick: () => this.setState({ simplifiedForm: false }) }, ['Customize'])
+            ])
+          ]),
+          renderBottomButtons()
+        ]) :
+        h(Fragment, [
+          div({ style: { padding: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [
+            renderTitleAndTagline(),
+            renderCostBreakdown()
+          ]),
+          div({ style: { padding: '1.5rem', overflowY: 'auto' } }, [
+            renderApplicationSection(),
+            renderRuntimeSection(),
+            !!isPersistentDisk && renderPersistentDiskSection(),
+            !sparkMode && !isPersistentDisk && div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+              div([
+                'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safegard your work and data. ',
+                h(Link, { onClick: () => handleLearnMoreAboutPersistentDisk() }, ['Learn more'])
+              ]),
+              h(ButtonOutline, {
+                style: { marginTop: '1rem' },
+                tooltip: 'Upgrade your environment to use a persistent disk. This will require a one-time deletion of your current builtin disk, but after that your data will be stored and preserved on the persistent disk.',
+                onClick: () => this.setState({ upgradeDiskSelected: true })
+              }, ['Upgrade'])
+            ]),
+            renderBottomButtons()
+          ])
+        ])
     }
 
     const renderAboutPersistentDisk = () => {
-      return h(Fragment, [
+      return div({ style: styles.drawerContent }, [
         h(TitleBar, {
           style: styles.titleBar,
           title: 'About persistent disk',
@@ -1077,7 +1122,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     }
 
     const renderPackages = () => {
-      return h(Fragment, [
+      return div({ style: styles.drawerContent }, [
         h(TitleBar, {
           style: styles.titleBar,
           title: 'Installed packages',
@@ -1090,24 +1135,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])
     }
 
-    return div({
-      style: {
-        display: 'flex', flexDirection: 'column', flex: 1,
-        backgroundColor: _.includes(viewMode, ['deleteEnvironmentOptions', 'environmentWarning', 'customImageWarning']) ?
-          colors.warning(.1) :
-          undefined
-      }
-    }, [
-      div({ style: { padding: '1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
-        Utils.switchCase(viewMode,
-          ['packages', renderPackages],
-          ['aboutPersistentDisk', renderAboutPersistentDisk],
-          ['customImageWarning', renderCustomImageWarning],
-          ['environmentWarning', renderEnvironmentWarning],
-          ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
-          [Utils.DEFAULT, renderMainForm]
-        )
-      ]),
+    return h(Fragment, [
+      Utils.switchCase(viewMode,
+        ['packages', renderPackages],
+        ['aboutPersistentDisk', renderAboutPersistentDisk],
+        ['customImageWarning', renderCustomImageWarning],
+        ['environmentWarning', renderEnvironmentWarning],
+        ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
+        [Utils.DEFAULT, renderMainForm]
+      ),
       loading && spinnerOverlay,
       this.renderDebugger()
     ])
@@ -1118,10 +1154,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   shouldUsePersistentDisk() {
-    const { sparkMode } = this.state
+    const { sparkMode, upgradeDiskSelected } = this.state
     const currentCluster = this.getCurrentCluster()
 
-    return !sparkMode && !currentCluster?.runtimeConfig.diskSize
+    return !sparkMode && (!currentCluster?.runtimeConfig.diskSize || upgradeDiskSelected)
   }
 
   willDeletePersistentDisk() {
@@ -1137,17 +1173,5 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   willRequireDowntime() {
     const oldConfig = this.getOldEnvironmentConfig()
     return oldConfig.runtime && (!this.canUpdateRuntime() || this.isStopRequired())
-  }
-
-  shouldShowEnvironmentWarning() {
-    return this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime() || this.willDetachPersistentDisk()
-  }
-
-  warnOrApplyChanges() {
-    if (this.shouldShowEnvironmentWarning()) {
-      this.setState({ viewMode: 'environmentWarning' })
-    } else {
-      this.applyChanges()
-    }
   }
 })

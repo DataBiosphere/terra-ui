@@ -58,7 +58,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   const [loadingClusterDetails, setLoadingClusterDetails] = useState(false)
 
   const loadClusterError = _.flow(
-    withErrorReporting('Error loading notebook runtime details'),
+    withErrorReporting('Error loading cloud environment details'),
     Utils.withBusyState(setLoadingClusterDetails)
   )(async () => {
     const { errors: clusterErrors } = await Ajax().Clusters.cluster(cluster.googleProject, cluster.runtimeName).details()
@@ -77,7 +77,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
   Utils.useOnMount(() => { loadClusterError() })
 
   return h(Modal, {
-    title: `Notebook Runtime Error${userscriptError ? ' due to Userscript Error' : ''}`,
+    title: `Cloud Environment Creation Failed${userscriptError ? ' due to Userscript Error' : ''}`,
     showCancel: false,
     onDismiss
   }, [
@@ -134,7 +134,7 @@ export default class ClusterManager extends PureComponent {
     const rStudioLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: 'RStudio' })
 
     if (cluster.status === 'Error' && prevCluster.status !== 'Error' && !_.includes(cluster.id, errorNotifiedClusters.get())) {
-      notify('error', 'Error Found In Notebook Runtime', {
+      notify('error', 'Error Creating Cloud Environment', {
         message: h(ClusterErrorNotification, { cluster })
       })
       errorNotifiedClusters.update(Utils.append(cluster.id))
@@ -142,24 +142,24 @@ export default class ClusterManager extends PureComponent {
       cluster.status === 'Running' && prevCluster.status && prevCluster.status !== 'Running' &&
       cluster.labels.tool === 'RStudio' && window.location.hash !== rStudioLaunchLink
     ) {
-      const rStudioNotificationId = notify('info', 'Your runtime is ready.', {
+      const rStudioNotificationId = notify('info', 'Your cloud environment is ready.', {
         message: h(ButtonPrimary, {
           href: rStudioLaunchLink,
           onClick: () => clearNotification(rStudioNotificationId)
-        }, 'Launch Runtime')
+        }, 'Launch Cloud Environment')
       })
     } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) { // TODO: remove this notification some time after the data syncing release
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
-      notify('warn', 'Please Update Your Runtime', {
+      notify('warn', 'Please Update Your Cloud Environment', {
         message: h(Fragment, [
-          p(['Last year, we introduced important updates to Terra that are not compatible with the older notebook runtime associated with this workspace. You are no longer able to save new changes to notebooks using this older runtime.']),
+          p(['Last year, we introduced important updates to Terra that are not compatible with the older cloud environment associated with this workspace. You are no longer able to save new changes to notebooks using this older cloud environment.']),
           h(Link, { href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
         ])
       })
     } else if (isAfter(createdDate, twoMonthsAgo) && !isToday(dateNotified)) {
       setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
-      notify('warn', 'Outdated Notebook Runtime', {
-        message: 'Your notebook runtime is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'
+      notify('warn', 'Outdated Cloud Environment', {
+        message: 'Your cloud environment is over two months old. Please consider deleting and recreating your cloud environment in order to access the latest features and security updates.'
       })
     } else if (cluster.status === 'Running' && prevCluster.status === 'Updating') {
       notify('success', 'Number of workers has updated successfully.')
@@ -183,7 +183,7 @@ export default class ClusterManager extends PureComponent {
       await promise
       await refreshClusters()
     } catch (error) {
-      reportError('Notebook Runtime Error', error)
+      reportError('Cloud Environment Error', error)
     } finally {
       this.setState({ busy: false })
     }
@@ -219,16 +219,16 @@ export default class ClusterManager extends PureComponent {
             shape: 'play',
             onClick: () => this.startCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Start notebook runtime' : noCompute,
-            'aria-label': 'Start notebook runtime'
+            tooltip: canCompute ? 'Start cloud environment' : noCompute,
+            'aria-label': 'Start cloud environment'
           })
         case 'Running':
           return h(ClusterIcon, {
             shape: 'pause',
             onClick: () => this.stopCluster(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Stop notebook runtime' : noCompute,
-            'aria-label': 'Stop notebook runtime'
+            tooltip: canCompute ? 'Stop cloud environment' : noCompute,
+            'aria-label': 'Stop cloud environment'
           })
         case 'Starting':
         case 'Stopping':
@@ -238,8 +238,8 @@ export default class ClusterManager extends PureComponent {
           return h(ClusterIcon, {
             shape: 'sync',
             disabled: true,
-            tooltip: 'Notebook runtime update in progress',
-            'aria-label': 'Notebook runtime update in progress'
+            tooltip: 'Cloud environment update in progress',
+            'aria-label': 'Cloud environment update in progress'
           })
         case 'Error':
           return h(ClusterIcon, {
@@ -255,8 +255,8 @@ export default class ClusterManager extends PureComponent {
             shape: 'play',
             onClick: () => this.setState({ createModalDrawerOpen: true }),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Create notebook runtime' : noCompute,
-            'aria-label': 'Create notebook runtime'
+            tooltip: canCompute ? 'Create cloud environment' : noCompute,
+            'aria-label': 'Create cloud environment'
           })
       }
     }
@@ -274,7 +274,7 @@ export default class ClusterManager extends PureComponent {
       (activeClusters.length > 1 || activeDisks.length > 1) && h(Link, {
         style: { marginRight: '1rem' },
         href: Nav.getLink('clusters'),
-        tooltip: 'Multiple runtimes and/or persistent disks found in this billing project. Click to select which to delete.'
+        tooltip: 'Multiple cloud environments found in this billing project. Click to select which to delete.'
       }, [icon('warning-standard', { size: 24, style: { color: colors.danger() } })]),
       h(Link, {
         href: appLaunchLink,
@@ -293,13 +293,13 @@ export default class ClusterManager extends PureComponent {
           tooltip: Utils.cond(
             [!canCompute, () => noCompute],
             [creating, () => 'Your environment is being created'],
-            () => 'Update runtime'
+            () => 'Update cloud environment'
           ),
           onClick: () => this.setState({ createModalDrawerOpen: true }),
           disabled: isDisabled
         }, [
           div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
-            div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
+            div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Cloud Environment'),
             div({ style: { fontSize: 10 } }, [
               span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, [currentStatus === 'LeoReconfiguring' ? 'Updating' : (currentStatus || 'None')]),
               currentStatus && ` (${Utils.formatUSD(totalCost)} hr)`

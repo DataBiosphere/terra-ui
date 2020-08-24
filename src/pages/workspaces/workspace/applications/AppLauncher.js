@@ -20,7 +20,6 @@ const AppLauncher = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: _.get('app')
   })
-  // TODO PD: consider removing cluster from this list and using currentCluster() to extract it from clusters instead
 )(({ namespace, name, refreshClusters, clusters, persistentDisks, app }, ref) => {
   const [cookieReady, setCookieReady] = useState(false)
   const [showCreate, setShowCreate] = useState(false)
@@ -48,7 +47,7 @@ const AppLauncher = _.flow(
       h(Fragment, [
         h(PeriodicCookieSetter, { namespace, runtimeName }),
         app === 'RStudio' && h(PlaygroundHeader, [
-          'This feature is in early development. Your files are saved on your runtime but not to your workspace. We encourage you to frequently ',
+          'This feature is in early development. Your files are saved on your cloud environment but not to your workspace. We encourage you to frequently ',
           h(Link, {
             href: 'https://support.terra.bio/hc/en-us/articles/360037269472#h_822db925-41fa-4797-b0da-0839580a74da',
             ...Utils.newTabLinkProps
@@ -67,16 +66,16 @@ const AppLauncher = _.flow(
       div({ style: { padding: '2rem' } }, [
         !busy && h(StatusMessage, { hideSpinner: ['Error', 'Stopped', null].includes(clusterStatus) }, [
           Utils.cond(
-            [clusterStatus === 'Creating', () => 'Creating notebook runtime environment. You can navigate away and return in 3-5 minutes.'],
-            [clusterStatus === 'Starting', () => 'Starting notebook runtime environment, this may take up to 2 minutes.'],
+            [clusterStatus === 'Creating', () => 'Creating cloud environment. You can navigate away and return in 3-5 minutes.'],
+            [clusterStatus === 'Starting', () => 'Starting cloud environment, this may take up to 2 minutes.'],
             [_.includes(clusterStatus, usableStatuses), () => 'Almost ready...'],
-            [clusterStatus === 'Stopping', () => 'Notebook runtime environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'],
-            [clusterStatus === 'Stopped', () => 'Notebook runtime environment is stopped. Start it to edit your notebook or use the terminal.'],
-            [clusterStatus === 'LeoReconfiguring', () => 'Notebook runtime environment is updating, please wait.'],
-            [clusterStatus === 'Error', () => 'Error with the notebook runtime environment, please try again.'],
-            [clusterStatus === null, () => 'Create a notebook runtime to continue.'],
+            [clusterStatus === 'Stopping', () => 'Cloud environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'],
+            [clusterStatus === 'Stopped', () => 'Cloud environment is stopped. Start it to edit your notebook or use the terminal.'],
+            [clusterStatus === 'LeoReconfiguring', () => 'Cloud environment is updating, please wait.'],
+            [clusterStatus === 'Error', () => 'Error with the cloud environment, please try again.'],
+            [clusterStatus === null, () => 'Create a cloud environment to continue.'],
             [clusterStatus === undefined, () => 'Loading...'],
-            () => 'Unknown notebook runtime status. Please create a new runtime or contact support.'
+            () => 'Unknown cloud environment status. Please create a new cloud environment or contact support.'
           )
         ]),
         h(NewClusterModal, {
