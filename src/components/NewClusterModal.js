@@ -133,11 +133,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     onSuccess: PropTypes.func.isRequired
   }
 
-  makeWorkspaceObj() {
-    const { namespace, name } = this.props
-    return { workspace: { namespace, name } }
-  }
-
   constructor(props) {
     super(props)
     const currentCluster = this.getCurrentCluster()
@@ -156,6 +151,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       upgradeDiskSelected: false,
       simplifiedForm: !currentCluster
     }
+  }
+
+  makeWorkspaceObj() {
+    const { namespace, name } = this.props
+    return { workspace: { namespace, name } }
   }
 
   getCurrentCluster() {
@@ -299,6 +299,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).update({ runtimeConfig })
     }
     if (shouldCreateRuntime) {
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentCreate, { ...extractWorkspaceDetails(this.makeWorkspaceObj()), ...newRuntime, isDefaultConfig: !!this.state.simplifiedForm, pdSize: '', cost: '' })
       await Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         runtimeConfig,
         toolDockerImage: newRuntime.toolDockerImage,
@@ -458,6 +459,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   )(async () => {
     const { namespace } = this.props
     const currentCluster = this.getCurrentCluster()
+
+    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+      existingConfig: !!currentCluster, ...extractWorkspaceDetails(this.makeWorkspaceObj())
+    })
 
     const [currentClusterDetails, newLeoImages] = await Promise.all([
       currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.runtimeName).details() : null,
@@ -843,11 +848,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])
     }
 
-    const makeWorkspaceObj = () => {
-      const { namespace, name } = this.props
-      return { workspace: { namespace, name } }
-    }
-
     const renderDeleteEnvironmentOptions = () => {
       const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
       return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
@@ -1019,7 +1019,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const handleLearnMoreAboutPersistentDisk = () => {
       this.setState({ viewMode: 'aboutPersistentDisk' })
       Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
-        ...extractWorkspaceDetails(makeWorkspaceObj()),
+        ...extractWorkspaceDetails(this.makeWorkspaceObj()),
         currentlyHasAttachedDisk: !!this.hasAttachedDisk()
       })
     }
