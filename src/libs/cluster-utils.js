@@ -51,13 +51,9 @@ export const runtimeConfigCost = config => {
   ])
 }
 
-export const persistentDiskCostMonthly = config => {
-  return config.size * monthlyStoragePrice
-}
-
-export const persistentDiskCost = config => {
-  return config.size * storagePrice
-}
+export const [persistentDiskCost, persistentDiskCostMonthly] = _.map(price => ({ size, status }) => {
+  return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : size * price
+}, [storagePrice, monthlyStoragePrice])
 
 export const clusterCost = ({ runtimeConfig, status }) => {
   switch (status) {

@@ -208,7 +208,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   */
   getPendingDisk() {
     const { persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
-    return { size: newPersistentDisk.size }
+    return { size: newPersistentDisk.size, status: 'Ready' }
   }
 
   sendDeleteMetrics(isDeleteRuntime, isDeletePersistentDisk) {

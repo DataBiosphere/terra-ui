@@ -12,7 +12,7 @@ import { dataSyncingDocUrl } from 'src/data/machines'
 import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
-import { clusterCost, collapsedClusterStatus, currentCluster, trimClustersOldestFirst } from 'src/libs/cluster-utils'
+import { clusterCost, collapsedClusterStatus, currentCluster, persistentDiskCost, trimClustersOldestFirst } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -260,7 +260,7 @@ export default class ClusterManager extends PureComponent {
           })
       }
     }
-    const totalCost = _.sum(_.map(clusterCost, clusters))
+    const totalCost = _.sum(_.map(clusterCost, clusters)) + _.sum(_.map(persistentDiskCost, persistentDisks))
     const activeClusters = this.getActiveClustersOldestFirst()
     const activeDisks = _.remove({ status: 'Deleting' }, persistentDisks)
     const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring } = _.countBy(collapsedClusterStatus, activeClusters)
@@ -302,7 +302,7 @@ export default class ClusterManager extends PureComponent {
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Cloud Environment'),
             div({ style: { fontSize: 10 } }, [
               span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, [currentStatus === 'LeoReconfiguring' ? 'Updating' : (currentStatus || 'None')]),
-              currentStatus && ` (${Utils.formatUSD(totalCost)} hr)`
+              !!totalCost && ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
           icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
