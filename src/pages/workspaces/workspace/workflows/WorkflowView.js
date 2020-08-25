@@ -956,7 +956,7 @@ const WorkflowView = _.flow(
       // are hidden from the UI and cause the workflow to fail at launch with "Validation errors: Extra inputs".
       //
       // The IO set `modifiedInputsOutputs` is always current because we regenerate it from the WDL each time; use it to filter out
-      // any extraneous IO keys before sending.
+      // any extraneous IO keys before saving.
       //
       // https://broadworkbench.atlassian.net/browse/WA-291
       const validInputs = _.map('name', modifiedInputsOutputs['inputs'])
