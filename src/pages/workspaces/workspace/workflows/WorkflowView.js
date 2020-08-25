@@ -962,7 +962,7 @@ const WorkflowView = _.flow(
       const validInputs = _.map('name',  modifiedInputsOutputs['inputs'])
       const validOutputs = _.map('name', modifiedInputsOutputs['outputs'])
 
-      modifiedConfig['inputs']  = Object.fromEntries(Object.entries(modifiedConfig['inputs']).filter(function(tuple) {
+      modifiedConfig['inputs'] = Object.fromEntries(Object.entries(modifiedConfig['inputs']).filter(function(tuple) {
         return validInputs.includes(tuple[0])
       }))
       modifiedConfig['outputs'] = Object.fromEntries(Object.entries(modifiedConfig['outputs']).filter(function(tuple) {
