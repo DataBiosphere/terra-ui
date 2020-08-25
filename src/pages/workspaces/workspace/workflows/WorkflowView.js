@@ -959,7 +959,7 @@ const WorkflowView = _.flow(
       // any extraneous IO keys before sending.
       //
       // https://broadworkbench.atlassian.net/browse/WA-291
-      const validInputs = _.map('name',  modifiedInputsOutputs['inputs'])
+      const validInputs = _.map('name', modifiedInputsOutputs['inputs'])
       const validOutputs = _.map('name', modifiedInputsOutputs['outputs'])
 
       modifiedConfig['inputs'] = Object.fromEntries(Object.entries(modifiedConfig['inputs']).filter(function(tuple) {
