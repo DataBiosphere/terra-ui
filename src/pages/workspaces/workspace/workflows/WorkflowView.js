@@ -962,12 +962,14 @@ const WorkflowView = _.flow(
       const validInputs = _.map('name', modifiedInputsOutputs['inputs'])
       const validOutputs = _.map('name', modifiedInputsOutputs['outputs'])
 
-      modifiedConfig['inputs'] = Object.fromEntries(Object.entries(modifiedConfig['inputs']).filter(function(tuple) {
-        return validInputs.includes(tuple[0])
-      }))
-      modifiedConfig['outputs'] = Object.fromEntries(Object.entries(modifiedConfig['outputs']).filter(function(tuple) {
-        return validOutputs.includes(tuple[0])
-      }))
+      const filterIO = (ioMap, allowedKeys) => {
+        return _.fromPairs(_.filter(pair => {
+          return _.includes(pair[0], allowedKeys);
+        }, _.toPairs(ioMap)));
+      };
+
+      modifiedConfig['inputs'] = filterIO(modifiedConfig['inputs'], validInputs);
+      modifiedConfig['outputs'] = filterIO(modifiedConfig['outputs'], validOutputs);
 
       // POST to create new MC snapshot
       const validationResponse = await Ajax().Workspaces.workspace(namespace, name)
