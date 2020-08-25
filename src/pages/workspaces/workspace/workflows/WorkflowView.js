@@ -951,6 +951,25 @@ const WorkflowView = _.flow(
         _.update('outputs', this.isSingle() ? () => ({}) : _.mapValues(_.trim))
       )
 
+      // Dockstore users who target floating tags can change their WDL via Github without explicitly selecting a new version in Terra.
+      // If the change removes or renames inputs or outputs, the `modifiedConfig` retrieved from the DB will include stale keys that
+      // are hidden from the UI and cause the workflow to fail at launch with "Validation errors: Extra inputs".
+      //
+      // The IO set `modifiedInputsOutputs` is always current because we regenerate it from the WDL each time; use it to filter out
+      // any extraneous IO keys before sending.
+      //
+      // https://broadworkbench.atlassian.net/browse/WA-291
+      const validInputs = _.map('name',  modifiedInputsOutputs['inputs'])
+      const validOutputs = _.map('name', modifiedInputsOutputs['outputs'])
+
+      modifiedConfig['inputs']  = Object.fromEntries(Object.entries(modifiedConfig['inputs']).filter(function(tuple) {
+        return validInputs.includes(tuple[0])
+      }))
+      modifiedConfig['outputs'] = Object.fromEntries(Object.entries(modifiedConfig['outputs']).filter(function(tuple) {
+        return validOutputs.includes(tuple[0])
+      }))
+
+      // POST to create new MC snapshot
       const validationResponse = await Ajax().Workspaces.workspace(namespace, name)
         .methodConfig(workflowNamespace, workflowName)
         .save(trimInputOutput(modifiedConfig))
