@@ -212,17 +212,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   sendCloudEnvironmentMetrics() {
-    const metricsEvent = Utils.cond(
-      [(this.state.viewMode === 'deleteEnvironmentOptions'), () => 'cloudEnvironmentDelete'],
-      [(!!this.getOldEnvironmentConfig().runtime), () => 'cloudEnvironmentUpdate'],
-      () => 'cloudEnvironmentCreate'
-    )
     const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     const newMachineType = newRuntime && (newRuntime.cloudService === cloudServices.GCE ? newRuntime.machineType : newRuntime.masterMachineType)
     const oldMachineType = oldRuntime && (oldRuntime?.cloudService === cloudServices.GCE ? oldRuntime.machineType : oldRuntime.masterMachineType)
     const { cpu: newRuntimeCpus, memory: newRuntimeMemory } = findMachineType(newMachineType)
     const { cpu: oldRuntimeCpus, memory: oldRuntimeMemory } = findMachineType(oldMachineType)
+    const metricsEvent = Utils.cond(
+      [(this.state.viewMode === 'deleteEnvironmentOptions'), () => 'cloudEnvironmentDelete'],
+      [(!!oldRuntime), () => 'cloudEnvironmentUpdate'],
+      () => 'cloudEnvironmentCreate'
+    )
 
     Ajax().Metrics.captureEvent(Events[metricsEvent], {
       ...extractWorkspaceDetails(this.makeWorkspaceObj()),
@@ -285,6 +285,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         })
       })
     }
+
+    this.sendCloudEnvironmentMetrics()
 
     if (shouldDeleteRuntime) {
       await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
@@ -597,7 +599,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             ...commonButtonProps,
             onClick: () => {
               this.applyChanges()
-              this.sendCloudEnvironmentMetrics()
             }
           }, [
             Utils.cond(
