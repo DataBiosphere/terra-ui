@@ -212,27 +212,35 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return { size: newPersistentDisk.size, status: 'Ready' }
   }
 
-  sendDeleteMetrics(isDeleteRuntime, isDeletePersistentDisk) {
-    Ajax().Metrics.captureEvent(Events.cloudEnvironmentDelete, {
-      ...extractWorkspaceDetails(this.makeWorkspaceObj()),
-      isDeleteRuntime,
-      isDeletePersistentDisk
-    })
-  }
+  sendCloudEnvironmentMetrics() {
+    const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
+    const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
+    const newMachineType = newRuntime && (newRuntime.cloudService === cloudServices.GCE ? newRuntime.machineType : newRuntime.masterMachineType)
+    const oldMachineType = oldRuntime && (oldRuntime?.cloudService === cloudServices.GCE ? oldRuntime.machineType : oldRuntime.masterMachineType)
+    const { cpu: newRuntimeCpus, memory: newRuntimeMemory } = findMachineType(newMachineType)
+    const { cpu: oldRuntimeCpus, memory: oldRuntimeMemory } = findMachineType(oldMachineType)
+    const metricsEvent = Utils.cond(
+      [(this.state.viewMode === 'deleteEnvironmentOptions'), () => 'cloudEnvironmentDelete'],
+      [(!!oldRuntime), () => 'cloudEnvironmentUpdate'],
+      () => 'cloudEnvironmentCreate'
+    )
 
-  sendUpdateMetrics(newRuntime, newPersistentDisk) {
-    const machineType = newRuntime.cloudService === cloudServices.GCE ? newRuntime.machineType : newRuntime.masterMachineType
-    const { cpu, memory } = findMachineType(machineType)
-
-    Ajax().Metrics.captureEvent(Events.cloudEnvironmentUpdate, {
+    Ajax().Metrics.captureEvent(Events[metricsEvent], {
       ...extractWorkspaceDetails(this.makeWorkspaceObj()),
-      ...newRuntime,
-      cpu,
-      memory,
-      persistentDiskSize: newPersistentDisk?.size,
-      runtimeCostPerHour: Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())),
-      runtimePausedCostPerHour: Utils.formatUSD(ongoingCost(this.getPendingRuntimeConfig())),
-      persistentDiskCostPerMonth: (newPersistentDisk && Utils.formatUSD(persistentDiskCostMonthly(newPersistentDisk)))
+      ..._.mapKeys(key => `newRuntime_${key}`, newRuntime),
+      newRuntime_exists: !!newRuntime,
+      newRuntime_cpus: newRuntime && newRuntimeCpus,
+      newRuntime_memory: newRuntime && newRuntimeMemory,
+      newRuntime_costPerHour: newRuntime && runtimeConfigCost(this.getPendingRuntimeConfig()),
+      newRuntime_pausedCostPerHour: newRuntime && ongoingCost(this.getPendingRuntimeConfig()),
+      ..._.mapKeys(key => `oldRuntime_${key}`, oldRuntime),
+      oldRuntime_exists: !!oldRuntime,
+      oldRuntime_cpus: oldRuntime && oldRuntimeCpus,
+      oldRuntime_memory: oldRuntime && oldRuntimeMemory,
+      ..._.mapKeys(key => `newPersistentDisk_${key}`, newPersistentDisk),
+      newPersistentDisk_costPerMonth: (newPersistentDisk && persistentDiskCostMonthly(this.getPendingDisk())),
+      ..._.mapKeys(key => `oldPersistentDisk_${key}`, oldPersistentDisk),
+      isDefaultConfig: !!this.state.simplifiedForm
     })
   }
 
@@ -279,13 +287,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       })
     }
 
-    if (shouldDeleteRuntime || this.willDeletePersistentDisk()) {
-      this.sendDeleteMetrics(shouldDeleteRuntime, this.willDeletePersistentDisk())
-    }
-
-    if (shouldUpdateRuntime || shouldUpdatePersistentDisk) {
-      this.sendUpdateMetrics(newRuntime, newPersistentDisk)
-    }
+    this.sendCloudEnvironmentMetrics()
 
     if (shouldDeleteRuntime) {
       await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
@@ -300,7 +302,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).update({ runtimeConfig })
     }
     if (shouldCreateRuntime) {
-      Ajax().Metrics.captureEvent(Events.cloudEnvironmentCreate, { ...extractWorkspaceDetails(this.makeWorkspaceObj()), ...newRuntime, isDefaultConfig: !!this.state.simplifiedForm, pdSize: '', cost: '' })
       await Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
         runtimeConfig,
         toolDockerImage: newRuntime.toolDockerImage,
@@ -590,7 +591,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           return h(ButtonPrimary, { ...commonButtonProps, onClick: () => this.setState({ viewMode: 'environmentWarning' }) }, ['Next'])
         }],
         () => {
-          return h(ButtonPrimary, { ...commonButtonProps, onClick: () => this.applyChanges() }, [
+          return h(ButtonPrimary, {
+            ...commonButtonProps,
+            onClick: () => {
+              this.applyChanges()
+            }
+          }, [
             Utils.cond(
               [viewMode === 'deleteEnvironmentOptions', () => 'Delete'],
               [oldRuntime, () => 'Update'],
