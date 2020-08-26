@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, p, span } from 'react-hyperscript-helpers'
+import { SaveFilesHelp } from 'src/components/cluster-common'
 import { ClusterErrorModal } from 'src/components/ClusterManager'
 import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -15,18 +16,8 @@ import { clusterCost, currentCluster, persistentDiskCostMonthly } from 'src/libs
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
-import { cond, formatUSD, makeCompleteDate, newTabLinkProps, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
+import { cond, formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
-
-const SaveNotice = () => {
-  return p([
-    'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
-    h(Link, {
-      href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-      ...newTabLinkProps
-    }, ['move them to the workspace bucket.'])
-  ])
-}
 
 const DeleteClusterModal = ({ cluster: { googleProject, runtimeName, runtimeConfig: { persistentDiskId } }, onDismiss, onSuccess }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
@@ -51,7 +42,7 @@ const DeleteClusterModal = ({ cluster: { googleProject, runtimeName, runtimeConf
         p([
           'Deleting this cloud environment will also ', span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk.'])
         ]),
-      h(SaveNotice),
+      h(SaveFilesHelp),
       p([
         'Deleting your cloud environment will stop all running notebooks and associated costs. You can recreate your cloud environment later, ',
         'which will take several minutes.'
@@ -78,7 +69,7 @@ const DeleteDiskModal = ({ disk: { googleProject, name }, onDismiss, onSuccess }
     p([
       'Deleting the persistent disk will ', span({ style: { fontWeight: 600 } }, ['delete all files on it.'])
     ]),
-    h(SaveNotice),
+    h(SaveFilesHelp),
     busy && spinnerOverlay
   ])
 }
