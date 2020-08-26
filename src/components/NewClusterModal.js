@@ -865,7 +865,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 }, [
                   p({ style: { marginBottom: 0 } }, [
                     'Deletes your application and cloud compute profile. This will also ',
-                    span({ style: { fontWeight: 600 } }, ['delete all files on the builtin hard disk.'])
+                    span({ style: { fontWeight: 600 } }, ['delete all files on the built-in hard disk.'])
                   ])
                 ]),
                 h(FancyRadio, {
@@ -908,7 +908,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               return h(Fragment, [
                 p([
                   'Deleting your application and cloud compute profile will also ',
-                  span({ style: { fontWeight: 600 } }, ['delete all files on the builtin hard disk.'])
+                  span({ style: { fontWeight: 600 } }, ['delete all files on the built-in hard disk.'])
                 ]),
                 h(SaveFilesHelp)
               ])
@@ -958,7 +958,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               [this.willDeleteBuiltinDisk(), () => h(Fragment, [
                 p([
                   'This change requires rebuilding your cloud environment, which will ',
-                  span({ style: { fontWeight: 600 } }, ['delete all files on builtin hard disk.'])
+                  span({ style: { fontWeight: 600 } }, ['delete all files on built-in hard disk.'])
                 ]),
                 h(SaveFilesHelp)
               ])],
@@ -1094,7 +1094,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               ]),
               h(ButtonOutline, {
                 style: { marginTop: '1rem' },
-                tooltip: 'Upgrade your environment to use a persistent disk. This will require a one-time deletion of your current builtin disk, but after that your data will be stored and preserved on the persistent disk.',
+                tooltip: 'Upgrade your environment to use a persistent disk. This will require a one-time deletion of your current built-in disk, but after that your data will be stored and preserved on the persistent disk.',
                 onClick: () => this.setState({ upgradeDiskSelected: true })
               }, ['Upgrade'])
             ]),
