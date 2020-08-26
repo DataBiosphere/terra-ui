@@ -88,6 +88,14 @@ const ioTask = ({ name }) => _.nth(-2, name.split('.'))
 const ioVariable = ({ name }) => _.nth(-1, name.split('.'))
 const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
 
+// Trim a config down based on what the `/inputsOutputs` endpoint says
+const filterConfigIO = ({ inputs, outputs }) => {
+  return _.flow(
+      _.update('inputs', _.pick(_.map('name', inputs))),
+      _.update('outputs', _.pick(_.map('name', outputs)))
+  )
+}
+
 const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions, readOnly }) => {
   const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' })
 
@@ -469,7 +477,14 @@ const WorkflowView = _.flow(
       const inputsOutputs = isRedacted ? {} : await Methods.configInputsOutputs(config)
       const selection = workflowSelectionStore.get()
       const readSelection = selectionKey && selection.key === selectionKey
-      const modifiedConfig = readSelection ? _.set('rootEntityType', selection.entityType, config) : config
+
+      // Dockstore users who target floating tags can change their WDL via Github without explicitly selecting a new version in Terra.
+      // Before letting the user edit the config we retrieved from the DB, drop any keys that are no longer valid. [WA-291]
+      // N.B. this causes `config` and `modifiedConfig` to be unequal, so we (accurately) prompt the user to save before launching
+      const modifiedConfig = filterConfigIO(inputsOutputs)(
+          readSelection ? _.set('rootEntityType', selection.entityType, config) : config
+      )
+
       this.setState({
         savedConfig: config, modifiedConfig,
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
@@ -570,8 +585,7 @@ const WorkflowView = _.flow(
       { modifiedInputsOutputs, savedSnapRedacted: currentSnapRedacted, currentSnapRedacted: false })
     this.setState(_.update('modifiedConfig', _.flow(
       _.set('methodRepoMethod', config.methodRepoMethod),
-      _.update('inputs', _.pick(_.map('name', modifiedInputsOutputs.inputs))),
-      _.update('outputs', _.pick(_.map('name', modifiedInputsOutputs.outputs)))
+      filterConfigIO(modifiedInputsOutputs)
     )))
     this.fetchInfo(config)
   })
@@ -951,27 +965,6 @@ const WorkflowView = _.flow(
         _.update('outputs', this.isSingle() ? () => ({}) : _.mapValues(_.trim))
       )
 
-      // Dockstore users who target floating tags can change their WDL via Github without explicitly selecting a new version in Terra.
-      // If the change removes or renames inputs or outputs, the `modifiedConfig` retrieved from the DB will include stale keys that
-      // are hidden from the UI and cause the workflow to fail at launch with "Validation errors: Extra inputs".
-      //
-      // The IO set `modifiedInputsOutputs` is always current because we regenerate it from the WDL each time; use it to filter out
-      // any extraneous IO keys before saving.
-      //
-      // https://broadworkbench.atlassian.net/browse/WA-291
-      const validInputs = _.map('name', modifiedInputsOutputs['inputs'])
-      const validOutputs = _.map('name', modifiedInputsOutputs['outputs'])
-
-      const filterIO = (ioMap, allowedKeys) => {
-        return _.fromPairs(_.filter(pair => {
-          return _.includes(pair[0], allowedKeys)
-        }, _.toPairs(ioMap)))
-      }
-
-      modifiedConfig['inputs'] = filterIO(modifiedConfig['inputs'], validInputs)
-      modifiedConfig['outputs'] = filterIO(modifiedConfig['outputs'], validOutputs)
-
-      // POST to create new MC snapshot
       const validationResponse = await Ajax().Workspaces.workspace(namespace, name)
         .methodConfig(workflowNamespace, workflowName)
         .save(trimInputOutput(modifiedConfig))
