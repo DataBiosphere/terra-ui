@@ -215,12 +215,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const metricsEvent = Utils.cond(
       [(this.state.viewMode === 'deleteEnvironmentOptions'), () => 'cloudEnvironmentDelete'],
       [(!!this.getOldEnvironmentConfig().runtime), () => 'cloudEnvironmentUpdate'],
-      [() => 'cloudEnvironmentCreate']
+      () => 'cloudEnvironmentCreate'
     )
-    const newRuntime = this.getNewEnvironmentConfig().runtime
-    const oldRuntime = this.getOldEnvironmentConfig().runtime
-    const newPersistentDisk = this.getNewEnvironmentConfig().persistentDisk
-    const oldPersistentDisk = this.getOldEnvironmentConfig().persistentDisk
+    const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
+    const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     const newMachineType = newRuntime && (newRuntime.cloudService === cloudServices.GCE ? newRuntime.machineType : newRuntime.masterMachineType)
     const oldMachineType = oldRuntime && (oldRuntime?.cloudService === cloudServices.GCE ? oldRuntime.machineType : oldRuntime.masterMachineType)
     const { cpu: newRuntimeCpus, memory: newRuntimeMemory } = findMachineType(newMachineType)
@@ -229,20 +227,18 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     Ajax().Metrics.captureEvent(Events[metricsEvent], {
       ...extractWorkspaceDetails(this.makeWorkspaceObj()),
       ..._.mapKeys(key => `newRuntime_${key}`, newRuntime),
-      ..._.mapKeys(key => `oldRuntime_${key}`, oldRuntime),
-      persistentDisk_wasDeleted: this.willDeletePersistentDisk(),
-      oldRuntime_wasDeleted: (oldRuntime && !this.canUpdateRuntime() && !_.isEqual(newRuntime, oldRuntime)),
-      oldRuntime_exists: !!oldRuntime,
       newRuntime_exists: !!newRuntime,
-      newPersistentDisk_size: newPersistentDisk?.size,
-      oldPersistentDisk_size: oldPersistentDisk?.size,
       newRuntime_cpus: newRuntime && newRuntimeCpus,
       newRuntime_memory: newRuntime && newRuntimeMemory,
-      oldRuntime_cpus: oldRuntime && oldRuntimeCpus,
-      oldRuntime_memory: oldRuntime && oldRuntimeMemory,
       newRuntime_costPerHour: newRuntime && runtimeConfigCost(this.getPendingRuntimeConfig()),
       newRuntime_pausedCostPerHour: newRuntime && ongoingCost(this.getPendingRuntimeConfig()),
+      ..._.mapKeys(key => `oldRuntime_${key}`, oldRuntime),
+      oldRuntime_exists: !!oldRuntime,
+      oldRuntime_cpus: oldRuntime && oldRuntimeCpus,
+      oldRuntime_memory: oldRuntime && oldRuntimeMemory,
+      ..._.mapKeys(key => `newPersistentDisk_${key}`, newPersistentDisk),
       newPersistentDisk_costPerMonth: (newPersistentDisk && persistentDiskCostMonthly(this.getPendingDisk())),
+      ..._.mapKeys(key => `oldPersistentDisk_${key}`, oldPersistentDisk),
       isDefaultConfig: !!this.state.simplifiedForm
     })
   }
