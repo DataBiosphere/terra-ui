@@ -91,8 +91,8 @@ const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(
 // Trim a config down based on what the `/inputsOutputs` endpoint says
 const filterConfigIO = ({ inputs, outputs }) => {
   return _.flow(
-      _.update('inputs', _.pick(_.map('name', inputs))),
-      _.update('outputs', _.pick(_.map('name', outputs)))
+    _.update('inputs', _.pick(_.map('name', inputs))),
+    _.update('outputs', _.pick(_.map('name', outputs)))
   )
 }
 
@@ -482,7 +482,7 @@ const WorkflowView = _.flow(
       // Before letting the user edit the config we retrieved from the DB, drop any keys that are no longer valid. [WA-291]
       // N.B. this causes `config` and `modifiedConfig` to be unequal, so we (accurately) prompt the user to save before launching
       const modifiedConfig = filterConfigIO(inputsOutputs)(
-          readSelection ? _.set('rootEntityType', selection.entityType, config) : config
+        readSelection ? _.set('rootEntityType', selection.entityType, config) : config
       )
 
       this.setState({
