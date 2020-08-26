@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { b, div, fieldset, h, input, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
+import { SaveFilesHelp } from 'src/components/cluster-common'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
@@ -525,7 +526,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           'Deletes your application and cloud compute profile, but detaches your persistent disk (and its associated data) from the environment and saves it for later. ',
           'The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.'
         ]),
-        p([
+        p({ style: { marginBottom: 0 } }, [
           'You will continue to incur persistent disk cost at ',
           span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCostMonthly(this.getCurrentPersistentDisk())), ' per month'])
         ])
@@ -538,18 +539,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         style: { marginTop: '1rem' }
       }, [
         p([
-          'Deletes your persistent disk (and its associated data), application and cloud compute profile. To permanently save your data, copy it to the workspace bucket.'
+          'Deletes your persistent disk, which will also ', span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
         ]),
-        // TODO PD: add correct href
-        h(Link, {
-          href: '',
-          ...Utils.newTabLinkProps
-        }, ['Learn more about workspace buckets']),
-        p([
-          'Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.\n',
-          'You will no longer incur any costs from this cloud environment.'
+        p({ style: { marginBottom: 0 } }, [
+          'Also deletes your application and cloud compute profile.'
         ])
-      ])
+      ]),
+      h(SaveFilesHelp)
     ])
   }
 
@@ -867,7 +863,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   checked: !deleteDiskSelected,
                   onChange: () => this.setState({ deleteDiskSelected: false })
                 }, [
-                  p(['Deletes your application and cloud compute profile. This will also delete any files on the associated hard disk.'])
+                  p({ style: { marginBottom: 0 } }, [
+                    'Deletes your application and cloud compute profile. This will also ',
+                    span({ style: { fontWeight: 600 } }, ['delete all files on the built-in hard disk.'])
+                  ])
                 ]),
                 h(FancyRadio, {
                   name: 'delete-persistent-disk',
@@ -876,47 +875,42 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   onChange: () => this.setState({ deleteDiskSelected: true }),
                   style: { marginTop: '1rem' }
                 }, [
-                  p(['Deletes your persistent disk (and it’s associated data). To permanently save your data, copy it to the workspace bucket. Since the persistent disk is not attached, the application and cloud compute profile will remain. ']),
-                  h(Link, {
-                    href: '',
-                    ...Utils.newTabLinkProps
-                  }, ['Learn more about workspace buckets']),
-                  p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks. You will no longer incur any costs from this persistent disk.'])
-                ])
+                  p([
+                    'Deletes your persistent disk, which will also ', span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
+                  ]),
+                  p({ style: { marginBottom: 0 } }, [
+                    'Since the persistent disk is not attached, the application and cloud compute profile will remain.'
+                  ])
+                ]),
+                h(SaveFilesHelp)
               ])
             }],
             [oldRuntime && oldPersistentDisk, () => this.renderDeleteDiskChoices()],
             [!oldRuntime && oldPersistentDisk, () => {
-              return h(FancyRadio, {
-                name: 'delete-persistent-disk',
-                labelText: 'Delete persistent disk',
-                checked: deleteDiskSelected,
-                onChange: () => this.setState({ deleteDiskSelected: true })
-              }, [
-                p([
-                  'Deletes your persistent disk (and its associated data). If you want to permanently save your data before deleting your disk, create a new cloud environment to access the disk and copy your data to the workspace bucket.'
+              return h(Fragment, [
+                h(FancyRadio, {
+                  name: 'delete-persistent-disk',
+                  labelText: 'Delete persistent disk',
+                  checked: deleteDiskSelected,
+                  onChange: () => this.setState({ deleteDiskSelected: true })
+                }, [
+                  p([
+                    'Deletes your persistent disk, which will also ', span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
+                  ]),
+                  p({ style: { marginBottom: 0 } }, [
+                    'If you want to permanently save some files from the disk before deleting it, you will need to create a new cloud environment to access it.'
+                  ])
                 ]),
-                h(Link, {
-                  href: '',
-                  ...Utils.newTabLinkProps
-                }, ['Learn more about workspace buckets']),
-                p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks. You will no longer incur any costs from this cloud environment.'])
+                h(SaveFilesHelp)
               ])
             }],
             () => {
               return h(Fragment, [
                 p([
-                  'Deleting your cloud environment will also ',
-                  span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk ']),
-                  '(e.g. input data or analysis outputs) and installed packages. To permanently save these files, ',
-                  h(Link, {
-                    href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
-                    ...Utils.newTabLinkProps
-                  }, ['move them to the workspace bucket.'])
+                  'Deleting your application and cloud compute profile will also ',
+                  span({ style: { fontWeight: 600 } }, ['delete all files on the built-in hard disk.'])
                 ]),
-                p([
-                  'Deleting your cloud environment will stop all running notebooks and associated costs. You can recreate your cloud environment later, which will take several minutes.'
-                ])
+                h(SaveFilesHelp)
               ])
             }
           )
@@ -962,22 +956,18 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           div({ style: { lineHeight: 1.5 } }, [
             Utils.cond(
               [this.willDeleteBuiltinDisk(), () => h(Fragment, [
-                p(['This change requires rebuilding your cloud environment, which will delete the builtin disk and all files on it. To avoid losing data, save important data to your workspace bucket.']),
-                // TODO PD: add correct href
-                h(Link, {
-                  href: '',
-                  ...Utils.newTabLinkProps
-                }, ['Learn more about workspace buckets'])
-                // TODO PD: conditionally suggest using a persistent disk if using a GCE runtime
+                p([
+                  'This change requires rebuilding your cloud environment, which will ',
+                  span({ style: { fontWeight: 600 } }, ['delete all files on built-in hard disk.'])
+                ]),
+                h(SaveFilesHelp)
               ])],
               [this.willDeletePersistentDisk(), () => h(Fragment, [
-                p(['Reducing the size of a persistent disk requires it to be deleted and recreated. This will delete all files on the disk.']),
-                p(['To avoid losing data, save important data to your workspace bucket.']),
-                // TODO PD: add correct href
-                h(Link, {
-                  href: '',
-                  ...Utils.newTabLinkProps
-                }, ['Learn more about workspace buckets'])
+                p([
+                  'Reducing the size of a persistent disk requires it to be deleted and recreated. This will ',
+                  span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
+                ]),
+                h(SaveFilesHelp)
               ])],
               [this.willRequireDowntime(), () => h(Fragment, [
                 p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
@@ -1104,7 +1094,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               ]),
               h(ButtonOutline, {
                 style: { marginTop: '1rem' },
-                tooltip: 'Upgrade your environment to use a persistent disk. This will require a one-time deletion of your current builtin disk, but after that your data will be stored and preserved on the persistent disk.',
+                tooltip: 'Upgrade your environment to use a persistent disk. This will require a one-time deletion of your current built-in disk, but after that your data will be stored and preserved on the persistent disk.',
                 onClick: () => this.setState({ upgradeDiskSelected: true })
               }, ['Upgrade'])
             ]),
