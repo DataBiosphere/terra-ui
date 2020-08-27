@@ -141,6 +141,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
     this.state = {
+      // Uncomment this to enable the modal state debugger pane. Leave undefined for production.
+      // showDebugger: false,
       loading: false,
       selectedPersistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : DEFAULT_DISK_SIZE,
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
@@ -492,7 +494,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const makeJSON = value => div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace' } }, [JSON.stringify(value, null, 2)])
     return h(Fragment, [
       showDebugger ?
-        showDebugger &&
         div({ style: { position: 'fixed', top: 0, left: 0, bottom: 0, right: '50vw', backgroundColor: 'white', padding: '1rem', overflowY: 'auto' } },
           [
             h(Link, { onClick: () => this.setState({ showDebugger: false }), style: { position: 'absolute', top: 0, right: 0 } }, ['x']),
@@ -555,7 +556,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const {
       masterMachineType, masterDiskSize, selectedPersistentDiskSize, sparkMode, workerMachineType,
       numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
-      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, loading, simplifiedForm, deleteDiskSelected
+      jupyterUserScriptUri, selectedLeoImage, customEnvImage, leoImages, viewMode, loading, simplifiedForm, deleteDiskSelected,
+      showDebugger
     } = this.state
     const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
@@ -1154,7 +1156,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         [Utils.DEFAULT, renderMainForm]
       ),
       loading && spinnerOverlay,
-      this.renderDebugger()
+      showDebugger !== undefined && this.renderDebugger()
     ])
   }
 
