@@ -529,7 +529,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ]),
         p({ style: { marginBottom: 0 } }, [
           'You will continue to incur persistent disk cost at ',
-          span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCostMonthly(this.getCurrentPersistentDisk())), ' per month'])
+          span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCostMonthly(this.getCurrentPersistentDisk())), ' per month.'])
         ])
       ]),
       h(FancyRadio, {
