@@ -1057,7 +1057,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
             div({ style: { display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' } }, [
               div({ style: { marginRight: '2rem' } }, [
-                div({ style: { fontSize: 16, fontWeight: 600 } }, ['Use default resource']),
+                div({ style: { fontSize: 16, fontWeight: 600 } }, ['Use default environment']),
                 ul({ style: { paddingLeft: '1rem', marginBottom: 0, lineHeight: 1.5 } }, [
                   li([
                     div([packageLabel]),
@@ -1078,7 +1078,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ]),
           div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
             div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' } }, [
-              div({ style: { fontSize: 16, fontWeight: 600 } }, ['Create custom resource']),
+              div({ style: { fontSize: 16, fontWeight: 600 } }, ['Create custom environment']),
               h(ButtonOutline, { onClick: () => this.setState({ simplifiedForm: false }) }, ['Customize'])
             ])
           ]),
