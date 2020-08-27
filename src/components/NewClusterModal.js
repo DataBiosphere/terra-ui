@@ -142,6 +142,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
     this.state = {
       loading: false,
+      currentPersistentDiskDetails: undefined,
       selectedPersistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : DEFAULT_DISK_SIZE,
       jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
       sparkMode: cloudService === cloudServices.GCE ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
@@ -248,9 +249,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating cloud environment')
   )(async () => {
-    const currentCluster = this.getCurrentCluster()
     const { onSuccess, namespace } = this.props
-    const { selectedLeoImage } = this.state
+    const { selectedLeoImage, currentClusterDetails } = this.state
     const currentPersistentDisk = this.getCurrentPersistentDisk()
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
@@ -290,7 +290,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     this.sendCloudEnvironmentMetrics()
 
     if (shouldDeleteRuntime) {
-      await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
+      await Ajax().Clusters.cluster(namespace, currentClusterDetails.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
     }
     if (shouldDeletePersistentDisk && !this.hasAttachedDisk()) {
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
@@ -299,7 +299,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       await Ajax().Disks.disk(namespace, currentPersistentDisk.name).update(newPersistentDisk.size)
     }
     if (shouldUpdateRuntime) {
-      await Ajax().Clusters.cluster(namespace, currentCluster.runtimeName).update({ runtimeConfig })
+      await Ajax().Clusters.cluster(namespace, currentClusterDetails.runtimeName).update({ runtimeConfig })
     }
     if (shouldCreateRuntime) {
       await Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
@@ -360,14 +360,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   getOldEnvironmentConfig() {
-    const currentCluster = this.getCurrentCluster()
-    const runtimeConfig = currentCluster?.runtimeConfig
-    const { currentClusterDetails } = this.state
+    const { currentClusterDetails, currentPersistentDiskDetails } = this.state
+    const runtimeConfig = currentClusterDetails?.runtimeConfig
     const cloudService = runtimeConfig?.cloudService
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
-    const currentPersistentDisk = this.getCurrentPersistentDisk()
     return {
-      runtime: currentCluster ? {
+      runtime: currentClusterDetails ? {
         cloudService,
         ...(cloudService === cloudServices.GCE ? {
           machineType: runtimeConfig.machineType,
@@ -389,7 +387,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         toolDockerImage: this.getImageUrl(currentClusterDetails),
         ...(currentClusterDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentClusterDetails?.jupyterUserScriptUri })
       } : undefined,
-      persistentDisk: currentPersistentDisk ? { size: currentPersistentDisk.size } : undefined
+      persistentDisk: currentPersistentDiskDetails ? { size: currentPersistentDiskDetails.size } : undefined
     }
   }
 
@@ -461,17 +459,19 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   )(async () => {
     const { namespace } = this.props
     const currentCluster = this.getCurrentCluster()
+    const currentPersistentDisk = this.getCurrentPersistentDisk()
 
     Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
       existingConfig: !!currentCluster, ...extractWorkspaceDetails(this.makeWorkspaceObj())
     })
 
-    const [currentClusterDetails, newLeoImages] = await Promise.all([
+    const [currentClusterDetails, newLeoImages, currentPersistentDiskDetails] = await Promise.all([
       currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.runtimeName).details() : null,
-      Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json())
+      Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json()),
+      currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
     ])
 
-    this.setState({ leoImages: newLeoImages, currentClusterDetails })
+    this.setState({ leoImages: newLeoImages, currentClusterDetails, currentPersistentDiskDetails })
     if (currentClusterDetails) {
       const imageUrl = this.getImageUrl(currentClusterDetails)
       if (_.find({ image: imageUrl }, newLeoImages)) {
