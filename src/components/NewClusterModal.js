@@ -464,12 +464,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
       existingConfig: !!currentCluster, ...extractWorkspaceDetails(this.makeWorkspaceObj())
     })
-
+    console.log(currentPersistentDisk)
+    const currentPersistentDiskBlah = await Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details()
+    console.log(currentPersistentDiskBlah)
     const [currentClusterDetails, newLeoImages, currentPersistentDiskDetails] = await Promise.all([
       currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.runtimeName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json()),
       currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
     ])
+    console.log(currentPersistentDiskDetails)
 
     this.setState({ leoImages: newLeoImages, currentClusterDetails, currentPersistentDiskDetails })
     if (currentClusterDetails) {

@@ -1290,7 +1290,7 @@ const Disks = signal => ({
       },
       details: () => {
         return fetchLeo(`api/google/v1/disks/${project}/${name}`,
-          _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }]))
+          _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }])).json()
       }
     }
   }
