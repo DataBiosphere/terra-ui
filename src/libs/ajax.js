@@ -1288,9 +1288,10 @@ const Disks = signal => ({
         return fetchLeo(`api/google/v1/disks/${project}/${name}`,
           _.mergeAll([authOpts(), jsonBody({ size }), appIdentifier, { signal, method: 'PATCH' }]))
       },
-      details: () => {
-        return fetchLeo(`api/google/v1/disks/${project}/${name}`,
-          _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }])).json()
+      details: async () => {
+        const res = await fetchLeo(`api/google/v1/disks/${project}/${name}`,
+          _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }]))
+        return res.json()
       }
     }
   }

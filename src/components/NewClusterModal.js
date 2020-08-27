@@ -250,8 +250,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     withErrorReporting('Error creating cloud environment')
   )(async () => {
     const { onSuccess, namespace } = this.props
-    const { selectedLeoImage, currentClusterDetails } = this.state
-    const currentPersistentDisk = this.getCurrentPersistentDisk()
+    const { selectedLeoImage, currentClusterDetails, currentPersistentDiskDetails } = this.state
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
     const shouldUpdatePersistentDisk = this.canUpdatePersistentDisk() && !_.isEqual(newPersistentDisk, oldPersistentDisk)
@@ -269,7 +268,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           diskSize: newRuntime.diskSize
         } : {
           persistentDisk: oldPersistentDisk && !shouldDeletePersistentDisk ? {
-            name: currentPersistentDisk.name
+            name: currentPersistentDiskDetails.name
           } : {
             name: Utils.generatePersistentDiskName(),
             size: newPersistentDisk.size
@@ -293,10 +292,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       await Ajax().Clusters.cluster(namespace, currentClusterDetails.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
     }
     if (shouldDeletePersistentDisk && !this.hasAttachedDisk()) {
-      await Ajax().Disks.disk(namespace, currentPersistentDisk.name).delete()
+      await Ajax().Disks.disk(namespace, currentPersistentDiskDetails.name).delete()
     }
     if (shouldUpdatePersistentDisk) {
-      await Ajax().Disks.disk(namespace, currentPersistentDisk.name).update(newPersistentDisk.size)
+      await Ajax().Disks.disk(namespace, currentPersistentDiskDetails.name).update(newPersistentDisk.size)
     }
     if (shouldUpdateRuntime) {
       await Ajax().Clusters.cluster(namespace, currentClusterDetails.runtimeName).update({ runtimeConfig })
@@ -392,8 +391,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   hasAttachedDisk() {
-    const currentCluster = this.getCurrentCluster()
-    return currentCluster?.runtimeConfig.persistentDiskId
+    const { currentClusterDetails } = this.state
+    return currentClusterDetails?.runtimeConfig.persistentDiskId
   }
 
   canUpdateRuntime() {
@@ -464,15 +463,11 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
       existingConfig: !!currentCluster, ...extractWorkspaceDetails(this.makeWorkspaceObj())
     })
-    console.log(currentPersistentDisk)
-    const currentPersistentDiskBlah = await Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details()
-    console.log(currentPersistentDiskBlah)
     const [currentClusterDetails, newLeoImages, currentPersistentDiskDetails] = await Promise.all([
       currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.runtimeName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json()),
       currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
     ])
-    console.log(currentPersistentDiskDetails)
 
     this.setState({ leoImages: newLeoImages, currentClusterDetails, currentPersistentDiskDetails })
     if (currentClusterDetails) {
@@ -518,7 +513,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   renderDeleteDiskChoices() {
-    const { deleteDiskSelected } = this.state
+    const { deleteDiskSelected, currentPersistentDiskDetails } = this.state
     return h(Fragment, [
       h(FancyRadio, {
         name: 'delete-persistent-disk',
@@ -532,7 +527,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ]),
         p({ style: { marginBottom: 0 } }, [
           'You will continue to incur persistent disk cost at ',
-          span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCostMonthly(this.getCurrentPersistentDisk())), ' per month'])
+          span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCostMonthly(currentPersistentDiskDetails)), ' per month'])
         ])
       ]),
       h(FancyRadio, {
@@ -1166,10 +1161,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   shouldUsePersistentDisk() {
-    const { sparkMode, upgradeDiskSelected } = this.state
-    const currentCluster = this.getCurrentCluster()
-
-    return !sparkMode && (!currentCluster?.runtimeConfig.diskSize || upgradeDiskSelected)
+    const { sparkMode, upgradeDiskSelected, currentClusterDetails } = this.state
+    return !sparkMode && (!currentClusterDetails?.runtimeConfig.diskSize || upgradeDiskSelected)
   }
 
   willDeletePersistentDisk() {
