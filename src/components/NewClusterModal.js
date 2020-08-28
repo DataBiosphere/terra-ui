@@ -773,6 +773,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   id,
                   isSearchable: false,
                   value: sparkMode,
+                  menuPosition: 'fixed',
                   onChange: ({ value }) => this.setState({ sparkMode: value }),
                   options: [
                     { value: false, label: 'Standard VM', isDisabled: requiresSpark },
