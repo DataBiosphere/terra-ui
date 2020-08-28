@@ -1089,7 +1089,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             renderTitleAndTagline(),
             renderCostBreakdown()
           ]),
-          div({ style: { padding: '1.5rem', overflowY: 'auto' } }, [
+          div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
             renderApplicationSection(),
             renderRuntimeSection(),
             !!isPersistentDisk && renderPersistentDiskSection(),
