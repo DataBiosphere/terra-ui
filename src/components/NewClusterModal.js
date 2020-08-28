@@ -773,7 +773,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                   id,
                   isSearchable: false,
                   value: sparkMode,
-                  menuPosition: 'fixed',
                   onChange: ({ value }) => this.setState({ sparkMode: value }),
                   options: [
                     { value: false, label: 'Standard VM', isDisabled: requiresSpark },
@@ -1090,7 +1089,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             renderTitleAndTagline(),
             renderCostBreakdown()
           ]),
-          div({ style: { padding: '1.5rem', overflowY: 'auto' } }, [
+          div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
             renderApplicationSection(),
             renderRuntimeSection(),
             !!isPersistentDisk && renderPersistentDiskSection(),
