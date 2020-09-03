@@ -15,6 +15,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
@@ -286,6 +287,29 @@ const Notebooks = _.flow(
       }))
     )(notebooks)
 
+    const hasGalaxyInstance = () => {
+      // The first person to need this to not be false should implement this.
+      return false
+    }
+
+    const deleteGalaxyInstance = () => {
+
+    }
+
+    const createGalaxyInstance = () => {
+
+    }
+
+    const applyGalaxyChanges = () => {
+      return hasGalaxyInstance ? deleteGalaxyInstance : createGalaxyInstance
+    }
+
+    const getGalaxyText = () => {
+      return hasGalaxyInstance ?
+        div('deleteContent') :
+        div('createContent')
+    }
+
     return div({
       style: {
         display: 'flex',
@@ -316,6 +340,18 @@ const Notebooks = _.flow(
           ])
         ]),
         div({ style: { height: 15 } }),
+        getConfig().enableGalaxy && h(Fragment,[
+          h(Clickable, {
+            style: {
+              ...Style.elements.card.container, flex: 1,
+              backgroundColor: colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
+            },
+            onClick: applyGalaxyChanges,
+            disabled: !canWrite,
+            tooltip: !canWrite ? noWrite : undefined
+          }, [
+            getGalaxyText
+          ])]),
         h(Clickable, {
           style: {
             ...Style.elements.card.container, flex: 1,
