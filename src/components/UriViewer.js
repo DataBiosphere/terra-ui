@@ -159,7 +159,7 @@ const UriViewer = _.flow(
         if (response.hasOwnProperty('dos')) {
           const { dos: { data_object: { size, urls } } } = response
           fileSize = size
-          gsUri = urls.find(u => u.startsWith('gs://'), _.map('url', urls))
+          gsUri = _.find(u => u.startsWith('gs://'), _.map('url', urls))
         } else if (response.hasOwnProperty('gsUri')) {
           fileSize = response.size
           gsUri = response.gsUri
