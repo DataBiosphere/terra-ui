@@ -319,15 +319,14 @@ const Notebooks = _.flow(
       div({
         style: {
           margin: '0 2.5rem 2.5rem 0', display: 'flex',
-          height: 350, width: 200, flexDirection: 'column',
+          width: 200, flexDirection: 'column',
           fontSize: 16, lineHeight: '22px'
         }
       }, [
         h(Clickable, {
           style: {
             ...Style.elements.card.container,
-            flex: 1,
-            color: colors.accent()
+            color: colors.accent(), height: 125
           },
           onClick: () => this.setState({ creating: true }),
           disabled: !canWrite,
@@ -343,7 +342,7 @@ const Notebooks = _.flow(
           div({ style: { height: 15 } }),
           h(Clickable, {
             style: {
-              ...Style.elements.card.container, flex: 1
+              ...Style.elements.card.container, height: 125
             },
             onClick: applyGalaxyChanges
           }, [
@@ -353,7 +352,7 @@ const Notebooks = _.flow(
         div({ style: { height: 15 } }),
         h(Clickable, {
           style: {
-            ...Style.elements.card.container, flex: 1,
+            ...Style.elements.card.container, height: 125,
             backgroundColor: colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
           },
           onClick: openUploader,
