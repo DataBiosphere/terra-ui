@@ -11,6 +11,7 @@
   "jobManagerUrlRoot": "https://job-manager.dsde-prod.broadinstitute.org/jobs",
   "leoUrlRoot": "https://notebooks.firecloud.org",
   "marthaUrlRoot": "https://us-central1-broad-dsde-prod.cloudfunctions.net",
+  "metadataEndpoint": "martha_v2",
   "orchestrationUrlRoot": "https://api.firecloud.org",
   "profileUrlRoot": "https://profile-dot-broad-shibboleth-prod.appspot.com",
   "rawlsUrlRoot": "https://rawls.dsde-prod.broadinstitute.org",

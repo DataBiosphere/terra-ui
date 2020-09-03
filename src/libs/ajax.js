@@ -132,6 +132,8 @@ const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
+// const metadataEndpoint = _.flow(getConfig().metadataEndpoint, fetchOk)
+const fetchMetadataEndpoint = withUrlPrefix(`${getConfig().marthaUrlRoot}/${getConfig().metadataEndpoint}`, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
@@ -1122,7 +1124,7 @@ const Dockstore = signal => ({
 
 const Martha = signal => ({
   getDataObjectMetadata: async url => {
-    const res = await fetchMartha('martha_v3', _.mergeAll([jsonBody({ url }), authOpts(), appIdentifier, { signal, method: 'POST' }]))
+    const res = await fetchMetadataEndpoint('', _.mergeAll([jsonBody({ url }), authOpts(), appIdentifier, { signal, method: 'POST' }]))
     return res.json()
   },
 
