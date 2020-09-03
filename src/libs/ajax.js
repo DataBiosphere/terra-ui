@@ -1122,7 +1122,7 @@ const Dockstore = signal => ({
 
 const Martha = signal => ({
   getDataObjectMetadata: async url => {
-    const res = await fetchMartha('martha_v2', _.mergeAll([jsonBody({ url }), appIdentifier, { signal, method: 'POST' }]))
+    const res = await fetchMartha('martha_v3', _.mergeAll([jsonBody({ url }), authOpts(), appIdentifier, { signal, method: 'POST' }]))
     return res.json()
   },
 

@@ -152,9 +152,22 @@ const UriViewer = _.flow(
         const metadata = await loadObject(bucket, name, googleProject)
         setMetadata(metadata)
       } else {
-        const { dos: { data_object: { size, urls } } } = await Ajax(signal).Martha.getDataObjectMetadata(uri)
-        const [bucket, name] = parseGsUri(_.find(u => u.startsWith('gs://'), _.map('url', urls)))
-        setMetadata({ bucket, name, size })
+        const response = await Ajax(signal).Martha.getDataObjectMetadata(uri)
+        let fileSize
+        let gsUri
+
+        if (response.hasOwnProperty('dos')) {
+          const { dos: { data_object: { size, urls } } } = response
+          fileSize = size
+          gsUri = urls.find(u => u.startsWith('gs://'), _.map('url', urls))
+        } else if (response.hasOwnProperty('gsUri')) {
+          fileSize = response.size
+          gsUri = response.gsUri
+        } else {
+          debugger
+        }
+        const [bucket, name] = parseGsUri(gsUri)
+        setMetadata({ bucket, name, size: fileSize })
       }
     } catch (e) {
       setLoadingError(await e.json())
