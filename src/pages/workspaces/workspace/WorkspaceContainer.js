@@ -188,9 +188,7 @@ const useAppPolling = namespace => {
     try {
       const newApps = await Ajax(signal).Apps.list(namespace, { creator: getUser().email })
       setApps(newApps)
-      console.log(newApps)
       const app = currentApp(newApps)
-      console.log(app)
       reschedule(_.includes((app && (app.patchInProgress ? 'LeoReconfiguring' : app.status)), ['PROVISIONING', 'RUNNING']) ? 10000 : 120000)
     } catch (error) {
       reschedule(30000)
