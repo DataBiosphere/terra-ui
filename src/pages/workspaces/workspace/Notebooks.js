@@ -347,7 +347,7 @@ const Notebooks = _.flow(
             },
             onClick: applyGalaxyChanges
           }, [
-            getGalaxyText
+            getGalaxyText()
           ])
         ]),
         div({ style: { height: 15 } }),
