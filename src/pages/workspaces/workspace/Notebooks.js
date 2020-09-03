@@ -319,7 +319,7 @@ const Notebooks = _.flow(
       div({
         style: {
           margin: '0 2.5rem 2.5rem 0', display: 'flex',
-          height: 250, width: 200, flexDirection: 'column',
+          height: 350, width: 200, flexDirection: 'column',
           fontSize: 16, lineHeight: '22px'
         }
       }, [
@@ -339,19 +339,18 @@ const Notebooks = _.flow(
             icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
           ])
         ]),
-        div({ style: { height: 15 } }),
-        getConfig().enableGalaxy && h(Fragment,[
+        getConfig().enableGalaxy && h(Fragment, [
+          div({ style: { height: 15 } }),
           h(Clickable, {
             style: {
-              ...Style.elements.card.container, flex: 1,
-              backgroundColor: colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
+              ...Style.elements.card.container, flex: 1
             },
-            onClick: applyGalaxyChanges,
-            disabled: !canWrite,
-            tooltip: !canWrite ? noWrite : undefined
+            onClick: applyGalaxyChanges
           }, [
             getGalaxyText
-          ])]),
+          ])
+        ]),
+        div({ style: { height: 15 } }),
         h(Clickable, {
           style: {
             ...Style.elements.card.container, flex: 1,
