@@ -301,11 +301,11 @@ const Notebooks = _.flow(
     }
 
     const applyGalaxyChanges = () => {
-      return hasGalaxyInstance ? deleteGalaxyInstance : createGalaxyInstance
+      return hasGalaxyInstance() ? deleteGalaxyInstance : createGalaxyInstance
     }
 
     const getGalaxyText = () => {
-      return hasGalaxyInstance ?
+      return hasGalaxyInstance() ?
         div('deleteContent') :
         div('createContent')
     }
