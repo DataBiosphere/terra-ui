@@ -11,7 +11,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
-import { collapsedClusterStatus, currentCluster } from 'src/libs/cluster-utils'
+import { collapsedClusterStatus, currentApp, currentCluster } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { isTerra } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
@@ -176,6 +176,36 @@ const useClusterPolling = namespace => {
   return { clusters, refreshClusters }
 }
 
+const useAppPolling = namespace => {
+  const signal = Utils.useCancellation()
+  const timeout = useRef()
+  const [apps, setApps] = useState()
+  const reschedule = ms => {
+    clearTimeout(timeout.current)
+    timeout.current = setTimeout(refreshAppsSilently, ms)
+  }
+  const loadApps = async () => {
+    try {
+      const newApps = await Ajax(signal).Apps.list(namespace, { creator: getUser().email })
+      setApps(newApps)
+      console.log(newApps)
+      const app = currentApp(newApps)
+      console.log(app)
+      reschedule(_.includes((app && (app.patchInProgress ? 'LeoReconfiguring' : app.status)), ['PROVISIONING', 'RUNNING']) ? 10000 : 120000)
+    } catch (error) {
+      reschedule(30000)
+      throw error
+    }
+  }
+  const refreshApps = withErrorReporting('Error loading apps', loadApps)
+  const refreshAppsSilently = withErrorIgnoring(loadApps)
+  Utils.useOnMount(() => {
+    refreshApps()
+    return () => clearTimeout(timeout.current)
+  })
+  return { apps, refreshApps }
+}
+
 export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryparams }) => WrappedComponent => {
   const Wrapper = props => {
     const { namespace, name } = props
@@ -186,6 +216,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const cachedWorkspace = Utils.useStore(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
     const { clusters, refreshClusters } = useClusterPolling(namespace)
+    const { apps, refreshApps } = useAppPolling(namespace)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
       cachedWorkspace :
       undefined
@@ -256,8 +287,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, refreshClusters,
+          workspace, refreshWorkspace, refreshApps, refreshClusters,
           cluster: !clusters ? undefined : (currentCluster(clusters) || null),
+          apps,
           ...props
         }),
         loadingWorkspace && spinnerOverlay
