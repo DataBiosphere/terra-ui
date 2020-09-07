@@ -10,6 +10,7 @@ import { Clickable, IdContainer, Link, makeMenuIcon, MenuButton, PageBox, Select
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
+import { NewGalaxyModal } from 'src/components/NewGalaxyModal'
 import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -18,6 +19,7 @@ import { appIsProvisioning, currentApp } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import { versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { authStore } from 'src/libs/state'
@@ -43,6 +45,14 @@ const notebookCardCommonStyles = listView => _.merge({ display: 'flex' },
       padding: 0
     }
 )
+
+const galaxyCardStyle = () => {
+  return {
+    fontSize: 18,
+    lineHeight: '22px',
+    width: 160
+  }
+}
 
 const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
@@ -294,23 +304,25 @@ const Notebooks = _.flow(
       Ajax().Apps.app(app.googleProject, app.appName).delete()
     }
 
-    const createGalaxyInstance = () => {
-
-    }
-
     const applyGalaxyChanges = () => {
-      return app ? deleteGalaxyInstance() : createGalaxyInstance()
+      return app ? deleteGalaxyInstance() : this.setState({ creatingGalaxy: true })
     }
 
     const getGalaxyText = () => {
       return app ?
-        div({ style: { fontSize: 18, lineHeight: '22px', width: 160 } }, [
+        div({ style: { ...galaxyCardStyle() } }, [
           div(['Galaxy Interactive']),
           div(['Environment']),
           div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status)]),
           icon('trash', { size: 21 })
         ]) :
-        div('createContent')
+        div({ style: { ...galaxyCardStyle(), color: colors.accent() } }, [
+          div(['Create a Cloud']),
+          div(['Environment for ']),
+          div(['Galaxy ', versionTag('Alpha', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` }
+          )]),
+          icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
+        ])
     }
 
     return div({
@@ -349,7 +361,7 @@ const Notebooks = _.flow(
             },
             disabled: appIsProvisioning(app),
             tooltip: appIsProvisioning(app) ? 'Your galaxy app is being created' : undefined,
-            onClick: applyGalaxyChanges
+            onClick: () => applyGalaxyChanges()
           }, [
             getGalaxyText()
           ])
@@ -383,7 +395,7 @@ const Notebooks = _.flow(
   }
 
   render() {
-    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter } = this.state
+    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter, creatingGalaxy } = this.state
     const {
       namespace, name, listView, setListView, workspace,
       workspace: { accessLevel, workspace: { bucketName } }
@@ -457,6 +469,12 @@ const Notebooks = _.flow(
               this.setState({ deletingNotebookName: undefined })
               this.refresh()
             }
+          }),
+          !!creatingGalaxy && h(NewGalaxyModal, {
+            isOpen: creatingGalaxy,
+            namespace,
+            onDismiss: () => this.setState({ creatingGalaxy: false }),
+            onSuccess: () => { this.setState({ creatingGalaxy: false }) }
           })
         ]),
         this.renderNotebooks(openUploader)
