@@ -310,6 +310,14 @@ const Notebooks = _.flow(
 
     const getGalaxyText = () => {
       return app ?
+        div({ style: { fontSize: 18, lineHeight: '22px', width: 160 } }, [
+          div(['Galaxy Interactive']),
+          div(['Environment']),
+          div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status)]),
+          icon('trash', { size: 21 })
+        ]) :
+        div('createContent')
+      return app ?
         div({ style: { ...galaxyCardStyle() } }, [
           div(['Galaxy Interactive']),
           div(['Environment']),
