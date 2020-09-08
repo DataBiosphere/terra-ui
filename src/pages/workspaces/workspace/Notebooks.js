@@ -316,14 +316,6 @@ const Notebooks = _.flow(
           div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status)]),
           icon('trash', { size: 21 })
         ]) :
-        div('createContent')
-      return app ?
-        div({ style: { ...galaxyCardStyle() } }, [
-          div(['Galaxy Interactive']),
-          div(['Environment']),
-          div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status)]),
-          icon('trash', { size: 21 })
-        ]) :
         div({ style: { ...galaxyCardStyle(), color: colors.accent() } }, [
           div(['Create a Cloud']),
           div(['Environment for ']),
