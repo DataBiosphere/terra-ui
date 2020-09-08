@@ -68,11 +68,6 @@ const parseM2Response = response => {
   return { size, gsUri }
 }
 
-const parseM3Response = response => {
-  const { size, gsUri } = response
-  return { size, gsUri }
-}
-
 const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProject }) => {
   const signal = Utils.useCancellation()
   const [preview, setPreview] = useState()
@@ -164,7 +159,7 @@ const UriViewer = _.flow(
         setMetadata(metadata)
       } else {
         const response = await Ajax(signal).Martha.getDataObjectMetadata(uri)
-        const { size, gsUri } = response && response.dos ? parseM2Response(response) : parseM3Response(response)
+        const { size, gsUri } = response && response.dos ? parseM2Response(response) : response
         const [bucket, name] = parseGsUri(gsUri)
         setMetadata({ bucket, name, size })
       }

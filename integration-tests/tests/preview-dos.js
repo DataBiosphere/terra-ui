@@ -1,15 +1,15 @@
 const _ = require('lodash/fp')
 const { withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
-const { fillIn, findText, click, clickable, input, signIntoTerra, dismissNotifications } = require('../utils/integration-utils')
+const { fillIn, click, clickable, input, signIntoTerra, dismissNotifications } = require('../utils/integration-utils')
 
+const dataRepoUri = 'drs://jade.datarepo-dev.broadinstitute.org/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060'
 
 const testEntity = {
   name: 'test_entity_1',
   entityType: 'test_entity',
   attributes: {
-    file_uri:
-      'drs://jade.datarepo-dev.broadinstitute.org/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060'
+    file_uri: dataRepoUri
   }
 }
 
@@ -26,6 +26,9 @@ const testPreviewDosFn = _.flow(
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await fillIn(page, input({ placeholder: 'SEARCH WORKSPACES' }), workspaceName)
   await click(page, clickable({ textContains: workspaceName }))
+  await click(page, clickable({ textContains: 'data' }))
+  await click(page, clickable({ textContains: 'test_entity (1)' }))
+  await click(page, clickable({ textContains: dataRepoUri }))
 
   /*
   Run with DEVTOOLS=true or you'll get no debugger breaks!
@@ -45,7 +48,7 @@ const testPreviewDosFn = _.flow(
    */
 
   await jestPuppeteer.debug()
-  throw new Error('screenshot?')
+  // throw new Error('screenshot?')
 })
 
 const testPreviewDos = {
