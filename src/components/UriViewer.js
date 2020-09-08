@@ -62,6 +62,17 @@ const getMaxDownloadCostNA = bytes => {
   return Utils.formatUSD(downloadPrice)
 }
 
+const parseM2Response = response => {
+  const { dos: { data_object: { size, urls } } } = response
+  const gsUri = _.find(u => u.startsWith('gs://'), _.map('url', urls))
+  return { size, gsUri }
+}
+
+const parseM3Response = response => {
+  const { size, gsUri } = response
+  return { size, gsUri }
+}
+
 const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProject }) => {
   const signal = Utils.useCancellation()
   const [preview, setPreview] = useState()
@@ -153,21 +164,9 @@ const UriViewer = _.flow(
         setMetadata(metadata)
       } else {
         const response = await Ajax(signal).Martha.getDataObjectMetadata(uri)
-        let fileSize
-        let gsUri
-
-        if (response.hasOwnProperty('dos')) {
-          const { dos: { data_object: { size, urls } } } = response
-          fileSize = size
-          gsUri = _.find(u => u.startsWith('gs://'), _.map('url', urls))
-        } else if (response.hasOwnProperty('gsUri')) {
-          fileSize = response.size
-          gsUri = response.gsUri
-        } else {
-          debugger
-        }
+        const { size, gsUri } = response && response.dos ? parseM2Response(response) : parseM3Response(response)
         const [bucket, name] = parseGsUri(gsUri)
-        setMetadata({ bucket, name, size: fileSize })
+        setMetadata({ bucket, name, size })
       }
     } catch (e) {
       setLoadingError(await e.json())
