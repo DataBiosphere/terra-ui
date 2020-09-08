@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
-import { a, b, div, h, img, span } from 'react-hyperscript-helpers'
+import { a, div, h, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
 import {
   ButtonPrimary, Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay
