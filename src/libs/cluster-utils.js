@@ -79,6 +79,17 @@ export const currentCluster = clusters => {
   return !clusters ? undefined : (_.flow(trimClustersOldestFirst, _.last)(clusters) || null)
 }
 
+export const trimAppsOldestFirst = _.flow(
+  _.remove({ status: 'Deleting' }),
+  _.sortBy('createdDate')
+)
+
+export const currentApp = _.flow(trimAppsOldestFirst, _.last)
+
+export const appIsProvisioning = app => {
+  return app && app.status === 'PROVISIONING'
+}
+
 export const collapsedClusterStatus = cluster => {
   return cluster && (cluster.patchInProgress ? 'LeoReconfiguring' : cluster.status) // NOTE: preserves null vs undefined
 }

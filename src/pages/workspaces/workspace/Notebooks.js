@@ -14,6 +14,7 @@ import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, Noteboo
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { appIsProvisioning, currentApp } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -270,9 +271,11 @@ const Notebooks = _.flow(
   renderNotebooks(openUploader) {
     const { notebooks, sortOrder: { field, direction }, currentUserHash, potentialLockers, filter } = this.state
     const {
+      apps,
       name: wsName, namespace, listView,
       workspace: { accessLevel }
     } = this.props
+    const app = currentApp(apps)
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.flow(
       _.filter(({ name }) => Utils.textMatch(filter, printName(name))),
@@ -287,13 +290,8 @@ const Notebooks = _.flow(
       }))
     )(notebooks)
 
-    const hasGalaxyInstance = () => {
-      // The first person to need this to not be false should implement this.
-      return false
-    }
-
     const deleteGalaxyInstance = () => {
-
+      Ajax().Apps.app(app.googleProject, app.appName).delete()
     }
 
     const createGalaxyInstance = () => {
@@ -301,12 +299,17 @@ const Notebooks = _.flow(
     }
 
     const applyGalaxyChanges = () => {
-      return hasGalaxyInstance() ? deleteGalaxyInstance : createGalaxyInstance
+      return app ? deleteGalaxyInstance() : createGalaxyInstance()
     }
 
     const getGalaxyText = () => {
-      return hasGalaxyInstance() ?
-        div('deleteContent') :
+      return app ?
+        div({ style: { fontSize: 18, lineHeight: '22px', width: 160 } }, [
+          div(['Galaxy Interactive']),
+          div(['Environment']),
+          div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status)]),
+          icon('trash', { size: 21 })
+        ]) :
         div('createContent')
     }
 
@@ -344,6 +347,8 @@ const Notebooks = _.flow(
             style: {
               ...Style.elements.card.container, height: 125
             },
+            disabled: appIsProvisioning(app),
+            tooltip: appIsProvisioning(app) ? 'Your galaxy app is being created' : undefined,
             onClick: applyGalaxyChanges
           }, [
             getGalaxyText()
