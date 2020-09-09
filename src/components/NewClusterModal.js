@@ -129,7 +129,6 @@ const PROJECT_SPECIFIC_MODE = '__project_specific_mode__'
 
 export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
   static propTypes = {
-    currentCluster: PropTypes.object,
     clusters: PropTypes.array,
     persistentDisks: PropTypes.array,
     namespace: PropTypes.string.isRequired,
@@ -180,9 +179,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   /**
-   * Transform the new environment config into the shape of runtime config
-   * returned from leonardo. Specifically used as an input to cost calculation
-   * for potential new configurations.
+   * Transforms the new environment config into the shape of runtime config
+   * returned from leonardo. The cost calculation functions expect that shape,
+   * so this is necessary to compute the cost for potential new configurations.
    */
   getPendingRuntimeConfig() {
     const { runtime: newRuntime } = this.getNewEnvironmentConfig()
@@ -208,9 +207,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   /**
-  * Transform new environment config into the shape of a disk returned from Leo.
-  * Used as an input to cost calculation.
-  */
+   * Transforms the new environment config into the shape of a disk returned
+   * from leonardo. The cost calculation functions expect that shape, so this
+   * is necessary to compute the cost for potential new disk configurations.
+   */
   getPendingDisk() {
     const { persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
     return { size: newPersistentDisk.size, status: 'Ready' }
