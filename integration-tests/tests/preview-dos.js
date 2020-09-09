@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const { withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
-const { fillIn, click, clickable, input, signIntoTerra, dismissNotifications } = require('../utils/integration-utils')
+const { delay, fillIn, click, clickable, findInDataTableRow, input, signIntoTerra, dismissNotifications } = require('../utils/integration-utils')
 
 const dataRepoUri = 'drs://jade.datarepo-dev.broadinstitute.org/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060'
 
@@ -28,7 +28,9 @@ const testPreviewDosFn = _.flow(
   await click(page, clickable({ textContains: workspaceName }))
   await click(page, clickable({ textContains: 'data' }))
   await click(page, clickable({ textContains: 'test_entity (1)' }))
-  await click(page, clickable({ textContains: dataRepoUri }))
+  await click(page, clickable({ text: dataRepoUri }))
+  await delay(10000)
+  // await click(page, await findInDataTableRow(page, testEntity.name, dataRepoUri))
 
   /*
   Run with DEVTOOLS=true or you'll get no debugger breaks!
