@@ -103,8 +103,12 @@ const navChild = text => {
   return `//*[@role="navigation"]/*[contains(normalize-space(.),"${text}")]`
 }
 
+const elementInDataTableRow = (entityName, text) => {
+  return `//*[@role="grid"]//*[contains(.,"${entityName}")]/following-sibling::*[contains(.,"${text}")]`
+}
+
 const findInDataTableRow = (page, entityName, text) => {
-  return findElement(page, `//*[@role="grid"]//*[contains(.,"${entityName}")]/following-sibling::*[contains(.,"${text}")]`)
+  return findElement(page, elementInDataTableRow(entityName, text))
 }
 
 const openError = async page => {
@@ -167,6 +171,7 @@ module.exports = {
   delay,
   signIntoTerra,
   navChild,
+  elementInDataTableRow,
   findInDataTableRow,
   withScreenshot,
   openError
