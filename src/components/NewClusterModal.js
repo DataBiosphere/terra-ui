@@ -24,6 +24,9 @@ import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
 
+// Change to true to enable a debugging panel (intended for dev mode only)
+const showDebugPanel = false
+
 const styles = {
   label: { fontWeight: 600, whiteSpace: 'pre' },
   titleBar: { marginBottom: '1rem' },
@@ -488,28 +491,22 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { showDebugger } = this.state
     const makeHeader = text => div({ style: { fontSize: 20, margin: '0.5rem 0' } }, [text])
     const makeJSON = value => div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace' } }, [JSON.stringify(value, null, 2)])
-    return h(Fragment, [
-      showDebugger ?
-        showDebugger &&
-        div({ style: { position: 'fixed', top: 0, left: 0, bottom: 0, right: '50vw', backgroundColor: 'white', padding: '1rem', overflowY: 'auto' } },
-          [
-            h(Link, { onClick: () => this.setState({ showDebugger: false }), style: { position: 'absolute', top: 0, right: 0 } }, ['x']),
-            makeHeader('Old Environment Config'),
-            makeJSON(this.getOldEnvironmentConfig()),
-            makeHeader('New Environment Config'),
-            makeJSON(this.getNewEnvironmentConfig()),
-            makeHeader('canUpdateRuntime'),
-            makeJSON(this.canUpdateRuntime()),
-            makeHeader('willDeleteBuiltinDisk'),
-            makeJSON(!!this.willDeleteBuiltinDisk()),
-            makeHeader('willDeletePersistentDisk'),
-            makeJSON(!!this.willDeletePersistentDisk()),
-            makeHeader('willRequireDowntime'),
-            makeJSON(!!this.willRequireDowntime())
-          ]) :
-        h(Link, { onClick: () => this.setState({ showDebugger: !showDebugger }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } },
-          ['D'])
-    ])
+    return showDebugger ?
+      div({ style: { position: 'fixed', top: 0, left: 0, bottom: 0, right: '50vw', backgroundColor: 'white', padding: '1rem', overflowY: 'auto' } }, [
+        h(Link, { onClick: () => this.setState({ showDebugger: false }), style: { position: 'absolute', top: 0, right: 0 } }, ['x']),
+        makeHeader('Old Environment Config'),
+        makeJSON(this.getOldEnvironmentConfig()),
+        makeHeader('New Environment Config'),
+        makeJSON(this.getNewEnvironmentConfig()),
+        makeHeader('Misc'),
+        makeJSON({
+          canUpdateRuntime: !!this.canUpdateRuntime(),
+          willDeleteBuiltinDisk: !!this.willDeleteBuiltinDisk(),
+          willDeletePersistentDisk: !!this.willDeletePersistentDisk(),
+          willRequireDowntime: !!this.willRequireDowntime()
+        })
+      ]) :
+      h(Link, { onClick: () => this.setState({ showDebugger: true }), style: { position: 'fixed', top: 0, left: 0, color: 'white' } }, ['D'])
   }
 
   renderDeleteDiskChoices() {
@@ -527,7 +524,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         ]),
         p({ style: { marginBottom: 0 } }, [
           'You will continue to incur persistent disk cost at ',
-          span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCostMonthly(currentPersistentDiskDetails)), ' per month'])
+          span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCostMonthly(currentPersistentDiskDetails)), ' per month.'])
         ])
       ]),
       h(FancyRadio, {
@@ -1152,7 +1149,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         [Utils.DEFAULT, renderMainForm]
       ),
       loading && spinnerOverlay,
-      this.renderDebugger()
+      showDebugPanel && this.renderDebugger()
     ])
   }
 
