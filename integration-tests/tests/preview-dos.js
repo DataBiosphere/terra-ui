@@ -28,8 +28,8 @@ const testPreviewDosFn = _.flow(
   await click(page, clickable({ textContains: workspaceName }))
   await click(page, clickable({ textContains: 'data' }))
   await click(page, clickable({ textContains: 'test_entity (1)' }))
-  await click(page, clickable({ text: dataRepoUri }))
-  await delay(10000)
+  await click(page, `//*[@role="grid"]//*[contains(.,"${testEntity.name}")]/following-sibling::*[contains(.,"drs://")]`)
+  await delay(1000)
   // await click(page, await findInDataTableRow(page, testEntity.name, dataRepoUri))
 
   /*
