@@ -62,7 +62,10 @@ const getMaxDownloadCostNA = bytes => {
   return Utils.formatUSD(downloadPrice)
 }
 
-const parseM2Response = response => {
+const parseMarthaResponse = response => {
+  if (!response.dos) { // handle martha_v3 endpoint response
+    return response
+  }
   const { dos: { data_object: { size, urls } } } = response
   const gsUri = _.find(u => u.startsWith('gs://'), _.map('url', urls))
   return { size, gsUri }
@@ -159,7 +162,7 @@ const UriViewer = _.flow(
         setMetadata(metadata)
       } else {
         const response = await Ajax(signal).Martha.getDataObjectMetadata(uri)
-        const { size, gsUri } = response && response.dos ? parseM2Response(response) : response
+        const { size, gsUri } = parseMarthaResponse(response)
         const [bucket, name] = parseGsUri(gsUri)
         setMetadata({ bucket, name, size })
       }

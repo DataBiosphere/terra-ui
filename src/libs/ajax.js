@@ -132,12 +132,13 @@ const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
-const fetchMetadataEndpoint = withUrlPrefix(`${getConfig().marthaUrlRoot}/${getConfig().metadataEndpoint}`, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = path => `api/ga4gh/v1/tools/%23workflow%2F${encodeURIComponent(path)}/versions`
+
+const { metadataEndpoint } = getConfig()
 
 /**
  * Only use this if the user has write access to the workspace to avoid proliferation of service accounts in projects containing public workspaces.
@@ -1123,7 +1124,7 @@ const Dockstore = signal => ({
 
 const Martha = signal => ({
   getDataObjectMetadata: async url => {
-    const res = await fetchMetadataEndpoint('', _.mergeAll([jsonBody({ url }), authOpts(), appIdentifier, { signal, method: 'POST' }]))
+    const res = await fetchMartha(metadataEndpoint, _.mergeAll([jsonBody({ url }), authOpts(), appIdentifier, { signal, method: 'POST' }]))
     return res.json()
   },
 
