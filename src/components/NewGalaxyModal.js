@@ -2,56 +2,30 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { div, h, li, p, span, ul } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Link } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
-import { machineTypes, profiles } from 'src/data/machines'
-import { normalizeRuntimeConfig } from 'src/libs/cluster-utils'
+import { machineTypes } from 'src/data/machines'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
 
 const styles = {
-  row: {
-    display: 'flex',
-    alignItems: 'center',
-    marginTop: '1rem'
-  },
-  label: { fontWeight: 600, whiteSpace: 'pre' },
-  disabledInputs: {
-    border: `1px solid ${colors.dark(0.2)}`, borderRadius: 4, padding: '0.5rem'
-  },
   whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' },
   drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' }
 }
 
 export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
   static propTypes = {
-    currentCluster: PropTypes.object,
-    namespace: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired
   }
 
-  constructor(props) {
-    super(props)
-    const { currentCluster } = props
-    const { cloudService, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || profiles[0].runtimeConfig)
-    const { masterDiskSize, masterMachineType, numberOfWorkers } = currentConfig // want these to be put into state below, unlike cloudService
-    const matchingProfile = _.find(({ runtimeConfig }) => _.isMatch({ masterMachineType, masterDiskSize }, normalizeRuntimeConfig(runtimeConfig)),
-      profiles)
-
-    this.state = {
-      profile: matchingProfile?.name || 'custom',
-      jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
-      sparkMode: cloudService === 'GCE' ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
-      ...currentConfig
-    }
-  }
-
   render() {
-    const { onDismiss } = this.props
+    const { onDismiss, onSuccess } = this.props
     const createGalaxy = () => {
+      onSuccess()
+      //TODO
     }
 
     const bottomButtons = () => {
@@ -61,7 +35,8 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewClusterMo
           h(ButtonPrimary, {
             disabled: true,
             onClick: () => createGalaxy()
-          }, ['Create'])
+          }, ['Create']),
+          h(ButtonSecondary, { style: { margin: '0 2rem 0 1rem' }, onClick: onDismiss }, 'Cancel')
         ])
       ])
     }
@@ -103,17 +78,14 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewClusterMo
               p({ style: { margin: 0 } },
                 ['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
               p({ style: { margin: 0 } }, ['You can navigate away, and we will notify you when it\'s ready. ']),
-
               div({ style: { fontSize: 16, fontWeight: 600 } }, ['Continuation cost']),
               p({ style: { margin: 0 } }, ['Please delete the cloud environment when finished; it will']),
               p({ style: { margin: 0 } }, ['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running.'])
-
             ])
           ]),
           bottomButtons()
         ])
       ])
-
     ])
   }
 })
