@@ -1,21 +1,27 @@
 const _ = require('lodash/fp')
+const fetch = require('node-fetch')
 const { withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
 const { findText, navChild, fillIn, click, clickable, elementInDataTableRow, waitForNoSpinners, input, signIntoTerra, dismissNotifications } = require('../utils/integration-utils')
 
 
-const testEntity = {
-  name: 'test_entity_1',
-  entityType: 'test_entity',
-  attributes: {
-    file_uri: 'drs://jade.datarepo-dev.broadinstitute.org/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060'
-  }
-}
-
 const testPreviewDrsUriFn = _.flow(
   withWorkspace,
   withUserToken
 )(async ({ billingProject, page, testUrl, token, workspaceName }) => {
+  const { metadataEndpoint } = await fetch(`${testUrl}/config.json`).then(res => res.json())
+  const dataRepoUri = metadataEndpoint === 'martha_v3' ?
+    'drs://jade.datarepo-dev.broadinstitute.org/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060' :
+    'drs://drs.data.humancellatlas.org/4cf48dbf-cf09-452e-bb5b-fd016af0c747?version=2019-09-14T024754.281908Z'
+
+  const testEntity = {
+    name: 'test_entity_1',
+    entityType: 'test_entity',
+    attributes: {
+      file_uri: dataRepoUri
+    }
+  }
+
   await page.goto(testUrl)
   await signIntoTerra(page, token)
   await dismissNotifications(page)
