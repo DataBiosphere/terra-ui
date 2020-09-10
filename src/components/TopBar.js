@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
-import { a, b, div, h, img, span } from 'react-hyperscript-helpers'
+import { a, div, h, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
 import {
   ButtonPrimary, Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay
@@ -20,7 +20,7 @@ import colors from 'src/libs/colors'
 import { getConfig, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
-import { topBarLogo } from 'src/libs/logos'
+import { topBarLogo, versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { authStore, contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -60,15 +60,6 @@ const styles = {
     }
   }
 }
-
-const betaTag = b({
-  style: {
-    fontSize: 8, lineHeight: '9px',
-    color: 'white', backgroundColor: colors.primary(1.5),
-    padding: '3px 5px', verticalAlign: 'middle',
-    borderRadius: 2
-  }
-}, 'BETA')
 
 const NavItem = ({ children, ...props }) => {
   return h(Clickable, _.merge({
@@ -397,7 +388,7 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
           div({}, [
             div({
               style: title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 }
-            }, [betaTag]),
+            }, [versionTag('Beta')]),
             title
           ])
         ]),
