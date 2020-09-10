@@ -40,7 +40,7 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
     const { apps } = this.props
     const app = currentApp(apps)
     return {
-      app: !!app ? {} : {}
+      app: !!app ? {} : undefined
     }
   }
 
