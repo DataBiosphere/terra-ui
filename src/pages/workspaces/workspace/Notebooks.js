@@ -480,7 +480,7 @@ const Notebooks = _.flow(
           !!creatingGalaxy && h(NewGalaxyModal, {
             isOpen: creatingGalaxy,
             namespace,
-            app: currentApp(apps),
+            app: apps,
             onDismiss: () => this.setState({ creatingGalaxy: false }),
             onSuccess: () => { this.setState({ creatingGalaxy: false }) }
           })
