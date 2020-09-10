@@ -22,7 +22,7 @@ export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, ma
   }
 }
 
-export const ongoingCost = config => {
+export const runtimeConfigBaseCost = config => {
   const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize } = normalizeRuntimeConfig(
     config)
   const { cpu: masterCpu } = findMachineType(masterMachineType)
@@ -47,7 +47,7 @@ export const runtimeConfigCost = config => {
     masterPrice,
     (numberOfWorkers - numberOfPreemptibleWorkers) * workerPrice,
     numberOfPreemptibleWorkers * preemptiblePrice,
-    ongoingCost(config)
+    runtimeConfigBaseCost(config)
   ])
 }
 
@@ -60,7 +60,7 @@ export const persistentDiskCostMonthly = generateDiskCostFunction(monthlyStorage
 export const clusterCost = ({ runtimeConfig, status }) => {
   switch (status) {
     case 'Stopped':
-      return ongoingCost(runtimeConfig)
+      return runtimeConfigBaseCost(runtimeConfig)
     case 'Deleting':
     case 'Error':
       return 0.0

@@ -14,7 +14,7 @@ import { cloudServices, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import {
   currentCluster,
-  DEFAULT_DISK_SIZE, findMachineType, normalizeRuntimeConfig, ongoingCost, persistentDiskCostMonthly, runtimeConfigCost
+  DEFAULT_DISK_SIZE, findMachineType, normalizeRuntimeConfig, persistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -97,7 +97,7 @@ const DiskSelector = ({ value, onChange }) => {
   ])
 }
 
-const FancyRadio = ({ labelText, children, name, checked, onChange, style = {} }) => {
+const RadioBlock = ({ labelText, children, name, checked, onChange, style = {} }) => {
   return div({
     style: {
       backgroundColor: colors.warning(.2),
@@ -174,8 +174,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const attachedIds = _.without([undefined], _.map(cluster => cluster.runtimeConfig.persistentDiskId, clusters))
     return id ?
       _.find({ id }, persistentDisks) :
-      _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id }) => !_.includes(id, attachedIds),
-        _.filter(disk => disk.status !== 'Deleting', persistentDisks))))
+      _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id, status }) => status !== 'Deleting' && !_.includes(id, attachedIds), persistentDisks)))
   }
 
   /**
@@ -236,7 +235,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       newRuntime_cpus: newRuntime && newRuntimeCpus,
       newRuntime_memory: newRuntime && newRuntimeMemory,
       newRuntime_costPerHour: newRuntime && runtimeConfigCost(this.getPendingRuntimeConfig()),
-      newRuntime_pausedCostPerHour: newRuntime && ongoingCost(this.getPendingRuntimeConfig()),
+      newRuntime_pausedCostPerHour: newRuntime && runtimeConfigBaseCost(this.getPendingRuntimeConfig()),
       ..._.mapKeys(key => `oldRuntime_${key}`, oldRuntime),
       oldRuntime_exists: !!oldRuntime,
       oldRuntime_cpus: oldRuntime && oldRuntimeCpus,
@@ -262,7 +261,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const shouldDeleteRuntime = oldRuntime && !this.canUpdateRuntime()
     const shouldCreateRuntime = !this.canUpdateRuntime() && newRuntime
 
-    // TODO PD: test the generation of runtime config for update vs create
     const runtimeConfig = newRuntime && {
       cloudService: newRuntime.cloudService,
       ...(newRuntime.cloudService === cloudServices.GCE ? {
@@ -329,6 +327,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         [(viewMode !== 'deleteEnvironmentOptions'), () => {
           return {
             cloudService,
+            toolDockerImage: _.includes(selectedLeoImage, [CUSTOM_MODE, PROJECT_SPECIFIC_MODE]) ? customEnvImage : selectedLeoImage,
+            ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
             ...(cloudService === cloudServices.GCE ? {
               machineType: masterMachineType,
               ...(this.shouldUsePersistentDisk() ? {
@@ -345,9 +345,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                 workerMachineType,
                 workerDiskSize
               })
-            }),
-            toolDockerImage: _.includes(selectedLeoImage, [CUSTOM_MODE, PROJECT_SPECIFIC_MODE]) ? customEnvImage : selectedLeoImage,
-            ...(jupyterUserScriptUri && { jupyterUserScriptUri })
+            })
           }
         }],
         [!deleteDiskSelected || oldRuntime?.persistentDiskAttached, () => undefined],
@@ -369,6 +367,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return {
       runtime: currentClusterDetails ? {
         cloudService,
+        toolDockerImage: this.getImageUrl(currentClusterDetails),
+        ...(currentClusterDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentClusterDetails?.jupyterUserScriptUri }),
         ...(cloudService === cloudServices.GCE ? {
           machineType: runtimeConfig.machineType,
           ...(runtimeConfig.persistentDiskId ? {
@@ -385,17 +385,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             workerMachineType: runtimeConfig.workerMachineType || 'n1-standard-4',
             workerDiskSize: runtimeConfig.workerDiskSize || 100
           })
-        }),
-        toolDockerImage: this.getImageUrl(currentClusterDetails),
-        ...(currentClusterDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentClusterDetails?.jupyterUserScriptUri })
+        })
       } : undefined,
       persistentDisk: currentPersistentDiskDetails ? { size: currentPersistentDiskDetails.size } : undefined
     }
   }
 
   hasAttachedDisk() {
-    const { currentClusterDetails } = this.state
-    return currentClusterDetails?.runtimeConfig.persistentDiskId
+    const { runtime: oldRuntime } = this.getOldEnvironmentConfig()
+    return oldRuntime?.persistentDiskAttached
   }
 
   canUpdateRuntime() {
@@ -444,7 +442,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     const { runtime: oldRuntime } = this.getOldEnvironmentConfig()
     const { runtime: newRuntime } = this.getNewEnvironmentConfig()
 
-    // TODO PD: should we consider runtime status here? Consider what to do in the case of autopause
     return this.canUpdateRuntime() &&
       (oldRuntime.cloudService === cloudServices.GCE ?
         oldRuntime.machineType !== newRuntime.machineType :
@@ -512,7 +509,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   renderDeleteDiskChoices() {
     const { deleteDiskSelected, currentPersistentDiskDetails } = this.state
     return h(Fragment, [
-      h(FancyRadio, {
+      h(RadioBlock, {
         name: 'delete-persistent-disk',
         labelText: 'Keep persistent disk, delete application and compute profile',
         checked: !deleteDiskSelected,
@@ -527,7 +524,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCostMonthly(currentPersistentDiskDetails)), ' per month.'])
         ])
       ]),
-      h(FancyRadio, {
+      h(RadioBlock, {
         name: 'delete-persistent-disk',
         labelText: 'Delete everything, including persistent disk',
         checked: deleteDiskSelected,
@@ -576,13 +573,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       const { runtime: oldRuntime } = this.getOldEnvironmentConfig()
       const { runtime: newRuntime } = this.getNewEnvironmentConfig()
       const commonButtonProps = { disabled: !this.hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) }
-      const mayShowCustomImageWarning = viewMode === undefined
-      const mayShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
+      const canShowCustomImageWarning = viewMode === undefined
+      const canShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
       return Utils.cond(
-        [mayShowCustomImageWarning && isCustomImage && oldRuntime?.toolDockerImage !== newRuntime?.toolDockerImage, () => {
+        [canShowCustomImageWarning && isCustomImage && oldRuntime?.toolDockerImage !== newRuntime?.toolDockerImage, () => {
           return h(ButtonPrimary, { ...commonButtonProps, onClick: () => this.setState({ viewMode: 'customImageWarning' }) }, ['Next'])
         }],
-        [mayShowEnvironmentWarning && (this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime() || this.willDetachPersistentDisk()), () => {
+        [canShowEnvironmentWarning && (this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime() || this.willDetachPersistentDisk()), () => {
           return h(ButtonPrimary, { ...commonButtonProps, onClick: () => this.setState({ viewMode: 'environmentWarning' }) }, ['Next'])
         }],
         () => {
@@ -653,7 +650,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           ])
         }, [
           { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
-          { label: 'Paused cloud compute cost', cost: Utils.formatUSD(ongoingCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
+          { label: 'Paused cloud compute cost', cost: Utils.formatUSD(runtimeConfigBaseCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
           { label: 'Persistent disk cost', cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(this.getPendingDisk())) : 'N/A', unitLabel: isPersistentDisk ? 'per month' : '' }
         ])
       ])
@@ -858,7 +855,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           Utils.cond(
             [oldRuntime && oldPersistentDisk && !oldRuntime.persistentDiskAttached, () => {
               return h(Fragment, [
-                h(FancyRadio, {
+                h(RadioBlock, {
                   name: 'delete-persistent-disk',
                   labelText: 'Delete application and cloud compute profile',
                   checked: !deleteDiskSelected,
@@ -869,7 +866,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                     span({ style: { fontWeight: 600 } }, ['delete all files on the built-in hard disk.'])
                   ])
                 ]),
-                h(FancyRadio, {
+                h(RadioBlock, {
                   name: 'delete-persistent-disk',
                   labelText: 'Delete persistent disk',
                   checked: deleteDiskSelected,
@@ -889,7 +886,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             [oldRuntime && oldPersistentDisk, () => this.renderDeleteDiskChoices()],
             [!oldRuntime && oldPersistentDisk, () => {
               return h(Fragment, [
-                h(FancyRadio, {
+                h(RadioBlock, {
                   name: 'delete-persistent-disk',
                   labelText: 'Delete persistent disk',
                   checked: deleteDiskSelected,
@@ -922,64 +919,53 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       ])
     }
     const renderEnvironmentWarning = () => {
-      return this.willDetachPersistentDisk() ?
-        div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
-          h(TitleBar, {
-            style: styles.titleBar,
-            title: h(WarningTitle, ['Replace application and cloud compute profile for Spark']),
-            onDismiss,
-            onPrevious: () => this.setState({ viewMode: undefined, deleteDiskSelected: false })
-          }),
-          div({ style: { lineHeight: 1.5 } }, [
-            div([
-              'You have requested to replace your existing application and cloud compute profile to ones that support Spark. ',
-              'This type of cloud compute does not support the persistent disk feature.'
-            ]),
-            div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
-            this.renderDeleteDiskChoices(),
-            div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-              renderActionButton()
-            ])
-          ])
-        ]) :
-        div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
-          h(TitleBar, {
-            style: styles.titleBar,
-            title: h(WarningTitle, [
-              Utils.cond(
-                [this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk(), () => 'Data will be deleted'],
-                [this.willRequireDowntime(), () => 'Downtime required']
-              )
-            ]),
-            onDismiss,
-            onPrevious: () => this.setState({ viewMode: undefined })
-          }),
-          div({ style: { lineHeight: 1.5 } }, [
+      return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
+        h(TitleBar, {
+          style: styles.titleBar,
+          title: h(WarningTitle, [
             Utils.cond(
-              [this.willDeleteBuiltinDisk(), () => h(Fragment, [
-                p([
-                  'This change requires rebuilding your cloud environment, which will ',
-                  span({ style: { fontWeight: 600 } }, ['delete all files on built-in hard disk.'])
-                ]),
-                h(SaveFilesHelp)
-              ])],
-              [this.willDeletePersistentDisk(), () => h(Fragment, [
-                p([
-                  'Reducing the size of a persistent disk requires it to be deleted and recreated. This will ',
-                  span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
-                ]),
-                h(SaveFilesHelp)
-              ])],
-              [this.willRequireDowntime(), () => h(Fragment, [
-                p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
-                p(['Your existing data will be preserved during this update.'])
-              ])]
+              [this.willDetachPersistentDisk(), () => 'Replace application and cloud compute profile for Spark'],
+              [this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk(), () => 'Data will be deleted'],
+              [this.willRequireDowntime(), () => 'Downtime required']
             )
           ]),
-          div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-            renderActionButton()
-          ])
+          onDismiss,
+          onPrevious: () => this.setState({ viewMode: undefined, deleteDiskSelected: false })
+        }),
+        div({ style: { lineHeight: 1.5 } }, [
+          Utils.cond(
+            [this.willDetachPersistentDisk(), () => h(Fragment, [
+              div([
+                'You have requested to replace your existing application and cloud compute profile to ones that support Spark. ',
+                'This type of cloud compute does not support the persistent disk feature.'
+              ]),
+              div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
+              this.renderDeleteDiskChoices()
+            ])],
+            [this.willDeleteBuiltinDisk(), () => h(Fragment, [
+              p([
+                'This change requires rebuilding your cloud environment, which will ',
+                span({ style: { fontWeight: 600 } }, ['delete all files on built-in hard disk.'])
+              ]),
+              h(SaveFilesHelp)
+            ])],
+            [this.willDeletePersistentDisk(), () => h(Fragment, [
+              p([
+                'Reducing the size of a persistent disk requires it to be deleted and recreated. This will ',
+                span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
+              ]),
+              h(SaveFilesHelp)
+            ])],
+            [this.willRequireDowntime(), () => h(Fragment, [
+              p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
+              p(['Your existing data will be preserved during this update.'])
+            ])]
+          )
+        ]),
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          renderActionButton()
         ])
+      ])
     }
 
     const renderCustomImageWarning = () => {
@@ -1113,7 +1099,6 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
         div({ style: { lineHeight: 1.5 } }, [
-          // TODO PD: this language could be cleaner, e.g. we don't abbreviate 'PD' anywhere else
           p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
           p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
           p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
@@ -1154,7 +1139,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   willDetachPersistentDisk() {
-    return this.getNewEnvironmentConfig().runtime.cloudService === cloudServices.DATAPROC && this.hasAttachedDisk()
+    const { runtime: newRuntime } = this.getNewEnvironmentConfig()
+    return newRuntime.cloudService === cloudServices.DATAPROC && this.hasAttachedDisk()
   }
 
   shouldUsePersistentDisk() {
@@ -1163,17 +1149,17 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   willDeletePersistentDisk() {
-    const oldConfig = this.getOldEnvironmentConfig()
-    return oldConfig.persistentDisk && !this.canUpdatePersistentDisk()
+    const { persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
+    return oldPersistentDisk && !this.canUpdatePersistentDisk()
   }
 
   willDeleteBuiltinDisk() {
-    const oldConfig = this.getOldEnvironmentConfig()
-    return (oldConfig.runtime?.diskSize || oldConfig.runtime?.masterDiskSize) && !this.canUpdateRuntime()
+    const { runtime: oldRuntime } = this.getOldEnvironmentConfig()
+    return (oldRuntime?.diskSize || oldRuntime?.masterDiskSize) && !this.canUpdateRuntime()
   }
 
   willRequireDowntime() {
-    const oldConfig = this.getOldEnvironmentConfig()
-    return oldConfig.runtime && (!this.canUpdateRuntime() || this.isStopRequired())
+    const { runtime: oldRuntime } = this.getOldEnvironmentConfig()
+    return oldRuntime && (!this.canUpdateRuntime() || this.isStopRequired())
   }
 })
