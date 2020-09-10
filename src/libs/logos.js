@@ -1,4 +1,4 @@
-import { div, img } from 'react-hyperscript-helpers'
+import { b, div, img } from 'react-hyperscript-helpers'
 import anvilLogoWhite from 'src/images/brands/anvil/ANVIL-Logo-White.svg'
 import anvilLogo from 'src/images/brands/anvil/ANVIL-Logo.svg'
 import baselineLogo from 'src/images/brands/baseline/baseline-logo-color.svg'
@@ -14,6 +14,7 @@ import terraLogoShadow from 'src/images/brands/terra/logo-wShadow.svg'
 import terraLogo from 'src/images/brands/terra/logo.svg'
 import ukbLogo from 'src/images/brands/ukbiobank/uk-biobank-logo-color.svg'
 import ukbLogoWhite from 'src/images/brands/ukbiobank/uk-biobank-logo-white.svg'
+import colors from 'src/libs/colors'
 import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra, isUKBiobank } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
@@ -63,3 +64,13 @@ export const topBarLogo = () => isTerra() ?
   brandLogoMaker(50, true)
 
 export const footerLogo = () => isTerra() ? terraLogoMaker(terraLogoWhite, { height: 40 }) : brandLogoMaker(40)
+
+export const versionTag = (version, styles) => b({
+  style: {
+    fontSize: 8, lineHeight: '9px',
+    color: 'white', backgroundColor: colors.primary(1.5),
+    padding: '3px 5px', verticalAlign: 'middle',
+    borderRadius: 2, textTransform: 'uppercase',
+    ...styles
+  }
+}, version)
