@@ -50,11 +50,16 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
     //todo work with leo team
   }
 
+  deleteGalaxy() {
+    const { app: oldApp } = this.getOldEnvironmentConfig()
+    return Ajax().Apps.app(oldApp.googleProject, oldApp.appName).delete()
+  }
+
   applyGalaxyChanges() {
     const { viewMode } = this.state
     const { app: oldApp } = this.getOldEnvironmentConfig()
     return Utils.switchCase(viewMode,
-      ['deleteWarn', () => Ajax().Apps.app(oldApp.googleProject, oldApp.appName).delete()],
+      ['deleteWarn', () => this.deleteGalaxy()],
       ['createWarn', () => this.createGalaxy()],
       [Utils.DEFAULT, () => !!oldApp ? this.setState({ viewMode: 'deleteWarn' }) : this.setState({ viewMode: 'createWarn' })]
     )
@@ -132,6 +137,7 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
               ]),
               h(Link, {
                 ...Utils.newTabLinkProps,
+                // TODO: Get the link from comms for this
                 href: ''
               }, ['Learn more about Galaxy interactive environments.'])
             ])
