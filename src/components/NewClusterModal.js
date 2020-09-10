@@ -12,10 +12,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { cloudServices, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import {
-  currentCluster,
-  DEFAULT_DISK_SIZE, findMachineType, normalizeRuntimeConfig, ongoingCost, persistentDiskCostMonthly, runtimeConfigCost
-} from 'src/libs/cluster-utils'
+import { currentCluster, DEFAULT_DISK_SIZE, findMachineType, ongoingCost, persistentDiskCostMonthly, runtimeConfigCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -139,21 +136,32 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   constructor(props) {
     super(props)
     const currentCluster = this.getCurrentCluster()
-    const { cloudService, numberOfWorkers, ...currentConfig } = normalizeRuntimeConfig(currentCluster?.runtimeConfig || { masterMachineType: 'n1-standard-4' })
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
     this.state = {
       loading: false,
-      currentPersistentDiskDetails: undefined,
-      selectedPersistentDiskSize: currentPersistentDisk ? currentPersistentDisk.size : DEFAULT_DISK_SIZE,
-      jupyterUserScriptUri: '', customEnvImage: '', viewMode: undefined,
-      sparkMode: cloudService === cloudServices.GCE ? false : numberOfWorkers === 0 ? 'master' : 'cluster',
-      ...currentConfig,
-      masterDiskSize: currentCluster?.runtimeConfig?.masterDiskSize || currentCluster?.runtimeConfig?.diskSize || DEFAULT_DISK_SIZE,
-      numberOfWorkers: numberOfWorkers || 2,
+      currentClusterDetails: currentCluster,
+      currentPersistentDiskDetails: currentPersistentDisk,
+      ...this.getInitialState(currentCluster, currentPersistentDisk),
+      jupyterUserScriptUri: '', customEnvImage: '',
+      viewMode: undefined,
       deleteDiskSelected: false,
       upgradeDiskSelected: false,
       simplifiedForm: !currentCluster
+    }
+  }
+
+  getInitialState(runtime, disk) {
+    const runtimeConfig = runtime?.runtimeConfig
+    return {
+      selectedPersistentDiskSize: disk?.size || DEFAULT_DISK_SIZE,
+      sparkMode: runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false,
+      masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType || 'n1-standard-4',
+      masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || DEFAULT_DISK_SIZE,
+      numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
+      numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
+      workerMachineType: runtimeConfig?.workerMachineType || 'n1-standard-4',
+      workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DISK_SIZE
     }
   }
 
@@ -472,19 +480,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
     ])
 
-    this.setState({ leoImages: newLeoImages, currentClusterDetails, currentPersistentDiskDetails })
-    if (currentClusterDetails) {
-      const imageUrl = this.getImageUrl(currentClusterDetails)
-      if (_.find({ image: imageUrl }, newLeoImages)) {
-        this.setState({ selectedLeoImage: imageUrl })
-      } else if (currentClusterDetails.labels.saturnIsProjectSpecific === 'true') {
-        this.setState({ selectedLeoImage: PROJECT_SPECIFIC_MODE, customEnvImage: imageUrl })
-      } else {
-        this.setState({ selectedLeoImage: CUSTOM_MODE, customEnvImage: imageUrl })
-      }
-    } else {
-      this.setState({ selectedLeoImage: _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image })
-    }
+    const imageUrl = currentClusterDetails ? this.getImageUrl(currentClusterDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
+    const foundImage = _.find({ image: imageUrl }, newLeoImages)
+    this.setState({
+      leoImages: newLeoImages, currentClusterDetails, currentPersistentDiskDetails,
+      selectedLeoImage: foundImage ? imageUrl : (currentClusterDetails?.labels.saturnIsProjectSpecific === 'true' ? PROJECT_SPECIFIC_MODE : CUSTOM_MODE),
+      customEnvImage: !foundImage ? imageUrl : '',
+      jupyterUserScriptUri: currentClusterDetails?.jupyterUserScriptUri || '',
+      ...this.getInitialState(currentClusterDetails, currentPersistentDiskDetails)
+    })
   })
 
   renderDebugger() {
