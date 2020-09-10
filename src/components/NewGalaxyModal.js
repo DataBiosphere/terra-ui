@@ -16,7 +16,7 @@ const styles = {
   drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' }
 }
 
-export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
+export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyModal extends Component {
   static propTypes = {
     onDismiss: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired,
