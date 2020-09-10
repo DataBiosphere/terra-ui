@@ -185,6 +185,10 @@ export const abandonedPromise = () => {
 
 export const generateClusterName = () => `saturn-${uuid()}`
 
+export const generateKubernetesClusterName = () => `saturn-${uuid()}`
+
+export const generatePersistentDiskName = () => `saturn-pd-${uuid()}`
+
 export const waitOneTick = () => new Promise(setImmediate)
 
 export const entityAttributeText = (value, machineReadable) => {

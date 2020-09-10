@@ -304,6 +304,13 @@ const Notebooks = _.flow(
       Ajax().Apps.app(app.googleProject, app.appName).delete()
     }
 
+    const createGalaxy = () => {
+      const { namespace } = this.props
+      Ajax().Apps.app(namespace, Utils.generateClusterName()).create(Utils.generatePersistentDiskName())
+    }
+
+
+
     const applyGalaxyChanges = () => {
       return app ? deleteGalaxyInstance() : this.setState({ creatingGalaxy: true })
     }
@@ -395,7 +402,7 @@ const Notebooks = _.flow(
   }
 
   render() {
-    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter, creatingGalaxy } = this.state
+    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter, creatingGalaxy, apps } = this.state
     const {
       namespace, name, listView, setListView, workspace,
       workspace: { accessLevel, workspace: { bucketName } }
@@ -473,6 +480,7 @@ const Notebooks = _.flow(
           !!creatingGalaxy && h(NewGalaxyModal, {
             isOpen: creatingGalaxy,
             namespace,
+            app: currentApp(apps),
             onDismiss: () => this.setState({ creatingGalaxy: false }),
             onSuccess: () => { this.setState({ creatingGalaxy: false }) }
           })
