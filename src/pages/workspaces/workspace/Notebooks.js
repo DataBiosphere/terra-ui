@@ -394,9 +394,9 @@ const Notebooks = _.flow(
   }
 
   render() {
-    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter, openGalaxyConfigDrawer, apps } = this.state
+    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter, openGalaxyConfigDrawer } = this.state
     const {
-      namespace, name, listView, setListView, workspace,
+      apps, namespace, name, listView, setListView, workspace,
       workspace: { accessLevel, workspace: { bucketName } }
     } = this.props
     const existingNames = this.getExistingNames()
