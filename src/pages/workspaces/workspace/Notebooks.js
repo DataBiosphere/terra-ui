@@ -307,14 +307,6 @@ const Notebooks = _.flow(
       }))
     )(notebooks)
 
-    const deleteGalaxyInstance = () => {
-      Ajax().Apps.app(app.googleProject, app.appName).delete()
-    }
-
-    const applyGalaxyChanges = () => {
-      return app ? deleteGalaxyInstance() : this.setState({ creatingGalaxy: true })
-    }
-
     const getGalaxyText = () => {
       return app ?
         div({ style: { fontSize: 18, lineHeight: '22px', width: 160 } }, [
@@ -368,7 +360,7 @@ const Notebooks = _.flow(
             },
             disabled: appIsProvisioning(app),
             tooltip: appIsProvisioning(app) ? 'Your galaxy app is being created' : undefined,
-            onClick: () => applyGalaxyChanges()
+            onClick: () => this.setState({ openGalaxyConfigDrawer: true })
           }, [
             getGalaxyText()
           ])
@@ -402,7 +394,7 @@ const Notebooks = _.flow(
   }
 
   render() {
-    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter, creatingGalaxy, apps } = this.state
+    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter, openGalaxyConfigDrawer, apps } = this.state
     const {
       namespace, name, listView, setListView, workspace,
       workspace: { accessLevel, workspace: { bucketName } }
@@ -477,12 +469,18 @@ const Notebooks = _.flow(
               this.refresh()
             }
           }),
-          !!creatingGalaxy && h(NewGalaxyModal, {
-            isOpen: creatingGalaxy,
+          //todo if status is deleting consider not opening the panel
+          !!openGalaxyConfigDrawer && h(NewGalaxyModal, {
+            isOpen: openGalaxyConfigDrawer,
             namespace,
-            app: apps,
-            onDismiss: () => this.setState({ creatingGalaxy: false }),
-            onSuccess: () => { this.setState({ creatingGalaxy: false }) }
+            apps,
+            onDismiss: () => {
+              this.setState({ openGalaxyConfigDrawer: false })
+              this.refresh()
+            },
+            onSuccess: () => {
+              this.setState({ openGalaxyConfigDrawer: false })
+            }
           })
         ]),
         this.renderNotebooks(openUploader)

@@ -46,9 +46,8 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
   }
 
   createGalaxy() {
-    // const { namespace, onSuccess } = this.props
-    //return onSuccess(Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create(Utils.generatePersistentDiskName()))
-    //todo work with leo team
+    const { namespace, onSuccess } = this.props
+    return onSuccess(Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create(Utils.generatePersistentDiskName()))
   }
 
   deleteGalaxy() {
