@@ -171,7 +171,10 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
     notebookMenu,
     title,
     div({ style: { flexGrow: 1 } }),
-    locked && h(Clickable, { style: { display: 'flex', paddingRight: '1rem', color: colors.dark(0.75) }, tooltip: `This notebook is currently being edited by ${lockedBy || 'another user'}` }, [icon('lock')]),
+    locked && h(Clickable, {
+      style: { display: 'flex', paddingRight: '1rem', color: colors.dark(0.75) },
+      tooltip: `This notebook is currently being edited by ${lockedBy || 'another user'}`
+    }, [icon('lock')]),
     h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
       div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
         `Last edited: ${Utils.makePrettyDate(updated)}`)
@@ -180,7 +183,10 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
     div({ style: { display: 'flex' } }, [
       title,
       div({ style: { flexGrow: 1 } }),
-      locked && h(Clickable, { style: { display: 'flex', padding: '1rem', color: colors.dark(0.75) }, tooltip: `This notebook is currently being edited by ${lockedBy || 'another user'}` }, [icon('lock')])
+      locked && h(Clickable, {
+        style: { display: 'flex', padding: '1rem', color: colors.dark(0.75) },
+        tooltip: `This notebook is currently being edited by ${lockedBy || 'another user'}`
+      }, [icon('lock')])
     ]),
     div({
       style: {
@@ -273,7 +279,8 @@ const Notebooks = _.flow(
 
   async componentDidMount() {
     const { name: wsName, namespace, workspace: { canShare, workspace: { bucketName } }, authState: { user: { email } } } = this.props
-    const [currentUserHash, potentialLockers] = await Promise.all([notebookLockHash(bucketName, email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
+    const [currentUserHash, potentialLockers] = await Promise.all(
+      [notebookLockHash(bucketName, email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
     this.setState({ currentUserHash, potentialLockers })
     this.refresh()
   }
@@ -303,13 +310,6 @@ const Notebooks = _.flow(
     const deleteGalaxyInstance = () => {
       Ajax().Apps.app(app.googleProject, app.appName).delete()
     }
-
-    const createGalaxy = () => {
-      const { namespace } = this.props
-      Ajax().Apps.app(namespace, Utils.generateClusterName()).create(Utils.generatePersistentDiskName())
-    }
-
-
 
     const applyGalaxyChanges = () => {
       return app ? deleteGalaxyInstance() : this.setState({ creatingGalaxy: true })

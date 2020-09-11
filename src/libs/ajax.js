@@ -1120,10 +1120,10 @@ const Apps = signal => ({
       },
       create: diskName => {
         const body = {
-          "diskConfig": {
-            "name": diskName
+          diskConfig: {
+            name: diskName
           },
-          "appType": 'GALAXY'
+          appType: 'GALAXY'
         }
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
       }
