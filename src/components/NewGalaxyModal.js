@@ -2,19 +2,22 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { div, h, li, p, span, ul } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
+import { ButtonPrimary, Link } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import { currentApp } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
 const styles = {
   whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' },
-  drawerContent: { display: 'flex', flexDirection: 'column', flex: '0 1 0%', padding: '1.5rem' }
+  drawerContent: { display: 'flex', flexDirection: 'column', flex: '0 1 0%', padding: '0.5rem 1.5rem' },
+  headerText: { fontSize: 16, fontWeight: 600 }
 }
 
 export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyModal extends Component {
@@ -27,8 +30,6 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
 
   constructor(props) {
     super(props)
-    const { app } = props
-
     this.state = {
       viewMode: undefined,
       isDeleting: false
@@ -45,7 +46,7 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
   }
 
   createGalaxy() {
-    const { namespace, onSuccess } = this.props
+    // const { namespace, onSuccess } = this.props
     //return onSuccess(Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create(Utils.generatePersistentDiskName()))
     //todo work with leo team
   }
@@ -71,14 +72,11 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
 
     const app = currentApp(apps)
 
-
-
     const renderBottomButtons = () => {
       return h(Fragment, [
         div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
           div({ style: { flex: 1 } }),
-          this.renderActionButton(),
-          h(ButtonSecondary, { style: { margin: '0 2rem 0 1rem' }, onClick: onDismiss }, 'Cancel')
+          this.renderActionButton()
         ])
       ])
     }
@@ -89,14 +87,20 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
 
     const renderCreateWarning = () => {
       return h(Fragment, [
-        div({ style: { backgroundColor: colors.accent(.1), padding: '1rem 2rem', borderRadius: 4 } }, [
-          div({ style: { fontSize: 16, fontWeight: 600 } }, ['Set up duration']),
-          p({ style: { margin: 0 } },
-            ['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
-          p({ style: { margin: 0 } }, ['You can navigate away, and we will notify you when it\'s ready. ']),
-          div({ style: { fontSize: 16, fontWeight: 600 } }, ['Continuation cost']),
-          p({ style: { margin: 0 } }, ['Please delete the cloud environment when finished; it will']),
-          p({ style: { margin: 0 } }, ['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running.'])
+        div({ style: { marginBottom: '1rem' } }, ['Environment consists of an application and cloud compute.']),
+        div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(.1), boxShadow: Style.standardShadow } }, [
+          div({ style: { display: 'flex', padding: `0.5rem 0 0`, minHeight: 120 } }, [
+            div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0 } }, [
+              span({ style: { marginRight: '1rem' } }, [icon('info-circle', { size: 25, color: colors.accent() })]),
+              span({ style: styles.headerText }, ['Set up duration']),
+              div({ style: { marginLeft: '2.5rem', lineHeight: 1 } },
+                [p(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
+                  p(['You can navigate away, and we will notify you when it\'s ready. ']),
+                  div({ style: styles.headerText }, ['Continuation cost']),
+                  p(['Please delete the cloud environment when finished; it will']),
+                  p(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running.'])])
+            ])
+          ])
         ])
       ])
     }
@@ -117,11 +121,11 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
 
     const renderDefaultCase = () => {
       return h(Fragment, [
-        div({ style: { ...styles.drawerContent, paddingTop: '0.5rem' } }, [
-          div(['Environment consists of an application and cloud compute.']),
+        div(['Environment consists of an application and cloud compute.']),
+        div({ style: { paddingTop: '0.5rem' } }, [
           div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
-              div({ style: { fontSize: 16, fontWeight: 600 } }, ['Environment Settings']),
+              div({ style: styles.headerText }, ['Environment Settings']),
               ul({ style: { paddingLeft: '1rem', lineHeight: 1.5 } }, [
                 li({ style: { marginTop: '1rem' } }, [
                   'Galaxy version xxx'
@@ -152,7 +156,7 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
       [Utils.DEFAULT, renderDefaultCase]
     )
 
-    return h(Fragment, [
+    return div({ style: styles.drawerContent }, [
       h(TitleBar, {
         title: Utils.switchCase(viewMode,
           ['deleteWarn', () => 'Delete Cloud Environment for Galaxy'],
