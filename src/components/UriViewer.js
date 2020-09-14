@@ -109,7 +109,7 @@ const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProje
   ])
 }
 
-const DownloadButton = ({ uri, metadata: { bucket, name, size } }) => {
+const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size } }) => {
   const signal = Utils.useCancellation()
   const [url, setUrl] = useState()
   const getUrl = async () => {
@@ -132,6 +132,13 @@ const DownloadButton = ({ uri, metadata: { bucket, name, size } }) => {
         h(ButtonPrimary, {
           disabled: !url,
           href: url,
+          /*
+          NOTE:
+          Some DOS/DRS servers return file names that are different from the end of the path in the gsUri/url.
+          Attempt to hint to the browser the correct name.
+          FYI this hint doesn't work in Chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=373182#c24
+           */
+          download: fileName,
           ...Utils.newTabLinkProps
         }, [
           url ?
@@ -158,13 +165,27 @@ const UriViewer = _.flow(
         const loadObject = withRequesterPaysHandler(onRequesterPaysError, () => {
           return Ajax(signal).Buckets.getObject(bucket, name, googleProject)
         })
-        const metadata = await loadObject(bucket, name, googleProject)
+        const fileName = _.last(name.split('/'))
+        const gsutilCommand = `gsutil cp ${uri} .`
+        const metadata = {
+          gsUri: uri,
+          fileName,
+          gsutilCommand,
+          ...await loadObject(bucket, name, googleProject)
+        }
         setMetadata(metadata)
       } else {
         const response = await Ajax(signal).Martha.getDataObjectMetadata(uri)
-        const { size, gsUri } = parseMarthaResponse(response)
+        // Fields are mapped from the martha_v3 fields to those used by google
+        // https://github.com/broadinstitute/martha#martha-v3
+        // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
+        // The time formats returned are in ISO 8601 vs. RFC 3339 but should be ok for parsing by `new Date()`
+        const { gsUri, size, timeCreated, timeUpdated: updated, fileName: maybeFileName } = parseMarthaResponse(response)
         const [bucket, name] = parseGsUri(gsUri)
-        setMetadata({ bucket, name, size })
+        const gsutilCommand = `gsutil cp ${gsUri} ${maybeFileName || '.'}`
+        const fileName = maybeFileName || _.last(name.split('/'))
+        const metadata = { bucket, name, gsUri, gsutilCommand, fileName, size, timeCreated, updated }
+        setMetadata(metadata)
       }
     } catch (e) {
       setLoadingError(await e.json())
@@ -174,9 +195,7 @@ const UriViewer = _.flow(
     loadMetadata()
   })
 
-  const { size, timeCreated, updated, bucket, name } = metadata || {}
-  const gsUri = `gs://${bucket}/${name}`
-  const gsutilCommand = `gsutil cp ${gsUri} .`
+  const { gsUri, gsutilCommand, fileName, size, timeCreated, updated } = metadata || {}
   return h(Modal, {
     onDismiss,
     title: 'File Details',
@@ -198,7 +217,7 @@ const UriViewer = _.flow(
       [metadata, () => h(Fragment, [
         els.cell([
           els.label('Filename'),
-          els.data(_.last(name.split('/')).split('.').join('.\u200B')) // allow line break on periods
+          els.data(fileName.split('.').join('.\u200B')) // allow line break on periods
         ]),
         h(PreviewContent, { uri, metadata, googleProject }),
         els.cell([els.label('File size'), els.data(filesize(size))]),
