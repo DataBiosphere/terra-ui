@@ -13,11 +13,7 @@ const testPreviewDrsUriFn = _.flow(
     name: 'test_entity_1',
     entityType: 'test_entity',
     attributes: {
-      /*
-       TODO: switch to drs://jade.datarepo-dev.broadinstitute.org/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060
-        to test integration with Jade's Terra Data Repo once this code is using the 'martha_v3' endpoint
-       */
-      file_uri: 'drs://drs.data.humancellatlas.org/4cf48dbf-cf09-452e-bb5b-fd016af0c747?version=2019-09-14T024754.281908Z'
+      file_uri: 'drs://jade.datarepo-dev.broadinstitute.org/v1_0c86170e-312d-4b39-a0a4-2a2bfaa24c7a_c0e40912-8b14-43f6-9a2f-b278144d0060'
     }
   }
 
