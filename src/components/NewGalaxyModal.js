@@ -30,7 +30,6 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
 
   constructor(props) {
     super(props)
-    const { apps } = props
 
     this.state = {
       viewMode: undefined,
@@ -43,18 +42,21 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
     const { apps } = this.props
     const app = currentApp(apps)
     return {
-      app: !!app ? {} : undefined
+      app: !!app ? app : undefined
     }
   }
 
-  createGalaxy() {
+  async createGalaxy() {
     const { namespace, onSuccess } = this.props
-    return onSuccess(Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create(Utils.generatePersistentDiskName()))
+    await Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create(Utils.generatePersistentDiskName())
+    return onSuccess()
   }
 
-  deleteGalaxy() {
+  async deleteGalaxy() {
+    const { onSuccess } = this.props
     const { app: oldApp } = this.getOldEnvironmentConfig()
-    return Ajax().Apps.app(oldApp.googleProject, oldApp.appName).delete()
+    await Ajax().Apps.app(oldApp.googleProject, oldApp.appName).delete()
+    return onSuccess()
   }
 
   applyGalaxyChanges() {
@@ -68,10 +70,8 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
   }
 
   render() {
-    const { apps, onDismiss } = this.props
+    const { onDismiss } = this.props
     const { viewMode } = this.state
-
-    const app = currentApp(apps)
 
     const renderBottomButtons = () => {
       return h(Fragment, [

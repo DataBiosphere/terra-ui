@@ -250,6 +250,15 @@ const Notebooks = _.flow(
     this.setState({ notebooks: _.reverse(_.sortBy('updated', notebooks)) })
   })
 
+  refreshApps = _.flow(
+    withErrorReporting('Error loading Apps'),
+    Utils.withBusyState(v => this.setState({ loading: v }))
+  )(async () => {
+    const { refreshApps } = this.props
+    await refreshApps()
+  }
+  )
+
   async uploadFiles(files) {
     const { namespace, workspace: { workspace: { bucketName } } } = this.props
     const existingNames = this.getExistingNames()
@@ -476,10 +485,11 @@ const Notebooks = _.flow(
             apps,
             onDismiss: () => {
               this.setState({ openGalaxyConfigDrawer: false })
-              this.refresh()
+              this.refreshApps()
             },
             onSuccess: () => {
               this.setState({ openGalaxyConfigDrawer: false })
+              this.refreshApps()
             }
           })
         ]),
