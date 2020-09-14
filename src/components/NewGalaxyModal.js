@@ -74,7 +74,7 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
 
     const renderBottomButtons = () => {
       return h(Fragment, [
-        div({ style: { display: 'flex', margin: '3rem 0 1rem' } }, [
+        div({ style: { display: 'flex', margin: '1rem 0 1rem' } }, [
           div({ style: { flex: 1 } }),
           this.renderActionButton()
         ])
@@ -90,15 +90,20 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
         div({ style: { marginBottom: '1rem' } }, ['Environment consists of an application and cloud compute.']),
         div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(.1), boxShadow: Style.standardShadow } }, [
           div({ style: { display: 'flex', padding: `0.5rem 0 0`, minHeight: 120 } }, [
-            div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0 } }, [
-              span({ style: { marginRight: '1rem' } }, [icon('info-circle', { size: 25, color: colors.accent() })]),
-              span({ style: styles.headerText }, ['Set up duration']),
-              div({ style: { marginLeft: '2.5rem', lineHeight: 1 } },
-                [p(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
-                  p(['You can navigate away, and we will notify you when it\'s ready. ']),
-                  div({ style: styles.headerText }, ['Continuation cost']),
-                  p(['Please delete the cloud environment when finished; it will']),
-                  p(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running.'])])
+            div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+              span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('info-circle', { size: 25, color: colors.accent() })]),
+              div([
+                span({ style: styles.headerText }, ['Set up duration']),
+                div({ style: { lineHeight: '24px' } }, [
+                  div(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
+                  div(['You can navigate away, and we will notify you when it\'s ready. ']),
+                ]),
+                div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
+                div({ style: { lineHeight: '18px' } }, [
+                  div(['Please delete the cloud environment when finished; it will']),
+                  div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running.'])
+                ])
+              ])
             ])
           ])
         ])
@@ -123,7 +128,7 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
       return h(Fragment, [
         div(['Environment consists of an application and cloud compute.']),
         div({ style: { paddingTop: '0.5rem' } }, [
-          div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+          div({ style: { ...styles.whiteBoxContainer, marginTop: '0.5rem' } }, [
             div([
               div({ style: styles.headerText }, ['Environment Settings']),
               ul({ style: { paddingLeft: '1rem', lineHeight: 1.5 } }, [
@@ -136,7 +141,8 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
                   //TODO: Define the disk space using DEFAULT_DISK_SIZE from the mob_pd branch
                 ]),
                 li({ style: { marginTop: '1rem' } }, [
-                  'Running cloud compute costs $0.19 per hr'
+                  'Running cloud compute costs ',
+                  span({ style: { fontWeight: 600 } }, '$0.19 per hr')
                 ])
               ]),
               h(Link, {
