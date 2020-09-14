@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
-import { div, h, li, p, span, ul } from 'react-hyperscript-helpers'
+import { div, h, li, span, ul } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -97,7 +97,7 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
                 span({ style: styles.headerText }, ['Set up duration']),
                 div({ style: { lineHeight: '24px' } }, [
                   div(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
-                  div(['You can navigate away, and we will notify you when it\'s ready. ']),
+                  div(['You can navigate away, and we will notify you when it\'s ready. '])
                 ]),
                 div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
                 div({ style: { lineHeight: '18px' } }, [
