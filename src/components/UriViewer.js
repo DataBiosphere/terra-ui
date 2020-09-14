@@ -66,9 +66,13 @@ const parseMarthaResponse = response => {
   if (!response.dos) { // handle martha_v3 endpoint response
     return response
   }
-  const { dos: { data_object: { size, urls } } } = response
+  // Fields are mapped from the martha_v2 fields to those used by martha_v3
+  const {
+    dos: { data_object: { size, urls, name: fileName, created: timeCreated, updated: timeUpdated } }
+  } = response
   const gsUri = _.find(u => u.startsWith('gs://'), _.map('url', urls))
-  return { size, gsUri }
+  const [bucket, name] = parseGsUri(gsUri)
+  return { bucket, name, gsUri, size, timeCreated, timeUpdated, fileName }
 }
 
 const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProject }) => {
@@ -180,8 +184,8 @@ const UriViewer = _.flow(
         // https://github.com/broadinstitute/martha#martha-v3
         // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
         // The time formats returned are in ISO 8601 vs. RFC 3339 but should be ok for parsing by `new Date()`
-        const { gsUri, size, timeCreated, timeUpdated: updated, fileName: maybeFileName } = parseMarthaResponse(response)
-        const [bucket, name] = parseGsUri(gsUri)
+        const { bucket, name, gsUri, size, timeCreated, timeUpdated: updated, fileName: maybeFileName } =
+          parseMarthaResponse(response)
         const gsutilCommand = `gsutil cp ${gsUri} ${maybeFileName || '.'}`
         const fileName = maybeFileName || _.last(name.split('/'))
         const metadata = { bucket, name, gsUri, gsutilCommand, fileName, size, timeCreated, updated }
