@@ -185,7 +185,7 @@ export const abandonedPromise = () => {
 
 export const generateClusterName = () => `saturn-${uuid()}`
 
-export const generateKubernetesClusterName = () => `saturn-${uuid()}`
+export const generateKubernetesClusterName = () => `saturn-k8-${uuid()}`.slice(0, 30)
 
 export const generatePersistentDiskName = () => `saturn-pd-${uuid()}`
 
