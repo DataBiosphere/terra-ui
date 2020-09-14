@@ -7,6 +7,7 @@ import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import PopupTrigger from 'src/components/PopupTrigger'
 import { SimpleFlexTable, Sortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
@@ -157,6 +158,20 @@ const Clusters = () => {
             }
           },
           {
+            size: { basis: 90, grow: 0 },
+            headerRenderer: () => 'Details',
+            cellRenderer: ({ rowIndex }) => {
+              const { runtimeName, runtimeConfig: { persistentDiskId } } = filteredClusters[rowIndex]
+              const disk = _.find({ id: persistentDiskId }, disks)
+              return h(PopupTrigger, {
+                content: div({ style: { padding: '0.5rem' } }, [
+                  div([span({ style: { fontWeight: '600' } }, ['Name: ']), runtimeName]),
+                  disk && div([span({ style: { fontWeight: '600' } }, ['Persistent Disk: ']), disk.name])
+                ])
+              }, [h(Link, ['details'])])
+            }
+          },
+          {
             size: { basis: 150, grow: 0 },
             headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
             cellRenderer: ({ rowIndex }) => {
@@ -227,6 +242,20 @@ const Clusters = () => {
             }
           },
           {
+            size: { basis: 90, grow: 0 },
+            headerRenderer: () => 'Details',
+            cellRenderer: ({ rowIndex }) => {
+              const { name, id } = filteredDisks[rowIndex]
+              const runtime = _.find({ runtimeConfig: { persistentDiskId: id } }, clusters)
+              return h(PopupTrigger, {
+                content: div({ style: { padding: '0.5rem' } }, [
+                  div([span({ style: { fontWeight: 600 } }, ['Name: ']), name]),
+                  runtime && div([span({ style: { fontWeight: 600 } }, ['Runtime: ']), runtime.runtimeName])
+                ])
+              }, [h(Link, ['details'])])
+            }
+          },
+          {
             size: { basis: 120, grow: 0 },
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'size', onSort: setDiskSort }, ['Size (GB)']),
             cellRenderer: ({ rowIndex }) => {
@@ -235,7 +264,7 @@ const Clusters = () => {
             }
           },
           {
-            size: { basis: 150, grow: 0 },
+            size: { basis: 130, grow: 0 },
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'status', onSort: setDiskSort }, ['Status']),
             cellRenderer: ({ rowIndex }) => {
               const disk = filteredDisks[rowIndex]
@@ -243,14 +272,14 @@ const Clusters = () => {
             }
           },
           {
-            size: { basis: 250, grow: 0 },
+            size: { basis: 240, grow: 0 },
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'created', onSort: setDiskSort }, ['Created']),
             cellRenderer: ({ rowIndex }) => {
               return makeCompleteDate(filteredDisks[rowIndex].auditInfo.createdDate)
             }
           },
           {
-            size: { basis: 250, grow: 0 },
+            size: { basis: 240, grow: 0 },
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
             cellRenderer: ({ rowIndex }) => {
               return makeCompleteDate(filteredDisks[rowIndex].auditInfo.dateAccessed)
@@ -270,7 +299,6 @@ const Clusters = () => {
             headerRenderer: () => null,
             cellRenderer: ({ rowIndex }) => {
               const { id, status } = filteredDisks[rowIndex]
-              // TODO PD: there should be some way of identifying which disk is connected to which runtime
               const error = cond(
                 [status === 'Creating', () => 'Cannot delete this disk because it is still being created'],
                 [_.some({ runtimeConfig: { persistentDiskId: id } }, clusters), 'Cannot delete this disk because it is attached. You must delete the cloud environment first.']
