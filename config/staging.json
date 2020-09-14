@@ -12,7 +12,6 @@
   "jobManagerUrlRoot": "https://job-manager.dsde-staging.broadinstitute.org/jobs",
   "leoUrlRoot": "https://leonardo.dsde-staging.broadinstitute.org",
   "marthaUrlRoot": "https://us-central1-broad-dsde-staging.cloudfunctions.net",
-  "metadataEndpoint": "martha_v2",
   "orchestrationUrlRoot": "https://firecloud-orchestration.dsde-staging.broadinstitute.org",
   "profileUrlRoot": "https://profile-dot-broad-shibboleth-prod.appspot.com/dev",
   "rawlsUrlRoot": "https://rawls.dsde-staging.broadinstitute.org",
