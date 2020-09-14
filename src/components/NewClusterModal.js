@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
-import { b, div, fieldset, h, input, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
+import { b, code, div, fieldset, h, input, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
 import { SaveFilesHelp } from 'src/components/cluster-common'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -519,8 +519,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         checked: !deleteDiskSelected,
         onChange: () => this.setState({ deleteDiskSelected: false })
       }, [
+        p(['Please save your analysis data in the directory ', code({ style: { fontWeight: 600 } }, ['/home/jupyter-user/notebooks']), ' to ensure it’s stored on your disk.']),
         p([
-          'Deletes your application and cloud compute profile, but detaches your persistent disk (and its associated data) from the environment and saves it for later. ',
+          'Deletes your application and cloud compute profile, but detaches your persistent disk and saves it for later. ',
           'The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.'
         ]),
         p({ style: { marginBottom: 0 } }, [
@@ -828,8 +829,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
             label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
             div({ style: { marginTop: '0.5rem' } }, [
-              'A safeguard to store and protect your data. ',
-              h(Link, { onClick: () => handleLearnMoreAboutPersistentDisk() }, ['Learn more'])
+              'Stores your analysis data. ',
+              h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
             ]),
             h(NumberInput, {
               id,
@@ -1054,6 +1055,9 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                     oldPersistentDisk ?
                       h(Fragment, ['your existing ', renderDiskText()]) :
                       h(Fragment, ['a ', renderDiskText(), ' to keep your data even after you delete your compute'])
+                  ]),
+                  li({ style: { marginTop: '1rem' } }, [
+                    h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
                   ])
                 ])
               ]),
@@ -1081,7 +1085,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             !sparkMode && !isPersistentDisk && div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
               div([
                 'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safegard your work and data. ',
-                h(Link, { onClick: () => handleLearnMoreAboutPersistentDisk() }, ['Learn more'])
+                h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
               ]),
               h(ButtonOutline, {
                 style: { marginTop: '1rem' },
@@ -1103,6 +1107,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
         div({ style: { lineHeight: 1.5 } }, [
+          p(['Your persistent disk is mounted in the directory ', code({ style: { fontWeight: 600 } }, ['/home/jupyter-user/notebooks']), '. Please save your analysis data in this directory to ensure it’s stored on your disk.']),
           p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
           p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
           p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
