@@ -90,6 +90,10 @@ export const appIsProvisioning = app => {
   return app && app.status === 'PROVISIONING'
 }
 
+export const appIsDeleting = app => {
+  return app && app.status === 'DELETING'
+}
+
 export const collapsedClusterStatus = cluster => {
   return cluster && (cluster.patchInProgress ? 'LeoReconfiguring' : cluster.status) // NOTE: preserves null vs undefined
 }

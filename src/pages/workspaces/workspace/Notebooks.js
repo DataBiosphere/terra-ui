@@ -15,7 +15,7 @@ import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, Noteboo
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
-import { appIsProvisioning, currentApp } from 'src/libs/cluster-utils'
+import { appIsProvisioning, appIsDeleting, currentApp } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -366,8 +366,8 @@ const Notebooks = _.flow(
             style: {
               ...Style.elements.card.container, height: 125
             },
-            disabled: appIsProvisioning(app),
-            tooltip: appIsProvisioning(app) ? 'Your galaxy app is being created' : undefined,
+            disabled: appIsProvisioning(app) || appIsDeleting(app),
+            tooltip: (appIsProvisioning(app) || appIsDeleting(app)) ? `Your galaxy app is being ${appIsProvisioning(app) ? 'created' : 'deleted'}` : undefined,
             onClick: () => this.setState({ openGalaxyConfigDrawer: true })
           }, [
             getGalaxyText()
