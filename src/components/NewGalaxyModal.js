@@ -143,7 +143,8 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
                 ]),
                 li({ style: { marginTop: '1rem' } }, [
                   'Running cloud compute costs ',
-                  span({ style: { fontWeight: 600 } }, '$0.19 per hr')
+                  span({ style: { fontWeight: 600 } }, '$0.00 per hr')
+                  //TODO: Calculate cost
                 ])
               ]),
               h(Link, {

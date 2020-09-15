@@ -240,7 +240,7 @@ const Notebooks = _.flow(
     return _.map(({ name }) => printName(name), notebooks)
   }
 
-  refresh = _.flow(
+  refreshNotebooks = _.flow(
     withRequesterPaysHandler(this.props.onRequesterPaysError),
     withErrorReporting('Error loading notebooks'),
     Utils.withBusyState(v => this.setState({ loading: v }))
@@ -256,8 +256,7 @@ const Notebooks = _.flow(
   )(async () => {
     const { refreshApps } = this.props
     await refreshApps()
-  }
-  )
+  })
 
   async uploadFiles(files) {
     const { namespace, workspace: { workspace: { bucketName } } } = this.props
@@ -274,7 +273,7 @@ const Notebooks = _.flow(
         const contents = await Utils.readFileAsText(file)
         return Ajax().Buckets.notebook(namespace, bucketName, resolvedName).create(JSON.parse(contents))
       }, files))
-      this.refresh()
+      this.refreshNotebooks()
     } catch (error) {
       if (error instanceof SyntaxError) {
         reportError('Error uploading notebook', 'This ipynb file is not formatted correctly.')
@@ -291,7 +290,7 @@ const Notebooks = _.flow(
     const [currentUserHash, potentialLockers] = await Promise.all(
       [notebookLockHash(bucketName, email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
     this.setState({ currentUserHash, potentialLockers })
-    this.refresh()
+    this.refreshNotebooks()
   }
 
   renderNotebooks(openUploader) {
@@ -444,7 +443,7 @@ const Notebooks = _.flow(
           h(ViewToggleButtons, { listView, setListView }),
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
-            reloadList: () => this.refresh(),
+            reloadList: () => this.refreshNotebooks(),
             onDismiss: () => this.setState({ creating: false }),
             onSuccess: () => this.setState({ creating: false })
           }),
@@ -454,7 +453,7 @@ const Notebooks = _.flow(
             onDismiss: () => this.setState({ renamingNotebookName: undefined }),
             onSuccess: () => {
               this.setState({ renamingNotebookName: undefined })
-              this.refresh()
+              this.refreshNotebooks()
             }
           }),
           copyingNotebookName && h(NotebookDuplicator, {
@@ -463,7 +462,7 @@ const Notebooks = _.flow(
             onDismiss: () => this.setState({ copyingNotebookName: undefined }),
             onSuccess: () => {
               this.setState({ copyingNotebookName: undefined })
-              this.refresh()
+              this.refreshNotebooks()
             }
           }),
           exportingNotebookName && h(ExportNotebookModal, {
@@ -475,7 +474,7 @@ const Notebooks = _.flow(
             onDismiss: () => this.setState({ deletingNotebookName: undefined }),
             onSuccess: () => {
               this.setState({ deletingNotebookName: undefined })
-              this.refresh()
+              this.refreshNotebooks()
             }
           }),
           //todo if status is deleting consider not opening the panel
