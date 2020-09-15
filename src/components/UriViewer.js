@@ -62,6 +62,15 @@ const getMaxDownloadCostNA = bytes => {
   return Utils.formatUSD(downloadPrice)
 }
 
+const parseMarthaResponse = response => {
+  if (!response.dos) { // handle martha_v3 endpoint response
+    return response
+  }
+  const { dos: { data_object: { size, urls } } } = response
+  const gsUri = _.find(u => u.startsWith('gs://'), _.map('url', urls))
+  return { size, gsUri }
+}
+
 const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProject }) => {
   const signal = Utils.useCancellation()
   const [preview, setPreview] = useState()
@@ -152,8 +161,9 @@ const UriViewer = _.flow(
         const metadata = await loadObject(bucket, name, googleProject)
         setMetadata(metadata)
       } else {
-        const { dos: { data_object: { size, urls } } } = await Ajax(signal).Martha.getDataObjectMetadata(uri)
-        const [bucket, name] = parseGsUri(_.find(u => u.startsWith('gs://'), _.map('url', urls)))
+        const response = await Ajax(signal).Martha.getDataObjectMetadata(uri)
+        const { size, gsUri } = parseMarthaResponse(response)
+        const [bucket, name] = parseGsUri(gsUri)
         setMetadata({ bucket, name, size })
       }
     } catch (e) {
