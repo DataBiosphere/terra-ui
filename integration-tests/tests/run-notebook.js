@@ -24,8 +24,21 @@ const testRunNotebookFn = _.flow(
   await click(page, clickable({ text: 'Create Notebook' }))
   await click(page, clickable({ textContains: notebookName }))
   await click(page, clickable({ text: 'Edit' }))
-  // wait for drawer to slide in before clicking, otherwise we'll miss the button
+  // There are two separate activities in the UI that could interfere with beginning to interact
+  // with the modal for creating a cloud environment:
+  //   1. AJAX calls to load cloud environment details and available docker images
+  //      - renders a spinner overlay on top of UI elements
+  //   2. The drawer slide-in animation
+  //      - causes UI elements to move before puppeteer clicks on them
+  // Experimentation has shown that there's enough of a gap between clicking 'Edit' and the AJAX
+  // spinner being rendered that simply waiting for no spinners does not work; the test recognizes
+  // that there aren't any spinners before the spinner has a chance to render. Additionally, even
+  // though the slide-in animation is supposedly only 200ms, experimentation has shown that even a
+  // 500ms delay in the test is not enough to guarantee that the UI elements have finished moving.
+  // Therefore, we start with a 1000ms delay, then make sure there are no spinners just in case the
+  // AJAX calls are unexpectedly slow.
   await delay(1000)
+  waitForNoSpinners(page)
   await click(page, clickable({ text: 'Customize' }))
   await select(page, 'Application', 'Hail')
   await click(page, clickable({ text: 'Create' }))
