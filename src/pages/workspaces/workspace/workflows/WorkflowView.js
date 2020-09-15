@@ -482,8 +482,10 @@ const WorkflowView = _.flow(
       // Before letting the user edit the config we retrieved from the DB, drop any keys that are no longer valid. [WA-291]
       // N.B. this causes `config` and `modifiedConfig` to be unequal, so we (accurately) prompt the user to save before launching
       // DO NOT filter when a config is redacted, when there's no IO from the WDL we would erase the user's inputs
-      const unfilteredConfig = readSelection ? _.set('rootEntityType', selection.entityType, config) : config
-      const modifiedConfig = isRedacted ? unfilteredConfig : filterConfigIO(inputsOutputs)(unfilteredConfig)
+      const modifiedConfig = _.flow(
+        readSelection ? _.set('rootEntityType', selection.entityType) : _.identity,
+        !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
+      )(config)
 
       this.setState({
         savedConfig: config, modifiedConfig,
