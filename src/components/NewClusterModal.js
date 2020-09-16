@@ -515,13 +515,13 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return h(Fragment, [
       h(RadioBlock, {
         name: 'delete-persistent-disk',
-        labelText: 'Keep persistent disk, delete application and compute profile',
+        labelText: 'Keep persistent disk, delete application configuration and compute profile',
         checked: !deleteDiskSelected,
         onChange: () => this.setState({ deleteDiskSelected: false })
       }, [
         p(['Please save your analysis data in the directory ', code({ style: { fontWeight: 600 } }, ['/home/jupyter-user/notebooks']), ' to ensure it’s stored on your disk.']),
         p([
-          'Deletes your application and cloud compute profile, but detaches your persistent disk and saves it for later. ',
+          'Deletes your application configuration and cloud compute profile, but detaches your persistent disk and saves it for later. ',
           'The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.'
         ]),
         p({ style: { marginBottom: 0 } }, [
@@ -540,7 +540,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           'Deletes your persistent disk, which will also ', span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
         ]),
         p({ style: { marginBottom: 0 } }, [
-          'Also deletes your application and cloud compute profile.'
+          'Also deletes your application configuration and cloud compute profile.'
         ])
       ]),
       h(SaveFilesHelp)
@@ -666,7 +666,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         h(IdContainer, [
           id => h(Fragment, [
             div({ style: { marginBottom: '0.5rem' } }, [
-              label({ htmlFor: id, style: styles.label }, ['Application']),
+              label({ htmlFor: id, style: styles.label }, ['Application configuration']),
               h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
                 'The software application + programming languages + packages used when you create your cloud environment. '
               ])
@@ -862,12 +862,12 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
               return h(Fragment, [
                 h(RadioBlock, {
                   name: 'delete-persistent-disk',
-                  labelText: 'Delete application and cloud compute profile',
+                  labelText: 'Delete application configuration and cloud compute profile',
                   checked: !deleteDiskSelected,
                   onChange: () => this.setState({ deleteDiskSelected: false })
                 }, [
                   p({ style: { marginBottom: 0 } }, [
-                    'Deletes your application and cloud compute profile. This will also ',
+                    'Deletes your application configuration and cloud compute profile. This will also ',
                     span({ style: { fontWeight: 600 } }, ['delete all files on the built-in hard disk.'])
                   ])
                 ]),
@@ -882,7 +882,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
                     'Deletes your persistent disk, which will also ', span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
                   ]),
                   p({ style: { marginBottom: 0 } }, [
-                    'Since the persistent disk is not attached, the application and cloud compute profile will remain.'
+                    'Since the persistent disk is not attached, the application configuration and cloud compute profile will remain.'
                   ])
                 ]),
                 h(SaveFilesHelp)
@@ -910,7 +910,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             () => {
               return h(Fragment, [
                 p([
-                  'Deleting your application and cloud compute profile will also ',
+                  'Deleting your application configuration and cloud compute profile will also ',
                   span({ style: { fontWeight: 600 } }, ['delete all files on the built-in hard disk.'])
                 ]),
                 h(SaveFilesHelp)
@@ -929,7 +929,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           style: styles.titleBar,
           title: h(WarningTitle, [
             Utils.cond(
-              [this.willDetachPersistentDisk(), () => 'Replace application and cloud compute profile for Spark'],
+              [this.willDetachPersistentDisk(), () => 'Replace application configuration and cloud compute profile for Spark'],
               [this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk(), () => 'Data will be deleted'],
               [this.willRequireDowntime(), () => 'Downtime required']
             )
@@ -941,7 +941,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
           Utils.cond(
             [this.willDetachPersistentDisk(), () => h(Fragment, [
               div([
-                'You have requested to replace your existing application and cloud compute profile to ones that support Spark. ',
+                'You have requested to replace your existing application configuration and cloud compute profile to ones that support Spark. ',
                 'This type of cloud compute does not support the persistent disk feature.'
               ]),
               div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
@@ -1016,7 +1016,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             title: 'Cloud environment',
             onDismiss
           }),
-          div(['Cloud environments consist of an application, cloud compute and a persistent disk'])
+          div(['Cloud environments consist of an application configuration, cloud compute and a persistent disk'])
         ])
       }
       const renderBottomButtons = () => {
