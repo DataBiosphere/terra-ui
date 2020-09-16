@@ -72,7 +72,7 @@ const parseMarthaResponse = response => {
   } = response
   const gsUri = _.find(u => u.startsWith('gs://'), _.map('url', urls))
   const [bucket, name] = parseGsUri(gsUri)
-  return { bucket, name, gsUri, size, timeCreated, timeUpdated, fileName }
+  return { bucket, name, size, timeCreated, timeUpdated, fileName }
 }
 
 const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProject }) => {
@@ -169,14 +169,7 @@ const UriViewer = _.flow(
         const loadObject = withRequesterPaysHandler(onRequesterPaysError, () => {
           return Ajax(signal).Buckets.getObject(bucket, name, googleProject)
         })
-        const fileName = _.last(name.split('/'))
-        const gsutilCommand = `gsutil cp ${uri} .`
-        const metadata = {
-          gsUri: uri,
-          fileName,
-          gsutilCommand,
-          ...await loadObject(bucket, name, googleProject)
-        }
+        const metadata = await loadObject(bucket, name, googleProject)
         setMetadata(metadata)
       } else {
         const response = await Ajax(signal).Martha.getDataObjectMetadata(uri)
@@ -184,11 +177,9 @@ const UriViewer = _.flow(
         // https://github.com/broadinstitute/martha#martha-v3
         // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
         // The time formats returned are in ISO 8601 vs. RFC 3339 but should be ok for parsing by `new Date()`
-        const { bucket, name, gsUri, size, timeCreated, timeUpdated: updated, fileName: maybeFileName } =
+        const { bucket, name, size, timeCreated, timeUpdated: updated, fileName } =
           parseMarthaResponse(response)
-        const gsutilCommand = `gsutil cp ${gsUri} ${maybeFileName || '.'}`
-        const fileName = maybeFileName || _.last(name.split('/'))
-        const metadata = { bucket, name, gsUri, gsutilCommand, fileName, size, timeCreated, updated }
+        const metadata = { bucket, name, fileName, size, timeCreated, updated }
         setMetadata(metadata)
       }
     } catch (e) {
@@ -199,7 +190,9 @@ const UriViewer = _.flow(
     loadMetadata()
   })
 
-  const { gsUri, gsutilCommand, fileName, size, timeCreated, updated } = metadata || {}
+  const { size, timeCreated, updated, bucket, name, fileName } = metadata || {}
+  const gsUri = `gs://${bucket}/${name}`
+  const gsutilCommand = `gsutil cp ${gsUri} ${fileName || '.'}`
   return h(Modal, {
     onDismiss,
     title: 'File Details',
@@ -221,7 +214,7 @@ const UriViewer = _.flow(
       [metadata, () => h(Fragment, [
         els.cell([
           els.label('Filename'),
-          els.data(fileName.split('.').join('.\u200B')) // allow line break on periods
+          els.data((fileName || _.last(name.split('/'))).split('.').join('.\u200B')) // allow line break on periods
         ]),
         h(PreviewContent, { uri, metadata, googleProject }),
         els.cell([els.label('File size'), els.data(filesize(size))]),
