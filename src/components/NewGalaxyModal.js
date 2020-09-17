@@ -32,8 +32,7 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
     super(props)
 
     this.state = {
-      viewMode: undefined,
-      isDeleting: false
+      viewMode: undefined
     }
   }
 
