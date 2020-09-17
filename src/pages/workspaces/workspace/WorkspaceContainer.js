@@ -89,7 +89,7 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
   ])
 }
 
-const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters, children }) => {
+const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters, persistentDisks, children }) => {
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
@@ -114,7 +114,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
         div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools'])
       ]),
       h(ClusterManager, {
-        namespace, name, clusters, refreshClusters,
+        namespace, name, clusters, persistentDisks, refreshClusters,
         canCompute: !!((workspace && workspace.canCompute) || (clusters && clusters.length))
       })
     ]),
@@ -148,18 +148,25 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const useClusterPolling = namespace => {
+const useCloudEnvironmentPolling = namespace => {
   const signal = Utils.useCancellation()
   const timeout = useRef()
   const [clusters, setClusters] = useState()
+  const [persistentDisks, setPersistentDisks] = useState()
+
   const reschedule = ms => {
     clearTimeout(timeout.current)
     timeout.current = setTimeout(refreshClustersSilently, ms)
   }
-  const loadClusters = async () => {
+  const load = async () => {
     try {
-      const newClusters = await Ajax(signal).Clusters.list({ googleProject: namespace, creator: getUser().email })
+      const [newDisks, newClusters] = await Promise.all([
+        Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email }),
+        Ajax(signal).Clusters.list({ googleProject: namespace, creator: getUser().email })
+      ])
       setClusters(newClusters)
+      setPersistentDisks(newDisks)
+
       const cluster = currentCluster(newClusters)
       reschedule(_.includes(collapsedClusterStatus(cluster), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
     } catch (error) {
@@ -167,13 +174,13 @@ const useClusterPolling = namespace => {
       throw error
     }
   }
-  const refreshClusters = withErrorReporting('Error loading notebook runtimes', loadClusters)
-  const refreshClustersSilently = withErrorIgnoring(loadClusters)
+  const refreshClusters = withErrorReporting('Error loading cloud environments', load)
+  const refreshClustersSilently = withErrorIgnoring(load)
   Utils.useOnMount(() => {
     refreshClusters()
     return () => clearTimeout(timeout.current)
   })
-  return { clusters, refreshClusters }
+  return { clusters, refreshClusters, persistentDisks }
 }
 
 export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryparams }) => WrappedComponent => {
@@ -185,7 +192,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const accessNotificationId = useRef()
     const cachedWorkspace = Utils.useStore(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
-    const { clusters, refreshClusters } = useClusterPolling(namespace)
+    const { clusters, refreshClusters, persistentDisks } = useCloudEnvironmentPolling(namespace)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
       cachedWorkspace :
       undefined
@@ -242,7 +249,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
-        namespace, name, activeTab, showTabBar, workspace, clusters,
+        namespace, name, activeTab, showTabBar, workspace, clusters, persistentDisks,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
@@ -257,7 +264,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         workspace && h(WrappedComponent, {
           ref: child,
           workspace, refreshWorkspace, refreshClusters,
-          cluster: !clusters ? undefined : (currentCluster(clusters) || null),
+          clusters, persistentDisks,
           ...props
         }),
         loadingWorkspace && spinnerOverlay

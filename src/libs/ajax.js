@@ -27,12 +27,17 @@ const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
 const tosData = { appid: 'Saturn', tosversion: 6 }
 
+// Allows use of ajaxOverrideStore to stub responses for testing
 const withInstrumentation = wrappedFetch => (...args) => {
   return _.flow(
-    ..._.map('fn', _.filter(({ filter }) => args[0].match(filter), ajaxOverridesStore.get()))
+    ..._.map('fn', _.filter(({ filter }) => {
+      const [url, { method = 'GET' } = {}] = args
+      return _.isFunction(filter) ? filter(...args) : url.match(filter.url) && (!filter.method || filter.method === method)
+    }, ajaxOverridesStore.get()))
   )(wrappedFetch)(...args)
 }
 
+// Ignores cancellation error when request is cancelled
 const withCancellation = wrappedFetch => async (...args) => {
   try {
     return await wrappedFetch(...args)
@@ -45,6 +50,7 @@ const withCancellation = wrappedFetch => async (...args) => {
   }
 }
 
+// Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
   const res = await wrappedFetch(...args)
   if (res.ok) {
@@ -1055,8 +1061,9 @@ const Clusters = signal => ({
         return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
       },
 
-      delete: () => {
-        return fetchLeo(root, _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
+      delete: deleteDisk => {
+        return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
+          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
       }
     }
   },
@@ -1106,6 +1113,31 @@ const Clusters = signal => ({
   }
 })
 
+
+const Disks = signal => ({
+  list: async (labels = {}) => {
+    const res = await fetchLeo(`api/google/v1/disks${qs.stringify(labels, { addQueryPrefix: true })}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    return res.json()
+  },
+
+  disk: (project, name) => {
+    return {
+      delete: () => {
+        return fetchLeo(`api/google/v1/disks/${project}/${name}`, _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }]))
+      },
+      update: size => {
+        return fetchLeo(`api/google/v1/disks/${project}/${name}`,
+          _.mergeAll([authOpts(), jsonBody({ size }), appIdentifier, { signal, method: 'PATCH' }]))
+      },
+      details: async () => {
+        const res = await fetchLeo(`api/google/v1/disks/${project}/${name}`,
+          _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }]))
+        return res.json()
+      }
+    }
+  }
+})
 
 const Dockstore = signal => ({
   getWdl: async (path, version) => {
@@ -1175,7 +1207,8 @@ export const Ajax = signal => {
     Dockstore: Dockstore(signal),
     Martha: Martha(signal),
     Duos: Duos(signal),
-    Metrics: Metrics(signal)
+    Metrics: Metrics(signal),
+    Disks: Disks(signal)
   }
 }
 

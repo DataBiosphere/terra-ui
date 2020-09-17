@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
-import { useEffect, useState } from 'react'
-import { b, div, h } from 'react-hyperscript-helpers'
-import { spinnerOverlay } from 'src/components/common'
+import { Fragment, useEffect, useState } from 'react'
+import { b, div, h, p } from 'react-hyperscript-helpers'
+import { Link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import { collapsedClusterStatus, usableStatuses } from 'src/libs/cluster-utils'
@@ -22,7 +22,7 @@ export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
   const signal = Utils.useCancellation()
   const [busy, setBusy] = useState()
 
-  const startClusterOnce = withErrorReporting('Error starting notebook runtime', async () => {
+  const startClusterOnce = withErrorReporting('Error starting cloud environment', async () => {
     while (!signal.aborted) {
       const currentCluster = getCluster()
       const { googleProject, runtimeName } = currentCluster || {}
@@ -95,4 +95,17 @@ export const PeriodicCookieSetter = ({ namespace, runtimeName, leading }) => {
     withErrorIgnoring(() => Ajax(signal).Clusters.notebooks(namespace, runtimeName).setCookie()),
     { ms: 5 * 60 * 1000, leading })
   return null
+}
+
+export const SaveFilesHelp = () => {
+  return h(Fragment, [
+    p([
+      'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
+      h(Link, {
+        href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+        ...Utils.newTabLinkProps
+      }, ['move them to the workspace bucket.'])
+    ]),
+    p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.'])
+  ])
 }

@@ -4,24 +4,26 @@ import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 
 
-const TitleBar = ({ onPrevious, title, onDismiss, titleExtras }) => {
+const TitleBar = ({ onPrevious, title, onDismiss, titleExtras, style = {} }) => {
   return div({
     style: {
-      display: 'flex', alignItems: 'baseline', flex: 'none', padding: '1.5rem 1.5rem 0rem'
+      display: 'flex', alignItems: 'flex-start', flex: 'none', ...style
     }
   }, [
-    div({ style: { fontSize: '1rem', fontWeight: 600 } }, [title]),
+    div({ style: { fontSize: 18, fontWeight: 600 } }, [title]),
     titleExtras,
-    onPrevious && h(Link, {
-      'aria-label': 'Back',
-      style: { marginLeft: 'auto', marginRight: '2rem', alignSelf: 'center' },
-      onClick: onPrevious
-    }, [icon('arrowLeftRegular', { size: '22' })]),
-    onDismiss && h(Link, {
-      'aria-label': 'Close',
-      style: { marginLeft: onPrevious ? undefined: 'auto' },
-      onClick: onDismiss
-    }, [icon('times', { size: '25' })])
+    div({ style: { marginLeft: 'auto', display: 'flex', alignItems: 'center' } }, [
+      onPrevious && h(Link, {
+        'aria-label': 'Back',
+        style: { marginLeft: '2rem' },
+        onClick: onPrevious
+      }, [icon('arrowLeftRegular', { size: '22' })]),
+      onDismiss && h(Link, {
+        'aria-label': 'Close',
+        style: { marginLeft: '2rem' },
+        onClick: onDismiss
+      }, [icon('times', { size: '25' })])
+    ])
   ])
 }
 
