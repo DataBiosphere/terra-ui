@@ -10,6 +10,7 @@ import { machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import { currentApp } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
+import { withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -20,7 +21,8 @@ const styles = {
   headerText: { fontSize: 16, fontWeight: 600 }
 }
 
-export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyModal extends Component {
+// TODO: Once we have more appTypes, abstract text/component to support other apps
+export const NewAppModal = withModalDrawer({ width: 675 })(class NewAppModal extends Component {
   static propTypes = {
     onDismiss: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired,
@@ -45,32 +47,24 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
     }
   }
 
-  async createGalaxy() {
+  // TODO: Make this parameterized for app type once we have more than one app type
+  createApp = withErrorReporting('Error creating app', async () => {
     const { namespace, onSuccess } = this.props
-    await Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create(Utils.generatePersistentDiskName())
+    await Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create(Utils.generatePersistentDiskName(), 'GALAXY')
     return onSuccess()
-  }
+  })
 
-  async deleteGalaxy() {
+  deleteApp = withErrorReporting('Error deleting app', async () => {
     const { onSuccess } = this.props
     const { app: oldApp } = this.getOldEnvironmentConfig()
     await Ajax().Apps.app(oldApp.googleProject, oldApp.appName).delete()
     return onSuccess()
-  }
-
-  applyGalaxyChanges() {
-    const { viewMode } = this.state
-    const { app: oldApp } = this.getOldEnvironmentConfig()
-    return Utils.switchCase(viewMode,
-      ['deleteWarn', () => this.deleteGalaxy()],
-      ['createWarn', () => this.createGalaxy()],
-      [Utils.DEFAULT, () => !!oldApp ? this.setState({ viewMode: 'deleteWarn' }) : this.setState({ viewMode: 'createWarn' })]
-    )
-  }
+  })
 
   render() {
     const { onDismiss } = this.props
     const { viewMode } = this.state
+    const { app: oldApp } = this.getOldEnvironmentConfig()
 
     const renderBottomButtons = () => {
       return h(Fragment, [
@@ -119,14 +113,14 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
           'the data tab in the workspace before clicking “Delete”'
         ]),
         div({ style: { marginTop: '1rem' } }, ['Deleting your Cloud Environment will stop your ',
-          'running Galaxy application and all associated costs. You can create a new Cloud Environment ',
+          'running Galaxy application and your application costs. You can create a new Cloud Environment ',
           'for Galaxy later, which will take 8-10 minutes.'])
       ])
     }
 
     const renderDefaultCase = () => {
       return h(Fragment, [
-        div(['Environment consists of an application and cloud compute.']),
+        div([`Environment ${oldApp ? 'consists' : 'will consist'} of an application and cloud compute.`]),
         div({ style: { paddingTop: '0.5rem' } }, [
           div({ style: { ...styles.whiteBoxContainer, marginTop: '0.5rem' } }, [
             div([
@@ -170,7 +164,8 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
           [Utils.DEFAULT, () => 'Cloud environment']
         ),
         onDismiss,
-        onPrevious: !!viewMode ? () => this.setState({ viewMode: undefined }) : undefined
+        onPrevious: !!viewMode ? () => this.setState({ viewMode: undefined }) : undefined,
+        style: { margin: '2rem 0 0 1.5rem' }
       }),
       div({ style: { padding: '0.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents, renderBottomButtons()])
     ])
@@ -180,14 +175,18 @@ export const NewGalaxyModal = withModalDrawer({ width: 675 })(class NewGalaxyMod
     const { viewMode } = this.state
     const { app: oldApp } = this.getOldEnvironmentConfig()
 
-    return h(ButtonPrimary, {
-      onClick: () => this.applyGalaxyChanges()
-    }, [
-      Utils.switchCase(viewMode,
-        ['deleteWarn', () => 'Delete'],
-        ['createWarn', () => 'Create'],
-        [Utils.DEFAULT, () => !!oldApp ? 'Delete' : 'Next']
-      )
-    ])
+    return Utils.switchCase(viewMode,
+      ['deleteWarn', () => {
+        return h(ButtonPrimary, { onClick: () => this.deleteApp() }, ['Delete'])
+      }],
+      ['createWarn', () => {
+        return h(ButtonPrimary, { onClick: () => this.createApp() }, ['Create'])
+      }],
+      [Utils.DEFAULT, () => {
+        return !!oldApp ?
+          h(ButtonPrimary, { onClick: () => this.setState({ viewMode: 'deleteWarn' }) }, ['Delete']) :
+          h(ButtonPrimary, { onClick: () => this.setState({ viewMode: 'createWarn' }) }, ['Next'])
+      }]
+    )
   }
 })

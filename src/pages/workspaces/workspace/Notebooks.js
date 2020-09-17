@@ -10,7 +10,7 @@ import { Clickable, IdContainer, Link, makeMenuIcon, MenuButton, PageBox, Select
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { NewGalaxyModal } from 'src/components/NewGalaxyModal'
+import { NewAppModal } from 'src/components/NewAppModal'
 import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -45,14 +45,6 @@ const notebookCardCommonStyles = listView => _.merge({ display: 'flex' },
       padding: 0
     }
 )
-
-const galaxyCardStyle = () => {
-  return {
-    fontSize: 18,
-    lineHeight: '22px',
-    width: 160
-  }
-}
 
 const printName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
@@ -323,7 +315,7 @@ const Notebooks = _.flow(
           div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status)]),
           icon('trash', { size: 21 })
         ]) :
-        div({ style: { ...galaxyCardStyle(), color: colors.accent() } }, [
+        div({ style: { fontSize: 18, lineHeight: '22px', width: 160, color: colors.accent() } }, [
           div(['Create a Cloud']),
           div(['Environment for ']),
           div(['Galaxy ', versionTag('Alpha', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` }
@@ -361,22 +353,20 @@ const Notebooks = _.flow(
           ])
         ]),
         !getConfig().isProd && h(Fragment, [
-          div({ style: { height: 15 } }),
           h(Clickable, {
             style: {
-              ...Style.elements.card.container, height: 125
+              ...Style.elements.card.container, height: 125, marginTop: 15
             },
             disabled: appIsProvisioning(app) || appIsDeleting(app),
-            tooltip: (appIsProvisioning(app) || appIsDeleting(app)) ? `Your galaxy app is being ${appIsProvisioning(app) ? 'created' : 'deleted'}` : undefined,
+            tooltip: (appIsProvisioning(app) || appIsDeleting(app)) ? `Your Galaxy app is being ${appIsProvisioning(app) ? 'created' : 'deleted'}` : undefined,
             onClick: () => this.setState({ openGalaxyConfigDrawer: true })
           }, [
             getGalaxyText()
           ])
         ]),
-        div({ style: { height: 15 } }),
         h(Clickable, {
           style: {
-            ...Style.elements.card.container, height: 125,
+            ...Style.elements.card.container, height: 125, marginTop: 15,
             backgroundColor: colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
           },
           onClick: openUploader,
@@ -478,13 +468,12 @@ const Notebooks = _.flow(
             }
           }),
           //todo if status is deleting consider not opening the panel
-          !!openGalaxyConfigDrawer && h(NewGalaxyModal, {
+          h(NewAppModal, {
             isOpen: openGalaxyConfigDrawer,
             namespace,
             apps,
             onDismiss: () => {
               this.setState({ openGalaxyConfigDrawer: false })
-              this.refreshApps()
             },
             onSuccess: () => {
               this.setState({ openGalaxyConfigDrawer: false })

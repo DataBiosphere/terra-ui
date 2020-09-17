@@ -80,7 +80,7 @@ export const currentCluster = clusters => {
 }
 
 export const trimAppsOldestFirst = _.flow(
-  _.remove({ status: 'Deleting' }),
+  _.remove({ status: 'DELETING' }),
   _.sortBy('createdDate')
 )
 

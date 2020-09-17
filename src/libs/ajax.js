@@ -1125,12 +1125,12 @@ const Apps = signal => ({
       delete: () => {
         return fetchLeo(root, _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
       },
-      create: diskName => {
+      create: (diskName, appType) => {
         const body = {
           diskConfig: {
             name: diskName
           },
-          appType: 'GALAXY'
+          appType
         }
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
       }
