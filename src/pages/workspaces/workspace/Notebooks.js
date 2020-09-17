@@ -360,7 +360,7 @@ const Notebooks = _.flow(
             icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
           ])
         ]),
-        getConfig().enableGalaxy && h(Fragment, [
+        !getConfig().isProd && h(Fragment, [
           div({ style: { height: 15 } }),
           h(Clickable, {
             style: {
