@@ -81,10 +81,9 @@ const AppLauncher = _.flow(
           onSuccess: _.flow(
             withErrorReporting('Error creating cluster'),
             Utils.withBusyState(setBusy)
-          )(async promise => {
+          )(async () => {
             setShowCreate(false)
-            await promise
-            await refreshClusters()
+            await refreshClusters(true)
           })
         }),
         busy && spinnerOverlay
