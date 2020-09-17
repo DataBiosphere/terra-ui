@@ -9,10 +9,11 @@ import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { dataSyncingDocUrl } from 'src/data/machines'
+import galaxyLogo from 'src/images/galaxy.svg'
 import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
-import { clusterCost, collapsedClusterStatus, currentCluster, persistentDiskCost, trimClustersOldestFirst } from 'src/libs/cluster-utils'
+import { clusterCost, collapsedClusterStatus, currentApp, currentCluster, persistentDiskCost, trimClustersOldestFirst } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -204,9 +205,9 @@ export default class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, clusters, canCompute, persistentDisks } = this.props
+    const { namespace, name, clusters, canCompute, persistentDisks, apps } = this.props
     const { busy, createModalDrawerOpen, errorModalOpen } = this.state
-    if (!clusters) {
+    if (!clusters || !apps) {
       return null
     }
     const currentCluster = this.getCurrentCluster()
@@ -270,7 +271,21 @@ export default class ClusterManager extends PureComponent {
     const appName = isRStudioImage ? 'RStudio' : 'terminal'
     const appLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: appName })
 
+    const app = currentApp(apps)
+
     return div({ style: styles.container }, [
+      app && h(Clickable, {
+        style: { display: 'flex', marginRight: '2rem' },
+        onClick: () => {
+          // TODO galaxy: implement this action
+        }
+      }, [
+        img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
+        div([
+          div({ style: { fontSize: 12, fontWeight: 'bold' } }, ['Galaxy']),
+          div({ style: { fontSize: 10, textTransform: 'uppercase' } }, [app.status])
+        ])
+      ]),
       (activeClusters.length > 1 || activeDisks.length > 1) && h(Link, {
         style: { marginRight: '1rem' },
         href: Nav.getLink('clusters'),

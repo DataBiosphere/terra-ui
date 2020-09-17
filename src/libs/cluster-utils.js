@@ -79,6 +79,8 @@ export const currentCluster = clusters => {
   return !clusters ? undefined : (_.flow(trimClustersOldestFirst, _.last)(clusters) || null)
 }
 
+export const currentApp = _.first // TODO galaxy: fill in the correct logic here
+
 export const collapsedClusterStatus = cluster => {
   return cluster && (cluster.patchInProgress ? 'LeoReconfiguring' : cluster.status) // NOTE: preserves null vs undefined
 }
