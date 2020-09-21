@@ -115,7 +115,8 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
       ]),
       h(ClusterManager, {
         namespace, name, clusters, persistentDisks, refreshClusters,
-        canCompute: !!((workspace && workspace.canCompute) || (clusters && clusters.length))
+        canCompute: !!((workspace && workspace.canCompute) || (clusters && clusters.length)),
+        apps: [] // TODO galaxy: pass actual apps here
       })
     ]),
     showTabBar && h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace }),
