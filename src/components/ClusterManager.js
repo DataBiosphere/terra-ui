@@ -277,7 +277,7 @@ export default class ClusterManager extends PureComponent {
       app && h(Clickable, {
         style: { display: 'flex', marginRight: '2rem' },
         onClick: () => {
-          // TODO galaxy: implement this action
+          // TODO galaxy SATURN-1855: implement this action
         }
       }, [
         img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
