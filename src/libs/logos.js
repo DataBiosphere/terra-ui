@@ -65,7 +65,7 @@ export const topBarLogo = () => isTerra() ?
 
 export const footerLogo = () => isTerra() ? terraLogoMaker(terraLogoWhite, { height: 40 }) : brandLogoMaker(40)
 
-export const versionTag = (children, styles) => b({
+export const versionTag = (version, styles) => b({
   style: {
     fontSize: 8, lineHeight: '9px',
     color: 'white', backgroundColor: colors.primary(1.5),
@@ -73,4 +73,4 @@ export const versionTag = (children, styles) => b({
     borderRadius: 2, textTransform: 'uppercase',
     ...styles
   }
-}, [children])
+}, [version])
