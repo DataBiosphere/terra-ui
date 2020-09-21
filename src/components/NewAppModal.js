@@ -24,13 +24,13 @@ const styles = {
 export const NewAppModal = _.flow(
   Utils.withDisplayName('NewAppModal'),
   withModalDrawer({ width: 675 })
-)(({ onDismiss, onSuccess, namespace, apps }) => {
+)(({ onDismiss, onSuccess, namespace, apps, bucketName, workspaceName }) => {
   const [viewMode, setViewMode] = useState(undefined)
 
   const app = currentApp(apps)
 
   const createApp = withErrorReporting('Error creating app', async () => {
-    await Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create(Utils.generatePersistentDiskName(), 'GALAXY')
+    await Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create(Utils.generatePersistentDiskName(), 'GALAXY', namespace, bucketName, workspaceName)
     return onSuccess()
   })
 
@@ -40,7 +40,6 @@ export const NewAppModal = _.flow(
   })
 
   const renderActionButton = () => {
-
     return Utils.switchCase(viewMode,
       ['deleteWarn', () => {
         return h(ButtonPrimary, { onClick: () => deleteApp() }, ['Delete'])
