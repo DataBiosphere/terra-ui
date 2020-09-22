@@ -89,7 +89,7 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
   ])
 }
 
-const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters, persistentDisks, children }) => {
+const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters, persistentDisks, apps, children }) => {
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
@@ -116,7 +116,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
       h(ClusterManager, {
         namespace, name, clusters, persistentDisks, refreshClusters,
         canCompute: !!((workspace && workspace.canCompute) || (clusters && clusters.length)),
-        apps: [] // TODO galaxy: pass actual apps here
+        apps
       })
     ]),
     showTabBar && h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace }),
@@ -197,7 +197,7 @@ const useAppPolling = namespace => {
       const newApps = await Ajax(signal).Apps.list(namespace, { creator: getUser().email })
       setApps(newApps)
       const app = currentApp(newApps)
-      reschedule((app && app.status === 'PROVISIONING') ? 10000 : 120000)
+      reschedule((app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
     } catch (error) {
       reschedule(30000)
       throw error
@@ -279,7 +279,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
-        namespace, name, activeTab, showTabBar, workspace, clusters, persistentDisks,
+        namespace, name, activeTab, showTabBar, workspace, clusters, persistentDisks, apps,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
