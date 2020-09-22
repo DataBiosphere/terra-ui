@@ -1115,7 +1115,7 @@ const Clusters = signal => ({
 
 const Apps = signal => ({
   list: async (project, labels = {}) => {
-    const res = await fetchLeo(`api/google/v1/apps/${project}/?${qs.stringify({ ...labels })}`,
+    const res = await fetchLeo(`api/google/v1/apps/${project}?${qs.stringify({ ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
