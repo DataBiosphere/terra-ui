@@ -52,7 +52,6 @@ const testRunNotebook = {
   name: 'run-notebook',
   fn: testRunNotebookFn,
   timeout: 15 * 60 * 1000
-
 }
 
 module.exports = { testRunNotebook }
