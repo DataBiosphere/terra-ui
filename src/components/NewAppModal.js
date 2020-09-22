@@ -32,7 +32,7 @@ export const NewAppModal = _.flow(
   const app = currentApp(apps)
 
   const createApp = _.flow(
-    Utils.withBusyState(() => setLoading(true)),
+    Utils.withBusyState(setLoading),
     withErrorReporting('Error creating app')
   )(async () => {
     await Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create({
