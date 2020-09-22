@@ -1122,8 +1122,9 @@ const Apps = signal => ({
   app: (project, name) => {
     const root = `api/google/v1/apps/${project}/${name}`
     return {
-      delete: () => {
-        return fetchLeo(root, _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
+      delete: deleteDisk => {
+        return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
+          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
       },
       create: ({ diskName, appType, namespace, bucketName, workspaceName }) => {
         const body = {
