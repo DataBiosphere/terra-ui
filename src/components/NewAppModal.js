@@ -30,7 +30,7 @@ export const NewAppModal = _.flow(
   const app = currentApp(apps)
 
   const createApp = withErrorReporting('Error creating app', async () => {
-    await Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create(Utils.generatePersistentDiskName(), 'GALAXY', namespace, bucketName, workspaceName)
+    await Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create({ diskName: Utils.generatePersistentDiskName(), appType: 'GALAXY', namespace, bucketName, workspaceName })
     return onSuccess()
   })
 
@@ -56,11 +56,9 @@ export const NewAppModal = _.flow(
   }
 
   const renderBottomButtons = () => {
-    return h(Fragment, [
-      div({ style: { display: 'flex', margin: '1rem 0 1rem' } }, [
-        div({ style: { flex: 1 } }),
-        renderActionButton()
-      ])
+    return div({ style: { display: 'flex', margin: '1rem 0 1rem' } }, [
+      div({ style: { flex: 1 } }),
+      renderActionButton()
     ])
   }
 
