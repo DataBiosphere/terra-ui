@@ -79,10 +79,8 @@ export const currentCluster = clusters => {
   return !clusters ? undefined : (_.flow(trimClustersOldestFirst, _.last)(clusters) || null)
 }
 
-export const trimAppsOldestFirst = _.flow(
-  _.remove({ status: 'DELETING' })
-  // TODO: add  '_.sortBy('createdDate')'  back when Leo sends the 'createdDate' value
-)
+// TODO: add  '_.sortBy('createdDate')'  back when Leo sends the 'createdDate' value
+export const trimAppsOldestFirst = _.remove({ status: 'DELETING' })
 
 export const currentApp = _.flow(trimAppsOldestFirst, _.last)
 
