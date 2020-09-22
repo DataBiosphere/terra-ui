@@ -42,7 +42,7 @@ export const NewAppModal = _.flow(
   })
 
   const deleteApp = _.flow(
-    Utils.withBusyState(() => setLoading(true)),
+    Utils.withBusyState(setLoading),
     withErrorReporting('Error deleting app')
   )(async () => {
     await Ajax().Apps.app(app.googleProject, app.appName).delete()
