@@ -1113,6 +1113,36 @@ const Clusters = signal => ({
   }
 })
 
+const Apps = signal => ({
+  list: async (project, labels = {}) => {
+    const res = await fetchLeo(`api/google/v1/apps/${project}?${qs.stringify({ ...labels })}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    return res.json()
+  },
+  app: (project, name) => {
+    const root = `api/google/v1/apps/${project}/${name}`
+    return {
+      delete: () => {
+        return fetchLeo(root, _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
+      },
+      create: ({ diskName, appType, namespace, bucketName, workspaceName }) => {
+        const body = {
+          diskConfig: {
+            name: diskName
+          },
+          customEnvironmentVariables: {
+            WORKSPACE_NAME: workspaceName,
+            WORKSPACE_BUCKET: `gs://${bucketName}`,
+            GOOGLE_PROJECT: namespace
+          },
+          appType
+        }
+        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
+      }
+    }
+  }
+})
+
 
 const Disks = signal => ({
   list: async (labels = {}) => {
@@ -1204,6 +1234,7 @@ export const Ajax = signal => {
     Methods: Methods(signal),
     Submissions: Submissions(signal),
     Clusters: Clusters(signal),
+    Apps: Apps(signal),
     Dockstore: Dockstore(signal),
     Martha: Martha(signal),
     Duos: Duos(signal),

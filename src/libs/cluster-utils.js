@@ -79,7 +79,18 @@ export const currentCluster = clusters => {
   return !clusters ? undefined : (_.flow(trimClustersOldestFirst, _.last)(clusters) || null)
 }
 
-export const currentApp = _.first // TODO galaxy: fill in the correct logic here
+// TODO: add  '_.sortBy('createdDate')'  back when Leo sends the 'createdDate' value
+export const trimAppsOldestFirst = _.remove({ status: 'DELETING' })
+
+export const currentApp = _.flow(trimAppsOldestFirst, _.last)
+
+export const appIsProvisioning = app => {
+  return app && app.status === 'PROVISIONING'
+}
+
+export const appIsDeleting = app => {
+  return app && app.status === 'DELETING'
+}
 
 export const collapsedClusterStatus = cluster => {
   return cluster && (cluster.patchInProgress ? 'LeoReconfiguring' : cluster.status) // NOTE: preserves null vs undefined
