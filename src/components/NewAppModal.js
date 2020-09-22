@@ -116,31 +116,29 @@ export const NewAppModal = _.flow(
   const renderDefaultCase = () => {
     return h(Fragment, [
       div([`Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`]),
-      div({ style: { paddingTop: '0.5rem' } }, [
-        div({ style: { ...styles.whiteBoxContainer, marginTop: '0.5rem' } }, [
-          div([
-            div({ style: styles.headerText }, ['Environment Settings']),
-            ul({ style: { paddingLeft: '1rem', lineHeight: 1.5 } }, [
-              li({ style: { marginTop: '1rem' } }, [
-                'Galaxy version xxx'
-              ]),
-              li({ style: { marginTop: '1rem' } }, [
-                'Cloud Compute size of ', span({ style: { fontWeight: 600 } },
-                  [`${getMachineDetails().cpu} CPUS, ${getMachineDetails().memory}  GB of memory, 50 GB disk space`])
-                //TODO: Define the disk space using DEFAULT_DISK_SIZE from the mob_pd branch
-              ]),
-              li({ style: { marginTop: '1rem' } }, [
-                'Running cloud compute costs ',
-                span({ style: { fontWeight: 600 } }, '$0.00 per hr')
-                //TODO: Calculate cost
-              ])
+      div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+        div([
+          div({ style: styles.headerText }, ['Environment Settings']),
+          ul({ style: { paddingLeft: '1rem', lineHeight: 1.5 } }, [
+            li({ style: { marginTop: '1rem' } }, [
+              'Galaxy version xxx'
             ]),
-            h(Link, {
-              ...Utils.newTabLinkProps,
-              // TODO: Get the link from comms for this
-              href: ''
-            }, ['Learn more about Galaxy interactive environments.'])
-          ])
+            li({ style: { marginTop: '1rem' } }, [
+              'Cloud Compute size of ', span({ style: { fontWeight: 600 } },
+                [`${getMachineDetails().cpu} CPUS, ${getMachineDetails().memory}  GB of memory, 50 GB disk space`])
+              //TODO: Define the disk space using DEFAULT_DISK_SIZE from the mob_pd branch
+            ]),
+            li({ style: { marginTop: '1rem' } }, [
+              'Running cloud compute costs ',
+              span({ style: { fontWeight: 600 } }, '$0.00 per hr')
+              //TODO: Calculate cost
+            ])
+          ]),
+          h(Link, {
+            ...Utils.newTabLinkProps,
+            // TODO: Get the link from comms for this
+            href: ''
+          }, ['Learn more about Galaxy interactive environments.'])
         ])
       ])
     ])
