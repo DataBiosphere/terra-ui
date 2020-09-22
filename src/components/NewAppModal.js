@@ -26,15 +26,25 @@ export const NewAppModal = _.flow(
   withModalDrawer({ width: 675 })
 )(({ onDismiss, onSuccess, namespace, apps, bucketName, workspaceName }) => {
   const [viewMode, setViewMode] = useState(undefined)
+  const [loading, setLoading] = useState(false)
+
 
   const app = currentApp(apps)
 
-  const createApp = withErrorReporting('Error creating app', async () => {
-    await Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create({ diskName: Utils.generatePersistentDiskName(), appType: 'GALAXY', namespace, bucketName, workspaceName })
+  const createApp = _.flow(
+    Utils.withBusyState(() => setLoading(true)),
+    withErrorReporting('Error creating app')
+  )(async () => {
+    await Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create({
+      diskName: Utils.generatePersistentDiskName(), appType: 'GALAXY', namespace, bucketName, workspaceName
+    })
     return onSuccess()
   })
 
-  const deleteApp = withErrorReporting('Error deleting app', async () => {
+  const deleteApp = _.flow(
+    Utils.withBusyState(() => setLoading(true)),
+    withErrorReporting('Error deleting app')
+  )(async () => {
     await Ajax().Apps.app(app.googleProject, app.appName).delete()
     return onSuccess()
   })
@@ -152,6 +162,7 @@ export const NewAppModal = _.flow(
       onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined,
       style: { margin: '2rem 0 0 1.5rem' }
     }),
-    div({ style: { padding: '0.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents, renderBottomButtons()])
+    div({ style: { padding: '0.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents, renderBottomButtons()]),
+    loading && spinnerOverlay
   ])
 })
