@@ -70,20 +70,18 @@ export const NewAppModal = _.flow(
     return h(Fragment, [
       div({ style: { marginBottom: '1rem' } }, ['Environment will consist of an application and cloud compute.']),
       div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(.1), boxShadow: Style.standardShadow } }, [
-        div({ style: { display: 'flex', padding: `0.5rem 0 0`, minHeight: 120 } }, [
-          div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
-            span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('info-circle', { size: 25, color: colors.accent() })]),
-            div([
-              span({ style: styles.headerText }, ['Set up duration']),
-              div({ style: { lineHeight: '24px' } }, [
-                div(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
-                div(['You can navigate away, and we will notify you when it\'s ready. '])
-              ]),
-              div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
-              div({ style: { lineHeight: '18px' } }, [
-                div(['Please delete the cloud environment when finished; it will']),
-                div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running.'])
-              ])
+        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('info-circle', { size: 25, color: colors.accent() })]),
+          div([
+            span({ style: styles.headerText }, ['Set up duration']),
+            div({ style: { lineHeight: 1.5 } }, [
+              div(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
+              div(['You can navigate away, and we will notify you when it\'s ready. '])
+            ]),
+            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
+            div({ style: { lineHeight: 1.5 } }, [
+              div(['Please delete the cloud environment when finished; it will']),
+              div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running.'])
             ])
           ])
         ])
