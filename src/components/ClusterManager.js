@@ -125,7 +125,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   componentDidUpdate(prevProps) {
-    const { namespace, name } = this.props
+    const { namespace, name, apps } = this.props
     const prevCluster = _.last(_.sortBy('auditInfo.createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
     const cluster = this.getCurrentCluster() || {}
     const twoMonthsAgo = _.tap(d => d.setMonth(d.getMonth() - 2), new Date())
@@ -133,6 +133,8 @@ export default class ClusterManager extends PureComponent {
     const createdDate = new Date(cluster.createdDate)
     const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`) || {}
     const rStudioLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: 'RStudio' })
+    const app = currentApp(apps)
+    const prevApp = currentApp(prevProps.apps)
 
     if (cluster.status === 'Error' && prevCluster.status !== 'Error' && !_.includes(cluster.id, errorNotifiedClusters.get())) {
       notify('error', 'Error Creating Cloud Environment', {
@@ -164,6 +166,10 @@ export default class ClusterManager extends PureComponent {
       })
     } else if (cluster.status === 'Running' && prevCluster.status === 'Updating') {
       notify('success', 'Number of workers has updated successfully.')
+    }
+    if (prevApp && prevApp.status !== 'RUNNING' && app && app.status === 'RUNNING') {
+      // TODO galaxy: provide launch button
+      notify('info', 'Your cloud environment for Galaxy is ready.')
     }
   }
 
