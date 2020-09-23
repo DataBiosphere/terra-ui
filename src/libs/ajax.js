@@ -1020,6 +1020,10 @@ const Clusters = signal => ({
     return res.json()
   },
 
+  setCookie: () => {
+    return fetchLeo(`proxy/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
+  },
+
   cluster: (project, name) => {
     const root = `api/google/v1/runtimes/${project}/${name}`
 
