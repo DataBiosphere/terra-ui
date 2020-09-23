@@ -92,7 +92,7 @@ export const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning = _.noop
 export const PeriodicCookieSetter = ({ namespace, runtimeName, leading }) => {
   const signal = Utils.useCancellation()
   Utils.usePollingEffect(
-    withErrorIgnoring(() => Ajax(signal).Clusters.notebooks(namespace, runtimeName).setCookie()),
+    withErrorIgnoring(() => Ajax(signal).Clusters.setCookie()),
     { ms: 5 * 60 * 1000, leading })
   return null
 }

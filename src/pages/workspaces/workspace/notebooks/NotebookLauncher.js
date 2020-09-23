@@ -426,7 +426,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
           sourceUri: `${cloudStorageDirectory}/${notebookName}`,
           localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${notebookName}` : `${localSafeModeBaseDirectory}/${notebookName}`
         }]),
-        Ajax().Clusters.notebooks(namespace, runtimeName).setCookie()
+        Ajax().Clusters.setCookie()
       ])
       setNotebookSetupComplete(true)
     }
@@ -479,7 +479,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
         Ajax(signal).Clusters.notebooks(namespace, runtimeName).oldLocalize({
           [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
         }),
-        Ajax(signal).Clusters.notebooks(namespace, runtimeName).setCookie()
+        Ajax(signal).Clusters.setCookie()
       ])
       setLocalized(true)
     }

@@ -33,7 +33,7 @@ const AppLauncher = _.flow(
     h(ClusterStatusMonitor, {
       cluster,
       onClusterStartedRunning: async () => {
-        await Ajax().Clusters.notebooks(namespace, runtimeName).setCookie()
+        await Ajax().Clusters.setCookie()
         setCookieReady(true)
         Ajax().Metrics.captureEvent(Events.applicationLaunch, { app })
       },
