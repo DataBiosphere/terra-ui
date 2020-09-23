@@ -438,7 +438,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
 
   return h(Fragment, [
     notebookSetupComplete && h(Fragment, [
-      h(PeriodicCookieSetter, { namespace, runtimeName }),
+      h(PeriodicCookieSetter),
       iframe({
         src: `${proxyUrl}/notebooks/${mode === 'edit' ? localBaseDirectory : localSafeModeBaseDirectory}/${notebookName}`,
         style: { border: 'none', flex: 1 },

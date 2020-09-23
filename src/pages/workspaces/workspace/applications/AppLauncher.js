@@ -27,7 +27,6 @@ const AppLauncher = _.flow(
 
   const cluster = currentCluster(clusters)
   const clusterStatus = collapsedClusterStatus(cluster) // preserve null vs undefined
-  const runtimeName = cluster?.runtimeName
 
   return h(Fragment, [
     h(ClusterStatusMonitor, {
@@ -45,7 +44,7 @@ const AppLauncher = _.flow(
     }),
     _.includes(clusterStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
-        h(PeriodicCookieSetter, { namespace, runtimeName }),
+        h(PeriodicCookieSetter),
         app === 'RStudio' && h(PlaygroundHeader, [
           'This feature is in early development. Your files are saved on your cloud environment but not to your workspace. We encourage you to frequently ',
           h(Link, {

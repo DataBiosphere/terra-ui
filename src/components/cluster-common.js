@@ -94,9 +94,9 @@ export const GalaxyStatusMonitor = ({ galaxyApp, onGalaxyAppStoppedRunning = _.n
   const prevStatus = Utils.usePrevious(currentStatus)
 
   useEffect(() => {
-    if (prevStatus === 'Running' && !_.includes(currentStatus, usableStatuses)) {
+    if (prevStatus === 'RUNNING' && currentStatus !== 'RUNNING') {
       onGalaxyAppStoppedRunning()
-    } else if (prevStatus !== 'Running' && _.includes(currentStatus, usableStatuses)) {
+    } else if (prevStatus !== 'RUNNING' && currentStatus === 'RUNNING') {
       onGalaxyAppStartedRunning()
     }
   }, [currentStatus, onGalaxyAppStartedRunning, onGalaxyAppStoppedRunning, prevStatus])
@@ -104,7 +104,7 @@ export const GalaxyStatusMonitor = ({ galaxyApp, onGalaxyAppStoppedRunning = _.n
   return null
 }
 
-export const PeriodicCookieSetter = ({ namespace, runtimeName, leading }) => {
+export const PeriodicCookieSetter = ({ leading }) => {
   const signal = Utils.useCancellation()
   Utils.usePollingEffect(
     withErrorIgnoring(() => Ajax(signal).Clusters.setCookie()),
