@@ -7,7 +7,7 @@ import { Ajax } from 'src/libs/ajax'
 import { collapsedClusterStatus, usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
-import { authStore } from 'src/libs/state'
+import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -98,7 +98,10 @@ export const AuthenticatedCookieSetter = () => {
 export const PeriodicCookieSetter = ({ leading }) => {
   const signal = Utils.useCancellation()
   Utils.usePollingEffect(
-    withErrorIgnoring(() => Ajax(signal).Clusters.setCookie()),
+    withErrorIgnoring(async () => {
+      await Ajax(signal).Clusters.setCookie()
+      cookieReadyStore.set(true)
+    }),
     { ms: 5 * 60 * 1000, leading }
   )
   return null
