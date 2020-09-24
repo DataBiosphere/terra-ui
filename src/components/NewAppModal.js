@@ -72,7 +72,7 @@ export const NewAppModal = _.flow(
   }
 
   const renderBottomButtons = () => {
-    return div({ style: { display: 'flex', margin: '1rem 0 1rem' } }, [
+    return div({ style: { display: 'flex', margin: '1rem 0 1rem', justifyContent: 'space-between' } }, [
       renderActionButton()
     ])
   }
