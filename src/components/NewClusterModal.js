@@ -280,10 +280,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
             name: currentPersistentDiskDetails.name
           } : {
             name: Utils.generatePersistentDiskName(),
-            size: newPersistentDisk.size,
-            labels: {
-              createdByTool: 'runtime'
-            }
+            size: newPersistentDisk.size
           }
         })
       } : {

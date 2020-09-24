@@ -1131,7 +1131,7 @@ const Apps = signal => ({
           diskConfig: {
             name: diskName,
             labels: {
-              createdByTool: 'app'
+              hidden: 'true'
             }
           },
           customEnvironmentVariables: {
