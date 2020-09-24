@@ -10,6 +10,7 @@ import { collapsedClusterStatus, currentCluster, usableStatuses } from 'src/libs
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import { cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -21,7 +22,8 @@ const AppLauncher = _.flow(
     title: _.get('app')
   })
 )(({ namespace, name, refreshClusters, clusters, persistentDisks, app }, ref) => {
-  const [cookieReady, setCookieReady] = useState(false)
+  // TODO: test that this waits for setCookie correctly
+  const cookieReady = Utils.useStore(cookieReadyStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
 
@@ -32,12 +34,9 @@ const AppLauncher = _.flow(
   return h(Fragment, [
     h(ClusterStatusMonitor, {
       cluster,
-      onClusterStartedRunning: async () => {
-        await Ajax().Clusters.notebooks(namespace, runtimeName).setCookie()
-        setCookieReady(true)
+      onClusterStartedRunning: () => {
         Ajax().Metrics.captureEvent(Events.applicationLaunch, { app })
-      },
-      onClusterStoppedRunning: () => setCookieReady(false)
+      }
     }),
     h(ClusterKicker, {
       cluster, refreshClusters,
