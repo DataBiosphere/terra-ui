@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, li, span, ul } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
@@ -59,15 +59,20 @@ export const NewAppModal = _.flow(
       }],
       [Utils.DEFAULT, () => {
         return !!app ?
-          h(ButtonPrimary, { onClick: () => setViewMode('deleteWarn') }, ['Delete']) :
-          h(ButtonPrimary, { onClick: () => setViewMode('createWarn') }, ['Next'])
+          h(Fragment, [
+            // TODO make the onClick go to galaxy
+            h(ButtonSecondary, { onClick: () => '' }, [
+              'Galaxy Interactive Environment', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+            ]),
+            h(ButtonPrimary, { onClick: () => setViewMode('deleteWarn') }, ['Delete'])
+          ]) :
+          h(ButtonPrimary, { style: { 'align-self': 'flex-end' }, onClick: () => setViewMode('createWarn') }, ['Next'])
       }]
     )
   }
 
   const renderBottomButtons = () => {
     return div({ style: { display: 'flex', margin: '1rem 0 1rem' } }, [
-      div({ style: { flex: 1 } }),
       renderActionButton()
     ])
   }
