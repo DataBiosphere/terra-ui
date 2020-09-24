@@ -24,7 +24,7 @@ const AuthContainer = ({ children }) => {
     [acceptedTos === undefined && !isPublic, authspinner],
     [acceptedTos === false && name !== 'privacy', () => h(TermsOfService)],
     [_.isEmpty(profile) && !isPublic, authspinner],
-    children
+    () => children
   )
 }
 

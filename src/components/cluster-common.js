@@ -7,6 +7,7 @@ import { Ajax } from 'src/libs/ajax'
 import { collapsedClusterStatus, usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -87,6 +88,11 @@ export const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning = _.noop
   }, [currentStatus, onClusterStartedRunning, onClusterStoppedRunning, prevStatus])
 
   return null
+}
+
+export const AuthenticatedCookieSetter = () => {
+  const { registrationStatus } = Utils.useStore(authStore)
+  return registrationStatus === 'registered' ? h(PeriodicCookieSetter, []) : null
 }
 
 export const PeriodicCookieSetter = ({ leading }) => {
