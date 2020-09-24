@@ -92,7 +92,7 @@ export const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning = _.noop
 
 export const AuthenticatedCookieSetter = () => {
   const { registrationStatus } = Utils.useStore(authStore)
-  return registrationStatus === 'registered' ? h(PeriodicCookieSetter, []) : null
+  return registrationStatus === 'registered' ? h(PeriodicCookieSetter, { leading: true }) : null
 }
 
 export const PeriodicCookieSetter = ({ leading }) => {

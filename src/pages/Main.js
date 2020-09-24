@@ -4,7 +4,7 @@ import { hot } from 'react-hot-loader/root'
 import { h } from 'react-hyperscript-helpers'
 import ReactNotification from 'react-notifications-component'
 import AuthContainer from 'src/components/AuthContainer'
-import { PeriodicCookieSetter } from 'src/components/cluster-common'
+import { AuthenticatedCookieSetter } from 'src/components/cluster-common'
 import ConfigOverridesWarning from 'src/components/ConfigOverridesWarning'
 import ErrorWrapper from 'src/components/ErrorWrapper'
 import Favicon from 'src/components/Favicon'
@@ -32,7 +32,7 @@ const Main = () => {
       h(TitleManager),
       h(FirecloudNotification),
       h(TrialBanner),
-      h(AuthContainer, [h(Router), h(PeriodicCookieSetter, { leading: true })])
+      h(AuthContainer, [h(Router), h(AuthenticatedCookieSetter, { leading: true })])
     ]),
     h(PageViewReporter),
     h(SupportRequest),
