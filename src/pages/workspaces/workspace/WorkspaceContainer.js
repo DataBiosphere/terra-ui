@@ -166,8 +166,9 @@ const useCloudEnvironmentPolling = namespace => {
         Ajax(signal).Clusters.list({ googleProject: namespace, creator: getUser().email }),
         Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email, hidden: 'true' })
       ])
+      const hiddenDiskNames = _.map(disk => disk.name, hiddenDisks)
       setClusters(newClusters)
-      setPersistentDisks(_.remove(disk => _.includes(disk.name, _.map(disk => disk.name, hiddenDisks)), newDisks))
+      setPersistentDisks(_.remove(disk => _.includes(disk.name, hiddenDiskNames), newDisks))
 
       const cluster = currentCluster(newClusters)
       reschedule(_.includes(collapsedClusterStatus(cluster), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
