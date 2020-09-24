@@ -1129,7 +1129,10 @@ const Apps = signal => ({
       create: ({ diskName, appType, namespace, bucketName, workspaceName }) => {
         const body = {
           diskConfig: {
-            name: diskName
+            name: diskName,
+            labels: {
+              createdByTool: 'app'
+            }
           },
           customEnvironmentVariables: {
             WORKSPACE_NAME: workspaceName,
