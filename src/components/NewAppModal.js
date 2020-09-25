@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, li, span, ul } from 'react-hyperscript-helpers'
+import { div, h, li, p, span, ul } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -24,10 +24,10 @@ const styles = {
 export const NewAppModal = _.flow(
   Utils.withDisplayName('NewAppModal'),
   withModalDrawer({ width: 675 })
-)(({ onDismiss, onSuccess, namespace, apps, bucketName, workspaceName }) => {
+)(({ onDismiss, onSuccess, apps, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
   const [viewMode, setViewMode] = useState(undefined)
   const [loading, setLoading] = useState(false)
-
+  const cookieReady = true //TODO use instead: Utils.useStore(cookieReadyStore)
 
   const app = currentApp(apps)
 
@@ -59,13 +59,7 @@ export const NewAppModal = _.flow(
       }],
       [Utils.DEFAULT, () => {
         return !!app ?
-          h(Fragment, [
-            // TODO make the onClick go to galaxy
-            h(ButtonSecondary, { onClick: () => '' }, [
-              'Galaxy Interactive Environment', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-            ]),
-            h(ButtonPrimary, { onClick: () => setViewMode('deleteWarn') }, ['Delete'])
-          ]) :
+          h(ButtonPrimary, { onClick: () => setViewMode('deleteWarn') }, ['Delete']) :
           h(ButtonPrimary, { style: { 'align-self': 'flex-end' }, onClick: () => setViewMode('createWarn') }, ['Next'])
       }]
     )
@@ -145,7 +139,20 @@ export const NewAppModal = _.flow(
             href: ''
           }, ['Learn more about Galaxy interactive environments.'])
         ])
+      ]),
+      div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+        div([
+          div({ style: styles.headerText }, ['Use Galaxy']),
+          p(['Note - Galaxy will open in a new tab. Please keep this tab open and logged into Terra.']),
+          h(ButtonPrimary, {
+            disabled: !cookieReady,
+            onClick: onDismiss,
+            href: app.proxyUrls.galaxy,
+            ...Utils.newTabLinkProps
+          }, ['Launch Galaxy'])
+        ])
       ])
+
     ])
   }
 

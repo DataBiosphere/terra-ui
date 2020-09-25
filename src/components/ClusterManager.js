@@ -7,6 +7,7 @@ import { div, h, img, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, IdContainer, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { NewAppModal } from 'src/components/NewAppModal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import galaxyLogo from 'src/images/galaxy.svg'
@@ -113,14 +114,17 @@ export default class ClusterManager extends PureComponent {
     clusters: PropTypes.array,
     persistentDisks: PropTypes.array,
     canCompute: PropTypes.bool.isRequired,
-    refreshClusters: PropTypes.func.isRequired
+    refreshClusters: PropTypes.func.isRequired,
+    workspace: PropTypes.object,
+    apps: PropTypes.array
   }
 
   constructor(props) {
     super(props)
     this.state = {
       createModalDrawerOpen: false,
-      busy: false
+      busy: false,
+      galaxyDrawerOpen: false
     }
   }
 
@@ -211,8 +215,8 @@ export default class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, clusters, canCompute, persistentDisks, apps } = this.props
-    const { busy, createModalDrawerOpen, errorModalOpen } = this.state
+    const { namespace, name, clusters, canCompute, persistentDisks, apps, workspace } = this.props
+    const { busy, createModalDrawerOpen, errorModalOpen, galaxyDrawerOpen } = this.state
     if (!clusters || !apps) {
       return null
     }
@@ -283,7 +287,7 @@ export default class ClusterManager extends PureComponent {
       app && h(Clickable, {
         style: { display: 'flex', marginRight: '2rem' },
         onClick: () => {
-          // TODO galaxy SATURN-1855: implement this action
+          this.setState({galaxyDrawerOpen: true})
         }
       }, [
         img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
@@ -339,6 +343,16 @@ export default class ClusterManager extends PureComponent {
         onSuccess: promise => {
           this.setState({ createModalDrawerOpen: false })
           this.executeAndRefresh(promise)
+        }
+      }),
+      h(NewAppModal, {
+        workspace,
+        apps,
+        isOpen: galaxyDrawerOpen,
+        onDismiss: () => this.setState({ galaxyDrawerOpen: false }),
+        onSuccess: () => {
+          this.setState({ galaxyDrawerOpen: false })
+          this.refreshApps()
         }
       }),
       errorModalOpen && h(ClusterErrorModal, {

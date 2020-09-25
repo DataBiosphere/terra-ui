@@ -467,12 +467,9 @@ const Notebooks = _.flow(
               this.refreshNotebooks()
             }
           }),
-          //todo if status is deleting consider not opening the panel
           h(NewAppModal, {
             isOpen: openGalaxyConfigDrawer,
-            namespace,
-            bucketName,
-            workspaceName: name,
+            workspace,
             apps,
             onDismiss: () => {
               this.setState({ openGalaxyConfigDrawer: false })
