@@ -89,21 +89,6 @@ export const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning = _.noop
   return null
 }
 
-export const GalaxyStatusMonitor = ({ galaxyApp, onGalaxyAppStoppedRunning = _.noop, onGalaxyAppStartedRunning = _.noop }) => {
-  const currentStatus = galaxyApp?.status
-  const prevStatus = Utils.usePrevious(currentStatus)
-
-  useEffect(() => {
-    if (prevStatus === 'RUNNING' && currentStatus !== 'RUNNING') {
-      onGalaxyAppStoppedRunning()
-    } else if (prevStatus !== 'RUNNING' && currentStatus === 'RUNNING') {
-      onGalaxyAppStartedRunning()
-    }
-  }, [currentStatus, onGalaxyAppStartedRunning, onGalaxyAppStoppedRunning, prevStatus])
-
-  return null
-}
-
 export const PeriodicCookieSetter = ({ leading }) => {
   const signal = Utils.useCancellation()
   Utils.usePollingEffect(
