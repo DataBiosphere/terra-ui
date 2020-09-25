@@ -495,8 +495,8 @@ const attributesUpdateOps = _.flow(
       [
         { op: 'RemoveAttribute', attributeName: k },
         ...(_.isObject(v[0]) ?
-            [{ op: 'CreateAttributeEntityReferenceList', attributeListName: k }] :
-            [{ op: 'CreateAttributeValueList', attributeName: k }]
+          [{ op: 'CreateAttributeEntityReferenceList', attributeListName: k }] :
+          [{ op: 'CreateAttributeValueList', attributeName: k }]
         ),
         ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)
       ] :
@@ -981,19 +981,19 @@ const Methods = signal => ({
       toWorkspace: async (workspace, config = {}) => {
         const res = await fetchRawls(`workspaces/${workspace.namespace}/${workspace.name}/methodconfigs`,
           _.mergeAll([authOpts(), jsonBody(_.merge({
-              methodRepoMethod: {
-                methodUri: `agora://${namespace}/${name}/${snapshotId}`
-              },
-              name,
-              namespace,
-              rootEntityType: '',
-              prerequisites: {},
-              inputs: {},
-              outputs: {},
-              methodConfigVersion: 1,
-              deleted: false
+            methodRepoMethod: {
+              methodUri: `agora://${namespace}/${name}/${snapshotId}`
             },
-            config.payloadObject
+            name,
+            namespace,
+            rootEntityType: '',
+            prerequisites: {},
+            inputs: {},
+            outputs: {},
+            methodConfigVersion: 1,
+            deleted: false
+          },
+          config.payloadObject
           )), { signal, method: 'POST' }]))
         return res.json()
       }
