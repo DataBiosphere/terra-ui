@@ -223,7 +223,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, clusters, canCompute, persistentDisks, apps, workspace } = this.props
+    const { namespace, name, clusters, canCompute, persistentDisks, apps, refreshApps, workspace } = this.props
     const { busy, createModalDrawerOpen, errorModalOpen, galaxyDrawerOpen } = this.state
     if (!clusters || !apps) {
       return null
@@ -361,7 +361,7 @@ export default class ClusterManager extends PureComponent {
         onDismiss: () => this.setState({ galaxyDrawerOpen: false }),
         onSuccess: () => {
           this.setState({ galaxyDrawerOpen: false })
-          this.refreshApps()
+          refreshApps()
         }
       }),
       errorModalOpen && h(ClusterErrorModal, {

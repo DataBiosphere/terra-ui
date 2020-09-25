@@ -1134,6 +1134,7 @@ const Apps = signal => ({
       },
       create: ({ diskName, appType, namespace, bucketName, workspaceName }) => {
         const body = {
+          labels: { saturnWorkspaceName: workspaceName },
           diskConfig: {
             name: diskName
           },

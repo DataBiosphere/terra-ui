@@ -60,13 +60,13 @@ export const NewAppModal = _.flow(
       [Utils.DEFAULT, () => {
         return !!app ?
           h(ButtonPrimary, { onClick: () => setViewMode('deleteWarn') }, ['Delete']) :
-          h(ButtonPrimary, { style: { 'align-self': 'flex-end' }, onClick: () => setViewMode('createWarn') }, ['Next'])
+          h(ButtonPrimary, { onClick: () => setViewMode('createWarn') }, ['Next'])
       }]
     )
   }
 
   const renderBottomButtons = () => {
-    return div({ style: { display: 'flex', margin: '1rem 0 1rem', justifyContent: 'space-between' } }, [
+    return div({ style: { display: 'flex', margin: '1rem 0 1rem', justifyContent: 'flex-end' } }, [
       renderActionButton()
     ])
   }
@@ -140,7 +140,7 @@ export const NewAppModal = _.flow(
           }, ['Learn more about Galaxy interactive environments.'])
         ])
       ]),
-      div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+      app && div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div([
           div({ style: styles.headerText }, ['Use Galaxy']),
           h(GalaxyWarning),
