@@ -50,6 +50,8 @@ const withCancellation = wrappedFetch => async (...args) => {
   }
 }
 
+ajaxOverridesStore.set([{ filter: { url: /\/apps\// }, fn: window.ajaxOverrideUtils.mapJsonBody(_.map(_.set('status', 'PROVISIONING'))) }])
+
 // Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
   const res = await wrappedFetch(...args)
@@ -493,8 +495,8 @@ const attributesUpdateOps = _.flow(
       [
         { op: 'RemoveAttribute', attributeName: k },
         ...(_.isObject(v[0]) ?
-          [{ op: 'CreateAttributeEntityReferenceList', attributeListName: k }] :
-          [{ op: 'CreateAttributeValueList', attributeName: k }]
+            [{ op: 'CreateAttributeEntityReferenceList', attributeListName: k }] :
+            [{ op: 'CreateAttributeValueList', attributeName: k }]
         ),
         ..._.map(x => ({ op: 'AddListMember', attributeListName: k, newMember: x }), v)
       ] :
@@ -979,19 +981,19 @@ const Methods = signal => ({
       toWorkspace: async (workspace, config = {}) => {
         const res = await fetchRawls(`workspaces/${workspace.namespace}/${workspace.name}/methodconfigs`,
           _.mergeAll([authOpts(), jsonBody(_.merge({
-            methodRepoMethod: {
-              methodUri: `agora://${namespace}/${name}/${snapshotId}`
+              methodRepoMethod: {
+                methodUri: `agora://${namespace}/${name}/${snapshotId}`
+              },
+              name,
+              namespace,
+              rootEntityType: '',
+              prerequisites: {},
+              inputs: {},
+              outputs: {},
+              methodConfigVersion: 1,
+              deleted: false
             },
-            name,
-            namespace,
-            rootEntityType: '',
-            prerequisites: {},
-            inputs: {},
-            outputs: {},
-            methodConfigVersion: 1,
-            deleted: false
-          },
-          config.payloadObject
+            config.payloadObject
           )), { signal, method: 'POST' }]))
         return res.json()
       }

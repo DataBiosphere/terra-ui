@@ -124,3 +124,7 @@ export const SaveFilesHelp = () => {
     p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.'])
   ])
 }
+
+export const GalaxyWarning = () => {
+  return p(['Note - Galaxy will open in a new tab. Please keep this tab open and logged into Terra.'])
+}

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, li, p, span, ul } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
@@ -12,6 +12,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { GalaxyWarning } from 'src/components/cluster-common'
 
 
 const styles = {
@@ -143,7 +144,7 @@ export const NewAppModal = _.flow(
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div([
           div({ style: styles.headerText }, ['Use Galaxy']),
-          p(['Note - Galaxy will open in a new tab. Please keep this tab open and logged into Terra.']),
+          h(GalaxyWarning),
           h(ButtonPrimary, {
             disabled: !cookieReady,
             onClick: onDismiss,

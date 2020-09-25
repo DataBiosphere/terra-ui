@@ -4,6 +4,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
 import { div, h, img, p, span } from 'react-hyperscript-helpers'
+import { GalaxyWarning } from 'src/components/cluster-common'
 import { ButtonPrimary, Clickable, IdContainer, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -172,8 +173,16 @@ export default class ClusterManager extends PureComponent {
       notify('success', 'Number of workers has updated successfully.')
     }
     if (prevApp && prevApp.status !== 'RUNNING' && app && app.status === 'RUNNING') {
-      // TODO galaxy: provide launch button
-      notify('info', 'Your cloud environment for Galaxy is ready.')
+      const galaxyId = notify('info', 'Your cloud environment for Galaxy is ready.', {
+        message: h(Fragment, [
+          h(GalaxyWarning),
+          h(ButtonPrimary, {
+            href: app.proxyUrls.galaxy,
+            onClick: () => clearNotification(galaxyId),
+            ...Utils.newTabLinkProps
+          }, 'Launch Galaxy')
+        ])
+      })
     }
   }
 
@@ -287,7 +296,7 @@ export default class ClusterManager extends PureComponent {
       app && h(Clickable, {
         style: { display: 'flex', marginRight: '2rem' },
         onClick: () => {
-          this.setState({galaxyDrawerOpen: true})
+          this.setState({ galaxyDrawerOpen: true })
         }
       }, [
         img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
@@ -326,7 +335,8 @@ export default class ClusterManager extends PureComponent {
           div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Cloud Environment'),
             div({ style: { fontSize: 10 } }, [
-              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, [currentStatus === 'LeoReconfiguring' ? 'Updating' : (currentStatus || 'None')]),
+              span({ style: { textTransform: 'uppercase', fontWeight: 500 } },
+                [currentStatus === 'LeoReconfiguring' ? 'Updating' : (currentStatus || 'None')]),
               !!totalCost && ` (${Utils.formatUSD(totalCost)} hr)`
             ])
           ]),
