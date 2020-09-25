@@ -4,7 +4,7 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
 import { div, h, img, p, span } from 'react-hyperscript-helpers'
-import { GalaxyWarning } from 'src/components/cluster-common'
+import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/cluster-common'
 import { ButtonPrimary, Clickable, IdContainer, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -176,11 +176,10 @@ export default class ClusterManager extends PureComponent {
       const galaxyId = notify('info', 'Your cloud environment for Galaxy is ready.', {
         message: h(Fragment, [
           h(GalaxyWarning),
-          h(ButtonPrimary, {
-            href: app.proxyUrls.galaxy,
-            onClick: () => clearNotification(galaxyId),
-            ...Utils.newTabLinkProps
-          }, 'Launch Galaxy')
+          h(GalaxyLaunchButton, {
+            app,
+            onClick: () => clearNotification(galaxyId)
+          })
         ])
       })
     }

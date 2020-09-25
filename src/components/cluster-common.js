@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { b, div, h, p } from 'react-hyperscript-helpers'
-import { Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import { collapsedClusterStatus, usableStatuses } from 'src/libs/cluster-utils'
@@ -127,4 +127,14 @@ export const SaveFilesHelp = () => {
 
 export const GalaxyWarning = () => {
   return p(['Note - Galaxy will open in a new tab. Please keep this tab open and logged into Terra.'])
+}
+
+export const GalaxyLaunchButton = ({ app, ...props }) => {
+  const cookieReady = true //TODO use instead: Utils.useStore(cookieReadyStore)
+  return h(ButtonPrimary, {
+    disabled: !cookieReady,
+    href: app.proxyUrls.galaxy,
+    ...Utils.newTabLinkProps,
+    ...props
+  }, ['Launch Galaxy'])
 }

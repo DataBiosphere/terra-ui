@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, li, p, span, ul } from 'react-hyperscript-helpers'
+import { div, h, li, span, ul } from 'react-hyperscript-helpers'
+import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/cluster-common'
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -12,7 +13,6 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { GalaxyWarning } from 'src/components/cluster-common'
 
 
 const styles = {
@@ -28,7 +28,6 @@ export const NewAppModal = _.flow(
 )(({ onDismiss, onSuccess, apps, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
   const [viewMode, setViewMode] = useState(undefined)
   const [loading, setLoading] = useState(false)
-  const cookieReady = true //TODO use instead: Utils.useStore(cookieReadyStore)
 
   const app = currentApp(apps)
 
@@ -145,12 +144,10 @@ export const NewAppModal = _.flow(
         div([
           div({ style: styles.headerText }, ['Use Galaxy']),
           h(GalaxyWarning),
-          h(ButtonPrimary, {
-            disabled: !cookieReady,
-            onClick: onDismiss,
-            href: app.proxyUrls.galaxy,
-            ...Utils.newTabLinkProps
-          }, ['Launch Galaxy'])
+          h(GalaxyLaunchButton, {
+            app,
+            onClick: onDismiss
+          })
         ])
       ])
 
