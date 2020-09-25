@@ -1087,10 +1087,6 @@ const Clusters = signal => ({
           _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
       },
 
-      setCookie: () => {
-        return fetchLeo(`${root}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
-      },
-
       setStorageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {
         return fetchLeo(`${root}/welder/storageLinks`,
           _.mergeAll([authOpts(), jsonBody({

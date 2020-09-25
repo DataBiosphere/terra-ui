@@ -32,7 +32,8 @@ const Main = () => {
       h(TitleManager),
       h(FirecloudNotification),
       h(TrialBanner),
-      h(AuthContainer, [h(Router), h(AuthenticatedCookieSetter, { leading: true })])
+      h(AuthenticatedCookieSetter),
+      h(AuthContainer, [h(Router)])
     ]),
     h(PageViewReporter),
     h(SupportRequest),

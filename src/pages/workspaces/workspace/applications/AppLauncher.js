@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ClusterKicker, ClusterStatusMonitor, PeriodicCookieSetter, PlaygroundHeader, StatusMessage } from 'src/components/cluster-common'
+import { ClusterKicker, ClusterStatusMonitor, PlaygroundHeader, StatusMessage } from 'src/components/cluster-common'
 import { Link, spinnerOverlay } from 'src/components/common'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { Ajax } from 'src/libs/ajax'
@@ -22,14 +22,12 @@ const AppLauncher = _.flow(
     title: _.get('app')
   })
 )(({ namespace, name, refreshClusters, clusters, persistentDisks, app }, ref) => {
-  // TODO: test that this waits for setCookie correctly
   const cookieReady = Utils.useStore(cookieReadyStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
 
   const cluster = currentCluster(clusters)
   const clusterStatus = collapsedClusterStatus(cluster) // preserve null vs undefined
-  const runtimeName = cluster?.runtimeName
 
   return h(Fragment, [
     h(ClusterStatusMonitor, {
@@ -44,7 +42,6 @@ const AppLauncher = _.flow(
     }),
     _.includes(clusterStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
-        h(PeriodicCookieSetter, { namespace, runtimeName }),
         app === 'RStudio' && h(PlaygroundHeader, [
           'This feature is in early development. Your files are saved on your cloud environment but not to your workspace. We encourage you to frequently ',
           h(Link, {

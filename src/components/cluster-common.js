@@ -92,17 +92,17 @@ export const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning = _.noop
 
 export const AuthenticatedCookieSetter = () => {
   const { registrationStatus } = Utils.useStore(authStore)
-  return registrationStatus === 'registered' ? h(PeriodicCookieSetter, { leading: true }) : null
+  return registrationStatus === 'registered' ? h(PeriodicCookieSetter) : null
 }
 
-export const PeriodicCookieSetter = ({ leading }) => {
+export const PeriodicCookieSetter = () => {
   const signal = Utils.useCancellation()
   Utils.usePollingEffect(
     withErrorIgnoring(async () => {
       await Ajax(signal).Clusters.setCookie()
       cookieReadyStore.set(true)
     }),
-    { ms: 5 * 60 * 1000, leading }
+    { ms: 5 * 60 * 1000, leading: true }
   )
   return null
 }
