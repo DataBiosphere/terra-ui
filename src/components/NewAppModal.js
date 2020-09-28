@@ -24,13 +24,12 @@ const styles = {
 export const NewAppModal = _.flow(
   Utils.withDisplayName('NewAppModal'),
   withModalDrawer({ width: 675 })
-)(({ onDismiss, onSuccess, namespace, apps, persistentDisks, bucketName, workspaceName }) => {
+)(({ onDismiss, onSuccess, namespace, apps, bucketName, workspaceName }) => {
   const [viewMode, setViewMode] = useState(undefined)
   const [loading, setLoading] = useState(false)
 
 
   const app = currentApp(apps)
-  const persistentDisk = _.head(_.filter(disk => disk.name === app.diskName, persistentDisks))
   const createApp = _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error creating app')
@@ -130,8 +129,8 @@ export const NewAppModal = _.flow(
             ]),
             li({ style: { marginTop: '1rem' } }, [
               'Running cloud compute costs ',
-              span({ style: { fontWeight: 600 } }, `${Utils.formatUSD(appCost(app) + persistentDiskCost(persistentDisk))} per hr`)
-              //TODO: Calculate cost
+              // TODO: Actually calculate cost, rather than hardcode
+              span({ style: { fontWeight: 600 } }, `${Utils.formatUSD(appCost(app) + persistentDiskCost({ size: 30, status: 'Running' }))} per hr`)
             ])
           ]),
           h(Link, {

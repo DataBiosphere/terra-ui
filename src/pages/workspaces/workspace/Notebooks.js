@@ -394,7 +394,7 @@ const Notebooks = _.flow(
   render() {
     const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter, openGalaxyConfigDrawer } = this.state
     const {
-      apps, persistentDisks, namespace, name, listView, setListView, workspace,
+      apps, namespace, name, listView, setListView, workspace,
       workspace: { accessLevel, workspace: { bucketName } }
     } = this.props
     const existingNames = this.getExistingNames()
@@ -474,7 +474,6 @@ const Notebooks = _.flow(
             bucketName,
             workspaceName: name,
             apps,
-            persistentDisks,
             onDismiss: () => {
               this.setState({ openGalaxyConfigDrawer: false })
             },
