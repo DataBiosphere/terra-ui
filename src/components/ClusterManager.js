@@ -294,88 +294,92 @@ export default class ClusterManager extends PureComponent {
 
     const app = currentApp(apps)
 
-    return div({ style: styles.container }, [
-      app && h(Clickable, {
-        style: { display: 'flex', marginRight: '2rem' },
-        disabled: appIsSettingUp(app) || appIsDeleting(app),
-        tooltip: Utils.cond(
-          [appIsSettingUp(app), () => 'Your Galaxy application is being created'],
-          [appIsDeleting(app), () => 'Your Galaxy application is deleting'],
-          () => 'Update cloud environment'),
-        onClick: () => {
-          this.setState({ galaxyDrawerOpen: true })
-        }
-      }, [
-        img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
-        div([
-          div({ style: { fontSize: 12, fontWeight: 'bold' } }, ['Galaxy']),
-          div({ style: { fontSize: 10, textTransform: 'uppercase' } }, [app.status])
+    return h(Fragment, [
+      div([
+        app && h(Clickable, {
+          style: { display: 'flex', marginRight: '2rem' },
+          disabled: appIsSettingUp(app) || appIsDeleting(app),
+          tooltip: Utils.cond(
+            [appIsSettingUp(app), () => 'Your Galaxy application is being created'],
+            [appIsDeleting(app), () => 'Your Galaxy application is deleting'],
+            () => 'Update cloud environment'),
+          onClick: () => {
+            this.setState({ galaxyDrawerOpen: true })
+          }
+        }, [
+          img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
+          div([
+            div({ style: { fontSize: 12, fontWeight: 'bold' } }, ['Galaxy']),
+            div({ style: { fontSize: 10, textTransform: 'uppercase' } }, [app.status])
+          ])
         ])
       ]),
-      (activeClusters.length > 1 || activeDisks.length > 1) && h(Link, {
-        style: { marginRight: '1rem' },
-        href: Nav.getLink('clusters'),
-        tooltip: 'Multiple cloud environments found in this billing project. Click to select which to delete.'
-      }, [icon('warning-standard', { size: 24, style: { color: colors.danger() } })]),
-      h(Link, {
-        href: appLaunchLink,
-        onClick: window.location.hash === appLaunchLink && currentStatus === 'Stopped' ? () => this.startCluster() : undefined,
-        tooltip: canCompute ? `Open ${appName}` : noCompute,
-        'aria-label': `Open ${appName}`,
-        disabled: !canCompute,
-        style: { marginRight: '2rem', ...styles.verticalCenter },
-        ...(isRStudioImage ? {} : Utils.newTabLinkProps)
-      }, [isRStudioImage ? img({ src: rLogo, alt: '', style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
-      renderIcon(),
-      h(IdContainer, [id => h(Fragment, [
-        h(Clickable, {
-          id,
-          style: styles.button(isDisabled),
-          tooltip: Utils.cond(
-            [!canCompute, () => noCompute],
-            [creating, () => 'Your environment is being created'],
-            () => 'Update cloud environment'
-          ),
-          onClick: () => this.setState({ createModalDrawerOpen: true }),
-          disabled: isDisabled
-        }, [
-          div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
-            div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Cloud Environment'),
-            div({ style: { fontSize: 10 } }, [
-              span({ style: { textTransform: 'uppercase', fontWeight: 500 } },
-                [currentStatus === 'LeoReconfiguring' ? 'Updating' : (currentStatus || 'None')]),
-              !!totalCost && ` (${Utils.formatUSD(totalCost)} hr)`
-            ])
-          ]),
-          icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
-        ])
-      ])]),
-      h(NewClusterModal, {
-        isOpen: createModalDrawerOpen,
-        namespace,
-        name,
-        clusters,
-        persistentDisks,
-        onDismiss: () => this.setState({ createModalDrawerOpen: false }),
-        onSuccess: promise => {
-          this.setState({ createModalDrawerOpen: false })
-          this.executeAndRefresh(promise)
-        }
-      }),
-      h(NewAppModal, {
-        workspace,
-        apps,
-        isOpen: galaxyDrawerOpen,
-        onDismiss: () => this.setState({ galaxyDrawerOpen: false }),
-        onSuccess: () => {
-          this.setState({ galaxyDrawerOpen: false })
-          refreshApps()
-        }
-      }),
-      errorModalOpen && h(ClusterErrorModal, {
-        cluster: currentCluster,
-        onDismiss: () => this.setState({ errorModalOpen: false })
-      })
+      div({ style: styles.container }, [
+        (activeClusters.length > 1 || activeDisks.length > 1) && h(Link, {
+          style: { marginRight: '1rem' },
+          href: Nav.getLink('clusters'),
+          tooltip: 'Multiple cloud environments found in this billing project. Click to select which to delete.'
+        }, [icon('warning-standard', { size: 24, style: { color: colors.danger() } })]),
+        h(Link, {
+          href: appLaunchLink,
+          onClick: window.location.hash === appLaunchLink && currentStatus === 'Stopped' ? () => this.startCluster() : undefined,
+          tooltip: canCompute ? `Open ${appName}` : noCompute,
+          'aria-label': `Open ${appName}`,
+          disabled: !canCompute,
+          style: { marginRight: '2rem', ...styles.verticalCenter },
+          ...(isRStudioImage ? {} : Utils.newTabLinkProps)
+        }, [isRStudioImage ? img({ src: rLogo, alt: '', style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
+        renderIcon(),
+        h(IdContainer, [id => h(Fragment, [
+          h(Clickable, {
+            id,
+            style: styles.button(isDisabled),
+            tooltip: Utils.cond(
+              [!canCompute, () => noCompute],
+              [creating, () => 'Your environment is being created'],
+              () => 'Update cloud environment'
+            ),
+            onClick: () => this.setState({ createModalDrawerOpen: true }),
+            disabled: isDisabled
+          }, [
+            div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
+              div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Cloud Environment'),
+              div({ style: { fontSize: 10 } }, [
+                span({ style: { textTransform: 'uppercase', fontWeight: 500 } },
+                  [currentStatus === 'LeoReconfiguring' ? 'Updating' : (currentStatus || 'None')]),
+                !!totalCost && ` (${Utils.formatUSD(totalCost)} hr)`
+              ])
+            ]),
+            icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
+          ])
+        ])]),
+        h(NewClusterModal, {
+          isOpen: createModalDrawerOpen,
+          namespace,
+          name,
+          clusters,
+          persistentDisks,
+          onDismiss: () => this.setState({ createModalDrawerOpen: false }),
+          onSuccess: promise => {
+            this.setState({ createModalDrawerOpen: false })
+            this.executeAndRefresh(promise)
+          }
+        }),
+        h(NewAppModal, {
+          workspace,
+          apps,
+          isOpen: galaxyDrawerOpen,
+          onDismiss: () => this.setState({ galaxyDrawerOpen: false }),
+          onSuccess: () => {
+            this.setState({ galaxyDrawerOpen: false })
+            refreshApps()
+          }
+        }),
+        errorModalOpen && h(ClusterErrorModal, {
+          cluster: currentCluster,
+          onDismiss: () => this.setState({ errorModalOpen: false })
+        })
+      ])
     ])
   }
 }
