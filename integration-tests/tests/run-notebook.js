@@ -39,8 +39,6 @@ const testRunNotebookFn = _.flow(
   // AJAX calls are unexpectedly slow.
   await delay(1000)
   waitForNoSpinners(page)
-  await click(page, clickable({ text: 'Customize' }))
-  await select(page, 'Application', 'Hail')
   await click(page, clickable({ text: 'Create' }))
   await findElement(page, clickable({ textContains: 'Creating' }))
   await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60 * 1000 })
@@ -54,7 +52,6 @@ const testRunNotebook = {
   name: 'run-notebook',
   fn: testRunNotebookFn,
   timeout: 15 * 60 * 1000
-
 }
 
 module.exports = { testRunNotebook }
