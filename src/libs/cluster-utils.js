@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { cloudServices, dataprocCpuPrice, machineTypes, monthlyStoragePrice, storagePrice } from 'src/data/machines'
+import { appPrice, cloudServices, dataprocCpuPrice, machineTypes, monthlyStoragePrice, storagePrice } from 'src/data/machines'
 
 
 export const DEFAULT_DISK_SIZE = 50
@@ -82,6 +82,16 @@ export const currentCluster = clusters => {
 export const trimAppsOldestFirst = _.flow(
   _.remove({ status: 'DELETING' }),
   _.sortBy('auditInfo.createdDate'))
+
+export const appCost = ({ kubernetesRuntimeConfig, status }) => {
+  switch (status) {
+    case 'RUNNING':
+    case 'PROVISIONING':
+      return appPrice / 730
+    default:
+      return 0.0
+  }
+}
 
 export const currentApp = _.flow(trimAppsOldestFirst, _.last)
 

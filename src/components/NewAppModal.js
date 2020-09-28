@@ -7,7 +7,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { currentApp } from 'src/libs/cluster-utils'
+import { appCost, currentApp, persistentDiskCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
@@ -24,13 +24,18 @@ const styles = {
 export const NewAppModal = _.flow(
   Utils.withDisplayName('NewAppModal'),
   withModalDrawer({ width: 675 })
-)(({ onDismiss, onSuccess, namespace, apps, bucketName, workspaceName }) => {
+)(({ onDismiss, onSuccess, namespace, apps, persistentDisks, bucketName, workspaceName }) => {
   const [viewMode, setViewMode] = useState(undefined)
   const [loading, setLoading] = useState(false)
 
 
   const app = currentApp(apps)
-
+  const persistentDisk = _.head(_.filter(disk => disk.name === app.diskName, persistentDisks))
+  console.log(app)
+  console.log(persistentDisk)
+  console.log(persistentDisks)
+  console.log(_.filter(disk => disk.name === app.diskName, persistentDisks))
+  console.log(persistentDiskCost(persistentDisk))
   const createApp = _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error creating app')
@@ -130,7 +135,7 @@ export const NewAppModal = _.flow(
             ]),
             li({ style: { marginTop: '1rem' } }, [
               'Running cloud compute costs ',
-              span({ style: { fontWeight: 600 } }, '$0.00 per hr')
+              span({ style: { fontWeight: 600 } }, `${Utils.formatUSD(appCost(app) + persistentDiskCost(persistentDisk))} per hr`)
               //TODO: Calculate cost
             ])
           ]),
