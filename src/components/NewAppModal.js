@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, li, span, ul } from 'react-hyperscript-helpers'
 import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/cluster-common'
-import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
@@ -59,7 +59,13 @@ export const NewAppModal = _.flow(
       }],
       [Utils.DEFAULT, () => {
         return !!app ?
-          h(ButtonPrimary, { onClick: () => setViewMode('deleteWarn') }, ['Delete']) :
+          h(Fragment, [
+            h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
+            h(GalaxyLaunchButton, {
+              app,
+              onClick: onDismiss
+            })
+          ]) :
           h(ButtonPrimary, { onClick: () => setViewMode('createWarn') }, ['Next'])
       }]
     )
@@ -139,18 +145,7 @@ export const NewAppModal = _.flow(
             href: ''
           }, ['Learn more about Galaxy interactive environments.'])
         ])
-      ]),
-      app && div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
-        div([
-          div({ style: styles.headerText }, ['Use Galaxy']),
-          h(GalaxyWarning),
-          h(GalaxyLaunchButton, {
-            app,
-            onClick: onDismiss
-          })
-        ])
       ])
-
     ])
   }
 
