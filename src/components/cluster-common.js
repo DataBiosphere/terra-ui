@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { b, div, h, p, span } from 'react-hyperscript-helpers'
+import { b, div, h, p } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'

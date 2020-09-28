@@ -50,8 +50,6 @@ const withCancellation = wrappedFetch => async (...args) => {
   }
 }
 
-ajaxOverridesStore.set([{ filter: { url: /\/apps\// }, fn: window.ajaxOverrideUtils.mapJsonBody(_.map(_.set('status', 'PROVISIONING'))) }])
-
 // Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
   const res = await wrappedFetch(...args)
