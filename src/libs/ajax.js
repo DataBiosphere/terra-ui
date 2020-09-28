@@ -1131,7 +1131,7 @@ const Apps = signal => ({
           diskConfig: {
             name: diskName,
             labels: {
-              hidden: 'true'
+              saturnApplication: 'galaxy'
             }
           },
           customEnvironmentVariables: {
