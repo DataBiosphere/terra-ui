@@ -99,7 +99,6 @@ export const PeriodicCookieSetter = () => {
   const signal = Utils.useCancellation()
   Utils.usePollingEffect(
     withErrorIgnoring(async () => {
-      await Utils.delay(20000)
       await Ajax(signal).Clusters.setCookie()
       cookieReadyStore.set(true)
     }),
