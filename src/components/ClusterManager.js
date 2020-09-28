@@ -15,7 +15,10 @@ import galaxyLogo from 'src/images/galaxy.svg'
 import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
-import { clusterCost, collapsedClusterStatus, currentApp, currentCluster, persistentDiskCost, trimClustersOldestFirst } from 'src/libs/cluster-utils'
+import {
+  appIsDeleting, appIsSettingUp, clusterCost, collapsedClusterStatus, currentApp, currentCluster,
+  persistentDiskCost, trimClustersOldestFirst
+} from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -294,6 +297,11 @@ export default class ClusterManager extends PureComponent {
     return div({ style: styles.container }, [
       app && h(Clickable, {
         style: { display: 'flex', marginRight: '2rem' },
+       disabled: appIsSettingUp(app) || appIsDeleting(app),
+        tooltip: Utils.cond(
+          [appIsSettingUp(app), () => 'Your Galaxy application is being created'],
+          [appIsDeleting(app), () => 'Your Galaxy application is deleting'],
+          () => 'Update cloud environment'),
         onClick: () => {
           this.setState({ galaxyDrawerOpen: true })
         }

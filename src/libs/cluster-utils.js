@@ -84,12 +84,12 @@ export const trimAppsOldestFirst = _.remove({ status: 'DELETING' })
 
 export const currentApp = _.flow(trimAppsOldestFirst, _.last)
 
-export const appIsProvisioning = app => {
-  return app && app.status === 'PROVISIONING'
+export const appIsSettingUp = app => {
+  return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
 
 export const appIsDeleting = app => {
-  return app && app.status === 'DELETING'
+  return app && (app.status === 'DELETING' || app.status === 'PREDELETING')
 }
 
 export const collapsedClusterStatus = cluster => {
