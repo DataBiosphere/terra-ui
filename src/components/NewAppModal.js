@@ -163,10 +163,17 @@ export const NewAppModal = _.flow(
     [Utils.DEFAULT, renderDefaultCase]
   )
 
+  const WarningTitle = ({ children }) => {
+    return div({ style: { display: 'flex', alignItems: 'center' } }, [
+      icon('warning-standard', { size: 36, style: { color: colors.warning(), marginRight: '0.75rem' } }),
+      children
+    ])
+  }
+
   return div({ style: styles.drawerContent }, [
     h(TitleBar, {
       title: Utils.switchCase(viewMode,
-        ['launchWarn', () => 'Launch Galaxy'],
+        ['launchWarn', () => h(WarningTitle, ['Launch Galaxy'])],
         ['deleteWarn', () => 'Delete Cloud Environment for Galaxy'],
         [Utils.DEFAULT, () => 'Cloud environment']
       ),
