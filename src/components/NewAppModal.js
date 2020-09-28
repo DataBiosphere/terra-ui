@@ -57,19 +57,20 @@ export const NewAppModal = _.flow(
       ['createWarn', () => {
         return h(ButtonPrimary, { onClick: () => createApp() }, ['Create'])
       }],
+      ['launchWarn', () => {
+        return h(GalaxyLaunchButton, { app, onClick: onDismiss })
+      }],
       [Utils.DEFAULT, () => {
         return !!app ?
           h(Fragment, [
             h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
-            h(GalaxyLaunchButton, {
-              app,
-              onClick: onDismiss
-            })
+            h(ButtonPrimary, { onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
           ]) :
           h(ButtonPrimary, { onClick: () => setViewMode('createWarn') }, ['Next'])
       }]
     )
   }
+
 
   const renderBottomButtons = () => {
     return div({ style: { display: 'flex', margin: '1rem 0 1rem', justifyContent: 'flex-end' } }, [
@@ -165,6 +166,7 @@ export const NewAppModal = _.flow(
   return div({ style: styles.drawerContent }, [
     h(TitleBar, {
       title: Utils.switchCase(viewMode,
+        ['launchWarn', () => 'Launch Galaxy'],
         ['deleteWarn', () => 'Delete Cloud Environment for Galaxy'],
         [Utils.DEFAULT, () => 'Cloud environment']
       ),
