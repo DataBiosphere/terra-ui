@@ -31,11 +31,6 @@ export const NewAppModal = _.flow(
 
   const app = currentApp(apps)
   const persistentDisk = _.head(_.filter(disk => disk.name === app.diskName, persistentDisks))
-  console.log(app)
-  console.log(persistentDisk)
-  console.log(persistentDisks)
-  console.log(_.filter(disk => disk.name === app.diskName, persistentDisks))
-  console.log(persistentDiskCost(persistentDisk))
   const createApp = _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error creating app')
