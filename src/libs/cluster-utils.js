@@ -83,15 +83,8 @@ export const trimAppsOldestFirst = _.flow(
   _.remove({ status: 'DELETING' }),
   _.sortBy('auditInfo.createdDate'))
 
-export const appCost = ({ kubernetesRuntimeConfig, status }) => {
-  switch (status) {
-    case 'RUNNING':
-    case 'PROVISIONING':
-      return appPrice / 730
-    default:
-      return 0.0
-  }
-}
+// TODO: Actually calculate app cost and pass in app
+export const appCost = () => appPrice / 730
 
 export const currentApp = _.flow(trimAppsOldestFirst, _.last)
 

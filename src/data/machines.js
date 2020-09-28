@@ -42,6 +42,7 @@ export const storagePrice = monthlyStoragePrice / 730 // per GB hour using 730 h
 export const dataprocCpuPrice = 0.01 // dataproc costs $0.01 per cpu per hour
 
 // TODO calculate cost based on app, rather than constant
+// From https://cloud.google.com/products/calculator#id=e01a4508-1884-4036-819c-33bf874612ac
 export const appPrice = 194.18 // per GB hour using 730 hours per month from https://cloud.google.com/compute/pricing
 
 export const version = '6' // updated jupyter-iframe-extension.js

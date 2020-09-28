@@ -130,7 +130,7 @@ export const NewAppModal = _.flow(
             li({ style: { marginTop: '1rem' } }, [
               'Running cloud compute costs ',
               // TODO: Actually calculate cost, rather than hardcode
-              span({ style: { fontWeight: 600 } }, `${Utils.formatUSD(appCost(app) + persistentDiskCost({ size: 30, status: 'Running' }))} per hr`)
+              span({ style: { fontWeight: 600 } }, `${Utils.formatUSD(appCost() + persistentDiskCost({ size: 30, status: 'Running' }))} per hr`)
             ])
           ]),
           h(Link, {
