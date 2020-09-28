@@ -1020,6 +1020,10 @@ const Clusters = signal => ({
     return res.json()
   },
 
+  setCookie: () => {
+    return fetchLeo(`proxy/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
+  },
+
   cluster: (project, name) => {
     const root = `api/google/v1/runtimes/${project}/${name}`
 
@@ -1081,10 +1085,6 @@ const Clusters = signal => ({
         const body = { action: 'localize', entries }
         return fetchLeo(`${root}/welder/objects`,
           _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-      },
-
-      setCookie: () => {
-        return fetchLeo(`${root}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
       },
 
       setStorageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {

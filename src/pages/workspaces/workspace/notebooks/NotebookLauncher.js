@@ -6,7 +6,7 @@ import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import {
-  ApplicationHeader, ClusterKicker, ClusterStatusMonitor, PeriodicCookieSetter, PlaygroundHeader, StatusMessage
+  ApplicationHeader, ClusterKicker, ClusterStatusMonitor, PlaygroundHeader, StatusMessage
 } from 'src/components/cluster-common'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -23,7 +23,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
-import { authStore } from 'src/libs/state'
+import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -44,7 +44,8 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   })
 )(
-  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, clusters, persistentDisks, refreshClusters }, ref) => {
+  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, clusters, persistentDisks, refreshClusters },
+    ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const cluster = currentCluster(clusters)
     const { runtimeName, labels } = cluster || {}
@@ -402,6 +403,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)
   const [notebookSetupComplete, setNotebookSetupComplete] = useState(false)
+  const cookieReady = Utils.useStore(cookieReadyStore)
 
   const localBaseDirectory = `${name}/edit`
   const localSafeModeBaseDirectory = `${name}/safe`
@@ -421,13 +423,10 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
       })
       chooseMode(undefined)
     } else {
-      await Promise.all([
-        Ajax().Clusters.notebooks(namespace, runtimeName).localize([{
-          sourceUri: `${cloudStorageDirectory}/${notebookName}`,
-          localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${notebookName}` : `${localSafeModeBaseDirectory}/${notebookName}`
-        }]),
-        Ajax().Clusters.notebooks(namespace, runtimeName).setCookie()
-      ])
+      await Ajax().Clusters.notebooks(namespace, runtimeName).localize([{
+        sourceUri: `${cloudStorageDirectory}/${notebookName}`,
+        localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${notebookName}` : `${localSafeModeBaseDirectory}/${notebookName}`
+      }])
       setNotebookSetupComplete(true)
     }
   })
@@ -437,8 +436,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   })
 
   return h(Fragment, [
-    notebookSetupComplete && h(Fragment, [
-      h(PeriodicCookieSetter, { namespace, runtimeName }),
+    notebookSetupComplete && cookieReady && h(Fragment, [
       iframe({
         src: `${proxyUrl}/notebooks/${mode === 'edit' ? localBaseDirectory : localSafeModeBaseDirectory}/${notebookName}`,
         style: { border: 'none', flex: 1 },
@@ -461,6 +459,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
   const signal = Utils.useCancellation()
   const [busy, setBusy] = useState(false)
   const [localized, setLocalized] = useState(false)
+  const cookieReady = Utils.useStore(cookieReadyStore)
 
   const localizeNotebook = _.flow(
     Utils.withBusyState(setBusy),
@@ -475,12 +474,9 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
       })
       chooseMode(undefined)
     } else {
-      await Promise.all([
-        Ajax(signal).Clusters.notebooks(namespace, runtimeName).oldLocalize({
-          [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
-        }),
-        Ajax(signal).Clusters.notebooks(namespace, runtimeName).setCookie()
-      ])
+      await Ajax(signal).Clusters.notebooks(namespace, runtimeName).oldLocalize({
+        [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
+      })
       setLocalized(true)
     }
   })
@@ -500,7 +496,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
         ...Utils.newTabLinkProps
       }, ['Read here for more details.'])
     ]),
-    localized && h(Fragment, [
+    localized && cookieReady && h(Fragment, [
       iframe({
         src: `${proxyUrl}/notebooks/${name}/${notebookName}`,
         style: { border: 'none', flex: 1 },
