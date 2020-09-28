@@ -297,7 +297,7 @@ export default class ClusterManager extends PureComponent {
     return div({ style: styles.container }, [
       app && h(Clickable, {
         style: { display: 'flex', marginRight: '2rem' },
-       disabled: appIsSettingUp(app) || appIsDeleting(app),
+        disabled: appIsSettingUp(app) || appIsDeleting(app),
         tooltip: Utils.cond(
           [appIsSettingUp(app), () => 'Your Galaxy application is being created'],
           [appIsDeleting(app), () => 'Your Galaxy application is deleting'],

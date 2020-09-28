@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { b, div, h, p } from 'react-hyperscript-helpers'
+import { b, div, h, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
@@ -111,7 +111,7 @@ export const SaveFilesHelp = () => {
 }
 
 export const GalaxyWarning = () => {
-  return p(['Note - Galaxy will open in a new tab. Please keep this tab open and logged into Terra.'])
+  return p([span({ style: { fontWeight: 600 } }, ['Please keep this tab open and logged in to Terra.']), ' Note - Galaxy will open in a new tab. '])
 }
 
 export const GalaxyLaunchButton = ({ app, ...props }) => {

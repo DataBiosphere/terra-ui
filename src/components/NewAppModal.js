@@ -118,6 +118,12 @@ export const NewAppModal = _.flow(
     ])
   }
 
+  const renderLaunchWarning = () => {
+    return div({ style: { lineHeight: '22px' } }, [
+      h(GalaxyWarning)
+    ])
+  }
+
   const renderDefaultCase = () => {
     return h(Fragment, [
       div([`Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`]),
@@ -152,6 +158,7 @@ export const NewAppModal = _.flow(
   const contents = Utils.switchCase(viewMode,
     ['createWarn', renderCreateWarning],
     ['deleteWarn', renderDeleteWarning],
+    ['launchWarn', renderLaunchWarning],
     [Utils.DEFAULT, renderDefaultCase]
   )
 
