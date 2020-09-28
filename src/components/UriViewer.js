@@ -62,19 +62,6 @@ const getMaxDownloadCostNA = bytes => {
   return Utils.formatUSD(downloadPrice)
 }
 
-const parseMarthaResponse = response => {
-  if (!response.dos) { // handle martha_v3 endpoint response
-    return response
-  }
-  // Fields are mapped from the martha_v2 fields to those used by martha_v3
-  const {
-    dos: { data_object: { size, urls, name: fileName, created: timeCreated, updated: timeUpdated } }
-  } = response
-  const gsUri = _.find(u => u.startsWith('gs://'), _.map('url', urls))
-  const [bucket, name] = parseGsUri(gsUri)
-  return { bucket, name, size, timeCreated, timeUpdated, fileName }
-}
-
 const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProject }) => {
   const signal = Utils.useCancellation()
   const [preview, setPreview] = useState()
@@ -172,13 +159,12 @@ const UriViewer = _.flow(
         const metadata = await loadObject(bucket, name, googleProject)
         setMetadata(metadata)
       } else {
-        const response = await Ajax(signal).Martha.getDataObjectMetadata(uri)
         // Fields are mapped from the martha_v3 fields to those used by google
         // https://github.com/broadinstitute/martha#martha-v3
         // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
         // The time formats returned are in ISO 8601 vs. RFC 3339 but should be ok for parsing by `new Date()`
         const { bucket, name, size, timeCreated, timeUpdated: updated, fileName } =
-          parseMarthaResponse(response)
+          await Ajax(signal).Martha.getDataObjectMetadata(uri)
         const metadata = { bucket, name, fileName, size, timeCreated, updated }
         setMetadata(metadata)
       }
