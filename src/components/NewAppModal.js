@@ -137,20 +137,15 @@ export const NewAppModal = _.flow(
             ]),
             li({ style: { marginTop: '1rem' } }, [
               'Cloud Compute size of ', span({ style: { fontWeight: 600 } },
+                // Temporarily hard-coded disk size, once it can be customized this should be revisited
                 [`${getMachineDetails().cpu} CPUS, ${getMachineDetails().memory}  GB of memory, 50 GB disk space`])
-              //TODO: Define the disk space using DEFAULT_DISK_SIZE from the mob_pd branch
             ]),
             li({ style: { marginTop: '1rem' } }, [
               'Running cloud compute costs ',
               span({ style: { fontWeight: 600 } }, '$0.00 per hr')
               //TODO: Calculate cost
             ])
-          ]),
-          h(Link, {
-            ...Utils.newTabLinkProps,
-            // TODO: Get the link from comms for this
-            href: ''
-          }, ['Learn more about Galaxy interactive environments.'])
+          ])
         ])
       ])
     ])

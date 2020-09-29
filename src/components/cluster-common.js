@@ -125,7 +125,7 @@ export const GalaxyWarning = () => {
 }
 
 export const GalaxyLaunchButton = ({ app, ...props }) => {
-  const cookieReady = true //TODO use instead: Utils.useStore(cookieReadyStore)
+  const cookieReady = Utils.useStore(cookieReadyStore)
   return h(ButtonPrimary, {
     disabled: !cookieReady,
     href: app.proxyUrls.galaxy,
