@@ -164,7 +164,10 @@ const UriViewer = _.flow(
         // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
         // The time formats returned are in ISO 8601 vs. RFC 3339 but should be ok for parsing by `new Date()`
         const { bucket, name, size, timeCreated, timeUpdated: updated, fileName } =
-          await Ajax(signal).Martha.getDataObjectMetadata(uri)
+          await Ajax(signal).Martha.getDataObjectMetadata(
+            uri,
+            ['bucket', 'name', 'size', 'timeCreated', 'timeUpdated', 'fileName']
+          )
         const metadata = { bucket, name, fileName, size, timeCreated, updated }
         setMetadata(metadata)
       }
