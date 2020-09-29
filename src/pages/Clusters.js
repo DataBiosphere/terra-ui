@@ -91,12 +91,14 @@ const Clusters = () => {
 
   const refreshClusters = withBusyState(setLoading, async () => {
     const creator = getUser().email
-    const [newClusters, newDisks] = await Promise.all([
+    const [newClusters, newDisks, galaxyDisks] = await Promise.all([
       Ajax(signal).Clusters.list({ creator }),
-      Ajax(signal).Disks.list({ creator })
+      Ajax(signal).Disks.list({ creator }),
+      Ajax(signal).Disks.list({ creator, saturnApplication: 'galaxy' })
     ])
+    const galaxyDiskNames = _.map(disk => disk.name, galaxyDisks)
     setClusters(newClusters)
-    setDisks(newDisks)
+    setDisks(_.remove(disk => _.includes(disk.name, galaxyDiskNames), newDisks))
     if (!_.some({ id: getErrorClusterId() }, newClusters)) {
       setErrorClusterId(undefined)
     }
