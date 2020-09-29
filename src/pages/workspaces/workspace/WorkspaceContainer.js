@@ -168,7 +168,7 @@ const useCloudEnvironmentPolling = namespace => {
       ])
       const galaxyDiskNames = _.map(disk => disk.name, galaxyDisks)
       setClusters(newClusters)
-      setPersistentDisks(_.filter(disk => !_.includes(disk.name, galaxyDiskNames), newDisks))
+      setPersistentDisks(_.remove(disk => _.includes(disk.name, galaxyDiskNames), newDisks))
 
       const cluster = currentCluster(newClusters)
       reschedule(_.includes(collapsedClusterStatus(cluster), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
