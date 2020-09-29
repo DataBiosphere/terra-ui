@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { appPrice, cloudServices, dataprocCpuPrice, machineTypes, monthlyStoragePrice, storagePrice } from 'src/data/machines'
+import { cloudServices, dataprocCpuPrice, machineTypes, monthlyStoragePrice, storagePrice } from 'src/data/machines'
 
 
 export const DEFAULT_DISK_SIZE = 50
@@ -83,8 +83,10 @@ export const trimAppsOldestFirst = _.flow(
   _.remove({ status: 'DELETING' }),
   _.sortBy('auditInfo.createdDate'))
 
-// TODO: Actually calculate app cost and pass in app
-export const appCost = () => appPrice / 730
+// TODO: factor status into cost
+export const hourlyAppCost = (kubernetesRuntimeConfig, status) => {
+  return _.find(machineType => machineType.name === kubernetesRuntimeConfig.machineType, machineTypes).price
+}
 
 export const currentApp = _.flow(trimAppsOldestFirst, _.last)
 
