@@ -161,12 +161,14 @@ const useCloudEnvironmentPolling = namespace => {
   }
   const load = async () => {
     try {
-      const [newDisks, newClusters] = await Promise.all([
+      const [newDisks, newClusters, galaxyDisks] = await Promise.all([
         Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email }),
-        Ajax(signal).Clusters.list({ googleProject: namespace, creator: getUser().email })
+        Ajax(signal).Clusters.list({ googleProject: namespace, creator: getUser().email }),
+        Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email, saturnApplication: 'galaxy' })
       ])
+      const galaxyDiskNames = _.map(disk => disk.name, galaxyDisks)
       setClusters(newClusters)
-      setPersistentDisks(newDisks)
+      setPersistentDisks(_.remove(disk => _.includes(disk.name, galaxyDiskNames), newDisks))
 
       const cluster = currentCluster(newClusters)
       reschedule(_.includes(collapsedClusterStatus(cluster), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
