@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, li, span, ul } from 'react-hyperscript-helpers'
 import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/cluster-common'
-import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, spinnerOverlay, WarningTitle } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
@@ -78,10 +78,6 @@ export const NewAppModal = _.flow(
     ])
   }
 
-  const getMachineDetails = () => {
-    return _.filter(({ name }) => name === 'n1-standard-8', machineTypes)[0]
-  }
-
   const renderCreateWarning = () => {
     return h(Fragment, [
       div({ style: { marginBottom: '1rem' } }, ['Environment will consist of an application and cloud compute.']),
@@ -126,6 +122,7 @@ export const NewAppModal = _.flow(
   }
 
   const renderDefaultCase = () => {
+    const { cpu, memory } = _.find({ name: 'n1-standard-8' }, machineTypes)
     return h(Fragment, [
       div([`Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`]),
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
@@ -138,7 +135,7 @@ export const NewAppModal = _.flow(
             li({ style: { marginTop: '1rem' } }, [
               'Cloud Compute size of ', span({ style: { fontWeight: 600 } },
                 // Temporarily hard-coded disk size, once it can be customized this should be revisited
-                [`${getMachineDetails().cpu} CPUS, ${getMachineDetails().memory}  GB of memory, 50 GB disk space`])
+                [`${cpu} CPUS, ${memory} GB of memory, 50 GB disk space`])
             ]),
             li({ style: { marginTop: '1rem' } }, [
               'Running cloud compute costs ',
@@ -157,13 +154,6 @@ export const NewAppModal = _.flow(
     ['launchWarn', renderLaunchWarning],
     [Utils.DEFAULT, renderDefaultCase]
   )
-
-  const WarningTitle = ({ children }) => {
-    return div({ style: { display: 'flex', alignItems: 'center' } }, [
-      icon('warning-standard', { size: 36, style: { color: colors.warning(), marginRight: '0.75rem' } }),
-      children
-    ])
-  }
 
   return div({ style: styles.drawerContent }, [
     h(TitleBar, {

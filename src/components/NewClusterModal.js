@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { b, br, code, div, fieldset, h, input, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
 import { SaveFilesHelp } from 'src/components/cluster-common'
-import { ButtonOutline, ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
@@ -111,13 +111,6 @@ const RadioBlock = ({ labelText, children, name, checked, onChange, style = {} }
         children
       ])
     ])])
-  ])
-}
-
-const WarningTitle = ({ children }) => {
-  return div({ style: { display: 'flex', alignItems: 'center' } }, [
-    icon('warning-standard', { size: 36, style: { color: colors.warning(), marginRight: '0.75rem' } }),
-    children
   ])
 }
 
