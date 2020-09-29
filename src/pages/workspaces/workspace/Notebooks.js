@@ -313,7 +313,7 @@ const Notebooks = _.flow(
           div(['Galaxy Interactive']),
           div(['Environment']),
           // TODO: Actually calculate cost, rather than hardcode in PD values
-          div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status), ` ${Utils.formatUSD(appCost() + persistentDiskCost({size: 30, status: 'Running'}))}`]),
+          div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status), ` ${Utils.formatUSD(appCost() + persistentDiskCost({ size: 30, status: 'Running' }))}`]),
           icon('trash', { size: 21 })
         ]) :
         div({ style: { fontSize: 18, lineHeight: '22px', width: 160, color: colors.accent() } }, [
