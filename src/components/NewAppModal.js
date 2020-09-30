@@ -7,7 +7,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { currentApp } from 'src/libs/cluster-utils'
+import { currentApp, hourlyAppCost, persistentDiskCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
@@ -30,7 +30,6 @@ export const NewAppModal = _.flow(
 
 
   const app = currentApp(apps)
-
   const createApp = _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error creating app')
@@ -130,8 +129,11 @@ export const NewAppModal = _.flow(
             ]),
             li({ style: { marginTop: '1rem' } }, [
               'Running cloud compute costs ',
-              span({ style: { fontWeight: 600 } }, '$0.00 per hr')
-              //TODO: Calculate cost
+              span({ style: { fontWeight: 600 } }, `${Utils.formatUSD(
+                hourlyAppCost(
+                  app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8' } }
+                ) + persistentDiskCost({ size: 30, status: 'Running' })
+              )} per hr`)
             ])
           ]),
           h(Link, {

@@ -15,7 +15,7 @@ import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, Noteboo
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
-import { appIsDeleting, appIsProvisioning, currentApp } from 'src/libs/cluster-utils'
+import { appIsDeleting, appIsProvisioning, currentApp, hourlyAppCost, persistentDiskCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -312,7 +312,11 @@ const Notebooks = _.flow(
         div({ style: { fontSize: 18, lineHeight: '22px', width: 160 } }, [
           div(['Galaxy Interactive']),
           div(['Environment']),
-          div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status)]),
+          // TODO: Actually use status to calculate cost, and actually use disk rather than hardcoding
+          div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status), `: ${Utils.formatUSD(
+            hourlyAppCost(app) +
+            persistentDiskCost({ size: 30, status: 'Running' })
+          )} per hr`]),
           icon('trash', { size: 21 })
         ]) :
         div({ style: { fontSize: 18, lineHeight: '22px', width: 160, color: colors.accent() } }, [
