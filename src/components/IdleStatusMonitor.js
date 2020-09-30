@@ -42,14 +42,14 @@ const IdleStatusMonitor = ({
   useEffect(() => { timedOut && !isSignedIn && setLastActive('expired') }, [isSignedIn, timedOut])
 
   return Utils.cond(
-    [isSignedIn && isTimeoutEnabled, h(InactivityTimer, { id, timeout, countdownStart })],
+    [isSignedIn && isTimeoutEnabled, () => h(InactivityTimer, { id, timeout, countdownStart })],
     [lastRecordedActivity === 'expired' && !isSignedIn, () => h(Modal, {
       title: 'Session Expired',
       showCancel: false,
       onDismiss: () => setLastActive(),
       onOk: () => setLastActive()
     }, ['Your session has expired to maintain security and protect clinical data'])],
-    null)
+    () => null)
 }
 
 const CountdownModal = ({ onCancel, countdown }) => {

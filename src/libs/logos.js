@@ -20,24 +20,24 @@ import * as Utils from 'src/libs/utils'
 
 
 export const getAppName = (longName = false) => Utils.cond(
-  [isFirecloud(), 'FireCloud'],
-  [isDatastage(), 'DataStage'],
-  [isAnvil(), longName ? 'The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space)' : 'AnVIL'],
-  [isBioDataCatalyst(), 'NHLBI BioData Catalyst'],
-  [isUKBiobank(), 'UK Biobank'],
-  [isBaseline(), longName ? 'The Baseline Health Study Data Portal' : 'Project Baseline'],
-  'Terra'
+  [isFirecloud(), () => 'FireCloud'],
+  [isDatastage(), () => 'DataStage'],
+  [isAnvil(), () => longName ? 'The NHGRI AnVIL (Genomic Data Science Analysis, Visualization, and Informatics Lab-space)' : 'AnVIL'],
+  [isBioDataCatalyst(), () => 'NHLBI BioData Catalyst'],
+  [isUKBiobank(), () => 'UK Biobank'],
+  [isBaseline(), () => longName ? 'The Baseline Health Study Data Portal' : 'Project Baseline'],
+  () => 'Terra'
 )
 
 export const returnParam = () => getAppName().toLowerCase()
 
 const pickBrandLogo = (color = false) => Utils.cond(
-  [isFirecloud(), color ? fcLogo : fcLogoWhite],
-  [isDatastage(), color ? datastageLogo : datastageLogoWhite],
-  [isAnvil(), color ? anvilLogo : anvilLogoWhite],
-  [isBioDataCatalyst(), color ? bioDataCatalystLogo : bioDataCatalystLogoWhite],
-  [isUKBiobank(), color ? ukbLogo : ukbLogoWhite],
-  [isBaseline(), color ? baselineLogo : baselineLogoWhite]
+  [isFirecloud(), () => color ? fcLogo : fcLogoWhite],
+  [isDatastage(), () => color ? datastageLogo : datastageLogoWhite],
+  [isAnvil(), () => color ? anvilLogo : anvilLogoWhite],
+  [isBioDataCatalyst(), () => color ? bioDataCatalystLogo : bioDataCatalystLogoWhite],
+  [isUKBiobank(), () => color ? ukbLogo : ukbLogoWhite],
+  [isBaseline(), () => color ? baselineLogo : baselineLogoWhite]
 )
 
 export const terraLogoMaker = (logoVariant, style) => img({ alt: 'Terra logo', role: 'img', src: logoVariant, style })

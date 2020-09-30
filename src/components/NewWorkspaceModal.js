@@ -134,12 +134,12 @@ export default _.flow(
     })
 
     return Utils.cond(
-      [loading, spinnerOverlay],
+      [loading, () => spinnerOverlay],
       [hasBillingProjects, () => h(Modal, {
         title: Utils.cond(
-          [title, title],
-          [cloneWorkspace, 'Clone a workspace'],
-          [Utils.DEFAULT, 'Create a New Workspace']
+          [title, () => title],
+          [cloneWorkspace, () => 'Clone a workspace'],
+          [true, () => 'Create a New Workspace']
         ),
         onDismiss,
         okButton: h(ButtonPrimary, {
@@ -147,9 +147,9 @@ export default _.flow(
           tooltip: Utils.summarizeErrors(errors),
           onClick: () => this.create()
         }, Utils.cond(
-          [buttonText, buttonText],
-          [cloneWorkspace, 'Clone Workspace'],
-          [Utils.DEFAULT, 'Create Workspace']
+          [buttonText, () => buttonText],
+          [cloneWorkspace, () => 'Clone Workspace'],
+          [true, () => 'Create Workspace']
         ))
       }, [
         h(IdContainer, [id => h(Fragment, [

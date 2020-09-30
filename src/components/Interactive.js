@@ -15,21 +15,21 @@ const Interactive = Utils.forwardRefWithName('Interactive', ({
   const { cursor } = style
 
   const computedCursor = Utils.cond(
-    [cursor, cursor],
-    [disabled, undefined],
-    [onClick || pointerTags.includes(as) || pointerTypes.includes(type), 'pointer']
+    [cursor, () => cursor],
+    [disabled, () => undefined],
+    [onClick || pointerTags.includes(as) || pointerTypes.includes(type), () => 'pointer']
   )
 
   const computedTabIndex = Utils.cond(
-    [_.isNumber(tabIndex), tabIndex],
-    [disabled, -1],
-    [onClick, 0],
-    undefined)
+    [_.isNumber(tabIndex), () => tabIndex],
+    [disabled, () => -1],
+    [onClick, () => 0],
+    () => undefined)
 
   const computedRole = Utils.cond(
-    [role, role],
-    [onClick && !['input', ...pointerTags].includes(as), 'button'],
-    undefined)
+    [role, () => role],
+    [onClick && !['input', ...pointerTags].includes(as), () => 'button'],
+    () => undefined)
 
   const cssVariables = _.flow(
     _.toPairs,
