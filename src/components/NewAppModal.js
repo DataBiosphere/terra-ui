@@ -131,8 +131,7 @@ export const NewAppModal = _.flow(
               'Running cloud compute costs ',
               span({ style: { fontWeight: 600 } }, `${Utils.formatUSD(
                 hourlyAppCost(
-                  app ? app.kubernetesRuntimeConfig : { machineType: 'n1-standard-8' },
-                  app ? app.status : 'RUNNING'
+                  app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8' } }
                 ) + persistentDiskCost({ size: 30, status: 'Running' })
               )} per hr`)
             ])

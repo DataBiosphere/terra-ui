@@ -84,7 +84,7 @@ export const trimAppsOldestFirst = _.flow(
   _.sortBy('auditInfo.createdDate'))
 
 // TODO: factor status into cost
-export const hourlyAppCost = (kubernetesRuntimeConfig, status) => {
+export const hourlyAppCost = ({ kubernetesRuntimeConfig }) => {
   return _.find(machineType => machineType.name === kubernetesRuntimeConfig.machineType, machineTypes).price
 }
 

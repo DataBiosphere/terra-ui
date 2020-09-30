@@ -314,7 +314,7 @@ const Notebooks = _.flow(
           div(['Environment']),
           // TODO: Actually use status to calculate cost, and actually use disk rather than hardcoding
           div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status), ` ${Utils.formatUSD(
-            hourlyAppCost(app.kubernetesRuntimeConfig, app.status) +
+            hourlyAppCost(app) +
             persistentDiskCost({ size: 30, status: 'Running' })
           )}`]),
           icon('trash', { size: 21 })
