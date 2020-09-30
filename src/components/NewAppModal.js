@@ -135,7 +135,7 @@ export const NewAppModal = _.flow(
             li({ style: { marginTop: '1rem' } }, [
               'Cloud Compute size of ', span({ style: { fontWeight: 600 } },
                 // Temporarily hard-coded disk size, once it can be customized this should be revisited
-                [`${cpu} CPUS, ${memory} GB of memory, 50 GB disk space`])
+                [`${cpu} CPUS, ${memory} GB of memory, 30 GB disk space`])
             ]),
             li({ style: { marginTop: '1rem' } }, [
               'Running cloud compute costs ',
