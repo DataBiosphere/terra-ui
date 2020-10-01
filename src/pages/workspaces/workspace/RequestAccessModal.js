@@ -98,9 +98,9 @@ const RequestAccessButton = ({ groupName, instructions }) => {
     }
   }, [
     cond(
-      [requested, 'Request Sent'],
-      [requesting, 'Sending Request...'],
-      'Request Access'
+      [requested, () => 'Request Sent'],
+      [requesting, () => 'Sending Request...'],
+      () => 'Request Access'
     )
   ])
 }

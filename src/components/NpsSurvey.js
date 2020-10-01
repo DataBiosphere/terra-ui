@@ -68,9 +68,9 @@ export const NpsSurvey = Utils.connectStore(authStore, 'authState')(class NpsSur
     const scoreRadios = _.map(i => {
       const isSelected = i === score
       const bgColor = Utils.cond(
-        [i <= 6, colors.danger(0.5)],
-        [i <= 8, colors.warning(0.8)],
-        colors.success(0.8)
+        [i <= 6, () => colors.danger(0.5)],
+        [i <= 8, () => colors.warning(0.8)],
+        () => colors.success(0.8)
       )
 
       return h(Interactive, {

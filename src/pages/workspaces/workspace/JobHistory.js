@@ -177,13 +177,13 @@ const JobHistory = _.flow(
 
                   return h(Clickable, {
                     hover: {
-                      backgroundColor: Utils.cond([!!failed, colors.danger(0.2)], [!!running || !!submitted, colors.accent(0.2)], colors.success(0.2))
+                      backgroundColor: Utils.cond([!!failed, () => colors.danger(0.2)], [!!running || !!submitted, () => colors.accent(0.2)], () => colors.success(0.2))
                     },
                     style: {
                       flex: 1, alignSelf: 'stretch', display: 'flex', flexDirection: 'column', justifyContent: 'center',
                       margin: '0 -1rem', padding: '0 1rem', minWidth: 0,
                       fontWeight: 600,
-                      backgroundColor: Utils.cond([!!failed, colors.danger(0.1)], [!!running || !!submitted, colors.accent(0.1)], colors.success(0.1))
+                      backgroundColor: Utils.cond([!!failed, () => colors.danger(0.1)], [!!running || !!submitted, () => colors.accent(0.1)], () => colors.success(0.1))
                     },
                     href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId })
                   }, [

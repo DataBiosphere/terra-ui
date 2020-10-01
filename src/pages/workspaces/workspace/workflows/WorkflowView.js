@@ -558,7 +558,7 @@ const WorkflowView = _.flow(
       (type === chooseSetComponents && count > 0) || count > 1) ? `(will create a new set named "${newSetName}")` : ''
     const baseEntityType = isSet(rootEntityType) ? rootEntityType.slice(0, -4) : rootEntityType
     return Utils.cond(
-      [this.isSingle() || !rootEntityType, ''],
+      [this.isSingle() || !rootEntityType, () => ''],
       [type === processAll, () => `all ${entityMetadata[rootEntityType]?.count || 0} ${rootEntityType}s ${newSetMessage}`],
       [type === processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
       [type === chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],

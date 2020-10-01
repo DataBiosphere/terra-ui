@@ -303,7 +303,7 @@ const Clusters = () => {
               const { id, status } = filteredDisks[rowIndex]
               const error = cond(
                 [status === 'Creating', () => 'Cannot delete this disk because it is still being created'],
-                [_.some({ runtimeConfig: { persistentDiskId: id } }, clusters), 'Cannot delete this disk because it is attached. You must delete the cloud environment first.']
+                [_.some({ runtimeConfig: { persistentDiskId: id } }, clusters), () => 'Cannot delete this disk because it is attached. You must delete the cloud environment first.']
               )
               return status !== 'Deleting' && h(Link, {
                 'aria-label': 'Delete persistent disk',

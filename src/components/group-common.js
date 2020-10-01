@@ -134,7 +134,7 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
         cancelText: 'No',
         onDismiss: () => this.setState({ confirmAddUser: false })
       }, ['Add ', b(userEmail), ' to the group anyway?', busy && spinnerOverlay])],
-      h(Modal, {
+      () => h(Modal, {
         onDismiss,
         title,
         okButton: h(ButtonPrimary, {

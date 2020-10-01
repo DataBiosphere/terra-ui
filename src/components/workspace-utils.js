@@ -77,9 +77,9 @@ export const WorkspaceImporter = _.flow(
     div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
       h(ButtonPrimary, {
         disabled: !selectedWorkspace || additionalErrors,
-        tooltip: Utils.cond([!selectedWorkspace, 'Select valid a workspace to import'],
-          [additionalErrors, Utils.summarizeErrors(additionalErrors)],
-          'Import workflow to workspace'
+        tooltip: Utils.cond([!selectedWorkspace, () => 'Select valid a workspace to import'],
+          [additionalErrors, () => Utils.summarizeErrors(additionalErrors)],
+          () => 'Import workflow to workspace'
         ),
         onClick: () => onImport(selectedWorkspace.workspace)
       }, ['Import']),

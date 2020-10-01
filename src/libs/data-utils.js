@@ -456,28 +456,28 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
   const initialIsReference = _.isObject(attributeValue) && (attributeValue.entityType || attributeValue.itemsType === 'EntityReference')
   const initialIsList = _.isObject(attributeValue) && attributeValue.items
   const initialType = Utils.cond(
-    [initialIsReference, 'reference'],
-    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, 'string'],
+    [initialIsReference, () => 'reference'],
+    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, () => 'string'],
     [initialIsList, () => typeof attributeValue.items[0]],
-    typeof attributeValue
+    () => typeof attributeValue
   )
 
   const [newValue, setNewValue] = useState(() => Utils.cond(
     [initialIsReference && initialIsList, () => _.map('entityName', attributeValue.items)],
     [initialIsList, () => attributeValue.items],
     [initialIsReference, () => attributeValue.entityName],
-    attributeValue
+    () => attributeValue
   ))
   const [linkedEntityType, setLinkedEntityType] = useState(() => Utils.cond(
     [initialIsReference && initialIsList, () => attributeValue.items[0] ? attributeValue.items[0].entityType : undefined],
     [initialIsReference, () => attributeValue.entityType],
-    entityTypes[0]
+    () => entityTypes[0]
   ))
   const [editType, setEditType] = useState(() => Utils.cond(
-    [initialIsReference, 'reference'],
-    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, 'string'],
+    [initialIsReference, () => 'reference'],
+    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, () => 'string'],
     [initialIsList, () => typeof attributeValue.items[0]],
-    typeof attributeValue
+    () => typeof attributeValue
   ))
   const [isBusy, setIsBusy] = useState()
   const [consideringDelete, setConsideringDelete] = useState()
