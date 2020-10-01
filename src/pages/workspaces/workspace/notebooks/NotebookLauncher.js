@@ -414,16 +414,16 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
     withErrorReporting('Error setting up notebook')
   )(async () => {
     await Ajax()
-      .Clusters
+      .Runtimes
       .notebooks(namespace, runtimeName)
       .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
-    if (mode === 'edit' && !(await Ajax().Clusters.notebooks(namespace, runtimeName).lock(`${localBaseDirectory}/${notebookName}`))) {
+    if (mode === 'edit' && !(await Ajax().Runtimes.notebooks(namespace, runtimeName).lock(`${localBaseDirectory}/${notebookName}`))) {
       notify('error', 'Unable to Edit Notebook', {
         message: 'Another user is currently editing this notebook. You can run it in Playground Mode or make a copy.'
       })
       chooseMode(undefined)
     } else {
-      await Ajax().Clusters.notebooks(namespace, runtimeName).localize([{
+      await Ajax().Runtimes.notebooks(namespace, runtimeName).localize([{
         sourceUri: `${cloudStorageDirectory}/${notebookName}`,
         localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${notebookName}` : `${localSafeModeBaseDirectory}/${notebookName}`
       }])
@@ -474,7 +474,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
       })
       chooseMode(undefined)
     } else {
-      await Ajax(signal).Clusters.notebooks(namespace, runtimeName).oldLocalize({
+      await Ajax(signal).Runtimes.notebooks(namespace, runtimeName).oldLocalize({
         [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
       })
       setLocalized(true)

@@ -163,7 +163,7 @@ const useCloudEnvironmentPolling = namespace => {
     try {
       const [newDisks, newClusters, galaxyDisks] = await Promise.all([
         Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email }),
-        Ajax(signal).Clusters.list({ googleProject: namespace, creator: getUser().email }),
+        Ajax(signal).Runtimes.list({ googleProject: namespace, creator: getUser().email }),
         Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email, saturnApplication: 'galaxy' })
       ])
       const galaxyDiskNames = _.map(disk => disk.name, galaxyDisks)

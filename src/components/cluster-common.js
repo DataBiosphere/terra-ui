@@ -31,7 +31,7 @@ export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
 
       if (status === 'Stopped') {
         setBusy(true)
-        await Ajax().Clusters.cluster(googleProject, runtimeName).start()
+        await Ajax().Runtimes.runtime(googleProject, runtimeName).start()
         await refreshClusters()
         setBusy(false)
         return
@@ -99,7 +99,7 @@ export const PeriodicCookieSetter = () => {
   const signal = Utils.useCancellation()
   Utils.usePollingEffect(
     withErrorIgnoring(async () => {
-      await Ajax(signal).Clusters.setCookie()
+      await Ajax(signal).Runtimes.setCookie()
       cookieReadyStore.set(true)
     }),
     { ms: 5 * 60 * 1000, leading: true }

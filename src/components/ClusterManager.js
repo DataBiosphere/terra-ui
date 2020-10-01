@@ -67,7 +67,7 @@ export const ClusterErrorModal = ({ cluster, onDismiss }) => {
     withErrorReporting('Error loading cloud environment details'),
     Utils.withBusyState(setLoadingClusterDetails)
   )(async () => {
-    const { errors: clusterErrors } = await Ajax().Clusters.cluster(cluster.googleProject, cluster.runtimeName).details()
+    const { errors: clusterErrors } = await Ajax().Runtimes.runtime(cluster.googleProject, cluster.runtimeName).details()
     if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), clusterErrors)) {
       setError(
         await Ajax()
@@ -214,14 +214,14 @@ export default class ClusterManager extends PureComponent {
   startCluster() {
     const { googleProject, runtimeName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Ajax().Clusters.cluster(googleProject, runtimeName).start()
+      Ajax().Runtimes.runtime(googleProject, runtimeName).start()
     )
   }
 
   stopCluster() {
     const { googleProject, runtimeName } = this.getCurrentCluster()
     this.executeAndRefresh(
-      Ajax().Clusters.cluster(googleProject, runtimeName).stop()
+      Ajax().Runtimes.runtime(googleProject, runtimeName).stop()
     )
   }
 
