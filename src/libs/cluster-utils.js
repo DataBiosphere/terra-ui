@@ -84,6 +84,11 @@ export const trimAppsOldestFirst = _.flow(
   _.remove({ status: 'PREDELETING' }),
   _.sortBy('auditInfo.createdDate'))
 
+// TODO: factor status into cost
+export const hourlyAppCost = ({ kubernetesRuntimeConfig }) => {
+  return _.find(machineType => machineType.name === kubernetesRuntimeConfig.machineType, machineTypes).price
+}
+
 export const currentApp = _.flow(trimAppsOldestFirst, _.last)
 
 export const appIsSettingUp = app => {
