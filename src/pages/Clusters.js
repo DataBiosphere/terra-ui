@@ -27,7 +27,7 @@ const DeleteClusterModal = ({ cluster: { googleProject, runtimeName, runtimeConf
     withBusyState(setDeleting),
     withErrorReporting('Error deleting cloud environment')
   )(async () => {
-    await Ajax().Clusters.cluster(googleProject, runtimeName).delete(deleteDisk)
+    await Ajax().Runtimes.runtime(googleProject, runtimeName).delete(deleteDisk)
     onSuccess()
   })
   return h(Modal, {
@@ -92,7 +92,7 @@ const Clusters = () => {
   const refreshClusters = withBusyState(setLoading, async () => {
     const creator = getUser().email
     const [newClusters, newDisks, galaxyDisks] = await Promise.all([
-      Ajax(signal).Clusters.list({ creator }),
+      Ajax(signal).Runtimes.list({ creator }),
       Ajax(signal).Disks.list({ creator }),
       Ajax(signal).Disks.list({ creator, saturnApplication: 'galaxy' })
     ])

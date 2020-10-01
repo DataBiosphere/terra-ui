@@ -291,7 +291,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     this.sendCloudEnvironmentMetrics()
 
     if (shouldDeleteRuntime) {
-      await Ajax().Clusters.cluster(namespace, currentClusterDetails.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
+      await Ajax().Runtimes.runtime(namespace, currentClusterDetails.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
     }
     if (shouldDeletePersistentDisk && !this.hasAttachedDisk()) {
       await Ajax().Disks.disk(namespace, currentPersistentDiskDetails.name).delete()
@@ -300,10 +300,10 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       await Ajax().Disks.disk(namespace, currentPersistentDiskDetails.name).update(newPersistentDisk.size)
     }
     if (shouldUpdateRuntime) {
-      await Ajax().Clusters.cluster(namespace, currentClusterDetails.runtimeName).update({ runtimeConfig })
+      await Ajax().Runtimes.runtime(namespace, currentClusterDetails.runtimeName).update({ runtimeConfig })
     }
     if (shouldCreateRuntime) {
-      await Ajax().Clusters.cluster(namespace, Utils.generateClusterName()).create({
+      await Ajax().Runtimes.runtime(namespace, Utils.generateClusterName()).create({
         runtimeConfig,
         toolDockerImage: newRuntime.toolDockerImage,
         labels: { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` },
@@ -465,7 +465,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       existingConfig: !!currentCluster, ...extractWorkspaceDetails(this.makeWorkspaceObj())
     })
     const [currentClusterDetails, newLeoImages, currentPersistentDiskDetails] = await Promise.all([
-      currentCluster ? Ajax().Clusters.cluster(currentCluster.googleProject, currentCluster.runtimeName).details() : null,
+      currentCluster ? Ajax().Runtimes.runtime(currentCluster.googleProject, currentCluster.runtimeName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json()),
       currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
     ])
