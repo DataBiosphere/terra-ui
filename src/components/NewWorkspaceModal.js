@@ -139,7 +139,7 @@ export default _.flow(
         title: Utils.cond(
           [title, () => title],
           [cloneWorkspace, () => 'Clone a workspace'],
-          [true, () => 'Create a New Workspace']
+          () => 'Create a New Workspace'
         ),
         onDismiss,
         okButton: h(ButtonPrimary, {
@@ -149,7 +149,7 @@ export default _.flow(
         }, Utils.cond(
           [buttonText, () => buttonText],
           [cloneWorkspace, () => 'Clone Workspace'],
-          [true, () => 'Create Workspace']
+          () => 'Create Workspace'
         ))
       }, [
         h(IdContainer, [id => h(Fragment, [
