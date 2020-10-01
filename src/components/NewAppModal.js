@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, li, span, ul } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
+import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/cluster-common'
+import { ButtonPrimary, ButtonSecondary, spinnerOverlay, WarningTitle } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
@@ -24,10 +25,9 @@ const styles = {
 export const NewAppModal = _.flow(
   Utils.withDisplayName('NewAppModal'),
   withModalDrawer({ width: 675 })
-)(({ onDismiss, onSuccess, namespace, apps, bucketName, workspaceName }) => {
+)(({ onDismiss, onSuccess, apps, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
   const [viewMode, setViewMode] = useState(undefined)
   const [loading, setLoading] = useState(false)
-
 
   const app = currentApp(apps)
   const createApp = _.flow(
@@ -56,23 +56,25 @@ export const NewAppModal = _.flow(
       ['createWarn', () => {
         return h(ButtonPrimary, { onClick: () => createApp() }, ['Create'])
       }],
+      ['launchWarn', () => {
+        return h(GalaxyLaunchButton, { app, onClick: onDismiss })
+      }],
       [Utils.DEFAULT, () => {
         return !!app ?
-          h(ButtonPrimary, { onClick: () => setViewMode('deleteWarn') }, ['Delete']) :
+          h(Fragment, [
+            h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
+            h(ButtonPrimary, { onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
+          ]) :
           h(ButtonPrimary, { onClick: () => setViewMode('createWarn') }, ['Next'])
       }]
     )
   }
 
+
   const renderBottomButtons = () => {
-    return div({ style: { display: 'flex', margin: '1rem 0 1rem' } }, [
-      div({ style: { flex: 1 } }),
+    return div({ style: { display: 'flex', margin: '1rem 0 1rem', justifyContent: 'flex-end' } }, [
       renderActionButton()
     ])
-  }
-
-  const getMachineDetails = () => {
-    return _.filter(({ name }) => name === 'n1-standard-8', machineTypes)[0]
   }
 
   const renderCreateWarning = () => {
@@ -112,7 +114,14 @@ export const NewAppModal = _.flow(
     ])
   }
 
+  const renderLaunchWarning = () => {
+    return div({ style: { lineHeight: '22px' } }, [
+      h(GalaxyWarning)
+    ])
+  }
+
   const renderDefaultCase = () => {
+    const { cpu, memory } = _.find({ name: 'n1-standard-8' }, machineTypes)
     return h(Fragment, [
       div([`Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`]),
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
@@ -124,8 +133,8 @@ export const NewAppModal = _.flow(
             ]),
             li({ style: { marginTop: '1rem' } }, [
               'Cloud Compute size of ', span({ style: { fontWeight: 600 } },
-                [`${getMachineDetails().cpu} CPUS, ${getMachineDetails().memory}  GB of memory, 50 GB disk space`])
-              //TODO: Define the disk space using DEFAULT_DISK_SIZE from the mob_pd branch
+                // Temporarily hard-coded disk size, once it can be customized this should be revisited
+                [`${cpu} CPUS, ${memory} GB of memory, 30 GB disk space`])
             ]),
             li({ style: { marginTop: '1rem' } }, [
               'Running cloud compute costs ',
@@ -135,12 +144,7 @@ export const NewAppModal = _.flow(
                 ) + persistentDiskCost({ size: 30, status: 'Running' })
               )} per hr`)
             ])
-          ]),
-          h(Link, {
-            ...Utils.newTabLinkProps,
-            // TODO: Get the link from comms for this
-            href: ''
-          }, ['Learn more about Galaxy interactive environments.'])
+          ])
         ])
       ])
     ])
@@ -149,12 +153,14 @@ export const NewAppModal = _.flow(
   const contents = Utils.switchCase(viewMode,
     ['createWarn', renderCreateWarning],
     ['deleteWarn', renderDeleteWarning],
+    ['launchWarn', renderLaunchWarning],
     [Utils.DEFAULT, renderDefaultCase]
   )
 
   return div({ style: styles.drawerContent }, [
     h(TitleBar, {
       title: Utils.switchCase(viewMode,
+        ['launchWarn', () => h(WarningTitle, ['Launch Galaxy'])],
         ['deleteWarn', () => 'Delete Cloud Environment for Galaxy'],
         [Utils.DEFAULT, () => 'Cloud environment']
       ),

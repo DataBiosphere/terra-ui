@@ -4,16 +4,21 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
 import { div, h, img, p, span } from 'react-hyperscript-helpers'
+import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/cluster-common'
 import { ButtonPrimary, Clickable, IdContainer, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { NewAppModal } from 'src/components/NewAppModal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import galaxyLogo from 'src/images/galaxy.svg'
 import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
-import { clusterCost, collapsedClusterStatus, currentApp, currentCluster, persistentDiskCost, trimClustersOldestFirst } from 'src/libs/cluster-utils'
+import {
+  appIsSettingUp, clusterCost, collapsedClusterStatus, currentApp, currentCluster,
+  persistentDiskCost, trimClustersOldestFirst
+} from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -113,14 +118,17 @@ export default class ClusterManager extends PureComponent {
     clusters: PropTypes.array,
     persistentDisks: PropTypes.array,
     canCompute: PropTypes.bool.isRequired,
-    refreshClusters: PropTypes.func.isRequired
+    refreshClusters: PropTypes.func.isRequired,
+    workspace: PropTypes.object,
+    apps: PropTypes.array
   }
 
   constructor(props) {
     super(props)
     this.state = {
       createModalDrawerOpen: false,
-      busy: false
+      busy: false,
+      galaxyDrawerOpen: false
     }
   }
 
@@ -168,8 +176,15 @@ export default class ClusterManager extends PureComponent {
       notify('success', 'Number of workers has updated successfully.')
     }
     if (prevApp && prevApp.status !== 'RUNNING' && app && app.status === 'RUNNING') {
-      // TODO galaxy: provide launch button
-      notify('info', 'Your cloud environment for Galaxy is ready.')
+      const galaxyId = notify('info', 'Your cloud environment for Galaxy is ready.', {
+        message: h(Fragment, [
+          h(GalaxyWarning),
+          h(GalaxyLaunchButton, {
+            app,
+            onClick: () => clearNotification(galaxyId)
+          })
+        ])
+      })
     }
   }
 
@@ -211,8 +226,8 @@ export default class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, clusters, canCompute, persistentDisks, apps } = this.props
-    const { busy, createModalDrawerOpen, errorModalOpen } = this.state
+    const { namespace, name, clusters, canCompute, persistentDisks, apps, refreshApps, workspace } = this.props
+    const { busy, createModalDrawerOpen, errorModalOpen, galaxyDrawerOpen } = this.state
     if (!clusters || !apps) {
       return null
     }
@@ -279,72 +294,91 @@ export default class ClusterManager extends PureComponent {
 
     const app = currentApp(apps)
 
-    return div({ style: styles.container }, [
-      app && h(Clickable, {
-        style: { display: 'flex', marginRight: '2rem' },
-        onClick: () => {
-          // TODO galaxy SATURN-1855: implement this action
-        }
-      }, [
-        img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
-        div([
-          div({ style: { fontSize: 12, fontWeight: 'bold' } }, ['Galaxy']),
-          div({ style: { fontSize: 10, textTransform: 'uppercase' } }, [app.status])
+    return h(Fragment, [
+      app && div({ style: { ...styles.container, borderRadius: 5, marginRight: '1.5rem' } }, [
+        h(Clickable, {
+          style: { display: 'flex' },
+          disabled: appIsSettingUp(app),
+          tooltip: appIsSettingUp(app) ?
+            'Your Galaxy application is being created' :
+            'Update cloud environment',
+          onClick: () => {
+            this.setState({ galaxyDrawerOpen: true })
+          }
+        }, [
+          img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
+          div([
+            div({ style: { fontSize: 12, fontWeight: 'bold' } }, ['Galaxy']),
+            div({ style: { fontSize: 10, textTransform: 'uppercase' } }, [app.status])
+          ])
         ])
       ]),
-      (activeClusters.length > 1 || activeDisks.length > 1) && h(Link, {
-        style: { marginRight: '1rem' },
-        href: Nav.getLink('clusters'),
-        tooltip: 'Multiple cloud environments found in this billing project. Click to select which to delete.'
-      }, [icon('warning-standard', { size: 24, style: { color: colors.danger() } })]),
-      h(Link, {
-        href: appLaunchLink,
-        onClick: window.location.hash === appLaunchLink && currentStatus === 'Stopped' ? () => this.startCluster() : undefined,
-        tooltip: canCompute ? `Open ${appName}` : noCompute,
-        'aria-label': `Open ${appName}`,
-        disabled: !canCompute,
-        style: { marginRight: '2rem', ...styles.verticalCenter },
-        ...(isRStudioImage ? {} : Utils.newTabLinkProps)
-      }, [isRStudioImage ? img({ src: rLogo, alt: '', style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
-      renderIcon(),
-      h(IdContainer, [id => h(Fragment, [
-        h(Clickable, {
-          id,
-          style: styles.button(isDisabled),
-          tooltip: Utils.cond(
-            [!canCompute, () => noCompute],
-            [creating, () => 'Your environment is being created'],
-            () => 'Update cloud environment'
-          ),
-          onClick: () => this.setState({ createModalDrawerOpen: true }),
-          disabled: isDisabled
-        }, [
-          div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
-            div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Cloud Environment'),
-            div({ style: { fontSize: 10 } }, [
-              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, [currentStatus === 'LeoReconfiguring' ? 'Updating' : (currentStatus || 'None')]),
-              !!totalCost && ` (${Utils.formatUSD(totalCost)} hr)`
-            ])
-          ]),
-          icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
-        ])
-      ])]),
-      h(NewClusterModal, {
-        isOpen: createModalDrawerOpen,
-        namespace,
-        name,
-        clusters,
-        persistentDisks,
-        onDismiss: () => this.setState({ createModalDrawerOpen: false }),
-        onSuccess: promise => {
-          this.setState({ createModalDrawerOpen: false })
-          this.executeAndRefresh(promise)
-        }
-      }),
-      errorModalOpen && h(ClusterErrorModal, {
-        cluster: currentCluster,
-        onDismiss: () => this.setState({ errorModalOpen: false })
-      })
+      div({ style: styles.container }, [
+        (activeClusters.length > 1 || activeDisks.length > 1) && h(Link, {
+          style: { marginRight: '1rem' },
+          href: Nav.getLink('clusters'),
+          tooltip: 'Multiple cloud environments found in this billing project. Click to select which to delete.'
+        }, [icon('warning-standard', { size: 24, style: { color: colors.danger() } })]),
+        h(Link, {
+          href: appLaunchLink,
+          onClick: window.location.hash === appLaunchLink && currentStatus === 'Stopped' ? () => this.startCluster() : undefined,
+          tooltip: canCompute ? `Open ${appName}` : noCompute,
+          'aria-label': `Open ${appName}`,
+          disabled: !canCompute,
+          style: { marginRight: '2rem', ...styles.verticalCenter },
+          ...(isRStudioImage ? {} : Utils.newTabLinkProps)
+        }, [isRStudioImage ? img({ src: rLogo, alt: '', style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
+        renderIcon(),
+        h(IdContainer, [id => h(Fragment, [
+          h(Clickable, {
+            id,
+            style: styles.button(isDisabled),
+            tooltip: Utils.cond(
+              [!canCompute, () => noCompute],
+              [creating, () => 'Your environment is being created'],
+              () => 'Update cloud environment'
+            ),
+            onClick: () => this.setState({ createModalDrawerOpen: true }),
+            disabled: isDisabled
+          }, [
+            div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
+              div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Cloud Environment'),
+              div({ style: { fontSize: 10 } }, [
+                span({ style: { textTransform: 'uppercase', fontWeight: 500 } },
+                  [currentStatus === 'LeoReconfiguring' ? 'Updating' : (currentStatus || 'None')]),
+                !!totalCost && ` (${Utils.formatUSD(totalCost)} hr)`
+              ])
+            ]),
+            icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
+          ])
+        ])]),
+        h(NewClusterModal, {
+          isOpen: createModalDrawerOpen,
+          namespace,
+          name,
+          clusters,
+          persistentDisks,
+          onDismiss: () => this.setState({ createModalDrawerOpen: false }),
+          onSuccess: promise => {
+            this.setState({ createModalDrawerOpen: false })
+            this.executeAndRefresh(promise)
+          }
+        }),
+        h(NewAppModal, {
+          workspace,
+          apps,
+          isOpen: galaxyDrawerOpen,
+          onDismiss: () => this.setState({ galaxyDrawerOpen: false }),
+          onSuccess: () => {
+            this.setState({ galaxyDrawerOpen: false })
+            refreshApps()
+          }
+        }),
+        errorModalOpen && h(ClusterErrorModal, {
+          cluster: currentCluster,
+          onDismiss: () => this.setState({ errorModalOpen: false })
+        })
+      ])
     ])
   }
 }

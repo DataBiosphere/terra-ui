@@ -89,7 +89,7 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
   ])
 }
 
-const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters, persistentDisks, apps, children }) => {
+const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters, persistentDisks, apps, refreshApps, children }) => {
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
@@ -116,7 +116,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
       h(ClusterManager, {
         namespace, name, clusters, persistentDisks, refreshClusters,
         canCompute: !!((workspace && workspace.canCompute) || (clusters && clusters.length)),
-        apps
+        apps, workspace, refreshApps
       })
     ]),
     showTabBar && h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace }),
@@ -281,7 +281,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
-        namespace, name, activeTab, showTabBar, workspace, clusters, persistentDisks, apps,
+        namespace, name, activeTab, showTabBar, workspace, clusters, persistentDisks, apps, refreshApps,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),

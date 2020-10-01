@@ -484,3 +484,10 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) =
     ])
   ])
 }
+
+export const WarningTitle = ({ children }) => {
+  return div({ style: { display: 'flex', alignItems: 'center' } }, [
+    icon('warning-standard', { size: 36, style: { color: colors.warning(), marginRight: '0.75rem' } }),
+    children
+  ])
+}

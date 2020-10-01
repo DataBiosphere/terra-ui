@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { b, div, h, p } from 'react-hyperscript-helpers'
-import { Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import { collapsedClusterStatus, usableStatuses } from 'src/libs/cluster-utils'
@@ -118,4 +118,18 @@ export const SaveFilesHelp = () => {
     ]),
     p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.'])
   ])
+}
+
+export const GalaxyWarning = () => {
+  return p([div({ style: { fontWeight: 600 } }, ['Important: Please keep this tab open and logged in to Terra while using Galaxy.']), ' Galaxy will open in a new tab. '])
+}
+
+export const GalaxyLaunchButton = ({ app, ...props }) => {
+  const cookieReady = Utils.useStore(cookieReadyStore)
+  return h(ButtonPrimary, {
+    disabled: !cookieReady,
+    href: app.proxyUrls.galaxy,
+    ...Utils.newTabLinkProps,
+    ...props
+  }, ['Launch Galaxy'])
 }

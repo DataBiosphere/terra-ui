@@ -15,7 +15,7 @@ import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, Noteboo
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
-import { appIsDeleting, appIsProvisioning, currentApp, hourlyAppCost, persistentDiskCost } from 'src/libs/cluster-utils'
+import { appIsSettingUp, currentApp, hourlyAppCost, persistentDiskCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -361,8 +361,8 @@ const Notebooks = _.flow(
             style: {
               ...Style.elements.card.container, height: 125, marginTop: 15
             },
-            disabled: appIsProvisioning(app) || appIsDeleting(app),
-            tooltip: (appIsProvisioning(app) || appIsDeleting(app)) ? `Your Galaxy app is being ${appIsProvisioning(app) ? 'created' : 'deleted'}` : undefined,
+            disabled: appIsSettingUp(app),
+            tooltip: appIsSettingUp(app) && 'Your Galaxy app is being created',
             onClick: () => this.setState({ openGalaxyConfigDrawer: true })
           }, [
             getGalaxyText()
@@ -471,12 +471,9 @@ const Notebooks = _.flow(
               this.refreshNotebooks()
             }
           }),
-          //todo if status is deleting consider not opening the panel
           h(NewAppModal, {
             isOpen: openGalaxyConfigDrawer,
-            namespace,
-            bucketName,
-            workspaceName: name,
+            workspace,
             apps,
             onDismiss: () => {
               this.setState({ openGalaxyConfigDrawer: false })

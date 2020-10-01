@@ -81,6 +81,7 @@ export const currentCluster = clusters => {
 
 export const trimAppsOldestFirst = _.flow(
   _.remove({ status: 'DELETING' }),
+  _.remove({ status: 'PREDELETING' }),
   _.sortBy('auditInfo.createdDate'))
 
 // TODO: factor status into cost
@@ -90,12 +91,8 @@ export const hourlyAppCost = ({ kubernetesRuntimeConfig }) => {
 
 export const currentApp = _.flow(trimAppsOldestFirst, _.last)
 
-export const appIsProvisioning = app => {
-  return app && app.status === 'PROVISIONING'
-}
-
-export const appIsDeleting = app => {
-  return app && app.status === 'DELETING'
+export const appIsSettingUp = app => {
+  return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
 
 export const collapsedClusterStatus = cluster => {
