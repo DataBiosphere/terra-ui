@@ -363,7 +363,7 @@ const Notebooks = _.flow(
             },
             disabled: appIsSettingUp(app),
             tooltip: appIsSettingUp(app) && 'Your Galaxy app is being created',
-            onClick: () => this.setState({ openGalaxyConfigDrawer: true })
+            onClick: () => this.setState({ appConfigDrawerOpen: true })
           }, [
             getGalaxyText()
           ])
@@ -396,7 +396,7 @@ const Notebooks = _.flow(
   }
 
   render() {
-    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter, openGalaxyConfigDrawer } = this.state
+    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter, appConfigDrawerOpen } = this.state
     const {
       apps, namespace, name, listView, setListView, workspace,
       workspace: { accessLevel, workspace: { bucketName } }
@@ -472,14 +472,14 @@ const Notebooks = _.flow(
             }
           }),
           h(NewAppModal, {
-            isOpen: openGalaxyConfigDrawer,
+            isOpen: appConfigDrawerOpen,
             workspace,
             apps,
             onDismiss: () => {
-              this.setState({ openGalaxyConfigDrawer: false })
+              this.setState({ appConfigDrawerOpen: false })
             },
             onSuccess: () => {
-              this.setState({ openGalaxyConfigDrawer: false })
+              this.setState({ appConfigDrawerOpen: false })
               this.refreshApps()
             }
           })

@@ -128,7 +128,7 @@ export default class ClusterManager extends PureComponent {
     this.state = {
       createModalDrawerOpen: false,
       busy: false,
-      galaxyDrawerOpen: false
+      appDrawerOpen: false
     }
   }
 
@@ -227,7 +227,7 @@ export default class ClusterManager extends PureComponent {
 
   render() {
     const { namespace, name, clusters, canCompute, persistentDisks, apps, refreshApps, workspace } = this.props
-    const { busy, createModalDrawerOpen, errorModalOpen, galaxyDrawerOpen } = this.state
+    const { busy, createModalDrawerOpen, errorModalOpen, appDrawerOpen } = this.state
     if (!clusters || !apps) {
       return null
     }
@@ -303,7 +303,7 @@ export default class ClusterManager extends PureComponent {
             'Your Galaxy application is being created' :
             'Update cloud environment',
           onClick: () => {
-            this.setState({ galaxyDrawerOpen: true })
+            this.setState({ appDrawerOpen: true })
           }
         }, [
           img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
@@ -367,10 +367,10 @@ export default class ClusterManager extends PureComponent {
         h(NewAppModal, {
           workspace,
           apps,
-          isOpen: galaxyDrawerOpen,
-          onDismiss: () => this.setState({ galaxyDrawerOpen: false }),
+          isOpen: appDrawerOpen,
+          onDismiss: () => this.setState({ appDrawerOpen: false }),
           onSuccess: () => {
-            this.setState({ galaxyDrawerOpen: false })
+            this.setState({ appDrawerOpen: false })
             refreshApps()
           }
         }),
