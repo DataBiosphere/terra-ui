@@ -47,22 +47,22 @@ const NotebookLauncher = _.flow(
   ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, clusters, persistentDisks, refreshClusters },
     ref) => {
     const [createOpen, setCreateOpen] = useState(false)
-    const cluster = currentCluster(clusters)
-    const { runtimeName, labels } = cluster || {}
-    const status = collapsedClusterStatus(cluster)
+    const runtime = currentCluster(clusters)
+    const { runtimeName, labels } = runtime || {}
+    const status = collapsedClusterStatus(runtime)
     const [busy, setBusy] = useState()
     const { mode } = queryParams
 
     return h(Fragment, [
       (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && labels.tool === 'Jupyter') ?
         h(labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : NotebookEditorFrame,
-          { key: runtimeName, workspace, cluster, notebookName, mode }) :
+          { key: runtimeName, workspace, runtime, notebookName, mode }) :
         h(Fragment, [
-          h(PreviewHeader, { queryParams, cluster, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateCluster: () => setCreateOpen(true) }),
+          h(PreviewHeader, { queryParams, runtime, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true) }),
           h(NotebookPreviewFrame, { notebookName, workspace })
         ]),
-      mode && h(ClusterKicker, { cluster, refreshClusters, onNullCluster: () => setCreateOpen(true) }),
-      mode && h(ClusterStatusMonitor, { cluster, onClusterStoppedRunning: () => chooseMode(undefined) }),
+      mode && h(ClusterKicker, { cluster: runtime, refreshClusters, onNullCluster: () => setCreateOpen(true) }),
+      mode && h(ClusterStatusMonitor, { cluster: runtime, onClusterStoppedRunning: () => chooseMode(undefined) }),
       h(NewClusterModal, {
         isOpen: createOpen,
         namespace, name, clusters, persistentDisks,
@@ -71,7 +71,7 @@ const NotebookLauncher = _.flow(
           setCreateOpen(false)
         },
         onSuccess: _.flow(
-          withErrorReporting('Error creating cluster'),
+          withErrorReporting('Error creating runtime'),
           Utils.withBusyState(setBusy)
         )(async () => {
           setCreateOpen(false)
@@ -118,7 +118,7 @@ const FileInUseModal = ({ onDismiss, onCopy, onPlayground, namespace, name, buck
   ])
 }
 
-const EditModeDisabledModal = ({ onDismiss, onRecreateCluster, onPlayground }) => {
+const EditModeDisabledModal = ({ onDismiss, onRecreateRuntime, onPlayground }) => {
   return h(Modal, {
     width: 700,
     title: 'Cannot Edit Notebook',
@@ -142,7 +142,7 @@ const EditModeDisabledModal = ({ onDismiss, onRecreateCluster, onPlayground }) =
       }, ['Run in playground mode']),
       h(ButtonPrimary, {
         style: { padding: '0 1rem', marginLeft: '2rem' },
-        onClick: () => onRecreateCluster()
+        onClick: () => onRecreateRuntime()
       }, ['Recreate cloud environment'])
     ])
   ])
@@ -175,7 +175,7 @@ const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
   style: { padding: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: 2 }, ...props
 }, [children])
 
-const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
+const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
   const signal = Utils.useCancellation()
   const { user: { email } } = Utils.useStore(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
@@ -185,8 +185,8 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
   const [lockedBy, setLockedBy] = useState(null)
   const [exportingNotebook, setExportingNotebook] = useState(false)
   const [copyingNotebook, setCopyingNotebook] = useState(false)
-  const clusterStatus = collapsedClusterStatus(cluster)
-  const welderEnabled = cluster && !cluster.labels.welderInstallFailed
+  const runtimeStatus = collapsedClusterStatus(runtime)
+  const welderEnabled = runtime && !runtime.labels.welderInstallFailed
   const { mode } = queryParams
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
 
@@ -211,12 +211,12 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
       [readOnlyAccess, () => h(HeaderButton, { onClick: () => setExportingNotebook(true) },
         [makeMenuIcon('export'), 'Copy to another workspace']
       )],
-      [!!clusterStatus && cluster.labels.tool !== 'Jupyter', () => h(StatusMessage, { hideSpinner: true }, [
+      [!!runtimeStatus && runtime.labels.tool !== 'Jupyter', () => h(StatusMessage, { hideSpinner: true }, [
         'Your cloud compute doesn\'t appear to be running Jupyter. Create a new cloud environment with Jupyter on it to edit this notebook.'
       ])],
-      [!mode || [null, 'Stopped'].includes(clusterStatus), () => h(Fragment, [
+      [!mode || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
         Utils.cond(
-          [cluster && !welderEnabled, () => h(HeaderButton, {
+          [runtime && !welderEnabled, () => h(HeaderButton, {
             onClick: () => setEditModeDisabledOpen(true)
           }, [makeMenuIcon('warning-standard'), 'Edit (Disabled)'])],
           [locked, () => h(HeaderButton, {
@@ -246,23 +246,23 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
           h(HeaderButton, {}, [icon('ellipsis-v')])
         ])
       ])],
-      [_.includes(clusterStatus, usableStatuses), () => {
+      [_.includes(runtimeStatus, usableStatuses), () => {
         console.assert(false, `Expected cloud environment to NOT be one of: [${usableStatuses}]`)
         return null
       }],
-      [clusterStatus === 'Creating', () => h(StatusMessage, [
+      [runtimeStatus === 'Creating', () => h(StatusMessage, [
         'Creating cloud environment. You can navigate away and return in 3-5 minutes.'
       ])],
-      [clusterStatus === 'Starting', () => h(StatusMessage, [
+      [runtimeStatus === 'Starting', () => h(StatusMessage, [
         'Starting cloud environment, this may take up to 2 minutes.'
       ])],
-      [clusterStatus === 'Stopping', () => h(StatusMessage, [
+      [runtimeStatus === 'Stopping', () => h(StatusMessage, [
         'Cloud environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'
       ])],
-      [clusterStatus === 'LeoReconfiguring', () => h(StatusMessage, [
+      [runtimeStatus === 'LeoReconfiguring', () => h(StatusMessage, [
         'Cloud environment is updating, please wait.'
       ])],
-      [clusterStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Cloud environment error.'])]
+      [runtimeStatus === 'Error', () => h(StatusMessage, { hideSpinner: true }, ['Cloud environment error.'])]
     ),
     div({ style: { flexGrow: 1 } }),
     div({ style: { position: 'relative' } }, [
@@ -275,9 +275,9 @@ const PreviewHeader = ({ queryParams, cluster, readOnlyAccess, onCreateCluster, 
     ]),
     editModeDisabledOpen && h(EditModeDisabledModal, {
       onDismiss: () => setEditModeDisabledOpen(false),
-      onRecreateCluster: () => {
+      onRecreateRuntime: () => {
         setEditModeDisabledOpen(false)
-        onCreateCluster()
+        onCreateRuntime()
       },
       onPlayground: () => {
         setEditModeDisabledOpen(false)
@@ -397,7 +397,7 @@ const copyingNotebookMessage = div({ style: { paddingTop: '2rem' } }, [
   h(StatusMessage, ['Copying notebook to cloud environment, almost ready...'])
 ])
 
-const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { runtimeName, proxyUrl, status, labels } }) => {
+const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
   console.assert(_.includes(status, usableStatuses), `Expected cloud environment to be one of: [${usableStatuses}]`)
   console.assert(!labels.welderInstallFailed, 'Expected cloud environment to have Welder')
   const frameRef = useRef()
@@ -452,7 +452,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   ])
 }
 
-const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, cluster: { runtimeName, proxyUrl, status, labels } }) => {
+const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
   console.assert(status === 'Running', 'Expected cloud environment to be running')
   console.assert(!!labels.welderInstallFailed, 'Expected cloud environment to not have Welder')
   const frameRef = useRef()
