@@ -128,19 +128,19 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   constructor(props) {
     super(props)
-    const currentCluster = this.getCurrentCluster()
+    const currentRuntime = this.getCurrentRuntime()
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
     this.state = {
       loading: false,
-      currentClusterDetails: currentCluster,
+      currentRuntimeDetails: currentRuntime,
       currentPersistentDiskDetails: currentPersistentDisk,
-      ...this.getInitialState(currentCluster, currentPersistentDisk),
+      ...this.getInitialState(currentRuntime, currentPersistentDisk),
       jupyterUserScriptUri: '', customEnvImage: '',
       viewMode: undefined,
       deleteDiskSelected: false,
       upgradeDiskSelected: false,
-      simplifiedForm: !currentCluster
+      simplifiedForm: !currentRuntime
     }
   }
 
@@ -163,16 +163,16 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     return { workspace: { namespace, name } }
   }
 
-  getCurrentCluster() {
+  getCurrentRuntime() {
     const { clusters } = this.props
     return currentCluster(clusters)
   }
 
   getCurrentPersistentDisk() {
-    const currentCluster = this.getCurrentCluster()
+    const currentRuntime = this.getCurrentRuntime()
     const { clusters, persistentDisks } = this.props
-    const id = currentCluster?.runtimeConfig.persistentDiskId
-    const attachedIds = _.without([undefined], _.map(cluster => cluster.runtimeConfig.persistentDiskId, clusters))
+    const id = currentRuntime?.runtimeConfig.persistentDiskId
+    const attachedIds = _.without([undefined], _.map(runtime => runtime.runtimeConfig.persistentDiskId, clusters))
     return id ?
       _.find({ id }, persistentDisks) :
       _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id, status }) => status !== 'Deleting' && !_.includes(id, attachedIds), persistentDisks)))
@@ -253,7 +253,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     withErrorReporting('Error creating cloud environment')
   )(async () => {
     const { onSuccess, namespace } = this.props
-    const { selectedLeoImage, currentClusterDetails, currentPersistentDiskDetails } = this.state
+    const { selectedLeoImage, currentRuntimeDetails, currentPersistentDiskDetails } = this.state
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
     const shouldUpdatePersistentDisk = this.canUpdatePersistentDisk() && !_.isEqual(newPersistentDisk, oldPersistentDisk)
@@ -291,7 +291,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
     this.sendCloudEnvironmentMetrics()
 
     if (shouldDeleteRuntime) {
-      await Ajax().Runtimes.runtime(namespace, currentClusterDetails.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
+      await Ajax().Runtimes.runtime(namespace, currentRuntimeDetails.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
     }
     if (shouldDeletePersistentDisk && !this.hasAttachedDisk()) {
       await Ajax().Disks.disk(namespace, currentPersistentDiskDetails.name).delete()
@@ -300,7 +300,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       await Ajax().Disks.disk(namespace, currentPersistentDiskDetails.name).update(newPersistentDisk.size)
     }
     if (shouldUpdateRuntime) {
-      await Ajax().Runtimes.runtime(namespace, currentClusterDetails.runtimeName).update({ runtimeConfig })
+      await Ajax().Runtimes.runtime(namespace, currentRuntimeDetails.runtimeName).update({ runtimeConfig })
     }
     if (shouldCreateRuntime) {
       await Ajax().Runtimes.runtime(namespace, Utils.generateClusterName()).create({
@@ -361,15 +361,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   getOldEnvironmentConfig() {
-    const { currentClusterDetails, currentPersistentDiskDetails } = this.state
-    const runtimeConfig = currentClusterDetails?.runtimeConfig
+    const { currentRuntimeDetails, currentPersistentDiskDetails } = this.state
+    const runtimeConfig = currentRuntimeDetails?.runtimeConfig
     const cloudService = runtimeConfig?.cloudService
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
     return {
-      runtime: currentClusterDetails ? {
+      runtime: currentRuntimeDetails ? {
         cloudService,
-        toolDockerImage: this.getImageUrl(currentClusterDetails),
-        ...(currentClusterDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentClusterDetails?.jupyterUserScriptUri }),
+        toolDockerImage: this.getImageUrl(currentRuntimeDetails),
+        ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
         ...(cloudService === cloudServices.GCE ? {
           machineType: runtimeConfig.machineType,
           ...(runtimeConfig.persistentDiskId ? {
@@ -449,35 +449,35 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
         oldRuntime.masterMachineType !== newRuntime.masterMachineType)
   }
 
-  getImageUrl(clusterDetails) {
-    return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), clusterDetails?.runtimeImages)?.imageUrl
+  getImageUrl(runtimeDetails) {
+    return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)?.imageUrl
   }
 
   componentDidMount = _.flow(
-    withErrorReporting('Error loading cluster'),
+    withErrorReporting('Error loading environment'),
     Utils.withBusyState(v => this.setState({ loading: v }))
   )(async () => {
     const { namespace } = this.props
-    const currentCluster = this.getCurrentCluster()
+    const currentRuntime = this.getCurrentRuntime()
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
     Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
-      existingConfig: !!currentCluster, ...extractWorkspaceDetails(this.makeWorkspaceObj())
+      existingConfig: !!currentRuntime, ...extractWorkspaceDetails(this.makeWorkspaceObj())
     })
-    const [currentClusterDetails, newLeoImages, currentPersistentDiskDetails] = await Promise.all([
-      currentCluster ? Ajax().Runtimes.runtime(currentCluster.googleProject, currentCluster.runtimeName).details() : null,
+    const [currentRuntimeDetails, newLeoImages, currentPersistentDiskDetails] = await Promise.all([
+      currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
       Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json()),
       currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
     ])
 
-    const imageUrl = currentClusterDetails ? this.getImageUrl(currentClusterDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
+    const imageUrl = currentRuntimeDetails ? this.getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
     const foundImage = _.find({ image: imageUrl }, newLeoImages)
     this.setState({
-      leoImages: newLeoImages, currentClusterDetails, currentPersistentDiskDetails,
-      selectedLeoImage: foundImage ? imageUrl : (currentClusterDetails?.labels.saturnIsProjectSpecific === 'true' ? PROJECT_SPECIFIC_MODE : CUSTOM_MODE),
+      leoImages: newLeoImages, currentRuntimeDetails, currentPersistentDiskDetails,
+      selectedLeoImage: foundImage ? imageUrl : (currentRuntimeDetails?.labels.saturnIsProjectSpecific === 'true' ? PROJECT_SPECIFIC_MODE : CUSTOM_MODE),
       customEnvImage: !foundImage ? imageUrl : '',
-      jupyterUserScriptUri: currentClusterDetails?.jupyterUserScriptUri || '',
-      ...this.getInitialState(currentClusterDetails, currentPersistentDiskDetails)
+      jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri || '',
+      ...this.getInitialState(currentRuntimeDetails, currentPersistentDiskDetails)
     })
   })
 
@@ -1146,8 +1146,8 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   shouldUsePersistentDisk() {
-    const { sparkMode, upgradeDiskSelected, currentClusterDetails } = this.state
-    return !sparkMode && (!currentClusterDetails?.runtimeConfig.diskSize || upgradeDiskSelected)
+    const { sparkMode, upgradeDiskSelected, currentRuntimeDetails } = this.state
+    return !sparkMode && (!currentRuntimeDetails?.runtimeConfig.diskSize || upgradeDiskSelected)
   }
 
   willDeletePersistentDisk() {
