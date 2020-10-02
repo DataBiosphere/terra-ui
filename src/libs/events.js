@@ -16,6 +16,7 @@ const eventsList = {
   notebookRename: 'notebook:rename',
   notebookCopy: 'notebook:copy',
   pageView: 'page:view',
+  userRegister: 'user:register',
   workflowImport: 'workflow:import',
   workflowLaunch: 'workflow:launch',
   workflowRerun: 'workflow:rerun',

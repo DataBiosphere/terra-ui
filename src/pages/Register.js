@@ -8,6 +8,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser, refreshTerraProfile, signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { registrationLogo } from 'src/libs/logos'
 import { authStore } from 'src/libs/state'
 import validate from 'validate.js'
@@ -42,6 +43,7 @@ export default class Register extends Component {
       })
       authStore.update(state => ({ ...state, registrationStatus: 'registered' }))
       await refreshTerraProfile()
+      Ajax().Metrics.captureEvent(Events.userRegister)
     } catch (error) {
       reportError('Error registering', error)
       this.setState({ busy: false })
