@@ -12,6 +12,8 @@ const eventsList = {
   cloudEnvironmentCreate: 'cloudEnvironment:create',
   cloudEnvironmentDelete: 'cloudEnvironment:delete',
   cloudEnvironmentUpdate: 'cloudEnvironment:update',
+  galaxyAppCreate: 'galaxyApp:create',
+  galaxyAppDelete: 'galaxyApp:delete',
   notebookLaunch: 'notebook:launch',
   notebookRename: 'notebook:rename',
   notebookCopy: 'notebook:copy',
