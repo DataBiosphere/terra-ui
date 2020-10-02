@@ -11,6 +11,7 @@ import { Ajax } from 'src/libs/ajax'
 import { currentApp, hourlyAppCost, persistentDiskCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -57,7 +58,12 @@ export const NewAppModal = _.flow(
         return h(ButtonPrimary, { onClick: () => createApp() }, ['Create'])
       }],
       ['launchWarn', () => {
-        return h(GalaxyLaunchButton, { app, onClick: onDismiss })
+        return h(GalaxyLaunchButton, {
+          app, onClick: () => {
+            onDismiss()
+            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: 'Galaxy' })
+          }
+        })
       }],
       [Utils.DEFAULT, () => {
         return !!app ?

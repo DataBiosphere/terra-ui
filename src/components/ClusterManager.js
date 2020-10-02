@@ -21,6 +21,7 @@ import {
 } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
 import { errorNotifiedClusters } from 'src/libs/state'
@@ -181,7 +182,10 @@ export default class ClusterManager extends PureComponent {
           h(GalaxyWarning),
           h(GalaxyLaunchButton, {
             app,
-            onClick: () => clearNotification(galaxyId)
+            onClick: () => {
+              clearNotification(galaxyId)
+              Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: 'Galaxy' })
+            }
           })
         ])
       })
