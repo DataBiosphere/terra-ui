@@ -57,7 +57,7 @@ const generateDiskCostFunction = price => ({ size, status }) => {
 export const persistentDiskCost = generateDiskCostFunction(storagePrice)
 export const persistentDiskCostMonthly = generateDiskCostFunction(monthlyStoragePrice)
 
-export const clusterCost = ({ runtimeConfig, status }) => {
+export const runtimeCost = ({ runtimeConfig, status }) => {
   switch (status) {
     case 'Stopped':
       return runtimeConfigBaseCost(runtimeConfig)
@@ -69,14 +69,14 @@ export const clusterCost = ({ runtimeConfig, status }) => {
   }
 }
 
-export const trimClustersOldestFirst = _.flow(
+export const trimRuntimesOldestFirst = _.flow(
   _.remove({ status: 'Deleting' }),
   _.sortBy('auditInfo.createdDate')
 )
 
-export const currentCluster = clusters => {
-  // Status note: undefined means still loading, null means no cluster
-  return !clusters ? undefined : (_.flow(trimClustersOldestFirst, _.last)(clusters) || null)
+export const currentRuntime = runtimes => {
+  // Status note: undefined means still loading, null means no runtime
+  return !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || null)
 }
 
 export const trimAppsOldestFirst = _.flow(
@@ -95,6 +95,6 @@ export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
 
-export const collapsedClusterStatus = cluster => {
-  return cluster && (cluster.patchInProgress ? 'LeoReconfiguring' : cluster.status) // NOTE: preserves null vs undefined
+export const collapsedRuntimeStatus = runtime => {
+  return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status) // NOTE: preserves null vs undefined
 }

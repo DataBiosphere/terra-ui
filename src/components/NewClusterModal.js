@@ -12,7 +12,7 @@ import { InfoBox } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import { cloudServices, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { currentCluster, DEFAULT_DISK_SIZE, findMachineType, persistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/libs/cluster-utils'
+import { currentRuntime, DEFAULT_DISK_SIZE, findMachineType, persistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -165,7 +165,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
 
   getCurrentRuntime() {
     const { clusters } = this.props
-    return currentCluster(clusters)
+    return currentRuntime(clusters)
   }
 
   getCurrentPersistentDisk() {

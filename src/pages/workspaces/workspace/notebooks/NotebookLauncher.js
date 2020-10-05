@@ -16,7 +16,7 @@ import { findPotentialNotebookLockers, NotebookDuplicator, notebookLockHash } fr
 import PopupTrigger from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { collapsedClusterStatus, currentCluster, usableStatuses } from 'src/libs/cluster-utils'
+import { collapsedRuntimeStatus, currentRuntime, usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -47,9 +47,9 @@ const NotebookLauncher = _.flow(
   ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, clusters, persistentDisks, refreshClusters },
     ref) => {
     const [createOpen, setCreateOpen] = useState(false)
-    const runtime = currentCluster(clusters)
+    const runtime = currentRuntime(clusters)
     const { runtimeName, labels } = runtime || {}
-    const status = collapsedClusterStatus(runtime)
+    const status = collapsedRuntimeStatus(runtime)
     const [busy, setBusy] = useState()
     const { mode } = queryParams
 
@@ -185,7 +185,7 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
   const [lockedBy, setLockedBy] = useState(null)
   const [exportingNotebook, setExportingNotebook] = useState(false)
   const [copyingNotebook, setCopyingNotebook] = useState(false)
-  const runtimeStatus = collapsedClusterStatus(runtime)
+  const runtimeStatus = collapsedRuntimeStatus(runtime)
   const welderEnabled = runtime && !runtime.labels.welderInstallFailed
   const { mode } = queryParams
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })

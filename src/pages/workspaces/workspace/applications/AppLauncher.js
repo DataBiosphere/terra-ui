@@ -6,7 +6,7 @@ import { ClusterKicker, ClusterStatusMonitor, PlaygroundHeader, StatusMessage } 
 import { Link, spinnerOverlay } from 'src/components/common'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { Ajax } from 'src/libs/ajax'
-import { collapsedClusterStatus, currentCluster, usableStatuses } from 'src/libs/cluster-utils'
+import { collapsedRuntimeStatus, currentRuntime, usableStatuses } from 'src/libs/cluster-utils'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
@@ -26,8 +26,8 @@ const AppLauncher = _.flow(
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
 
-  const runtime = currentCluster(clusters)
-  const runtimeStatus = collapsedClusterStatus(runtime) // preserve null vs undefined
+  const runtime = currentRuntime(clusters)
+  const runtimeStatus = collapsedRuntimeStatus(runtime) // preserve null vs undefined
 
   return h(Fragment, [
     h(ClusterStatusMonitor, {

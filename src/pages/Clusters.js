@@ -13,7 +13,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
-import { clusterCost, currentCluster, persistentDiskCostMonthly } from 'src/libs/cluster-utils'
+import { currentRuntime, persistentDiskCostMonthly, runtimeCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Style from 'src/libs/style'
@@ -120,7 +120,7 @@ const Environments = () => {
     status: 'status',
     created: 'auditInfo.createdDate',
     accessed: 'auditInfo.dateAccessed',
-    cost: clusterCost
+    cost: runtimeCost
   }[sort.field]], [sort.direction], runtimes)
 
   const filteredDisks = _.orderBy([{
@@ -132,7 +132,7 @@ const Environments = () => {
     size: 'size'
   }[diskSort.field]], [diskSort.direction], disks)
 
-  const totalCost = _.sum(_.map(clusterCost, runtimes))
+  const totalCost = _.sum(_.map(runtimeCost, runtimes))
   const totalDiskCost = _.sum(_.map(persistentDiskCostMonthly, disks))
 
   const runtimesByProject = _.groupBy('googleProject', runtimes)
@@ -150,7 +150,7 @@ const Environments = () => {
             cellRenderer: ({ rowIndex }) => {
               const runtime = filteredRuntimes[rowIndex]
               const inactive = !_.includes(runtime.status, ['Deleting', 'Error']) &&
-                currentCluster(runtimesByProject[runtime.googleProject]) !== runtime
+                currentRuntime(runtimesByProject[runtime.googleProject]) !== runtime
               return h(Fragment, [
                 runtime.googleProject,
                 inactive && h(TooltipTrigger, {
@@ -208,7 +208,7 @@ const Environments = () => {
               return h(Sortable, { sort, field: 'cost', onSort: setSort }, [`Cost / hr (${formatUSD(totalCost)} total)`])
             },
             cellRenderer: ({ rowIndex }) => {
-              return formatUSD(clusterCost(filteredRuntimes[rowIndex]))
+              return formatUSD(runtimeCost(filteredRuntimes[rowIndex]))
             }
           },
           {

@@ -16,8 +16,8 @@ import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
 import {
-  appIsSettingUp, clusterCost, collapsedClusterStatus, currentApp, currentCluster,
-  persistentDiskCost, trimClustersOldestFirst
+  appIsSettingUp, collapsedRuntimeStatus, currentApp, currentRuntime,
+  persistentDiskCost, runtimeCost, trimRuntimesOldestFirst
 } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -190,12 +190,12 @@ export default class ClusterManager extends PureComponent {
 
   getActiveRuntimesOldestFirst() {
     const { clusters } = this.props
-    return trimClustersOldestFirst(clusters)
+    return trimRuntimesOldestFirst(clusters)
   }
 
   getCurrentRuntime() {
     const { clusters } = this.props
-    return currentCluster(clusters)
+    return currentRuntime(clusters)
   }
 
   async executeAndRefresh(promise) {
@@ -232,7 +232,7 @@ export default class ClusterManager extends PureComponent {
       return null
     }
     const currentRuntime = this.getCurrentRuntime()
-    const currentStatus = collapsedClusterStatus(currentRuntime)
+    const currentStatus = collapsedRuntimeStatus(currentRuntime)
 
     const renderIcon = () => {
       switch (currentStatus) {
@@ -282,10 +282,10 @@ export default class ClusterManager extends PureComponent {
           })
       }
     }
-    const totalCost = _.sum(_.map(clusterCost, clusters)) + _.sum(_.map(persistentDiskCost, persistentDisks))
+    const totalCost = _.sum(_.map(runtimeCost, clusters)) + _.sum(_.map(persistentDiskCost, persistentDisks))
     const activeRuntimes = this.getActiveRuntimesOldestFirst()
     const activeDisks = _.remove({ status: 'Deleting' }, persistentDisks)
-    const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring } = _.countBy(collapsedClusterStatus, activeRuntimes)
+    const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring } = _.countBy(collapsedRuntimeStatus, activeRuntimes)
     const isDisabled = !canCompute || creating || busy || updating || reconfiguring
 
     const isRStudioImage = currentRuntime?.labels.tool === 'RStudio'
