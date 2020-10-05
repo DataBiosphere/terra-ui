@@ -159,7 +159,7 @@ const useCloudEnvironmentPolling = namespace => {
     clearTimeout(timeout.current)
     timeout.current = setTimeout(refreshClustersSilently, ms)
   }
-  const load = async () => {
+  const load = async maybeStale => {
     try {
       const [newDisks, newClusters, galaxyDisks] = await Promise.all([
         Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email }),
@@ -171,7 +171,7 @@ const useCloudEnvironmentPolling = namespace => {
       setPersistentDisks(_.remove(disk => _.includes(disk.name, galaxyDiskNames), newDisks))
 
       const cluster = currentCluster(newClusters)
-      reschedule(_.includes(collapsedClusterStatus(cluster), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
+      reschedule(maybeStale || _.includes(collapsedClusterStatus(cluster), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
     } catch (error) {
       reschedule(30000)
       throw error

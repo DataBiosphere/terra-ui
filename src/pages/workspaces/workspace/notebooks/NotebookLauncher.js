@@ -70,12 +70,12 @@ const NotebookLauncher = _.flow(
           chooseMode(undefined)
           setCreateOpen(false)
         },
-        onSuccess: withErrorReporting('Error creating cluster', async promise => {
+        onSuccess: _.flow(
+          withErrorReporting('Error creating cluster'),
+          Utils.withBusyState(setBusy)
+        )(async () => {
           setCreateOpen(false)
-          setBusy(true)
-          await promise
-          await refreshClusters()
-          setBusy(false)
+          await refreshClusters(true)
         })
       }),
       busy && spinnerOverlay

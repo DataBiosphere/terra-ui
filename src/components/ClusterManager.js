@@ -226,7 +226,7 @@ export default class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, clusters, canCompute, persistentDisks, apps, refreshApps, workspace } = this.props
+    const { namespace, name, clusters, refreshClusters, canCompute, persistentDisks, apps, refreshApps, workspace } = this.props
     const { busy, createModalDrawerOpen, errorModalOpen, galaxyDrawerOpen } = this.state
     if (!clusters || !apps) {
       return null
@@ -359,10 +359,13 @@ export default class ClusterManager extends PureComponent {
           clusters,
           persistentDisks,
           onDismiss: () => this.setState({ createModalDrawerOpen: false }),
-          onSuccess: promise => {
+          onSuccess: _.flow(
+            withErrorReporting('Error loading cloud environment'),
+            Utils.withBusyState(v => this.setState({ busy: v }))
+          )(async () => {
             this.setState({ createModalDrawerOpen: false })
-            this.executeAndRefresh(promise)
-          }
+            await refreshClusters(true)
+          })
         }),
         h(NewAppModal, {
           workspace,
