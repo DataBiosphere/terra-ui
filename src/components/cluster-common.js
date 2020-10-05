@@ -7,6 +7,7 @@ import { Ajax } from 'src/libs/ajax'
 import { collapsedClusterStatus, usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -124,11 +125,15 @@ export const GalaxyWarning = () => {
   return p([div({ style: { fontWeight: 600 } }, ['Important: Please keep this tab open and logged in to Terra while using Galaxy.']), ' Galaxy will open in a new tab. '])
 }
 
-export const GalaxyLaunchButton = ({ app, ...props }) => {
+export const GalaxyLaunchButton = ({ app, onClick, ...props }) => {
   const cookieReady = Utils.useStore(cookieReadyStore)
   return h(ButtonPrimary, {
     disabled: !cookieReady,
     href: app.proxyUrls.galaxy,
+    onClick: () => {
+      onClick()
+      Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: 'Galaxy' })
+    },
     ...Utils.newTabLinkProps,
     ...props
   }, ['Launch Galaxy'])
