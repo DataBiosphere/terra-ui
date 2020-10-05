@@ -57,9 +57,7 @@ export const NewAppModal = _.flow(
         return h(ButtonPrimary, { onClick: () => createApp() }, ['Create'])
       }],
       ['launchWarn', () => {
-        return h(GalaxyLaunchButton, {
-          app, onClick: () => onDismiss()
-        })
+        return h(GalaxyLaunchButton, { app, onClick: onDismiss })
       }],
       [Utils.DEFAULT, () => {
         return !!app ?
