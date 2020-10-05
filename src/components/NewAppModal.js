@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, li, span, ul } from 'react-hyperscript-helpers'
 import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/cluster-common'
-import { ButtonPrimary, ButtonSecondary, spinnerOverlay, WarningTitle } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay, WarningTitle } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
@@ -144,6 +144,10 @@ export const NewAppModal = _.flow(
                 ) + persistentDiskCost({ size: 30, status: 'Running' })
               )} per hr`)
             ])
+          ]),
+          h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
+            'Learn more about Galaxy interactive environments',
+            icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
           ])
         ])
       ])
