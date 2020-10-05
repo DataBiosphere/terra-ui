@@ -454,7 +454,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   componentDidMount = _.flow(
-    withErrorReporting('Error loading environment'),
+    withErrorReporting('Error loading cloud environment'),
     Utils.withBusyState(v => this.setState({ loading: v }))
   )(async () => {
     const { namespace } = this.props
