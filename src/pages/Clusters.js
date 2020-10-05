@@ -20,10 +20,10 @@ import * as Style from 'src/libs/style'
 import { cond, formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
 
-const DeleteClusterModal = ({ cluster: { googleProject, runtimeName, runtimeConfig: { persistentDiskId } }, onDismiss, onSuccess }) => {
+const DeleteRuntimeModal = ({ runtime: { googleProject, runtimeName, runtimeConfig: { persistentDiskId } }, onDismiss, onSuccess }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
-  const deleteCluster = _.flow(
+  const deleteRuntime = _.flow(
     withBusyState(setDeleting),
     withErrorReporting('Error deleting cloud environment')
   )(async () => {
@@ -33,7 +33,7 @@ const DeleteClusterModal = ({ cluster: { googleProject, runtimeName, runtimeConf
   return h(Modal, {
     title: 'Delete cloud environment?',
     onDismiss,
-    okButton: deleteCluster
+    okButton: deleteRuntime
   }, [
     div({ style: { lineHeight: 1.5 } }, [
       persistentDiskId ?
@@ -75,53 +75,53 @@ const DeleteDiskModal = ({ disk: { googleProject, name }, onDismiss, onSuccess }
   ])
 }
 
-const Clusters = () => {
+const Environments = () => {
   const signal = useCancellation()
-  const [clusters, setClusters] = useState()
+  const [runtimes, setRuntimes] = useState()
   const [disks, setDisks] = useState()
   const [loading, setLoading] = useState(false)
-  const [errorClusterId, setErrorClusterId] = useState()
-  const getErrorClusterId = useGetter(errorClusterId)
-  const [deleteClusterId, setDeleteClusterId] = useState()
-  const getDeleteClusterId = useGetter(deleteClusterId)
+  const [errorRuntimeId, setErrorRuntimeId] = useState()
+  const getErrorRuntimeId = useGetter(errorRuntimeId)
+  const [deleteRuntimeId, setDeleteRuntimeId] = useState()
+  const getDeleteRuntimeId = useGetter(deleteRuntimeId)
   const [deleteDiskId, setDeleteDiskId] = useState()
   const getDeleteDiskId = useGetter(deleteDiskId)
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' })
 
-  const refreshClusters = withBusyState(setLoading, async () => {
+  const refreshData = withBusyState(setLoading, async () => {
     const creator = getUser().email
-    const [newClusters, newDisks, galaxyDisks] = await Promise.all([
+    const [newRuntimes, newDisks, galaxyDisks] = await Promise.all([
       Ajax(signal).Runtimes.list({ creator }),
       Ajax(signal).Disks.list({ creator }),
       Ajax(signal).Disks.list({ creator, saturnApplication: 'galaxy' })
     ])
     const galaxyDiskNames = _.map(disk => disk.name, galaxyDisks)
-    setClusters(newClusters)
+    setRuntimes(newRuntimes)
     setDisks(_.remove(disk => _.includes(disk.name, galaxyDiskNames), newDisks))
-    if (!_.some({ id: getErrorClusterId() }, newClusters)) {
-      setErrorClusterId(undefined)
+    if (!_.some({ id: getErrorRuntimeId() }, newRuntimes)) {
+      setErrorRuntimeId(undefined)
     }
-    if (!_.some({ id: getDeleteClusterId() }, newClusters)) {
-      setDeleteClusterId(undefined)
+    if (!_.some({ id: getDeleteRuntimeId() }, newRuntimes)) {
+      setDeleteRuntimeId(undefined)
     }
     if (!_.some({ id: getDeleteDiskId() }, newDisks)) {
       setDeleteDiskId(undefined)
     }
   })
 
-  const loadClusters = withErrorReporting('Error loading cloud environments', refreshClusters)
+  const loadData = withErrorReporting('Error loading cloud environments', refreshData)
 
-  useOnMount(() => { loadClusters() })
-  usePollingEffect(withErrorIgnoring(refreshClusters), { ms: 30000 })
+  useOnMount(() => { loadData() })
+  usePollingEffect(withErrorIgnoring(refreshData), { ms: 30000 })
 
-  const filteredClusters = _.orderBy([{
+  const filteredRuntimes = _.orderBy([{
     project: 'googleProject',
     status: 'status',
     created: 'auditInfo.createdDate',
     accessed: 'auditInfo.dateAccessed',
     cost: clusterCost
-  }[sort.field]], [sort.direction], clusters)
+  }[sort.field]], [sort.direction], runtimes)
 
   const filteredDisks = _.orderBy([{
     project: 'googleProject',
@@ -132,27 +132,27 @@ const Clusters = () => {
     size: 'size'
   }[diskSort.field]], [diskSort.direction], disks)
 
-  const totalCost = _.sum(_.map(clusterCost, clusters))
+  const totalCost = _.sum(_.map(clusterCost, runtimes))
   const totalDiskCost = _.sum(_.map(persistentDiskCostMonthly, disks))
 
-  const clustersByProject = _.groupBy('googleProject', clusters)
+  const runtimesByProject = _.groupBy('googleProject', runtimes)
   const disksByProject = _.groupBy('googleProject', disks)
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Cloud Environments' }),
     div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
       div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', marginBottom: '1rem' } }, ['Your cloud environments']),
-      clusters && h(SimpleFlexTable, {
-        rowCount: filteredClusters.length,
+      runtimes && h(SimpleFlexTable, {
+        rowCount: filteredRuntimes.length,
         columns: [
           {
             headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
-              const cluster = filteredClusters[rowIndex]
-              const inactive = !_.includes(cluster.status, ['Deleting', 'Error']) &&
-                currentCluster(clustersByProject[cluster.googleProject]) !== cluster
+              const runtime = filteredRuntimes[rowIndex]
+              const inactive = !_.includes(runtime.status, ['Deleting', 'Error']) &&
+                currentCluster(runtimesByProject[runtime.googleProject]) !== runtime
               return h(Fragment, [
-                cluster.googleProject,
+                runtime.googleProject,
                 inactive && h(TooltipTrigger, {
                   content: 'This billing project has multiple active cloud environments. Only the most recently created one will be used.'
                 }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
@@ -163,7 +163,7 @@ const Clusters = () => {
             size: { basis: 90, grow: 0 },
             headerRenderer: () => 'Details',
             cellRenderer: ({ rowIndex }) => {
-              const { runtimeName, runtimeConfig: { persistentDiskId } } = filteredClusters[rowIndex]
+              const { runtimeName, runtimeConfig: { persistentDiskId } } = filteredRuntimes[rowIndex]
               const disk = _.find({ id: persistentDiskId }, disks)
               return h(PopupTrigger, {
                 content: div({ style: { padding: '0.5rem' } }, [
@@ -177,13 +177,13 @@ const Clusters = () => {
             size: { basis: 150, grow: 0 },
             headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
             cellRenderer: ({ rowIndex }) => {
-              const cluster = filteredClusters[rowIndex]
+              const runtime = filteredRuntimes[rowIndex]
               return h(Fragment, [
-                cluster.status,
-                cluster.status === 'Error' && h(Clickable, {
+                runtime.status,
+                runtime.status === 'Error' && h(Clickable, {
                   tooltip: 'View error',
                   'aria-label': 'View error',
-                  onClick: () => setErrorClusterId(cluster.id)
+                  onClick: () => setErrorRuntimeId(runtime.id)
                 }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
               ])
             }
@@ -192,14 +192,14 @@ const Clusters = () => {
             size: { basis: 250, grow: 0 },
             headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Created']),
             cellRenderer: ({ rowIndex }) => {
-              return makeCompleteDate(filteredClusters[rowIndex].auditInfo.createdDate)
+              return makeCompleteDate(filteredRuntimes[rowIndex].auditInfo.createdDate)
             }
           },
           {
             size: { basis: 250, grow: 0 },
             headerRenderer: () => h(Sortable, { sort, field: 'accessed', onSort: setSort }, ['Last accessed']),
             cellRenderer: ({ rowIndex }) => {
-              return makeCompleteDate(filteredClusters[rowIndex].auditInfo.dateAccessed)
+              return makeCompleteDate(filteredRuntimes[rowIndex].auditInfo.dateAccessed)
             }
           },
           {
@@ -208,19 +208,19 @@ const Clusters = () => {
               return h(Sortable, { sort, field: 'cost', onSort: setSort }, [`Cost / hr (${formatUSD(totalCost)} total)`])
             },
             cellRenderer: ({ rowIndex }) => {
-              return formatUSD(clusterCost(filteredClusters[rowIndex]))
+              return formatUSD(clusterCost(filteredRuntimes[rowIndex]))
             }
           },
           {
             size: { basis: 50, grow: 0 },
             headerRenderer: () => null,
             cellRenderer: ({ rowIndex }) => {
-              const { id, status } = filteredClusters[rowIndex]
+              const { id, status } = filteredRuntimes[rowIndex]
               return status !== 'Deleting' && h(Link, {
                 disabled: status === 'Creating',
                 'aria-label': 'Delete cloud environment',
                 tooltip: status === 'Creating' ? 'Cannot delete a cloud environment while it is being created' : 'Delete cloud environment',
-                onClick: () => setDeleteClusterId(id)
+                onClick: () => setDeleteRuntimeId(id)
               }, [icon('trash')])
             }
           }
@@ -248,7 +248,7 @@ const Clusters = () => {
             headerRenderer: () => 'Details',
             cellRenderer: ({ rowIndex }) => {
               const { name, id } = filteredDisks[rowIndex]
-              const runtime = _.find({ runtimeConfig: { persistentDiskId: id } }, clusters)
+              const runtime = _.find({ runtimeConfig: { persistentDiskId: id } }, runtimes)
               return h(PopupTrigger, {
                 content: div({ style: { padding: '0.5rem' } }, [
                   div([span({ style: { fontWeight: 600 } }, ['Name: ']), name]),
@@ -303,7 +303,7 @@ const Clusters = () => {
               const { id, status } = filteredDisks[rowIndex]
               const error = cond(
                 [status === 'Creating', () => 'Cannot delete this disk because it is still being created'],
-                [_.some({ runtimeConfig: { persistentDiskId: id } }, clusters), () => 'Cannot delete this disk because it is attached. You must delete the cloud environment first.']
+                [_.some({ runtimeConfig: { persistentDiskId: id } }, runtimes), () => 'Cannot delete this disk because it is attached. You must delete the cloud environment first.']
               )
               return status !== 'Deleting' && h(Link, {
                 'aria-label': 'Delete persistent disk',
@@ -315,16 +315,16 @@ const Clusters = () => {
           }
         ]
       }),
-      errorClusterId && h(ClusterErrorModal, {
-        cluster: _.find({ id: errorClusterId }, clusters),
-        onDismiss: () => setErrorClusterId(undefined)
+      errorRuntimeId && h(ClusterErrorModal, {
+        cluster: _.find({ id: errorRuntimeId }, runtimes),
+        onDismiss: () => setErrorRuntimeId(undefined)
       }),
-      deleteClusterId && h(DeleteClusterModal, {
-        cluster: _.find({ id: deleteClusterId }, clusters),
-        onDismiss: () => setDeleteClusterId(undefined),
+      deleteRuntimeId && h(DeleteRuntimeModal, {
+        runtime: _.find({ id: deleteRuntimeId }, runtimes),
+        onDismiss: () => setDeleteRuntimeId(undefined),
         onSuccess: () => {
-          setDeleteClusterId(undefined)
-          loadClusters()
+          setDeleteRuntimeId(undefined)
+          loadData()
         }
       }),
       deleteDiskId && h(DeleteDiskModal, {
@@ -332,7 +332,7 @@ const Clusters = () => {
         onDismiss: () => setDeleteDiskId(undefined),
         onSuccess: () => {
           setDeleteDiskId(undefined)
-          loadClusters()
+          loadData()
         }
       }),
       loading && spinnerOverlay
@@ -344,7 +344,7 @@ export const navPaths = [
   {
     name: 'clusters',
     path: '/clusters',
-    component: Clusters,
+    component: Environments,
     title: 'Cloud environments'
   }
 ]
