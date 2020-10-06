@@ -26,21 +26,21 @@ const AppLauncher = _.flow(
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
 
-  const cluster = currentCluster(clusters)
-  const clusterStatus = collapsedClusterStatus(cluster) // preserve null vs undefined
+  const runtime = currentCluster(clusters)
+  const runtimeStatus = collapsedClusterStatus(runtime) // preserve null vs undefined
 
   return h(Fragment, [
     h(ClusterStatusMonitor, {
-      cluster,
+      cluster: runtime,
       onClusterStartedRunning: () => {
         Ajax().Metrics.captureEvent(Events.applicationLaunch, { app })
       }
     }),
     h(ClusterKicker, {
-      cluster, refreshClusters,
+      cluster: runtime, refreshClusters,
       onNullCluster: () => setShowCreate(true)
     }),
-    _.includes(clusterStatus, usableStatuses) && cookieReady ?
+    _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
         app === 'RStudio' && h(PlaygroundHeader, [
           'This feature is in early development. Your files are saved on your cloud environment but not to your workspace. We encourage you to frequently ',
@@ -51,7 +51,7 @@ const AppLauncher = _.flow(
           '.'
         ]),
         iframe({
-          src: `${cluster.proxyUrl}/${app === 'terminal' ? 'terminals/1' : ''}`,
+          src: `${runtime.proxyUrl}/${app === 'terminal' ? 'terminals/1' : ''}`,
           style: {
             border: 'none', flex: 1,
             ...(app === 'terminal' ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
@@ -60,17 +60,17 @@ const AppLauncher = _.flow(
         })
       ]) :
       div({ style: { padding: '2rem' } }, [
-        !busy && h(StatusMessage, { hideSpinner: ['Error', 'Stopped', null].includes(clusterStatus) }, [
+        !busy && h(StatusMessage, { hideSpinner: ['Error', 'Stopped', null].includes(runtimeStatus) }, [
           Utils.cond(
-            [clusterStatus === 'Creating', () => 'Creating cloud environment. You can navigate away and return in 3-5 minutes.'],
-            [clusterStatus === 'Starting', () => 'Starting cloud environment, this may take up to 2 minutes.'],
-            [_.includes(clusterStatus, usableStatuses), () => 'Almost ready...'],
-            [clusterStatus === 'Stopping', () => 'Cloud environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'],
-            [clusterStatus === 'Stopped', () => 'Cloud environment is stopped. Start it to edit your notebook or use the terminal.'],
-            [clusterStatus === 'LeoReconfiguring', () => 'Cloud environment is updating, please wait.'],
-            [clusterStatus === 'Error', () => 'Error with the cloud environment, please try again.'],
-            [clusterStatus === null, () => 'Create a cloud environment to continue.'],
-            [clusterStatus === undefined, () => 'Loading...'],
+            [runtimeStatus === 'Creating', () => 'Creating cloud environment. You can navigate away and return in 3-5 minutes.'],
+            [runtimeStatus === 'Starting', () => 'Starting cloud environment, this may take up to 2 minutes.'],
+            [_.includes(runtimeStatus, usableStatuses), () => 'Almost ready...'],
+            [runtimeStatus === 'Stopping', () => 'Cloud environment is stopping, which takes ~4 minutes. You can restart it after it finishes.'],
+            [runtimeStatus === 'Stopped', () => 'Cloud environment is stopped. Start it to edit your notebook or use the terminal.'],
+            [runtimeStatus === 'LeoReconfiguring', () => 'Cloud environment is updating, please wait.'],
+            [runtimeStatus === 'Error', () => 'Error with the cloud environment, please try again.'],
+            [runtimeStatus === null, () => 'Create a cloud environment to continue.'],
+            [runtimeStatus === undefined, () => 'Loading...'],
             () => 'Unknown cloud environment status. Please create a new cloud environment or contact support.'
           )
         ]),
@@ -79,7 +79,7 @@ const AppLauncher = _.flow(
           namespace, name, clusters, persistentDisks,
           onDismiss: () => setShowCreate(false),
           onSuccess: _.flow(
-            withErrorReporting('Error creating cluster'),
+            withErrorReporting('Error loading cloud environment'),
             Utils.withBusyState(setBusy)
           )(async () => {
             setShowCreate(false)
