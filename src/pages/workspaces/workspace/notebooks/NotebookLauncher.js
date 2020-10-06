@@ -6,7 +6,7 @@ import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import {
-  ApplicationHeader, ClusterKicker, ClusterStatusMonitor, PlaygroundHeader, StatusMessage
+  ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage
 } from 'src/components/cluster-common'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -61,8 +61,8 @@ const NotebookLauncher = _.flow(
           h(PreviewHeader, { queryParams, runtime, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true) }),
           h(NotebookPreviewFrame, { notebookName, workspace })
         ]),
-      mode && h(ClusterKicker, { cluster: runtime, refreshClusters, onNullCluster: () => setCreateOpen(true) }),
-      mode && h(ClusterStatusMonitor, { cluster: runtime, onClusterStoppedRunning: () => chooseMode(undefined) }),
+      mode && h(RuntimeKicker, { runtime, refreshRuntimes: refreshClusters, onNullRuntime: () => setCreateOpen(true) }),
+      mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
       h(NewClusterModal, {
         isOpen: createOpen,
         namespace, name, clusters, persistentDisks,
