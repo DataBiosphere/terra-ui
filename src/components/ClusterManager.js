@@ -8,7 +8,7 @@ import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/cluster-common
 import { ButtonPrimary, Clickable, IdContainer, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { NewAppModal } from 'src/components/NewAppModal'
+import { NewGalaxyModal } from 'src/components/NewGalaxyModal'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import galaxyLogo from 'src/images/galaxy.svg'
@@ -367,7 +367,7 @@ export default class ClusterManager extends PureComponent {
             await refreshClusters(true)
           })
         }),
-        h(NewAppModal, {
+        h(NewGalaxyModal, {
           workspace,
           apps,
           isOpen: galaxyDrawerOpen,

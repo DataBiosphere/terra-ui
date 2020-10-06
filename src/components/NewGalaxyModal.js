@@ -8,7 +8,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
 import { machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { currentApp, hourlyAppCost, persistentDiskCost } from 'src/libs/cluster-utils'
+import { currentApp, hourlyKubernetesAppCost, persistentDiskCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -22,16 +22,15 @@ const styles = {
   headerText: { fontSize: 16, fontWeight: 600 }
 }
 
-// TODO: Once we have more appTypes, abstract text/component to support other apps
-export const NewAppModal = _.flow(
-  Utils.withDisplayName('NewAppModal'),
+export const NewGalaxyModal = _.flow(
+  Utils.withDisplayName('NewGalaxyModal'),
   withModalDrawer({ width: 675 })
 )(({ onDismiss, onSuccess, apps, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
   const [viewMode, setViewMode] = useState(undefined)
   const [loading, setLoading] = useState(false)
 
   const app = currentApp(apps)
-  const createApp = _.flow(
+  const createGalaxy = _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error creating app')
   )(async () => {
@@ -42,9 +41,9 @@ export const NewAppModal = _.flow(
     return onSuccess()
   })
 
-  const deleteApp = _.flow(
+  const deleteGalaxy = _.flow(
     Utils.withBusyState(setLoading),
-    withErrorReporting('Error deleting app')
+    withErrorReporting('Error deleting galaxy instance')
   )(async () => {
     await Ajax().Apps.app(app.googleProject, app.appName).delete()
     Ajax().Metrics.captureEvent(Events.applicationDelete, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
@@ -54,10 +53,10 @@ export const NewAppModal = _.flow(
   const renderActionButton = () => {
     return Utils.switchCase(viewMode,
       ['deleteWarn', () => {
-        return h(ButtonPrimary, { onClick: () => deleteApp() }, ['Delete'])
+        return h(ButtonPrimary, { onClick: () => deleteGalaxy() }, ['Delete'])
       }],
       ['createWarn', () => {
-        return h(ButtonPrimary, { onClick: () => createApp() }, ['Create'])
+        return h(ButtonPrimary, { onClick: () => createGalaxy() }, ['Create'])
       }],
       ['launchWarn', () => {
         return h(GalaxyLaunchButton, { app, onClick: onDismiss })
@@ -142,7 +141,7 @@ export const NewAppModal = _.flow(
             li({ style: { marginTop: '1rem' } }, [
               'Running cloud compute costs ',
               span({ style: { fontWeight: 600 } }, `${Utils.formatUSD(
-                hourlyAppCost(
+                hourlyKubernetesAppCost(
                   app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8' } }
                 ) + persistentDiskCost({ size: 30, status: 'Running' })
               )} per hr`)

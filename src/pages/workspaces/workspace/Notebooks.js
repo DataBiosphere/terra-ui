@@ -10,12 +10,12 @@ import { Clickable, IdContainer, Link, makeMenuIcon, MenuButton, PageBox, Select
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { NewAppModal } from 'src/components/NewAppModal'
+import { NewGalaxyModal } from 'src/components/NewGalaxyModal'
 import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
-import { appIsSettingUp, currentApp, hourlyAppCost, persistentDiskCost } from 'src/libs/cluster-utils'
+import { appIsSettingUp, currentApp, hourlyKubernetesAppCost, persistentDiskCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -314,7 +314,7 @@ const Notebooks = _.flow(
           div(['Environment']),
           // TODO: Actually use status to calculate cost, and actually use disk rather than hardcoding
           div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status), `: ${Utils.formatUSD(
-            hourlyAppCost(app) +
+            hourlyKubernetesAppCost(app) +
             persistentDiskCost({ size: 30, status: 'Running' })
           )} per hr`]),
           icon('trash', { size: 21 })
@@ -471,7 +471,7 @@ const Notebooks = _.flow(
               this.refreshNotebooks()
             }
           }),
-          h(NewAppModal, {
+          h(NewGalaxyModal, {
             isOpen: openGalaxyConfigDrawer,
             workspace,
             apps,
