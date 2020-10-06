@@ -79,7 +79,7 @@ const AppLauncher = _.flow(
           namespace, name, clusters, persistentDisks,
           onDismiss: () => setShowCreate(false),
           onSuccess: _.flow(
-            withErrorReporting('Error creating runtime'),
+            withErrorReporting('Error loading cloud environment'),
             Utils.withBusyState(setBusy)
           )(async () => {
             setShowCreate(false)
