@@ -38,7 +38,7 @@ export const NewAppModal = _.flow(
     await Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create({
       diskName: Utils.generatePersistentDiskName(), appType: 'GALAXY', namespace, bucketName, workspaceName
     })
-    Ajax().Metrics.captureEvent(Events.galaxyAppCreate, extractWorkspaceDetails(workspace))
+    Ajax().Metrics.captureEvent(Events.applicationCreate, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
     return onSuccess()
   })
 
@@ -47,7 +47,7 @@ export const NewAppModal = _.flow(
     withErrorReporting('Error deleting app')
   )(async () => {
     await Ajax().Apps.app(app.googleProject, app.appName).delete()
-    Ajax().Metrics.captureEvent(Events.galaxyAppDelete, extractWorkspaceDetails(workspace))
+    Ajax().Metrics.captureEvent(Events.applicationDelete, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
     return onSuccess()
   })
 
