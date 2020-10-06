@@ -21,7 +21,7 @@ import * as TestLogin from 'src/pages/TestLogin'
 import * as WorkflowsList from 'src/pages/workflows/List'
 import * as WorkflowDashboard from 'src/pages/workflows/workflow/WorkflowDetails'
 import * as WorkspaceList from 'src/pages/workspaces/List'
-import * as AppLauncher from 'src/pages/workspaces/workspace/applications/AppLauncher'
+import * as GalaxyLauncher from 'src/pages/workspaces/workspace/applications/GalaxyLauncher'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
 import * as Data from 'src/pages/workspaces/workspace/Data'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
@@ -50,7 +50,7 @@ const routes = _.flatten([
   Profile.navPaths,
   Groups.navPaths,
   Group.navPaths,
-  AppLauncher.navPaths,
+  GalaxyLauncher.navPaths,
   TermsOfService.navPaths,
   Code.navPaths,
   DataExplorer.navPaths,

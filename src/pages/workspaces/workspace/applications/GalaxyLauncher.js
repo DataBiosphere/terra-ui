@@ -15,8 +15,8 @@ import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const AppLauncher = _.flow(
-  Utils.forwardRefWithName('AppLauncher'),
+const GalaxyLauncher = _.flow(
+  Utils.forwardRefWithName('GalaxyLauncher'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: _.get('app')
@@ -101,7 +101,7 @@ export const navPaths = [
   {
     name: 'workspace-app-launch',
     path: '/workspaces/:namespace/:name/applications/:app',
-    component: AppLauncher,
+    component: GalaxyLauncher,
     title: ({ name, app }) => `${name} - ${app}`
   }
 ]
