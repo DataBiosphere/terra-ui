@@ -19,27 +19,27 @@ export const StatusMessage = ({ hideSpinner, children }) => {
   ])
 }
 
-export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
-  const getCluster = Utils.useGetter(cluster)
+export const RuntimeKicker = ({ runtime, refreshRuntimes, onNullRuntime }) => {
+  const getRuntime = Utils.useGetter(runtime)
   const signal = Utils.useCancellation()
   const [busy, setBusy] = useState()
 
-  const startClusterOnce = withErrorReporting('Error starting cloud environment', async () => {
+  const startRuntimeOnce = withErrorReporting('Error starting cloud environment', async () => {
     while (!signal.aborted) {
-      const currentCluster = getCluster()
-      const { googleProject, runtimeName } = currentCluster || {}
-      const status = collapsedRuntimeStatus(currentCluster)
+      const currentRuntime = getRuntime()
+      const { googleProject, runtimeName } = currentRuntime || {}
+      const status = collapsedRuntimeStatus(currentRuntime)
 
       if (status === 'Stopped') {
         setBusy(true)
         await Ajax().Runtimes.runtime(googleProject, runtimeName).start()
-        await refreshClusters()
+        await refreshRuntimes()
         setBusy(false)
         return
-      } else if (currentCluster === undefined || status === 'Stopping') {
+      } else if (currentRuntime === undefined || status === 'Stopping') {
         await Utils.delay(500)
-      } else if (currentCluster === null) {
-        onNullCluster()
+      } else if (currentRuntime === null) {
+        onNullRuntime()
         return
       } else {
         return
@@ -48,7 +48,7 @@ export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
   })
 
   Utils.useOnMount(() => {
-    startClusterOnce()
+    startRuntimeOnce()
   })
 
   return busy ? spinnerOverlay : null
@@ -76,17 +76,17 @@ export const PlaygroundHeader = ({ children }) => {
   ])
 }
 
-export const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning = _.noop, onClusterStartedRunning = _.noop }) => {
-  const currentStatus = collapsedRuntimeStatus(cluster)
+export const RuntimeStatusMonitor = ({ runtime, onRuntimeStoppedRunning = _.noop, onRuntimeStartedRunning = _.noop }) => {
+  const currentStatus = collapsedRuntimeStatus(runtime)
   const prevStatus = Utils.usePrevious(currentStatus)
 
   useEffect(() => {
     if (prevStatus === 'Running' && !_.includes(currentStatus, usableStatuses)) {
-      onClusterStoppedRunning()
+      onRuntimeStoppedRunning()
     } else if (prevStatus !== 'Running' && _.includes(currentStatus, usableStatuses)) {
-      onClusterStartedRunning()
+      onRuntimeStartedRunning()
     }
-  }, [currentStatus, onClusterStartedRunning, onClusterStoppedRunning, prevStatus])
+  }, [currentStatus, onRuntimeStartedRunning, onRuntimeStoppedRunning, prevStatus])
 
   return null
 }
