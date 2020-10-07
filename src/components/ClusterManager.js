@@ -140,7 +140,7 @@ export default class ClusterManager extends PureComponent {
     const welderCutOff = new Date('2019-08-01')
     const createdDate = new Date(runtime.createdDate)
     const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime.id}`) || {}
-    const rStudioLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: 'RStudio' })
+    const rStudioLaunchLink = Nav.getLink('workspace-application-launch', { namespace, name, application: 'RStudio' })
     const app = currentApp(apps)
     const prevApp = currentApp(prevProps.apps)
 
@@ -289,8 +289,8 @@ export default class ClusterManager extends PureComponent {
     const isDisabled = !canCompute || creating || busy || updating || reconfiguring
 
     const isRStudioImage = currentRuntime?.labels.tool === 'RStudio'
-    const appName = isRStudioImage ? 'RStudio' : 'terminal'
-    const appLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: appName })
+    const applicationName = isRStudioImage ? 'RStudio' : 'terminal'
+    const applicationLaunchLink = Nav.getLink('workspace-application-launch', { namespace, name, application: applicationName })
 
     const app = currentApp(apps)
 
@@ -320,10 +320,10 @@ export default class ClusterManager extends PureComponent {
           tooltip: 'Multiple cloud environments found in this billing project. Click to select which to delete.'
         }, [icon('warning-standard', { size: 24, style: { color: colors.danger() } })]),
         h(Link, {
-          href: appLaunchLink,
-          onClick: window.location.hash === appLaunchLink && currentStatus === 'Stopped' ? () => this.startRuntime() : undefined,
-          tooltip: canCompute ? `Open ${appName}` : noCompute,
-          'aria-label': `Open ${appName}`,
+          href: applicationLaunchLink,
+          onClick: window.location.hash === applicationLaunchLink && currentStatus === 'Stopped' ? () => this.startRuntime() : undefined,
+          tooltip: canCompute ? `Open ${applicationName}` : noCompute,
+          'aria-label': `Open ${applicationName}`,
           disabled: !canCompute,
           style: { marginRight: '2rem', ...styles.verticalCenter },
           ...(isRStudioImage ? {} : Utils.newTabLinkProps)

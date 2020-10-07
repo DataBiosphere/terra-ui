@@ -15,13 +15,13 @@ import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const AppLauncher = _.flow(
-  Utils.forwardRefWithName('AppLauncher'),
+const ApplicationLauncher = _.flow(
+  Utils.forwardRefWithName('ApplicationLauncher'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: _.get('app')
+    title: _.get('application')
   })
-)(({ namespace, name, refreshRuntimes, runtimes, persistentDisks, app }, ref) => {
+)(({ namespace, name, refreshRuntimes, runtimes, persistentDisks, application }, ref) => {
   const cookieReady = Utils.useStore(cookieReadyStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -33,7 +33,7 @@ const AppLauncher = _.flow(
     h(RuntimeStatusMonitor, {
       runtime,
       onRuntimeStartedRunning: () => {
-        Ajax().Metrics.captureEvent(Events.applicationLaunch, { app })
+        Ajax().Metrics.captureEvent(Events.applicationLaunch, { application })
       }
     }),
     h(RuntimeKicker, {
@@ -42,7 +42,7 @@ const AppLauncher = _.flow(
     }),
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
-        app === 'RStudio' && h(PlaygroundHeader, [
+        application === 'RStudio' && h(PlaygroundHeader, [
           'This feature is in early development. Your files are saved on your cloud environment but not to your workspace. We encourage you to frequently ',
           h(Link, {
             href: 'https://support.terra.bio/hc/en-us/articles/360037269472#h_822db925-41fa-4797-b0da-0839580a74da',
@@ -51,12 +51,12 @@ const AppLauncher = _.flow(
           '.'
         ]),
         iframe({
-          src: `${runtime.proxyUrl}/${app === 'terminal' ? 'terminals/1' : ''}`,
+          src: `${runtime.proxyUrl}/${application === 'terminal' ? 'terminals/1' : ''}`,
           style: {
             border: 'none', flex: 1,
-            ...(app === 'terminal' ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
+            ...(application === 'terminal' ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
           },
-          title: `Interactive ${app} iframe`
+          title: `Interactive ${application} iframe`
         })
       ]) :
       div({ style: { padding: '2rem' } }, [
@@ -96,12 +96,12 @@ export const navPaths = [
   {
     name: 'workspace-terminal', // legacy
     path: '/workspaces/:namespace/:name/notebooks/terminal',
-    component: props => h(Nav.Redirector, { pathname: Nav.getPath('workspace-app-launch', { ...props, app: 'terminal' }) })
+    component: props => h(Nav.Redirector, { pathname: Nav.getPath('workspace-application-launch', { ...props, application: 'terminal' }) })
   },
   {
-    name: 'workspace-app-launch',
-    path: '/workspaces/:namespace/:name/applications/:app',
-    component: AppLauncher,
-    title: ({ name, app }) => `${name} - ${app}`
+    name: 'workspace-application-launch',
+    path: '/workspaces/:namespace/:name/applications/:application',
+    component: ApplicationLauncher,
+    title: ({ name, application }) => `${name} - ${application}`
   }
 ]
