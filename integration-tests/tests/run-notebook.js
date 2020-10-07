@@ -43,10 +43,6 @@ const testRunNotebookFn = _.flow(
   await findElement(page, clickable({ textContains: 'Creating' }))
   await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60 * 1000 })
 
-  await page.evaluate(async () => {
-    await window.Ajax().Runtimes.setCookie() // make sure the right access cookie is set
-  })
-
   const frame = await findIframe(page)
   await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
   await click(frame, clickable({ text: 'Run' }))
