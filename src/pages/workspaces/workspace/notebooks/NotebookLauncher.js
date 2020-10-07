@@ -44,10 +44,10 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   })
 )(
-  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, clusters, persistentDisks, refreshClusters },
+  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks, refreshRuntimes },
     ref) => {
     const [createOpen, setCreateOpen] = useState(false)
-    const runtime = currentRuntime(clusters)
+    const runtime = currentRuntime(runtimes)
     const { runtimeName, labels } = runtime || {}
     const status = collapsedRuntimeStatus(runtime)
     const [busy, setBusy] = useState()
@@ -61,11 +61,11 @@ const NotebookLauncher = _.flow(
           h(PreviewHeader, { queryParams, runtime, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true) }),
           h(NotebookPreviewFrame, { notebookName, workspace })
         ]),
-      mode && h(RuntimeKicker, { runtime, refreshRuntimes: refreshClusters, onNullRuntime: () => setCreateOpen(true) }),
+      mode && h(RuntimeKicker, { runtime, refreshRuntimes, onNullRuntime: () => setCreateOpen(true) }),
       mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
       h(NewClusterModal, {
         isOpen: createOpen,
-        namespace, name, clusters, persistentDisks,
+        namespace, name, runtimes, persistentDisks,
         onDismiss: () => {
           chooseMode(undefined)
           setCreateOpen(false)
@@ -75,7 +75,7 @@ const NotebookLauncher = _.flow(
           Utils.withBusyState(setBusy)
         )(async () => {
           setCreateOpen(false)
-          await refreshClusters(true)
+          await refreshRuntimes(true)
         })
       }),
       busy && spinnerOverlay

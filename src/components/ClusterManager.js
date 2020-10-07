@@ -58,7 +58,7 @@ const RuntimeIcon = ({ shape, onClick, disabled, style, ...props }) => {
   }, [icon(shape, { size: 20 })])
 }
 
-export const ClusterErrorModal = ({ cluster: runtime, onDismiss }) => {
+export const ClusterErrorModal = ({ runtime, onDismiss }) => {
   const [error, setError] = useState()
   const [userscriptError, setUserscriptError] = useState(false)
   const [loadingRuntimeDetails, setLoadingRuntimeDetails] = useState(false)
@@ -105,7 +105,7 @@ const RuntimeErrorNotification = ({ runtime }) => {
       }
     }, ['SEE LOG INFO']),
     modalOpen && h(ClusterErrorModal, {
-      cluster: runtime,
+      runtime,
       onDismiss: () => setModalOpen(false)
     })
   ])
@@ -115,10 +115,10 @@ export default class ClusterManager extends PureComponent {
   static propTypes = {
     namespace: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
-    clusters: PropTypes.array,
+    runtimes: PropTypes.array,
     persistentDisks: PropTypes.array,
     canCompute: PropTypes.bool.isRequired,
-    refreshClusters: PropTypes.func.isRequired,
+    refreshRuntimes: PropTypes.func.isRequired,
     workspace: PropTypes.object,
     apps: PropTypes.array
   }
@@ -134,7 +134,7 @@ export default class ClusterManager extends PureComponent {
 
   componentDidUpdate(prevProps) {
     const { namespace, name, apps } = this.props
-    const prevRuntime = _.last(_.sortBy('auditInfo.createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
+    const prevRuntime = _.last(_.sortBy('auditInfo.createdDate', _.remove({ status: 'Deleting' }, prevProps.runtimes))) || {}
     const runtime = this.getCurrentRuntime() || {}
     const twoMonthsAgo = _.tap(d => d.setMonth(d.getMonth() - 2), new Date())
     const welderCutOff = new Date('2019-08-01')
@@ -189,21 +189,21 @@ export default class ClusterManager extends PureComponent {
   }
 
   getActiveRuntimesOldestFirst() {
-    const { clusters } = this.props
-    return trimRuntimesOldestFirst(clusters)
+    const { runtimes } = this.props
+    return trimRuntimesOldestFirst(runtimes)
   }
 
   getCurrentRuntime() {
-    const { clusters } = this.props
-    return currentRuntime(clusters)
+    const { runtimes } = this.props
+    return currentRuntime(runtimes)
   }
 
   async executeAndRefresh(promise) {
     try {
-      const { refreshClusters } = this.props
+      const { refreshRuntimes } = this.props
       this.setState({ busy: true })
       await promise
-      await refreshClusters()
+      await refreshRuntimes()
     } catch (error) {
       reportError('Cloud Environment Error', error)
     } finally {
@@ -226,9 +226,9 @@ export default class ClusterManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, clusters, refreshClusters, canCompute, persistentDisks, apps, refreshApps, workspace } = this.props
+    const { namespace, name, runtimes, refreshRuntimes, canCompute, persistentDisks, apps, refreshApps, workspace } = this.props
     const { busy, createModalDrawerOpen, errorModalOpen, galaxyDrawerOpen } = this.state
-    if (!clusters || !apps) {
+    if (!runtimes || !apps) {
       return null
     }
     const currentRuntime = this.getCurrentRuntime()
@@ -282,7 +282,7 @@ export default class ClusterManager extends PureComponent {
           })
       }
     }
-    const totalCost = _.sum(_.map(runtimeCost, clusters)) + _.sum(_.map(persistentDiskCost, persistentDisks))
+    const totalCost = _.sum(_.map(runtimeCost, runtimes)) + _.sum(_.map(persistentDiskCost, persistentDisks))
     const activeRuntimes = this.getActiveRuntimesOldestFirst()
     const activeDisks = _.remove({ status: 'Deleting' }, persistentDisks)
     const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring } = _.countBy(collapsedRuntimeStatus, activeRuntimes)
@@ -356,7 +356,7 @@ export default class ClusterManager extends PureComponent {
           isOpen: createModalDrawerOpen,
           namespace,
           name,
-          clusters,
+          runtimes,
           persistentDisks,
           onDismiss: () => this.setState({ createModalDrawerOpen: false }),
           onSuccess: _.flow(
@@ -364,7 +364,7 @@ export default class ClusterManager extends PureComponent {
             Utils.withBusyState(v => this.setState({ busy: v }))
           )(async () => {
             this.setState({ createModalDrawerOpen: false })
-            await refreshClusters(true)
+            await refreshRuntimes(true)
           })
         }),
         h(NewGalaxyModal, {
@@ -378,7 +378,7 @@ export default class ClusterManager extends PureComponent {
           }
         }),
         errorModalOpen && h(ClusterErrorModal, {
-          cluster: currentRuntime,
+          runtime: currentRuntime,
           onDismiss: () => this.setState({ errorModalOpen: false })
         })
       ])

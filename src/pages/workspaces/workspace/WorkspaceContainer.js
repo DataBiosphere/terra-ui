@@ -89,7 +89,7 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
   ])
 }
 
-const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshClusters, workspace, clusters, persistentDisks, apps, refreshApps, children }) => {
+const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace, runtimes, persistentDisks, apps, refreshApps, children }) => {
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
@@ -114,8 +114,8 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
         div({ style: { fontSize: 12, color: colors.dark() } }, ['COVID-19', br(), 'Data & Tools'])
       ]),
       h(ClusterManager, {
-        namespace, name, clusters, persistentDisks, refreshClusters,
-        canCompute: !!((workspace && workspace.canCompute) || (clusters && clusters.length)),
+        namespace, name, runtimes, persistentDisks, refreshRuntimes,
+        canCompute: !!((workspace && workspace.canCompute) || (runtimes && runtimes.length)),
         apps, workspace, refreshApps
       })
     ]),
@@ -152,38 +152,38 @@ const WorkspaceAccessError = () => {
 const useCloudEnvironmentPolling = namespace => {
   const signal = Utils.useCancellation()
   const timeout = useRef()
-  const [clusters, setClusters] = useState()
+  const [runtimes, setRuntimes] = useState()
   const [persistentDisks, setPersistentDisks] = useState()
 
   const reschedule = ms => {
     clearTimeout(timeout.current)
-    timeout.current = setTimeout(refreshClustersSilently, ms)
+    timeout.current = setTimeout(refreshRuntimesSilently, ms)
   }
   const load = async maybeStale => {
     try {
-      const [newDisks, newClusters, galaxyDisks] = await Promise.all([
+      const [newDisks, newRuntimes, galaxyDisks] = await Promise.all([
         Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email }),
         Ajax(signal).Runtimes.list({ googleProject: namespace, creator: getUser().email }),
         Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email, saturnApplication: 'galaxy' })
       ])
       const galaxyDiskNames = _.map(disk => disk.name, galaxyDisks)
-      setClusters(newClusters)
+      setRuntimes(newRuntimes)
       setPersistentDisks(_.remove(disk => _.includes(disk.name, galaxyDiskNames), newDisks))
 
-      const cluster = currentRuntime(newClusters)
-      reschedule(maybeStale || _.includes(collapsedRuntimeStatus(cluster), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
+      const runtime = currentRuntime(newRuntimes)
+      reschedule(maybeStale || _.includes(collapsedRuntimeStatus(runtime), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
     } catch (error) {
       reschedule(30000)
       throw error
     }
   }
-  const refreshClusters = withErrorReporting('Error loading cloud environments', load)
-  const refreshClustersSilently = withErrorIgnoring(load)
+  const refreshRuntimes = withErrorReporting('Error loading cloud environments', load)
+  const refreshRuntimesSilently = withErrorIgnoring(load)
   Utils.useOnMount(() => {
-    refreshClusters()
+    refreshRuntimes()
     return () => clearTimeout(timeout.current)
   })
-  return { clusters, refreshClusters, persistentDisks }
+  return { runtimes, refreshRuntimes, persistentDisks }
 }
 
 const useAppPolling = namespace => {
@@ -223,7 +223,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const accessNotificationId = useRef()
     const cachedWorkspace = Utils.useStore(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
-    const { clusters, refreshClusters, persistentDisks } = useCloudEnvironmentPolling(namespace)
+    const { runtimes, refreshRuntimes, persistentDisks } = useCloudEnvironmentPolling(namespace)
     const { apps, refreshApps } = useAppPolling(namespace)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
       cachedWorkspace :
@@ -281,7 +281,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
-        namespace, name, activeTab, showTabBar, workspace, clusters, persistentDisks, apps, refreshApps,
+        namespace, name, activeTab, showTabBar, workspace, runtimes, persistentDisks, apps, refreshApps,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
@@ -291,12 +291,12 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
             child.current.refresh()
           }
         },
-        refreshClusters
+        refreshRuntimes
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, refreshApps, refreshClusters,
-          clusters, persistentDisks, apps,
+          workspace, refreshWorkspace, refreshApps, refreshRuntimes,
+          runtimes, persistentDisks, apps,
           ...props
         }),
         loadingWorkspace && spinnerOverlay
