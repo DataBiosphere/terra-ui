@@ -10,8 +10,10 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { registrationLogo } from 'src/libs/logos'
-import { authStore } from 'src/libs/state'
+import { authStore, unregisteredUserIdStore } from 'src/libs/state'
 import validate from 'validate.js'
+import * as Utils from 'src/libs/utils'
+
 
 
 const constraints = {
@@ -43,7 +45,8 @@ export default class Register extends Component {
       })
       authStore.update(state => ({ ...state, registrationStatus: 'registered' }))
       await refreshTerraProfile()
-      Ajax().Metrics.captureEvent(Events.userRegister)
+      await Ajax().Metrics.captureEvent(Events.userRegister)
+      Ajax().Metrics.mergeEvent(Utils.useStore(unregisteredUserIdStore))
     } catch (error) {
       reportError('Error registering', error)
       this.setState({ busy: false })

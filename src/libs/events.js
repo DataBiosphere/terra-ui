@@ -45,22 +45,23 @@ export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
 export const PageViewReporter = () => {
   const { name } = useRoute()
   const { isSignedIn, registrationStatus } = Utils.useStore(authStore)
-  var anonId = undefined
 
-  if (!isSignedIn && registrationStatus !== 'registered') {
-    anonId = Utils.useStore(unregisteredUserIdStore)
-    if (anonId === undefined) {
-      unregisteredUserIdStore.set(Utils.generateAnonUserId())
-    }
-  }
+  const prevId = Utils.useStore(unregisteredUserIdStore)
+  const userID = prevId ? prevId : Utils.generateAnonUserId()
 
   useEffect(() => {
     if (isSignedIn && registrationStatus === 'registered') {
       Ajax().Metrics.captureEvent(`${eventsList.pageView}:${name}`)
     } else {
-      Ajax().Metrics.captureAnonEvent(`${eventsList.pageView}:${name}`, { distinct_id: anonId })
+      Ajax().Metrics.captureAnonEvent(`${eventsList.pageView}:${name}`, {
+        distinct_id: userID
+      })
     }
-  }, [isSignedIn, name, registrationStatus, anonId])
+  }, [isSignedIn, name, registrationStatus, userID])
+
+  if (!prevId) {
+    unregisteredUserIdStore.set(userID)
+  }
 
   return null
 }

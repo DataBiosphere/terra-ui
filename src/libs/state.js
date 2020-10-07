@@ -13,7 +13,7 @@ export const authStore = Utils.atom({
   fenceStatus: {}
 })
 
-export const unregisteredUserIdStore = Utils.atom()
+export const unregisteredUserIdStore = Utils.atom(false)
 
 export const cookieReadyStore = Utils.atom(false)
 
