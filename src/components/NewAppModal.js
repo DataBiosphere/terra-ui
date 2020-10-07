@@ -18,7 +18,7 @@ import * as Utils from 'src/libs/utils'
 
 const styles = {
   whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' },
-  drawerContent: { display: 'flex', flexDirection: 'column', flex: '0 1 0%', padding: '0.5rem 1.5rem' },
+  drawerContent: { display: 'flex', flexDirection: 'column', flex: 'none', padding: '1.5rem' },
   headerText: { fontSize: 16, fontWeight: 600 }
 }
 
@@ -73,13 +73,6 @@ export const NewAppModal = _.flow(
     )
   }
 
-
-  const renderBottomButtons = () => {
-    return div({ style: { display: 'flex', margin: '1rem 0 1rem', justifyContent: 'flex-end' } }, [
-      renderActionButton()
-    ])
-  }
-
   const renderCreateWarning = () => {
     return h(Fragment, [
       div({ style: { marginBottom: '1rem' } }, ['Environment will consist of an application and cloud compute.']),
@@ -111,9 +104,11 @@ export const NewAppModal = _.flow(
         ' (e.g. results files). Double check that your workflow results were written to ',
         'the data tab in the workspace before clicking “Delete”'
       ]),
-      div({ style: { marginTop: '1rem' } }, ['Deleting your Cloud Environment will stop your ',
+      div({ style: { marginTop: '1rem' } }, [
+        'Deleting your Cloud Environment will stop your ',
         'running Galaxy application and your application costs. You can create a new Cloud Environment ',
-        'for Galaxy later, which will take 8-10 minutes.'])
+        'for Galaxy later, which will take 8-10 minutes.'
+      ])
     ])
   }
 
@@ -125,6 +120,7 @@ export const NewAppModal = _.flow(
 
   const renderDefaultCase = () => {
     const { cpu, memory } = _.find({ name: 'n1-standard-8' }, machineTypes)
+    const cost = hourlyAppCost(app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8' } }) + persistentDiskCost({ size: 30, status: 'Running' })
     return h(Fragment, [
       div([`Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`]),
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
@@ -135,17 +131,13 @@ export const NewAppModal = _.flow(
               'Galaxy version 20.09.3'
             ]),
             li({ style: { marginTop: '1rem' } }, [
-              'Cloud Compute size of ', span({ style: { fontWeight: 600 } },
-                // Temporarily hard-coded disk size, once it can be customized this should be revisited
-                [`${cpu} CPUS, ${memory} GB of memory, 30 GB disk space`])
+              'Cloud Compute size of ',
+              // Temporarily hard-coded disk size, once it can be customized this should be revisited
+              span({ style: { fontWeight: 600 } }, [`${cpu} CPUS, ${memory} GB of memory, 30 GB disk space`])
             ]),
             li({ style: { marginTop: '1rem' } }, [
               'Running cloud compute costs ',
-              span({ style: { fontWeight: 600 } }, `${Utils.formatUSD(
-                hourlyAppCost(
-                  app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8' } }
-                ) + persistentDiskCost({ size: 30, status: 'Running' })
-              )} per hr`)
+              span({ style: { fontWeight: 600 } }, [Utils.formatUSD(cost), ' per hr'])
             ])
           ]),
           h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
@@ -157,13 +149,6 @@ export const NewAppModal = _.flow(
     ])
   }
 
-  const contents = Utils.switchCase(viewMode,
-    ['createWarn', renderCreateWarning],
-    ['deleteWarn', renderDeleteWarning],
-    ['launchWarn', renderLaunchWarning],
-    [Utils.DEFAULT, renderDefaultCase]
-  )
-
   return div({ style: styles.drawerContent }, [
     h(TitleBar, {
       title: Utils.switchCase(viewMode,
@@ -171,11 +156,19 @@ export const NewAppModal = _.flow(
         ['deleteWarn', () => 'Delete Cloud Environment for Galaxy'],
         [Utils.DEFAULT, () => 'Cloud environment']
       ),
+      style: { marginBottom: '0.5rem' },
       onDismiss,
-      onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined,
-      style: { margin: '2rem 0 0 1.5rem' }
+      onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
     }),
-    div({ style: { padding: '0.5rem 1.5rem 1.5rem', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [contents, renderBottomButtons()]),
+    Utils.switchCase(viewMode,
+      ['createWarn', renderCreateWarning],
+      ['deleteWarn', renderDeleteWarning],
+      ['launchWarn', renderLaunchWarning],
+      [Utils.DEFAULT, renderDefaultCase]
+    ),
+    div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [
+      renderActionButton()
+    ]),
     loading && spinnerOverlay
   ])
 })

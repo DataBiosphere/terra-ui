@@ -329,10 +329,7 @@ const Notebooks = _.flow(
     }
 
     return div({
-      style: {
-        display: 'flex',
-        marginRight: listView ? undefined : '-2.5rem'
-      }
+      style: { display: 'flex', marginRight: listView ? undefined : '-2.5rem', alignItems: 'flex-start' }
     }, [
       div({
         style: {
