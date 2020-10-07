@@ -117,7 +117,7 @@ const RadioBlock = ({ labelText, children, name, checked, onChange, style = {} }
 const CUSTOM_MODE = '__custom_mode__'
 const PROJECT_SPECIFIC_MODE = '__project_specific_mode__'
 
-export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
+export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeModal extends Component {
   static propTypes = {
     runtimes: PropTypes.array,
     persistentDisks: PropTypes.array,
@@ -303,7 +303,7 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
       await Ajax().Runtimes.runtime(namespace, currentRuntimeDetails.runtimeName).update({ runtimeConfig })
     }
     if (shouldCreateRuntime) {
-      await Ajax().Runtimes.runtime(namespace, Utils.generateClusterName()).create({
+      await Ajax().Runtimes.runtime(namespace, Utils.generateRuntimeName()).create({
         runtimeConfig,
         toolDockerImage: newRuntime.toolDockerImage,
         labels: { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` },

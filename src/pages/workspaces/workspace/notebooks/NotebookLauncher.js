@@ -11,7 +11,7 @@ import {
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { NewClusterModal } from 'src/components/NewClusterModal'
+import { NewRuntimeModal } from 'src/components/NewClusterModal'
 import { findPotentialNotebookLockers, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { dataSyncingDocUrl } from 'src/data/machines'
@@ -63,7 +63,7 @@ const NotebookLauncher = _.flow(
         ]),
       mode && h(RuntimeKicker, { runtime, refreshRuntimes, onNullRuntime: () => setCreateOpen(true) }),
       mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
-      h(NewClusterModal, {
+      h(NewRuntimeModal, {
         isOpen: createOpen,
         namespace, name, runtimes, persistentDisks,
         onDismiss: () => {

@@ -170,7 +170,7 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
                 onClick: () => this.hideNav()
               }, ['Billing']),
               h(DropDownSubItem, {
-                href: Nav.getLink('clusters'),
+                href: Nav.getLink('environments'),
                 onClick: () => this.hideNav()
               }, ['Cloud Environments']),
               h(DropDownSubItem, {
