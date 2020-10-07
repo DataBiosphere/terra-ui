@@ -13,6 +13,8 @@ export const authStore = Utils.atom({
   fenceStatus: {}
 })
 
+export const unregisteredUserIdStore = Utils.atom()
+
 export const cookieReadyStore = Utils.atom(false)
 
 export const lastActiveTimeStore = staticStorageSlot(localStorage, 'idleTimeout')
