@@ -132,7 +132,7 @@ export const NewAppModal = _.flow(
           div({ style: styles.headerText }, ['Environment Settings']),
           ul({ style: { paddingLeft: '1rem', lineHeight: 1.5 } }, [
             li({ style: { marginTop: '1rem' } }, [
-              'Galaxy version xxx'
+              'Galaxy version 20.09.3'
             ]),
             li({ style: { marginTop: '1rem' } }, [
               'Cloud Compute size of ', span({ style: { fontWeight: 600 } },
