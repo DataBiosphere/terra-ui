@@ -11,7 +11,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
-import { collapsedClusterStatus, currentApp, currentCluster } from 'src/libs/cluster-utils'
+import { collapsedRuntimeStatus, currentApp, currentRuntime } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { isTerra } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
@@ -170,8 +170,8 @@ const useCloudEnvironmentPolling = namespace => {
       setClusters(newClusters)
       setPersistentDisks(_.remove(disk => _.includes(disk.name, galaxyDiskNames), newDisks))
 
-      const cluster = currentCluster(newClusters)
-      reschedule(maybeStale || _.includes(collapsedClusterStatus(cluster), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
+      const cluster = currentRuntime(newClusters)
+      reschedule(maybeStale || _.includes(collapsedRuntimeStatus(cluster), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
     } catch (error) {
       reschedule(30000)
       throw error
