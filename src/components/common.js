@@ -20,6 +20,7 @@ import { getConfig, isFirecloud, isTerra } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName, returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import { notify } from 'src/libs/notifications'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -409,6 +410,11 @@ export const UnlinkFenceAccount = ({ linkText, provider }) => {
           await Ajax().User.unlinkFenceAccount(provider.key)
           authStore.update(_.set(['fenceStatus', provider.key], {}))
           setIsModalOpen(false)
+          notify('success', 'Successfully unlinked account', {
+            message: `Successfully unlinked your account from ${provider.key}`,
+            detail: `You have unlinked your account from ${provider.key}, and no longer have access to any underlying datasets. You can relink at any time.`,
+            timeout: 30000
+          })
         }
         )
       }, 'OK')
