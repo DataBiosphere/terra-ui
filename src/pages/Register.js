@@ -1,4 +1,4 @@
-import { Component, useState } from 'react'
+import { useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, IdContainer } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
@@ -12,8 +12,6 @@ import Events from 'src/libs/events'
 import { registrationLogo } from 'src/libs/logos'
 import { authStore, unregisteredUserIdStore } from 'src/libs/state'
 import validate from 'validate.js'
-import * as Utils from 'src/libs/utils'
-
 
 
 const constraints = {
