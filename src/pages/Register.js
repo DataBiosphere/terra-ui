@@ -41,7 +41,7 @@ export const Register = () => {
       await refreshTerraProfile()
       await Ajax().Metrics.captureEvent(Events.userRegister)
       console.log('finished sending event')
-      await Ajax().Metrics.mergeEvent(Utils.useStore(unregisteredUserIdStore))
+      await Ajax().Metrics.mergeEvent(unregisteredUserIdStore.get())
       console.log('finished merging event')
     } catch (error) {
       console.error(error)
