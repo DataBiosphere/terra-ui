@@ -5,7 +5,7 @@ import { useRoute } from 'src/libs/nav'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { Disabled } from 'src/pages/Disabled'
-import Register from 'src/pages/Register'
+import { Register } from 'src/pages/Register'
 import SignIn from 'src/pages/SignIn'
 import TermsOfService from 'src/pages/TermsOfService'
 

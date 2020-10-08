@@ -13,6 +13,15 @@ export const authStore = Utils.atom({
   fenceStatus: {}
 })
 
+export const fakeAuthStoreForTesting = Utils.atom({
+  isSignedIn: undefined,
+  registrationStatus: undefined,
+  acceptedTos: undefined,
+  user: {},
+  profile: {},
+  fenceStatus: {}
+})
+
 export const unregisteredUserIdStore = Utils.atom(false)
 
 export const cookieReadyStore = Utils.atom(false)
