@@ -58,6 +58,10 @@ We follow the laws of all the countries where we operate. We follow the laws of 
     2. Compliance with Laws and Law Enforcement
 
         * Terra cooperates with government and law enforcement officials and private parties to enforce and comply with the law. We may disclose Personal Information and other user information when we, in our sole discretion, have reason to believe that disclosing this information is necessary to identify, contact, or bring legal action against someone who may (either intentionally or unintentionally) be causing injury to or interference with our rights or property, users of our Site, or anyone else who could be harmed by such activities. We may also disclose user information when we believe, in our sole discretion, that such disclosure is required by applicable law. We also may be required to disclose an individual’s personal information in response to a lawful request by public authorities, including to meet national security or law enforcement requirements.
+        
+    3. Vendors and Service Providers
+        
+        * We use [various third-party vendors and service providers](https://support.terra.bio/hc/en-us/articles/360039434212), such as Google Cloud and MixPanel, that assist us in providing the Platform.For example, we may use third-party vendors to store and authenticate account credentials, store and analyze system logs, send email communications, and for hosting and storing information collected through our Platform. We may need to share your information with these vendors and service providers to enable them to provide these services to us. These service providers and vendors are required to only use your information to provide their services to us and in a manner consistent with this Policy.
 
 4. Information You Share With Other Users; Forums
 
