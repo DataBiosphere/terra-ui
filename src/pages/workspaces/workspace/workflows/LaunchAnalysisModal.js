@@ -4,7 +4,7 @@ import { b, div, h, wbr } from 'react-hyperscript-helpers'
 import { ButtonPrimary, CromwellVersionLink } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { launch } from 'src/libs/analysis'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
@@ -13,7 +13,7 @@ import {
 } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
-export default ajaxCaller(class LaunchAnalysisModal extends Component {
+export default Utils.withCancellation(class LaunchAnalysisModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -69,14 +69,14 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
 
   async doLaunch() {
     try {
-      const { workspace, workspace: { workspace: { namespace, name } }, processSingle, entitySelectionModel: { type, selectedEntities, newSetName }, config, config: { rootEntityType }, useCallCache, deleteIntermediateOutputFiles, onSuccess, ajax: { Workspaces } } = this.props
+      const { workspace, workspace: { workspace: { namespace, name } }, processSingle, entitySelectionModel: { type, selectedEntities, newSetName }, config, config: { rootEntityType }, useCallCache, deleteIntermediateOutputFiles, onSuccess, signal } = this.props
 
       const baseEntityType = rootEntityType && rootEntityType.slice(0, -4)
       const { selectedEntityType, selectedEntityNames } = await Utils.cond(
         [processSingle, () => ({})],
         [type === processAll, async () => {
           this.setState({ message: 'Fetching data...' })
-          const selectedEntityNames = _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(rootEntityType))
+          const selectedEntityNames = _.map('name', await Ajax(signal).Workspaces.workspace(namespace, name).entitiesOfType(rootEntityType))
           return { selectedEntityType: rootEntityType, selectedEntityNames }
         }],
         [type === chooseRows || type === chooseSets, () => ({ selectedEntityType: rootEntityType, selectedEntityNames: _.keys(selectedEntities) })],
@@ -88,7 +88,7 @@ export default ajaxCaller(class LaunchAnalysisModal extends Component {
         [type === chooseSetComponents, () => ({ selectedEntityType: baseEntityType, selectedEntityNames: _.keys(selectedEntities) })],
         [type === processAllAsSet, async () => {
           this.setState({ message: 'Fetching data...' })
-          const selectedEntityNames = _.map('name', await Workspaces.workspace(namespace, name).entitiesOfType(baseEntityType))
+          const selectedEntityNames = _.map('name', await Ajax(signal).Workspaces.workspace(namespace, name).entitiesOfType(baseEntityType))
           return { selectedEntityType: baseEntityType, selectedEntityNames }
         }]
       )

@@ -7,7 +7,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -33,7 +33,7 @@ const constraints = {
 }
 
 export default _.flow(
-  ajaxCaller,
+  Utils.withCancellation,
   Utils.connectStore(authStore, 'authState')
 )(class NewWorkspaceModal extends Component {
   static propTypes = {
@@ -112,10 +112,10 @@ export default _.flow(
     withErrorReporting('Error loading data'),
     Utils.withBusyState(v => this.setState({ loading: v }))
   )(async () => {
-    const { ajax: { Billing, Groups } } = this.props
+    const { signal } = this.props
     const [billingProjects, allGroups] = await Promise.all([
-      Billing.listProjects(),
-      Groups.list()
+      Ajax(signal).Billing.listProjects(),
+      Ajax(signal).Groups.list()
     ])
     const usableProjects = _.filter({ creationStatus: 'Ready' }, billingProjects)
     this.setState(({ namespace }) => ({

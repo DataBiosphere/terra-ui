@@ -31,7 +31,7 @@ import dataExplorerLogo from 'src/images/data-explorer-logo.svg'
 import igvLogo from 'src/images/igv-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import wdlLogo from 'src/images/wdl-logo.png'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -781,7 +781,7 @@ const DeleteObjectModal = ({ name, workspace: { workspace: { namespace, bucketNa
 }
 
 const BucketContent = _.flow(
-  ajaxCaller,
+  Utils.withCancellation,
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
 )(class BucketContent extends Component {
   constructor(props) {
@@ -811,8 +811,8 @@ const BucketContent = _.flow(
     withErrorReporting('Error loading bucket data'),
     Utils.withBusyState(v => this.setState({ loading: v }))
   )(async (prefix = this.state.prefix) => {
-    const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
-    const { items, prefixes } = await Buckets.list(namespace, bucketName, prefix)
+    const { workspace: { workspace: { namespace, bucketName } }, signal } = this.props
+    const { items, prefixes } = await Ajax(signal).Buckets.list(namespace, bucketName, prefix)
     this.setState({ objects: items, prefixes, prefix })
   })
 
@@ -926,7 +926,7 @@ const WorkspaceData = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
   }),
-  ajaxCaller,
+  Utils.withCancellation,
   Utils.connectStore(pfbImportJobStore, 'pfbImportJobs')
 )(class WorkspaceData extends Component {
   constructor(props) {
@@ -943,9 +943,9 @@ const WorkspaceData = _.flow(
   }
 
   loadMetadata = withErrorReporting('Error loading workspace entity data', async () => {
-    const { namespace, name, ajax: { Workspaces } } = this.props
+    const { namespace, name, signal } = this.props
     const { selectedDataType } = this.state
-    const entityMetadata = await Workspaces.workspace(namespace, name).entityMetadata()
+    const entityMetadata = await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata()
     this.setState({
       selectedDataType: this.selectionType() === 'entities' && !entityMetadata[selectedDataType] ? undefined : selectedDataType,
       entityMetadata

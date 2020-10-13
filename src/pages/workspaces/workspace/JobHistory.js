@@ -9,7 +9,7 @@ import { collapseStatus, failedIcon, runningIcon, submittedIcon, successIcon } f
 import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -95,7 +95,7 @@ const JobHistory = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Job History', activeTab: 'job history'
   }),
-  ajaxCaller
+  Utils.withCancellation
 )(class JobHistory extends Component {
   constructor(props) {
     super(props)
@@ -109,7 +109,7 @@ const JobHistory = _.flow(
   }
 
   async refresh() {
-    const { namespace, name, ajax: { Workspaces } } = this.props
+    const { namespace, name, signal } = this.props
 
     try {
       this.setState({ loading: true })
@@ -127,7 +127,7 @@ const JobHistory = _.flow(
 
           return _.set('asText', subAsText, sub)
         })
-      )(await Workspaces.workspace(namespace, name).listSubmissions())
+      )(await Ajax(signal).Workspaces.workspace(namespace, name).listSubmissions())
       this.setState({ submissions })
 
       if (_.some(({ status }) => !isTerminal(status), submissions)) {

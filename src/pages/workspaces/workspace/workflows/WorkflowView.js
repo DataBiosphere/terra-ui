@@ -17,7 +17,7 @@ import StepButtons from 'src/components/StepButtons'
 import { HeaderCell, SimpleFlexTable, SimpleTable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import WDLViewer from 'src/components/WDLViewer'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -190,7 +190,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
   })
 }
 
-const BucketContentModal = ajaxCaller(class BucketContentModal extends Component {
+const BucketContentModal = Utils.withCancellation(class BucketContentModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -208,10 +208,10 @@ const BucketContentModal = ajaxCaller(class BucketContentModal extends Component
   }
 
   async load(prefix = this.state.prefix) {
-    const { workspace: { workspace: { namespace, bucketName } }, ajax: { Buckets } } = this.props
+    const { workspace: { workspace: { namespace, bucketName } }, signal } = this.props
     try {
       this.setState({ loading: true })
-      const { items, prefixes } = await Buckets.list(namespace, bucketName, prefix)
+      const { items, prefixes } = await Ajax(signal).Buckets.list(namespace, bucketName, prefix)
       this.setState({ objects: items, prefixes, prefix })
     } catch (error) {
       reportError('Error loading bucket data', error)
@@ -328,7 +328,7 @@ const WorkflowView = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'workflows'),
     title: _.get('workflowName'), activeTab: 'workflows'
   }),
-  ajaxCaller
+  Utils.withCancellation
 )(class WorkflowView extends Component {
   resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata) {
     const { workflowName } = this.props
@@ -442,10 +442,10 @@ const WorkflowView = _.flow(
   }
 
   async getValidation() {
-    const { namespace, name, workflowNamespace, workflowName, ajax: { Workspaces } } = this.props
+    const { namespace, name, workflowNamespace, workflowName, signal } = this.props
 
     try {
-      return await Workspaces.workspace(namespace, name).methodConfig(workflowNamespace, workflowName).validate()
+      return await Ajax(signal).Workspaces.workspace(namespace, name).methodConfig(workflowNamespace, workflowName).validate()
     } catch (e) {
       if (e.status === 404) {
         return false
@@ -459,12 +459,12 @@ const WorkflowView = _.flow(
     const {
       namespace, name, workflowNamespace, workflowName,
       workspace: { workspace: { attributes } },
-      ajax: { Workspaces, Methods, Dockstore },
+      signal,
       queryParams: { selectionKey }
     } = this.props
 
     try {
-      const ws = Workspaces.workspace(namespace, name)
+      const ws = Ajax(signal).Workspaces.workspace(namespace, name)
 
       const [entityMetadata, validationResponse, config] = await Promise.all([
         ws.entityMetadata(),
@@ -474,7 +474,7 @@ const WorkflowView = _.flow(
       const { methodRepoMethod: { methodNamespace, methodName, sourceRepo, methodPath } } = config
       const isRedacted = !validationResponse
 
-      const inputsOutputs = isRedacted ? {} : await Methods.configInputsOutputs(config)
+      const inputsOutputs = isRedacted ? {} : await Ajax(signal).Methods.configInputsOutputs(config)
       const selection = workflowSelectionStore.get()
       const readSelection = selectionKey && selection.key === selectionKey
 
@@ -502,12 +502,12 @@ const WorkflowView = _.flow(
       })
 
       if (sourceRepo === 'agora') {
-        const methods = await Methods.list({ namespace: methodNamespace, name: methodName })
+        const methods = await Ajax(signal).Methods.list({ namespace: methodNamespace, name: methodName })
         const snapshotIds = _.map('snapshotId', methods)
 
         this.setState({ versionIds: snapshotIds })
       } else if (sourceRepo === 'dockstore') {
-        const versions = await Dockstore.getVersions(methodPath)
+        const versions = await Ajax(signal).Dockstore.getVersions(methodPath)
         const versionIds = _.map('name', versions)
 
         this.setState({ versionIds })

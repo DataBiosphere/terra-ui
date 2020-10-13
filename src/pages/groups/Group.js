@@ -6,7 +6,7 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { AdminNotifierCheckbox, DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { DelayedSearchInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -14,7 +14,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
+export const GroupDetails = Utils.withCancellation(class GroupDetails extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -29,12 +29,12 @@ export const GroupDetails = ajaxCaller(class GroupDetails extends Component {
   }
 
   async refresh() {
-    const { groupName, ajax: { Groups } } = this.props
+    const { groupName, signal } = this.props
 
     try {
       this.setState({ loading: true, creatingNewUser: false, editingUser: false, deletingUser: false, updating: false })
 
-      const groupAjax = Groups.group(groupName)
+      const groupAjax = Ajax(signal).Groups.group(groupName)
       const [membersEmails, adminsEmails, allowAccessRequests] = await Promise.all([
         groupAjax.listMembers(), groupAjax.listAdmins(), groupAjax.getPolicy('admin-notifier')
       ])

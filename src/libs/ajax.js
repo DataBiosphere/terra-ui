@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/machines'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
@@ -1253,10 +1252,3 @@ export const Ajax = signal => {
 
 // Exposing Ajax for use by integration tests (and debugging, or whatever)
 window.Ajax = Ajax
-
-export const ajaxCaller = WrappedComponent => {
-  return Utils.withDisplayName('ajaxCaller', props => {
-    const signal = Utils.useCancellation()
-    return h(WrappedComponent, { ...props, ajax: Ajax(signal) })
-  })
-}

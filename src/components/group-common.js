@@ -8,7 +8,7 @@ import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
@@ -75,7 +75,7 @@ export const MemberCard = Utils.memoWithName('MemberCard', ({ member: { email, r
   ])
 })
 
-export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
+export const NewUserModal = Utils.withCancellation(class NewUserModal extends Component {
   static propTypes = {
     addFunction: PropTypes.func.isRequired,
     adminLabel: PropTypes.string.isRequired,
@@ -98,12 +98,12 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
   }
 
   async componentDidMount() {
-    const { ajax: { Workspaces, Groups } } = this.props
+    const { signal } = this.props
 
     try {
       const [shareSuggestions, groups] = await Promise.all([
-        Workspaces.getShareLog(),
-        Groups.list()
+        Ajax(signal).Workspaces.getShareLog(),
+        Ajax(signal).Groups.list()
       ])
 
       const suggestions = _.flow(
@@ -184,9 +184,9 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
     withErrorReporting('Error adding user'),
     Utils.withBusyState(busy => this.setState({ busy }))
   )(async () => {
-    const { ajax: { User } } = this.props
+    const { signal } = this.props
     const { userEmail } = this.state
-    await User.inviteUser(userEmail)
+    await Ajax(signal).User.inviteUser(userEmail)
     await this.submit()
   })
 
@@ -194,9 +194,9 @@ export const NewUserModal = ajaxCaller(class NewUserModal extends Component {
     withErrorReporting('Error adding user'),
     Utils.withBusyState(busy => this.setState({ busy }))
   )(async () => {
-    const { addUnregisteredUser = false, ajax: { User } } = this.props
+    const { addUnregisteredUser = false, signal } = this.props
     const { userEmail } = this.state
-    addUnregisteredUser && !await User.isUserRegistered(userEmail) ? this.setState({ confirmAddUser: true }) : await this.submit()
+    addUnregisteredUser && !await Ajax(signal).User.isUserRegistered(userEmail) ? this.setState({ confirmAddUser: true }) : await this.submit()
   })
 
   async submit() {

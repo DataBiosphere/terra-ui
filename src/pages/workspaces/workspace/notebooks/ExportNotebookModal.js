@@ -7,7 +7,7 @@ import ErrorView from 'src/components/ErrorView'
 import Modal from 'src/components/Modal'
 import { notebookNameInput, notebookNameValidator } from 'src/components/notebook-utils'
 import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import Events, { extractCrossWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
@@ -18,7 +18,7 @@ import validate from 'validate.js'
 const cutName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
 export default _.flow(
-  ajaxCaller,
+  Utils.withCancellation,
   withWorkspaces
 )(class ExportNotebookModal extends Component {
   static propTypes = {
@@ -133,9 +133,9 @@ export default _.flow(
   }
 
   async findNotebooks(v) {
-    const { ajax: { Buckets }, workspaces } = this.props
+    const { signal, workspaces } = this.props
     const tempChosenWorkspace = _.find({ workspace: { workspaceId: v } }, workspaces).workspace
-    const selectedNotebooks = await Buckets.listNotebooks(tempChosenWorkspace.namespace, tempChosenWorkspace.bucketName)
+    const selectedNotebooks = await Ajax(signal).Buckets.listNotebooks(tempChosenWorkspace.namespace, tempChosenWorkspace.bucketName)
     const existingNames = _.map(({ name }) => cutName(name), selectedNotebooks)
     this.setState({ existingNames })
   }

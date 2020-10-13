@@ -11,7 +11,7 @@ import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons
 import { TextInput, ValidatedInput } from 'src/components/input'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -227,7 +227,7 @@ const FenceLink = ({ provider: { key, name } }) => {
 const sectionTitle = text => div({ style: styles.sectionTitle }, [text])
 
 const Profile = _.flow(
-  ajaxCaller,
+  Utils.withCancellation,
   Utils.connectStore(authStore, 'authState')
 )(class Profile extends Component {
   constructor(props) {
@@ -403,9 +403,9 @@ const Profile = _.flow(
   })
 
   async componentDidMount() {
-    const { ajax: { User }, authState: { profile: { email } } } = this.props
+    const { signal, authState: { profile: { email } } } = this.props
 
-    this.setState({ proxyGroup: await User.getProxyGroup(email) })
+    this.setState({ proxyGroup: await Ajax(signal).User.getProxyGroup(email) })
   }
 })
 
