@@ -33,7 +33,7 @@ const ApplicationLauncher = _.flow(
     h(RuntimeStatusMonitor, {
       runtime,
       onRuntimeStartedRunning: () => {
-        Ajax().Metrics.captureEvent(Events.applicationLaunch, { application })
+        Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: application })
       }
     }),
     h(RuntimeKicker, {
