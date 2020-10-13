@@ -343,7 +343,7 @@ const Environments = () => {
 export const navPaths = [
   {
     name: 'environments',
-    path: '/clusters',
+    path: '/clusters', // NB: This path name is a holdover from a previous naming scheme
     component: Environments,
     title: 'Cloud environments'
   }
