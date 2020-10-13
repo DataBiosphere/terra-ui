@@ -1,12 +1,14 @@
 import _ from 'lodash/fp'
-import { useEffect, useState } from 'react'
-import { b, div, h } from 'react-hyperscript-helpers'
-import { spinnerOverlay } from 'src/components/common'
+import { Fragment, useEffect, useState } from 'react'
+import { b, div, h, p } from 'react-hyperscript-helpers'
+import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
-import { usableStatuses } from 'src/libs/cluster-utils'
+import { collapsedRuntimeStatus, usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
+import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -17,26 +19,27 @@ export const StatusMessage = ({ hideSpinner, children }) => {
   ])
 }
 
-export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
-  const getCluster = Utils.useGetter(cluster)
+export const RuntimeKicker = ({ runtime, refreshRuntimes, onNullRuntime }) => {
+  const getRuntime = Utils.useGetter(runtime)
   const signal = Utils.useCancellation()
   const [busy, setBusy] = useState()
 
-  const startClusterOnce = withErrorReporting('Error starting notebook runtime', async () => {
+  const startRuntimeOnce = withErrorReporting('Error starting cloud environment', async () => {
     while (!signal.aborted) {
-      const currentCluster = getCluster()
-      const { status, googleProject, runtimeName } = currentCluster || {}
+      const currentRuntime = getRuntime()
+      const { googleProject, runtimeName } = currentRuntime || {}
+      const status = collapsedRuntimeStatus(currentRuntime)
 
       if (status === 'Stopped') {
         setBusy(true)
-        await Ajax().Clusters.cluster(googleProject, runtimeName).start()
-        await refreshClusters()
+        await Ajax().Runtimes.runtime(googleProject, runtimeName).start()
+        await refreshRuntimes()
         setBusy(false)
         return
-      } else if (currentCluster === undefined || status === 'Stopping') {
+      } else if (currentRuntime === undefined || status === 'Stopping') {
         await Utils.delay(500)
-      } else if (currentCluster === null) {
-        onNullCluster()
+      } else if (currentRuntime === null) {
+        onNullRuntime()
         return
       } else {
         return
@@ -45,7 +48,7 @@ export const ClusterKicker = ({ cluster, refreshClusters, onNullCluster }) => {
   })
 
   Utils.useOnMount(() => {
-    startClusterOnce()
+    startRuntimeOnce()
   })
 
   return busy ? spinnerOverlay : null
@@ -73,25 +76,65 @@ export const PlaygroundHeader = ({ children }) => {
   ])
 }
 
-export const ClusterStatusMonitor = ({ cluster, onClusterStoppedRunning = _.noop, onClusterStartedRunning = _.noop }) => {
-  const currentStatus = cluster && cluster.status
+export const RuntimeStatusMonitor = ({ runtime, onRuntimeStoppedRunning = _.noop, onRuntimeStartedRunning = _.noop }) => {
+  const currentStatus = collapsedRuntimeStatus(runtime)
   const prevStatus = Utils.usePrevious(currentStatus)
 
   useEffect(() => {
     if (prevStatus === 'Running' && !_.includes(currentStatus, usableStatuses)) {
-      onClusterStoppedRunning()
+      onRuntimeStoppedRunning()
     } else if (prevStatus !== 'Running' && _.includes(currentStatus, usableStatuses)) {
-      onClusterStartedRunning()
+      onRuntimeStartedRunning()
     }
-  }, [currentStatus, onClusterStartedRunning, onClusterStoppedRunning, prevStatus])
+  }, [currentStatus, onRuntimeStartedRunning, onRuntimeStoppedRunning, prevStatus])
 
   return null
 }
 
-export const PeriodicCookieSetter = ({ namespace, runtimeName, leading }) => {
+export const AuthenticatedCookieSetter = () => {
+  const { registrationStatus } = Utils.useStore(authStore)
+  return registrationStatus === 'registered' ? h(PeriodicCookieSetter) : null
+}
+
+export const PeriodicCookieSetter = () => {
   const signal = Utils.useCancellation()
   Utils.usePollingEffect(
-    withErrorIgnoring(() => Ajax(signal).Clusters.notebooks(namespace, runtimeName).setCookie()),
-    { ms: 15 * 60 * 1000, leading })
+    withErrorIgnoring(async () => {
+      await Ajax(signal).Runtimes.setCookie()
+      cookieReadyStore.set(true)
+    }),
+    { ms: 5 * 60 * 1000, leading: true }
+  )
   return null
+}
+
+export const SaveFilesHelp = () => {
+  return h(Fragment, [
+    p([
+      'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
+      h(Link, {
+        href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+        ...Utils.newTabLinkProps
+      }, ['move them to the workspace bucket.'])
+    ]),
+    p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.'])
+  ])
+}
+
+export const GalaxyWarning = () => {
+  return p([div({ style: { fontWeight: 600 } }, ['Important: Please keep this tab open and logged in to Terra while using Galaxy.']), ' Galaxy will open in a new tab. '])
+}
+
+export const GalaxyLaunchButton = ({ app, onClick, ...props }) => {
+  const cookieReady = Utils.useStore(cookieReadyStore)
+  return h(ButtonPrimary, {
+    disabled: !cookieReady,
+    href: app.proxyUrls.galaxy,
+    onClick: () => {
+      onClick()
+      Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: 'Galaxy' })
+    },
+    ...Utils.newTabLinkProps,
+    ...props
+  }, ['Launch Galaxy'])
 }

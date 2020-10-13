@@ -1,4 +1,4 @@
-import * as clipboard from 'clipboard-polyfill'
+import * as clipboard from 'clipboard-polyfill/text'
 import FileSaver from 'file-saver'
 import filesize from 'filesize'
 import JSZip from 'jszip'
@@ -487,7 +487,7 @@ const ToolDrawer = _.flow(
       title: 'OPEN WITH...',
       drawerContent: h(Fragment, [
         div({ style: Style.modalDrawer.content }, [
-          div({ style: { margin: '1rem 0' } }, [
+          div([
             h(ModalToolButton, {
               onClick: () => setToolMode('IGV'),
               disabled: isCohort,
@@ -534,7 +534,7 @@ const ToolDrawer = _.flow(
     })
   ])
 
-  return h(Fragment, [
+  return div({ style: { padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1 } }, [
     h(TitleBar, {
       title,
       onPrevious: toolMode ? () => { setToolMode(undefined) } : undefined,
@@ -545,7 +545,7 @@ const ToolDrawer = _.flow(
         borderRadius: '1rem',
         border: `1px solid ${colors.dark(0.5)}`,
         padding: '0.25rem 0.875rem',
-        margin: '0.5rem 1.5rem 1.5rem',
+        margin: '0.5rem 0 2rem',
         alignSelf: 'flex-start',
         fontSize: 12
       }

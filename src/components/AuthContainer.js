@@ -17,14 +17,14 @@ const AuthContainer = ({ children }) => {
 
   return Utils.cond(
     [isSignedIn === undefined && !isPublic, authspinner],
-    [isSignedIn === false && !isPublic, h(SignIn)],
+    [isSignedIn === false && !isPublic, () => h(SignIn)],
     [registrationStatus === undefined && !isPublic, authspinner],
-    [registrationStatus === 'unregistered', h(Register)],
+    [registrationStatus === 'unregistered', () => h(Register)],
     [registrationStatus === 'disabled', () => h(Disabled)],
     [acceptedTos === undefined && !isPublic, authspinner],
     [acceptedTos === false && name !== 'privacy', () => h(TermsOfService)],
     [_.isEmpty(profile) && !isPublic, authspinner],
-    children
+    () => children
   )
 }
 

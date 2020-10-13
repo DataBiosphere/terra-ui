@@ -124,13 +124,17 @@ export const log = (...args) => {
 const maybeCall = maybeFn => _.isFunction(maybeFn) ? maybeFn() : maybeFn
 
 /**
- * Returns the value for the first truthy predicate.
- * If the value is a function, it is invoked.
- *
- * Takes predicate/value pairs in arrays, followed by an optional default value.
+ * Takes any number of [predicate, value] pairs, followed by an optional default value.
+ * Returns value() for the first truthy predicate, otherwise returns the default value().
  * Returns undefined if no predicate matches and there is no default value.
+ *
+ * DEPRECATED: If a value is not a function, it will be returned directly instead.
+ * This behavior is deprecated, and will be removed in the future.
  */
 export const cond = (...args) => {
+  console.assert(_.every(arg => {
+    return _.isFunction(arg) || (_.isArray(arg) && arg.length === 2 && _.isFunction(arg[1]))
+  }, args), 'Invalid arguments to Utils.cond')
   for (const arg of args) {
     if (_.isArray(arg)) {
       const [predicate, value] = arg
@@ -183,7 +187,11 @@ export const abandonedPromise = () => {
   return new Promise(() => {})
 }
 
-export const generateClusterName = () => `saturn-${uuid()}`
+export const generateRuntimeName = () => `saturn-${uuid()}`
+
+export const generateKubernetesClusterName = () => `saturn-k8-${uuid()}`
+
+export const generatePersistentDiskName = () => `saturn-pd-${uuid()}`
 
 export const waitOneTick = () => new Promise(setImmediate)
 

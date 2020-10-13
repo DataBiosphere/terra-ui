@@ -1,4 +1,4 @@
-import * as clipboard from 'clipboard-polyfill'
+import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { div, h, i, span } from 'react-hyperscript-helpers'

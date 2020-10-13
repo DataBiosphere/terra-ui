@@ -1,4 +1,4 @@
-import * as clipboard from 'clipboard-polyfill'
+import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment } from 'react'
@@ -10,12 +10,16 @@ import { Clickable, IdContainer, Link, makeMenuIcon, MenuButton, PageBox, Select
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
+import { NewGalaxyModal } from 'src/components/NewGalaxyModal'
 import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { appIsSettingUp, currentApp, hourlyKubernetesAppCost, persistentDiskCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import { versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { authStore } from 'src/libs/state'
@@ -85,7 +89,7 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
     content: h(Fragment, [
       h(MenuButton, {
         href: notebookLink,
-        tooltip: canWrite && 'Open without runtime',
+        tooltip: canWrite && 'Open without cloud compute',
         tooltipSide: 'left'
       }, [makeMenuIcon('eye'), 'Open preview']),
       h(MenuButton, {
@@ -159,7 +163,10 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
     notebookMenu,
     title,
     div({ style: { flexGrow: 1 } }),
-    locked && h(Clickable, { style: { display: 'flex', paddingRight: '1rem', color: colors.dark(0.75) }, tooltip: `This notebook is currently being edited by ${lockedBy || 'another user'}` }, [icon('lock')]),
+    locked && h(Clickable, {
+      style: { display: 'flex', paddingRight: '1rem', color: colors.dark(0.75) },
+      tooltip: `This notebook is currently being edited by ${lockedBy || 'another user'}`
+    }, [icon('lock')]),
     h(TooltipTrigger, { content: Utils.makeCompleteDate(updated) }, [
       div({ style: { fontSize: '0.8rem', marginRight: '0.5rem' } },
         `Last edited: ${Utils.makePrettyDate(updated)}`)
@@ -168,7 +175,10 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
     div({ style: { display: 'flex' } }, [
       title,
       div({ style: { flexGrow: 1 } }),
-      locked && h(Clickable, { style: { display: 'flex', padding: '1rem', color: colors.dark(0.75) }, tooltip: `This notebook is currently being edited by ${lockedBy || 'another user'}` }, [icon('lock')])
+      locked && h(Clickable, {
+        style: { display: 'flex', padding: '1rem', color: colors.dark(0.75) },
+        tooltip: `This notebook is currently being edited by ${lockedBy || 'another user'}`
+      }, [icon('lock')])
     ]),
     div({
       style: {
@@ -222,7 +232,7 @@ const Notebooks = _.flow(
     return _.map(({ name }) => printName(name), notebooks)
   }
 
-  refresh = _.flow(
+  refreshNotebooks = _.flow(
     withRequesterPaysHandler(this.props.onRequesterPaysError),
     withErrorReporting('Error loading notebooks'),
     Utils.withBusyState(v => this.setState({ loading: v }))
@@ -230,6 +240,14 @@ const Notebooks = _.flow(
     const { namespace, workspace: { workspace: { bucketName } }, ajax: { Buckets } } = this.props
     const notebooks = await Buckets.listNotebooks(namespace, bucketName)
     this.setState({ notebooks: _.reverse(_.sortBy('updated', notebooks)) })
+  })
+
+  refreshApps = _.flow(
+    withErrorReporting('Error loading Apps'),
+    Utils.withBusyState(v => this.setState({ loading: v }))
+  )(async () => {
+    const { refreshApps } = this.props
+    await refreshApps()
   })
 
   async uploadFiles(files) {
@@ -247,7 +265,7 @@ const Notebooks = _.flow(
         const contents = await Utils.readFileAsText(file)
         return Ajax().Buckets.notebook(namespace, bucketName, resolvedName).create(JSON.parse(contents))
       }, files))
-      this.refresh()
+      this.refreshNotebooks()
     } catch (error) {
       if (error instanceof SyntaxError) {
         reportError('Error uploading notebook', 'This ipynb file is not formatted correctly.')
@@ -261,17 +279,20 @@ const Notebooks = _.flow(
 
   async componentDidMount() {
     const { name: wsName, namespace, workspace: { canShare, workspace: { bucketName } }, authState: { user: { email } } } = this.props
-    const [currentUserHash, potentialLockers] = await Promise.all([notebookLockHash(bucketName, email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
+    const [currentUserHash, potentialLockers] = await Promise.all(
+      [notebookLockHash(bucketName, email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
     this.setState({ currentUserHash, potentialLockers })
-    this.refresh()
+    this.refreshNotebooks()
   }
 
   renderNotebooks(openUploader) {
     const { notebooks, sortOrder: { field, direction }, currentUserHash, potentialLockers, filter } = this.state
     const {
+      apps,
       name: wsName, namespace, listView,
       workspace: { accessLevel }
     } = this.props
+    const app = currentApp(apps)
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.flow(
       _.filter(({ name }) => Utils.textMatch(filter, printName(name))),
@@ -286,24 +307,41 @@ const Notebooks = _.flow(
       }))
     )(notebooks)
 
+    const getGalaxyText = () => {
+      return app ?
+        div({ style: { fontSize: 18, lineHeight: '22px', width: 160 } }, [
+          div(['Galaxy Interactive']),
+          div(['Environment']),
+          // TODO: Actually use status to calculate cost, and actually use disk rather than hardcoding
+          div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status), `: ${Utils.formatUSD(
+            hourlyKubernetesAppCost(app) +
+            persistentDiskCost({ size: 30, status: 'Running' })
+          )} per hr`]),
+          icon('trash', { size: 21 })
+        ]) :
+        div({ style: { fontSize: 18, lineHeight: '22px', width: 160, color: colors.accent() } }, [
+          div(['Create a Cloud']),
+          div(['Environment for ']),
+          div(['Galaxy ', versionTag('Alpha', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` }
+          )]),
+          icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
+        ])
+    }
+
     return div({
-      style: {
-        display: 'flex',
-        marginRight: listView ? undefined : '-2.5rem'
-      }
+      style: { display: 'flex', marginRight: listView ? undefined : '-2.5rem', alignItems: 'flex-start' }
     }, [
       div({
         style: {
           margin: '0 2.5rem 2.5rem 0', display: 'flex',
-          height: 250, width: 200, flexDirection: 'column',
+          width: 200, flexDirection: 'column',
           fontSize: 16, lineHeight: '22px'
         }
       }, [
         h(Clickable, {
           style: {
             ...Style.elements.card.container,
-            flex: 1,
-            color: colors.accent()
+            color: colors.accent(), height: 125
           },
           onClick: () => this.setState({ creating: true }),
           disabled: !canWrite,
@@ -315,10 +353,21 @@ const Notebooks = _.flow(
             icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
           ])
         ]),
-        div({ style: { height: 15 } }),
+        !getConfig().isProd && h(Fragment, [
+          h(Clickable, {
+            style: {
+              ...Style.elements.card.container, height: 125, marginTop: 15
+            },
+            disabled: appIsSettingUp(app),
+            tooltip: appIsSettingUp(app) && 'Your Galaxy app is being created',
+            onClick: () => this.setState({ openGalaxyConfigDrawer: true })
+          }, [
+            getGalaxyText()
+          ])
+        ]),
         h(Clickable, {
           style: {
-            ...Style.elements.card.container, flex: 1,
+            ...Style.elements.card.container, height: 125, marginTop: 15,
             backgroundColor: colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
           },
           onClick: openUploader,
@@ -344,9 +393,9 @@ const Notebooks = _.flow(
   }
 
   render() {
-    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter } = this.state
+    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter, openGalaxyConfigDrawer } = this.state
     const {
-      namespace, name, listView, setListView, workspace,
+      apps, namespace, name, listView, setListView, workspace,
       workspace: { accessLevel, workspace: { bucketName } }
     } = this.props
     const existingNames = this.getExistingNames()
@@ -385,7 +434,7 @@ const Notebooks = _.flow(
           h(ViewToggleButtons, { listView, setListView }),
           creating && h(NotebookCreator, {
             namespace, bucketName, existingNames,
-            reloadList: () => this.refresh(),
+            reloadList: () => this.refreshNotebooks(),
             onDismiss: () => this.setState({ creating: false }),
             onSuccess: () => this.setState({ creating: false })
           }),
@@ -395,7 +444,7 @@ const Notebooks = _.flow(
             onDismiss: () => this.setState({ renamingNotebookName: undefined }),
             onSuccess: () => {
               this.setState({ renamingNotebookName: undefined })
-              this.refresh()
+              this.refreshNotebooks()
             }
           }),
           copyingNotebookName && h(NotebookDuplicator, {
@@ -404,7 +453,7 @@ const Notebooks = _.flow(
             onDismiss: () => this.setState({ copyingNotebookName: undefined }),
             onSuccess: () => {
               this.setState({ copyingNotebookName: undefined })
-              this.refresh()
+              this.refreshNotebooks()
             }
           }),
           exportingNotebookName && h(ExportNotebookModal, {
@@ -416,7 +465,19 @@ const Notebooks = _.flow(
             onDismiss: () => this.setState({ deletingNotebookName: undefined }),
             onSuccess: () => {
               this.setState({ deletingNotebookName: undefined })
-              this.refresh()
+              this.refreshNotebooks()
+            }
+          }),
+          h(NewGalaxyModal, {
+            isOpen: openGalaxyConfigDrawer,
+            workspace,
+            apps,
+            onDismiss: () => {
+              this.setState({ openGalaxyConfigDrawer: false })
+            },
+            onSuccess: () => {
+              this.setState({ openGalaxyConfigDrawer: false })
+              this.refreshApps()
             }
           })
         ]),
@@ -428,7 +489,7 @@ const Notebooks = _.flow(
 
   componentDidUpdate() {
     StateHistory.update(_.pick(
-      ['clusters', 'cluster', 'notebooks', 'sortOrder', 'filter'],
+      ['notebooks', 'sortOrder', 'filter'],
       this.state)
     )
   }

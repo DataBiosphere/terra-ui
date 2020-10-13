@@ -4,20 +4,26 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
 import { div, h, img, p, span } from 'react-hyperscript-helpers'
+import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/cluster-common'
 import { ButtonPrimary, Clickable, IdContainer, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { NewClusterModal } from 'src/components/NewClusterModal'
+import { NewRuntimeModal } from 'src/components/NewClusterModal'
+import { NewGalaxyModal } from 'src/components/NewGalaxyModal'
 import { dataSyncingDocUrl } from 'src/data/machines'
+import galaxyLogo from 'src/images/galaxy.svg'
 import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
-import { clusterCost, currentCluster, deleteText, trimClustersOldestFirst } from 'src/libs/cluster-utils'
+import {
+  appIsSettingUp, collapsedRuntimeStatus, currentApp, currentRuntime,
+  persistentDiskCost, runtimeCost, trimRuntimesOldestFirst
+} from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { errorNotifiedClusters } from 'src/libs/state'
+import { errorNotifiedRuntimes } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -45,67 +51,48 @@ const styles = {
   })
 }
 
-const ClusterIcon = ({ shape, onClick, disabled, style, ...props }) => {
+const RuntimeIcon = ({ shape, onClick, disabled, style, ...props }) => {
   return h(Clickable, {
     style: { color: onClick && !disabled ? colors.accent() : colors.dark(0.7), ...styles.verticalCenter, ...style },
     onClick, disabled, ...props
   }, [icon(shape, { size: 20 })])
 }
 
-export const ClusterErrorModal = ({ cluster, onDismiss }) => {
+export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
   const [error, setError] = useState()
   const [userscriptError, setUserscriptError] = useState(false)
-  const [loadingClusterDetails, setLoadingClusterDetails] = useState(false)
+  const [loadingRuntimeDetails, setLoadingRuntimeDetails] = useState(false)
 
-  const loadClusterError = _.flow(
-    withErrorReporting('Error loading notebook runtime details'),
-    Utils.withBusyState(setLoadingClusterDetails)
+  const loadRuntimeError = _.flow(
+    withErrorReporting('Error loading cloud environment details'),
+    Utils.withBusyState(setLoadingRuntimeDetails)
   )(async () => {
-    const { errors: clusterErrors } = await Ajax().Clusters.cluster(cluster.googleProject, cluster.runtimeName).details()
-    if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), clusterErrors)) {
+    const { errors: runtimeErrors } = await Ajax().Runtimes.runtime(runtime.googleProject, runtime.runtimeName).details()
+    if (_.some(({ errorMessage }) => errorMessage.includes('Userscript failed'), runtimeErrors)) {
       setError(
         await Ajax()
           .Buckets
-          .getObjectPreview(cluster.asyncRuntimeFields.stagingBucket, `userscript_output.txt`, cluster.googleProject, true)
+          .getObjectPreview(runtime.asyncRuntimeFields.stagingBucket, `userscript_output.txt`, runtime.googleProject, true)
           .then(res => res.text()))
       setUserscriptError(true)
     } else {
-      setError(clusterErrors[0].errorMessage)
+      setError(runtimeErrors[0].errorMessage)
     }
   })
 
-  Utils.useOnMount(() => { loadClusterError() })
+  Utils.useOnMount(() => { loadRuntimeError() })
 
   return h(Modal, {
-    title: `Notebook Runtime Creation Failed${userscriptError ? ' due to Userscript Error' : ''}`,
+    title: `Cloud Environment Creation Failed${userscriptError ? ' due to Userscript Error' : ''}`,
     showCancel: false,
     onDismiss
   }, [
     div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word', overflowY: 'auto', maxHeight: 500, background: colors.light() } }, [error]),
-    loadingClusterDetails && spinnerOverlay
+    loadingRuntimeDetails && spinnerOverlay
   ])
 }
 
-export const DeleteClusterModal = ({ cluster: { googleProject, runtimeName }, onDismiss, onSuccess }) => {
-  const [deleting, setDeleting] = useState()
-  const deleteCluster = _.flow(
-    Utils.withBusyState(setDeleting),
-    withErrorReporting('Error deleting notebook runtime')
-  )(async () => {
-    await Ajax().Clusters.cluster(googleProject, runtimeName).delete()
-    onSuccess()
-  })
-  return h(Modal, {
-    title: 'Delete Notebook Runtime?',
-    onDismiss,
-    okButton: deleteCluster
-  }, [
-    h(deleteText),
-    deleting && spinnerOverlay
-  ])
-}
-
-const ClusterErrorNotification = ({ cluster }) => {
+const RuntimeErrorNotification = ({ runtime }) => {
   const [modalOpen, setModalOpen] = useState(false)
 
   return h(Fragment, [
@@ -117,150 +104,167 @@ const ClusterErrorNotification = ({ cluster }) => {
         fontWeight: 'bold'
       }
     }, ['SEE LOG INFO']),
-    modalOpen && h(ClusterErrorModal, {
-      cluster,
+    modalOpen && h(RuntimeErrorModal, {
+      runtime,
       onDismiss: () => setModalOpen(false)
     })
   ])
 }
 
-export default class ClusterManager extends PureComponent {
+export default class RuntimeManager extends PureComponent {
   static propTypes = {
     namespace: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
-    clusters: PropTypes.array,
+    runtimes: PropTypes.array,
+    persistentDisks: PropTypes.array,
     canCompute: PropTypes.bool.isRequired,
-    refreshClusters: PropTypes.func.isRequired
+    refreshRuntimes: PropTypes.func.isRequired,
+    workspace: PropTypes.object,
+    apps: PropTypes.array
   }
 
   constructor(props) {
     super(props)
     this.state = {
       createModalDrawerOpen: false,
-      busy: false
+      busy: false,
+      galaxyDrawerOpen: false
     }
   }
 
   componentDidUpdate(prevProps) {
-    const { namespace, name } = this.props
-    const prevCluster = _.last(_.sortBy('createdDate', _.remove({ status: 'Deleting' }, prevProps.clusters))) || {}
-    const cluster = this.getCurrentCluster() || {}
+    const { namespace, name, apps } = this.props
+    const prevRuntime = _.last(_.sortBy('auditInfo.createdDate', _.remove({ status: 'Deleting' }, prevProps.runtimes))) || {}
+    const runtime = this.getCurrentRuntime() || {}
     const twoMonthsAgo = _.tap(d => d.setMonth(d.getMonth() - 2), new Date())
     const welderCutOff = new Date('2019-08-01')
-    const createdDate = new Date(cluster.createdDate)
-    const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`) || {}
-    const rStudioLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: 'RStudio' })
+    const createdDate = new Date(runtime.createdDate)
+    const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime.id}`) || {}
+    const rStudioLaunchLink = Nav.getLink('workspace-application-launch', { namespace, name, application: 'RStudio' })
+    const app = currentApp(apps)
+    const prevApp = currentApp(prevProps.apps)
 
-    if (cluster.status === 'Error' && prevCluster.status !== 'Error' && !_.includes(cluster.id, errorNotifiedClusters.get())) {
-      notify('error', 'Error Creating Notebook Runtime', {
-        message: h(ClusterErrorNotification, { cluster })
+    if (runtime.status === 'Error' && prevRuntime.status !== 'Error' && !_.includes(runtime.id, errorNotifiedRuntimes.get())) {
+      notify('error', 'Error Creating Cloud Environment', {
+        message: h(RuntimeErrorNotification, { runtime })
       })
-      errorNotifiedClusters.update(Utils.append(cluster.id))
+      errorNotifiedRuntimes.update(Utils.append(runtime.id))
     } else if (
-      cluster.status === 'Running' && prevCluster.status && prevCluster.status !== 'Running' &&
-      cluster.labels.tool === 'RStudio' && window.location.hash !== rStudioLaunchLink
+      runtime.status === 'Running' && prevRuntime.status && prevRuntime.status !== 'Running' &&
+      runtime.labels.tool === 'RStudio' && window.location.hash !== rStudioLaunchLink
     ) {
-      const rStudioNotificationId = notify('info', 'Your runtime is ready.', {
+      const rStudioNotificationId = notify('info', 'Your cloud environment is ready.', {
         message: h(ButtonPrimary, {
           href: rStudioLaunchLink,
           onClick: () => clearNotification(rStudioNotificationId)
-        }, 'Launch Runtime')
+        }, 'Launch Cloud Environment')
       })
     } else if (isAfter(createdDate, welderCutOff) && !isToday(dateNotified)) { // TODO: remove this notification some time after the data syncing release
-      setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
-      notify('warn', 'Please Update Your Runtime', {
+      setDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime.id}`, Date.now())
+      notify('warn', 'Please Update Your Cloud Environment', {
         message: h(Fragment, [
-          p(['Last year, we introduced important updates to Terra that are not compatible with the older notebook runtime associated with this workspace. You are no longer able to save new changes to notebooks using this older runtime.']),
+          p(['Last year, we introduced important updates to Terra that are not compatible with the older cloud environment associated with this workspace. You are no longer able to save new changes to notebooks using this older cloud environment.']),
           h(Link, { href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
         ])
       })
     } else if (isAfter(createdDate, twoMonthsAgo) && !isToday(dateNotified)) {
-      setDynamic(sessionStorage, `notifiedOutdatedCluster${cluster.id}`, Date.now())
-      notify('warn', 'Outdated Notebook Runtime', {
-        message: 'Your notebook runtime is over two months old. Please consider deleting and recreating your runtime in order to access the latest features and security updates.'
+      setDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime.id}`, Date.now())
+      notify('warn', 'Outdated Cloud Environment', {
+        message: 'Your cloud environment is over two months old. Please consider deleting and recreating your cloud environment in order to access the latest features and security updates.'
       })
-    } else if (cluster.status === 'Running' && prevCluster.status === 'Updating') {
+    } else if (runtime.status === 'Running' && prevRuntime.status === 'Updating') {
       notify('success', 'Number of workers has updated successfully.')
+    }
+    if (prevApp && prevApp.status !== 'RUNNING' && app && app.status === 'RUNNING') {
+      const galaxyId = notify('info', 'Your cloud environment for Galaxy is ready.', {
+        message: h(Fragment, [
+          h(GalaxyWarning),
+          h(GalaxyLaunchButton, {
+            app,
+            onClick: () => clearNotification(galaxyId)
+          })
+        ])
+      })
     }
   }
 
-  getActiveClustersOldestFirst() {
-    const { clusters } = this.props
-    return trimClustersOldestFirst(clusters)
+  getActiveRuntimesOldestFirst() {
+    const { runtimes } = this.props
+    return trimRuntimesOldestFirst(runtimes)
   }
 
-  getCurrentCluster() {
-    const { clusters } = this.props
-    return currentCluster(clusters)
+  getCurrentRuntime() {
+    const { runtimes } = this.props
+    return currentRuntime(runtimes)
   }
 
-  async executeAndRefresh(promise, waitBeforeRefreshMillis = 0) {
+  async executeAndRefresh(promise) {
     try {
-      const { refreshClusters } = this.props
+      const { refreshRuntimes } = this.props
       this.setState({ busy: true })
       await promise
-      waitBeforeRefreshMillis && await Utils.delay(waitBeforeRefreshMillis)
-      await refreshClusters()
+      await refreshRuntimes()
     } catch (error) {
-      reportError('Notebook Runtime Error', error)
+      reportError('Cloud Environment Error', error)
     } finally {
       this.setState({ busy: false })
     }
   }
 
-  startCluster() {
-    const { googleProject, runtimeName } = this.getCurrentCluster()
+  startRuntime() {
+    const { googleProject, runtimeName } = this.getCurrentRuntime()
     this.executeAndRefresh(
-      Ajax().Clusters.cluster(googleProject, runtimeName).start()
+      Ajax().Runtimes.runtime(googleProject, runtimeName).start()
     )
   }
 
-  stopCluster() {
-    const { googleProject, runtimeName } = this.getCurrentCluster()
+  stopRuntime() {
+    const { googleProject, runtimeName } = this.getCurrentRuntime()
     this.executeAndRefresh(
-      Ajax().Clusters.cluster(googleProject, runtimeName).stop()
+      Ajax().Runtimes.runtime(googleProject, runtimeName).stop()
     )
   }
 
   render() {
-    const { namespace, name, clusters, canCompute } = this.props
-    const { busy, createModalDrawerOpen, errorModalOpen } = this.state
-    if (!clusters) {
+    const { namespace, name, runtimes, refreshRuntimes, canCompute, persistentDisks, apps, refreshApps, workspace } = this.props
+    const { busy, createModalDrawerOpen, errorModalOpen, galaxyDrawerOpen } = this.state
+    if (!runtimes || !apps) {
       return null
     }
-    const currentCluster = this.getCurrentCluster()
-    const currentStatus = currentCluster?.status
+    const currentRuntime = this.getCurrentRuntime()
+    const currentStatus = collapsedRuntimeStatus(currentRuntime)
 
     const renderIcon = () => {
       switch (currentStatus) {
         case 'Stopped':
-          return h(ClusterIcon, {
+          return h(RuntimeIcon, {
             shape: 'play',
-            onClick: () => this.startCluster(),
+            onClick: () => this.startRuntime(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Start notebook runtime' : noCompute,
-            'aria-label': 'Start notebook runtime'
+            tooltip: canCompute ? 'Start cloud environment' : noCompute,
+            'aria-label': 'Start cloud environment'
           })
         case 'Running':
-          return h(ClusterIcon, {
+          return h(RuntimeIcon, {
             shape: 'pause',
-            onClick: () => this.stopCluster(),
+            onClick: () => this.stopRuntime(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Stop notebook runtime' : noCompute,
-            'aria-label': 'Stop notebook runtime'
+            tooltip: canCompute ? 'Stop cloud environment' : noCompute,
+            'aria-label': 'Stop cloud environment'
           })
         case 'Starting':
         case 'Stopping':
         case 'Updating':
         case 'Creating':
-          return h(ClusterIcon, {
+        case 'LeoReconfiguring':
+          return h(RuntimeIcon, {
             shape: 'sync',
             disabled: true,
-            tooltip: 'Notebook runtime update in progress',
-            'aria-label': 'Notebook runtime update in progress'
+            tooltip: 'Cloud environment update in progress',
+            'aria-label': 'Cloud environment update in progress'
           })
         case 'Error':
-          return h(ClusterIcon, {
+          return h(RuntimeIcon, {
             shape: 'warning-standard',
             style: { color: colors.danger(0.9) },
             onClick: () => this.setState({ errorModalOpen: true }),
@@ -269,76 +273,115 @@ export default class ClusterManager extends PureComponent {
             'aria-label': 'View error'
           })
         default:
-          return h(ClusterIcon, {
+          return h(RuntimeIcon, {
             shape: 'play',
             onClick: () => this.setState({ createModalDrawerOpen: true }),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Create notebook runtime' : noCompute,
-            'aria-label': 'Create notebook runtime'
+            tooltip: canCompute ? 'Create cloud environment' : noCompute,
+            'aria-label': 'Create cloud environment'
           })
       }
     }
-    const totalCost = _.sum(_.map(clusterCost, clusters))
-    const activeClusters = this.getActiveClustersOldestFirst()
-    const { Creating: creating, Updating: updating } = _.countBy('status', activeClusters)
-    const isDisabled = !canCompute || creating || busy || updating
+    const totalCost = _.sum(_.map(runtimeCost, runtimes)) + _.sum(_.map(persistentDiskCost, persistentDisks))
+    const activeRuntimes = this.getActiveRuntimesOldestFirst()
+    const activeDisks = _.remove({ status: 'Deleting' }, persistentDisks)
+    const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring } = _.countBy(collapsedRuntimeStatus, activeRuntimes)
+    const isDisabled = !canCompute || creating || busy || updating || reconfiguring
 
-    const isRStudioImage = currentCluster?.labels.tool === 'RStudio'
-    const appName = isRStudioImage ? 'RStudio' : 'terminal'
-    const appLaunchLink = Nav.getLink('workspace-app-launch', { namespace, name, app: appName })
+    const isRStudioImage = currentRuntime?.labels.tool === 'RStudio'
+    const applicationName = isRStudioImage ? 'RStudio' : 'terminal'
+    const applicationLaunchLink = Nav.getLink('workspace-application-launch', { namespace, name, application: applicationName })
 
-    return div({ style: styles.container }, [
-      activeClusters.length > 1 && h(Link, {
-        style: { marginRight: '1rem' },
-        href: Nav.getLink('clusters'),
-        tooltip: 'Multiple runtimes found in this billing project. Click to select which to delete.'
-      }, [icon('warning-standard', { size: 24, style: { color: colors.danger() } })]),
-      h(Link, {
-        href: appLaunchLink,
-        onClick: window.location.hash === appLaunchLink && currentStatus === 'Stopped' ? () => this.startCluster() : undefined,
-        tooltip: canCompute ? `Open ${appName}` : noCompute,
-        'aria-label': `Open ${appName}`,
-        disabled: !canCompute,
-        style: { marginRight: '2rem', ...styles.verticalCenter },
-        ...(isRStudioImage ? {} : Utils.newTabLinkProps)
-      }, [isRStudioImage ? img({ src: rLogo, alt: '', style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
-      renderIcon(),
-      h(IdContainer, [id => h(Fragment, [
+    const app = currentApp(apps)
+
+    return h(Fragment, [
+      app && div({ style: { ...styles.container, borderRadius: 5, marginRight: '1.5rem' } }, [
         h(Clickable, {
-          id,
-          style: styles.button(isDisabled),
-          tooltip: Utils.cond(
-            [!canCompute, () => noCompute],
-            [creating, () => 'Your environment is being created'],
-            () => 'Update runtime'
-          ),
-          onClick: () => this.setState({ createModalDrawerOpen: true }),
-          disabled: isDisabled
+          style: { display: 'flex' },
+          disabled: appIsSettingUp(app),
+          tooltip: appIsSettingUp(app) ?
+            'Your Galaxy application is being created' :
+            'Update cloud environment',
+          onClick: () => {
+            this.setState({ galaxyDrawerOpen: true })
+          }
         }, [
-          div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
-            div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Notebook Runtime'),
-            div({ style: { fontSize: 10 } }, [
-              span({ style: { textTransform: 'uppercase', fontWeight: 500 } }, currentStatus || 'None'),
-              currentStatus && ` (${Utils.formatUSD(totalCost)} hr)`
-            ])
-          ]),
-          icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
+          img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
+          div([
+            div({ style: { fontSize: 12, fontWeight: 'bold' } }, ['Galaxy']),
+            div({ style: { fontSize: 10, textTransform: 'uppercase' } }, [app.status])
+          ])
         ])
-      ])]),
-      h(NewClusterModal, {
-        isOpen: createModalDrawerOpen,
-        namespace,
-        currentCluster,
-        onDismiss: () => this.setState({ createModalDrawerOpen: false }),
-        onSuccess: (promise, waitBeforeRefreshMillis = 0) => {
-          this.setState({ createModalDrawerOpen: false })
-          this.executeAndRefresh(promise, waitBeforeRefreshMillis)
-        }
-      }),
-      errorModalOpen && h(ClusterErrorModal, {
-        cluster: currentCluster,
-        onDismiss: () => this.setState({ errorModalOpen: false })
-      })
+      ]),
+      div({ style: styles.container }, [
+        (activeRuntimes.length > 1 || activeDisks.length > 1) && h(Link, {
+          style: { marginRight: '1rem' },
+          href: Nav.getLink('environments'),
+          tooltip: 'Multiple cloud environments found in this billing project. Click to select which to delete.'
+        }, [icon('warning-standard', { size: 24, style: { color: colors.danger() } })]),
+        h(Link, {
+          href: applicationLaunchLink,
+          onClick: window.location.hash === applicationLaunchLink && currentStatus === 'Stopped' ? () => this.startRuntime() : undefined,
+          tooltip: canCompute ? `Open ${applicationName}` : noCompute,
+          'aria-label': `Open ${applicationName}`,
+          disabled: !canCompute,
+          style: { marginRight: '2rem', ...styles.verticalCenter },
+          ...(isRStudioImage ? {} : Utils.newTabLinkProps)
+        }, [isRStudioImage ? img({ src: rLogo, alt: '', style: { maxWidth: 24, maxHeight: 24 } }) : icon('terminal', { size: 24 })]),
+        renderIcon(),
+        h(IdContainer, [id => h(Fragment, [
+          h(Clickable, {
+            id,
+            style: styles.button(isDisabled),
+            tooltip: Utils.cond(
+              [!canCompute, () => noCompute],
+              [creating, () => 'Your environment is being created'],
+              () => 'Update cloud environment'
+            ),
+            onClick: () => this.setState({ createModalDrawerOpen: true }),
+            disabled: isDisabled
+          }, [
+            div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
+              div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Cloud Environment'),
+              div({ style: { fontSize: 10 } }, [
+                span({ style: { textTransform: 'uppercase', fontWeight: 500 } },
+                  [currentStatus === 'LeoReconfiguring' ? 'Updating' : (currentStatus || 'None')]),
+                !!totalCost && ` (${Utils.formatUSD(totalCost)} hr)`
+              ])
+            ]),
+            icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
+          ])
+        ])]),
+        h(NewRuntimeModal, {
+          isOpen: createModalDrawerOpen,
+          namespace,
+          name,
+          runtimes,
+          persistentDisks,
+          onDismiss: () => this.setState({ createModalDrawerOpen: false }),
+          onSuccess: _.flow(
+            withErrorReporting('Error loading cloud environment'),
+            Utils.withBusyState(v => this.setState({ busy: v }))
+          )(async () => {
+            this.setState({ createModalDrawerOpen: false })
+            await refreshRuntimes(true)
+          })
+        }),
+        h(NewGalaxyModal, {
+          workspace,
+          apps,
+          isOpen: galaxyDrawerOpen,
+          onDismiss: () => this.setState({ galaxyDrawerOpen: false }),
+          onSuccess: () => {
+            this.setState({ galaxyDrawerOpen: false })
+            refreshApps()
+          }
+        }),
+        errorModalOpen && h(RuntimeErrorModal, {
+          runtime: currentRuntime,
+          onDismiss: () => this.setState({ errorModalOpen: false })
+        })
+      ])
     ])
   }
 }

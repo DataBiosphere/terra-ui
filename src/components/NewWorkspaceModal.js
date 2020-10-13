@@ -13,7 +13,7 @@ import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
-import { authStore, freeCreditsActive } from 'src/libs/state'
+import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
@@ -125,23 +125,21 @@ export default _.flow(
   })
 
   render() {
-    const { onDismiss, cloneWorkspace, authState: { profile }, title, customMessage, buttonText } = this.props
-    const { trialState } = profile
+    const { onDismiss, cloneWorkspace, title, customMessage, buttonText } = this.props
     const { namespace, name, billingProjects, allGroups, groups, description, nameModified, loading, createError, creating } = this.state
     const existingGroups = this.getRequiredGroups()
     const hasBillingProjects = !!billingProjects && !!billingProjects.length
-    const hasFreeCredits = trialState === 'Enabled'
     const errors = validate({ namespace, name }, constraints, {
       prettify: v => ({ namespace: 'Billing project', name: 'Name' }[v] || validate.prettify(v))
     })
 
     return Utils.cond(
-      [loading, spinnerOverlay],
+      [loading, () => spinnerOverlay],
       [hasBillingProjects, () => h(Modal, {
         title: Utils.cond(
-          [title, title],
-          [cloneWorkspace, 'Clone a workspace'],
-          [Utils.DEFAULT, 'Create a New Workspace']
+          [title, () => title],
+          [cloneWorkspace, () => 'Clone a workspace'],
+          () => 'Create a New Workspace'
         ),
         onDismiss,
         okButton: h(ButtonPrimary, {
@@ -149,9 +147,9 @@ export default _.flow(
           tooltip: Utils.summarizeErrors(errors),
           onClick: () => this.create()
         }, Utils.cond(
-          [buttonText, buttonText],
-          [cloneWorkspace, 'Clone Workspace'],
-          [Utils.DEFAULT, 'Create Workspace']
+          [buttonText, () => buttonText],
+          [cloneWorkspace, () => 'Clone Workspace'],
+          () => 'Create Workspace'
         ))
       }, [
         h(IdContainer, [id => h(Fragment, [
@@ -221,29 +219,6 @@ export default _.flow(
           style: { marginTop: '1rem', color: colors.danger() }
         }, [createError]),
         creating && spinnerOverlay
-      ])],
-      [hasFreeCredits, () => h(Modal, {
-        title: 'Set up Billing',
-        onDismiss,
-        showCancel: false,
-        okButton: h(ButtonPrimary, {
-          onClick: () => {
-            onDismiss()
-            freeCreditsActive.set(true)
-          }
-        }, 'Get Free Credits')
-      }, [
-        div({ style: { color: colors.warning() } }, [
-          icon('error-standard', { size: 16, style: { marginRight: '0.5rem' } }),
-          'You need a billing project to ', cloneWorkspace ? 'clone a' : 'create a new', ' workspace.'
-        ]),
-        div({ style: { marginTop: '0.5rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
-          'You have $300 in ',
-          h(Link, {
-            href: 'https://support.terra.bio/hc/en-us/articles/360027940952',
-            ...Utils.newTabLinkProps
-          }, 'free credits'), ' available!'
-        ])
       ])],
       () => h(Modal, {
         title: 'Set up Billing',

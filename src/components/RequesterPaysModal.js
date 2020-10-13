@@ -8,7 +8,7 @@ import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
-import { authStore, freeCreditsActive, requesterPaysProjectStore } from 'src/libs/state'
+import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -20,9 +20,6 @@ const billingHelpInfo = div({ style: { paddingTop: '1rem' } }, [
 ])
 
 const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
-  const { profile } = Utils.useStore(authStore)
-  const { trialState } = profile
-  const hasFreeCredits = trialState === 'Enabled'
   const [loading, setLoading] = useState(false)
   const [billingList, setBillingList] = useState([])
   const [selectedBilling, setSelectedBilling] = useState(requesterPaysProjectStore.get())
@@ -67,29 +64,6 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
         onChange: ({ value }) => setSelectedBilling(value),
         options: _.uniq(_.map('projectName', billingList)).sort()
       }),
-      billingHelpInfo
-    ])],
-    [hasFreeCredits, () => h(Modal, {
-      title: 'Cannot access data',
-      onDismiss,
-      okButton: h(ButtonPrimary, {
-        onClick: () => {
-          onDismiss()
-          freeCreditsActive.set(true)
-        }
-      }, 'Get Free Credits')
-    }, [
-      div('To view or download data in this workspace, please set up a billing project.'),
-      div([
-        'You have $300 in',
-        h(Link, {
-          style: { marginLeft: '0.25rem' },
-          href: 'https://support.terra.bio/hc/en-us/articles/360027940952',
-          ...Utils.newTabLinkProps
-        }, [
-          'free credits', icon('pop-out', { style: { margin: '0 0.25rem' }, size: 12 })
-        ]), 'available!'
-      ]),
       billingHelpInfo
     ])],
     () => h(Modal, {

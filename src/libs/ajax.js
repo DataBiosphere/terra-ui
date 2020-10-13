@@ -27,12 +27,17 @@ const jsonBody = body => ({ body: JSON.stringify(body), headers: { 'Content-Type
 const appIdentifier = { headers: { 'X-App-ID': 'Saturn' } }
 const tosData = { appid: 'Saturn', tosversion: 6 }
 
+// Allows use of ajaxOverrideStore to stub responses for testing
 const withInstrumentation = wrappedFetch => (...args) => {
   return _.flow(
-    ..._.map('fn', _.filter(({ filter }) => args[0].match(filter), ajaxOverridesStore.get()))
+    ..._.map('fn', _.filter(({ filter }) => {
+      const [url, { method = 'GET' } = {}] = args
+      return _.isFunction(filter) ? filter(...args) : url.match(filter.url) && (!filter.method || filter.method === method)
+    }, ajaxOverridesStore.get()))
   )(wrappedFetch)(...args)
 }
 
+// Ignores cancellation error when request is cancelled
 const withCancellation = wrappedFetch => async (...args) => {
   try {
     return await wrappedFetch(...args)
@@ -45,6 +50,7 @@ const withCancellation = wrappedFetch => async (...args) => {
   }
 }
 
+// Converts non-200 responses to exceptions
 const withErrorRejection = wrappedFetch => async (...args) => {
   const res = await wrappedFetch(...args)
   if (res.ok) {
@@ -1011,14 +1017,18 @@ const Submissions = signal => ({
 })
 
 
-const Clusters = signal => ({
+const Runtimes = signal => ({
   list: async (labels = {}) => {
     const res = await fetchLeo(`api/google/v1/runtimes?${qs.stringify({ saturnAutoCreated: true, ...labels })}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },
 
-  cluster: (project, name) => {
+  setCookie: () => {
+    return fetchLeo(`proxy/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
+  },
+
+  runtime: (project, name) => {
     const root = `api/google/v1/runtimes/${project}/${name}`
 
     return {
@@ -1026,8 +1036,8 @@ const Clusters = signal => ({
         const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
         return res.json()
       },
-      create: clusterOptions => {
-        const body = _.merge(clusterOptions, {
+      create: options => {
+        const body = _.merge(options, {
           labels: { saturnAutoCreated: 'true', saturnVersion: version },
           defaultClientId: getConfig().googleClientId,
           userJupyterExtensionConfig: {
@@ -1046,8 +1056,8 @@ const Clusters = signal => ({
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
       },
 
-      update: clusterOptions => {
-        const body = { ...clusterOptions, allowStop: true }
+      update: options => {
+        const body = { ...options, allowStop: true }
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'PATCH' }, appIdentifier]))
       },
 
@@ -1059,8 +1069,9 @@ const Clusters = signal => ({
         return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
       },
 
-      delete: () => {
-        return fetchLeo(root, _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
+      delete: deleteDisk => {
+        return fetchLeo(`${root}${qs.stringify({ deleteDisk }, { addQueryPrefix: true })}`,
+          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
       }
     }
   },
@@ -1078,10 +1089,6 @@ const Clusters = signal => ({
         const body = { action: 'localize', entries }
         return fetchLeo(`${root}/welder/objects`,
           _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }]))
-      },
-
-      setCookie: () => {
-        return fetchLeo(`${root}/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
       },
 
       setStorageLinks: (localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern) => {
@@ -1110,6 +1117,66 @@ const Clusters = signal => ({
   }
 })
 
+const Apps = signal => ({
+  list: async (project, labels = {}) => {
+    const res = await fetchLeo(`api/google/v1/apps/${project}?${qs.stringify({ ...labels })}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    return res.json()
+  },
+  app: (project, name) => {
+    const root = `api/google/v1/apps/${project}/${name}`
+    return {
+      delete: () => {
+        return fetchLeo(`${root}${qs.stringify({ deleteDisk: true }, { addQueryPrefix: true })}`,
+          _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
+      },
+      create: ({ diskName, appType, namespace, bucketName, workspaceName }) => {
+        const body = {
+          labels: { saturnWorkspaceName: workspaceName },
+          diskConfig: {
+            name: diskName,
+            labels: {
+              saturnApplication: 'galaxy'
+            }
+          },
+          customEnvironmentVariables: {
+            WORKSPACE_NAME: workspaceName,
+            WORKSPACE_BUCKET: `gs://${bucketName}`,
+            GOOGLE_PROJECT: namespace
+          },
+          appType
+        }
+        return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
+      }
+    }
+  }
+})
+
+
+const Disks = signal => ({
+  list: async (labels = {}) => {
+    const res = await fetchLeo(`api/google/v1/disks${qs.stringify(labels, { addQueryPrefix: true })}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    return res.json()
+  },
+
+  disk: (project, name) => {
+    return {
+      delete: () => {
+        return fetchLeo(`api/google/v1/disks/${project}/${name}`, _.mergeAll([authOpts(), appIdentifier, { signal, method: 'DELETE' }]))
+      },
+      update: size => {
+        return fetchLeo(`api/google/v1/disks/${project}/${name}`,
+          _.mergeAll([authOpts(), jsonBody({ size }), appIdentifier, { signal, method: 'PATCH' }]))
+      },
+      details: async () => {
+        const res = await fetchLeo(`api/google/v1/disks/${project}/${name}`,
+          _.mergeAll([authOpts(), appIdentifier, { signal, method: 'GET' }]))
+        return res.json()
+      }
+    }
+  }
+})
 
 const Dockstore = signal => ({
   getWdl: async (path, version) => {
@@ -1125,8 +1192,11 @@ const Dockstore = signal => ({
 
 
 const Martha = signal => ({
-  getDataObjectMetadata: async url => {
-    const res = await fetchMartha('martha_v2', _.mergeAll([jsonBody({ url }), appIdentifier, { signal, method: 'POST' }]))
+  getDataObjectMetadata: async (url, fields) => {
+    const res = await fetchMartha(
+      'martha_v3',
+      _.mergeAll([jsonBody({ url, fields }), authOpts(), appIdentifier, { signal, method: 'POST' }])
+    )
     return res.json()
   },
 
@@ -1175,11 +1245,13 @@ export const Ajax = signal => {
     GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),
     Submissions: Submissions(signal),
-    Clusters: Clusters(signal),
+    Runtimes: Runtimes(signal),
+    Apps: Apps(signal),
     Dockstore: Dockstore(signal),
     Martha: Martha(signal),
     Duos: Duos(signal),
-    Metrics: Metrics(signal)
+    Metrics: Metrics(signal),
+    Disks: Disks(signal)
   }
 }
 

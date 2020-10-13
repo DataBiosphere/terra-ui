@@ -452,47 +452,32 @@ export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace
   ])
 }
 
-export const createEntitySet = ({ entities, rootEntityType, newSetName, workspaceId: { namespace, name } }) => {
-  const newSet = {
-    name: newSetName,
-    entityType: `${rootEntityType}_set`, // this will be e.g. if rootEntityType is Sample, Sample_set
-    attributes: {
-      [`${rootEntityType}s`]: {
-        itemsType: 'EntityReference',
-        items: _.map(entityName => ({ entityName, entityType: rootEntityType }), entities)
-      }
-    }
-  }
-
-  return Ajax().Workspaces.workspace(namespace, name).createEntity(newSet)
-}
-
 export const EntityEditor = ({ entityType, entityName, attributeName, attributeValue, entityTypes, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
   const initialIsReference = _.isObject(attributeValue) && (attributeValue.entityType || attributeValue.itemsType === 'EntityReference')
   const initialIsList = _.isObject(attributeValue) && attributeValue.items
   const initialType = Utils.cond(
-    [initialIsReference, 'reference'],
-    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, 'string'],
+    [initialIsReference, () => 'reference'],
+    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, () => 'string'],
     [initialIsList, () => typeof attributeValue.items[0]],
-    typeof attributeValue
+    () => typeof attributeValue
   )
 
   const [newValue, setNewValue] = useState(() => Utils.cond(
     [initialIsReference && initialIsList, () => _.map('entityName', attributeValue.items)],
     [initialIsList, () => attributeValue.items],
     [initialIsReference, () => attributeValue.entityName],
-    attributeValue
+    () => attributeValue
   ))
   const [linkedEntityType, setLinkedEntityType] = useState(() => Utils.cond(
     [initialIsReference && initialIsList, () => attributeValue.items[0] ? attributeValue.items[0].entityType : undefined],
     [initialIsReference, () => attributeValue.entityType],
-    entityTypes[0]
+    () => entityTypes[0]
   ))
   const [editType, setEditType] = useState(() => Utils.cond(
-    [initialIsReference, 'reference'],
-    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, 'string'],
+    [initialIsReference, () => 'reference'],
+    [(initialIsList ? attributeValue.items[0] : attributeValue) === undefined, () => 'string'],
     [initialIsList, () => typeof attributeValue.items[0]],
-    typeof attributeValue
+    () => typeof attributeValue
   ))
   const [isBusy, setIsBusy] = useState()
   const [consideringDelete, setConsideringDelete] = useState()

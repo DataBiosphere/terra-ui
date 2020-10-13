@@ -181,7 +181,7 @@ export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
     style: { verticalAlign: 'middle' },
     disabled
   }, props), [
-    icon('squareSolid', { style: { color: Utils.cond([disabled, colors.light(1.2)], [checked, colors.accent()], 'white') } }), // bg
+    icon('squareSolid', { style: { color: Utils.cond([disabled, () => colors.light(1.2)], [checked, () => colors.accent()], () => 'white') } }), // bg
     !disabled && icon('squareLight', { style: { color: checked ? colors.accent(1.2) : colors.dark(0.75) } }), // border
     checked && icon('check', { size: 8, style: { color: disabled ? colors.dark(0.75) : 'white' } }) // check
   ])
@@ -509,14 +509,21 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) =
       div({ style: { fontSize: 54 } }, `Welcome to ${getAppName()}`),
       div({ style: { margin: '1rem 0', width: 575, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
         `${getAppName(true)} is a ${Utils.cond(
-          [isTerra(), 'cloud-native platform'],
-          [isFirecloud(), 'NCI Cloud Resource project powered by Terra'],
-          'project powered by Terra'
+          [isTerra(), () => 'cloud-native platform'],
+          [isFirecloud(), () => 'NCI Cloud Resource project powered by Terra'],
+          () => 'project powered by Terra'
         )} for biomedical researchers to `,
         heavyWrapper('access data'), ', ', heavyWrapper('run analysis tools'), ', ',
         span({ style: { whiteSpace: 'nowrap' } }, ['and', heavyWrapper(' collaborate'), '.'])
       ]),
       children
     ])
+  ])
+}
+
+export const WarningTitle = ({ children }) => {
+  return div({ style: { display: 'flex', alignItems: 'center' } }, [
+    icon('warning-standard', { size: 36, style: { color: colors.warning(), marginRight: '0.75rem' } }),
+    children
   ])
 }

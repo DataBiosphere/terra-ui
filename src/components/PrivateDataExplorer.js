@@ -103,10 +103,19 @@ export default _.flow(
           p([
             `Thank you for your interest in the Baseline Health Study data. Baseline data is currently only being shared
              with Baseline Health Study partner sites, Duke and Stanford. If you are a current researcher at one of those sites,
-             please reach out to your institutional contacts for information on how to obtain access. In the future, Baseline 
+             please reach out to your institutional contacts for information on how to obtain access. In the future, Baseline
              is planning to make this data available to qualified researchers, outside of these partner sites.`
           ]),
-          p(['Please reach out to ', h(Link, { href: 'mailto:support@terra.bio' }, ['support@terra.bio']), ' if you have any additional questions.'])
+          p([
+            'Please fill out the ',
+            h(Link, {
+              href: 'https://docs.google.com/forms/d/1tWyRmUBnjVYyN7548-dytgIApFdlvt_wrbeshsz-OeA/viewform?edit_requested=true',
+              ...Utils.newTabLinkProps
+            }, [
+              'Baseline Health Study Data Attestation form'
+            ]),
+            ' to be granted access.'
+          ])
         ])
       ], [
         'NHS', () => h(Fragment, [
@@ -143,10 +152,10 @@ export default _.flow(
 
     return h(Fragment, [
       Utils.cond(
-        [groups === undefined || completedDeOauth === undefined, centeredSpinner],
+        [groups === undefined || completedDeOauth === undefined, () => centeredSpinner],
         [groups && groups.includes(authDomain) && completedDeOauth === false, () => { window.open(origin, '_self') }],
-        [groups && groups.includes(authDomain), h(DataExplorerFrame, { dataset })],
-        notInAuthDomainError
+        [groups && groups.includes(authDomain), () => h(DataExplorerFrame, { dataset })],
+        () => notInAuthDomainError
       )
     ])
   }

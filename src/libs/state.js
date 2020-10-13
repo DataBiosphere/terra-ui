@@ -14,6 +14,7 @@ export const authStore = Utils.atom({
 })
 
 window.authStore = authStore
+export const cookieReadyStore = Utils.atom(false)
 
 export const lastActiveTimeStore = staticStorageSlot(localStorage, 'idleTimeout')
 lastActiveTimeStore.update(v => v || {})
@@ -33,7 +34,7 @@ export const workspacesStore = Utils.atom()
 
 export const rerunFailuresStatus = Utils.atom()
 
-export const errorNotifiedClusters = Utils.atom([])
+export const errorNotifiedRuntimes = Utils.atom([])
 
 export const knownBucketRequesterPaysStatuses = Utils.atom({})
 

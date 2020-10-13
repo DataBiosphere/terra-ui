@@ -88,6 +88,14 @@ const ioTask = ({ name }) => _.nth(-2, name.split('.'))
 const ioVariable = ({ name }) => _.nth(-1, name.split('.'))
 const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
 
+// Trim a config down based on what the `/inputsOutputs` endpoint says
+const filterConfigIO = ({ inputs, outputs }) => {
+  return _.flow(
+    _.update('inputs', _.pick(_.map('name', inputs))),
+    _.update('outputs', _.pick(_.map('name', outputs)))
+  )
+}
+
 const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions, readOnly }) => {
   const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' })
 
@@ -411,7 +419,7 @@ const WorkflowView = _.flow(
           ['outputs', () => this.renderIOTable('outputs')]
         ),
         launching && h(LaunchAnalysisModal, {
-          workspaceId, config: savedConfig, entityMetadata,
+          workspace, config: savedConfig, entityMetadata,
           accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache, deleteIntermediateOutputFiles,
           onDismiss: () => this.setState({ launching: false }),
@@ -469,7 +477,16 @@ const WorkflowView = _.flow(
       const inputsOutputs = isRedacted ? {} : await Methods.configInputsOutputs(config)
       const selection = workflowSelectionStore.get()
       const readSelection = selectionKey && selection.key === selectionKey
-      const modifiedConfig = readSelection ? _.set('rootEntityType', selection.entityType, config) : config
+
+      // Dockstore users who target floating tags can change their WDL via Github without explicitly selecting a new version in Terra.
+      // Before letting the user edit the config we retrieved from the DB, drop any keys that are no longer valid. [WA-291]
+      // N.B. this causes `config` and `modifiedConfig` to be unequal, so we (accurately) prompt the user to save before launching
+      // DO NOT filter when a config is redacted, when there's no IO from the WDL we would erase the user's inputs
+      const modifiedConfig = _.flow(
+        readSelection ? _.set('rootEntityType', selection.entityType) : _.identity,
+        !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
+      )(config)
+
       this.setState({
         savedConfig: config, modifiedConfig,
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
@@ -541,7 +558,7 @@ const WorkflowView = _.flow(
       (type === chooseSetComponents && count > 0) || count > 1) ? `(will create a new set named "${newSetName}")` : ''
     const baseEntityType = isSet(rootEntityType) ? rootEntityType.slice(0, -4) : rootEntityType
     return Utils.cond(
-      [this.isSingle() || !rootEntityType, ''],
+      [this.isSingle() || !rootEntityType, () => ''],
       [type === processAll, () => `all ${entityMetadata[rootEntityType]?.count || 0} ${rootEntityType}s ${newSetMessage}`],
       [type === processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
       [type === chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
@@ -570,8 +587,7 @@ const WorkflowView = _.flow(
       { modifiedInputsOutputs, savedSnapRedacted: currentSnapRedacted, currentSnapRedacted: false })
     this.setState(_.update('modifiedConfig', _.flow(
       _.set('methodRepoMethod', config.methodRepoMethod),
-      _.update('inputs', _.pick(_.map('name', modifiedInputsOutputs.inputs))),
-      _.update('outputs', _.pick(_.map('name', modifiedInputsOutputs.outputs)))
+      filterConfigIO(modifiedInputsOutputs)
     )))
     this.fetchInfo(config)
   })

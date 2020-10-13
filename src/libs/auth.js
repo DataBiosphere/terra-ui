@@ -10,7 +10,7 @@ import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { allProviders } from 'src/libs/providers'
-import { authStore, pfbImportJobStore, requesterPaysProjectStore, workspacesStore, workspaceStore } from 'src/libs/state'
+import { authStore, cookieReadyStore, pfbImportJobStore, requesterPaysProjectStore, workspacesStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -19,6 +19,9 @@ const getAuthInstance = () => {
 }
 
 export const signOut = () => {
+  // Note: Ideally, we'd actually clear the Leo proxy cookie here, but there's not currently an endpoint to do that.
+  // When IA-2236 is done, add that call here.
+  cookieReadyStore.reset()
   sessionStorage.clear()
   getAuthInstance().signOut()
 }
