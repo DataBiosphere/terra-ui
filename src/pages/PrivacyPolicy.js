@@ -61,7 +61,7 @@ We follow the laws of all the countries where we operate. We follow the laws of 
         
     3. Vendors and Service Providers
         
-        * We use [various third-party vendors and service providers](https://support.terra.bio/hc/en-us/articles/360039434212), such as Google Cloud and MixPanel, that assist us in providing the Platform.For example, we may use third-party vendors to store and authenticate account credentials, store and analyze system logs, send email communications, and for hosting and storing information collected through our Platform. We may need to share your information with these vendors and service providers to enable them to provide these services to us. These service providers and vendors are required to only use your information to provide their services to us and in a manner consistent with this Policy.
+        * We use [various third-party vendors and service providers](https://support.terra.bio/hc/en-us/articles/360039434212), such as Google Cloud and MixPanel, that assist us in providing the Platform. For example, we may use third-party vendors to store and authenticate account credentials, store and analyze system logs, send email communications, and for hosting and storing information collected through our Platform. We may need to share your information with these vendors and service providers to enable them to provide these services to us. These service providers and vendors are required to only use your information to provide their services to us and in a manner consistent with this Policy.
 
 4. Information You Share With Other Users; Forums
 
