@@ -411,8 +411,7 @@ export const UnlinkFenceAccount = ({ linkText, provider }) => {
           authStore.update(_.set(['fenceStatus', provider.key], {}))
           setIsModalOpen(false)
           notify('success', 'Successfully unlinked account', {
-            message: `Successfully unlinked your account from ${provider.key}`,
-            detail: `You have unlinked your account from ${provider.key}, and no longer have access to any underlying datasets. You can relink at any time.`,
+            message: `Successfully unlinked your account from ${provider.name}`,
             timeout: 30000
           })
         }
