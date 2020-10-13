@@ -23,9 +23,9 @@ const constraints = {
 export const Register = () => {
   const user = getUser()
   const [busy, setBusy] = useState(false)
-  const [givenName, setGivenName] = useState(user ? user.givenName : '')
-  const [familyName, setFamilyName] = useState(user ? user.familyName : '')
-  const [email, setEmail] = useState(user ? user.email : '')
+  const [givenName, setGivenName] = useState(user.givenName || '')
+  const [familyName, setFamilyName] = useState(user.familyName || '')
+  const [email, setEmail] = useState(user.email || '')
 
   const register = async () => {
     try {
@@ -37,9 +37,8 @@ export const Register = () => {
       })
       authStore.update(state => ({ ...state, registrationStatus: 'registered' }))
       await refreshTerraProfile()
-      await Ajax().Metrics.captureEvent(Events.userRegister)
+      Ajax().Metrics.captureEvent(Events.userRegister)
     } catch (error) {
-      console.error(error)
       reportError('Error registering', error)
       setBusy(false)
     }
