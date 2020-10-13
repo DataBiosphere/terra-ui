@@ -119,7 +119,7 @@ const PROJECT_SPECIFIC_MODE = '__project_specific_mode__'
 
 export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterModal extends Component {
   static propTypes = {
-    clusters: PropTypes.array,
+    runtimes: PropTypes.array,
     persistentDisks: PropTypes.array,
     namespace: PropTypes.string.isRequired,
     onDismiss: PropTypes.func.isRequired,
@@ -164,15 +164,15 @@ export const NewClusterModal = withModalDrawer({ width: 675 })(class NewClusterM
   }
 
   getCurrentRuntime() {
-    const { clusters } = this.props
-    return currentRuntime(clusters)
+    const { runtimes } = this.props
+    return currentRuntime(runtimes)
   }
 
   getCurrentPersistentDisk() {
     const currentRuntime = this.getCurrentRuntime()
-    const { clusters, persistentDisks } = this.props
+    const { runtimes, persistentDisks } = this.props
     const id = currentRuntime?.runtimeConfig.persistentDiskId
-    const attachedIds = _.without([undefined], _.map(runtime => runtime.runtimeConfig.persistentDiskId, clusters))
+    const attachedIds = _.without([undefined], _.map(runtime => runtime.runtimeConfig.persistentDiskId, runtimes))
     return id ?
       _.find({ id }, persistentDisks) :
       _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id, status }) => status !== 'Deleting' && !_.includes(id, attachedIds), persistentDisks)))
