@@ -316,7 +316,7 @@ const Environments = () => {
         ]
       }),
       errorRuntimeId && h(ClusterErrorModal, {
-        cluster: _.find({ id: errorRuntimeId }, runtimes),
+        runtime: _.find({ id: errorRuntimeId }, runtimes),
         onDismiss: () => setErrorRuntimeId(undefined)
       }),
       deleteRuntimeId && h(DeleteRuntimeModal, {

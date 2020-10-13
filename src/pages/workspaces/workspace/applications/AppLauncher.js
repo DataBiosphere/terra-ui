@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ClusterKicker, ClusterStatusMonitor, PlaygroundHeader, StatusMessage } from 'src/components/cluster-common'
+import { PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/cluster-common'
 import { Link, spinnerOverlay } from 'src/components/common'
 import { NewClusterModal } from 'src/components/NewClusterModal'
 import { Ajax } from 'src/libs/ajax'
@@ -21,24 +21,24 @@ const AppLauncher = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: _.get('app')
   })
-)(({ namespace, name, refreshClusters, clusters, persistentDisks, app }, ref) => {
+)(({ namespace, name, refreshRuntimes, runtimes, persistentDisks, app }, ref) => {
   const cookieReady = Utils.useStore(cookieReadyStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
 
-  const runtime = currentRuntime(clusters)
+  const runtime = currentRuntime(runtimes)
   const runtimeStatus = collapsedRuntimeStatus(runtime) // preserve null vs undefined
 
   return h(Fragment, [
-    h(ClusterStatusMonitor, {
-      cluster: runtime,
-      onClusterStartedRunning: () => {
+    h(RuntimeStatusMonitor, {
+      runtime,
+      onRuntimeStartedRunning: () => {
         Ajax().Metrics.captureEvent(Events.applicationLaunch, { app })
       }
     }),
-    h(ClusterKicker, {
-      cluster: runtime, refreshClusters,
-      onNullCluster: () => setShowCreate(true)
+    h(RuntimeKicker, {
+      runtime, refreshRuntimes,
+      onNullRuntime: () => setShowCreate(true)
     }),
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
@@ -76,14 +76,14 @@ const AppLauncher = _.flow(
         ]),
         h(NewClusterModal, {
           isOpen: showCreate,
-          namespace, name, clusters, persistentDisks,
+          namespace, name, runtimes, persistentDisks,
           onDismiss: () => setShowCreate(false),
           onSuccess: _.flow(
             withErrorReporting('Error loading cloud environment'),
             Utils.withBusyState(setBusy)
           )(async () => {
             setShowCreate(false)
-            await refreshClusters(true)
+            await refreshRuntimes(true)
           })
         }),
         busy && spinnerOverlay

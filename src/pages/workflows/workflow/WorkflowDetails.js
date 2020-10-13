@@ -1,4 +1,4 @@
-import clipboard from 'clipboard-polyfill'
+import * as clipboard from 'clipboard-polyfill/text'
 import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'

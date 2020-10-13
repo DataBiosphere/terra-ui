@@ -12,6 +12,7 @@ const printWarning = message => {
 }
 
 module.exports = {
+  browserContext: 'incognito',
   launch: {
     devtools: process.env.DEVTOOLS === 'true',
     headless: process.env.HEADLESS !== 'false',
