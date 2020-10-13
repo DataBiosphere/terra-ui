@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, p, span } from 'react-hyperscript-helpers'
 import { SaveFilesHelp } from 'src/components/cluster-common'
-import { ClusterErrorModal } from 'src/components/ClusterManager'
+import { RuntimeErrorModal } from 'src/components/ClusterManager'
 import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
@@ -315,7 +315,7 @@ const Environments = () => {
           }
         ]
       }),
-      errorRuntimeId && h(ClusterErrorModal, {
+      errorRuntimeId && h(RuntimeErrorModal, {
         runtime: _.find({ id: errorRuntimeId }, runtimes),
         onDismiss: () => setErrorRuntimeId(undefined)
       }),
@@ -342,8 +342,8 @@ const Environments = () => {
 
 export const navPaths = [
   {
-    name: 'clusters',
-    path: '/clusters',
+    name: 'environments',
+    path: '/clusters', // NB: This path name is a holdover from a previous naming scheme
     component: Environments,
     title: 'Cloud environments'
   }

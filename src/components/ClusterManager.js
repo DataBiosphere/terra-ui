@@ -8,7 +8,7 @@ import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/cluster-common
 import { ButtonPrimary, Clickable, IdContainer, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { NewClusterModal } from 'src/components/NewClusterModal'
+import { NewRuntimeModal } from 'src/components/NewClusterModal'
 import { NewGalaxyModal } from 'src/components/NewGalaxyModal'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import galaxyLogo from 'src/images/galaxy.svg'
@@ -23,7 +23,7 @@ import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { errorNotifiedClusters } from 'src/libs/state'
+import { errorNotifiedRuntimes } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -58,7 +58,7 @@ const RuntimeIcon = ({ shape, onClick, disabled, style, ...props }) => {
   }, [icon(shape, { size: 20 })])
 }
 
-export const ClusterErrorModal = ({ runtime, onDismiss }) => {
+export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
   const [error, setError] = useState()
   const [userscriptError, setUserscriptError] = useState(false)
   const [loadingRuntimeDetails, setLoadingRuntimeDetails] = useState(false)
@@ -104,14 +104,14 @@ const RuntimeErrorNotification = ({ runtime }) => {
         fontWeight: 'bold'
       }
     }, ['SEE LOG INFO']),
-    modalOpen && h(ClusterErrorModal, {
+    modalOpen && h(RuntimeErrorModal, {
       runtime,
       onDismiss: () => setModalOpen(false)
     })
   ])
 }
 
-export default class ClusterManager extends PureComponent {
+export default class RuntimeManager extends PureComponent {
   static propTypes = {
     namespace: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
@@ -144,11 +144,11 @@ export default class ClusterManager extends PureComponent {
     const app = currentApp(apps)
     const prevApp = currentApp(prevProps.apps)
 
-    if (runtime.status === 'Error' && prevRuntime.status !== 'Error' && !_.includes(runtime.id, errorNotifiedClusters.get())) {
+    if (runtime.status === 'Error' && prevRuntime.status !== 'Error' && !_.includes(runtime.id, errorNotifiedRuntimes.get())) {
       notify('error', 'Error Creating Cloud Environment', {
         message: h(RuntimeErrorNotification, { runtime })
       })
-      errorNotifiedClusters.update(Utils.append(runtime.id))
+      errorNotifiedRuntimes.update(Utils.append(runtime.id))
     } else if (
       runtime.status === 'Running' && prevRuntime.status && prevRuntime.status !== 'Running' &&
       runtime.labels.tool === 'RStudio' && window.location.hash !== rStudioLaunchLink
@@ -316,7 +316,7 @@ export default class ClusterManager extends PureComponent {
       div({ style: styles.container }, [
         (activeRuntimes.length > 1 || activeDisks.length > 1) && h(Link, {
           style: { marginRight: '1rem' },
-          href: Nav.getLink('clusters'),
+          href: Nav.getLink('environments'),
           tooltip: 'Multiple cloud environments found in this billing project. Click to select which to delete.'
         }, [icon('warning-standard', { size: 24, style: { color: colors.danger() } })]),
         h(Link, {
@@ -352,7 +352,7 @@ export default class ClusterManager extends PureComponent {
             icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
           ])
         ])]),
-        h(NewClusterModal, {
+        h(NewRuntimeModal, {
           isOpen: createModalDrawerOpen,
           namespace,
           name,
@@ -377,7 +377,7 @@ export default class ClusterManager extends PureComponent {
             refreshApps()
           }
         }),
-        errorModalOpen && h(ClusterErrorModal, {
+        errorModalOpen && h(RuntimeErrorModal, {
           runtime: currentRuntime,
           onDismiss: () => this.setState({ errorModalOpen: false })
         })

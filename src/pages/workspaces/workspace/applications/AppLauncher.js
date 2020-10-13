@@ -4,7 +4,7 @@ import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/cluster-common'
 import { Link, spinnerOverlay } from 'src/components/common'
-import { NewClusterModal } from 'src/components/NewClusterModal'
+import { NewRuntimeModal } from 'src/components/NewClusterModal'
 import { Ajax } from 'src/libs/ajax'
 import { collapsedRuntimeStatus, currentRuntime, usableStatuses } from 'src/libs/cluster-utils'
 import { withErrorReporting } from 'src/libs/error'
@@ -74,7 +74,7 @@ const ApplicationLauncher = _.flow(
             () => 'Unknown cloud environment status. Please create a new cloud environment or contact support.'
           )
         ]),
-        h(NewClusterModal, {
+        h(NewRuntimeModal, {
           isOpen: showCreate,
           namespace, name, runtimes, persistentDisks,
           onDismiss: () => setShowCreate(false),
