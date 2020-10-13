@@ -80,6 +80,7 @@ export const initializeAuth = _.memoize(async () => {
       return {
         ...state,
         isSignedIn,
+        anonymousId: !isSignedIn && state.isSignedIn ? undefined : state.anonymousId,
         registrationStatus: isSignedIn ? state.registrationStatus : undefined,
         acceptedTos: isSignedIn ? state.acceptedTos : undefined,
         profile: isSignedIn ? state.profile : {},
