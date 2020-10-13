@@ -5,7 +5,7 @@ import { div, h } from 'react-hyperscript-helpers'
 import { FrameworkServiceLink, ShibbolethLink } from 'src/components/common'
 import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
-import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
@@ -198,12 +198,13 @@ authStore.subscribe(async (state, oldState) => {
   }
 })
 
-// TODO make this conditional on an anonId being present
-authStore.subscribe(withErrorIgnoring(async (state, oldState) => {
+authStore.subscribe(async (state, oldState) => {
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    return await Ajax().Metrics.mergeEvent(state.anonymousId)
+    if (state.anonymousId) {
+      return await Ajax().Metrics.mergeEvent(state.anonymousId)
+    }
   }
-}))
+})
 
 authStore.subscribe((state, oldState) => {
   if (state.nihStatus !== oldState.nihStatus) {

@@ -1239,20 +1239,6 @@ const Metrics = signal => ({
     return fetchBard('api/syncProfile', _.merge(authOpts(), { signal, method: 'POST' }))
   }),
 
-  captureAnonEvent: withErrorIgnoring((event, details = {}) => {
-    const body = {
-      event,
-      properties: {
-        ...details,
-        appId: 'Saturn',
-        hostname: window.location.hostname,
-        appPath: Nav.getCurrentRoute().name
-      }
-    }
-
-    return fetchBard('api/event', _.mergeAll([jsonBody(body), { signal, method: 'POST' }]))
-  }),
-
   mergeEvent: withErrorIgnoring(anonId => {
     const body = {
       anonId
