@@ -7,7 +7,7 @@ import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
-import * as _ from 'lodash/fp'
+import _ from 'lodash/fp'
 
 
 export default class DeleteWorkspaceModal extends Component {
@@ -39,7 +39,7 @@ export default class DeleteWorkspaceModal extends Component {
       title: 'Delete workspace',
       onDismiss,
       okButton: h(ButtonPrimary, {
-        disabled: _.toLower(deleteConfirmation) !== 'i understand',
+        disabled: _.toLower(deleteConfirmation) !== 'delete workspace',
         onClick: () => this.deleteWorkspace()
       }, 'Delete workspace')
     }, [
@@ -60,10 +60,10 @@ export default class DeleteWorkspaceModal extends Component {
         }
       }, 'This cannot be undone.'),
       div({ style: { marginTop: '1rem' } }, [
-        label({ htmlFor: 'understand' }, ['Please type \'I Understand\' to continue:']),
+        label({ htmlFor: 'delete-workspace-confirmation' }, ['Please type \'Delete Workspace\' to continue:']),
         h(TextInput, {
-          id: 'understand',
-          placeholder: 'I Understand',
+          id: 'delete-workspace-confirmation',
+          placeholder: 'Delete Workspace',
           value: deleteConfirmation,
           onChange: v => this.setState({ deleteConfirmation: v })
         }),
