@@ -201,7 +201,7 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
             onClick: () => this.hideNav()
           }, [
             icon('view-cards', { size: 24, style: styles.nav.icon }),
-            'Your Workspaces'
+            'Workspaces'
           ]),
           h(DropDownSection, {
             titleIcon: 'library',
