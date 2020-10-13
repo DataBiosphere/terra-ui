@@ -193,9 +193,6 @@ export const generateKubernetesClusterName = () => `saturn-k8-${uuid()}`
 
 export const generatePersistentDiskName = () => `saturn-pd-${uuid()}`
 
-export const generateAnonUserId = () => `${uuid()}`
-
-
 export const waitOneTick = () => new Promise(setImmediate)
 
 export const entityAttributeText = (value, machineReadable) => {

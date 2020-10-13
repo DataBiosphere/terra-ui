@@ -10,7 +10,7 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { registrationLogo } from 'src/libs/logos'
-import { authStore, unregisteredUserIdStore } from 'src/libs/state'
+import { authStore } from 'src/libs/state'
 import validate from 'validate.js'
 
 
@@ -38,9 +38,6 @@ export const Register = () => {
       authStore.update(state => ({ ...state, registrationStatus: 'registered' }))
       await refreshTerraProfile()
       await Ajax().Metrics.captureEvent(Events.userRegister)
-      console.log('finished sending event')
-      await Ajax().Metrics.mergeEvent(unregisteredUserIdStore.get())
-      console.log('finished merging event')
     } catch (error) {
       console.error(error)
       reportError('Error registering', error)

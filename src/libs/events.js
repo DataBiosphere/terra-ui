@@ -1,8 +1,6 @@
 import { useEffect } from 'react'
 import { Ajax } from 'src/libs/ajax'
 import { useRoute } from 'src/libs/nav'
-import { authStore, unregisteredUserIdStore } from 'src/libs/state'
-import * as Utils from 'src/libs/utils'
 
 
 const eventsList = {
@@ -44,24 +42,10 @@ export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
 
 export const PageViewReporter = () => {
   const { name } = useRoute()
-  const { isSignedIn, registrationStatus } = Utils.useStore(authStore)
-
-  const prevId = Utils.useStore(unregisteredUserIdStore)
-  const userID = prevId ? prevId : Utils.generateAnonUserId()
 
   useEffect(() => {
-    if (isSignedIn && registrationStatus === 'registered') {
-      Ajax().Metrics.captureEvent(`${eventsList.pageView}:${name}`)
-    } else {
-      Ajax().Metrics.captureAnonEvent(`${eventsList.pageView}:${name}`, {
-        distinct_id: userID
-      })
-    }
-  }, [isSignedIn, name, registrationStatus, userID])
-
-  if (!prevId) {
-    unregisteredUserIdStore.set(userID)
-  }
+    Ajax().Metrics.captureEvent(`${eventsList.pageView}:${name}`)
+  }, [name])
 
   return null
 }
