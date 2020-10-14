@@ -152,7 +152,7 @@ const NihLink = ({ nihToken }) => {
    */
   return div({ style: { marginBottom: '1rem' } }, [
     div({ style: styles.form.title }, [
-      span({ style: { marginRight: '0.5rem' } }, ['NIH Account']),
+      span({ style: { marginRight: '0.5rem', fontWeight: 600 } }, ['NIH Account']),
       h(InfoBox, [
         'Linking with eRA Commons will allow Terra to automatically determine if you can access controlled datasets hosted in Terra (ex. TCGA) based on your valid dbGaP applications.'
       ])
@@ -210,7 +210,7 @@ const FenceLink = ({ provider: { key, name } }) => {
   const expireTime = addDays(30, parseJSON(issuedAt))
 
   return div({ style: { marginBottom: '1rem' } }, [
-    div({ style: styles.form.title }, [name]),
+    div({ style: { ...styles.form.title, fontWeight: 600 } }, [name]),
     Utils.cond(
       [isBusy, () => div([spinner(), 'Loading account status...'])],
       [!username, () => div({ style: styles.identityLine },
