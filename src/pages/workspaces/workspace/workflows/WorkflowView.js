@@ -533,15 +533,15 @@ const WorkflowView = _.flow(
 
   async fetchInfo(savedConfig, currentSnapRedacted) {
     const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = savedConfig
-    const { ajax: { Dockstore, Methods } } = this.props
+    const { signal } = this.props
     try {
       if (sourceRepo === 'agora') {
         if (!currentSnapRedacted) {
-          const { synopsis, documentation, payload } = await Methods.method(methodNamespace, methodName, methodVersion).get()
+          const { synopsis, documentation, payload } = await Ajax(signal).Methods.method(methodNamespace, methodName, methodVersion).get()
           this.setState({ synopsis, documentation, wdl: payload })
         }
       } else if (sourceRepo === 'dockstore') {
-        const wdl = await Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => descriptor)
+        const wdl = await Ajax(signal).Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => descriptor)
         this.setState({ wdl })
       } else {
         throw new Error('unknown sourceRepo')
@@ -579,10 +579,10 @@ const WorkflowView = _.flow(
     withErrorReporting('Error updating config'),
     Utils.withBusyState(v => this.setState({ updatingConfig: v }))
   )(async newSnapshotId => {
-    const { ajax: { Methods } } = this.props
+    const { signal } = this.props
     const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName, methodPath, sourceRepo } }, currentSnapRedacted } = this.state
-    const config = await Methods.template({ methodNamespace, methodName, methodPath, sourceRepo, methodVersion: newSnapshotId })
-    const modifiedInputsOutputs = await Methods.configInputsOutputs(config)
+    const config = await Ajax(signal).Methods.template({ methodNamespace, methodName, methodPath, sourceRepo, methodVersion: newSnapshotId })
+    const modifiedInputsOutputs = await Ajax(signal).Methods.configInputsOutputs(config)
     this.setState(
       { modifiedInputsOutputs, savedSnapRedacted: currentSnapRedacted, currentSnapRedacted: false })
     this.setState(_.update('modifiedConfig', _.flow(
