@@ -1,6 +1,8 @@
+import _ from 'lodash/fp'
 import { Component } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, label, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
+import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
@@ -12,7 +14,8 @@ export default class DeleteWorkspaceModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      deleting: false
+      deleting: false,
+      deleteConfirmation: ''
     }
   }
 
@@ -31,11 +34,12 @@ export default class DeleteWorkspaceModal extends Component {
 
   render() {
     const { workspace: { workspace: { bucketName, name } }, onDismiss } = this.props
-    const { deleting } = this.state
+    const { deleteConfirmation, deleting } = this.state
     return h(Modal, {
       title: 'Delete workspace',
       onDismiss,
       okButton: h(ButtonPrimary, {
+        disabled: _.toLower(deleteConfirmation) !== 'delete workspace',
         onClick: () => this.deleteWorkspace()
       }, 'Delete workspace')
     }, [
@@ -55,6 +59,15 @@ export default class DeleteWorkspaceModal extends Component {
           marginTop: '1rem'
         }
       }, 'This cannot be undone.'),
+      div({ style: { marginTop: '1rem' } }, [
+        label({ htmlFor: 'delete-workspace-confirmation' }, ['Please type \'Delete Workspace\' to continue:']),
+        h(TextInput, {
+          id: 'delete-workspace-confirmation',
+          placeholder: 'Delete Workspace',
+          value: deleteConfirmation,
+          onChange: v => this.setState({ deleteConfirmation: v })
+        })
+      ]),
       deleting && spinnerOverlay
     ])
   }
