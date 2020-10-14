@@ -122,7 +122,7 @@ const NihLink = ({ nihToken }) => {
   const renderStatus = () => {
     const { linkedNihUsername, linkExpireTime, datasetPermissions } = nihStatus
     return div({ style: styles.identityLine }, [
-      !linkedNihUsername && div({ style: styles.identityLine }, [ShibbolethLink, ['Log in to NIH to link your account']]),
+      !linkedNihUsername && h(ShibbolethLink, ['Log in to NIH to link your account']),
       !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
         div({ style: styles.identityLine }, [
           div({ style: { flex: 1 } }, ['Username:']),
