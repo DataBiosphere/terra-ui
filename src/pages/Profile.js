@@ -122,25 +122,23 @@ const NihLink = ({ nihToken }) => {
   const renderStatus = () => {
     const { linkedNihUsername, linkExpireTime, datasetPermissions } = nihStatus
     return div({ style: styles.identityLine }, [
-      h(Fragment, [
-        !linkedNihUsername && div({ style: styles.identityLine }, [ShibbolethLink, ['Log in to NIH to link your account']]),
-        !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
-          div({ style: styles.identityLine }, [
-            div({ style: { flex: 1 } }, ['Username:']),
-            div({ style: { flex: 2 } }, [linkedNihUsername])
-          ]),
-          div({ style: styles.identityLine }, [
-            div({ style: { flex: 1 } }, ['Link Expiration:']),
-            div({ style: { flex: 2 } }, [
-              div([Utils.makeCompleteDate(linkExpireTime * 1000)]),
-              div({ style: styles.identityLine }, [h(ShibbolethLink, ['Renew'])])
-            ])
-          ]),
-          _.flow(
-            _.sortBy('name'),
-            _.map(renderDatasetAuthStatus)
-          )(datasetPermissions)
-        ])
+      !linkedNihUsername && div({ style: styles.identityLine }, [ShibbolethLink, ['Log in to NIH to link your account']]),
+      !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
+        div({ style: styles.identityLine }, [
+          div({ style: { flex: 1 } }, ['Username:']),
+          div({ style: { flex: 2 } }, [linkedNihUsername])
+        ]),
+        div({ style: styles.identityLine }, [
+          div({ style: { flex: 1 } }, ['Link Expiration:']),
+          div({ style: { flex: 2 } }, [
+            div([Utils.makeCompleteDate(linkExpireTime * 1000)]),
+            div({ style: styles.identityLine }, [h(ShibbolethLink, ['Renew'])])
+          ])
+        ]),
+        _.flow(
+          _.sortBy('name'),
+          _.map(renderDatasetAuthStatus)
+        )(datasetPermissions)
       ])
     ])
   }
@@ -217,15 +215,11 @@ const FenceLink = ({ provider: { key, name } }) => {
         [h(FrameworkServiceLink, { linkText: 'Log in to link your account', provider: key, redirectUrl })]
       )],
       () => div([
-        div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
-          div({ style: styles.identityLine }, [
-            div({ style: { flex: 1 } }, ['Username:']),
-            div({ style: { flex: 2 } }, [username])
-          ]),
-          div({ style: styles.identityLine }, [
-            div({ style: { flex: 1 } }, ['Link Expiration:']),
-            div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
-          ])
+        div({ style: { ...styles.identityLine, display: 'flex', flexDirection: 'column', width: '33rem' } }, [
+          div({ style: { flex: 1 } }, ['Username:']),
+          div({ style: { flex: 2 } }, [username]),
+          div({ style: { flex: 1 } }, ['Link Expiration:']),
+          div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
         ]),
         div({ style: styles.identityLine }, [
           h(FrameworkServiceLink, { linkText: 'Renew', provider: key, redirectUrl }),
