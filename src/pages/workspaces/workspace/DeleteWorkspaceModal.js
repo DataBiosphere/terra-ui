@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { Component } from 'react'
 import { div, h, label, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
@@ -7,7 +8,6 @@ import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import { reportError } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
-import _ from 'lodash/fp'
 
 
 export default class DeleteWorkspaceModal extends Component {
@@ -66,7 +66,7 @@ export default class DeleteWorkspaceModal extends Component {
           placeholder: 'Delete Workspace',
           value: deleteConfirmation,
           onChange: v => this.setState({ deleteConfirmation: v })
-        }),
+        })
       ]),
       deleting && spinnerOverlay
     ])
