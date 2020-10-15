@@ -1077,7 +1077,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             !!isPersistentDisk && renderPersistentDiskSection(),
             !sparkMode && !isPersistentDisk && div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
               div([
-                'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safegard your work and data. ',
+                'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
                 h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
               ]),
               h(ButtonOutline, {
