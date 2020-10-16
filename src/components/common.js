@@ -397,8 +397,7 @@ export const UnlinkFenceAccount = ({ linkText, provider }) => {
   const [isUnlinking, setIsUnlinking] = useState(false)
 
   return div({ style: { display: 'inline-flex' } }, [
-    h(Link, { onClick: () => { setIsModalOpen(true) } },
-      [linkText, icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })]),
+    h(Link, { onClick: () => { setIsModalOpen(true) } }, [linkText]),
     isModalOpen && h(Modal, {
       title: 'Confirm unlink account',
       onDismiss: () => setIsModalOpen(false),
