@@ -2,7 +2,7 @@ import { addDays, differenceInDays, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { FrameworkServiceLink, ShibbolethLink } from 'src/components/common'
+import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from 'src/components/common'
 import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
@@ -248,11 +248,11 @@ authStore.subscribe((state, oldState) => {
       )
       if (expireStatus) {
         notify('info', div([
-          `Your access to ${name} ${expireStatus}. To `,
-          expireStatus === 'has expired' ? 'restore ' : 'renew ',
-          'access, log-in to Framework Services to ',
-          h(FrameworkServiceLink, { linkText: 're-link', provider: key, redirectUrl }),
-          ' your account'
+          `Your access to ${name} ${expireStatus}. Log in to `,
+          h(FrameworkServiceLink, { linkText: expireStatus === 'has expired' ? 'restore ' : 'renew ', provider: key, redirectUrl }),
+          ' your access or ',
+          h(UnlinkFenceAccount, { linkText: 'unlink ', provider: { key, name } }),
+          ' your account.'
         ]), { id: notificationId })
       } else {
         clearNotification(notificationId)
