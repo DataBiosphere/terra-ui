@@ -214,16 +214,14 @@ const FenceLink = ({ provider: { key, name } }) => {
       [!username, () => div({ style: styles.identityLine },
         [h(FrameworkServiceLink, { linkText: 'Log in to link your account', provider: key, redirectUrl })]
       )],
-      () => div([
-        div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
-          div({ style: styles.identityLine }, [
-            div({ style: { flex: 1 } }, ['Username:']),
-            div({ style: { flex: 2 } }, [username])
-          ]),
-          div({ style: styles.identityLine }, [
-            div({ style: { flex: 1 } }, ['Link Expiration:']),
-            div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
-          ])
+      () => div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
+        div({ style: styles.identityLine }, [
+          div({ style: { flex: 1 } }, ['Username:']),
+          div({ style: { flex: 2 } }, [username])
+        ]),
+        div({ style: styles.identityLine }, [
+          div({ style: { flex: 1 } }, ['Link Expiration:']),
+          div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
         ]),
         div({ style: styles.identityLine }, [
           h(FrameworkServiceLink, { linkText: 'Renew', provider: key, redirectUrl }),
