@@ -9,6 +9,7 @@ import RSwitch from 'react-switch'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
+import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import landingPageHero from 'src/images/landing-page-hero.jpg'
@@ -19,6 +20,8 @@ import { getConfig, isFirecloud, isTerra } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName, returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import { notify } from 'src/libs/notifications'
+import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -367,7 +370,6 @@ export const ShibbolethLink = ({ children, ...props }) => {
   ])
 }
 
-
 export const FrameworkServiceLink = ({ linkText, provider, redirectUrl }) => {
   const [href, setHref] = useState()
 
@@ -388,6 +390,38 @@ export const FrameworkServiceLink = ({ linkText, provider, redirectUrl }) => {
       linkText,
       icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
     ]) : h(Fragment, [linkText])
+}
+
+export const UnlinkFenceAccount = ({ linkText, provider }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isUnlinking, setIsUnlinking] = useState(false)
+
+  return div({ style: { display: 'inline-flex' } }, [
+    h(Link, { onClick: () => { setIsModalOpen(true) } }, [linkText]),
+    isModalOpen && h(Modal, {
+      title: 'Confirm unlink account',
+      onDismiss: () => setIsModalOpen(false),
+      okButton: h(ButtonPrimary, {
+        onClick: _.flow(
+          withErrorReporting('Error unlinking account'),
+          Utils.withBusyState(setIsUnlinking)
+        )(async () => {
+          await Ajax().User.unlinkFenceAccount(provider.key)
+          authStore.update(_.set(['fenceStatus', provider.key], {}))
+          setIsModalOpen(false)
+          notify('success', 'Successfully unlinked account', {
+            message: `Successfully unlinked your account from ${provider.name}`,
+            timeout: 30000
+          })
+        }
+        )
+      }, 'OK')
+    }, [
+      div([`Are you sure you want to unlink from ${provider.name}?`]),
+      div({ style: { marginTop: '1rem' } }, ['You will lose access to any underlying datasets. You can always re-link your account later.']),
+      isUnlinking && spinnerOverlay
+    ])
+  ])
 }
 
 export const IdContainer = ({ children }) => {

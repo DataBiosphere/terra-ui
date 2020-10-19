@@ -4,7 +4,7 @@ import * as qs from 'qs'
 import { Component, Fragment, useState } from 'react'
 import { div, h, label, span } from 'react-hyperscript-helpers'
 import {
-  ButtonPrimary, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay
+  ButtonPrimary, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay, UnlinkFenceAccount
 } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon, profilePic, spinner } from 'src/components/icons'
@@ -61,6 +61,10 @@ const styles = {
     checkboxLabel: {
       marginLeft: '0.5rem'
     }
+  },
+  identityLine: {
+    display: 'flex',
+    margin: '.3rem 0 0'
   }
 }
 
@@ -96,7 +100,7 @@ const NihLink = ({ nihToken }) => {
    * Render helpers
    */
   const renderDatasetAuthStatus = ({ name, authorized }) => {
-    return div({ key: `nih-auth-status-${name}`, style: { display: 'flex' } }, [
+    return div({ key: `nih-auth-status-${name}`, style: styles.identityLine }, [
       div({ style: { flex: 1 } }, [`${name} Authorization`]),
       div({ style: { flex: 2 } }, [
         authorized ? 'Authorized' : span({ style: { marginRight: '0.5rem' } }, ['Not Authorized']),
@@ -117,18 +121,18 @@ const NihLink = ({ nihToken }) => {
 
   const renderStatus = () => {
     const { linkedNihUsername, linkExpireTime, datasetPermissions } = nihStatus
-    return h(Fragment, [
+    return div({ style: styles.identityLine }, [
       !linkedNihUsername && h(ShibbolethLink, ['Log in to NIH to link your account']),
       !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
-        div({ style: { display: 'flex' } }, [
+        div({ style: styles.identityLine }, [
           div({ style: { flex: 1 } }, ['Username:']),
           div({ style: { flex: 2 } }, [linkedNihUsername])
         ]),
-        div({ style: { display: 'flex' } }, [
+        div({ style: styles.identityLine }, [
           div({ style: { flex: 1 } }, ['Link Expiration:']),
           div({ style: { flex: 2 } }, [
             div([Utils.makeCompleteDate(linkExpireTime * 1000)]),
-            div([h(ShibbolethLink, ['Log in to NIH to re-link your account'])])
+            div({ style: styles.identityLine }, [h(ShibbolethLink, ['Renew'])])
           ])
         ]),
         _.flow(
@@ -146,7 +150,7 @@ const NihLink = ({ nihToken }) => {
    */
   return div({ style: { marginBottom: '1rem' } }, [
     div({ style: styles.form.title }, [
-      span({ style: { marginRight: '0.5rem' } }, ['NIH Account']),
+      span({ style: { marginRight: '0.5rem', fontWeight: 600 } }, ['NIH Account']),
       h(InfoBox, [
         'Linking with eRA Commons will allow Terra to automatically determine if you can access controlled datasets hosted in Terra (ex. TCGA) based on your valid dbGaP applications.'
       ])
@@ -204,20 +208,26 @@ const FenceLink = ({ provider: { key, name } }) => {
   const expireTime = addDays(30, parseJSON(issuedAt))
 
   return div({ style: { marginBottom: '1rem' } }, [
-    div({ style: styles.form.title }, [name]),
+    div({ style: { ...styles.form.title, fontWeight: 600 } }, [name]),
     Utils.cond(
       [isBusy, () => div([spinner(), 'Loading account status...'])],
-      [!username, () => h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to link your account', provider: key, redirectUrl })],
+      [!username, () => div({ style: styles.identityLine },
+        [h(FrameworkServiceLink, { linkText: 'Log in to link your account', provider: key, redirectUrl })]
+      )],
       () => div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
-        div({ style: { display: 'flex' } }, [
+        div({ style: styles.identityLine }, [
           div({ style: { flex: 1 } }, ['Username:']),
           div({ style: { flex: 2 } }, [username])
         ]),
-        div({ style: { display: 'flex' } }, [
+        div({ style: styles.identityLine }, [
           div({ style: { flex: 1 } }, ['Link Expiration:']),
           div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
         ]),
-        h(FrameworkServiceLink, { linkText: 'Log-In to Framework Services to re-link your account', provider: key, redirectUrl })
+        div({ style: styles.identityLine }, [
+          h(FrameworkServiceLink, { linkText: 'Renew', provider: key, redirectUrl }),
+          span({ style: { margin: '0 .25rem 0' } }, [' | ']),
+          h(UnlinkFenceAccount, { linkText: 'Unlink', provider: { key, name } })
+        ])
       ])
     )
   ])
