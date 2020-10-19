@@ -56,7 +56,47 @@ const HallOfFame = () => {
       {
         name: 'Adrian Sharma',
         dates: 'October 2019 - May 2020',
-        pic: 'https://media-exp1.licdn.com/dms/image/C4D03AQGxPOLoSvNMxg/profile-displayphoto-shrink_200_200/0?e=1596672000&v=beta&t=-kRYR4BI3ezoWQ1u1aMzvR68KZ2WlMhA3p7tR3eIiTA'
+        pic: 'https://ca.slack-edge.com/E0166C33N6A-W016LL7S70B-59279567a73f-512'
+      },
+      {
+        name: 'Cameron Ardell',
+        dates: 'July 2019 - September 2020',
+        pic: 'https://github.com/cameron-ardell.png?size=200'
+      },
+      {
+        name: 'Kai Feldman',
+        dates: 'June 2020 - October 2020',
+        pic: 'https://github.com/Shakespeared.png?size=200'
+      },
+      {
+        name: 'Sky Rubenstein',
+        dates: 'May 2020 - October 2020',
+        pic: 'https://github.com/s-rubenstein.png?size=200'
+      },
+      {
+        name: 'Amelia Sagoff',
+        dates: 'May 2019 - October 2020',
+        pic: 'https://ca.slack-edge.com/E0166C33N6A-W016J6KHYD9-gfb9968e159b-512'
+      },
+      {
+        name: 'Imani Harrison',
+        dates: 'August 2019 - October 2020',
+        pic: 'https://ca.slack-edge.com/E0166C33N6A-W016J7JRP51-8cc61da30e32-512'
+      },
+      {
+        name: 'Emily Hanna',
+        dates: 'August 2019 - October 2020',
+        pic: 'https://github.com/ehanna4.png?size=200'
+      },
+      {
+        name: 'Brian Reilly',
+        dates: 'November 2018 - October 2020',
+        pic: 'https://github.com/breilly2.png?size=200'
+      },
+      {
+        name: 'Brett Heath-Wlaz',
+        dates: 'April 2018 - October 2020',
+        pic: 'https://github.com/panentheos.png?size=200'
       }
     ]))
   ])
