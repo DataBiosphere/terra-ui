@@ -16,7 +16,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
+import { isAnvil } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
@@ -352,7 +352,7 @@ const Notebooks = _.flow(
             icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
           ])
         ]),
-        !getConfig().isProd && h(Fragment, [
+        isAnvil() && h(Fragment, [
           h(Clickable, {
             style: {
               ...Style.elements.card.container, height: 125, marginTop: 15
