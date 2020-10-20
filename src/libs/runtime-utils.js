@@ -69,6 +69,12 @@ export const runtimeCost = ({ runtimeConfig, status }) => {
   }
 }
 
+export const getGalaxyCost = app => {
+  return hourlyKubernetesAppCost(app) + persistentDiskCost({ size: 250 + 10 + 100, status: 'Running' })
+  // 250Gb for the NFS disk, 10Gb for the postgres disk, and 100Gb for the boot disk
+  // to do: retrieve the disk sizes from the app not just hardcode them
+}
+
 export const trimRuntimesOldestFirst = _.flow(
   _.remove({ status: 'Deleting' }),
   _.sortBy('auditInfo.createdDate')

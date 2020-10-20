@@ -11,7 +11,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import { currentApp, hourlyKubernetesAppCost, persistentDiskCost } from 'src/libs/runtime-utils'
+import { currentApp, getGalaxyCost } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -119,7 +119,7 @@ export const NewGalaxyModal = _.flow(
 
   const renderDefaultCase = () => {
     const { cpu, memory } = _.find({ name: 'n1-standard-8' }, machineTypes)
-    const cost = hourlyKubernetesAppCost(app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8' } }) + persistentDiskCost({ size: 30, status: 'Running' })
+    const cost = getGalaxyCost(app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8' } })
     return h(Fragment, [
       div([`Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`]),
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
@@ -127,15 +127,15 @@ export const NewGalaxyModal = _.flow(
           div({ style: styles.headerText }, ['Environment Settings']),
           ul({ style: { paddingLeft: '1rem', lineHeight: 1.5 } }, [
             li({ style: { marginTop: '1rem' } }, [
-              'Galaxy version 20.09.3'
+              'Galaxy version 20.09'
             ]),
             li({ style: { marginTop: '1rem' } }, [
               'Cloud Compute size of ',
               // Temporarily hard-coded disk size, once it can be customized this should be revisited
-              span({ style: { fontWeight: 600 } }, [`${cpu} CPUS, ${memory} GB of memory, 30 GB disk space`])
+              span({ style: { fontWeight: 600 } }, [`${cpu} CPUS, ${memory} GB of memory, 250 GB disk space`])
             ]),
             li({ style: { marginTop: '1rem' } }, [
-              'Running cloud compute costs ',
+              'Estimated cost of cloud compute: ',
               span({ style: { fontWeight: 600 } }, [Utils.formatUSD(cost), ' per hr'])
             ])
           ]),
