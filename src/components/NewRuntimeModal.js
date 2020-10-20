@@ -115,7 +115,6 @@ const RadioBlock = ({ labelText, children, name, checked, onChange, style = {} }
 }
 
 const CUSTOM_MODE = '__custom_mode__'
-const PROJECT_SPECIFIC_MODE = '__project_specific_mode__'
 
 export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeModal extends Component {
   static propTypes = {
@@ -306,7 +305,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       await Ajax().Runtimes.runtime(namespace, Utils.generateRuntimeName()).create({
         runtimeConfig,
         toolDockerImage: newRuntime.toolDockerImage,
-        labels: { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` },
+        labels: {},
         ...(newRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: newRuntime.jupyterUserScriptUri } : {})
       })
     }
@@ -328,7 +327,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
         [(viewMode !== 'deleteEnvironmentOptions'), () => {
           return {
             cloudService,
-            toolDockerImage: _.includes(selectedLeoImage, [CUSTOM_MODE, PROJECT_SPECIFIC_MODE]) ? customEnvImage : selectedLeoImage,
+            toolDockerImage: _.includes(selectedLeoImage, [CUSTOM_MODE]) ? customEnvImage : selectedLeoImage,
             ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
             ...(cloudService === cloudServices.GCE ? {
               machineType: masterMachineType,
@@ -466,7 +465,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     })
     const [currentRuntimeDetails, newLeoImages, currentPersistentDiskDetails] = await Promise.all([
       currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
-      Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json()),
+      Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'gabriela-test-rstudio.json', namespace, true).then(res => res.json()),
       currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
     ])
 
@@ -474,7 +473,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const foundImage = _.find({ image: imageUrl }, newLeoImages)
     this.setState({
       leoImages: newLeoImages, currentRuntimeDetails, currentPersistentDiskDetails,
-      selectedLeoImage: foundImage ? imageUrl : (currentRuntimeDetails?.labels.saturnIsProjectSpecific === 'true' ? PROJECT_SPECIFIC_MODE : CUSTOM_MODE),
+      selectedLeoImage: foundImage ? imageUrl : CUSTOM_MODE,
       customEnvImage: !foundImage ? imageUrl : '',
       jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri || '',
       ...this.getInitialState(currentRuntimeDetails, currentPersistentDiskDetails)
@@ -551,7 +550,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
 
     const isPersistentDisk = this.shouldUsePersistentDisk()
 
-    const isCustomImage = selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE
+    const isCustomImage = selectedLeoImage === CUSTOM_MODE
 
     const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
     const errors = validate(
@@ -614,15 +613,19 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
         options: [
           {
             label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
-            options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isCommunity }) => !isCommunity, leoImages))
+            options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isCommunity, isRStudio }) => (!isCommunity && !isRStudio), leoImages))
           },
           {
             label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
             options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isCommunity }) => isCommunity, leoImages))
           },
+          {
+            label: 'COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)',
+            options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isRStudio }) => isRStudio, leoImages))
+          },
           ...(includeCustom ? [{
             label: 'OTHER ENVIRONMENTS',
-            options: [{ label: 'Custom Environment', value: CUSTOM_MODE }, { label: 'Project-Specific Environment', value: PROJECT_SPECIFIC_MODE }]
+            options: [{ label: 'Custom Environment', value: CUSTOM_MODE }]
           }] : [])
         ]
       })
@@ -692,28 +695,6 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                 ' or a ',
                 h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-Specific image'])
               ])
-            ])
-          }],
-          [PROJECT_SPECIFIC_MODE, () => {
-            return div({ style: { lineHeight: 1.5 } }, [
-              'Some consortium projects, such as ',
-              h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['AnVIL']),
-              ', have created environments that are specific to their project. If you want to use one of these:',
-              div({ style: { marginTop: '0.5rem' } }, [
-                '1. Find the environment image (',
-                h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['view image list']),
-                ') '
-              ]),
-              div({ style: { margin: '0.5rem 0' } }, ['2. Copy the URL from the github repository']),
-              div({ style: { margin: '0.5rem 0' } }, ['3. Enter the URL for the image in the text box below']),
-              h(ValidatedInput, {
-                inputProps: {
-                  placeholder: 'Paste image path here',
-                  value: customEnvImage,
-                  onChange: customEnvImage => this.setState({ customEnvImage })
-                },
-                error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
-              })
             ])
           }],
           [Utils.DEFAULT, () => {
