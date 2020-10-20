@@ -16,6 +16,7 @@ import rLogo from 'src/images/r-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import { getDynamic, setDynamic } from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
+import { isAnvil } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
@@ -292,7 +293,7 @@ export default class RuntimeManager extends PureComponent {
     const app = currentApp(apps)
 
     return h(Fragment, [
-      app && div({ style: { ...styles.container, borderRadius: 5, marginRight: '1.5rem' } }, [
+      app && isAnvil() && div({ style: { ...styles.container, borderRadius: 5, marginRight: '1.5rem' } }, [
         h(Clickable, {
           style: { display: 'flex' },
           disabled: appIsSettingUp(app),
