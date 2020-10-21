@@ -293,7 +293,7 @@ export default class RuntimeManager extends PureComponent {
     const app = currentApp(apps)
 
     return h(Fragment, [
-      app && isAnvil() && div({ style: { ...styles.container, borderRadius: 5, marginRight: '1.5rem' } }, [
+      app && div({ style: { ...styles.container, borderRadius: 5, marginRight: '1.5rem' } }, [
         h(Clickable, {
           style: { display: 'flex' },
           disabled: appIsSettingUp(app),
