@@ -81,7 +81,7 @@ export const NewGalaxyModal = _.flow(
           div([
             span({ style: styles.headerText }, ['Set up duration']),
             div({ style: { lineHeight: 1.5 } }, [
-              div(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
+              div(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['5-7 minutes.'])]),
               div(['You can navigate away, and we will notify you when it\'s ready. '])
             ]),
             div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
@@ -106,7 +106,7 @@ export const NewGalaxyModal = _.flow(
       div({ style: { marginTop: '1rem' } }, [
         'Deleting your Cloud Environment will stop your ',
         'running Galaxy application and your application costs. You can create a new Cloud Environment ',
-        'for Galaxy later, which will take 8-10 minutes.'
+        'for Galaxy later, which will take 5-7 minutes.'
       ])
     ])
   }
