@@ -106,16 +106,7 @@ export default _.flow(
              please reach out to your institutional contacts for information on how to obtain access. In the future, Baseline
              is planning to make this data available to qualified researchers, outside of these partner sites.`
           ]),
-          p([
-            'Please fill out the ',
-            h(Link, {
-              href: 'https://docs.google.com/forms/d/1tWyRmUBnjVYyN7548-dytgIApFdlvt_wrbeshsz-OeA/viewform?edit_requested=true',
-              ...Utils.newTabLinkProps
-            }, [
-              'Baseline Health Study Data Attestation form'
-            ]),
-            ' to be granted access.'
-          ])
+          p(['Please reach out to ', h(Link, { href: 'mailto:support@terra.bio' }, ['support@terra.bio']), ' if you have any additional questions.'])
         ])
       ], [
         'NHS', () => h(Fragment, [
