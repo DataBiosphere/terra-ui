@@ -156,6 +156,9 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
               !readOnly ? h(DelayedAutocompleteTextArea, {
                 autosize: true,
                 'aria-label': name,
+                // without quoting both the key and value for spellcheck, it won't make it to the browser
+                // eslint-disable-next-line quote-props
+                'spellcheck': 'false',
                 placeholder: optional ? 'Optional' : 'Required',
                 value,
                 style: isFile ? { paddingRight: '2rem' } : undefined,
