@@ -71,9 +71,8 @@ export const runtimeCost = ({ runtimeConfig, status }) => {
 
 export const getGalaxyCost = app => {
   // numNodes * price per node + diskCost
-  ({ kubernetesRuntimeConfig }) => {
-    return kubernetesRuntimeConfig.numNodes * hourlyKubernetesAppCost(app) + persistentDiskCost({ size: 250 + 10 + 100 + 100, status: 'Running' })
-  }
+  return app.kubernetesRuntimeConfig.numNodes * hourlyKubernetesAppCost(app) + persistentDiskCost({ size: 250 + 10 + 100 + 100, status: 'Running' })
+
   // 250Gb for the NFS disk, 10Gb for the postgres disk, and 200Gb for boot disks (1 boot disk per nodepool)
   // to do: retrieve the disk sizes from the app not just hardcode them
 }
