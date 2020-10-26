@@ -42,7 +42,6 @@ const ApplicationLauncher = _.flow(
     }),
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
-        application === 'RStudio',
         iframe({
           src: `${runtime.proxyUrl}/${application === 'terminal' ? 'terminals/1' : ''}`,
           style: {

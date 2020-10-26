@@ -304,7 +304,6 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       await Ajax().Runtimes.runtime(namespace, Utils.generateRuntimeName()).create({
         runtimeConfig,
         toolDockerImage: newRuntime.toolDockerImage,
-        labels: {},
         ...(newRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: newRuntime.jupyterUserScriptUri } : {})
       })
     }
