@@ -325,7 +325,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
         [(viewMode !== 'deleteEnvironmentOptions'), () => {
           return {
             cloudService,
-            toolDockerImage: _.includes(selectedLeoImage, [CUSTOM_MODE]) ? customEnvImage : selectedLeoImage,
+            toolDockerImage: selectedLeoImage === CUSTOM_MODE ? customEnvImage : selectedLeoImage,
             ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
             ...(cloudService === cloudServices.GCE ? {
               machineType: masterMachineType,
