@@ -450,6 +450,22 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)?.imageUrl
   }
 
+  getCurrentMountDirectory(currentRuntimeDetails) {
+    if (currentRuntimeDetails?.labels.tool) {
+      return currentRuntimeDetails?.labels.tool === 'RStudio' ? '/home/rstudio' : '/home/jupyter-user/notebooks'
+    } else {
+      return ''
+    }
+  }
+
+  getAboutPDWording(currentRuntimeDetails) {
+    if (this.getCurrentMountDirectory(currentRuntimeDetails) === '') {
+      return '/home/jupyter-user/notebooks for Jupyter environments and /home/rstudio for RStudio environments.'
+    } else {
+      return this.getCurrentMountDirectory(currentRuntimeDetails)
+    }
+  }
+
   componentDidMount = _.flow(
     withErrorReporting('Error loading cloud environment'),
     Utils.withBusyState(v => this.setState({ loading: v }))
@@ -501,7 +517,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
   }
 
   renderDeleteDiskChoices() {
-    const { deleteDiskSelected, currentPersistentDiskDetails } = this.state
+    const { deleteDiskSelected, currentPersistentDiskDetails, currentRuntimeDetails } = this.state
     return h(Fragment, [
       h(RadioBlock, {
         name: 'delete-persistent-disk',
@@ -509,7 +525,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
         checked: !deleteDiskSelected,
         onChange: () => this.setState({ deleteDiskSelected: false })
       }, [
-        p(['Please save your analysis data in the directory ', code({ style: { fontWeight: 600 } }, ['/home/jupyter-user/notebooks']), ' to ensure it’s stored on your disk.']),
+        p(['Please save your analysis data in the directory ', code({ style: { fontWeight: 600 } }, [this.getCurrentMountDirectory(currentRuntimeDetails)]), ' to ensure it’s stored on your disk.']),
         p([
           'Deletes your application configuration and cloud compute profile, but detaches your persistent disk and saves it for later. ',
           'The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.'
@@ -1071,6 +1087,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     }
 
     const renderAboutPersistentDisk = () => {
+      const { currentRuntimeDetails } = this.state
       return div({ style: styles.drawerContent }, [
         h(TitleBar, {
           style: styles.titleBar,
@@ -1079,7 +1096,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
         div({ style: { lineHeight: 1.5 } }, [
-          p(['Your persistent disk is mounted in the directory ', code({ style: { fontWeight: 600 } }, ['/home/jupyter-user/notebooks']), br(), 'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
+          p(['Your persistent disk is mounted in the directory ', code({ style: { fontWeight: 600 } }, [this.getAboutPDWording(currentRuntimeDetails)]), br(), 'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
           p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
           p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
           p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
