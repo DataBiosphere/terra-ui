@@ -705,9 +705,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
               ]),
               div([
                 'Custom environments ', b(['must ']), 'be based off one of the ',
-                h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images']),
-                ' or a ',
-                h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-Specific image'])
+                h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images'])
               ])
             ])
           }],
