@@ -450,19 +450,9 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
   }
 
   getCurrentMountDirectory(currentRuntimeDetails) {
-    if (currentRuntimeDetails?.labels.tool) {
-      return currentRuntimeDetails?.labels.tool === 'RStudio' ? '/home/rstudio' : '/home/jupyter-user/notebooks'
-    } else {
-      return ''
-    }
-  }
-
-  getAboutPDWording(currentRuntimeDetails) {
-    if (this.getCurrentMountDirectory(currentRuntimeDetails) === '') {
-      return '/home/jupyter-user/notebooks for Jupyter environments and /home/rstudio for RStudio environments.'
-    } else {
-      return this.getCurrentMountDirectory(currentRuntimeDetails)
-    }
+    const rstudioMountPoint = '/home/rstudio'
+    const jupyterMountPoint = '/home/jupyter-user/notebooks'
+    return currentRuntimeDetails?.labels.tool ? (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) : jupyterMountPoint + ' for Jupyter environments and ' + rstudioMountPoint + ' for RStudio environments'
   }
 
   componentDidMount = _.flow(
@@ -1093,7 +1083,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
         div({ style: { lineHeight: 1.5 } }, [
-          p(['Your persistent disk is mounted in the directory ', code({ style: { fontWeight: 600 } }, [this.getAboutPDWording(currentRuntimeDetails)]), br(), 'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
+          p(['Your persistent disk is mounted in the directory ', code({ style: { fontWeight: 600 } }, [this.getCurrentMountDirectory(currentRuntimeDetails)]), br(), 'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
           p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
           p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
           p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
