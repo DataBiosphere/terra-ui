@@ -452,7 +452,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
   getCurrentMountDirectory(currentRuntimeDetails) {
     const rstudioMountPoint = '/home/rstudio'
     const jupyterMountPoint = '/home/jupyter-user/notebooks'
-    const noMountDirectory = ''.concat(jupyterMountPoint, ' for Jupyter environments and ', rstudioMountPoint, ' for RStudio environments')
+    const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
     return currentRuntimeDetails?.labels.tool ? (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) : noMountDirectory
   }
 
