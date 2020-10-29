@@ -2,9 +2,9 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Link, spinnerOverlay } from 'src/components/common'
+import { spinnerOverlay } from 'src/components/common'
 import { NewRuntimeModal } from 'src/components/NewRuntimeModal'
-import { PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
+import { RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -42,14 +42,6 @@ const ApplicationLauncher = _.flow(
     }),
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
-        application === 'RStudio' && h(PlaygroundHeader, [
-          'This feature is in early development. Your files are saved on your cloud environment but not to your workspace. We encourage you to frequently ',
-          h(Link, {
-            href: 'https://support.terra.bio/hc/en-us/articles/360037269472#h_822db925-41fa-4797-b0da-0839580a74da',
-            ...Utils.newTabLinkProps
-          }, ['back up your files manually']),
-          '.'
-        ]),
         iframe({
           src: `${runtime.proxyUrl}/${application === 'terminal' ? 'terminals/1' : ''}`,
           style: {

@@ -35,8 +35,6 @@ const styles = {
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
 const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
-const rstudioBaseImages = 'https://github.com/anvilproject/anvil-docker'
-const zendeskImagePage = 'https://support.terra.bio/hc/en-us/articles/360037269472-Working-with-project-specific-environments-in-Terra#h_b5773619-e264-471c-9647-f9b826c27820'
 
 // distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
@@ -115,7 +113,6 @@ const RadioBlock = ({ labelText, children, name, checked, onChange, style = {} }
 }
 
 const CUSTOM_MODE = '__custom_mode__'
-const PROJECT_SPECIFIC_MODE = '__project_specific_mode__'
 
 export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeModal extends Component {
   static propTypes = {
@@ -253,7 +250,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     withErrorReporting('Error creating cloud environment')
   )(async () => {
     const { onSuccess, namespace } = this.props
-    const { selectedLeoImage, currentRuntimeDetails, currentPersistentDiskDetails } = this.state
+    const { currentRuntimeDetails, currentPersistentDiskDetails } = this.state
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
     const shouldUpdatePersistentDisk = this.canUpdatePersistentDisk() && !_.isEqual(newPersistentDisk, oldPersistentDisk)
@@ -306,7 +303,6 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       await Ajax().Runtimes.runtime(namespace, Utils.generateRuntimeName()).create({
         runtimeConfig,
         toolDockerImage: newRuntime.toolDockerImage,
-        labels: { saturnIsProjectSpecific: `${selectedLeoImage === PROJECT_SPECIFIC_MODE}` },
         ...(newRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: newRuntime.jupyterUserScriptUri } : {})
       })
     }
@@ -328,7 +324,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
         [(viewMode !== 'deleteEnvironmentOptions'), () => {
           return {
             cloudService,
-            toolDockerImage: _.includes(selectedLeoImage, [CUSTOM_MODE, PROJECT_SPECIFIC_MODE]) ? customEnvImage : selectedLeoImage,
+            toolDockerImage: selectedLeoImage === CUSTOM_MODE ? customEnvImage : selectedLeoImage,
             ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
             ...(cloudService === cloudServices.GCE ? {
               machineType: masterMachineType,
@@ -453,6 +449,13 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)?.imageUrl
   }
 
+  getCurrentMountDirectory(currentRuntimeDetails) {
+    const rstudioMountPoint = '/home/rstudio'
+    const jupyterMountPoint = '/home/jupyter-user/notebooks'
+    const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
+    return currentRuntimeDetails?.labels.tool ? (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) : noMountDirectory
+  }
+
   componentDidMount = _.flow(
     withErrorReporting('Error loading cloud environment'),
     Utils.withBusyState(v => this.setState({ loading: v }))
@@ -474,7 +477,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const foundImage = _.find({ image: imageUrl }, newLeoImages)
     this.setState({
       leoImages: newLeoImages, currentRuntimeDetails, currentPersistentDiskDetails,
-      selectedLeoImage: foundImage ? imageUrl : (currentRuntimeDetails?.labels.saturnIsProjectSpecific === 'true' ? PROJECT_SPECIFIC_MODE : CUSTOM_MODE),
+      selectedLeoImage: foundImage ? imageUrl : CUSTOM_MODE,
       customEnvImage: !foundImage ? imageUrl : '',
       jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri || '',
       ...this.getInitialState(currentRuntimeDetails, currentPersistentDiskDetails)
@@ -504,7 +507,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
   }
 
   renderDeleteDiskChoices() {
-    const { deleteDiskSelected, currentPersistentDiskDetails } = this.state
+    const { deleteDiskSelected, currentPersistentDiskDetails, currentRuntimeDetails } = this.state
     return h(Fragment, [
       h(RadioBlock, {
         name: 'delete-persistent-disk',
@@ -512,7 +515,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
         checked: !deleteDiskSelected,
         onChange: () => this.setState({ deleteDiskSelected: false })
       }, [
-        p(['Please save your analysis data in the directory ', code({ style: { fontWeight: 600 } }, ['/home/jupyter-user/notebooks']), ' to ensure it’s stored on your disk.']),
+        p(['Please save your analysis data in the directory ', code({ style: { fontWeight: 600 } }, [this.getCurrentMountDirectory(currentRuntimeDetails)]), ' to ensure it’s stored on your disk.']),
         p([
           'Deletes your application configuration and cloud compute profile, but detaches your persistent disk and saves it for later. ',
           'The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.'
@@ -551,7 +554,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
 
     const isPersistentDisk = this.shouldUsePersistentDisk()
 
-    const isCustomImage = selectedLeoImage === CUSTOM_MODE || selectedLeoImage === PROJECT_SPECIFIC_MODE
+    const isCustomImage = selectedLeoImage === CUSTOM_MODE
 
     const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
     const errors = validate(
@@ -614,15 +617,19 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
         options: [
           {
             label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
-            options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isCommunity }) => !isCommunity, leoImages))
+            options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isCommunity, isRStudio }) => (!isCommunity && !isRStudio), leoImages))
           },
           {
             label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
             options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isCommunity }) => isCommunity, leoImages))
           },
+          {
+            label: 'COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)',
+            options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isRStudio }) => isRStudio, leoImages))
+          },
           ...(includeCustom ? [{
             label: 'OTHER ENVIRONMENTS',
-            options: [{ label: 'Custom Environment', value: CUSTOM_MODE }, { label: 'Project-Specific Environment', value: PROJECT_SPECIFIC_MODE }]
+            options: [{ label: 'Custom Environment', value: CUSTOM_MODE }]
           }] : [])
         ]
       })
@@ -688,32 +695,8 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
               ]),
               div([
                 'Custom environments ', b(['must ']), 'be based off one of the ',
-                h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images']),
-                ' or a ',
-                h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['Project-Specific image'])
+                h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images'])
               ])
-            ])
-          }],
-          [PROJECT_SPECIFIC_MODE, () => {
-            return div({ style: { lineHeight: 1.5 } }, [
-              'Some consortium projects, such as ',
-              h(Link, { href: rstudioBaseImages, ...Utils.newTabLinkProps }, ['AnVIL']),
-              ', have created environments that are specific to their project. If you want to use one of these:',
-              div({ style: { marginTop: '0.5rem' } }, [
-                '1. Find the environment image (',
-                h(Link, { href: zendeskImagePage, ...Utils.newTabLinkProps }, ['view image list']),
-                ') '
-              ]),
-              div({ style: { margin: '0.5rem 0' } }, ['2. Copy the URL from the github repository']),
-              div({ style: { margin: '0.5rem 0' } }, ['3. Enter the URL for the image in the text box below']),
-              h(ValidatedInput, {
-                inputProps: {
-                  placeholder: 'Paste image path here',
-                  value: customEnvImage,
-                  onChange: customEnvImage => this.setState({ customEnvImage })
-                },
-                error: Utils.summarizeErrors(customEnvImage && errors?.customEnvImage)
-              })
             ])
           }],
           [Utils.DEFAULT, () => {
@@ -1092,6 +1075,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     }
 
     const renderAboutPersistentDisk = () => {
+      const { currentRuntimeDetails } = this.state
       return div({ style: styles.drawerContent }, [
         h(TitleBar, {
           style: styles.titleBar,
@@ -1100,7 +1084,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
         div({ style: { lineHeight: 1.5 } }, [
-          p(['Your persistent disk is mounted in the directory ', code({ style: { fontWeight: 600 } }, ['/home/jupyter-user/notebooks']), br(), 'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
+          p(['Your persistent disk is mounted in the directory ', code({ style: { fontWeight: 600 } }, [this.getCurrentMountDirectory(currentRuntimeDetails)]), br(), 'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
           p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
           p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
           p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
