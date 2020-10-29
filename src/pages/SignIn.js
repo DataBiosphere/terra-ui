@@ -11,21 +11,18 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-export class CookiesModal extends Component {
-  render() {
-    const { onDismiss } = this.props
-    return h(Modal, {
-      showCancel: false,
-      onDismiss
-    }, [
-      `${getAppName()} uses cookies to enable sign on and other essential features when signed in, and to provide statistics to our development team regarding how the site is used. For more information, see our `,
-      h(Link, {
-        ...Utils.newTabLinkProps,
-        href: Nav.getLink('privacy')
-      }, ['privacy policy.'])
-    ])
-  }
-}
+export const CookiesModal = (({ onDismiss }) => {
+  return h(Modal, {
+    showCancel: false,
+    onDismiss
+  }, [
+    `${getAppName()} uses cookies to enable sign on and other essential features when signed in, and to provide statistics to our development team regarding how the site is used. For more information, see our `,
+    h(Link, {
+      ...Utils.newTabLinkProps,
+      href: Nav.getLink('privacy')
+    }, ['privacy policy.'])
+  ])
+})
 
 export default class SignIn extends Component {
   constructor(props) {

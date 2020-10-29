@@ -1,5 +1,4 @@
 import _ from 'lodash/fp'
-import { Component } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { icon, spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
@@ -12,17 +11,13 @@ import { rerunFailuresStatus } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
-const ToastMessageComponent = Utils.connectStore(rerunFailuresStatus, 'status')(class ToastMessageComponent extends Component {
-  render() {
-    const { status: { done, text } } = this.props
-
-    return div({ style: { padding: '0.5rem 0', display: 'flex', alignItems: 'center', fontSize: 14 } }, [
-      done ?
-        icon('success-standard', { size: 24, style: { color: colors.success(), marginRight: '1rem' } }) :
-        spinner({ style: { marginRight: '1rem' } }),
-      text
-    ])
-  }
+const ToastMessageComponent = Utils.connectStore(rerunFailuresStatus, 'status')(({ status: { done, text } }) => {
+  return div({ style: { padding: '0.5rem 0', display: 'flex', alignItems: 'center', fontSize: 14 } }, [
+    done ?
+      icon('success-standard', { size: 24, style: { color: colors.success(), marginRight: '1rem' } }) :
+      spinner({ style: { marginRight: '1rem' } }),
+    text
+  ])
 })
 
 export const rerunFailures = async ({ workspace, workspace: { workspace: { namespace, name } }, submissionId, configNamespace, configName, onDone }) => {
