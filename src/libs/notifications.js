@@ -34,10 +34,8 @@ export const notify = (type, title, props) => {
 
 export const clearNotification = id => store.removeNotification(id)
 
-const NotificationDisplay = _.flow(
-  Utils.withDisplayName('NotificationDisplay'),
-  Utils.connectStore(notificationStore, 'notificationState')
-)(({ notificationState, id }) => {
+const NotificationDisplay = ({ id }) => {
+  const notificationState = Utils.useStore(notificationStore)
   const [modal, setModal] = useState(false)
   const [notificationNumber, setNotificationNumber] = useState(0)
 
@@ -130,7 +128,7 @@ const NotificationDisplay = _.flow(
       h(ErrorView, { error: detail })
     ])
   ])
-})
+}
 
 const refreshPage = () => {
   StateHistory.clearCurrent()

@@ -44,7 +44,9 @@ export const goToPath = (...args) => {
 }
 
 export const Redirector = ({ pathname, search }) => {
-  useOnMount(() => history.replace({ pathname, search }))
+  useOnMount(() => {
+    history.replace({ pathname, search })
+  })
 
   return null
 }

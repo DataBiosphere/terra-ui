@@ -1,4 +1,3 @@
-import _ from 'lodash/fp'
 import { useState } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable } from 'src/components/common'
@@ -50,10 +49,8 @@ const messages = {
 }
 
 
-export const TrialBanner = _.flow(
-  Utils.withDisplayName('TrialBanner'),
-  Utils.connectStore(authStore, 'authState')
-)(({ authState: { isSignedIn, profile: { trialState }, acceptedTos } }) => {
+export const TrialBanner = () => {
+  const { isSignedIn, profile: { trialState }, acceptedTos } = Utils.useStore(authStore)
   const [finalizeTrial, setFinalizeTrial] = useState(false)
   const removeBanner = localStorage.getItem('removeBanner')
 
@@ -131,4 +128,4 @@ export const TrialBanner = _.flow(
       }, ['Confirm'])
     }, ['Click confirm to remove banner forever.'])
   ])
-})
+}
