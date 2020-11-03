@@ -772,7 +772,6 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                   value: numberOfWorkers,
                   onChange: v => this.setState({
                     numberOfWorkers: v,
-                    numberOfPreemptibleWorkers: numberOfPreemptibleWorkers
                   })
                 })
               ])
