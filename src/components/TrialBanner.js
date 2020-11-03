@@ -1,5 +1,4 @@
-import _ from 'lodash/fp'
-import { Component } from 'react'
+import { useState } from 'react'
 import { a, div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -50,90 +49,83 @@ const messages = {
 }
 
 
-export const TrialBanner = Utils.connectStore(authStore, 'authState')(class TrialBanner extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      finalizeTrial: false
-    }
-  }
+export const TrialBanner = () => {
+  const { isSignedIn, profile: { trialState }, acceptedTos } = Utils.useStore(authStore)
+  const [finalizeTrial, setFinalizeTrial] = useState(false)
+  const removeBanner = localStorage.getItem('removeBanner')
 
-  render() {
-    const { authState: { isSignedIn, profile, acceptedTos } } = _.omit('isVisible', this.props)
-    const { finalizeTrial } = this.state
-    const { trialState } = profile
-    const removeBanner = localStorage.getItem('removeBanner')
-    if (trialState === 'Enabled') return null // Disable new sign-ups
-    if (!trialState || !isSignedIn || !acceptedTos || trialState === 'Finalized' || removeBanner === 'true') return null
-    const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
-    return div([
+  if (trialState === 'Enabled') return null // Disable new sign-ups
+  if (!trialState || !isSignedIn || !acceptedTos || trialState === 'Finalized' || removeBanner === 'true') return null
+
+  const { [trialState]: { title, message, enabledLink, button, isWarning } } = messages
+
+  return div([
+    div({
+      style: {
+        display: 'flex', alignItems: 'center', padding: '1.5rem', height: 95,
+        backgroundColor: isWarning ? colors.warning() : '#28873b',
+        justifyContent: 'center', color: 'white', width: '100%', fontSize: '1rem'
+      }
+    },
+    [
       div({
         style: {
-          display: 'flex', alignItems: 'center', padding: '1.5rem', height: 95,
-          backgroundColor: isWarning ? colors.warning() : '#28873b',
-          justifyContent: 'center', color: 'white', width: '100%', fontSize: '1rem'
+          fontSize: '1.5rem', fontWeight: 500, textAlign: 'right', borderRight: '1px solid', paddingRight: '1rem', marginRight: '1rem',
+          maxWidth: 225, flexShrink: 0
         }
-      },
-      [
-        div({
-          style: {
-            fontSize: '1.5rem', fontWeight: 500, textAlign: 'right', borderRight: '1px solid', paddingRight: '1rem', marginRight: '1rem',
-            maxWidth: 225, flexShrink: 0
-          }
-        }, title),
-        span({ style: { maxWidth: 600, lineHeight: '1.5rem' } },
-          [
-            message,
-            enabledLink && a({
-              style: { textDecoration: 'underline', marginLeft: '0.5rem' },
-              ...Utils.newTabLinkProps,
-              href: enabledLink.url
-            }, [enabledLink.label, icon('pop-out', { style: { marginLeft: '0.25rem' } })])
-          ]),
+      }, title),
+      span({ style: { maxWidth: 600, lineHeight: '1.5rem' } },
+        [
+          message,
+          enabledLink && a({
+            style: { textDecoration: 'underline', marginLeft: '0.5rem' },
+            ...Utils.newTabLinkProps,
+            href: enabledLink.url
+          }, [enabledLink.label, icon('pop-out', { style: { marginLeft: '0.25rem' } })])
+        ]),
+      h(Clickable, {
+        style: {
+          fontWeight: 500, fontSize: '1.125rem', border: '2px solid', borderRadius: '0.25rem', padding: '0.5rem 1rem',
+          marginLeft: '0.5rem', flexShrink: 0
+        },
+        onClick: () => {
+          button.isExternal ? window.open(button.url, '_blank') : freeCreditsActive.set(true)
+        }
+      }, [button.label, button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null]),
+      div({
+        style: {
+          marginLeft: '3rem',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-end'
+        }
+      }, [
         h(Clickable, {
-          style: {
-            fontWeight: 500, fontSize: '1.125rem', border: '2px solid', borderRadius: '0.25rem', padding: '0.5rem 1rem',
-            marginLeft: '0.5rem', flexShrink: 0
-          },
-          onClick: () => {
-            button.isExternal ? window.open(button.url, '_blank') : freeCreditsActive.set(true)
+          style: { borderBottom: 'none' },
+          tooltip: 'Hide banner',
+          'aria-label': 'Dismiss free credits notification',
+          onClick: trialState === 'Terminated' ? () => setFinalizeTrial(true) : () => {
+            localStorage.setItem('removeBanner', 'true')
+            this.forceUpdate()
           }
-        }, [button.label, button.isExternal ? icon('pop-out', { style: { marginLeft: '0.25rem' } }) : null]),
-        div({
-          style: {
-            marginLeft: '3rem',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-end'
+        }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer' } })])
+      ])
+    ]),
+    finalizeTrial && h(Modal, {
+      title: 'Remove banner',
+      onDismiss: () => setFinalizeTrial(false),
+      okButton: h(ButtonPrimary, {
+        onClick: async () => {
+          try {
+            await Ajax().User.finalizeTrial()
+            await refreshTerraProfile()
+          } catch (error) {
+            reportError('Error finalizing trial', error)
+          } finally {
+            setFinalizeTrial(false)
           }
-        }, [
-          h(Clickable, {
-            style: { borderBottom: 'none' },
-            tooltip: 'Hide banner',
-            'aria-label': 'Dismiss free credits notification',
-            onClick: trialState === 'Terminated' ? () => this.setState({ finalizeTrial: true }) : () => {
-              localStorage.setItem('removeBanner', 'true')
-              this.forceUpdate()
-            }
-          }, [icon('times-circle', { size: 25, style: { fontSize: '1.5rem', cursor: 'pointer' } })])
-        ])
-      ]),
-      finalizeTrial && h(Modal, {
-        title: 'Remove banner',
-        onDismiss: () => this.setState({ finalizeTrial: false }),
-        okButton: h(ButtonPrimary, {
-          onClick: async () => {
-            try {
-              await Ajax().User.finalizeTrial()
-              await refreshTerraProfile()
-            } catch (error) {
-              reportError('Error finalizing trial', error)
-            } finally {
-              this.setState({ finalizeTrial: false })
-            }
-          }
-        }, ['Confirm'])
-      }, ['Click confirm to remove banner forever.'])
-    ])
-  }
-})
+        }
+      }, ['Confirm'])
+    }, ['Click confirm to remove banner forever.'])
+  ])
+}

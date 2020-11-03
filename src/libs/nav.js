@@ -1,7 +1,7 @@
 import { createHashHistory as createHistory } from 'history'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Component, createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { getAppName } from 'src/libs/logos'
 import { routeHandlersStore } from 'src/libs/state'
@@ -43,15 +43,12 @@ export const goToPath = (...args) => {
   history.push({ pathname: getPath(...args) })
 }
 
-export class Redirector extends Component {
-  componentDidMount() {
-    const { pathname, search } = this.props
+export const Redirector = ({ pathname, search }) => {
+  useOnMount(() => {
     history.replace({ pathname, search })
-  }
+  })
 
-  render() {
-    return null
-  }
+  return null
 }
 
 const parseRoute = (handlers, { pathname, search }) => {
