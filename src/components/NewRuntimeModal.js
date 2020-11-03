@@ -771,7 +771,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                   onlyInteger: true,
                   value: numberOfWorkers,
                   onChange: v => this.setState({
-                    numberOfWorkers: v,
+                    numberOfWorkers: v
                   })
                 })
               ])
