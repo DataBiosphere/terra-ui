@@ -1,4 +1,4 @@
-import * as clipboard from 'clipboard-polyfill'
+import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, Fragment } from 'react'
@@ -15,13 +15,13 @@ import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, Noteboo
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax, ajaxCaller } from 'src/libs/ajax'
-import { appIsSettingUp, currentApp, hourlyKubernetesAppCost, persistentDiskCost } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
+import { isAnvil } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
+import { appIsSettingUp, currentApp, getGalaxyCost } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -314,8 +314,7 @@ const Notebooks = _.flow(
           div(['Environment']),
           // TODO: Actually use status to calculate cost, and actually use disk rather than hardcoding
           div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status), `: ${Utils.formatUSD(
-            hourlyKubernetesAppCost(app) +
-            persistentDiskCost({ size: 30, status: 'Running' })
+            getGalaxyCost(app)
           )} per hr`]),
           icon('trash', { size: 21 })
         ]) :
@@ -329,10 +328,7 @@ const Notebooks = _.flow(
     }
 
     return div({
-      style: {
-        display: 'flex',
-        marginRight: listView ? undefined : '-2.5rem'
-      }
+      style: { display: 'flex', marginRight: listView ? undefined : '-2.5rem', alignItems: 'flex-start' }
     }, [
       div({
         style: {
@@ -356,7 +352,7 @@ const Notebooks = _.flow(
             icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
           ])
         ]),
-        !getConfig().isProd && h(Fragment, [
+        isAnvil() && h(Fragment, [
           h(Clickable, {
             style: {
               ...Style.elements.card.container, height: 125, marginTop: 15

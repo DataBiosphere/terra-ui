@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/machines'
-import { getUser } from 'src/libs/auth'
+import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -346,6 +346,10 @@ const User = signal => ({
     }
     const res = await fetchBond(`api/link/v1/${provider}/oauthcode?${qs.stringify(queryParams)}`, _.merge(authOpts(), { signal, method: 'POST' }))
     return res.json()
+  },
+
+  unlinkFenceAccount: provider => {
+    return fetchBond(`api/link/v1/${provider}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
   },
 
   isUserRegistered: async email => {
@@ -1213,7 +1217,8 @@ const Duos = signal => ({
 })
 
 const Metrics = signal => ({
-  captureEvent: withErrorIgnoring((event, details = {}) => {
+  captureEvent: withErrorIgnoring(async (event, details = {}) => {
+    await ensureAuthSettled()
     const { isSignedIn, registrationStatus } = authStore.get()
     const isRegistered = isSignedIn && registrationStatus === 'registered'
     if (!isRegistered) {

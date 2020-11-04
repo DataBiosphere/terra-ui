@@ -187,7 +187,7 @@ export const abandonedPromise = () => {
   return new Promise(() => {})
 }
 
-export const generateClusterName = () => `saturn-${uuid()}`
+export const generateRuntimeName = () => `saturn-${uuid()}`
 
 export const generateKubernetesClusterName = () => `saturn-k8-${uuid()}`
 

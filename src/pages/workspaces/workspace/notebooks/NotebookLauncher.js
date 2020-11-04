@@ -1,28 +1,26 @@
-import * as clipboard from 'clipboard-polyfill'
+import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useRef, useState } from 'react'
 import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import {
-  ApplicationHeader, ClusterKicker, ClusterStatusMonitor, PlaygroundHeader, StatusMessage
-} from 'src/components/cluster-common'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { NewClusterModal } from 'src/components/NewClusterModal'
+import { NewRuntimeModal } from 'src/components/NewRuntimeModal'
 import { findPotentialNotebookLockers, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
+import { ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
-import { collapsedRuntimeStatus, currentRuntime, usableStatuses } from 'src/libs/cluster-utils'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
+import { collapsedRuntimeStatus, currentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
@@ -44,10 +42,10 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   })
 )(
-  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, clusters, persistentDisks, refreshClusters },
+  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks, refreshRuntimes },
     ref) => {
     const [createOpen, setCreateOpen] = useState(false)
-    const runtime = currentRuntime(clusters)
+    const runtime = currentRuntime(runtimes)
     const { runtimeName, labels } = runtime || {}
     const status = collapsedRuntimeStatus(runtime)
     const [busy, setBusy] = useState()
@@ -61,11 +59,11 @@ const NotebookLauncher = _.flow(
           h(PreviewHeader, { queryParams, runtime, notebookName, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true) }),
           h(NotebookPreviewFrame, { notebookName, workspace })
         ]),
-      mode && h(ClusterKicker, { cluster: runtime, refreshClusters, onNullCluster: () => setCreateOpen(true) }),
-      mode && h(ClusterStatusMonitor, { cluster: runtime, onClusterStoppedRunning: () => chooseMode(undefined) }),
-      h(NewClusterModal, {
+      mode && h(RuntimeKicker, { runtime, refreshRuntimes, onNullRuntime: () => setCreateOpen(true) }),
+      mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
+      h(NewRuntimeModal, {
         isOpen: createOpen,
-        namespace, name, clusters, persistentDisks,
+        namespace, name, runtimes, persistentDisks,
         onDismiss: () => {
           chooseMode(undefined)
           setCreateOpen(false)
@@ -75,7 +73,7 @@ const NotebookLauncher = _.flow(
           Utils.withBusyState(setBusy)
         )(async () => {
           setCreateOpen(false)
-          await refreshClusters(true)
+          await refreshRuntimes(true)
         })
       }),
       busy && spinnerOverlay

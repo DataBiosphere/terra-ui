@@ -1,4 +1,4 @@
-import * as clipboard from 'clipboard-polyfill'
+import * as clipboard from 'clipboard-polyfill/text'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
@@ -124,10 +124,10 @@ const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size } }) => 
           disabled: !url,
           href: url,
           /*
-          NOTE:
-          Some DOS/DRS servers return file names that are different from the end of the path in the gsUri/url.
-          Attempt to hint to the browser the correct name.
-          FYI this hint doesn't work in Chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=373182#c24
+           NOTE:
+           Some DOS/DRS servers return file names that are different from the end of the path in the gsUri/url.
+           Attempt to hint to the browser the correct name.
+           FYI this hint doesn't work in Chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=373182#c24
            */
           download: fileName,
           ...Utils.newTabLinkProps
