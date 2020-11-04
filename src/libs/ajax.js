@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/machines'
-import { getUser } from 'src/libs/auth'
+import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorIgnoring } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
@@ -1216,7 +1216,8 @@ const Duos = signal => ({
 })
 
 const Metrics = signal => ({
-  captureEvent: withErrorIgnoring((event, details = {}) => {
+  captureEvent: withErrorIgnoring(async (event, details = {}) => {
+    await ensureAuthSettled()
     const body = {
       event,
       properties: {
