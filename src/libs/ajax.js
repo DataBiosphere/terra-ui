@@ -1219,7 +1219,7 @@ const Duos = signal => ({
 const Metrics = signal => ({
   captureEvent: withErrorIgnoring(async (event, details = {}) => {
     await ensureAuthSettled()
-    const { isSignedIn, registrationStatus } = authStore.get()
+    const { isSignedIn, registrationStatus } = authStore.get() // NOTE: This is intentionally read after ensureAuthSettled
     const isRegistered = isSignedIn && registrationStatus === 'registered'
     if (!isRegistered) {
       authStore.update(_.update('anonymousId', id => {
