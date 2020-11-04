@@ -20,7 +20,7 @@ const constraints = {
   email: { presence: { allowEmpty: false } }
 }
 
-export const Register = () => {
+const Register = () => {
   const user = getUser()
   const [busy, setBusy] = useState(false)
   const [givenName, setGivenName] = useState(user.givenName || '')
@@ -104,3 +104,5 @@ export const Register = () => {
     ])
   ])
 }
+
+export default Register
