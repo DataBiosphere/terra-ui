@@ -216,9 +216,9 @@ authStore.subscribe(async (state, oldState) => {
 })
 
 authStore.subscribe(async (state, oldState) => {
-  if (oldState.registrationStatus === 'unregistered' && state.registrationStatus === 'registered') {
+  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
     if (state.anonymousId) {
-      return await Ajax().Metrics.mergeEvent(state.anonymousId)
+      return await Ajax().Metrics.identify(state.anonymousId)
     }
   }
 })
