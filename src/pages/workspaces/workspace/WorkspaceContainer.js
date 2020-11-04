@@ -186,7 +186,7 @@ const useCloudEnvironmentPolling = namespace => {
   return { runtimes, refreshRuntimes, persistentDisks }
 }
 
-const useAppPolling = namespace => {
+const useAppPolling = (namespace, name) => {
   const signal = Utils.useCancellation()
   const timeout = useRef()
   const [apps, setApps] = useState()
@@ -196,7 +196,7 @@ const useAppPolling = namespace => {
   }
   const loadApps = async () => {
     try {
-      const newApps = await Ajax(signal).Apps.list(namespace, { creator: getUser().email })
+      const newApps = await Ajax(signal).Apps.list(namespace, { creator: getUser().email, saturnWorkspaceName: name })
       setApps(newApps)
       const app = currentApp(newApps)
       reschedule((app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
@@ -224,7 +224,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const cachedWorkspace = Utils.useStore(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
     const { runtimes, refreshRuntimes, persistentDisks } = useCloudEnvironmentPolling(namespace)
-    const { apps, refreshApps } = useAppPolling(namespace)
+    const { apps, refreshApps } = useAppPolling(namespace, name)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
       cachedWorkspace :
       undefined
