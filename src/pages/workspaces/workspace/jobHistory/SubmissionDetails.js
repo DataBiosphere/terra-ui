@@ -240,7 +240,10 @@ const SubmissionDetails = _.flow(
               size: { basis: 200 },
               headerRenderer: () => h(Sortable, { sort, field: 'messages', onSort: setSort }, ['Messages']),
               cellRenderer: ({ rowIndex }) => {
-                return h(TooltipCell, [h(Fragment, _.map(div, filteredWorkflows[rowIndex].messages))])
+                const messages = _.join('\n', filteredWorkflows[rowIndex].messages)
+                return h(TooltipCell, {
+                  tooltip: div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word' } }, [messages])
+                }, [messages])
               }
             }, {
               size: { basis: 375, grow: 0 },
