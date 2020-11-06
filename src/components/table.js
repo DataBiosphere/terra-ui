@@ -1,7 +1,7 @@
 import arrayMove from 'array-move'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, createRef, Fragment } from 'react'
+import { Component, createRef, Fragment, useState } from 'react'
 import Draggable from 'react-draggable'
 import { button, div, h, label, option, select } from 'react-hyperscript-helpers'
 import Pagination from 'react-paginating'
@@ -486,46 +486,43 @@ export const MiniSortable = ({ sort, field, onSort, children }) => {
   ])
 }
 
-export class Resizable extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { dragAmount: undefined, lastX: undefined }
-  }
+export const Resizable = ({ onWidthChange, width, minWidth = 100, children }) => {
+  const [dragAmount, setDragAmount] = useState(undefined)
+  const [lastX, setLastX] = useState(undefined)
 
-  render() {
-    const { onWidthChange, width, minWidth = 100, children } = this.props
-    const { dragAmount, lastX } = this.state
-
-    return div({
-      style: { flex: 1, display: 'flex', alignItems: 'center', position: 'relative', width: '100%' }
+  return div({
+    style: { flex: 1, display: 'flex', alignItems: 'center', position: 'relative', width: '100%' }
+  }, [
+    children,
+    h(Draggable, {
+      axis: 'x',
+      onStart: e => {
+        setLastX(e.clientX)
+        setDragAmount(0)
+      },
+      onDrag: e => {
+        const deltaX = e.clientX - lastX
+        if (deltaX !== 0 && width + dragAmount + deltaX > minWidth) {
+          setDragAmount(dragAmount + deltaX)
+          setLastX(e.clientX)
+        }
+      },
+      onStop: () => {
+        setDragAmount(undefined)
+        onWidthChange(dragAmount)
+      },
+      position: { x: 0, y: 0 }
     }, [
-      children,
-      h(Draggable, {
-        axis: 'x',
-        onStart: e => this.setState({ dragAmount: 0, lastX: e.clientX }),
-        onDrag: e => {
-          const deltaX = e.clientX - lastX
-          if (deltaX !== 0 && width + dragAmount + deltaX > minWidth) {
-            this.setState({ dragAmount: dragAmount + deltaX, lastX: e.clientX })
-          }
-        },
-        onStop: () => {
-          this.setState({ dragAmount: undefined })
-          onWidthChange(dragAmount)
-        },
-        position: { x: 0, y: 0 }
-      }, [
-        icon('columnGrabber', {
-          size: 24,
-          style: { position: 'absolute', right: -20, cursor: 'ew-resize' }
-        })
-      ]),
-      !!dragAmount && icon('columnGrabber', {
+      icon('columnGrabber', {
         size: 24,
-        style: { position: 'absolute', right: -20 - dragAmount, zIndex: 1, opacity: '0.5', cursor: 'ew-resize' }
+        style: { position: 'absolute', right: -20, cursor: 'ew-resize' }
       })
-    ])
-  }
+    ]),
+    !!dragAmount && icon('columnGrabber', {
+      size: 24,
+      style: { position: 'absolute', right: -20 - dragAmount, zIndex: 1, opacity: '0.5', cursor: 'ew-resize' }
+    })
+  ])
 }
 
 const SortableDiv = SortableElement(props => div(props))
