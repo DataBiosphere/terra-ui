@@ -44,8 +44,8 @@ const billingProjectNameValidator = existing => ({
   presence: { allowEmpty: false },
   length: { minimum: 6, maximum: 30 },
   format: {
-    pattern: /^[a-z]([a-z0-9-])*$/,
-    message: 'must start with a letter and can only contain lowercase letters, numbers, and hyphens.'
+    pattern: /^[A-z0-9-_]*$/,
+    message: 'can only contain letters, numbers, underscores and hyphens.'
   },
   exclusion: {
     within: existing,
