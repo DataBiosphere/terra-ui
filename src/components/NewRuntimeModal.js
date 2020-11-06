@@ -771,8 +771,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                   onlyInteger: true,
                   value: numberOfWorkers,
                   onChange: v => this.setState({
-                    numberOfWorkers: v,
-                    numberOfPreemptibleWorkers: _.min([numberOfPreemptibleWorkers, v])
+                    numberOfWorkers: v
                   })
                 })
               ])
@@ -783,7 +782,6 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                 h(NumberInput, {
                   id,
                   min: 0,
-                  max: numberOfWorkers,
                   isClearable: false,
                   onlyInteger: true,
                   value: numberOfPreemptibleWorkers,
