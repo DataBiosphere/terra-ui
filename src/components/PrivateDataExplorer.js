@@ -103,10 +103,10 @@ export default _.flow(
           p([
             `Thank you for your interest in the Baseline Health Study data. Baseline data is currently only being shared with our partner organizations at Duke and Stanford.
             If you are a researcher at one of our partner organizations, please reach out to your institutional contacts for information on how to obtain access.
-            If you are a researcher at our partner site and do not have an institutional contact, please complete the Terra Study Data Request form.`]),
-          p([`In the future, Baseline is planning to make this data available to qualified researchers outside of our partners. 
-            If you're interested in finding out when the data will be available to researchers outside of our partners, please complete the Terra Study Data Request form.`
+            If you are a researcher at our partner site and do not have an institutional contact, please complete the Terra Study Data Request form.`
           ]),
+          p([`In the future, Baseline is planning to make this data available to qualified researchers outside of our partners. 
+            If you're interested in finding out when the data will be available to researchers outside of our partners, please complete the Terra Study Data Request form.`]),
           p([
             'Please fill out the ',
             h(Link, {
