@@ -3,6 +3,7 @@ import { Component } from 'react'
 import { reportError } from 'src/libs/error'
 
 
+// No hook equivalent of componentDidCatch exists yet
 export default class ErrorWrapper extends Component {
   static propTypes = {
     children: PropTypes.node.isRequired
@@ -13,9 +14,12 @@ export default class ErrorWrapper extends Component {
     this.state = { hasError: false }
   }
 
+  static getDerivedStateFromError(error) {
+    return { hasError: true }
+  }
+
   componentDidCatch(error) {
     reportError('An error occurred', error)
-    this.setState({ hasError: true })
   }
 
   render() {
