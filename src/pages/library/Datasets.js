@@ -15,7 +15,6 @@ import encodeLogo from 'src/images/library/datasets/ENCODE@2x.png'
 import framinghamLogo from 'src/images/library/datasets/framingham.jpg'
 import hcaLogo from 'src/images/library/datasets/HCA@2x.png'
 import nemoLogo from 'src/images/library/datasets/nemo-logo.svg'
-import nhsLogo from 'src/images/library/datasets/NHS@2x.png'
 import targetLogo from 'src/images/library/datasets/target_logo.jpeg'
 import tcgaLogo from 'src/images/library/datasets/TCGALogo.jpg'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
@@ -309,18 +308,6 @@ const nemo = () => h(Participant, {
   }, ['Browse Data'])
 ])
 
-const nhs = () => h(Participant, {
-  logo: { src: nhsLogo, alt: `Nurses' Health Study logo` },
-  title: `Nurses' Health Study`,
-  description: `The Nurses' Health Study and Nurses' Health Study II are among the largest investigations into the risk
-  factors for major chronic diseases in women.`,
-  sizeText: 'Participants: > 120,000'
-}, [
-  h(ButtonPrimary, {
-    href: Nav.getLink('data-explorer-private', { dataset: `Nurses' Health Study` })
-  }, ['Browse Data'])
-])
-
 const target = () => h(Participant, {
   logo: { src: targetLogo, alt: 'TARGET logo', height: '85%' },
   title: `Therapeutically Applicable Research to Generate Effective Treatments (TARGET) presented by the National
@@ -392,8 +379,7 @@ const Datasets = () => {
     div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
       thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), hca(),
-      nemo(), nhs(),
-      target(), tcga(), topMed(), ukb()
+      nemo(), target(), tcga(), topMed(), ukb()
     ])
   ])
 }

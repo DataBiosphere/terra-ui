@@ -28,12 +28,6 @@ const datasets = [
     origin: 'https://time-series-data-explorer.appspot.com'
   },
   {
-    name: 'Nurses\' Health Study',
-    origin: 'https://nhs-explorer.appspot.com',
-    authDomain: 'nhs_saturn_users',
-    partner: 'NHS'
-  },
-  {
     name: 'UK Biobank',
     origin: 'https://biobank-explorer.appspot.com',
     authDomain: 'Kathiresan_UKBB',
