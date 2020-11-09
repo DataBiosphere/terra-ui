@@ -101,12 +101,22 @@ export default _.flow(
       ], [
         'baseline', () => h(Fragment, [
           p([
-            `Thank you for your interest in the Baseline Health Study data. Baseline data is currently only being shared
-             with Baseline Health Study partner sites, Duke and Stanford. If you are a current researcher at one of those sites,
-             please reach out to your institutional contacts for information on how to obtain access. In the future, Baseline
-             is planning to make this data available to qualified researchers, outside of these partner sites.`
+            `Thank you for your interest in the Baseline Health Study data. Baseline data is currently only being shared with our partner organizations at Duke and Stanford.
+            If you are a researcher at one of our partner organizations, please reach out to your institutional contacts for information on how to obtain access.
+            If you are a researcher at our partner site and do not have an institutional contact, please complete the Terra Study Data Request form.`
           ]),
-          p(['Please reach out to ', h(Link, { href: 'mailto:support@terra.bio' }, ['support@terra.bio']), ' if you have any additional questions.'])
+          p([`In the future, Baseline is planning to make this data available to qualified researchers outside of our partners. 
+            If you're interested in finding out when the data will be available to researchers outside of our partners, please complete the Terra Study Data Request form.`]),
+          p([
+            'Please fill out the ',
+            h(Link, {
+              href: 'https://forms.gle/d4vnyNvpagptcasf9',
+              ...Utils.newTabLinkProps
+            }, [
+              'Terra Study Data Request Form'
+            ]),
+            ' to be granted access.'
+          ])
         ])
       ], [
         'NHS', () => h(Fragment, [
