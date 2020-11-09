@@ -97,6 +97,7 @@ export const initializeAuth = _.memoize(async () => {
       return {
         ...state,
         isSignedIn,
+        anonymousId: !isSignedIn && state.isSignedIn ? undefined : state.anonymousId,
         registrationStatus: isSignedIn ? state.registrationStatus : undefined,
         acceptedTos: isSignedIn ? state.acceptedTos : undefined,
         profile: isSignedIn ? state.profile : {},
@@ -211,6 +212,14 @@ authStore.subscribe(withErrorReporting('Error loading NIH account link status', 
 authStore.subscribe(async (state, oldState) => {
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
     await Ajax().Metrics.syncProfile()
+  }
+})
+
+authStore.subscribe(async (state, oldState) => {
+  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
+    if (state.anonymousId) {
+      return await Ajax().Metrics.identify(state.anonymousId)
+    }
   }
 })
 
