@@ -387,7 +387,7 @@ const WorkflowView = _.flow(
     // savedConfig: unmodified copy of config for checking for unsaved edits
     // modifiedConfig: active data, potentially unsaved
     const {
-      isFreshData, savedConfig, entityMetadata, launching, activeTab, useCallCache, deleteIntermediateOutputFiles,
+      isFreshData, savedConfig, entityMetadata, launching, activeTab, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
       entitySelectionModel, variableSelected, modifiedConfig, updatingConfig, selectedSnapshotEntityMetadata
     } = this.state
     const { namespace, name, workspace } = this.props
@@ -403,7 +403,7 @@ const WorkflowView = _.flow(
         launching && h(LaunchAnalysisModal, {
           workspace, config: savedConfig, entityMetadata: selectedSnapshotEntityMetadata || entityMetadata,
           accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
-          processSingle: this.isSingle(), entitySelectionModel, useCallCache, deleteIntermediateOutputFiles,
+          processSingle: this.isSingle(), entitySelectionModel, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
             const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
