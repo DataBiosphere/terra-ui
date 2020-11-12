@@ -346,6 +346,7 @@ const WorkflowView = _.flow(
       entitySelectionModel: { selectedEntities: {} },
       useCallCache: true,
       deleteIntermediateOutputFiles: false,
+      useReferenceDisks: false,
       includeOptionalInputs: true,
       filter: '',
       errors: { inputs: {}, outputs: {} },
@@ -589,7 +590,7 @@ const WorkflowView = _.flow(
     const { signal, workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation, availableSnapshots, selectedSnapshotEntityMetadata,
-      selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, deleteIntermediateOutputFiles, currentSnapRedacted, savedSnapRedacted, wdl
+      selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, deleteIntermediateOutputFiles, useReferenceDisks, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
     const entityTypes = _.keys(entityMetadata)
@@ -794,6 +795,13 @@ const WorkflowView = _.flow(
                 href: 'https://support.terra.bio/hc/en-us/articles/360039681632',
                 ...Utils.newTabLinkProps
               }, ['Click here to learn more.'])
+            ]),
+            span({ style: { margin: '0 0.5rem 0 1rem' } }, [
+              h(LabeledCheckbox, {
+                checked: useReferenceDisks,
+                onChange: v => this.setState({ useReferenceDisks: v }),
+                style: { marginLeft: '1rem' }
+              }, [' Use reference disks'])
             ])
           ]),
           h(StepButtons, {
