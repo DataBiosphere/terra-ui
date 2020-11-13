@@ -14,7 +14,7 @@ import { NewGalaxyModal } from 'src/components/NewGalaxyModal'
 import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { isAnvil } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -211,7 +211,7 @@ const Notebooks = _.flow(
     title: 'Notebooks', activeTab: 'notebooks'
   }),
   withViewToggle('notebooksTab'),
-  ajaxCaller,
+  Utils.withCancellationSignal,
   Utils.connectStore(authStore, 'authState')
 )(class Notebooks extends Component {
   constructor(props) {
@@ -237,8 +237,8 @@ const Notebooks = _.flow(
     withErrorReporting('Error loading notebooks'),
     Utils.withBusyState(v => this.setState({ loading: v }))
   )(async () => {
-    const { namespace, workspace: { workspace: { bucketName } }, ajax: { Buckets } } = this.props
-    const notebooks = await Buckets.listNotebooks(namespace, bucketName)
+    const { namespace, workspace: { workspace: { bucketName } }, signal } = this.props
+    const notebooks = await Ajax(signal).Buckets.listNotebooks(namespace, bucketName)
     this.setState({ notebooks: _.reverse(_.sortBy('updated', notebooks)) })
   })
 

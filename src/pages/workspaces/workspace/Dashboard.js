@@ -11,7 +11,7 @@ import { SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -76,7 +76,7 @@ export const WorkspaceDashboard = _.flow(
     breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
     activeTab: 'dashboard'
   }),
-  ajaxCaller
+  Utils.withCancellationSignal
 )(class WorkspaceDashboard extends Component {
   constructor(props) {
     super(props)
@@ -97,25 +97,25 @@ export const WorkspaceDashboard = _.flow(
   }
 
   loadSubmissionCount = withErrorReporting('Error loading data', async () => {
-    const { ajax: { Workspaces }, namespace, name } = this.props
-    const submissions = await Workspaces.workspace(namespace, name).listSubmissions()
+    const { signal, namespace, name } = this.props
+    const submissions = await Ajax(signal).Workspaces.workspace(namespace, name).listSubmissions()
     this.setState({ submissionsCount: submissions.length })
   })
 
   loadStorageCost = withErrorReporting('Error loading data', async () => {
-    const { ajax: { Workspaces }, namespace, name, workspace: { accessLevel } } = this.props
+    const { signal, namespace, name, workspace: { accessLevel } } = this.props
     if (Utils.canWrite(accessLevel)) {
-      const { estimate } = await Workspaces.workspace(namespace, name).storageCostEstimate()
+      const { estimate } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
       this.setState({ storageCostEstimate: estimate })
     }
   })
 
   loadConsent = withErrorReporting('Error loading data', async () => {
-    const { ajax: { Duos }, workspace: { workspace: { attributes } } } = this.props
+    const { signal, workspace: { workspace: { attributes } } } = this.props
     const orspId = attributes['library:orsp']
     if (orspId) {
       try {
-        const { translatedUseRestriction } = await Duos.getConsent(orspId)
+        const { translatedUseRestriction } = await Ajax(signal).Duos.getConsent(orspId)
         this.setState({ consentStatus: translatedUseRestriction })
       } catch (error) {
         switch (error.status) {
@@ -133,8 +133,8 @@ export const WorkspaceDashboard = _.flow(
   })
 
   loadWsTags = withErrorReporting('Error loading workspace tags', async () => {
-    const { ajax: { Workspaces }, namespace, name } = this.props
-    this.setState({ tagsList: await Workspaces.workspace(namespace, name).getTags() })
+    const { signal, namespace, name } = this.props
+    this.setState({ tagsList: await Ajax(signal).Workspaces.workspace(namespace, name).getTags() })
   })
 
   addTag = _.flow(

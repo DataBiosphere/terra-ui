@@ -9,7 +9,7 @@ import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -66,7 +66,7 @@ const noBillingMessage = onClick => div({ style: { fontSize: 20, margin: '2rem' 
   ])
 ])
 
-const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends Component {
+const NewBillingProjectModal = class NewBillingProjectModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -177,10 +177,10 @@ const NewBillingProjectModal = ajaxCaller(class NewBillingProjectModal extends C
       }
     }
   })
-})
+}
 
 export const BillingList = _.flow(
-  ajaxCaller,
+  Utils.withCancellationSignal,
   Utils.connectStore(authStore, 'authState')
 )(class BillingList extends Component {
   constructor(props) {
@@ -204,8 +204,8 @@ export const BillingList = _.flow(
     withErrorReporting('Error loading billing projects list'),
     Utils.withBusyState(isLoadingProjects => this.setState({ isLoadingProjects }))
   )(async () => {
-    const { ajax: { Billing } } = this.props
-    const rawBillingProjects = await Billing.listProjects()
+    const { signal } = this.props
+    const rawBillingProjects = await Ajax(signal).Billing.listProjects()
     const billingProjects = _.flow(
       _.groupBy('projectName'),
       _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
@@ -226,9 +226,9 @@ export const BillingList = _.flow(
     withErrorReporting('Error loading billing accounts'),
     Utils.withBusyState(isLoadingAccounts => this.setState({ isLoadingAccounts }))
   )(async () => {
-    const { ajax: { Billing } } = this.props
+    const { signal } = this.props
     if (Auth.hasBillingScope()) {
-      const billingAccounts = await Billing.listAccounts()
+      const billingAccounts = await Ajax(signal).Billing.listAccounts()
       this.setState({ billingAccounts })
     }
   })

@@ -5,7 +5,7 @@ import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/componen
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -14,7 +14,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 
 
-export default ajaxCaller(class ProjectDetail extends Component {
+export default Utils.withCancellationSignal(class ProjectDetail extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -37,8 +37,8 @@ export default ajaxCaller(class ProjectDetail extends Component {
     withErrorReporting('Error updating billing account'),
     Utils.withBusyState(updatingAccount => this.setState({ updatingAccount }))
   )(async newAccountName => {
-    const { ajax: { GoogleBilling }, project: { projectName } } = this.props
-    const { billingAccountName } = await GoogleBilling.changeBillingAccount({ projectId: projectName, newAccountName })
+    const { signal, project: { projectName } } = this.props
+    const { billingAccountName } = await Ajax(signal).GoogleBilling.changeBillingAccount({ projectId: projectName, newAccountName })
     this.setState({ billingAccountName })
   })
 
@@ -47,10 +47,10 @@ export default ajaxCaller(class ProjectDetail extends Component {
     Utils.withBusyState(loadingBillingInfo => this.setState({ loadingBillingInfo }))
   )(
     async () => {
-      const { ajax: { GoogleBilling }, project: { projectName } } = this.props
+      const { signal, project: { projectName } } = this.props
       const { hasBillingScope } = this.state
       if (hasBillingScope) {
-        const { billingAccountName } = await GoogleBilling.getBillingInfo(projectName)
+        const { billingAccountName } = await Ajax(signal).GoogleBilling.getBillingInfo(projectName)
         this.setState({ billingAccountName })
       }
     })
@@ -59,9 +59,9 @@ export default ajaxCaller(class ProjectDetail extends Component {
     withErrorReporting('Error loading billing project users list'),
     Utils.withBusyState(refreshing => this.setState({ refreshing }))
   )(async () => {
-    const { ajax: { Billing }, project } = this.props
+    const { signal, project } = this.props
     this.setState({ addingUser: false, deletingUser: false, updating: false, editingUser: false })
-    const rawProjectUsers = await Billing.project(project.projectName).listUsers()
+    const rawProjectUsers = await Ajax(signal).Billing.project(project.projectName).listUsers()
     const projectUsers = _.flow(
       _.groupBy('email'),
       _.map(gs => ({ ..._.omit('role', gs[0]), roles: _.map('role', gs) })),

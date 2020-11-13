@@ -9,7 +9,7 @@ import TopBar from 'src/components/TopBar'
 import WDLViewer from 'src/components/WDLViewer'
 import { WorkspaceImporter } from 'src/components/workspace-utils'
 import importBackground from 'src/images/hex-import-background.svg'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
@@ -36,7 +36,7 @@ const styles = {
   }
 }
 
-const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
+const DockstoreImporter = Utils.withCancellationSignal(class DockstoreImporter extends Component {
   constructor(props) {
     super(props)
     this.state = { isImporting: false, wdl: undefined, workflowName: '' }
@@ -48,8 +48,8 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
 
   async loadWdl() {
     try {
-      const { path, version, ajax: { Dockstore } } = this.props
-      const { descriptor } = await Dockstore.getWdl(path, version)
+      const { path, version, signal } = this.props
+      const { descriptor } = await Ajax(signal).Dockstore.getWdl(path, version)
       this.setState({ wdl: descriptor, workflowName: _.last(path.split('/')) })
     } catch (error) {
       reportError('Error loading WDL', error)
