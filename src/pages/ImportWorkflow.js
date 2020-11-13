@@ -49,8 +49,8 @@ const DockstoreImporter = ajaxCaller(class DockstoreImporter extends Component {
   async loadWdl() {
     try {
       const { path, version, ajax: { Dockstore } } = this.props
-      const { descriptor } = await Dockstore.getWdl(path, version)
-      this.setState({ wdl: descriptor, workflowName: _.last(path.split('/')) })
+      const wdl = await Dockstore.getWdl(path, version)
+      this.setState({ wdl, workflowName: _.last(path.split('/')) })
     } catch (error) {
       reportError('Error loading WDL', error)
     }

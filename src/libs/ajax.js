@@ -1182,7 +1182,8 @@ const Disks = signal => ({
 const Dockstore = signal => ({
   getWdl: async (path, version) => {
     const res = await fetchDockstore(`${dockstoreMethodPath(path)}/${encodeURIComponent(version)}/WDL/descriptor`, { signal })
-    return res.json()
+    const { url } = await res.json()
+    return fetchOk(url).then(res => res.text())
   },
 
   getVersions: async path => {
