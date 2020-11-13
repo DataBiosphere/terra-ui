@@ -95,7 +95,7 @@ const JobHistory = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Job History', activeTab: 'job history'
   }),
-  Utils.withCancellation
+  Utils.withCancellationSignal
 )(class JobHistory extends Component {
   constructor(props) {
     super(props)

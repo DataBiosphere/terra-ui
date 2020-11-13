@@ -180,7 +180,7 @@ const NewBillingProjectModal = class NewBillingProjectModal extends Component {
 }
 
 export const BillingList = _.flow(
-  Utils.withCancellation,
+  Utils.withCancellationSignal,
   Utils.connectStore(authStore, 'authState')
 )(class BillingList extends Component {
   constructor(props) {

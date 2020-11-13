@@ -155,7 +155,7 @@ const noGroupsMessage = div({ style: { fontSize: 20, margin: '0 1rem' } }, [
   ])
 ])
 
-export const GroupList = Utils.withCancellation(class GroupList extends Component {
+export const GroupList = Utils.withCancellationSignal(class GroupList extends Component {
   constructor(props) {
     super(props)
     this.state = {

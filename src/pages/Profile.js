@@ -237,7 +237,7 @@ const FenceLink = ({ provider: { key, name } }) => {
 const sectionTitle = text => div({ style: styles.sectionTitle }, [text])
 
 const Profile = _.flow(
-  Utils.withCancellation,
+  Utils.withCancellationSignal,
   Utils.connectStore(authStore, 'authState')
 )(class Profile extends Component {
   constructor(props) {

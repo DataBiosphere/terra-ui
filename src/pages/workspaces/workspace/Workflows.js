@@ -156,7 +156,7 @@ const WorkflowCard = Utils.memoWithName('WorkflowCard', ({ listView, name, names
     ])
 })
 
-const FindWorkflowModal = Utils.withCancellation(class FindWorkflowModal extends Component {
+const FindWorkflowModal = Utils.withCancellationSignal(class FindWorkflowModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -292,7 +292,7 @@ export const Workflows = _.flow(
     title: 'Workflows', activeTab: 'workflows'
   }),
   withViewToggle('workflowsTab'),
-  Utils.withCancellation
+  Utils.withCancellationSignal
 )(class Workflows extends Component {
   constructor(props) {
     super(props)

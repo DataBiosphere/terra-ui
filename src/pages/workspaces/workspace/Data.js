@@ -781,7 +781,7 @@ const DeleteObjectModal = ({ name, workspace: { workspace: { namespace, bucketNa
 }
 
 const BucketContent = _.flow(
-  Utils.withCancellation,
+  Utils.withCancellationSignal,
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
 )(class BucketContent extends Component {
   constructor(props) {
@@ -926,7 +926,7 @@ const WorkspaceData = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
   }),
-  Utils.withCancellation,
+  Utils.withCancellationSignal,
   Utils.connectStore(pfbImportJobStore, 'pfbImportJobs')
 )(class WorkspaceData extends Component {
   constructor(props) {

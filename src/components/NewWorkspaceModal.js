@@ -33,7 +33,7 @@ const constraints = {
 }
 
 export default _.flow(
-  Utils.withCancellation,
+  Utils.withCancellationSignal,
   Utils.connectStore(authStore, 'authState')
 )(class NewWorkspaceModal extends Component {
   static propTypes = {

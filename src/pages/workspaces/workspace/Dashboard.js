@@ -76,7 +76,7 @@ export const WorkspaceDashboard = _.flow(
     breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
     activeTab: 'dashboard'
   }),
-  Utils.withCancellation
+  Utils.withCancellationSignal
 )(class WorkspaceDashboard extends Component {
   constructor(props) {
     super(props)

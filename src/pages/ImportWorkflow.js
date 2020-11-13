@@ -36,7 +36,7 @@ const styles = {
   }
 }
 
-const DockstoreImporter = Utils.withCancellation(class DockstoreImporter extends Component {
+const DockstoreImporter = Utils.withCancellationSignal(class DockstoreImporter extends Component {
   constructor(props) {
     super(props)
     this.state = { isImporting: false, wdl: undefined, workflowName: '' }

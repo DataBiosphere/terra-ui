@@ -170,7 +170,7 @@ export const NotebookCreator = class NotebookCreator extends Component {
   }
 }
 
-export const NotebookDuplicator = Utils.withCancellation(class NotebookDuplicator extends Component {
+export const NotebookDuplicator = Utils.withCancellationSignal(class NotebookDuplicator extends Component {
   static propTypes = {
     destroyOld: PropTypes.bool,
     fromLauncher: PropTypes.bool,

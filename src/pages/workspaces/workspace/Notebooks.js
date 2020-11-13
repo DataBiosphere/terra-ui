@@ -211,7 +211,7 @@ const Notebooks = _.flow(
     title: 'Notebooks', activeTab: 'notebooks'
   }),
   withViewToggle('notebooksTab'),
-  Utils.withCancellation,
+  Utils.withCancellationSignal,
   Utils.connectStore(authStore, 'authState')
 )(class Notebooks extends Component {
   constructor(props) {

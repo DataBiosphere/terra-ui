@@ -74,7 +74,7 @@ const AclInput = ({ value, onChange, disabled, maxAccessLevel, autoFocus }) => {
   ])
 }
 
-export default Utils.withCancellation(class ShareWorkspaceModal extends Component {
+export default Utils.withCancellationSignal(class ShareWorkspaceModal extends Component {
   constructor(props) {
     super(props)
     this.state = {

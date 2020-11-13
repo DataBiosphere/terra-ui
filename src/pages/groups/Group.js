@@ -14,7 +14,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-export const GroupDetails = Utils.withCancellation(class GroupDetails extends Component {
+export const GroupDetails = Utils.withCancellationSignal(class GroupDetails extends Component {
   constructor(props) {
     super(props)
     this.state = {

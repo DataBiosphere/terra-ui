@@ -27,7 +27,7 @@ import * as Utils from 'src/libs/utils'
 */
 
 export default _.flow(
-  Utils.withCancellation,
+  Utils.withCancellationSignal,
   Utils.connectStore(authStore, 'authState')
 )(class PrivateDataExplorer extends Component {
   constructor(props) {

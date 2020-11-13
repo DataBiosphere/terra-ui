@@ -18,7 +18,7 @@ import validate from 'validate.js'
 const cutName = name => name.slice(10, -6) // removes 'notebooks/' and the .ipynb suffix
 
 export default _.flow(
-  Utils.withCancellation,
+  Utils.withCancellationSignal,
   withWorkspaces
 )(class ExportNotebookModal extends Component {
   static propTypes = {

@@ -13,7 +13,7 @@ import {
 } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
-export default Utils.withCancellation(class LaunchAnalysisModal extends Component {
+export default Utils.withCancellationSignal(class LaunchAnalysisModal extends Component {
   constructor(props) {
     super(props)
     this.state = {

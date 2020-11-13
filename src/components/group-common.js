@@ -75,7 +75,7 @@ export const MemberCard = Utils.memoWithName('MemberCard', ({ member: { email, r
   ])
 })
 
-export const NewUserModal = Utils.withCancellation(class NewUserModal extends Component {
+export const NewUserModal = Utils.withCancellationSignal(class NewUserModal extends Component {
   static propTypes = {
     addFunction: PropTypes.func.isRequired,
     adminLabel: PropTypes.string.isRequired,

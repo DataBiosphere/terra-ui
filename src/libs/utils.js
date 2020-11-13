@@ -392,8 +392,8 @@ export const useCancellation = () => {
   return controller.current.signal
 }
 
-export const withCancellation = WrappedComponent => {
-  return withDisplayName('withCancellation', props => {
+export const withCancellationSignal = WrappedComponent => {
+  return withDisplayName('withCancellationSignal', props => {
     const signal = useCancellation()
     return h(WrappedComponent, { ...props, signal })
   })

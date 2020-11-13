@@ -190,7 +190,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
   })
 }
 
-const BucketContentModal = Utils.withCancellation(class BucketContentModal extends Component {
+const BucketContentModal = Utils.withCancellationSignal(class BucketContentModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -328,7 +328,7 @@ const WorkflowView = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'workflows'),
     title: _.get('workflowName'), activeTab: 'workflows'
   }),
-  Utils.withCancellation
+  Utils.withCancellationSignal
 )(class WorkflowView extends Component {
   resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata) {
     const { workflowName } = this.props

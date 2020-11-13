@@ -14,7 +14,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 
 
-export default Utils.withCancellation(class ProjectDetail extends Component {
+export default Utils.withCancellationSignal(class ProjectDetail extends Component {
   constructor(props) {
     super(props)
     this.state = {

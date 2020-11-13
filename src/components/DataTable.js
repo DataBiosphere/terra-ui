@@ -39,7 +39,7 @@ const applyColumnSettings = (columnSettings, columns) => {
 
 const makePersistenceId = ({ workspaceId: { namespace, name }, entityType }) => `${namespace}/${name}/${entityType}`
 
-export default Utils.withCancellation(class DataTable extends Component {
+export default Utils.withCancellationSignal(class DataTable extends Component {
   constructor(props) {
     super(props)
 
