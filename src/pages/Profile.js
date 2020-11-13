@@ -260,7 +260,7 @@ const Profile = _.flow(
           div({ style: styles.header.line }, [
             div({ style: { position: 'relative' } }, [
               profilePic({ size: 48 }),
-              h(InfoBox, { style: { alignSelf: 'flex-end', padding: '0.25rem' } }, [
+              h(InfoBox, { style: { alignSelf: 'flex-end' } }, [
                 'To change your profile image, visit your ',
                 h(Link, {
                   href: `https://myaccount.google.com?authuser=${getUser().email}`,
