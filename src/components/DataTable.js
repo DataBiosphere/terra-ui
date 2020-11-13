@@ -191,6 +191,7 @@ export default Utils.withCancellationSignal(class DataTable extends Component {
                   },
                   ..._.map(({ name }) => {
                     const thisWidth = theseColumnWidths[name] || 300
+                    const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(name)
                     return {
                       width: thisWidth,
                       headerRenderer: () => h(Resizable, {
@@ -200,7 +201,10 @@ export default Utils.withCancellationSignal(class DataTable extends Component {
                         }
                       }, [
                         h(Sortable, { sort, field: name, onSort: v => this.setState({ sort: v }) }, [
-                          h(HeaderCell, [name])
+                          !!columnNamespace && div({
+                            style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' }
+                          }, [columnNamespace]),
+                          h(HeaderCell, [columnName])
                         ])
                       ]),
                       cellRenderer: ({ rowIndex }) => {
