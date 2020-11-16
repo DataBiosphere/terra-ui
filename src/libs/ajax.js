@@ -1182,7 +1182,7 @@ const Dockstore = signal => ({
   getWdl: async (path, version) => {
     const res = await fetchDockstore(`${dockstoreMethodPath(path)}/${encodeURIComponent(version)}/WDL/descriptor`, { signal })
     const { url } = await res.json()
-    return fetchOk(url).then(res => res.text())
+    return fetchOk(url, { signal }).then(res => res.text())
   },
 
   getVersions: async path => {
