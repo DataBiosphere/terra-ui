@@ -6,7 +6,7 @@ import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/componen
 import { centeredSpinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
@@ -170,7 +170,7 @@ export const NotebookCreator = class NotebookCreator extends Component {
   }
 }
 
-export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Component {
+export const NotebookDuplicator = Utils.withCancellationSignal(class NotebookDuplicator extends Component {
   static propTypes = {
     destroyOld: PropTypes.bool,
     fromLauncher: PropTypes.bool,
@@ -193,8 +193,8 @@ export const NotebookDuplicator = ajaxCaller(class NotebookDuplicator extends Co
   }
 
   async componentDidMount() {
-    const { ajax: { Buckets }, namespace, bucketName } = this.props
-    const existingNotebooks = await Buckets.listNotebooks(namespace, bucketName)
+    const { signal, namespace, bucketName } = this.props
+    const existingNotebooks = await Ajax(signal).Buckets.listNotebooks(namespace, bucketName)
     const existingNames = _.map(({ name }) => name.slice(10, -6), existingNotebooks)
     this.setState({ existingNames })
   }

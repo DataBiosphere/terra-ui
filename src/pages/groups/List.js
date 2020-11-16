@@ -8,7 +8,7 @@ import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import TopBar from 'src/components/TopBar'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { formHint, FormLabel } from 'src/libs/forms'
@@ -155,7 +155,7 @@ const noGroupsMessage = div({ style: { fontSize: 20, margin: '0 1rem' } }, [
   ])
 ])
 
-export const GroupList = ajaxCaller(class GroupList extends Component {
+export const GroupList = Utils.withCancellationSignal(class GroupList extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -169,11 +169,11 @@ export const GroupList = ajaxCaller(class GroupList extends Component {
   }
 
   async refresh() {
-    const { ajax: { Groups } } = this.props
+    const { signal } = this.props
 
     try {
       this.setState({ isDataLoaded: false, creatingNewGroup: false, deletingGroup: false, updating: false })
-      const rawGroups = await Groups.list()
+      const rawGroups = await Ajax(signal).Groups.list()
       const groups = _.flow(
         _.groupBy('groupName'),
         _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
