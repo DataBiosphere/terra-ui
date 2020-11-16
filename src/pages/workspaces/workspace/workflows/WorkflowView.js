@@ -542,7 +542,7 @@ const WorkflowView = _.flow(
           this.setState({ synopsis, documentation, wdl: payload })
         }
       } else if (sourceRepo === 'dockstore') {
-        const wdl = await Ajax(signal).Dockstore.getWdl(methodPath, methodVersion).then(({ descriptor }) => descriptor)
+        const wdl = await Ajax(signal).Dockstore.getWdl(methodPath, methodVersion)
         this.setState({ wdl })
       } else {
         throw new Error('unknown sourceRepo')

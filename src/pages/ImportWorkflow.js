@@ -49,8 +49,8 @@ const DockstoreImporter = Utils.withCancellationSignal(class DockstoreImporter e
   async loadWdl() {
     try {
       const { path, version, signal } = this.props
-      const { descriptor } = await Ajax(signal).Dockstore.getWdl(path, version)
-      this.setState({ wdl: descriptor, workflowName: _.last(path.split('/')) })
+      const wdl = await Ajax(signal).Dockstore.getWdl(path, version)
+      this.setState({ wdl, workflowName: _.last(path.split('/')) })
     } catch (error) {
       reportError('Error loading WDL', error)
     }
