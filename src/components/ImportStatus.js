@@ -50,7 +50,11 @@ const ImportStatusItem = ({ job: { targetWorkspace, jobId }, onDone }) => {
     // once import servie is fully adopted, we can/should remove the avro-import status values.
 
     const successNotify = () => notify('success', 'Data imported successfully.',
-      { message: `Data import to workspace "${namespace} / ${name}" is complete. Please refresh the Data view.` })
+      {
+        message: `Data import to workspace "${namespace} / ${name}" is complete, please refresh the Data view.
+      Because this data comes from a PFB, you must include the namespace "pfb:" when referring to attribute names, 
+      e.g. "this.pfb:consent_codes" instead of "this.consent_codes."`
+      })
 
     const errorNotify = () => notify('error', 'Error importing PFB data.', message)
 

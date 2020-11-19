@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Component, createRef, Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Checkbox, Clickable, Link, MenuButton, RadioButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -201,10 +201,11 @@ export default Utils.withCancellationSignal(class DataTable extends Component {
                         }
                       }, [
                         h(Sortable, { sort, field: name, onSort: v => this.setState({ sort: v }) }, [
-                          !!columnNamespace && div({
-                            style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' }
-                          }, [columnNamespace]),
-                          h(HeaderCell, [columnName])
+                          h(HeaderCell, [
+                            !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } },
+                              columnNamespace)
+                          ]),
+                          [columnName]
                         ])
                       ]),
                       cellRenderer: ({ rowIndex }) => {
