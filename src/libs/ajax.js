@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { h } from 'react-hyperscript-helpers'
 import { version } from 'src/data/machines'
 import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
@@ -1182,7 +1181,8 @@ const Disks = signal => ({
 const Dockstore = signal => ({
   getWdl: async (path, version) => {
     const res = await fetchDockstore(`${dockstoreMethodPath(path)}/${encodeURIComponent(version)}/WDL/descriptor`, { signal })
-    return res.json()
+    const { url } = await res.json()
+    return fetchOk(url, { signal }).then(res => res.text())
   },
 
   getVersions: async path => {
@@ -1272,10 +1272,3 @@ export const Ajax = signal => {
 
 // Exposing Ajax for use by integration tests (and debugging, or whatever)
 window.Ajax = Ajax
-
-export const ajaxCaller = WrappedComponent => {
-  return Utils.withDisplayName('ajaxCaller', props => {
-    const signal = Utils.useCancellation()
-    return h(WrappedComponent, { ...props, ajax: Ajax(signal) })
-  })
-}

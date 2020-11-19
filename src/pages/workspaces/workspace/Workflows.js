@@ -11,7 +11,7 @@ import { DelayedSearchInput } from 'src/components/input'
 import { MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
@@ -156,7 +156,7 @@ const WorkflowCard = Utils.memoWithName('WorkflowCard', ({ listView, name, names
     ])
 })
 
-const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
+const FindWorkflowModal = Utils.withCancellationSignal(class FindWorkflowModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -169,11 +169,11 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
   }
 
   async componentDidMount() {
-    const { ajax: { Methods } } = this.props
+    const { signal } = this.props
 
     const [featuredList, methods] = await Promise.all([
       fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`).then(res => res.json()),
-      Methods.list({ namespace: 'gatk' })
+      Ajax(signal).Methods.list({ namespace: 'gatk' })
     ])
 
     this.setState({ featuredList, methods })
@@ -234,12 +234,12 @@ const FindWorkflowModal = ajaxCaller(class FindWorkflowModal extends Component {
   }
 
   async loadMethod(selectedWorkflow) {
-    const { ajax: { Methods } } = this.props
+    const { signal } = this.props
     const { namespace, name, snapshotId } = selectedWorkflow
 
     this.setState({ selectedWorkflow })
     try {
-      const selectedWorkflowDetails = await Methods.method(namespace, name, snapshotId).get()
+      const selectedWorkflowDetails = await Ajax(signal).Methods.method(namespace, name, snapshotId).get()
       this.setState({ selectedWorkflowDetails })
     } catch (error) {
       reportError('Error loading workflow', error)
@@ -292,7 +292,7 @@ export const Workflows = _.flow(
     title: 'Workflows', activeTab: 'workflows'
   }),
   withViewToggle('workflowsTab'),
-  ajaxCaller
+  Utils.withCancellationSignal
 )(class Workflows extends Component {
   constructor(props) {
     super(props)
@@ -305,11 +305,11 @@ export const Workflows = _.flow(
   }
 
   async refresh() {
-    const { namespace, name, ajax: { Workspaces } } = this.props
+    const { namespace, name, signal } = this.props
 
     try {
       this.setState({ loading: true })
-      const configs = await Workspaces.workspace(namespace, name).listMethodConfigs()
+      const configs = await Ajax(signal).Workspaces.workspace(namespace, name).listMethodConfigs()
       this.setState({ configs })
     } catch (error) {
       reportError('Error loading configs', error)

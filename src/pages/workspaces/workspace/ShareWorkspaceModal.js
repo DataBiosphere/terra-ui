@@ -5,7 +5,7 @@ import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverl
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { Ajax, ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -74,7 +74,7 @@ const AclInput = ({ value, onChange, disabled, maxAccessLevel, autoFocus }) => {
   ])
 }
 
-export default ajaxCaller(class ShareWorkspaceModal extends Component {
+export default Utils.withCancellationSignal(class ShareWorkspaceModal extends Component {
   constructor(props) {
     super(props)
     this.state = {
@@ -188,13 +188,13 @@ export default ajaxCaller(class ShareWorkspaceModal extends Component {
   }
 
   async componentDidMount() {
-    const { workspace: { workspace: { namespace, name } }, onDismiss, ajax: { Workspaces, Groups } } = this.props
+    const { workspace: { workspace: { namespace, name } }, onDismiss, signal } = this.props
 
     try {
       const [{ acl }, shareSuggestions, groups] = await Promise.all([
-        Workspaces.workspace(namespace, name).getAcl(),
-        Workspaces.getShareLog(),
-        Groups.list()
+        Ajax(signal).Workspaces.workspace(namespace, name).getAcl(),
+        Ajax(signal).Workspaces.getShareLog(),
+        Ajax(signal).Groups.list()
       ])
 
       const fixedAcl = _.flow(

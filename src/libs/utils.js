@@ -392,6 +392,13 @@ export const useCancellation = () => {
   return controller.current.signal
 }
 
+export const withCancellationSignal = WrappedComponent => {
+  return withDisplayName('withCancellationSignal', props => {
+    const signal = useCancellation()
+    return h(WrappedComponent, { ...props, signal })
+  })
+}
+
 export const usePollingEffect = (effectFn, { ms, leading }) => {
   const signal = useCancellation()
 

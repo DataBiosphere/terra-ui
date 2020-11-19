@@ -5,7 +5,7 @@ import { Link } from 'src/components/common'
 import DataExplorerFrame from 'src/components/DataExplorerFrame'
 import { centeredSpinner } from 'src/components/icons'
 import datasets from 'src/data/datasets'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import { authStore, contactUsActive } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -27,7 +27,7 @@ import * as Utils from 'src/libs/utils'
 */
 
 export default _.flow(
-  ajaxCaller,
+  Utils.withCancellationSignal,
   Utils.connectStore(authStore, 'authState')
 )(class PrivateDataExplorer extends Component {
   constructor(props) {
@@ -39,11 +39,11 @@ export default _.flow(
   }
 
   async componentDidMount() {
-    const { ajax: { Groups }, dataset } = this.props
+    const { signal, dataset } = this.props
     const { origin } = _.find({ name: dataset }, datasets)
 
     const [groupObjs] = await Promise.all([
-      Groups.list(),
+      Ajax(signal).Groups.list(),
       fetch(`${origin}/favicon.ico`, {
         // The whole point of reading this file is to test IAP. Prevent future
         // fetches from getting this file from disk cache.

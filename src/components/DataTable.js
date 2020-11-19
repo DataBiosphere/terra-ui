@@ -8,7 +8,7 @@ import { ConfirmedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
-import { ajaxCaller } from 'src/libs/ajax'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { EditDataLink, EntityEditor, EntityRenamer, renderDataCell } from 'src/libs/data-utils'
 import { reportError } from 'src/libs/error'
@@ -39,7 +39,7 @@ const applyColumnSettings = (columnSettings, columns) => {
 
 const makePersistenceId = ({ workspaceId: { namespace, name }, entityType }) => `${namespace}/${name}/${entityType}`
 
-export default ajaxCaller(class DataTable extends Component {
+export default Utils.withCancellationSignal(class DataTable extends Component {
   constructor(props) {
     super(props)
 
@@ -297,14 +297,14 @@ export default ajaxCaller(class DataTable extends Component {
   async loadData() {
     const {
       entityType, workspaceId: { namespace, name },
-      ajax: { Workspaces }
+      signal
     } = this.props
 
     const { pageNumber, itemsPerPage, sort, activeTextFilter } = this.state
 
     try {
       this.setState({ loading: true })
-      const { results, resultMetadata: { filteredCount, unfilteredCount } } = await Workspaces.workspace(namespace, name)
+      const { results, resultMetadata: { filteredCount, unfilteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name)
         .paginatedEntitiesOfType(entityType, {
           page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction, filterTerms: activeTextFilter
         })
@@ -317,10 +317,10 @@ export default ajaxCaller(class DataTable extends Component {
   }
 
   async selectAll() {
-    const { entityType, workspaceId: { namespace, name }, ajax: { Workspaces }, selectionModel: { setSelected } } = this.props
+    const { entityType, workspaceId: { namespace, name }, signal, selectionModel: { setSelected } } = this.props
     try {
       this.setState({ loading: true })
-      const results = await Workspaces.workspace(namespace, name).entitiesOfType(entityType)
+      const results = await Ajax(signal).Workspaces.workspace(namespace, name).entitiesOfType(entityType)
       setSelected(entityMap(results))
     } catch (error) {
       reportError('Error loading entities', error)
