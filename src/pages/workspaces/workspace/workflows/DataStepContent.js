@@ -187,7 +187,6 @@ export default class DataStepContent extends Component {
             entityType: (isChooseSetComponents && baseEntityType) || (isProcessMergedSet && setType) || rootEntityType,
             entityMetadata, workspaceId, columnDefaults,
             selectionModel: {
-              type: 'multiple',
               selected: selectedEntities, setSelected: e => this.setNewSelectionModel({ selectedEntities: e })
             }
           })
