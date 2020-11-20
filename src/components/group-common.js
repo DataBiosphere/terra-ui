@@ -109,7 +109,7 @@ export const NewUserModal = ({
   const submit = async () => { // only called by invite and add, which set busy & catch errors
     try {
       await addFunction(roles, userEmail)
-      onSuccess() // TODO: this can cause busy to be updated in state after unmount
+      onSuccess()
     } catch (error) {
       if (400 <= error.status && error.status <= 499) {
         setSubmitError((await error.json()).message)
