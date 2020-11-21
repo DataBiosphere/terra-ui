@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
-import PropTypes from 'prop-types'
-import { Component, Fragment, useState } from 'react'
+import { Fragment, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, div, h, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
@@ -95,53 +94,42 @@ const DropDownSection = ({ titleIcon, title, isOpened, onClick, children }) => {
   ])
 }
 
-const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends Component {
-  static defaultProps = {
-    showMenu: true
-  }
+const TopBar = ({ showMenu = true, title, href, children }) => {
+  const [navShown, setNavShown] = useState(false)
+  const [openUserMenu, setOpenUserMenu] = useState(false)
+  const [openLibraryMenu, setOpenLibraryMenu] = useState(false)
+  const [openSupportMenu, setOpenSupportMenu] = useState(false)
+  const [openCookiesModal, setOpenCookiesModal] = useState(false)
+  const [finalizeTrial, setFinalizeTrial] = useState(false)
+  const [openFirecloudModal, setOpenFirecloudModal] = useState(false)
 
-  static propTypes = {
-    title: PropTypes.node,
-    href: PropTypes.string, // link destination
-    children: PropTypes.node,
-    showMenu: PropTypes.bool
-  }
+  const authState = Utils.useStore(authStore)
 
-  constructor(props) {
-    super(props)
-    this.state = {
-      navShown: false,
-      openUserMenu: false,
-      openLibraryMenu: false,
-      openSupportMenu: false
-    }
-  }
-
-  showNav() {
-    this.setState({ navShown: true })
+  const showNav = () => {
+    setNavShown(true)
     document.body.classList.add('overlayOpen')
     if (document.body.scrollHeight > window.innerHeight) {
       document.body.classList.add('overHeight')
     }
   }
 
-  hideNav() {
-    this.setState({ navShown: false, openUserMenu: false, openLibraryMenu: false, openSupportMenu: false })
+  const hideNav = () => {
+    setNavShown(false)
+    setOpenUserMenu(false)
+    setOpenLibraryMenu(false)
+    setOpenLibraryMenu(false)
     document.body.classList.remove('overlayOpen', 'overHeight')
   }
 
-  buildNav(transitionState) {
-    const { authState: { isSignedIn, profile: { firstName = 'Loading...', lastName = '', trialState } } } = this.props
-    const { navShown, openLibraryMenu, openSupportMenu, openUserMenu } = this.state
+  const buildNav = transitionState => {
+    const { isSignedIn, profile: { firstName = 'Loading...', lastName = '', trialState } } = authState
 
     return h(FocusTrapper, {
-      onBreakout: () => this.setState({ navShown: false }),
+      onBreakout: () => setNavShown(false),
       role: 'navigation',
       'aria-label': 'Main menu',
       style: navShown ? styles.nav.background : undefined,
-      onClick: () => {
-        this.hideNav()
-      }
+      onClick: hideNav
     }, [
       div({
         style: styles.nav.container(transitionState),
@@ -154,24 +142,24 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
                 profilePic({ size: 32, style: { marginRight: 12, flex: 'none' } }),
                 div({ style: { ...Style.noWrapEllipsis } }, [`${firstName} ${lastName}`])
               ]),
-              onClick: () => this.setState({ openUserMenu: !openUserMenu }),
+              onClick: () => setOpenUserMenu(!openUserMenu),
               isOpened: openUserMenu
             }, [
               h(DropDownSubItem, {
                 href: Nav.getLink('profile'),
-                onClick: () => this.hideNav()
+                onClick: hideNav
               }, ['Profile']),
               h(DropDownSubItem, {
                 href: Nav.getLink('groups'),
-                onClick: () => this.hideNav()
+                onClick: hideNav
               }, ['Groups']),
               h(DropDownSubItem, {
                 href: Nav.getLink('billing'),
-                onClick: () => this.hideNav()
+                onClick: hideNav
               }, ['Billing']),
               h(DropDownSubItem, {
                 href: Nav.getLink('environments'),
-                onClick: () => this.hideNav()
+                onClick: hideNav
               }, ['Cloud Environments']),
               h(DropDownSubItem, {
                 onClick: signOut
@@ -191,14 +179,14 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
                   h(Clickable, {
                     hover: { textDecoration: 'underline' },
                     style: { color: 'white', marginLeft: '9rem', fontWeight: 600 },
-                    onClick: () => this.setState({ openCookiesModal: true })
+                    onClick: () => setOpenCookiesModal(true)
                   }, ['Cookies policy']),
                   h(SignInButton)
                 ])
             ]),
           h(NavSection, {
             href: Nav.getLink('workspaces'),
-            onClick: () => this.hideNav()
+            onClick: hideNav
           }, [
             icon('view-cards', { size: 24, style: styles.nav.icon }),
             'Workspaces'
@@ -206,20 +194,20 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
           h(DropDownSection, {
             titleIcon: 'library',
             title: 'Library',
-            onClick: () => this.setState({ openLibraryMenu: !openLibraryMenu }),
+            onClick: () => setOpenLibraryMenu(!openLibraryMenu),
             isOpened: openLibraryMenu
           }, [
             h(DropDownSubItem, {
               href: Nav.getLink('library-datasets'),
-              onClick: () => this.hideNav()
+              onClick: hideNav
             }, ['Data']),
             h(DropDownSubItem, {
               href: Nav.getLink('library-showcase'),
-              onClick: () => this.hideNav()
+              onClick: hideNav
             }, ['Showcase']),
             h(DropDownSubItem, {
               href: Nav.getLink('library-code'),
-              onClick: () => this.hideNav()
+              onClick: hideNav
             }, ['Workflows'])
           ]),
           Utils.switchCase(trialState,
@@ -227,7 +215,7 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
               return h(NavSection, {
                 href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
                 ...Utils.newTabLinkProps,
-                onClick: () => this.hideNav()
+                onClick: hideNav
               }, [
                 div({ style: styles.nav.icon }, [icon('cloud', { size: 20 })]),
                 'Access free credits',
@@ -236,7 +224,7 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
             }],
             ['Terminated', () => {
               return h(NavSection, {
-                onClick: () => this.setState({ finalizeTrial: true })
+                onClick: () => setFinalizeTrial(true)
               }, [
                 div({ style: styles.nav.icon }, [icon('cloud', { size: 20 })]),
                 'Your free trial has ended'
@@ -246,13 +234,13 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
           h(DropDownSection, {
             titleIcon: 'help',
             title: 'Support',
-            onClick: () => this.setState({ openSupportMenu: !openSupportMenu }),
+            onClick: () => setOpenSupportMenu(!openSupportMenu),
             isOpened: openSupportMenu
           }, [
             h(DropDownSubItem, {
               href: window.Appcues ? undefined : 'https://support.terra.bio/hc/en-us/articles/360042745091',
               onClick: () => {
-                this.hideNav()
+                hideNav()
                 // until eslint supports optional chaining, possibly with https://github.com/eslint/eslint/pull/13196:
                 // eslint-disable-next-line no-unused-expressions
                 window.Appcues?.show('-M3lNP6ncNr-42_78TOX')
@@ -261,39 +249,39 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
             }, ['Tutorials and Videos']),
             h(DropDownSubItem, {
               href: 'https://support.terra.bio/hc/en-us',
-              onClick: () => this.hideNav(),
+              onClick: hideNav,
               ...Utils.newTabLinkProps
             }, ['How-to Guides']),
             h(DropDownSubItem, {
               href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
-              onClick: () => this.hideNav(),
+              onClick: hideNav,
               ...Utils.newTabLinkProps
             }, ['Request a Feature']),
             h(DropDownSubItem, {
               href: 'https://support.terra.bio/hc/en-us/community/topics/360000500432',
-              onClick: () => this.hideNav(),
+              onClick: hideNav,
               ...Utils.newTabLinkProps
             }, ['Community Forum']),
             isFirecloud() && h(DropDownSubItem, {
               href: 'https://support.terra.bio/hc/en-us/articles/360022694271',
-              onClick: () => this.hideNav(),
+              onClick: hideNav,
               ...Utils.newTabLinkProps
             }, ['What\'s different in Terra']),
             h(DropDownSubItem, {
               onClick: () => {
-                this.hideNav()
+                hideNav()
                 contactUsActive.set(true)
               }
             }, ['Contact Us']),
             h(DropDownSubItem, {
               href: 'https://support.terra.bio/hc/en-us/sections/360003424251-Release-Notes',
-              onClick: () => this.hideNav(),
+              onClick: hideNav,
               ...Utils.newTabLinkProps
             }, ['Release Notes'])
           ]),
           isTerra() && h(NavSection, {
             href: 'https://support.terra.bio/hc/en-us/articles/360041068771--COVID-19-workspaces-data-and-tools-in-Terra',
-            onClick: () => this.hideNav(),
+            onClick: hideNav,
             ...Utils.newTabLinkProps
           }, [
             icon('virus', { size: 24, style: styles.nav.icon }),
@@ -303,8 +291,8 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
             disabled: !isSignedIn,
             tooltip: isSignedIn ? undefined : 'Please sign in',
             onClick: () => {
-              this.hideNav()
-              this.setState({ openFirecloudModal: true })
+              hideNav()
+              setOpenFirecloudModal(true)
             }
           }, [
             div({ style: styles.nav.icon }, [
@@ -322,13 +310,13 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
                   variant: 'light',
                   style: { display: 'block', textDecoration: 'underline', color: colors.accent(0.2) },
                   href: Nav.getLink('privacy'),
-                  onClick: () => this.hideNav()
+                  onClick: hideNav
                 }, ['Terra Privacy Policy']),
               h(Link, {
                 variant: 'light',
                 href: Nav.getLink('terms-of-service'),
                 style: { display: 'block', textDecoration: 'underline', color: colors.accent(0.2) },
-                onClick: () => this.hideNav()
+                onClick: hideNav
               }, ['Terra Terms of Service'])
             ]),
             div({ style: { color: colors.light(), fontSize: 10, fontWeight: 600, marginTop: '0.5rem' } }, [
@@ -345,81 +333,76 @@ const TopBar = Utils.connectStore(authStore, 'authState')(class TopBar extends C
     ])
   }
 
-  render() {
-    const { title, href, children, showMenu, authState } = this.props
-    const { navShown, finalizeTrial, openCookiesModal, openFirecloudModal } = this.state
-
-    return h(Fragment, [
-      h(Transition, {
-        in: navShown,
-        timeout: { exit: 200 },
-        mountOnEnter: true,
-        unmountOnExit: true
-      }, [transitionState => this.buildNav(transitionState)]),
-      div({
-        role: 'banner',
-        style: {
-          ...styles.topBar,
-          background: isTerra() ?
-            `81px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat, ${colors.primary()}` :
-            colors.light()
-        }
-      }, [
-        showMenu ?
-          h(Clickable, {
-            'aria-label': 'Toggle main menu',
-            style: { alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: '0 1rem', margin: '2px 1rem 0 2px' },
-            onClick: () => navShown ? this.hideNav() : this.showNav()
-          }, [
-            icon('bars', {
-              size: 36,
-              style: {
-                color: isTerra() ? 'white' : colors.accent(), flex: 'none',
-                transform: navShown ? 'rotate(90deg)' : undefined, transition: 'transform 0.1s ease-out'
-              }
-            })
-          ]) :
-          div({ style: { width: `calc(1rem + 1rem + 1rem + 2px + 36px)` } }), // padding (l+r) + margin (l+r) + icon size
-        a({
-          style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
-          href: href || Nav.getLink('root')
+  return h(Fragment, [
+    h(Transition, {
+      in: navShown,
+      timeout: { exit: 200 },
+      mountOnEnter: true,
+      unmountOnExit: true
+    }, [transitionState => buildNav(transitionState)]),
+    div({
+      role: 'banner',
+      style: {
+        ...styles.topBar,
+        background: isTerra() ?
+          `81px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat, ${colors.primary()}` :
+          colors.light()
+      }
+    }, [
+      showMenu ?
+        h(Clickable, {
+          'aria-label': 'Toggle main menu',
+          style: { alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: '0 1rem', margin: '2px 1rem 0 2px' },
+          onClick: () => navShown ? hideNav() : showNav()
         }, [
-          topBarLogo(),
-          div({}, [
-            div({
-              style: title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 }
-            }, [versionTag('Beta')]),
-            title
-          ])
-        ]),
-        children,
-        finalizeTrial && h(Modal, {
-          title: 'Remove button',
-          onDismiss: () => this.setState({ finalizeTrial: false }),
-          okButton: h(ButtonPrimary, {
-            onClick: async () => {
-              try {
-                await Ajax().User.finalizeTrial()
-                await refreshTerraProfile()
-              } catch (error) {
-                reportError('Error finalizing trial', error)
-              } finally {
-                this.setState({ finalizeTrial: false })
-              }
+          icon('bars', {
+            size: 36,
+            style: {
+              color: isTerra() ? 'white' : colors.accent(), flex: 'none',
+              transform: navShown ? 'rotate(90deg)' : undefined, transition: 'transform 0.1s ease-out'
             }
-          }, ['Confirm'])
-        }, ['Click confirm to remove button forever.']),
-        openCookiesModal && h(CookiesModal, {
-          onDismiss: () => this.setState({ openCookiesModal: false })
-        }),
-        openFirecloudModal && h(PreferFirecloudModal, {
-          onDismiss: () => this.setState({ openFirecloudModal: false }),
-          authState
-        })
-      ])
+          })
+        ]) :
+        div({ style: { width: `calc(1rem + 1rem + 1rem + 2px + 36px)` } }), // padding (l+r) + margin (l+r) + icon size
+      a({
+        style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
+        href: href || Nav.getLink('root')
+      }, [
+        topBarLogo(),
+        div({}, [
+          div({
+            style: title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 }
+          }, [versionTag('Beta')]),
+          title
+        ])
+      ]),
+      children,
+      finalizeTrial && h(Modal, {
+        title: 'Remove button',
+        onDismiss: () => setFinalizeTrial(false),
+        okButton: h(ButtonPrimary, {
+          onClick: async () => {
+            try {
+              await Ajax().User.finalizeTrial()
+              await refreshTerraProfile()
+            } catch (error) {
+              reportError('Error finalizing trial', error)
+            } finally {
+              setFinalizeTrial(false)
+            }
+          }
+        }, ['Confirm'])
+      }, ['Click confirm to remove button forever.']),
+      openCookiesModal && h(CookiesModal, {
+        onDismiss: () => setOpenCookiesModal(false)
+      }),
+      openFirecloudModal && h(PreferFirecloudModal, {
+        onDismiss: () => setOpenFirecloudModal(false),
+        authState
+      })
     ])
-  }
-})
+  ])
+}
 
 const PreferFirecloudModal = ({ onDismiss }) => {
   const [emailAgreed, setEmailAgreed] = useState(true)
