@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
-import PropTypes from 'prop-types'
-import { Component, Fragment, useState } from 'react'
+import { Fragment, useState } from 'react'
 import { div, fieldset, h, legend, span } from 'react-hyperscript-helpers'
 import {
   ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, SimpleTabBar, spinnerOverlay,
@@ -35,7 +34,9 @@ const errorTextStyle = { color: colors.danger(), fontWeight: 'bold', fontSize: 1
 
 export const parseGsUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 
-export const getUserProjectForWorkspace = async workspace => (workspace && await canUseWorkspaceProject(workspace)) ? workspace.workspace.namespace : requesterPaysProjectStore.get()
+export const getUserProjectForWorkspace = async workspace => (workspace && await canUseWorkspaceProject(workspace)) ?
+  workspace.workspace.namespace :
+  requesterPaysProjectStore.get()
 
 export const renderDataCell = (data, namespace) => {
   const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
@@ -67,120 +68,75 @@ export const EditDataLink = props => h(Link, {
   ...props
 }, [icon('edit')])
 
-export const ReferenceDataImporter = class ReferenceDataImporter extends Component {
-  static propTypes = {
-    onDismiss: PropTypes.func.isRequired,
-    onSuccess: PropTypes.func.isRequired,
-    namespace: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired
-  }
+export const ReferenceDataImporter = ({ onSuccess, onDismiss, namespace, name }) => {
+  const [loading, setLoading] = useState(false)
+  const [selectedReference, setSelectedReference] = useState(undefined)
 
-  constructor(props) {
-    super(props)
-    this.state = { loading: false, selectedReference: undefined }
-  }
-
-  render() {
-    const { onDismiss, onSuccess, namespace, name } = this.props
-    const { loading, selectedReference } = this.state
-
-    return h(Modal, {
-      'aria-label': 'Add Reference Data',
-      onDismiss,
-      title: 'Add Reference Data',
-      okButton: h(ButtonPrimary, {
-        disabled: !selectedReference || loading,
-        onClick: async () => {
-          this.setState({ loading: true })
-          try {
-            await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes(
-              _.mapKeys(k => `referenceData_${selectedReference}_${k}`, ReferenceData[selectedReference])
-            )
-            onSuccess()
-          } catch (error) {
-            await reportError('Error importing reference data', error)
-            onDismiss()
-          }
+  return h(Modal, {
+    'aria-label': 'Add Reference Data',
+    onDismiss,
+    title: 'Add Reference Data',
+    okButton: h(ButtonPrimary, {
+      disabled: !selectedReference || loading,
+      onClick: async () => {
+        setLoading(true)
+        try {
+          await Ajax().Workspaces.workspace(namespace, name).shallowMergeNewAttributes(
+            _.mapKeys(k => `referenceData_${selectedReference}_${k}`, ReferenceData[selectedReference])
+          )
+          onSuccess()
+        } catch (error) {
+          await reportError('Error importing reference data', error)
+          onDismiss()
         }
-      }, 'OK')
-    }, [
-      h(Select, {
-        'aria-label': 'Select data',
-        autoFocus: true,
-        isSearchable: false,
-        placeholder: 'Select data',
-        value: selectedReference,
-        onChange: ({ value }) => this.setState({ selectedReference: value }),
-        options: _.keys(ReferenceData)
-      }),
-      loading && spinnerOverlay
-    ])
-  }
+      }
+    }, 'OK')
+  }, [
+    h(Select, {
+      'aria-label': 'Select data',
+      autoFocus: true,
+      isSearchable: false,
+      placeholder: 'Select data',
+      value: selectedReference,
+      onChange: ({ value }) => setSelectedReference(value),
+      options: _.keys(ReferenceData)
+    }),
+    loading && spinnerOverlay
+  ])
 }
 
-export const ReferenceDataDeleter = class ReferenceDataDeleter extends Component {
-  static propTypes = {
-    onDismiss: PropTypes.func.isRequired,
-    onSuccess: PropTypes.func.isRequired,
-    namespace: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    referenceDataType: PropTypes.string.isRequired
-  }
+export const ReferenceDataDeleter = ({ onSuccess, onDismiss, namespace, name, referenceDataType }) => {
+  const [deleting, setDeleting] = useState(false)
 
-  constructor(props) {
-    super(props)
-    this.state = { deleting: false }
-  }
-
-  render() {
-    const { onDismiss, onSuccess, namespace, name, referenceDataType } = this.props
-    const { deleting } = this.state
-
-    return h(Modal, {
-      onDismiss,
-      title: 'Confirm Delete',
-      okButton: h(ButtonPrimary, {
-        disabled: deleting,
-        onClick: async () => {
-          this.setState({ deleting: true })
-          try {
-            await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(
-              _.map(key => `referenceData_${referenceDataType}_${key}`, _.keys(ReferenceData[referenceDataType]))
-            )
-            onSuccess()
-          } catch (error) {
-            await reportError('Error deleting reference data', error)
-            onDismiss()
-          }
+  return h(Modal, {
+    onDismiss,
+    title: 'Confirm Delete',
+    okButton: h(ButtonPrimary, {
+      disabled: deleting,
+      onClick: async () => {
+        setDeleting(true)
+        try {
+          await Ajax().Workspaces.workspace(namespace, name).deleteAttributes(
+            _.map(key => `referenceData_${referenceDataType}_${key}`, _.keys(ReferenceData[referenceDataType]))
+          )
+          onSuccess()
+        } catch (error) {
+          await reportError('Error deleting reference data', error)
+          onDismiss()
         }
-      }, ['Delete'])
-    }, [`Are you sure you want to delete ${referenceDataType}?`])
-  }
+      }
+    }, ['Delete'])
+  }, [`Are you sure you want to delete ${referenceDataType}?`])
 }
 
-export const EntityDeleter = class EntityDeleter extends Component {
-  static propTypes = {
-    onDismiss: PropTypes.func.isRequired,
-    onSuccess: PropTypes.func.isRequired,
-    namespace: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    selectedEntities: PropTypes.array.isRequired,
-    selectedDataType: PropTypes.string.isRequired,
-    runningSubmissionsCount: PropTypes.number.isRequired
-  }
+export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedEntities, selectedDataType, runningSubmissionsCount }) => {
+  const [additionalDeletions, setAdditionalDeletions] = useState([])
+  const [deleting, setDeleting] = useState(false)
 
-  constructor(props) {
-    super(props)
-
-    this.state = { additionalDeletions: [] }
-  }
-
-  async doDelete() {
-    const { onDismiss, onSuccess, namespace, name, selectedEntities, selectedDataType } = this.props
-    const { additionalDeletions } = this.state
+  const doDelete = async () => {
     const entitiesToDelete = _.concat(_.map(entityName => ({ entityName, entityType: selectedDataType }), selectedEntities), additionalDeletions)
 
-    this.setState({ deleting: true })
+    setDeleting(false)
 
     try {
       await Ajax().Workspaces.workspace(namespace, name).deleteEntities(entitiesToDelete)
@@ -188,7 +144,8 @@ export const EntityDeleter = class EntityDeleter extends Component {
     } catch (error) {
       switch (error.status) {
         case 409:
-          this.setState({ additionalDeletions: _.filter(entity => entity.entityType !== selectedDataType, await error.json()), deleting: false })
+          setAdditionalDeletions(_.filter(entity => entity.entityType !== selectedDataType, await error.json()))
+          setDeleting(false)
           break
         default:
           await reportError('Error deleting data entries', error)
@@ -197,73 +154,59 @@ export const EntityDeleter = class EntityDeleter extends Component {
     }
   }
 
-  render() {
-    const { onDismiss, selectedEntities, runningSubmissionsCount } = this.props
-    const { deleting, additionalDeletions } = this.state
-    const moreToDelete = !!additionalDeletions.length
+  const moreToDelete = !!additionalDeletions.length
 
-    const fullWidthWarning = {
-      ...warningBoxStyle,
-      borderLeft: 'none', borderRight: 'none',
-      margin: '0 -1.25rem'
-    }
-
-    const total = selectedEntities.length + additionalDeletions.length
-    return h(Modal, {
-      onDismiss,
-      title: 'Confirm Delete',
-      okButton: h(ButtonPrimary, {
-        disabled: deleting,
-        onClick: () => this.doDelete()
-      }, ['Delete'])
-    }, [
-      runningSubmissionsCount > 0 && div({ style: { ...fullWidthWarning, display: 'flex', alignItems: 'center' } }, [
-        icon('warning-standard', { size: 36, style: { flex: 'none', marginRight: '0.5rem' } }),
-        `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
-        'Deleting the following data could cause failures if a workflow is using this data.'
-      ]),
-      moreToDelete && div({ style: { ...fullWidthWarning, display: 'flex', alignItems: 'center' } }, [
-        icon('warning-standard', { size: 36, style: { flex: 'none', marginRight: '0.5rem' } }),
-        'In order to delete the selected data entries, the following entries that reference them must also be deleted.'
-      ]),
-      ..._.map(([i, entity]) => div({
-        style: {
-          borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
-          padding: '0.6rem 1.25rem', margin: '0 -1.25rem'
-        }
-      }, moreToDelete ? `${entity.entityName} (${entity.entityType})` : entity),
-      Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedEntities)),
-      div({
-        style: { ...fullWidthWarning, textAlign: 'right' }
-      }, [`${total} data ${total > 1 ? 'entries' : 'entry'} to be deleted.`]),
-      deleting && spinnerOverlay
-    ])
+  const fullWidthWarning = {
+    ...warningBoxStyle,
+    borderLeft: 'none', borderRight: 'none',
+    margin: '0 -1.25rem'
   }
+
+  const total = selectedEntities.length + additionalDeletions.length
+  return h(Modal, {
+    onDismiss,
+    title: 'Confirm Delete',
+    okButton: h(ButtonPrimary, {
+      disabled: deleting,
+      onClick: doDelete
+    }, ['Delete'])
+  }, [
+    runningSubmissionsCount > 0 && div({ style: { ...fullWidthWarning, display: 'flex', alignItems: 'center' } }, [
+      icon('warning-standard', { size: 36, style: { flex: 'none', marginRight: '0.5rem' } }),
+      `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
+      'Deleting the following data could cause failures if a workflow is using this data.'
+    ]),
+    moreToDelete && div({ style: { ...fullWidthWarning, display: 'flex', alignItems: 'center' } }, [
+      icon('warning-standard', { size: 36, style: { flex: 'none', marginRight: '0.5rem' } }),
+      'In order to delete the selected data entries, the following entries that reference them must also be deleted.'
+    ]),
+    ..._.map(([i, entity]) => div({
+      style: {
+        borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
+        padding: '0.6rem 1.25rem', margin: '0 -1.25rem'
+      }
+    }, moreToDelete ? `${entity.entityName} (${entity.entityType})` : entity),
+    Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedEntities)),
+    div({
+      style: { ...fullWidthWarning, textAlign: 'right' }
+    }, [`${total} data ${total > 1 ? 'entries' : 'entry'} to be deleted.`]),
+    deleting && spinnerOverlay
+  ])
 }
 
 const supportsFireCloudDataModel = entityType => _.includes(entityType, ['pair', 'participant', 'sample'])
 
-export const EntityUploader = class EntityUploader extends Component {
-  static propTypes = {
-    onDismiss: PropTypes.func.isRequired,
-    onSuccess: PropTypes.func.isRequired,
-    namespace: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    entityTypes: PropTypes.array.isRequired
-  }
+export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTypes }) => {
+  const [useFireCloudDataModel, setUseFireCloudDataModel] = useState(false)
+  const [isFileImportCurrMode, setIsFileImportCurrMode] = useState(true)
+  const [isFileImportLastUsedMode, setIsFileImportLastUsedMode] = useState(undefined)
+  const [file, setFile] = useState(undefined)
+  const [fileContents, setFileContents] = useState('')
+  const [showInvalidEntryMethodWarning, setShowInvalidEntryMethodWarning] = useState(false)
+  const [uploading, setUploading] = useState(false)
 
-  constructor(props) {
-    super(props)
-    this.state = {
-      useFireCloudDataModel: false, isFileImportCurrMode: true, isFileImportLastUsedMode: undefined,
-      file: undefined, fileContents: '', showInvalidEntryMethodWarning: false
-    }
-  }
-
-  async doUpload() {
-    const { onDismiss, onSuccess, namespace, name } = this.props
-    const { file, useFireCloudDataModel } = this.state
-    this.setState({ uploading: true })
+  const doUpload = async () => {
+    setUploading(true)
     try {
       const workspace = Ajax().Workspaces.workspace(namespace, name)
       await (useFireCloudDataModel ? workspace.importEntitiesFile : workspace.importFlexibleEntitiesFile)(file)
@@ -274,130 +217,132 @@ export const EntityUploader = class EntityUploader extends Component {
     }
   }
 
-  render() {
-    const { onDismiss, entityTypes } = this.props
-    const { uploading, file, useFireCloudDataModel, isFileImportCurrMode, fileContents, isFileImportLastUsedMode, showInvalidEntryMethodWarning } = this.state
-    const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents)
-    const isInvalid = isFileImportCurrMode === isFileImportLastUsedMode && file && !match
-    const newEntityType = match && match[1]
-    const currentFile = isFileImportCurrMode === isFileImportLastUsedMode ? file : undefined
+  const match = /(?:membership|entity):([^\s]+)_id/.exec(fileContents)
+  const isInvalid = isFileImportCurrMode === isFileImportLastUsedMode && file && !match
+  const newEntityType = match?.[1]
+  const currentFile = isFileImportCurrMode === isFileImportLastUsedMode ? file : undefined
 
-    return h(Dropzone, {
-      multiple: false,
-      style: { flexGrow: 1 },
-      activeStyle: { cursor: 'copy' },
-      onDropAccepted: async ([file]) => {
-        this.setState({ file, fileContents: await Utils.readFileAsText(file.slice(0, 1000)), isFileImportLastUsedMode: true })
-      }
-    }, [
-      ({ dragging, openUploader }) => h(Fragment, [
-        h(Modal, {
-          onDismiss,
-          title: 'Import Table Data',
-          width: '35rem',
-          okButton: h(ButtonPrimary, {
-            disabled: !currentFile || isInvalid || uploading,
-            tooltip: !currentFile || isInvalid ? 'Please select valid data to upload' : 'Upload selected data',
-            onClick: () => this.doUpload()
-          }, ['Upload'])
-        }, [
-          div({ style: { padding: '0 0 1rem' } },
-            ['Choose the data import option below. ',
-              h(Link, {
-                ...Utils.newTabLinkProps,
-                href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
-              }, ['Click here for more info on the table.'])]),
-          h(SimpleTabBar, {
-            tabs: [{ title: 'File Import', key: true, width: 121 }, { title: 'Text Import', key: false, width: 127 }],
-            value: isFileImportCurrMode,
-            onChange: value => {
-              this.setState({ isFileImportCurrMode: value, showInvalidEntryMethodWarning: false })
-            }
-          }),
-          div({
-            style: {
-              padding: '1rem 0 0',
-              height: '3.25rem'
-            }
-          }, [
-            isFileImportCurrMode ? div([
-              'Select the ',
-              h(TooltipTrigger, { content: 'Tab Separated Values', side: 'bottom' },
-                [span({ style: { textDecoration: 'underline dashed' } }, 'TSV')]),
-              ' file containing your data: '
-            ]) : div(['Copy and paste tab separated data here:']),
-            currentFile && div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
-              h(Link,
-                {
-                  onClick: () => {
-                    this.setState({ fileContents: '', file: undefined, useFireCloudDataModel: false })
-                  }
-                }, ['Clear'])
-            ])
-          ]),
-          isFileImportCurrMode ? div([
-            h(Clickable, {
-              style: {
-                ...Style.elements.card.container, flex: 1, backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1),
-                border: isInvalid ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
-              },
-              onClick: openUploader
-            }, [div(['Drag or ', h(Link, ['Click']), ' to select a .tsv file'])]),
-            div({ style: { paddingTop: '0.5rem' } }, [
-              'Selected File: ',
-              span({ style: { color: colors.dark(1), fontWeight: 550 } },
-                (currentFile && currentFile.name) ? currentFile.name : 'None')
-            ])
-          ]) : div([
-            h(PasteOnlyInput, {
-              'aria-label': 'Paste text data here',
-              readOnly: !!fileContents,
-              placeholder: 'entity:participant_id(tab)column1(tab)column2...',
-              onPaste: pastedText => {
-                this.setState(
-                  { file: new File([pastedText], 'upload.tsv'), fileContents: pastedText, isFileImportLastUsedMode: false, showInvalidEntryMethodWarning: false })
-              },
-              onChange: () => this.setState({ showInvalidEntryMethodWarning: true }),
-              value: !isFileImportLastUsedMode ? fileContents : '',
-              wrap: 'off',
-              style: {
-                fontFamily: 'monospace', height: 100,
-                backgroundColor: isInvalid ? colors.danger(.1) : colors.light(0.1),
-                border: isInvalid ? `1px solid ${colors.danger()}` : undefined,
-                boxShadow: 'none'
-              }
-            })
-          ]),
-          currentFile && _.includes(_.toLower(newEntityType), entityTypes) && div({
-            style: { ...warningBoxStyle, margin: '1rem 0 0.5rem', display: 'flex', alignItems: 'center' }
-          }, [
-            icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
-            `Data with the type '${newEntityType}' already exists in this workspace. `,
-            'Uploading more data for the same type may overwrite some entries.'
-          ]),
-          currentFile && supportsFireCloudDataModel(newEntityType) && div([
-            h(LabeledCheckbox, {
-              checked: useFireCloudDataModel,
-              onChange: checked => this.setState({ useFireCloudDataModel: checked }),
-              style: { margin: '0.5rem' }
-            }, [' Create participant, sample, and pair associations']),
+  return h(Dropzone, {
+    multiple: false,
+    style: { flexGrow: 1 },
+    activeStyle: { cursor: 'copy' },
+    onDropAccepted: async ([file]) => {
+      setFile(file)
+      setFileContents(await Utils.readFileAsText(file.slice(0, 1000)))
+      setIsFileImportLastUsedMode(true)
+    }
+  }, [
+    ({ dragging, openUploader }) => h(Fragment, [
+      h(Modal, {
+        onDismiss,
+        title: 'Import Table Data',
+        width: '35rem',
+        okButton: h(ButtonPrimary, {
+          disabled: !currentFile || isInvalid || uploading,
+          tooltip: !currentFile || isInvalid ? 'Please select valid data to upload' : 'Upload selected data',
+          onClick: doUpload
+        }, ['Upload'])
+      }, [
+        div({ style: { padding: '0 0 1rem' } },
+          ['Choose the data import option below. ',
             h(Link, {
-              style: { marginLeft: '1rem', verticalAlign: 'middle' },
-              href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=10738',
-              ...Utils.newTabLinkProps
-            }, ['Learn more ', icon('pop-out', { size: 12 })])
-          ]),
-          div({ style: errorTextStyle }, [
-            Utils.cond(
-              [isInvalid, () => 'Invalid format: Data does not start with entity or membership definition.'],
-              [showInvalidEntryMethodWarning, () => 'Invalid Data Entry Method: Copy and paste only']
-            )
+              ...Utils.newTabLinkProps,
+              href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
+            }, ['Click here for more info on the table.'])]),
+        h(SimpleTabBar, {
+          tabs: [{ title: 'File Import', key: true, width: 121 }, { title: 'Text Import', key: false, width: 127 }],
+          value: isFileImportCurrMode,
+          onChange: value => {
+            setIsFileImportCurrMode(value)
+            setShowInvalidEntryMethodWarning(false)
+          }
+        }),
+        div({
+          style: {
+            padding: '1rem 0 0',
+            height: '3.25rem'
+          }
+        }, [
+          isFileImportCurrMode ? div([
+            'Select the ',
+            h(TooltipTrigger, { content: 'Tab Separated Values', side: 'bottom' },
+              [span({ style: { textDecoration: 'underline dashed' } }, 'TSV')]),
+            ' file containing your data: '
+          ]) : div(['Copy and paste tab separated data here:']),
+          currentFile && div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
+            h(Link,
+              {
+                onClick: () => {
+                  setFile(undefined)
+                  setFileContents('')
+                  setUseFireCloudDataModel(false)
+                }
+              }, ['Clear'])
           ])
         ]),
-        uploading && spinnerOverlay
-      ])
+        isFileImportCurrMode ? div([
+          h(Clickable, {
+            style: {
+              ...Style.elements.card.container, flex: 1, backgroundColor: dragging ? colors.accent(0.2) : colors.dark(0.1),
+              border: isInvalid ? `1px solid ${colors.danger()}` : `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
+            },
+            onClick: openUploader
+          }, [div(['Drag or ', h(Link, ['Click']), ' to select a .tsv file'])]),
+          div({ style: { paddingTop: '0.5rem' } }, [
+            'Selected File: ',
+            span({ style: { color: colors.dark(1), fontWeight: 550 } }, [currentFile?.name || 'None'])
+          ])
+        ]) : div([
+          h(PasteOnlyInput, {
+            'aria-label': 'Paste text data here',
+            readOnly: !!fileContents,
+            placeholder: 'entity:participant_id(tab)column1(tab)column2...',
+            onPaste: pastedText => {
+              setFile(new File([pastedText], 'upload.tsv'))
+              setFileContents(pastedText)
+              setIsFileImportLastUsedMode(false)
+              setShowInvalidEntryMethodWarning(false)
+            },
+            onChange: () => setShowInvalidEntryMethodWarning(true),
+            value: !isFileImportLastUsedMode ? fileContents : '',
+            wrap: 'off',
+            style: {
+              fontFamily: 'monospace', height: 100,
+              backgroundColor: isInvalid ? colors.danger(.1) : colors.light(0.1),
+              border: isInvalid ? `1px solid ${colors.danger()}` : undefined,
+              boxShadow: 'none'
+            }
+          })
+        ]),
+        currentFile && _.includes(_.toLower(newEntityType), entityTypes) && div({
+          style: { ...warningBoxStyle, margin: '1rem 0 0.5rem', display: 'flex', alignItems: 'center' }
+        }, [
+          icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem', marginLeft: '-0.5rem' } }),
+          `Data with the type '${newEntityType}' already exists in this workspace. `,
+          'Uploading more data for the same type may overwrite some entries.'
+        ]),
+        currentFile && supportsFireCloudDataModel(newEntityType) && div([
+          h(LabeledCheckbox, {
+            checked: useFireCloudDataModel,
+            onChange: setUseFireCloudDataModel,
+            style: { margin: '0.5rem' }
+          }, [' Create participant, sample, and pair associations']),
+          h(Link, {
+            style: { marginLeft: '1rem', verticalAlign: 'middle' },
+            href: 'https://software.broadinstitute.org/firecloud/documentation/article?id=10738',
+            ...Utils.newTabLinkProps
+          }, ['Learn more ', icon('pop-out', { size: 12 })])
+        ]),
+        div({ style: errorTextStyle }, [
+          Utils.cond(
+            [isInvalid, () => 'Invalid format: Data does not start with entity or membership definition.'],
+            [showInvalidEntryMethodWarning, () => 'Invalid Data Entry Method: Copy and paste only']
+          )
+        ])
+      ]),
+      uploading && spinnerOverlay
     ])
-  }
+  ])
 }
 
 export const EntityRenamer = ({ entityType, entityName, workspaceId: { namespace, name }, onDismiss, onSuccess }) => {
