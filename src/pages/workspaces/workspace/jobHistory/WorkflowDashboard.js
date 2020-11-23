@@ -5,7 +5,9 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { makeSection, makeStatusLine, statusIcon } from 'src/components/job-common'
+import { TooltipCell } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
+import { bucketBrowserUrl } from 'src/libs/auth'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
@@ -84,7 +86,9 @@ const WorkflowDashboard = _.flow(
     status,
     start,
     end,
-    failures = []
+    failures,
+    workflowRoot,
+    workflowName
   } = workflow
 
   /*
@@ -107,12 +111,22 @@ const WorkflowDashboard = _.flow(
           ])
         ])
       ]),
-      makeSection('Failures',
+      makeSection('Failures', [
         cond(
           [failures, 'There were workflow-level failures'],
           'There were no workflow-level failures!'
         )
-      )
+      ]
+      ),
+      makeSection('Workflow Storage', [
+        h(TooltipCell, { tooltip: workflowId }, [
+          h(Link, {
+            ...Utils.newTabLinkProps,
+            style: { lineHeight: '1.5' },
+            href: bucketBrowserUrl(`${bucketName}/${submissionId}/${workflowName}/${workflowId}`)
+          }, ['🔗 Workflow Execution Root'])
+        ])
+      ])
     ])
   ])
 })
