@@ -1,4 +1,4 @@
-import { a } from 'react-hyperscript-helpers/lib/index'
+import { a } from 'react-hyperscript-helpers'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import { isTerra } from 'src/libs/config'
@@ -32,7 +32,7 @@ export const commonPaths = {
     breadcrumbElement(activeTab, Nav.getLink(`workspace-${activeTab}`, { namespace, name }))
   ],
 
-  workspaceJobHistory: ({ namespace, name}) => [
+  workspaceJobHistory: ({ namespace, name }) => [
     ...commonPaths.workspaceDashboard({ namespace, name }),
     breadcrumbElement('job history', Nav.getLink('workspace-job-history', { namespace, name }))
   ]

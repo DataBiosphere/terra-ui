@@ -645,8 +645,8 @@ const Workspaces = signal => ({
             return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }))
           },
 
-          getWorkflow: async workflowId => {
-            const res = await fetchRawls(`${submissionPath}/workflows/${workflowId}`, _.merge(authOpts(), { signal }))
+          getWorkflow: async (workflowId, includeKey) => {
+            const res = await fetchRawls(`${submissionPath}/workflows/${workflowId}?${qs.stringify({ includeKey }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
             return res.json()
           }
         }

@@ -6,7 +6,15 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { collapseStatus, failedIcon, runningIcon, statusIcon, submittedIcon, successIcon } from 'src/components/job-common'
+import {
+  collapseStatus,
+  failedIcon, makeSection,
+  makeStatusLine,
+  runningIcon,
+  statusIcon,
+  submittedIcon,
+  successIcon
+} from 'src/components/job-common'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
@@ -85,23 +93,6 @@ const SubmissionDetails = _.flow(
     initialize()
   }, [submission]) // eslint-disable-line react-hooks/exhaustive-deps
 
-
-  /*
-   * Sub-component constructors
-   */
-  const makeStatusLine = (iconFn, text) => div({ style: { display: 'flex', marginTop: '0.5rem', fontSize: 14 } }, [
-    iconFn({ marginRight: '0.5rem' }), text
-  ])
-
-  const makeSection = (label, children) => div({
-    style: {
-      flex: '0 0 33%', padding: '0 0.5rem 0.5rem',
-      whiteSpace: 'pre', textOverflow: 'ellipsis', overflow: 'hidden'
-    }
-  }, [
-    div({ style: Style.elements.sectionHeader }, label),
-    h(Fragment, children)
-  ])
 
   /*
    * Data prep

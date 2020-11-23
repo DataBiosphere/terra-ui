@@ -1,5 +1,8 @@
+import { Fragment } from 'react'
+import { div, h } from 'react-hyperscript-helpers'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
+import * as Style from 'src/libs/style'
 
 
 export const collapseStatus = status => {
@@ -36,3 +39,17 @@ export const statusIcon = (status, style) => {
       return submittedIcon(style)
   }
 }
+
+export const makeStatusLine = (iconFn, text) => div({ style: { display: 'flex', marginTop: '0.5rem', fontSize: 14 } }, [
+  iconFn({ marginRight: '0.5rem' }), text
+])
+
+export const makeSection = (label, children) => div({
+  style: {
+    flex: '0 0 33%', padding: '0 0.5rem 0.5rem',
+    whiteSpace: 'pre', textOverflow: 'ellipsis', overflow: 'hidden'
+  }
+}, [
+  div({ style: Style.elements.sectionHeader }, label),
+  h(Fragment, children)
+])

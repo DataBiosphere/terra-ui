@@ -1,42 +1,38 @@
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
-import { AutoSizer } from 'react-virtualized'
+import { useEffect, useState } from 'react'
+import { div, h, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Link, Select } from 'src/components/common'
+import { Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { DelayedSearchInput } from 'src/components/input'
-import { collapseStatus, failedIcon, runningIcon, statusIcon, submittedIcon, successIcon } from 'src/components/job-common'
-import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
-import TooltipTrigger from 'src/components/TooltipTrigger'
+import { makeSection, makeStatusLine, statusIcon } from 'src/components/job-common'
 import { Ajax } from 'src/libs/ajax'
-import { bucketBrowserUrl } from 'src/libs/auth'
-import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { cond } from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
+
+const styles = {
+  sectionTableLabel: { paddingRight: '0.6rem', fontWeight: 600 }
+}
 
 const WorkflowDashboard = _.flow(
   Utils.forwardRefWithName('WorkflowDashboard'),
   wrapWorkspace({
-    breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: 'Workflow Dashboard', activeTab: 'job history'
+    breadcrumbs: props => [
+      ...breadcrumbs.commonPaths.workspaceJobHistory(props),
+      breadcrumbs.breadcrumbElement(`submission ${props.submissionId}`, Nav.getLink('workspace-submission-details', props))
+    ],
+    title: props => `Workflow ${props.workflowId}`, activeTab: 'job history'
   })
 )((props, ref) => {
-  const { namespace, name, submissionId, workspace: { workspace: { bucketName } } } = props
+  const { namespace, name, submissionId, workflowId, workspace: { workspace: { bucketName } } } = props
 
   /*
    * State setup
    */
-  const [submission, setSubmission] = useState({})
-  const [methodAccessible, setMethodAccessible] = useState()
-  const [statusFilter, setStatusFilter] = useState([])
-  const [textFilter, setTextFilter] = useState('')
-  const [sort, setSort] = useState({ field: 'workflowEntity', direction: 'asc' })
+  const [workflow, setWorkflow] = useState({})
 
   const signal = Utils.useCancellation()
 
@@ -47,161 +43,76 @@ const WorkflowDashboard = _.flow(
   useEffect(() => {
     const initialize = withErrorReporting('Unable to fetch Workflow Details',
       async () => {
-        if (_.isEmpty(submission) || _.some(({ status }) => _.includes(collapseStatus(status), ['running', 'submitted']), submission.workflows)) {
-          if (!_.isEmpty(submission)) {
+        console.log(workflow)
+        // If the workflow is empty, or we need to refresh after 60s:
+        if (_.isEmpty(workflow) || _.includes(workflow.status, ['Running', 'Submitted'])) {
+          if (!_.isEmpty(workflow)) {
             await Utils.delay(60000)
           }
-          const sub = _.update(
-            ['workflows'],
-            _.map(wf => {
-              const {
-                cost, inputResolutions, messages, status,
-                statusLastChangedDate, workflowEntity: { entityType, entityName } = {}, workflowId
-              } = wf
-
-              const wfAsText = _.join(' ', [
-                cost, ...messages, status, statusLastChangedDate, entityType, entityName, workflowId,
-                ..._.flatMap(({ inputName, value }) => [inputName, JSON.stringify(value)], inputResolutions)
-              ]).toLowerCase()
-
-              return _.set('asText', wfAsText, wf)
-            }),
-            await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).get())
-
-          setSubmission(sub)
-
-          if (_.isEmpty(submission)) {
-            try {
-              const { methodConfigurationName: configName, methodConfigurationNamespace: configNamespace } = sub
-              await Ajax(signal).Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).get()
-              setMethodAccessible(true)
-            } catch {
-              setMethodAccessible(false)
-            }
-          }
+          const includeKey = [
+            'backendLogs',
+            'backendStatus',
+            'end',
+            'executionStatus',
+            'callCaching:hit',
+            'failures',
+            'id',
+            'jobId',
+            'start',
+            'status',
+            'stderr',
+            'stdout',
+            'submission',
+            'subworkflowId',
+            'workflowLog',
+            'workflowName',
+            'workflowRoot'
+          ]
+          const wf = await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).getWorkflow(workflowId, includeKey)
+          setWorkflow(wf)
         }
       })
 
     initialize()
-  }, [submission]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [workflow]) // eslint-disable-line react-hooks/exhaustive-deps
 
-
-  /*
-   * Sub-component constructors
-   */
-  const makeStatusLine = (iconFn, text) => div({ style: { display: 'flex', marginTop: '0.5rem', fontSize: 14 } }, [
-    iconFn({ marginRight: '0.5rem' }), text
-  ])
-
-  const makeSection = (label, children) => div({
-    style: {
-      flex: '0 0 33%', padding: '0 0.5rem 0.5rem',
-      whiteSpace: 'pre', textOverflow: 'ellipsis', overflow: 'hidden'
-    }
-  }, [
-    div({ style: Style.elements.sectionHeader }, label),
-    h(Fragment, children)
-  ])
 
   /*
    * Data prep
    */
   const {
-    cost, methodConfigurationName: workflowName, methodConfigurationNamespace: workflowNamespace, submissionDate,
-    submissionEntity: { entityType, entityName } = {}, submitter, useCallCache, deleteIntermediateOutputFiles, workflows = []
-  } = submission
+    status,
+    start,
+    end,
+    failures = []
+  } = workflow
 
-  const filteredWorkflows = _.flow(
-    _.filter(({ status, asText }) => {
-      if (_.isEmpty(statusFilter) || statusFilter.includes(status)) {
-        return _.every(term => asText.includes(term.toLowerCase()), textFilter.split(/\s+/))
-      } else {
-        return false
-      }
-    }),
-    _.sortBy(sort.field),
-    sort.direction === 'asc' ? _.identity : _.reverse
-  )(workflows)
-
-  const { succeeded, failed, running, submitted } = _.groupBy(wf => collapseStatus(wf.status), workflows)
   /*
    * Page render
    */
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     h(Link, {
-      href: Nav.getLink('workspace-job-history', { namespace, name }),
+      href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId }),
       style: { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', padding: '0.5rem 0' }
-    }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to list']),
-    _.isEmpty(submission) ? centeredSpinner() : h(Fragment, [
-      div({ style: { display: 'flex' } }, [
-        div({ style: { flex: '0 0 200px', marginRight: '2rem', lineHeight: '24px' } }, [
-          div({ style: Style.elements.sectionHeader }, 'Workflow Statuses'),
-          succeeded && makeStatusLine(successIcon, `Succeeded: ${succeeded.length}`),
-          failed && makeStatusLine(failedIcon, `Failed: ${failed.length}`),
-          running && makeStatusLine(runningIcon, `Running: ${running.length}`),
-          submitted && makeStatusLine(submittedIcon, `Submitted: ${submitted.length}`)
-        ]),
-        div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
-          makeSection('Workflow Configuration',
-            Utils.cond(
-              [methodAccessible, () => [h(Link,
-                { href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }) },
-                [`${workflowNamespace}/${workflowName}`]
-              )]],
-              [methodAccessible === false,
-                () => [div({ style: { display: 'flex', alignItems: 'center' } }, [
-                  `${workflowNamespace}/${workflowName}`,
-                  h(TooltipTrigger, {
-                    content: 'This configuration was updated or deleted since this submission ran.'
-                  }, [
-                    icon('ban', { size: 16, style: { color: colors.warning(), marginLeft: '0.3rem' } })
-                  ])
-                ])]],
-              () => [`${workflowNamespace}/${workflowName}`]
-            )
-          ),
-          makeSection('Submitted by', [
-            div([submitter]), Utils.makeCompleteDate(submissionDate)
-          ]),
-          makeSection('Total Run Cost', [cost ? Utils.formatUSD(cost) : 'N/A']),
-          makeSection('Data Entity', [div([entityName]), div([entityType])]),
-          makeSection('Submission ID', [h(Link,
-            { href: bucketBrowserUrl(`${bucketName}/${submissionId}`), ...Utils.newTabLinkProps },
-            submissionId
-          )]),
-          makeSection('Call Caching', [useCallCache ? 'Enabled' : 'Disabled']),
-          makeSection('Delete Intermediate Outputs', [deleteIntermediateOutputFiles ? 'Enabled' : 'Disabled'])
+    }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to submission']),
+    _.isEmpty(workflow) ? centeredSpinner(): div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
+      makeSection('Status', [
+        div({ style: { lineHeight: '24px' } }, [makeStatusLine(style => statusIcon(status, style), status)])
+      ]),
+      makeSection('Timing', [
+        table({ style: { marginTop: '0.3rem', lineHeight: '20px' } }, [
+          tbody([
+            tr([td({ style: styles.sectionTableLabel }, ['Start:']), td([Utils.makeCompleteDate(start)])]),
+            tr([td({ style: styles.sectionTableLabel }, ['End:']), td([Utils.makeCompleteDate(end)])])
+          ])
         ])
       ]),
-      div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
-        h(DelayedSearchInput, {
-          style: { marginRight: '2rem', flexBasis: 300, borderColor: colors.dark(0.55) },
-          placeholder: 'Search',
-          'aria-label': 'Search',
-          onChange: setTextFilter,
-          value: textFilter
-        }),
-        div({ style: { flexBasis: 350 } }, [
-          h(Select, {
-            isClearable: true,
-            isMulti: true,
-            isSearchable: false,
-            placeholder: 'Completion status',
-            'aria-label': 'Completion status',
-            value: statusFilter,
-            onChange: data => setStatusFilter(_.map('value', data)),
-            options: Utils.workflowStatuses
-          })
-        ])
-      ]),
-      div({ style: { flex: 1 } }, [
-        h(AutoSizer, [({ width, height }) => h(FlexTable, {
-          width, height,
-          rowCount: filteredWorkflows.length,
-          noContentMessage: 'No matching workflows',
-          columns: []
-        })])
-      ])
+      makeSection('Failures',
+        cond(
+          [failures, 'There were workflow-level failures'],
+          'There were no workflow-level failures!'
+        )
+      )
     ])
   ])
 })

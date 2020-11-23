@@ -93,7 +93,8 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
-        div({ style: Style.noWrapEllipsis }, breadcrumbs),
+        // TODO: Sort out:
+        div({ }, breadcrumbs),
         div({ style: Style.breadcrumb.textUnderBreadcrumb }, [
           title || `${namespace}/${name}`,
           workspace && !Utils.canWrite(workspace.accessLevel) && span({ style: { paddingLeft: '0.5rem', color: colors.dark(0.85) } }, '(read only)')
