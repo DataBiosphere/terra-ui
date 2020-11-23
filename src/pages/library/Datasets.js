@@ -25,6 +25,7 @@ import { returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { wrapOntology } from 'src/pages/ontology/OntologyContainer'
 
 
 const styles = {
@@ -372,8 +373,7 @@ const ukb = () => h(Participant, {
   }, ['Browse Data'])
 ])
 
-
-const Datasets = () => {
+const Datasets = wrapOntology({ title: 'Library' })(ref => {
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('datasets'),
     div({ role: 'main', style: styles.content }, [
@@ -382,7 +382,7 @@ const Datasets = () => {
       nemo(), target(), tcga(), topMed(), ukb()
     ])
   ])
-}
+})
 
 
 export const navPaths = [
