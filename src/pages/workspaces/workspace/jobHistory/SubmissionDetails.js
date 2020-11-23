@@ -37,7 +37,8 @@ const SubmissionDetails = _.flow(
   const [statusFilter, setStatusFilter] = useState([])
   const [textFilter, setTextFilter] = useState('')
   const [sort, setSort] = useState({ field: 'workflowEntity', direction: 'asc' })
-  const { Workspaces } = Ajax(Utils.useCancellation())
+
+  const signal = Utils.useCancellation()
 
   /*
    * Data fetchers
@@ -65,14 +66,14 @@ const SubmissionDetails = _.flow(
 
               return _.set('asText', wfAsText, wf)
             }),
-            await Workspaces.workspace(namespace, name).submission(submissionId).get())
+            await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).get())
 
           setSubmission(sub)
 
           if (_.isEmpty(submission)) {
             try {
               const { methodConfigurationName: configName, methodConfigurationNamespace: configNamespace } = sub
-              await Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).get()
+              await Ajax(signal).Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).get()
               setMethodAccessible(true)
             } catch {
               setMethodAccessible(false)
