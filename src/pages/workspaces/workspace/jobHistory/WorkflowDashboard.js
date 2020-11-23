@@ -20,11 +20,11 @@ import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
-const SubmissionDetails = _.flow(
-  Utils.forwardRefWithName('SubmissionDetails'),
+const WorkflowDashboard = _.flow(
+  Utils.forwardRefWithName('WorkflowDashboard'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: 'Job History', activeTab: 'job history'
+    title: 'Workflow Dashboard', activeTab: 'job history'
   })
 )((props, ref) => {
   const { namespace, name, submissionId, workspace: { workspace: { bucketName } } } = props
@@ -45,7 +45,7 @@ const SubmissionDetails = _.flow(
    */
 
   useEffect(() => {
-    const initialize = withErrorReporting('Unable to fetch submission details',
+    const initialize = withErrorReporting('Unable to fetch Workflow Details',
       async () => {
         if (_.isEmpty(submission) || _.some(({ status }) => _.includes(collapseStatus(status), ['running', 'submitted']), submission.workflows)) {
           if (!_.isEmpty(submission)) {
@@ -217,9 +217,10 @@ const SubmissionDetails = _.flow(
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId } = filteredWorkflows[rowIndex]
                 return workflowId && h(Link, {
-                  href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
+                  ...Utils.newTabLinkProps,
+                  href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
                   style: { flexGrow: 1, textAlign: 'center' }
-                }, ['!! Dash !!'])
+                }, ['!!Dash!!'])
               }
             }, {
               size: { basis: 225, grow: 0 },
@@ -278,9 +279,9 @@ const SubmissionDetails = _.flow(
 
 export const navPaths = [
   {
-    name: 'workspace-submission-details',
-    path: '/workspaces/:namespace/:name/job_history/:submissionId',
-    component: SubmissionDetails,
-    title: ({ name }) => `${name} - Submission Details`
+    name: 'workspace-workflow-dashboard',
+    path: '/workspaces/:namespace/:name/job_history/:submissionId/:workflowId',
+    component: WorkflowDashboard,
+    title: ({ name }) => `${name} - Workflow Dashboard`
   }
 ]
