@@ -199,78 +199,7 @@ const WorkflowDashboard = _.flow(
           width, height,
           rowCount: filteredWorkflows.length,
           noContentMessage: 'No matching workflows',
-          columns: [
-            {
-              size: { basis: 75, grow: 0 },
-              headerRenderer: () => {},
-              cellRenderer: ({ rowIndex }) => {
-                const { workflowId } = filteredWorkflows[rowIndex]
-                return workflowId && h(Link, {
-                  ...Utils.newTabLinkProps,
-                  href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-                  style: { flexGrow: 1, textAlign: 'center' }
-                }, ['JM'])
-              }
-            }, {
-              size: { basis: 75, grow: 0 },
-              headerRenderer: () => {},
-              cellRenderer: ({ rowIndex }) => {
-                const { workflowId } = filteredWorkflows[rowIndex]
-                return workflowId && h(Link, {
-                  ...Utils.newTabLinkProps,
-                  href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-                  style: { flexGrow: 1, textAlign: 'center' }
-                }, ['!!Dash!!'])
-              }
-            }, {
-              size: { basis: 225, grow: 0 },
-              headerRenderer: () => h(Sortable, { sort, field: 'workflowEntity', onSort: setSort }, ['Data Entity']),
-              cellRenderer: ({ rowIndex }) => {
-                const { workflowEntity: { entityName, entityType } = {} } = filteredWorkflows[rowIndex]
-                return h(TooltipCell, [entityName && `${entityName} (${entityType})`])
-              }
-            }, {
-              size: { basis: 225, grow: 0 },
-              headerRenderer: () => h(Sortable, { sort, field: 'statusLastChangedDate', onSort: setSort }, ['Last Changed']),
-              cellRenderer: ({ rowIndex }) => {
-                return h(TextCell, [Utils.makeCompleteDate(filteredWorkflows[rowIndex].statusLastChangedDate)])
-              }
-            }, {
-              size: { basis: 150, grow: 0 },
-              headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
-              cellRenderer: ({ rowIndex }) => {
-                const { status } = filteredWorkflows[rowIndex]
-                return div({ style: { display: 'flex' } }, [statusIcon(status, { marginRight: '0.5rem' }), status])
-              }
-            }, {
-              size: { basis: 125, grow: 0 },
-              headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, ['Run Cost']),
-              cellRenderer: ({ rowIndex }) => {
-                return cost ? h(TextCell, [Utils.formatUSD(filteredWorkflows[rowIndex].cost)]) : 'N/A'
-              }
-            }, {
-              size: { basis: 200 },
-              headerRenderer: () => h(Sortable, { sort, field: 'messages', onSort: setSort }, ['Messages']),
-              cellRenderer: ({ rowIndex }) => {
-                const messages = _.join('\n', filteredWorkflows[rowIndex].messages)
-                return h(TooltipCell, {
-                  tooltip: div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word' } }, [messages])
-                }, [messages])
-              }
-            }, {
-              size: { basis: 375, grow: 0 },
-              headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
-              cellRenderer: ({ rowIndex }) => {
-                const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
-                return h(TooltipCell, { tooltip: workflowId }, [
-                  inputName ? h(Link, {
-                    ...Utils.newTabLinkProps,
-                    href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`)
-                  }, [workflowId]) : workflowId
-                ])
-              }
-            }
-          ]
+          columns: []
         })])
       ])
     ])

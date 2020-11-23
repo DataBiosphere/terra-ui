@@ -23,8 +23,8 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 const SubmissionDetails = _.flow(
   Utils.forwardRefWithName('SubmissionDetails'),
   wrapWorkspace({
-    breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: 'Job History', activeTab: 'job history'
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceJobHistory(props),
+    title: ({ submissionId }) => `Submission ${submissionId}`, activeTab: 'job history'
   })
 )((props, ref) => {
   const { namespace, name, submissionId, workspace: { workspace: { bucketName } } } = props
@@ -245,7 +245,8 @@ const SubmissionDetails = _.flow(
               size: { basis: 125, grow: 0 },
               headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, ['Run Cost']),
               cellRenderer: ({ rowIndex }) => {
-                return cost ? h(TextCell, [Utils.formatUSD(filteredWorkflows[rowIndex].cost)]) : 'N/A'
+                // handle undefined workflow cost as $0
+                return cost ? h(TextCell, [Utils.formatUSD(filteredWorkflows[rowIndex].cost || 0)]) : 'N/A'
               }
             }, {
               size: { basis: 200 },

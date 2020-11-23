@@ -30,5 +30,10 @@ export const commonPaths = {
   workspaceTab: ({ namespace, name }, activeTab) => [
     ...commonPaths.workspaceDashboard({ namespace, name }),
     breadcrumbElement(activeTab, Nav.getLink(`workspace-${activeTab}`, { namespace, name }))
+  ],
+
+  workspaceJobHistory: ({ namespace, name}) => [
+    ...commonPaths.workspaceDashboard({ namespace, name }),
+    breadcrumbElement('job history', Nav.getLink('workspace-job-history', { namespace, name }))
   ]
 }
