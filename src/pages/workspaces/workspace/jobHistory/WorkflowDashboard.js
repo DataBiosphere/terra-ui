@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { useEffect, useState } from 'react'
-import { div, h, pre, table, tbody, td, tr } from 'react-hyperscript-helpers'
+import { div, h, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
@@ -52,7 +52,6 @@ const WorkflowDashboard = _.flow(
   useEffect(() => {
     const initialize = withErrorReporting('Unable to fetch Workflow Details',
       async () => {
-        console.log(workflow)
         // If the workflow is empty, or we need to refresh after 60s:
         if (_.isEmpty(workflow) || _.includes(workflow.status, ['Running', 'Submitted'])) {
           if (!_.isEmpty(workflow)) {
@@ -87,7 +86,7 @@ const WorkflowDashboard = _.flow(
   }, [workflow]) // eslint-disable-line react-hooks/exhaustive-deps
 
   /*
-   * Data prep
+   * Page render
    */
   const {
     end,
@@ -100,25 +99,11 @@ const WorkflowDashboard = _.flow(
     submittedFiles: { workflow: wdl } = {}
   } = workflow
 
-  const unescapeBackslashes = obj => {
-    return JSON.stringify(obj, null, 2).replaceAll('\\\\', '\\')
-  }
-  
-  const restructureFailures = failuresArray => {
-    const restructureFailure = failure => {
-      const causedBy = failure.causedBy && failure.causedBy.length > 0 ? { causedBy: restructureFailures(failure.causedBy) } : {}
-      return {
-        message: failure.message,
-        ...causedBy
-      }
-    }
+  const restructureFailures = _.map(({ message, causedBy }) => ({
+    message,
+    ...(!_.isEmpty(causedBy) ? { causedBy: restructureFailures(causedBy) } : {})
+  }))
 
-    return _.map(f => restructureFailure(f), failuresArray)
-  }
-
-  /*
-   * Page render
-   */
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     h(Link, {
       href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId }),
@@ -161,7 +146,7 @@ const WorkflowDashboard = _.flow(
       ])
     ]),
     failures && h(Collapse, {
-      style: { marginBottom: '1rem'},
+      style: { marginBottom: '1rem' },
       initialOpenState: true,
       title: div({ style: Style.elements.sectionHeader }, [
         'Workflow-Level Failures',

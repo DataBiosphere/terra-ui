@@ -133,24 +133,26 @@ const SubmissionDetails = _.flow(
           submitted && makeStatusLine(submittedIcon, `Submitted: ${submitted.length}`)
         ]),
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
-          makeSection('Workflow Configuration',
+          makeSection('Workflow Configuration', [
             Utils.cond(
-              [methodAccessible, () => [h(Link,
-                { href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }) },
-                [`${workflowNamespace}/${workflowName}`]
-              )]],
+              [methodAccessible, () => h(Link, {
+                href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }),
+                style: Style.noWrapEllipsis
+              },
+              [`${workflowNamespace}/${workflowName}`]
+              )],
               [methodAccessible === false,
-                () => [div({ style: { display: 'flex', alignItems: 'center' } }, [
-                  `${workflowNamespace}/${workflowName}`,
+                () => div({ style: { display: 'flex', alignItems: 'center' } }, [
+                  div({ style: Style.noWrapEllipsis }, [`${workflowNamespace}/${workflowName}`]),
                   h(TooltipTrigger, {
                     content: 'This configuration was updated or deleted since this submission ran.'
                   }, [
                     icon('ban', { size: 16, style: { color: colors.warning(), marginLeft: '0.3rem' } })
                   ])
-                ])]],
-              () => [`${workflowNamespace}/${workflowName}`]
+                ])],
+              () => div({ style: Style.noWrapEllipsis }, [`${workflowNamespace}/${workflowName}`])
             )
-          ),
+          ]),
           makeSection('Submitted by', [
             div([submitter]), Utils.makeCompleteDate(submissionDate)
           ]),
