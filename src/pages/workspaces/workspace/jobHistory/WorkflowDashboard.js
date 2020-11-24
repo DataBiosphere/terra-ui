@@ -1,19 +1,19 @@
+import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { useEffect, useState } from 'react'
 import { div, h, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import Collapse from 'src/components/Collapse'
 import { Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { makeSection, makeStatusLine, statusIcon } from 'src/components/job-common'
-import { TooltipCell } from 'src/components/table'
+import UriViewer from 'src/components/UriViewer'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { cond } from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -37,6 +37,8 @@ const WorkflowDashboard = _.flow(
    * State setup
    */
   const [workflow, setWorkflow] = useState({})
+  const [rootCopied, setRootCopied] = useState()
+  const [showLog, setShowLog] = useState(false)
 
   const signal = Utils.useCancellation()
 
@@ -85,77 +87,77 @@ const WorkflowDashboard = _.flow(
    * Data prep
    */
   const {
-    status,
-    start,
     end,
     failures,
-    workflowRoot,
-    workflowName
+    start,
+    status,
+    workflowLog,
+    workflowName,
+    workflowRoot
   } = workflow
 
-  const stringifyAndNewline = string => {
-    return JSON.stringify(string, null, 2).replaceAll('\\n', '\n').replaceAll('\\"', '"')
+  const unescapeBackslashes = obj => {
+    return JSON.stringify(obj, null, 2).replaceAll('\\\\', '\\')
   }
 
   const fakeExampleFailure = [{
-    "message": "error 1",
-    "causedBy": [{
-      "message": "error1.1",
-      "causedBy": []
+    message: 'error 1',
+    causedBy: [{
+      message: 'error1.1',
+      causedBy: []
     }, {
-      "message": "error1.1",
-      "causedBy": []
+      message: 'error1.1',
+      causedBy: []
     }]
   },
   {
-    "message": "error 2",
-    "causedBy": [{
-      "message": "error2.1",
-      "causedBy": []
+    message: 'error 2',
+    causedBy: [{
+      message: 'error2.1',
+      causedBy: []
     }, {
-      "message": "error2.2",
-      "causedBy": [{
-        "message": "error 2.2.1",
-        "causedBy": [{
-          "message": "error2.2.1.1",
-          "causedBy": []
+      message: 'error2.2',
+      causedBy: [{
+        message: 'error 2.2.1',
+        causedBy: [{
+          message: 'error2.2.1.1',
+          causedBy: []
         }, {
-          "message": "error2.2.1.2",
-          "causedBy": []
+          message: 'error2.2.1.2',
+          causedBy: []
         }]
       }]
     }]
   }]
 
-  const realExampleFailure =  [{
-            causedBy: [
-              {
-                causedBy: [
-                  {
-                    causedBy: [],
-                    message: 'Read timed out'
-                  }
-                ],
-                message: 'java.net.SocketTimeoutException: Read timed out\nblah\nblah\nblah'
-              }
-            ],
-            message: '[Attempted 10 time(s)] - GcsBatchFlow.BatchFailedException: java.net.SocketTimeoutException: Read timed out'
-          },
+  const realExampleFailure = [{
+    causedBy: [
+      {
+        causedBy: [
           {
-            causedBy: [
-              {
-                causedBy: [
-                  {
-                    causedBy: [],
-                    message: 'Read timed out'
-                  }
-                ],
-                message: 'java.net.SocketTimeoutException: Read timed out'
-              }
-            ],
-            message: 'PART 2!! [Attempted 10 time(s)] - GcsBatchFlow.BatchFailedException: java.net.SocketTimeoutException: Read timed out'
+            causedBy: [],
+            message: 'Read timed out'
           }
-        ]
+        ],
+        message: 'java.net.SocketTimeoutException: Read timed out\nblah\nblah\nblah'
+      }
+    ],
+    message: '[Attempted 10 time(s)] - GcsBatchFlow.BatchFailedException: java.net.SocketTimeoutException: Read timed out'
+  },
+  {
+    causedBy: [
+      {
+        causedBy: [
+          {
+            causedBy: [],
+            message: 'Read timed out'
+          }
+        ],
+        message: 'java.net.SocketTimeoutException: Read timed out'
+      }
+    ],
+    message: 'PART 2!! [Attempted 10 time(s)] - GcsBatchFlow.BatchFailedException: java.net.SocketTimeoutException: Read timed out'
+  }]
 
 
   const treeProps = {
@@ -186,7 +188,7 @@ const WorkflowDashboard = _.flow(
       href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId }),
       style: { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', padding: '0.5rem 0' }
     }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to submission']),
-    _.isEmpty(workflow) ? centeredSpinner(): div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
+    _.isEmpty(workflow) ? centeredSpinner() : div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
       makeSection('Status', [
         div({ style: { lineHeight: '24px' } }, [makeStatusLine(style => statusIcon(status, style), status)])
       ]),
@@ -209,15 +211,30 @@ const WorkflowDashboard = _.flow(
         h(ReactJson, { ...treeProps, src: restructureFailures(fakeExampleFailure) })
       ]),
       makeSection('Workflow Storage', [
-        h(TooltipCell, { tooltip: workflowId }, [
+        div({ style: { display: 'flex' } }, [
           h(Link, {
             ...Utils.newTabLinkProps,
-            style: { lineHeight: '1.5' },
-            href: bucketBrowserUrl(`${bucketName}/${submissionId}/${workflowName}/${workflowId}`)
-          }, ['🔗 Workflow Execution Root'])
+            style: Style.noWrapEllipsis,
+            href: bucketBrowserUrl(`${bucketName}/${submissionId}/${workflowName}/${workflowId}`),
+            tooltip: 'Open in Google Cloud Storage Browser'
+          }, [workflowRoot]),
+          h(Link, {
+            style: { margin: '0 0.5rem' },
+            tooltip: 'Copy gs:// URI to clipboard',
+            onClick: withErrorReporting('Error copying to clipboard', async () => {
+              await clipboard.writeText(workflowRoot)
+              setRootCopied(true)
+              await Utils.delay(1500)
+              setRootCopied(undefined)
+            })
+          }, [icon(rootCopied ? 'check' : 'copy-to-clipboard')])
+        ]),
+        div({ style: { marginTop: '1rem' } }, [
+          h(Link, { onClick: () => setShowLog(true) }, ['View execution log'])
         ])
       ])
-    ])
+    ]),
+    showLog && h(UriViewer, { googleProject: namespace, uri: workflowLog, onDismiss: () => setShowLog(false) })
   ])
 })
 
