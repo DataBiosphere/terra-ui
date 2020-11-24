@@ -1,7 +1,9 @@
 import _ from 'lodash/fp'
 import { useEffect, useState } from 'react'
 import { div, h, table, tbody, td, tr } from 'react-hyperscript-helpers'
+import ReactJson from 'react-json-view'
 import * as breadcrumbs from 'src/components/breadcrumbs'
+import Collapse from 'src/components/Collapse'
 import { Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { makeSection, makeStatusLine, statusIcon } from 'src/components/job-common'
@@ -91,6 +93,91 @@ const WorkflowDashboard = _.flow(
     workflowName
   } = workflow
 
+  const stringifyAndNewline = string => {
+    return JSON.stringify(string, null, 2).replaceAll('\\n', '\n').replaceAll('\\"', '"')
+  }
+
+  const fakeExampleFailure = [{
+    "message": "error 1",
+    "causedBy": [{
+      "message": "error1.1",
+      "causedBy": []
+    }, {
+      "message": "error1.1",
+      "causedBy": []
+    }]
+  },
+  {
+    "message": "error 2",
+    "causedBy": [{
+      "message": "error2.1",
+      "causedBy": []
+    }, {
+      "message": "error2.2",
+      "causedBy": [{
+        "message": "error 2.2.1",
+        "causedBy": [{
+          "message": "error2.2.1.1",
+          "causedBy": []
+        }, {
+          "message": "error2.2.1.2",
+          "causedBy": []
+        }]
+      }]
+    }]
+  }]
+
+  const realExampleFailure =  [{
+            causedBy: [
+              {
+                causedBy: [
+                  {
+                    causedBy: [],
+                    message: 'Read timed out'
+                  }
+                ],
+                message: 'java.net.SocketTimeoutException: Read timed out\nblah\nblah\nblah'
+              }
+            ],
+            message: '[Attempted 10 time(s)] - GcsBatchFlow.BatchFailedException: java.net.SocketTimeoutException: Read timed out'
+          },
+          {
+            causedBy: [
+              {
+                causedBy: [
+                  {
+                    causedBy: [],
+                    message: 'Read timed out'
+                  }
+                ],
+                message: 'java.net.SocketTimeoutException: Read timed out'
+              }
+            ],
+            message: 'PART 2!! [Attempted 10 time(s)] - GcsBatchFlow.BatchFailedException: java.net.SocketTimeoutException: Read timed out'
+          }
+        ]
+
+
+  const treeProps = {
+    name: false,
+    collapsed: 2,
+    collapseStringsAfterLength: 50,
+    displayDataTypes: false,
+    displayObjectSize: false
+  }
+
+  const restructureFailures = failuresArray => {
+    const restructureFailure = failure => {
+      const causedBy = failure.causedBy && failure.causedBy.length > 0 ? { causedBy: restructureFailures(failure.causedBy) } : {}
+      return {
+        message: failure.message,
+        ...causedBy
+      }
+    }
+
+    return _.map(f => restructureFailure(f), failuresArray)
+  }
+
   /*
    * Page render
    */
@@ -111,13 +198,16 @@ const WorkflowDashboard = _.flow(
           ])
         ])
       ]),
-      makeSection('Failures', [
-        cond(
-          [failures, 'There were workflow-level failures'],
-          'There were no workflow-level failures!'
-        )
+      makeSection('Workflow-Level Failure', [
+        failures ? h(ReactJson, { ...treeProps, src: restructureFailures(failures) }) : 'No workflow level failures'
       ]
       ),
+      makeSection('Real example failure', [
+        h(ReactJson, { ...treeProps, src: restructureFailures(realExampleFailure) })
+      ]),
+      makeSection('Fake example failure', [
+        h(ReactJson, { ...treeProps, src: restructureFailures(fakeExampleFailure) })
+      ]),
       makeSection('Workflow Storage', [
         h(TooltipCell, { tooltip: workflowId }, [
           h(Link, {
