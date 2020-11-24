@@ -4,8 +4,8 @@ import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 
 
-const Collapse = ({ title, buttonStyle, children, ...props }) => {
-  const [isOpened, setIsOpened] = useState(false)
+const Collapse = ({ title, buttonStyle, initialOpenState, children, ...props }) => {
+  const [isOpened, setIsOpened] = useState(initialOpenState)
 
   return div(props, [
     h(Link, {
