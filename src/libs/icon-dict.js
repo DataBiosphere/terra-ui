@@ -101,7 +101,8 @@ const iconDict = {
   'view-cards': fa(faGripHorizontal),
   'view-list': custom(list),
   virus: fa(faVirus),
-  'warning-standard': fa(faExclamationTriangle)
+  'warning-standard': fa(faExclamationTriangle),
+  'aborting-aborted': fa(faBan)
 }
 
 export default iconDict
