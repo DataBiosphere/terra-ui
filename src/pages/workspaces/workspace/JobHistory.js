@@ -76,7 +76,7 @@ const statusCell = workflowStatuses => {
           td(['Aborted']),
           td(styles.statusDetailCell, [abort || 0])
         ]): undefined
-      ].filter( element => element !== undefined ))
+      ].filter(element => element !== undefined))
     ])
   }, [
     div([
