@@ -54,27 +54,27 @@ const statusCell = workflowStatuses => {
         submitted ? tr({}, [
           td(styles.statusDetailCell, [submittedIcon()]),
           td(['Submitted']),
-          td(styles.statusDetailCell, [submitted || 0])
+          td(styles.statusDetailCell, [submitted])
         ]) : undefined,
         running ? tr({}, [
           td(styles.statusDetailCell, [runningIcon()]),
           td(['Running']),
-          td(styles.statusDetailCell, [running || 0])
+          td(styles.statusDetailCell, [running])
         ]): undefined,
         succeeded ? tr({}, [
           td(styles.statusDetailCell, [successIcon()]),
           td(['Succeeded']),
-          td(styles.statusDetailCell, [succeeded || 0])
+          td(styles.statusDetailCell, [succeeded])
         ]): undefined,
         failed ? tr({}, [
           td(styles.statusDetailCell, [failedIcon()]),
           td(['Failed']),
-          td(styles.statusDetailCell, [failed || 0])
+          td(styles.statusDetailCell, [failed])
         ]): undefined,
         abort ? tr({}, [
           td(styles.statusDetailCell, [abortIcon()]),
           td(['Aborted']),
-          td(styles.statusDetailCell, [abort || 0])
+          td(styles.statusDetailCell, [abort])
         ]): undefined
       ].filter(element => element !== undefined))
     ])
