@@ -6,7 +6,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
 import colors from 'src/libs/colors'
 import { withDisplayName } from 'src/libs/utils'
-
+import { Ajax } from 'src/libs/ajax';
 
 const includedOntologies = [
   {
@@ -41,7 +41,8 @@ const AboutOntologySearch = () => {
     div({ style: { marginTop: '1rem' } }, ['Lorem Ipsum...']),
     div({ style: { marginTop: '1.5rem', borderBottom: `1px solid ${colors.dark(0.55)}` } }),
     div({ style: { marginTop: '1rem', fontWeight: 600 } }, ['Included ontologies']),
-    includedOntologies.map(ontology => div({
+    includedOntologies.map((ontology, i) => div({
+      key: i,
       style: {
         padding: '1rem',
         borderRadius: 8,
@@ -67,8 +68,29 @@ const AboutOntologySearch = () => {
 }
 
 const OntologySearch = searchTerm => {
+  const [data, setData] = useState(undefined)
+  const loadData = async () => {
+    const response = await Ajax().Neo4j.searchOntology(searchTerm);
+    //console.log(response.records)
+    response.records.forEach(r => console.log(r.get('n')))
+    setData(response)
+  }
+  if (data === undefined) {
+    loadData()
+  }
   return div([
-
+    data && data.records.map((r, i) => div({ key: i }, [
+      _.toPairs(r.get('n').properties).map((k, j) => div({ key: j }, [
+        div({style: { fontWeight: 600, paddingTop: '.5rem' } }, [
+          k[0],
+          ':'
+        ]),
+        div([
+          k[1]
+        ])
+      ])),
+      i < data.records.length - 1 && div({ style: { marginTop: '1.5rem', borderBottom: `1px solid ${colors.dark(0.55)}` } })
+    ]))
   ])
 }
 
@@ -85,7 +107,7 @@ export const OntologyModal = _.flow(withDisplayName('OntologyModal'), withModalD
     h(ConfirmedSearchInput, {
       'aria-label': 'Enter Term',
       placeholder: 'Enter Term',
-      onChange: setOntologyTerm
+      onChange: setOntologyTerm,
     }),
     div({ style: { paddingTop: '1rem' } }, [
       _.trim(ontologyTerm).length === 0 ?

@@ -23,6 +23,7 @@
     "jszip": "^3.5.0",
     "lodash": "^4.17.20",
     "marked": "^0.7.0",
+    "neo4j-driver": "^4.2.1",
     "outdated-browser-rework": "^2.10.0",
     "path-to-regexp": "^5.0.0",
     "prismjs": "^1.21.0",

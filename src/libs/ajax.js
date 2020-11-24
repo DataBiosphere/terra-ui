@@ -8,6 +8,7 @@ import * as Nav from 'src/libs/nav'
 import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { v4 as uuid } from 'uuid'
+import neo4j from 'neo4j-driver'
 
 
 window.ajaxOverrideUtils = {
@@ -1178,6 +1179,25 @@ const Disks = signal => ({
   }
 })
 
+const driver = neo4j.driver(
+  'neo4j://35.194.19.46:7687',
+  neo4j.auth.basic('neo4j', '9u6PnDHyuW')
+)
+
+
+const Neo4j = signal => ({
+  searchOntology: async (q) => {
+    if (!q) {
+      return { records: [] }
+    }
+    const session = driver.session();
+    const res = await session.run(`Match (n) where n.label contains ("${q.searchTerm}") return n`);
+    await session.close()
+    console.log(res);
+    return res
+  }
+})
+
 const Dockstore = signal => ({
   getWdl: async (path, version) => {
     const res = await fetchDockstore(`${dockstoreMethodPath(path)}/${encodeURIComponent(version)}/WDL/descriptor`, { signal })
@@ -1266,7 +1286,8 @@ export const Ajax = signal => {
     Martha: Martha(signal),
     Duos: Duos(signal),
     Metrics: Metrics(signal),
-    Disks: Disks(signal)
+    Disks: Disks(signal),
+    Neo4j: Neo4j(signal)
   }
 }
 
