@@ -14,7 +14,6 @@ const OntologyContainer = ({ title, setModalOpen, children }) => {
     h(TopBar, { title, href: Nav.getLink('root') }, [
       div({ style: { flexGrow: 1 } }),
       div({ onClick: () => setModalOpen(true), style: { marginRight: 10 } }, ['hello'])
-      // TODO ontology search
     ]),
     div({ role: 'main', style: Style.elements.pageContentContainer }, [children])
   ])
