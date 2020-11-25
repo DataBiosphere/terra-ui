@@ -101,8 +101,16 @@ const WorkflowDashboard = _.flow(
 
   const restructureFailures = _.map(({ message, causedBy }) => ({
     message,
-    ...(!_.isEmpty(causedBy) ? { causedBy: restructureFailures(causedBy) } : {})
+    ...(!_.isEmpty(causedBy) ? { causedBy: simplifyDidNotStartFailures(restructureFailures(causedBy)) } : {})
   }))
+
+  const simplifyDidNotStartFailures = failuresArray => {
+    const filtered = _.filter(({message}) => !_.isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
+    const sizeDiff = !_.isEmpty(failuresArray) ? failuresArray.length - filtered.length : 0
+    const newMessage = sizeDiff > 0 ? [{ message: `${sizeDiff} jobs were queued in Cromwell but never submitted due to failures elsewhere in the workflow` }]: []
+
+    return [ ...filtered, ...newMessage ]
+  }
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     h(Link, {
@@ -169,7 +177,7 @@ const WorkflowDashboard = _.flow(
       enableClipboard: false,
       displayDataTypes: false,
       displayObjectSize: false,
-      src: restructureFailures(failures)
+      src: simplifyDidNotStartFailures(restructureFailures(failures))
     })]),
     wdl && h(Collapse, {
       title: div({ style: Style.elements.sectionHeader }, ['Submitted workflow script'])
@@ -186,3 +194,4 @@ export const navPaths = [
     title: ({ name }) => `${name} - Workflow Dashboard`
   }
 ]
+
