@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { useEffect, useState } from 'react'
-import { div, h, li, table, tbody, td, tr, ul } from 'react-hyperscript-helpers'
+import { div, h, li, span, table, tbody, td, tr, ul } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
@@ -86,11 +86,8 @@ const statusCell = workflowObject => {
 const WorkflowDashboard = _.flow(
   Utils.forwardRefWithName('WorkflowDashboard'),
   wrapWorkspace({
-    breadcrumbs: props => [
-      ...breadcrumbs.commonPaths.workspaceJobHistory(props),
-      breadcrumbs.breadcrumbElement(`submission ${props.submissionId}`, Nav.getLink('workspace-submission-details', props))
-    ],
-    title: props => `Workflow ${props.workflowId}`, activeTab: 'job history'
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+    title: 'Job History', activeTab: 'job history'
   })
 )((props, ref) => {
   const { namespace, name, submissionId, workflowId, workspace: { workspace: { bucketName } } } = props
@@ -173,10 +170,19 @@ const WorkflowDashboard = _.flow(
   }
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-    h(Link, {
-      href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId }),
-      style: { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', padding: '0.5rem 0' }
-    }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to submission']),
+    div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center'} }, [
+      h(Link, {
+        href: Nav.getLink('workspace-job-history', { namespace, name }),
+        style: { alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0' }
+      }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Job History']),
+      span({ style: { whiteSpace: 'pre'} }, [' > ']),
+      h(Link, {
+        href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId }),
+        style: { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', padding: '0.5rem 0' }
+      }, [`Submission ${submissionId}`]),
+      span({ style: { whiteSpace: 'pre'} }, [' > ']),
+      span({ style: Style.elements.sectionHeader }, [`Workflow ${workflowId}`])
+    ]),
     _.isEmpty(workflow) ? centeredSpinner() : div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
       makeSection('Workflow Status', [
         div({ style: { lineHeight: '24px' } }, [makeStatusLine(style => statusIcon(status, style), status)])

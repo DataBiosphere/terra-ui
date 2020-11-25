@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Link, Select } from 'src/components/common'
@@ -29,11 +29,26 @@ import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
+const CopyLink = ({ workflowId }) => {
+  const [wfidCopied, setWfidCopied] = useState()
+  return h(Link, {
+    style: { margin: '0 0.5rem' },
+    tooltip: 'Copy to clipboard',
+    onClick: withErrorReporting('Error copying to clipboard', async () => {
+      await clipboard.writeText(workflowId)
+      setWfidCopied(true)
+      await Utils.delay(1500)
+      setWfidCopied(undefined)
+    })
+  }, [icon(wfidCopied ? 'check' : 'copy-to-clipboard')])
+}
+
+
 const SubmissionDetails = _.flow(
   Utils.forwardRefWithName('SubmissionDetails'),
   wrapWorkspace({
-    breadcrumbs: props => breadcrumbs.commonPaths.workspaceJobHistory(props),
-    title: ({ submissionId }) => `Submission ${submissionId}`, activeTab: 'job history'
+    breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
+    title: 'Job History', activeTab: 'job history'
   })
 )((props, ref) => {
   const { namespace, name, submissionId, workspace: { workspace: { bucketName } } } = props
@@ -46,7 +61,6 @@ const SubmissionDetails = _.flow(
   const [statusFilter, setStatusFilter] = useState([])
   const [textFilter, setTextFilter] = useState('')
   const [sort, setSort] = useState({ field: 'workflowEntity', direction: 'asc' })
-  const [wfidCopied, setWfidCopied] = useState()
 
   const signal = Utils.useCancellation()
 
@@ -121,10 +135,14 @@ const SubmissionDetails = _.flow(
    * Page render
    */
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-    h(Link, {
-      href: Nav.getLink('workspace-job-history', { namespace, name }),
-      style: { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', padding: '0.5rem 0' }
-    }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to list']),
+    div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center'} }, [
+      h(Link, {
+        href: Nav.getLink('workspace-job-history', { namespace, name }),
+        style: { alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0' }
+      }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Job History']),
+      span({ style: { whiteSpace: 'pre'} }, [' > ']),
+      span({ style: Style.elements.sectionHeader }, [`Submission ${submissionId}`])
+    ]),
     _.isEmpty(submission) ? centeredSpinner() : h(Fragment, [
       div({ style: { display: 'flex' } }, [
         div({ style: { flex: '0 0 200px', marginRight: '2rem', lineHeight: '24px' } }, [
@@ -240,16 +258,7 @@ const SubmissionDetails = _.flow(
                 const { workflowId } = filteredWorkflows[rowIndex]
                 return workflowId ? [
                   h(TooltipCell, { tooltip: workflowId }, [workflowId]),
-                  h(Link, {
-                    style: { margin: '0 0.5rem' },
-                    tooltip: 'Copy workflow ID to clipboard',
-                    onClick: withErrorReporting('Error copying to clipboard', async () => {
-                      await clipboard.writeText(workflowId)
-                      setWfidCopied(true)
-                      await Utils.delay(1500)
-                      setWfidCopied(undefined)
-                    })
-                  }, [icon(wfidCopied ? 'check' : 'copy-to-clipboard')])
+                  h(CopyLink, { workflowId })
                 ] : []
               }
             }, {
