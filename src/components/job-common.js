@@ -20,12 +20,29 @@ export const collapseStatus = status => {
   }
 }
 
+
+export const collapseCromwellExecutionStatus = status => {
+  switch (status) {
+    case 'Done':
+      return 'succeeded'
+    case 'Aborting': // only on submissions not workflows
+    case 'Aborted':
+    case 'Failed':
+      return 'failed'
+    case 'Running':
+      return 'running'
+    default:
+      return `Unexpected status (${status})`
+  }
+}
+
 const size = 24
 
 export const successIcon = style => icon('check', { size, style: { color: colors.success(), ...style } })
 export const failedIcon = style => icon('warning-standard', { size, style: { color: colors.danger(), ...style } })
 export const runningIcon = style => icon('sync', { size, style: { color: colors.dark(), ...style } })
 export const submittedIcon = style => icon('clock', { size, style: { color: colors.dark(), ...style } })
+export const unknownIcon = style => icon('unknown', { size, style: { color: colors.dark(), ...style } })
 
 export const statusIcon = (status, style) => {
   switch (collapseStatus(status)) {

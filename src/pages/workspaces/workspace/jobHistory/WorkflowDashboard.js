@@ -7,7 +7,17 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
 import { Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { makeSection, makeStatusLine, statusIcon } from 'src/components/job-common'
+import {
+  collapseCromwellExecutionStatus,
+  collapseStatus,
+  failedIcon,
+  makeSection,
+  makeStatusLine,
+  runningIcon,
+  statusIcon, submittedIcon,
+  successIcon, unknownIcon
+} from 'src/components/job-common'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
@@ -22,6 +32,55 @@ import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer
 
 const styles = {
   sectionTableLabel: { paddingRight: '0.6rem', fontWeight: 600 }
+}
+
+const groupCallStatuses = callsObject => {
+  const statusCounts = {}
+  for (const callname in callsObject) {
+    for (const attempt in callsObject[callname]) {
+      const executionStatus = collapseCromwellExecutionStatus(callsObject[callname][attempt].executionStatus)
+      statusCounts[executionStatus] = (statusCounts[executionStatus] || 0) + 1
+    }
+  }
+  return statusCounts
+}
+
+const statusCell = workflowObject => {
+  const { succeeded, failed, running, submitted, ...others } = groupCallStatuses(workflowObject.calls)
+  console.log(others)
+
+  return div([
+    table({ style: { margin: '0.5rem' } }, [
+      tbody({}, [
+        submitted ? tr({}, [
+          td(styles.statusDetailCell, [submittedIcon()]),
+          td(['Submitted']),
+          td(styles.statusDetailCell, [submitted])
+        ]) : undefined,
+        running ? tr({}, [
+          td(styles.statusDetailCell, [runningIcon()]),
+          td(['Running']),
+          td(styles.statusDetailCell, [running])
+        ]): undefined,
+        succeeded ? tr({}, [
+          td(styles.statusDetailCell, [successIcon()]),
+          td(['Succeeded']),
+          td(styles.statusDetailCell, [succeeded])
+        ]): undefined,
+        failed ? tr({}, [
+          td(styles.statusDetailCell, [failedIcon()]),
+          td(['Failed']),
+          td(styles.statusDetailCell, [failed])
+        ]): undefined,
+        _.map(other => tr({}, [
+          td(styles.statusDetailCell, [unknownIcon()]),
+          td([other]),
+          td(styles.statusDetailCell, [others[other]])
+        ]), Object.keys(others))
+      ].filter(element => element !== undefined))
+    ])
+
+  ])
 }
 
 const WorkflowDashboard = _.flow(
@@ -119,14 +178,14 @@ const WorkflowDashboard = _.flow(
       style: { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', padding: '0.5rem 0' }
     }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to submission']),
     _.isEmpty(workflow) ? centeredSpinner() : div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
-      makeSection('Status', [
+      makeSection('Workflow Status', [
         div({ style: { lineHeight: '24px' } }, [makeStatusLine(style => statusIcon(status, style), status)])
       ]),
-      makeSection('Timing', [
+      makeSection('Workflow Timing', [
         table({ style: { marginTop: '0.3rem', lineHeight: '20px' } }, [
           tbody([
-            tr([td({ style: styles.sectionTableLabel }, ['Start:']), td([Utils.makeCompleteDate(start)])]),
-            tr([td({ style: styles.sectionTableLabel }, ['End:']), td([Utils.makeCompleteDate(end)])])
+            tr([td({ style: styles.sectionTableLabel }, ['Start:']), start ? td([Utils.makeCompleteDate(start)]) : 'N/A']),
+            tr([td({ style: styles.sectionTableLabel }, ['End:']), end ? td([Utils.makeCompleteDate(end)]) : 'N/A'])
           ])
         ])
       ]),
@@ -170,6 +229,9 @@ const WorkflowDashboard = _.flow(
               )
             ])])])
         ])
+      ]),
+      makeSection('Call Statuses', [
+        div({ style: { display: 'flex' } }, [statusCell(workflow)])
       ])
     ]),
     failures && h(Collapse, {
