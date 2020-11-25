@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { useEffect, useState } from 'react'
-import { div, h, table, tbody, td, tr } from 'react-hyperscript-helpers'
+import { div, h, li, table, tbody, td, tr, ul } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
@@ -12,6 +12,7 @@ import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
+import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -105,11 +106,11 @@ const WorkflowDashboard = _.flow(
   }))
 
   const simplifyDidNotStartFailures = failuresArray => {
-    const filtered = _.filter(({message}) => !_.isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
+    const filtered = _.filter(({ message }) => !_.isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
     const sizeDiff = !_.isEmpty(failuresArray) ? failuresArray.length - filtered.length : 0
-    const newMessage = sizeDiff > 0 ? [{ message: `${sizeDiff} jobs were queued in Cromwell but never submitted due to failures elsewhere in the workflow` }]: []
+    const newMessage = sizeDiff > 0 ? [{ message: `${sizeDiff} jobs were queued in Cromwell but never sent to the cloud backend due to failures elsewhere in the workflow` }]: []
 
-    return [ ...filtered, ...newMessage ]
+    return [...filtered, ...newMessage]
   }
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
@@ -151,6 +152,24 @@ const WorkflowDashboard = _.flow(
         div({ style: { marginTop: '1rem' } }, [
           h(Link, { onClick: () => setShowLog(true) }, ['View execution log'])
         ])
+      ]),
+      makeSection('Job Manager', [
+        div({ style: { display: 'flex' } }, [
+          div(['This workflow can also be viewed in:',
+            ul([li([
+              h(Link, {
+                ...Utils.newTabLinkProps,
+                href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
+                style: { flexGrow: 1, textAlign: 'left' }
+              }, [div({ style: { display: 'flex', alignItems: 'center' } }, [
+                div({ style: { flex: 'none', display: 'flex', width: '0.3rem' } }, [
+                  icon('folder', { size: 18 })
+                ]),
+                div({ style: { flex: 1, paddingLeft: '1rem' } }, ['Job Manager'])
+              ])]
+              )
+            ])])])
+        ])
       ])
     ]),
     failures && h(Collapse, {
@@ -173,7 +192,7 @@ const WorkflowDashboard = _.flow(
     }, [h(ReactJson, {
       style: { whiteSpace: 'pre-wrap' },
       name: false,
-      collapsed: 2,
+      collapsed: 4,
       enableClipboard: false,
       displayDataTypes: false,
       displayObjectSize: false,
