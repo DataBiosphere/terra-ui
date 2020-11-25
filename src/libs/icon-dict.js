@@ -2,7 +2,8 @@ import { faClipboard, faClock, faClone, faEye, faFolder, faFolderOpen, faListAlt
 import {
   faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faCloud, faCog, faCreditCard, faDownload,
   faEllipsisV, faExclamationCircle, faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown,
-  faLongArrowAltUp, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid,
+  faLongArrowAltUp, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faProjectDiagram, faQuestionCircle, faSearch, faShareAlt,
+  faSquare as faSquareSolid,
   faTerminal, faTrashAlt, faVirus
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -85,6 +86,7 @@ const iconDict = {
   'plus-circle': fa(faPlusCircle),
   'lighter-plus-circle': props => fa(faPlus, { mask: faCircle, transform: 'shrink-6', ...props }),
   'pop-out': custom(externalLinkAlt),
+  'project-diagram': fa(faProjectDiagram),
   purchaseOrder: fa(faFileInvoiceDollar),
   renameIcon: custom(renameIcon),
   search: fa(faSearch),
