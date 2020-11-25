@@ -1186,12 +1186,26 @@ const driver = neo4j.driver(
 
 
 const Neo4j = signal => ({
-  searchOntology: async (searchTerm) => {
-    const session = driver.session();
-    const res = await session.run(`Match (n) where n.label contains ("${searchTerm}") return n`);
-    //const res = await session.run(`Match (n) where n.label contains ("${q.searchTerm}") return n.label as Synonyms, n.comment as Comments`);
+  searchOntology: async searchTerm => {
+    const session = driver.session()
+    const searchTermSanitized = searchTerm.replaceAll(`'`, '').toLowerCase()
+    const query = `
+      match (n) where (
+        toLower(n.label[0]) contains('${searchTermSanitized}') OR
+        n.definition contains('${searchTermSanitized}')
+      ) 
+      match (s) where (s)-[:SCO]-(n) 
+      return n.label as Name,
+             n.name as Code, 
+             n.definition as Definition,
+             n.uri as URI, 
+             collect(n.label) as Synonyms,
+             collect(s.label) as Subclasses
+      limit 10
+    `
+    const res = await session.run(query)
     await session.close()
-    console.log(res);
+    console.log(res)
     return res
   }
 })

@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, li, ul } from 'react-hyperscript-helpers'
 import { spinnerOverlay } from 'src/components/common'
 import { ConfirmedSearchInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -71,24 +71,24 @@ const AboutOntologySearch = () => {
 
 const OntologySearch = ({ searchTerm }) => {
   const [data, setData] = useState(undefined)
+  const [submittedSearchTerm, setSubmittedSearchTerm] = useState(undefined)
   const loadData = async () => {
+    setSubmittedSearchTerm(searchTerm)
     const response = await Ajax().Neo4j.searchOntology(searchTerm)
-    //console.log(searchTerm)
-    response.records.forEach(r => console.log(r.get('n')))
     setData(response)
   }
-  if (data === undefined) {
+  if (searchTerm !== submittedSearchTerm) {
     loadData()
   }
   return div([
     data ? (data.records.length !== 0 ? data.records.map((r, i) => div({ key: i }, [
-      _.toPairs(r.get('n').properties).map((k, j) => div({ key: j }, [
+      _.toPairs(r.toObject()).map((k, j) => div({ key: j }, [
         div({ style: { fontWeight: 600, paddingTop: '.5rem' } }, [
           k[0],
           ':'
         ]),
         div([
-          k[1]
+          _.isArray(k[1]) ? ul({ style: { listStyleType: 'none', padding: 0, margin: 0 } }, _.uniq(_.flatMap(v => v, k[1])).map(value => li([value]))) : k[1]
         ])
       ])),
       i < data.records.length - 1 && div({ style: { marginTop: '1.5rem', borderBottom: `1px solid ${colors.dark(0.55)}` } })
