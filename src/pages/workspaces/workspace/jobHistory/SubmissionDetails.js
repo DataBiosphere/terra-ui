@@ -220,7 +220,7 @@ const SubmissionDetails = _.flow(
               headerRenderer: () => h(Sortable, { sort, field: 'workflowEntity', onSort: setSort }, ['Data Entity']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowEntity: { entityName, entityType } = {} } = filteredWorkflows[rowIndex]
-                return h(TooltipCell, [entityName && `${entityName} (${entityType})`])
+                return h(TooltipCell, [entityName ? `${entityName} (${entityType})` : '--'])
               }
             }, {
               size: { basis: 225, grow: 0 },
