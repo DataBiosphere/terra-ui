@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, li, ul } from 'react-hyperscript-helpers'
 import { spinnerOverlay } from 'src/components/common'
 import { ConfirmedSearchInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
@@ -73,8 +73,8 @@ const OntologySearch = ({ searchTerm }) => {
   const [data, setData] = useState(undefined)
   const [submittedSearchTerm, setSubmittedSearchTerm] = useState(undefined)
   const loadData = async () => {
-    const response = await Ajax().Neo4j.searchOntology(searchTerm)
     setSubmittedSearchTerm(searchTerm)
+    const response = await Ajax().Neo4j.searchOntology(searchTerm)
     setData(response)
   }
   if (searchTerm !== submittedSearchTerm) {
@@ -88,7 +88,7 @@ const OntologySearch = ({ searchTerm }) => {
           ':'
         ]),
         div([
-          k[1]
+          _.isArray(k[1]) ? ul({ style: { listStyleType: 'none', padding: 0, margin: 0 } }, _.uniq(_.flatMap(v => v, k[1])).map(value => li([value]))) : k[1]
         ])
       ])),
       i < data.records.length - 1 && div({ style: { marginTop: '1.5rem', borderBottom: `1px solid ${colors.dark(0.55)}` } })
