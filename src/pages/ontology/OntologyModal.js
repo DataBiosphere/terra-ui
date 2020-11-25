@@ -40,7 +40,13 @@ const includedOntologies = [
 const AboutOntologySearch = () => {
   return div([
     div({ style: { fontWeight: 600 } }, ['About Ontology Search']),
-    div({ style: { marginTop: '1rem' } }, ['Lorem Ipsum...']),
+    div({ style: { marginTop: '1rem' } }, [
+      `This experimental terra-embedded ontology search uses neo4j to deliver definitions
+      and other metadata such as relationships, synonyms, and ontological code for your search term.`
+    ]),
+    div({ style: { marginTop: '1rem' } }, [
+      `Built as part of the 2020 DSP Jamboree.`
+    ]),
     div({ style: { marginTop: '1.5rem', borderBottom: `1px solid ${colors.dark(0.55)}` } }),
     div({ style: { marginTop: '1rem', fontWeight: 600 } }, ['Included ontologies']),
     includedOntologies.map((ontology, i) => div({
