@@ -1186,9 +1186,9 @@ const driver = neo4j.driver(
 
 
 const Neo4j = signal => ({
-  searchOntology: async (searchTerm) => {
-    const session = driver.session();
-    const searchTermSanitized = searchTerm.replaceAll("'", "").toLowerCase();
+  searchOntology: async searchTerm => {
+    const session = driver.session()
+    const searchTermSanitized = searchTerm.replaceAll(`'`, '').toLowerCase()
     const query = `
       match (n) where (
         toLower(n.label[0]) contains('${searchTermSanitized}') OR
@@ -1202,10 +1202,10 @@ const Neo4j = signal => ({
              collect(n.label) as Synonyms,
              collect(s.label) as Subclasses
       limit 10
-    `;
-    const res = await session.run(query);
+    `
+    const res = await session.run(query)
     await session.close()
-    console.log(res);
+    console.log(res)
     return res
   }
 })
