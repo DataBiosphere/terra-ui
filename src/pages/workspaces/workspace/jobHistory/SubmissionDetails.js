@@ -1,3 +1,4 @@
+import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
@@ -45,6 +46,7 @@ const SubmissionDetails = _.flow(
   const [statusFilter, setStatusFilter] = useState([])
   const [textFilter, setTextFilter] = useState('')
   const [sort, setSort] = useState({ field: 'workflowEntity', direction: 'asc' })
+  const [wfidCopied, setWfidCopied] = useState()
 
   const signal = Utils.useCancellation()
 
@@ -143,7 +145,9 @@ const SubmissionDetails = _.flow(
               )],
               [methodAccessible === false,
                 () => div({ style: { display: 'flex', alignItems: 'center' } }, [
-                  div({ style: Style.noWrapEllipsis }, [`${workflowNamespace}/${workflowName}`]),
+                  h(TooltipTrigger, {
+                    content: `${workflowNamespace}/${workflowName}` // TODO fix this width or wrap better
+                  }, [div({ style: Style.noWrapEllipsis }, [`${workflowNamespace}/${workflowName}`])]),
                   h(TooltipTrigger, {
                     content: 'This configuration was updated or deleted since this submission ran.'
                   }, [
@@ -194,27 +198,6 @@ const SubmissionDetails = _.flow(
           noContentMessage: 'No matching workflows',
           columns: [
             {
-              size: { basis: 75, grow: 0 },
-              headerRenderer: () => {},
-              cellRenderer: ({ rowIndex }) => {
-                const { workflowId } = filteredWorkflows[rowIndex]
-                return workflowId && h(Link, {
-                  ...Utils.newTabLinkProps,
-                  href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-                  style: { flexGrow: 1, textAlign: 'center' }
-                }, ['JM'])
-              }
-            }, {
-              size: { basis: 75, grow: 0 },
-              headerRenderer: () => {},
-              cellRenderer: ({ rowIndex }) => {
-                const { workflowId } = filteredWorkflows[rowIndex]
-                return workflowId && h(Link, {
-                  href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
-                  style: { flexGrow: 1, textAlign: 'center' }
-                }, ['!! Dash !!'])
-              }
-            }, {
               size: { basis: 225, grow: 0 },
               headerRenderer: () => h(Sortable, { sort, field: 'workflowEntity', onSort: setSort }, ['Data Entity']),
               cellRenderer: ({ rowIndex }) => {
@@ -242,7 +225,7 @@ const SubmissionDetails = _.flow(
                 return cost ? h(TextCell, [Utils.formatUSD(filteredWorkflows[rowIndex].cost || 0)]) : 'N/A'
               }
             }, {
-              size: { basis: 200 },
+              size: _.some(w => !_.isEmpty(w.messages), filteredWorkflows) ? { basis: 200 } : { basis: 100, grow: 0},
               headerRenderer: () => h(Sortable, { sort, field: 'messages', onSort: setSort }, ['Messages']),
               cellRenderer: ({ rowIndex }) => {
                 const messages = _.join('\n', filteredWorkflows[rowIndex].messages)
@@ -251,16 +234,44 @@ const SubmissionDetails = _.flow(
                 }, [messages])
               }
             }, {
-              size: { basis: 375, grow: 0 },
-              headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
+              size: { basis: 350, grow: 1 },
+              headerRenderer: () => div({ style: { display: 'flex' } }, ['Links']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
-                return h(TooltipCell, { tooltip: workflowId }, [
-                  inputName ? h(Link, {
+                return workflowId && [
+                  h(Link, {
+                    ...Utils.newTabLinkProps,
+                    href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
+                    style: { flexGrow: 1, textAlign: 'center' }
+                  }, [icon('folder', { size: 18 }), 'Job Manager']),
+                  h(Link, {
+                    href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
+                    style: { flexGrow: 1, textAlign: 'center' }
+                  }, ['Dashboard']),
+                  ...(inputName ? [h(Link, {
                     ...Utils.newTabLinkProps,
                     href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`)
-                  }, [workflowId]) : workflowId
-                ])
+                  }, ['GCS directory'])] : [])
+                ]
+              }
+            }, {
+              size: { basis: 150, grow: 0 },
+              headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
+              cellRenderer: ({ rowIndex }) => {
+                const { workflowId } = filteredWorkflows[rowIndex]
+                return workflowId ? [
+                  h(TooltipCell, { tooltip: workflowId }, [workflowId]),
+                  h(Link, {
+                    style: { margin: '0 0.5rem' },
+                    tooltip: 'Copy gs:// URI to clipboard',
+                    onClick: withErrorReporting('Error copying to clipboard', async () => {
+                      await clipboard.writeText(workflowId)
+                      setWfidCopied(true)
+                      await Utils.delay(1500)
+                      setWfidCopied(undefined)
+                    })
+                  }, [icon(wfidCopied ? 'check' : 'copy-to-clipboard')])
+                ] : []
               }
             }
           ]
@@ -269,6 +280,7 @@ const SubmissionDetails = _.flow(
     ])
   ])
 })
+
 
 export const navPaths = [
   {
