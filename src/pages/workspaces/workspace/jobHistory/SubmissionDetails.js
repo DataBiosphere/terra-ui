@@ -198,7 +198,7 @@ const SubmissionDetails = _.flow(
           noContentMessage: 'No matching workflows',
           columns: [
             {
-              size: { basis: 225, grow: 0 },
+              size: { basis: 225 },
               headerRenderer: () => h(Sortable, { sort, field: 'workflowEntity', onSort: setSort }, ['Data Entity']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowEntity: { entityName, entityType } = {} } = filteredWorkflows[rowIndex]
@@ -225,34 +225,13 @@ const SubmissionDetails = _.flow(
                 return cost ? h(TextCell, [Utils.formatUSD(filteredWorkflows[rowIndex].cost || 0)]) : 'N/A'
               }
             }, {
-              size: _.some(w => !_.isEmpty(w.messages), filteredWorkflows) ? { basis: 200 } : { basis: 100, grow: 0},
+              size: _.some(w => !_.isEmpty(w.messages), filteredWorkflows) ? { basis: 200 } : { basis: 100, grow: 0 },
               headerRenderer: () => h(Sortable, { sort, field: 'messages', onSort: setSort }, ['Messages']),
               cellRenderer: ({ rowIndex }) => {
                 const messages = _.join('\n', filteredWorkflows[rowIndex].messages)
                 return h(TooltipCell, {
                   tooltip: div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word' } }, [messages])
                 }, [messages])
-              }
-            }, {
-              size: { basis: 350, grow: 1 },
-              headerRenderer: () => div({ style: { display: 'flex' } }, ['Links']),
-              cellRenderer: ({ rowIndex }) => {
-                const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
-                return workflowId && [
-                  h(Link, {
-                    ...Utils.newTabLinkProps,
-                    href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-                    style: { flexGrow: 1, textAlign: 'center' }
-                  }, [icon('folder', { size: 18 }), 'Job Manager']),
-                  h(Link, {
-                    href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
-                    style: { flexGrow: 1, textAlign: 'center' }
-                  }, ['Dashboard']),
-                  ...(inputName ? [h(Link, {
-                    ...Utils.newTabLinkProps,
-                    href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`)
-                  }, ['GCS directory'])] : [])
-                ]
               }
             }, {
               size: { basis: 150, grow: 0 },
@@ -263,7 +242,7 @@ const SubmissionDetails = _.flow(
                   h(TooltipCell, { tooltip: workflowId }, [workflowId]),
                   h(Link, {
                     style: { margin: '0 0.5rem' },
-                    tooltip: 'Copy gs:// URI to clipboard',
+                    tooltip: 'Copy workflow ID to clipboard',
                     onClick: withErrorReporting('Error copying to clipboard', async () => {
                       await clipboard.writeText(workflowId)
                       setWfidCopied(true)
@@ -272,6 +251,45 @@ const SubmissionDetails = _.flow(
                     })
                   }, [icon(wfidCopied ? 'check' : 'copy-to-clipboard')])
                 ] : []
+              }
+            }, {
+              size: { basis: 400, grow: 0 },
+              headerRenderer: () => div({ style: { display: 'flex' } }, ['Links']),
+              cellRenderer: ({ rowIndex }) => {
+                const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
+                return workflowId && [
+                  h(Link, {
+                    href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
+                    style: { flexGrow: 1, textAlign: 'left' }
+                  }, [[div({ style: { display: 'flex', alignItems: 'center' } }, [
+                    div({ style: { flex: 'none', display: 'flex', width: '0.3rem' } }, [
+                      icon('view-list', { size: 18 })
+                    ]),
+                    div({ style: { flex: 1, paddingLeft: '1rem' } }, ['Dashboard'])
+                  ])]]),
+                  h(Link, {
+                    ...Utils.newTabLinkProps,
+                    href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
+                    style: { flexGrow: 1, textAlign: 'left' }
+                  }, [div({ style: { display: 'flex', alignItems: 'center' } }, [
+                    div({ style: { flex: 'none', display: 'flex', width: '0.3rem' } }, [
+                      icon('folder', { size: 18 })
+                    ]),
+                    div({ style: { flex: 1, paddingLeft: '1rem' } }, ['Job Manager'])
+                  ])]),
+                  ...(inputName ? [
+                    h(Link, {
+                      ...Utils.newTabLinkProps,
+                      href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`),
+                      style: { flexGrow: 1, textAlign: 'left' }
+                    }, [div({ style: { display: 'flex', alignItems: 'center' } }, [
+                      div({ style: { flex: 'none', display: 'flex', width: '0.3rem' } }, [
+                        icon('cloud', { size: 18 })
+                      ]),
+                      div({ style: { flex: 1, paddingLeft: '1rem' } }, ['GCS directory'])
+                    ])])
+                  ] : [])
+                ]
               }
             }
           ]
