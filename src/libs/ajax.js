@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import neo4j from 'neo4j-driver'
 import * as qs from 'qs'
 import { version } from 'src/data/machines'
 import { ensureAuthSettled, getUser } from 'src/libs/auth'
@@ -8,7 +9,6 @@ import * as Nav from 'src/libs/nav'
 import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { v4 as uuid } from 'uuid'
-import neo4j from 'neo4j-driver'
 
 
 window.ajaxOverrideUtils = {
@@ -1186,12 +1186,10 @@ const driver = neo4j.driver(
 
 
 const Neo4j = signal => ({
-  searchOntology: async (q) => {
-    if (!q) {
-      return { records: [] }
-    }
+  searchOntology: async (searchTerm) => {
     const session = driver.session();
-    const res = await session.run(`Match (n) where n.label contains ("${q.searchTerm}") return n`);
+    const res = await session.run(`Match (n) where n.label contains ("${searchTerm}") return n`);
+    //const res = await session.run(`Match (n) where n.label contains ("${q.searchTerm}") return n.label as Synonyms, n.comment as Comments`);
     await session.close()
     console.log(res);
     return res

@@ -1,12 +1,14 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
+import { spinnerOverlay } from 'src/components/common'
 import { ConfirmedSearchInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import TitleBar from 'src/components/TitleBar'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withDisplayName } from 'src/libs/utils'
-import { Ajax } from 'src/libs/ajax';
+
 
 const includedOntologies = [
   {
@@ -67,11 +69,11 @@ const AboutOntologySearch = () => {
   ])
 }
 
-const OntologySearch = searchTerm => {
+const OntologySearch = ({ searchTerm }) => {
   const [data, setData] = useState(undefined)
   const loadData = async () => {
-    const response = await Ajax().Neo4j.searchOntology(searchTerm);
-    //console.log(response.records)
+    const response = await Ajax().Neo4j.searchOntology(searchTerm)
+    //console.log(searchTerm)
     response.records.forEach(r => console.log(r.get('n')))
     setData(response)
   }
@@ -79,9 +81,9 @@ const OntologySearch = searchTerm => {
     loadData()
   }
   return div([
-    data && data.records.map((r, i) => div({ key: i }, [
+    data ? (data.records.length !== 0 ? data.records.map((r, i) => div({ key: i }, [
       _.toPairs(r.get('n').properties).map((k, j) => div({ key: j }, [
-        div({style: { fontWeight: 600, paddingTop: '.5rem' } }, [
+        div({ style: { fontWeight: 600, paddingTop: '.5rem' } }, [
           k[0],
           ':'
         ]),
@@ -90,7 +92,9 @@ const OntologySearch = searchTerm => {
         ])
       ])),
       i < data.records.length - 1 && div({ style: { marginTop: '1.5rem', borderBottom: `1px solid ${colors.dark(0.55)}` } })
-    ]))
+    ])) : div([
+      `No results found for: '${searchTerm}'`
+    ])) : spinnerOverlay
   ])
 }
 
@@ -107,7 +111,7 @@ export const OntologyModal = _.flow(withDisplayName('OntologyModal'), withModalD
     h(ConfirmedSearchInput, {
       'aria-label': 'Enter Term',
       placeholder: 'Enter Term',
-      onChange: setOntologyTerm,
+      onChange: setOntologyTerm
     }),
     div({ style: { paddingTop: '1rem' } }, [
       _.trim(ontologyTerm).length === 0 ?
