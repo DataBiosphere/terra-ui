@@ -71,18 +71,18 @@ const AboutOntologySearch = () => {
 
 const OntologySearch = ({ searchTerm }) => {
   const [data, setData] = useState(undefined)
+  const [submittedSearchTerm, setSubmittedSearchTerm] = useState(undefined)
   const loadData = async () => {
     const response = await Ajax().Neo4j.searchOntology(searchTerm)
-    //console.log(searchTerm)
-    response.records.forEach(r => console.log(r.get('n')))
+    setSubmittedSearchTerm(searchTerm)
     setData(response)
   }
-  if (data === undefined) {
+  if (searchTerm !== submittedSearchTerm) {
     loadData()
   }
   return div([
     data ? (data.records.length !== 0 ? data.records.map((r, i) => div({ key: i }, [
-      _.toPairs(r.get('n').properties).map((k, j) => div({ key: j }, [
+      _.toPairs(r.toObject()).map((k, j) => div({ key: j }, [
         div({ style: { fontWeight: 600, paddingTop: '.5rem' } }, [
           k[0],
           ':'

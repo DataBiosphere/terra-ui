@@ -13,7 +13,7 @@ const OntologyContainer = ({ title, setModalOpen, children }) => {
   return h(FooterWrapper, [
     h(TopBar, { title, href: Nav.getLink('root') }, [
       div({ style: { flexGrow: 1 } }),
-      div({ onClick: () => setModalOpen(true) }, ['hello'])
+      div({ onClick: () => setModalOpen(true), style: { marginRight: 10 } }, ['hello'])
       // TODO ontology search
     ]),
     div({ role: 'main', style: Style.elements.pageContentContainer }, [children])
