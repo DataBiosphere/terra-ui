@@ -1,4 +1,4 @@
-import { faClipboard, faClock, faClone, faEye, faFolder, faFolderOpen, faListAlt, faTimesCircle } from '@fortawesome/free-regular-svg-icons'
+import { faClipboard, faClock, faClone, faEye, faFileAlt, faFolder, faFolderOpen, faListAlt, faTimesCircle } from '@fortawesome/free-regular-svg-icons'
 import {
   faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faCloud, faCog, faCreditCard, faDownload,
   faEllipsisV, faExclamationCircle, faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown,
@@ -68,6 +68,7 @@ const iconDict = {
   'error-standard': fa(faExclamationCircle),
   export: custom(fileExport),
   eye: fa(faEye),
+  fileAlt: fa(faFileAlt),
   fileSearchSolid: custom(fileSearchSolid),
   folder: fa(faFolder),
   'folder-open': fa(faFolderOpen),

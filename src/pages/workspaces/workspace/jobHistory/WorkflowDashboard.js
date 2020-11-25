@@ -96,7 +96,6 @@ const WorkflowDashboard = _.flow(
    * State setup
    */
   const [workflow, setWorkflow] = useState({})
-  const [rootCopied, setRootCopied] = useState()
   const [showLog, setShowLog] = useState(false)
   const [failureCopied, setFailureCopied] = useState()
 
@@ -170,17 +169,17 @@ const WorkflowDashboard = _.flow(
   }
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-    div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center'} }, [
+    div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center' } }, [
       h(Link, {
         href: Nav.getLink('workspace-job-history', { namespace, name }),
         style: { alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0' }
       }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Job History']),
-      span({ style: { whiteSpace: 'pre'} }, [' > ']),
+      span({ style: { whiteSpace: 'pre' } }, [' > ']),
       h(Link, {
         href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId }),
         style: { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', padding: '0.5rem 0' }
       }, [`Submission ${submissionId}`]),
-      span({ style: { whiteSpace: 'pre'} }, [' > ']),
+      span({ style: { whiteSpace: 'pre' } }, [' > ']),
       span({ style: Style.elements.sectionHeader }, [`Workflow ${workflowId}`])
     ]),
     _.isEmpty(workflow) ? centeredSpinner() : div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
@@ -195,45 +194,34 @@ const WorkflowDashboard = _.flow(
           ])
         ])
       ]),
-      makeSection('Workflow Storage', [
+      makeSection('Links', [
         div({ style: { display: 'flex' } }, [
           h(Link, {
             ...Utils.newTabLinkProps,
-            style: Style.noWrapEllipsis,
-            href: bucketBrowserUrl(`${bucketName}/${submissionId}/${workflowName}/${workflowId}`),
-            tooltip: 'Open in Google Cloud Storage Browser'
-          }, [workflowRoot]),
+            href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
+            style: { padding: '.6rem' },
+            tooltip: 'Job Manager'
+          }, [
+            div({ style: { display: 'flex', alignItems: 'center' } }, [
+              icon('tasks', { size: 18 }),
+              span([' Job Manager'])
+            ])
+          ]),
           h(Link, {
-            style: { margin: '0 0.5rem' },
-            tooltip: 'Copy gs:// URI to clipboard',
-            onClick: withErrorReporting('Error copying to clipboard', async () => {
-              await clipboard.writeText(workflowRoot)
-              setRootCopied(true)
-              await Utils.delay(1500)
-              setRootCopied(undefined)
-            })
-          }, [icon(rootCopied ? 'check' : 'copy-to-clipboard')])
-        ]),
-        div({ style: { marginTop: '1rem' } }, [
-          h(Link, { onClick: () => setShowLog(true) }, ['View execution log'])
-        ])
-      ]),
-      makeSection('Job Manager', [
-        div({ style: { display: 'flex' } }, [
-          div(['This workflow can also be viewed in:',
-            ul([li([
-              h(Link, {
-                ...Utils.newTabLinkProps,
-                href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-                style: { flexGrow: 1, textAlign: 'left' }
-              }, [div({ style: { display: 'flex', alignItems: 'center' } }, [
-                div({ style: { flex: 'none', display: 'flex', width: '0.3rem' } }, [
-                  icon('folder', { size: 18 })
-                ]),
-                div({ style: { flex: 1, paddingLeft: '1rem' } }, ['Job Manager'])
-              ])]
-              )
-            ])])])
+            ...Utils.newTabLinkProps,
+            href: bucketBrowserUrl(`${bucketName}/${submissionId}/${workflowName}/${workflowId}`),
+            style: { padding: '.6rem' },
+            tooltip: 'Execution directory'
+          }, [
+            div({ style: { display: 'flex', alignItems: 'center' } }, [
+              icon('folder-open', { size: 18 }),
+              span([' Execution Directory'])
+            ])
+          ]),
+          h(Link, { onClick: () => setShowLog(true), style: { padding: '.6rem' } }, [
+            icon('fileAlt', { size: 18 }),
+            ' View execution log'
+          ])
         ])
       ]),
       makeSection('Call Statuses', [
