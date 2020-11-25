@@ -3,11 +3,11 @@ import { useRef, useState } from 'react'
 import { div, h, img } from 'react-hyperscript-helpers'
 import FooterWrapper from 'src/components/FooterWrapper'
 import TopBar from 'src/components/TopBar'
+import ontologyIcon from 'src/images/ontology_icon.png'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { OntologyModal } from 'src/pages/ontology/OntologyModal'
-import ontologyIcon from 'src/images/ontology_icon.png'
 
 
 const OntologyContainer = ({ title, setModalOpen, children }) => {
@@ -15,7 +15,7 @@ const OntologyContainer = ({ title, setModalOpen, children }) => {
     h(TopBar, { title, href: Nav.getLink('root') }, [
       div({ style: { flexGrow: 1 } }),
       div({ onClick: () => setModalOpen(true), style: { marginRight: 10 } }, [
-        img({ src: ontologyIcon, alt: 'ontology search', style: { marginRight: '.75rem'} })
+        img({ src: ontologyIcon, alt: 'ontology search', style: { marginRight: '.75rem' } })
       ])
     ]),
     div({ role: 'main', style: Style.elements.pageContentContainer }, [children])
