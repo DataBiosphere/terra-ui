@@ -234,7 +234,7 @@ const SubmissionDetails = _.flow(
                 }, [messages])
               }
             }, {
-              size: { basis: 150, grow: 0 },
+              size: { basis: 150 },
               headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId } = filteredWorkflows[rowIndex]
@@ -253,40 +253,34 @@ const SubmissionDetails = _.flow(
                 ] : []
               }
             }, {
-              size: { basis: 400, grow: 0 },
+              size: { basis: 150, grow: 0 },
               headerRenderer: () => div({ style: { display: 'flex' } }, ['Links']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
                 return workflowId && [
                   h(Link, {
-                    href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
-                    style: { flexGrow: 1, textAlign: 'left' }
-                  }, [[div({ style: { display: 'flex', alignItems: 'center' } }, [
-                    div({ style: { flex: 'none', display: 'flex', width: '0.3rem' } }, [
-                      icon('view-list', { size: 18 })
-                    ]),
-                    div({ style: { flex: 1, paddingLeft: '1rem' } }, ['Dashboard'])
-                  ])]]),
-                  h(Link, {
                     ...Utils.newTabLinkProps,
                     href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-                    style: { flexGrow: 1, textAlign: 'left' }
+                    style: { padding: '.6rem' },
+                    tooltip: 'Job Manager'
                   }, [div({ style: { display: 'flex', alignItems: 'center' } }, [
-                    div({ style: { flex: 'none', display: 'flex', width: '0.3rem' } }, [
-                      icon('folder', { size: 18 })
-                    ]),
-                    div({ style: { flex: 1, paddingLeft: '1rem' } }, ['Job Manager'])
+                    icon('tasks', { size: 18 })
+                  ])]),
+                  h(Link, {
+                    href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
+                    style: { padding: '.6rem' },
+                    tooltip: 'Workflow Dashboard [alpha]'
+                  }, [div({ style: { display: 'flex', alignItems: 'center' } }, [
+                    icon('dashboard', { size: 18 })
                   ])]),
                   ...(inputName ? [
                     h(Link, {
                       ...Utils.newTabLinkProps,
                       href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`),
-                      style: { flexGrow: 1, textAlign: 'left' }
+                      style: { padding: '.6rem' },
+                      tooltip: 'Execution directory'
                     }, [div({ style: { display: 'flex', alignItems: 'center' } }, [
-                      div({ style: { flex: 'none', display: 'flex', width: '0.3rem' } }, [
-                        icon('cloud', { size: 18 })
-                      ]),
-                      div({ style: { flex: 1, paddingLeft: '1rem' } }, ['GCS directory'])
+                      icon('folder-open', { size: 18 })
                     ])])
                   ] : [])
                 ]
