@@ -135,12 +135,12 @@ const SubmissionDetails = _.flow(
    * Page render
    */
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-    div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center'} }, [
+    div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center' } }, [
       h(Link, {
         href: Nav.getLink('workspace-job-history', { namespace, name }),
         style: { alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0' }
       }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Job History']),
-      span({ style: { whiteSpace: 'pre'} }, [' > ']),
+      span({ style: { whiteSpace: 'pre' } }, [' > ']),
       span({ style: Style.elements.sectionHeader }, [`Submission ${submissionId}`])
     ]),
     _.isEmpty(submission) ? centeredSpinner() : h(Fragment, [

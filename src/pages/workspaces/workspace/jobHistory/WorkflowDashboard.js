@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { useEffect, useState } from 'react'
-import { div, h, li, span, table, tbody, td, tr, ul } from 'react-hyperscript-helpers'
+import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
@@ -9,7 +9,6 @@ import { Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
   collapseCromwellExecutionStatus,
-  collapseStatus,
   failedIcon,
   makeSection,
   makeStatusLine,
@@ -17,7 +16,6 @@ import {
   statusIcon, submittedIcon,
   successIcon, unknownIcon
 } from 'src/components/job-common'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
@@ -151,7 +149,6 @@ const WorkflowDashboard = _.flow(
     status,
     workflowLog,
     workflowName,
-    workflowRoot,
     submittedFiles: { workflow: wdl } = {}
   } = workflow
 

@@ -100,7 +100,7 @@ const iconDict = {
   times: custom(times),
   'times-circle': fa(faTimesCircle),
   trash: fa(faTrashAlt),
-  'unknown': fa(faQuestion),
+  unknown: fa(faQuestion),
   'upload-cloud': custom(cloudUpload),
   'view-cards': fa(faGripHorizontal),
   'view-list': custom(list),
