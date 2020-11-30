@@ -1,4 +1,3 @@
-import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { div, h, i, span } from 'react-hyperscript-helpers'
@@ -7,6 +6,7 @@ import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/compon
 import { icon, spinner } from 'src/components/icons'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
+import RegionFlaggedContent from 'src/components/RegionFlaggedContent'
 import { SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { WorkspaceTagSelect } from 'src/components/workspace-utils'
@@ -94,20 +94,27 @@ export const WorkspaceDashboard = _.flow(
     this.loadStorageCost()
     this.loadConsent()
     this.loadWsTags()
+    this.loadBucketLocation()
   }
 
-  loadSubmissionCount = withErrorReporting('Error loading data', async () => {
+  loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
     const { signal, namespace, name } = this.props
     const submissions = await Ajax(signal).Workspaces.workspace(namespace, name).listSubmissions()
     this.setState({ submissionsCount: submissions.length })
   })
 
-  loadStorageCost = withErrorReporting('Error loading data', async () => {
+  loadStorageCost = withErrorReporting('Error loading storage cost data', async () => {
     const { signal, namespace, name, workspace: { accessLevel } } = this.props
     if (Utils.canWrite(accessLevel)) {
       const { estimate } = await Ajax(signal).Workspaces.workspace(namespace, name).storageCostEstimate()
       this.setState({ storageCostEstimate: estimate })
     }
+  })
+
+  loadBucketLocation = withErrorReporting('Error loading bucket location data', async () => {
+    const { signal, namespace, workspaceName, workspace: { workspace: { bucketName } } } = this.props
+    const { location, locationType } = !_.isEmpty(bucketName) ? await Ajax(signal).Workspaces.workspace(namespace, workspaceName).checkBucketLocation(bucketName) : {}
+    this.setState({ bucketLocation: location, bucketLocationType: locationType })
   })
 
   loadConsent = withErrorReporting('Error loading data', async () => {
@@ -178,7 +185,10 @@ export const WorkspaceDashboard = _.flow(
         }
       }
     } = this.props
-    const { submissionsCount, storageCostEstimate, editDescription, saving, consentStatus, tagsList, busy, bucketCopied } = this.state
+    const {
+      submissionsCount, storageCostEstimate, editDescription, saving,
+      consentStatus, tagsList, busy, bucketLocation, bucketLocationType
+    } = this.state
     const isEditing = _.isString(editDescription)
 
     return div({ style: { flex: 1, display: 'flex' } }, [
@@ -301,19 +311,8 @@ export const WorkspaceDashboard = _.flow(
         div({ style: { fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
           'Google Bucket'
         ]),
-        div({ style: { display: 'flex' } }, [
-          div({ style: Style.noWrapEllipsis }, [bucketName]),
-          h(Link, {
-            style: { margin: '0 0.5rem', flexShrink: 0 },
-            tooltip: 'Copy bucket name',
-            'aria-label': 'Copy bucket name',
-            onClick: withErrorReporting('Error copying to clipboard', async () => {
-              await clipboard.writeText(bucketName)
-              this.setState({ bucketCopied: true }, () => {
-                setTimeout(() => this.setState({ bucketCopied: undefined }), 1500)
-              })
-            })
-          }, [icon(bucketCopied ? 'check' : 'copy-to-clipboard')])
+        div({ style: { display: 'flex', alignItems: 'center' } }, [
+          h(RegionFlaggedContent, { location: bucketLocation, locationType: bucketLocationType, content: bucketName, clipboardText: bucketName }, [])
         ]),
         h(Link, {
           ...Utils.newTabLinkProps,
