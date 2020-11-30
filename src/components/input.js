@@ -169,7 +169,7 @@ export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity,
       paddingRight: '0.25rem',
       fontWeight: 400,
       fontSize: 14,
-      backgroundColor: props.disabled ? colors.dark(.25) : undefined
+      backgroundColor: props.disabled ? colors.dark(0.25) : undefined
     }
   }, props))
 }
