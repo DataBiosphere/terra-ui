@@ -11,9 +11,7 @@ import { launch } from 'src/libs/analysis'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
-import {
-  chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet, processSnapshotTable
-} from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
+import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
 const LaunchAnalysisModal = ({
@@ -40,25 +38,15 @@ const LaunchAnalysisModal = ({
   const doLaunch = async () => {
     try {
       const baseEntityType = rootEntityType && rootEntityType.slice(0, -4)
-      const { selectedEntityType, selectedEntityNames } = await Utils.cond(
+      const { selectedEntityType, selectedEntityNames } = Utils.cond(
         [processSingle, () => ({})],
-        [type === processAll, async () => {
-          setMessage('Fetching data...')
-          const selectedEntityNames = _.map('name', await Ajax(signal).Workspaces.workspace(namespace, workspaceName).entitiesOfType(rootEntityType))
-          return { selectedEntityType: rootEntityType, selectedEntityNames }
-        }],
-        [type === chooseRows || type === chooseSets, () => ({ selectedEntityType: rootEntityType, selectedEntityNames: _.keys(selectedEntities) })],
-        [type === processMergedSet, () => {
+        [type === chooseRootType, () => ({ selectedEntityType: rootEntityType, selectedEntityNames: _.keys(selectedEntities) })],
+        [type === chooseSetType, () => {
           return _.size(selectedEntities) === 1 ?
             { selectedEntityType: `${rootEntityType}_set`, selectedEntityNames: _.keys(selectedEntities) } :
             { selectedEntityType: rootEntityType, selectedEntityNames: _.flow(_.flatMap(`attributes.${rootEntityType}s.items`), _.map('entityName'))(selectedEntities) }
         }],
-        [type === chooseSetComponents, () => ({ selectedEntityType: baseEntityType, selectedEntityNames: _.keys(selectedEntities) })],
-        [type === processAllAsSet, async () => {
-          setMessage('Fetching data...')
-          const selectedEntityNames = _.map('name', await Ajax(signal).Workspaces.workspace(namespace, workspaceName).entitiesOfType(baseEntityType))
-          return { selectedEntityType: baseEntityType, selectedEntityNames }
-        }],
+        [type === chooseBaseType, () => ({ selectedEntityType: baseEntityType, selectedEntityNames: _.keys(selectedEntities) })],
         [type === processSnapshotTable, () => ({ selectedEntityType: rootEntityType })]
       )
       const { submissionId } = await launch({
@@ -79,11 +67,9 @@ const LaunchAnalysisModal = ({
   const entityCount = Utils.cond(
     [processSingle, () => 1],
     [type === processSnapshotTable, () => entityMetadata[rootEntityType].count],
-    [type === chooseRows || type === chooseSets, () => _.size(selectedEntities)],
-    [type === processAll, () => entityMetadata[rootEntityType].count],
-    [type === processAllAsSet, () => 1],
-    [type === chooseSetComponents, () => 1],
-    [type === processMergedSet, () => _.flow(mergeSets, _.uniqBy('entityName'))(selectedEntities).length]
+    [type === chooseRootType, () => _.size(selectedEntities)],
+    [type === chooseBaseType, () => 1],
+    [type === chooseSetType, () => _.flow(mergeSets, _.uniqBy('entityName'))(selectedEntities).length]
   )
   const wrappableOnPeriods = _.flow(str => str?.split(/(\.)/), _.flatMap(sub => sub === '.' ? [wbr(), '.'] : sub))
   const { location, locationType } = bucketLocation
@@ -117,7 +103,7 @@ const LaunchAnalysisModal = ({
     div({ style: { margin: '1rem 0' } }, [
       'This will launch ', b([entityCount]), ` analys${entityCount === 1 ? 'is' : 'es'}`,
       '.',
-      type === processMergedSet && entityCount !== mergeSets(selectedEntities).length && div({
+      type === chooseSetType && entityCount !== mergeSets(selectedEntities).length && div({
         style: { fontStyle: 'italic', marginTop: '0.5rem' }
       }, ['(Duplicate entities are only processed once.)'])
     ]),
