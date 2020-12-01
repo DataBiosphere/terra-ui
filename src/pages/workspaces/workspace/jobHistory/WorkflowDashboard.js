@@ -8,13 +8,8 @@ import Collapse from 'src/components/Collapse'
 import { Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
-  collapseCromwellExecutionStatus,
-  failedIcon,
-  makeSection,
-  makeStatusLine,
-  runningIcon,
-  statusIcon, submittedIcon,
-  successIcon, unknownIcon
+  collapseCromwellExecutionStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon,
+  submittedIcon, successIcon, unknownIcon
 } from 'src/components/job-common'
 import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
@@ -43,41 +38,37 @@ const groupCallStatuses = callsObject => {
   return statusCounts
 }
 
-const statusCell = workflowObject => {
-  const { succeeded, failed, running, submitted, ...others } = groupCallStatuses(workflowObject.calls)
-  console.log(others)
+const statusCell = ({ calls }) => {
+  const { succeeded, failed, running, submitted, ...others } = groupCallStatuses(calls)
 
-  return div([
-    table({ style: { margin: '0.5rem' } }, [
-      tbody({}, [
-        submitted ? tr({}, [
-          td(styles.statusDetailCell, [submittedIcon()]),
-          td(['Submitted']),
-          td(styles.statusDetailCell, [submitted])
-        ]) : undefined,
-        running ? tr({}, [
-          td(styles.statusDetailCell, [runningIcon()]),
-          td(['Running']),
-          td(styles.statusDetailCell, [running])
-        ]): undefined,
-        succeeded ? tr({}, [
-          td(styles.statusDetailCell, [successIcon()]),
-          td(['Succeeded']),
-          td(styles.statusDetailCell, [succeeded])
-        ]): undefined,
-        failed ? tr({}, [
-          td(styles.statusDetailCell, [failedIcon()]),
-          td(['Failed']),
-          td(styles.statusDetailCell, [failed])
-        ]): undefined,
-        _.map(other => tr({}, [
-          td(styles.statusDetailCell, [unknownIcon()]),
-          td([other]),
-          td(styles.statusDetailCell, [others[other]])
-        ]), Object.keys(others))
-      ].filter(element => element !== undefined))
+  return table({ style: { margin: '0.5rem' } }, [
+    tbody([
+      submitted && tr({}, [
+        td(styles.statusDetailCell, [submittedIcon()]),
+        td(['Submitted']),
+        td(styles.statusDetailCell, [submitted])
+      ]),
+      running && tr([
+        td(styles.statusDetailCell, [runningIcon()]),
+        td(['Running']),
+        td(styles.statusDetailCell, [running])
+      ]),
+      succeeded && tr([
+        td(styles.statusDetailCell, [successIcon()]),
+        td(['Succeeded']),
+        td(styles.statusDetailCell, [succeeded])
+      ]),
+      failed && tr([
+        td(styles.statusDetailCell, [failedIcon()]),
+        td(['Failed']),
+        td(styles.statusDetailCell, [failed])
+      ]),
+      _.map(other => tr([
+        td(styles.statusDetailCell, [unknownIcon()]),
+        td([other]),
+        td(styles.statusDetailCell, [others[other]])
+      ]), Object.keys(others))
     ])
-
   ])
 }
 
@@ -112,24 +103,7 @@ const WorkflowDashboard = _.flow(
             await Utils.delay(60000)
           }
           const includeKey = [
-            'backendLogs',
-            'backendStatus',
-            'end',
-            'executionStatus',
-            'callCaching:hit',
-            'failures',
-            'id',
-            'jobId',
-            'start',
-            'status',
-            'stderr',
-            'stdout',
-            'submission',
-            'submittedFiles:workflow',
-            'subworkflowId',
-            'workflowLog',
-            'workflowName',
-            'workflowRoot'
+            'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'workflowName'
           ]
           const wf = await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).getWorkflow(workflowId, includeKey)
           setWorkflow(wf)
@@ -142,15 +116,7 @@ const WorkflowDashboard = _.flow(
   /*
    * Page render
    */
-  const {
-    end,
-    failures,
-    start,
-    status,
-    workflowLog,
-    workflowName,
-    submittedFiles: { workflow: wdl } = {}
-  } = workflow
+  const { end, failures, start, status, workflowLog, workflowName, submittedFiles: { workflow: wdl } = {} } = workflow
 
   const restructureFailures = _.map(({ message, causedBy }) => ({
     message,
@@ -171,13 +137,13 @@ const WorkflowDashboard = _.flow(
         href: Nav.getLink('workspace-job-history', { namespace, name }),
         style: { alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0' }
       }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Job History']),
-      span({ style: { whiteSpace: 'pre' } }, [' > ']),
+      div({ style: { margin: '0 0.5rem' } }, ['>']),
       h(Link, {
         href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId }),
         style: { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', padding: '0.5rem 0' }
       }, [`Submission ${submissionId}`]),
-      span({ style: { whiteSpace: 'pre' } }, [' > ']),
-      span({ style: Style.elements.sectionHeader }, [`Workflow ${workflowId}`])
+      div({ style: { margin: '0 0.5rem' } }, ['>']),
+      div({ style: Style.elements.sectionHeader }, [`Workflow ${workflowId}`])
     ]),
     _.isEmpty(workflow) ? centeredSpinner() : div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
       makeSection('Workflow Status', [
@@ -196,7 +162,7 @@ const WorkflowDashboard = _.flow(
           h(Link, {
             ...Utils.newTabLinkProps,
             href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-            style: { padding: '.6rem' },
+            style: { padding: '0.6rem' },
             tooltip: 'Job Manager'
           }, [
             div({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -207,22 +173,22 @@ const WorkflowDashboard = _.flow(
           h(Link, {
             ...Utils.newTabLinkProps,
             href: bucketBrowserUrl(`${bucketName}/${submissionId}/${workflowName}/${workflowId}`),
-            style: { padding: '.6rem' },
-            tooltip: 'Execution directory'
-          }, [
+            style: { padding: '0.6rem' },
+            tooltip: 'Execution directory' }, [
             div({ style: { display: 'flex', alignItems: 'center' } }, [
               icon('folder-open', { size: 18 }),
               span([' Execution Directory'])
             ])
           ]),
           h(Link, { onClick: () => setShowLog(true), style: { padding: '.6rem' } }, [
-            icon('fileAlt', { size: 18 }),
+            icon('fileAlt', { size: 18, style: { marginRight: '0.5rem' } }),
             ' View execution log'
           ])
         ])
       ]),
       makeSection('Call Statuses', [
-        div({ style: { display: 'flex' } }, [statusCell(workflow)])
+        workflow.calls && false ? statusCell(workflow) : div({ style: { padding: '0.6rem' }}, ['No calls have been started by this workflow.'])
+
       ])
     ]),
     failures && h(Collapse, {

@@ -7,15 +7,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import {
-  collapseStatus,
-  failedIcon, makeSection,
-  makeStatusLine,
-  runningIcon,
-  statusIcon,
-  submittedIcon,
-  successIcon
-} from 'src/components/job-common'
+import { collapseStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon, submittedIcon, successIcon } from 'src/components/job-common'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
@@ -140,8 +132,8 @@ const SubmissionDetails = _.flow(
         href: Nav.getLink('workspace-job-history', { namespace, name }),
         style: { alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0' }
       }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Job History']),
-      span({ style: { whiteSpace: 'pre' } }, [' > ']),
-      span({ style: Style.elements.sectionHeader }, [`Submission ${submissionId}`])
+      div({ style: { margin: '0 0.5rem' } }, ['>']),
+      div({ style: Style.elements.sectionHeader }, [`Submission ${submissionId}`])
     ]),
     _.isEmpty(submission) ? centeredSpinner() : h(Fragment, [
       div({ style: { display: 'flex' } }, [
@@ -243,7 +235,7 @@ const SubmissionDetails = _.flow(
                 return cost ? h(TextCell, [Utils.formatUSD(filteredWorkflows[rowIndex].cost || 0)]) : 'N/A'
               }
             }, {
-              size: _.some(w => !_.isEmpty(w.messages), filteredWorkflows) ? { basis: 200 } : { basis: 100, grow: 0 },
+              size: _.some(({ messages }) => !_.isEmpty(messages), filteredWorkflows) ? { basis: 200 } : { basis: 100, grow: 0 },
               headerRenderer: () => h(Sortable, { sort, field: 'messages', onSort: setSort }, ['Messages']),
               cellRenderer: ({ rowIndex }) => {
                 const messages = _.join('\n', filteredWorkflows[rowIndex].messages)
@@ -256,17 +248,17 @@ const SubmissionDetails = _.flow(
               headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId } = filteredWorkflows[rowIndex]
-                return workflowId ? [
+                return workflowId && [
                   h(TooltipCell, { tooltip: workflowId }, [workflowId]),
                   h(CopyLink, { workflowId })
-                ] : []
+                ]
               }
             }, {
               size: { basis: 150, grow: 0 },
               headerRenderer: () => div({ style: { display: 'flex' } }, ['Links']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
-                return workflowId && [
+                return workflowId && h(Fragment, [
                   h(Link, {
                     ...Utils.newTabLinkProps,
                     href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
@@ -282,17 +274,15 @@ const SubmissionDetails = _.flow(
                   }, [div({ style: { display: 'flex', alignItems: 'center' } }, [
                     icon('dashboard', { size: 18 })
                   ])]),
-                  ...(inputName ? [
+                  inputName &&
                     h(Link, {
                       ...Utils.newTabLinkProps,
                       href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`),
                       style: { padding: '.6rem' },
                       tooltip: 'Execution directory'
-                    }, [div({ style: { display: 'flex', alignItems: 'center' } }, [
-                      icon('folder-open', { size: 18 })
-                    ])])
-                  ] : [])
-                ]
+                    }, [icon('folder-open', { size: 18 })]
+                    )
+                ])
               }
             }
           ]
@@ -301,7 +291,6 @@ const SubmissionDetails = _.flow(
     ])
   ])
 })
-
 
 export const navPaths = [
   {
