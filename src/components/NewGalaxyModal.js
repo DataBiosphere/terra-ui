@@ -119,7 +119,7 @@ export const NewGalaxyModal = _.flow(
 
   const renderDefaultCase = () => {
     const { cpu, memory } = _.find({ name: 'n1-standard-8' }, machineTypes)
-    const cost = getGalaxyCost(app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8' } })
+    const cost = getGalaxyCost(app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8', numNodes: 2 } })
     return h(Fragment, [
       div([`Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`]),
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
