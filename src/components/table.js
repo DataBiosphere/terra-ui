@@ -1,12 +1,14 @@
 import arrayMove from 'array-move'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { Fragment, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
 import { button, div, h, label, option, select } from 'react-hyperscript-helpers'
 import Pagination from 'react-paginating'
+import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync'
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
-import { AutoSizer, Grid as RVGrid, List, MultiGrid } from 'react-virtualized'
+import AutoSizer from 'react-virtualized-auto-sizer'
+import { FixedSizeList, VariableSizeGrid, VariableSizeList } from 'react-window'
 import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
@@ -168,9 +170,13 @@ export const FlexTable = ({
   const [scrollbarSize, setScrollbarSize] = useState(0)
   const body = useRef()
 
-  Utils.useOnMount(() => {
-    body.current.scrollToPosition({ scrollTop: initialY })
-  })
+  useLayoutEffect(() => {
+    if (body.current) {
+      setScrollbarSize(width - body.current.clientWidth)
+    }
+  }, [columns, width])
+
+  const columnPairs = _.toPairs(columns)
 
   return div([
     div({
@@ -185,41 +191,38 @@ export const FlexTable = ({
           key: i,
           style: { ...styles.flexCell(size), ...(variant === 'light' ? {} : styles.header(i * 1, columns.length)) }
         }, [headerRenderer()])
-      }, _.toPairs(columns))
+      }, columnPairs)
     ]),
-    h(RVGrid, {
-      ref: body,
+    h(FixedSizeList, {
+      innerRef: body,
       width,
       height: height - 48,
-      columnWidth: width - scrollbarSize,
-      rowHeight: 48,
-      rowCount,
-      columnCount: 1,
+      initialScrollOffset: initialY,
+      itemSize: 48,
+      itemCount: rowCount,
       onScrollbarPresenceChange: ({ vertical, size }) => {
         setScrollbarSize(vertical ? size : 0)
       },
-      cellRenderer: data => {
-        return h(Interactive, {
-          key: data.key,
-          as: 'div',
-          className: 'table-row',
-          style: { ...data.style, backgroundColor: 'white', display: 'flex' },
-          hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
-        }, [
-          _.map(([i, { size, cellRenderer }]) => {
-            return div({
-              key: i,
-              className: 'table-cell',
-              style: { ...styles.flexCell(size), ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length)) }
-            }, [cellRenderer(data)])
-          }, _.toPairs(columns))
-        ])
-      },
       style: { outline: 'none' },
-      onScroll: ({ scrollTop }) => onScroll(scrollTop),
-      noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage]),
+      onScroll: ({ scrollOffset }) => onScroll(scrollOffset),
       ...props
-    })
+    }, [data => {
+      return h(Interactive, {
+        as: 'div',
+        className: 'table-row',
+        style: { ...data.style, backgroundColor: 'white', display: 'flex' },
+        hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
+      }, [
+        _.map(([i, { size, cellRenderer }]) => {
+          return div({
+            key: i,
+            className: 'table-cell',
+            style: { ...styles.flexCell(size), ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length)) }
+          }, [cellRenderer(data)])
+        }, columnPairs)
+      ])
+    }]),
+    rowCount === 0 && div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage])
   ])
 }
 
@@ -286,70 +289,82 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHigh
  */
 export const GridTable = Utils.forwardRefWithName('GridTable', ({
   width, height, initialX = 0, initialY = 0,
+  makeHeaderKey, makeCellKey,
   rowCount, columns, styleCell = () => ({}), onScroll: customOnScroll = _.noop
 }, ref) => {
-  const [forcedScroll, setForcedScroll] = useState(false)
-
-  const grid = useRef()
-  const scrollClass = Utils.useUniqueId()
-
-  useEffect(() => {
-    // check if we haven't restored scroll yet, but the grid has rendered:
-    if (!forcedScroll && document.getElementsByClassName(scrollClass)[0]) {
-      grid.current.measureAllCells()
-      document.getElementsByClassName(scrollClass)[0].scrollTo({ left: initialX, top: initialY })
-      setForcedScroll(true)
-    }
-  }, [columns]) // eslint-disable-line react-hooks/exhaustive-deps
+  const header = useRef()
+  const body = useRef()
 
   useImperativeHandle(ref, () => ({
     recomputeColumnSizes: () => {
-      grid.current.recomputeGridSize()
-      grid.current.measureAllCells()
+      header.current.resetAfterIndex(0)
+      body.current.resetAfterColumnIndex(0)
     },
     scrollToTop: () => {
-      document.getElementsByClassName(scrollClass)[0].scrollTo({ left: 0, top: 0 })
+      body.current.scrollTo({ scrollLeft: 0, scrollTop: 0 })
     }
   }))
 
   const columnCount = columns.length
 
-  return h(MultiGrid, {
-    ref: grid,
-    width,
-    height,
-    columnWidth: ({ index }) => columns[index].width,
-    rowHeight: 48,
-    fixedRowCount: 1,
-    rowCount: rowCount + 1, // add a row for the header
-    columnCount,
-    classNameBottomRightGrid: scrollClass, // so it can be scrolled programmatically, unfortunately this is the best way to get it
-    cellRenderer: data => {
-      const { columnIndex, rowIndex } = data
-      const isHeader = rowIndex === 0
-
-      return div({
-        key: data.key,
-        className: 'table-cell',
-        style: {
-          ...data.style,
-          ...(isHeader ?
-            styles.header(columnIndex, columnCount) :
-            { ...styles.cell(columnIndex, columnCount), ...styleCell(data) }
-          )
-        }
-      }, [
-        isHeader ?
-          columns[columnIndex].headerRenderer(data) :
-          columns[columnIndex].cellRenderer({ ...data, rowIndex: rowIndex - 1 }) // accounting for header
+  return h(ScrollSync, { vertical: false }, [
+    div([
+      h(ScrollSyncPane, [
+        h(VariableSizeList, {
+          ref: header,
+          itemSize: index => columns[index].width,
+          estimatedItemSize: 150,
+          width,
+          height: 48,
+          initialScrollOffset: initialX,
+          itemCount: columnCount,
+          itemKey: makeHeaderKey,
+          layout: 'horizontal',
+          style: { outline: 'none', scrollbarWidth: 'none' }
+        }, [
+          ({ index, style }) => {
+            return div({
+              className: 'table-cell',
+              style: {
+                ...style,
+                ...styles.header(index, columnCount)
+              }
+            }, [columns[index].headerRenderer()])
+          }
+        ])
+      ]),
+      h(ScrollSyncPane, [
+        h(VariableSizeGrid, {
+          ref: body,
+          columnWidth: index => columns[index].width,
+          estimatedColumnWidth: 150,
+          estimatedRowHeight: 48,
+          rowHeight: _.constant(48),
+          columnCount,
+          height: height - 48,
+          width,
+          initialScrollLeft: initialX,
+          initialScrollTop: initialY,
+          itemKey: makeCellKey,
+          onScroll: ({ scrollLeft, scrollTop }) => {
+            customOnScroll(scrollLeft, scrollTop)
+          },
+          rowCount,
+          style: { outline: 'none' }
+        }, [data => {
+          const { columnIndex, style } = data
+          return div({
+            className: 'table-cell',
+            style: {
+              ...style,
+              ...styles.cell(columnIndex, columnCount),
+              ...styleCell(data)
+            }
+          }, [columns[columnIndex].cellRenderer(data)])
+        }])
       ])
-    },
-    styleBottomRightGrid: { outline: 'none' },
-    styleTopRightGrid: { outline: 'none' },
-    onScroll: ({ scrollLeft, scrollTop }) => {
-      customOnScroll(scrollLeft, scrollTop)
-    }
-  })
+    ])
+  ])
 })
 
 GridTable.propTypes = {
@@ -473,7 +488,7 @@ export const Resizable = ({ onWidthChange, width, minWidth = 100, children }) =>
 }
 
 const SortableDiv = SortableElement(props => div(props))
-const SortableList = SortableContainer(props => h(List, props))
+const SortableList = SortableContainer(props => h(FixedSizeList, props))
 const SortableHandleDiv = SortableHandle(props => div(props))
 
 /**
@@ -537,11 +552,14 @@ export const ColumnSelector = ({ onSave, columnSettings }) => {
             lockAxis: 'y',
             useDragHandle: true,
             width, height: 400,
-            rowCount: modifiedColumnSettings.length,
-            rowHeight: 30,
-            rowRenderer: ({ index, style, key }) => {
+            itemCount: modifiedColumnSettings.length,
+            itemSize: 30,
+            itemKey: index => modifiedColumnSettings[index].name,
+            onSortEnd: reorder
+          }, [
+            ({ index, style }) => {
               const { name, visible } = modifiedColumnSettings[index]
-              return h(SortableDiv, { key, index, style: { ...style, display: 'flex' } }, [
+              return h(SortableDiv, { index, style: { ...style, display: 'flex' } }, [
                 h(SortableHandleDiv, { style: styles.columnHandle }, [
                   icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })
                 ]),
@@ -556,9 +574,8 @@ export const ColumnSelector = ({ onSave, columnSettings }) => {
                   ])
                 ])
               ])
-            },
-            onSortEnd: v => reorder(v)
-          })
+            }
+          ])
         }
       ])
     ])

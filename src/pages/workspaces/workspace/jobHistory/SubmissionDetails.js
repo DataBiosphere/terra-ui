@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { AutoSizer } from 'react-virtualized'
+import AutoSizer from 'react-virtualized-auto-sizer'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -202,8 +202,8 @@ const SubmissionDetails = _.flow(
             {
               size: { basis: 75, grow: 0 },
               headerRenderer: () => {},
-              cellRenderer: ({ rowIndex }) => {
-                const { workflowId } = filteredWorkflows[rowIndex]
+              cellRenderer: ({ index }) => {
+                const { workflowId } = filteredWorkflows[index]
                 return workflowId && h(Link, {
                   ...Utils.newTabLinkProps,
                   href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
@@ -213,34 +213,34 @@ const SubmissionDetails = _.flow(
             }, {
               size: { basis: 225, grow: 0 },
               headerRenderer: () => h(Sortable, { sort, field: 'workflowEntity', onSort: setSort }, ['Data Entity']),
-              cellRenderer: ({ rowIndex }) => {
-                const { workflowEntity: { entityName, entityType } = {} } = filteredWorkflows[rowIndex]
+              cellRenderer: ({ index }) => {
+                const { workflowEntity: { entityName, entityType } = {} } = filteredWorkflows[index]
                 return h(TooltipCell, [entityName && `${entityName} (${entityType})`])
               }
             }, {
               size: { basis: 225, grow: 0 },
               headerRenderer: () => h(Sortable, { sort, field: 'statusLastChangedDate', onSort: setSort }, ['Last Changed']),
-              cellRenderer: ({ rowIndex }) => {
-                return h(TextCell, [Utils.makeCompleteDate(filteredWorkflows[rowIndex].statusLastChangedDate)])
+              cellRenderer: ({ index }) => {
+                return h(TextCell, [Utils.makeCompleteDate(filteredWorkflows[index].statusLastChangedDate)])
               }
             }, {
               size: { basis: 150, grow: 0 },
               headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
-              cellRenderer: ({ rowIndex }) => {
-                const { status } = filteredWorkflows[rowIndex]
+              cellRenderer: ({ index }) => {
+                const { status } = filteredWorkflows[index]
                 return div({ style: { display: 'flex' } }, [statusIcon(status, { marginRight: '0.5rem' }), status])
               }
             }, {
               size: { basis: 125, grow: 0 },
               headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, ['Run Cost']),
-              cellRenderer: ({ rowIndex }) => {
-                return cost ? h(TextCell, [Utils.formatUSD(filteredWorkflows[rowIndex].cost)]) : 'N/A'
+              cellRenderer: ({ index }) => {
+                return cost ? h(TextCell, [Utils.formatUSD(filteredWorkflows[index].cost)]) : 'N/A'
               }
             }, {
               size: { basis: 200 },
               headerRenderer: () => h(Sortable, { sort, field: 'messages', onSort: setSort }, ['Messages']),
-              cellRenderer: ({ rowIndex }) => {
-                const messages = _.join('\n', filteredWorkflows[rowIndex].messages)
+              cellRenderer: ({ index }) => {
+                const messages = _.join('\n', filteredWorkflows[index].messages)
                 return h(TooltipCell, {
                   tooltip: div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word' } }, [messages])
                 }, [messages])
@@ -248,8 +248,8 @@ const SubmissionDetails = _.flow(
             }, {
               size: { basis: 375, grow: 0 },
               headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
-              cellRenderer: ({ rowIndex }) => {
-                const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
+              cellRenderer: ({ index }) => {
+                const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[index]
                 return h(TooltipCell, { tooltip: workflowId }, [
                   inputName ? h(Link, {
                     ...Utils.newTabLinkProps,

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { AutoSizer } from 'react-virtualized'
+import AutoSizer from 'react-virtualized-auto-sizer'
 import { Checkbox, Clickable, Link, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
@@ -163,6 +163,7 @@ const DataTable = props => {
   // Render
   const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
   const nameWidth = columnWidths['name'] || 150
+  const visibleColumns = _.filter('visible', columnSettings)
 
   return h(Fragment, [
     !!entities && h(Fragment, [
@@ -193,6 +194,16 @@ const DataTable = props => {
               onScroll,
               initialX,
               initialY,
+              makeHeaderKey: index => Utils.cond(
+                [index === 0, () => 'checkbox'],
+                [index === 1, () => 'name'],
+                () => visibleColumns[index - 2].name
+              ),
+              makeCellKey: ({columnIndex, rowIndex}) => Utils.cond(
+                [columnIndex === 0, () => `${entities[rowIndex].name}-checkbox`],
+                [columnIndex === 1, () => `${entities[rowIndex].name}-name`],
+                () => `${entities[rowIndex].name}-${visibleColumns[columnIndex - 2].name}`
+              ),
               columns: [
                 {
                   width: 70,
@@ -283,7 +294,7 @@ const DataTable = props => {
                       ])
                     }
                   }
-                }, _.filter('visible', columnSettings))
+                }, visibleColumns)
               ],
               styleCell: ({ rowIndex }) => {
                 return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
