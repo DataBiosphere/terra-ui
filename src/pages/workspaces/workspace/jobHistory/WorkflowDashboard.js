@@ -126,7 +126,7 @@ const WorkflowDashboard = _.flow(
   const simplifyDidNotStartFailures = failuresArray => {
     const filtered = _.filter(({ message }) => !_.isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
     const sizeDiff = !_.isEmpty(failuresArray) ? failuresArray.length - filtered.length : 0
-    const newMessage = sizeDiff > 0 ? [{ message: `${sizeDiff} jobs were queued in Cromwell but never sent to the cloud backend due to failures elsewhere in the workflow` }]: []
+    const newMessage = sizeDiff > 0 ? [{ message: `${sizeDiff} jobs were queued in Cromwell but never sent to the cloud backend due to failures elsewhere in the workflow` }] : []
 
     return [...filtered, ...newMessage]
   }
