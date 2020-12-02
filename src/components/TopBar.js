@@ -117,7 +117,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
     setNavShown(false)
     setOpenUserMenu(false)
     setOpenLibraryMenu(false)
-    setOpenLibraryMenu(false)
+    setOpenSupportMenu(false)
     document.body.classList.remove('overlayOpen', 'overHeight')
   }
 

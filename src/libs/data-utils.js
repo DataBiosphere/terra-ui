@@ -136,7 +136,7 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
   const doDelete = async () => {
     const entitiesToDelete = _.concat(_.map(entityName => ({ entityName, entityType: selectedDataType }), selectedEntities), additionalDeletions)
 
-    setDeleting(false)
+    setDeleting(true)
 
     try {
       await Ajax().Workspaces.workspace(namespace, name).deleteEntities(entitiesToDelete)
