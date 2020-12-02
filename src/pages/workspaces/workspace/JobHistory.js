@@ -51,32 +51,32 @@ const statusCell = workflowStatuses => {
     type: 'light',
     content: table({ style: { margin: '0.5rem' } }, [
       tbody({}, [
-        submitted ? tr({}, [
+        submitted && tr({}, [
           td(styles.statusDetailCell, [submittedIcon()]),
           td(['Submitted']),
           td(styles.statusDetailCell, [submitted])
-        ]) : undefined,
-        running ? tr({}, [
+        ]),
+        running && tr({}, [
           td(styles.statusDetailCell, [runningIcon()]),
           td(['Running']),
           td(styles.statusDetailCell, [running])
-        ]): undefined,
-        succeeded ? tr({}, [
+        ]),
+        succeeded && tr({}, [
           td(styles.statusDetailCell, [successIcon()]),
           td(['Succeeded']),
           td(styles.statusDetailCell, [succeeded])
-        ]): undefined,
-        failed ? tr({}, [
+        ]),
+        failed && tr({}, [
           td(styles.statusDetailCell, [failedIcon()]),
           td(['Failed']),
           td(styles.statusDetailCell, [failed])
-        ]): undefined,
-        abort ? tr({}, [
+        ]),
+        abort && tr({}, [
           td(styles.statusDetailCell, [abortIcon()]),
           td(['Aborted']),
           td(styles.statusDetailCell, [abort])
-        ]): undefined
-      ].filter(element => element !== undefined))
+        ])
+      ])
     ])
   }, [
     div([
@@ -235,7 +235,7 @@ const JobHistory = _.flow(
                 headerRenderer: () => h(HeaderCell, ['Status']),
                 cellRenderer: ({ rowIndex }) => {
                   const { workflowStatuses, status } = filteredSubmissions[rowIndex]
-                  const collapsedStatusList= collapsedStatuses(workflowStatuses)
+                  const collapsedStatusList = collapsedStatuses(workflowStatuses)
                   const statusString =
                         'failed' in collapsedStatusList ? `Failed` :
                           'abort' in collapsedStatusList ? 'Aborted' :

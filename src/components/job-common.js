@@ -24,7 +24,7 @@ export const successIcon = style => icon('check', { size, style: { color: colors
 export const failedIcon = style => icon('warning-standard', { size, style: { color: colors.danger(), ...style } })
 export const runningIcon = style => icon('sync', { size, style: { color: colors.dark(), ...style } })
 export const submittedIcon = style => icon('clock', { size, style: { color: colors.dark(), ...style } })
-export const abortIcon = style => icon('aborting-aborted', { size, style: { color: colors.danger(), ...style } })
+export const abortIcon = style => icon('abort', { size, style: { color: colors.danger(), ...style } })
 
 export const statusIcon = (status, style) => {
   switch (collapseStatus(status)) {
