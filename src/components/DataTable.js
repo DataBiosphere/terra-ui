@@ -139,8 +139,6 @@ const DataTable = props => {
   }
 
   // Lifecycle
-  Utils.useOnMount(() => { loadData() })
-
   useEffect(() => {
     loadData()
     if (persist) {
