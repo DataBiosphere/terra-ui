@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
-import PropTypes from 'prop-types'
-import { Component, Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner } from 'src/components/icons'
@@ -97,222 +96,182 @@ const notebookData = {
 }
 
 
-export const NotebookCreator = class NotebookCreator extends Component {
-  static propTypes = {
-    reloadList: PropTypes.func.isRequired,
-    onDismiss: PropTypes.func.isRequired,
-    onSuccess: PropTypes.func.isRequired,
-    namespace: PropTypes.string.isRequired,
-    bucketName: PropTypes.string.isRequired,
-    existingNames: PropTypes.arrayOf(PropTypes.string).isRequired
-  }
+export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, namespace, bucketName, existingNames }) => {
+  const [notebookName, setNotebookName] = useState('')
+  const [notebookKernel, setNotebookKernel] = useState(undefined)
+  const [creating, setCreating] = useState(false)
+  const [nameTouched, setNameTouched] = useState(false)
 
-  constructor(props) {
-    super(props)
-    this.state = { notebookName: '' }
-  }
+  const errors = validate(
+    { notebookName, notebookKernel },
+    {
+      notebookName: notebookNameValidator(existingNames),
+      notebookKernel: { presence: { allowEmpty: false } }
+    },
+    { prettify: v => ({ notebookName: 'Name', notebookKernel: 'Language' }[v] || validate.prettify(v)) }
+  )
 
-  render() {
-    const { notebookName, notebookKernel, creating, nameTouched } = this.state
-    const { reloadList, onSuccess, onDismiss, namespace, bucketName, existingNames } = this.props
-
-    const errors = validate(
-      { notebookName, notebookKernel },
-      {
-        notebookName: notebookNameValidator(existingNames),
-        notebookKernel: { presence: { allowEmpty: false } }
-      },
-      { prettify: v => ({ notebookName: 'Name', notebookKernel: 'Language' }[v] || validate.prettify(v)) }
-    )
-
-    return h(Modal, {
-      onDismiss,
-      title: 'Create New Notebook',
-      okButton: h(ButtonPrimary, {
-        disabled: creating || errors,
-        tooltip: Utils.summarizeErrors(errors),
-        onClick: async () => {
-          this.setState({ creating: true })
-          try {
-            await Ajax().Buckets.notebook(namespace, bucketName, notebookName).create(notebookData[notebookKernel])
-            reloadList()
-            onSuccess(notebookName, notebookKernel)
-          } catch (error) {
-            await reportError('Error creating notebook', error)
-            onDismiss()
+  return h(Modal, {
+    onDismiss,
+    title: 'Create New Notebook',
+    okButton: h(ButtonPrimary, {
+      disabled: creating || errors,
+      tooltip: Utils.summarizeErrors(errors),
+      onClick: async () => {
+        setCreating(true)
+        try {
+          await Ajax().Buckets.notebook(namespace, bucketName, notebookName).create(notebookData[notebookKernel])
+          reloadList()
+          onSuccess(notebookName, notebookKernel)
+        } catch (error) {
+          await reportError('Error creating notebook', error)
+          onDismiss()
+        }
+      }
+    }, 'Create Notebook')
+  }, [
+    h(IdContainer, [id => h(Fragment, [
+      h(FormLabel, { htmlFor: id, required: true }, ['Name']),
+      notebookNameInput({
+        error: Utils.summarizeErrors(nameTouched && errors && errors.notebookName),
+        inputProps: {
+          id, value: notebookName,
+          onChange: v => {
+            setNotebookName(v)
+            setNameTouched(true)
           }
         }
-      }, 'Create Notebook')
-    }, [
-      h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, ['Name']),
-        notebookNameInput({
-          error: Utils.summarizeErrors(nameTouched && errors && errors.notebookName),
-          inputProps: {
-            id, value: notebookName,
-            onChange: v => this.setState({ notebookName: v, nameTouched: true })
-          }
-        })
-      ])]),
-      h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, ['Language']),
-        h(Select, {
-          id, isSearchable: true,
-          placeholder: 'Select a language',
-          getOptionLabel: ({ value }) => _.startCase(value),
-          value: notebookKernel,
-          onChange: ({ value: notebookKernel }) => this.setState({ notebookKernel }),
-          options: ['python2', 'python3', 'r']
-        })
-      ])]),
-      creating && spinnerOverlay
-    ])
-  }
+      })
+    ])]),
+    h(IdContainer, [id => h(Fragment, [
+      h(FormLabel, { htmlFor: id, required: true }, ['Language']),
+      h(Select, {
+        id, isSearchable: true,
+        placeholder: 'Select a language',
+        getOptionLabel: ({ value }) => _.startCase(value),
+        value: notebookKernel,
+        onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
+        options: ['python2', 'python3', 'r']
+      })
+    ])]),
+    creating && spinnerOverlay
+  ])
 }
 
-export const NotebookDuplicator = Utils.withCancellationSignal(class NotebookDuplicator extends Component {
-  static propTypes = {
-    destroyOld: PropTypes.bool,
-    fromLauncher: PropTypes.bool,
-    wsName: PropTypes.string,
-    printName: PropTypes.string.isRequired,
-    namespace: PropTypes.string.isRequired,
-    bucketName: PropTypes.string.isRequired,
-    onDismiss: PropTypes.func.isRequired,
-    onSuccess: PropTypes.func.isRequired
-  }
+export const NotebookDuplicator = ({ destroyOld = false, fromLauncher = false, printName, wsName, namespace, bucketName, onDismiss, onSuccess }) => {
+  const [newName, setNewName] = useState('')
+  const [existingNames, setExistingNames] = useState([])
+  const [nameTouched, setNameTouched] = useState(false)
+  const [processing, setProcessing] = useState(false)
 
-  static defaultProps = {
-    destroyOld: false,
-    fromLauncher: false
-  }
+  const signal = Utils.useCancellation()
 
-  constructor(props) {
-    super(props)
-    this.state = { newName: '', existingNames: [] }
-  }
+  Utils.useOnMount(() => {
+    const loadNames = async () => {
+      const existingNotebooks = await Ajax(signal).Buckets.listNotebooks(namespace, bucketName)
+      const existingNames = _.map(({ name }) => name.slice(10, -6), existingNotebooks)
+      setExistingNames(existingNames)
+    }
 
-  async componentDidMount() {
-    const { signal, namespace, bucketName } = this.props
-    const existingNotebooks = await Ajax(signal).Buckets.listNotebooks(namespace, bucketName)
-    const existingNames = _.map(({ name }) => name.slice(10, -6), existingNotebooks)
-    this.setState({ existingNames })
-  }
+    loadNames()
+  })
 
-  render() {
-    const { destroyOld, fromLauncher, printName, wsName, namespace, bucketName, onDismiss, onSuccess } = this.props
-    const { newName, processing, nameTouched, existingNames } = this.state
+  const errors = validate(
+    { newName },
+    { newName: notebookNameValidator(existingNames) },
+    { prettify: v => ({ newName: 'Name' }[v] || validate.prettify(v)) }
+  )
 
-    const errors = validate(
-      { newName },
-      { newName: notebookNameValidator(existingNames) },
-      { prettify: v => ({ newName: 'Name' }[v] || validate.prettify(v)) }
-    )
-
-    return h(Modal, {
-      onDismiss,
-      title: `${destroyOld ? 'Rename' : 'Copy'} "${printName}"`,
-      okButton: h(ButtonPrimary, {
-        disabled: errors || processing,
-        tooltip: Utils.summarizeErrors(errors),
-        onClick: async () => {
-          this.setState({ processing: true })
-          try {
-            await (destroyOld ?
-              Ajax().Buckets.notebook(namespace, bucketName, printName).rename(newName) :
-              Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld)
-            )
-            onSuccess()
-            if (fromLauncher) {
-              Nav.goToPath('workspace-notebook-launch', {
-                namespace, name: wsName, notebookName: `${newName}.ipynb`
-              })
-            }
-            if (destroyOld) {
-              Ajax().Metrics.captureEvent(Events.notebookRename, {
-                oldName: printName,
-                newName,
-                workspaceName: wsName,
-                workspaceNamespace: namespace
-              })
-            } else {
-              Ajax().Metrics.captureEvent(Events.notebookCopy, {
-                oldName: printName,
-                newName,
-                fromWorkspaceNamespace: namespace,
-                fromWorkspaceName: wsName,
-                toWorkspaceNamespace: namespace,
-                toWorkspaceName: wsName
-              })
-            }
-          } catch (error) {
-            reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
-          }
-        }
-      }, `${destroyOld ? 'Rename' : 'Copy'} Notebook`)
-    },
-    Utils.cond(
-      [processing, () => [centeredSpinner()]],
-      () => [
-        h(IdContainer, [id => h(Fragment, [
-          h(FormLabel, { htmlFor: id, required: true }, ['New Name']),
-          notebookNameInput({
-            error: Utils.summarizeErrors(nameTouched && errors && errors.newName),
-            inputProps: {
-              id, value: newName,
-              onChange: v => this.setState({ newName: v, nameTouched: true })
-            }
-          })
-        ])])
-      ]
-    ))
-  }
-})
-
-export const NotebookDeleter = class NotebookDeleter extends Component {
-  static propTypes = {
-    printName: PropTypes.string.isRequired,
-    namespace: PropTypes.string.isRequired,
-    bucketName: PropTypes.string.isRequired,
-    onDismiss: PropTypes.func.isRequired,
-    onSuccess: PropTypes.func.isRequired
-  }
-
-  constructor(props) {
-    super(props)
-    this.state = { processing: false }
-  }
-
-  render() {
-    const { printName, namespace, bucketName, onDismiss, onSuccess } = this.props
-    const { processing } = this.state
-
-    return h(Modal, {
-      onDismiss,
-      title: `Delete "${printName}"`,
-      okButton: h(ButtonPrimary, {
-        disabled: processing,
-        onClick: () => {
-          this.setState({ processing: true })
-          Ajax().Buckets.notebook(namespace, bucketName, printName).delete().then(
-            onSuccess,
-            error => reportError('Error deleting notebook', error)
+  return h(Modal, {
+    onDismiss,
+    title: `${destroyOld ? 'Rename' : 'Copy'} "${printName}"`,
+    okButton: h(ButtonPrimary, {
+      disabled: errors || processing,
+      tooltip: Utils.summarizeErrors(errors),
+      onClick: async () => {
+        setProcessing(true)
+        try {
+          await (destroyOld ?
+            Ajax().Buckets.notebook(namespace, bucketName, printName).rename(newName) :
+            Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld)
           )
+          onSuccess()
+          if (fromLauncher) {
+            Nav.goToPath('workspace-notebook-launch', {
+              namespace, name: wsName, notebookName: `${newName}.ipynb`
+            })
+          }
+          if (destroyOld) {
+            Ajax().Metrics.captureEvent(Events.notebookRename, {
+              oldName: printName,
+              newName,
+              workspaceName: wsName,
+              workspaceNamespace: namespace
+            })
+          } else {
+            Ajax().Metrics.captureEvent(Events.notebookCopy, {
+              oldName: printName,
+              newName,
+              fromWorkspaceNamespace: namespace,
+              fromWorkspaceName: wsName,
+              toWorkspaceNamespace: namespace,
+              toWorkspaceName: wsName
+            })
+          }
+        } catch (error) {
+          reportError(`Error ${destroyOld ? 'renaming' : 'copying'} notebook`, error)
         }
-      }, 'Delete Notebook')
-    },
-    Utils.cond(
-      [processing, () => [centeredSpinner()]],
-      () => [
-        div({ style: { fontSize: '1rem', flexGrow: 1 } },
-          [
-            `Are you sure you want to delete "${printName}"?`,
-            div({ style: { fontWeight: 500, lineHeight: '2rem' } }, 'This cannot be undone.')
-          ]
+      }
+    }, `${destroyOld ? 'Rename' : 'Copy'} Notebook`)
+  },
+  Utils.cond(
+    [processing, () => [centeredSpinner()]],
+    () => [
+      h(IdContainer, [id => h(Fragment, [
+        h(FormLabel, { htmlFor: id, required: true }, ['New Name']),
+        notebookNameInput({
+          error: Utils.summarizeErrors(nameTouched && errors && errors.newName),
+          inputProps: {
+            id, value: newName,
+            onChange: v => {
+              setNewName(v)
+              setNameTouched(true)
+            }
+          }
+        })
+      ])])
+    ]
+  ))
+}
+
+export const NotebookDeleter = ({ printName, namespace, bucketName, onDismiss, onSuccess }) => {
+  const [processing, setProcessing] = useState(false)
+
+  return h(Modal, {
+    onDismiss,
+    title: `Delete "${printName}"`,
+    okButton: h(ButtonPrimary, {
+      disabled: processing,
+      onClick: () => {
+        setProcessing(true)
+        Ajax().Buckets.notebook(namespace, bucketName, printName).delete().then(
+          onSuccess,
+          error => reportError('Error deleting notebook', error)
         )
-      ]
-    ))
-  }
+      }
+    }, 'Delete Notebook')
+  },
+  Utils.cond(
+    [processing, () => [centeredSpinner()]],
+    () => [
+      div({ style: { fontSize: '1rem', flexGrow: 1 } },
+        [
+          `Are you sure you want to delete "${printName}"?`,
+          div({ style: { fontWeight: 500, lineHeight: '2rem' } }, 'This cannot be undone.')
+        ]
+      )
+    ]
+  ))
 }
 
 // In Python notebook, use ' instead of " in code cells, to avoid formatting problems.

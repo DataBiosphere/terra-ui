@@ -1,7 +1,7 @@
 import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, Fragment, useState } from 'react'
+import { Component, Fragment, useEffect, useState } from 'react'
 import { b, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
@@ -191,87 +191,77 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
   })
 }
 
-const BucketContentModal = Utils.withCancellationSignal(class BucketContentModal extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      prefix: '',
-      objects: undefined
-    }
-  }
+const BucketContentModal = ({ workspace: { workspace: { namespace, bucketName } }, onSelect, onDismiss }) => {
+  const [prefix, setPrefix] = useState('')
+  const [prefixes, setPrefixes] = useState()
+  const [objects, setObjects] = useState(undefined)
+  const [loading, setLoading] = useState(false)
 
-  componentDidMount() {
-    this.load()
-  }
+  const signal = Utils.useCancellation()
 
-  componentDidUpdate(prevProps) {
-    StateHistory.update(_.pick(['objects', 'prefix'], this.state))
-  }
+  const load = _.flow(
+    Utils.withBusyState(setLoading),
+    withErrorReporting('Error loading bucket data')
+  )(async (newPrefix = prefix) => {
+    const { items, prefixes: newPrefixes } = await Ajax(signal).Buckets.list(namespace, bucketName, newPrefix)
+    setObjects(items)
+    setPrefixes(newPrefixes)
+    setPrefix(newPrefix)
+  })
 
-  async load(prefix = this.state.prefix) {
-    const { workspace: { workspace: { namespace, bucketName } }, signal } = this.props
-    try {
-      this.setState({ loading: true })
-      const { items, prefixes } = await Ajax(signal).Buckets.list(namespace, bucketName, prefix)
-      this.setState({ objects: items, prefixes, prefix })
-    } catch (error) {
-      reportError('Error loading bucket data', error)
-    } finally {
-      this.setState({ loading: false })
-    }
-  }
+  Utils.useOnMount(() => { load() })
 
-  render() {
-    const { workspace: { workspace: { bucketName } }, onDismiss, onSelect } = this.props
-    const { prefix, prefixes, objects, loading } = this.state
-    const prefixParts = _.dropRight(1, prefix.split('/'))
-    return h(Modal, {
-      onDismiss,
-      title: 'Choose input file',
-      showX: true,
-      showButtons: false
-    }, [
-      div([
-        _.map(({ label, target }) => {
-          return h(Fragment, { key: target }, [
-            h(Link, { onClick: () => this.load(target) }, [label]),
-            ' / '
-          ])
-        }, [
-          { label: 'Files', target: '' },
-          ..._.map(n => {
-            return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
-          }, _.range(0, prefixParts.length))
+  useEffect(() => {
+    StateHistory.update({ objects, prefix })
+  }, [objects, prefix])
+
+  const prefixParts = _.dropRight(1, prefix.split('/'))
+  return h(Modal, {
+    onDismiss,
+    title: 'Choose input file',
+    showX: true,
+    showButtons: false
+  }, [
+    div([
+      _.map(({ label, target }) => {
+        return h(Fragment, { key: target }, [
+          h(Link, { onClick: () => load(target) }, [label]),
+          ' / '
         ])
-      ]),
-      div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.light(0.4)}` } }),
-      h(SimpleTable, {
-        columns: [
-          { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' }
-        ],
-        rows: [
-          ..._.map(p => {
-            return {
-              name: h(TextCell, [
-                h(Link, { onClick: () => this.load(p) }, [p.slice(prefix.length)])
+      }, [
+        { label: 'Files', target: '' },
+        ..._.map(n => {
+          return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
+        }, _.range(0, prefixParts.length))
+      ])
+    ]),
+    div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.light(0.4)}` } }),
+    h(SimpleTable, {
+      columns: [
+        { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' }
+      ],
+      rows: [
+        ..._.map(p => {
+          return {
+            name: h(TextCell, [
+              h(Link, { onClick: () => load(p) }, [p.slice(prefix.length)])
+            ])
+          }
+        }, prefixes),
+        ..._.map(({ name }) => {
+          return {
+            name: h(TextCell, [
+              h(Link, { onClick: () => onSelect(`"gs://${bucketName}/${name}"`) }, [
+                name.slice(prefix.length)
               ])
-            }
-          }, prefixes),
-          ..._.map(({ name }) => {
-            return {
-              name: h(TextCell, [
-                h(Link, { onClick: () => onSelect(`"gs://${bucketName}/${name}"`) }, [
-                  name.slice(prefix.length)
-                ])
-              ])
-            }
-          }, objects)
-        ]
-      }),
-      (loading) && spinnerOverlay
-    ])
-  }
-})
+            ])
+          }
+        }, objects)
+      ]
+    }),
+    (loading) && spinnerOverlay
+  ])
+}
 
 class TextCollapse extends Component {
   static propTypes = {
