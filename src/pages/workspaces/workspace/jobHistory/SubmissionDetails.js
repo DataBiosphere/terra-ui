@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Link, Select } from 'src/components/common'

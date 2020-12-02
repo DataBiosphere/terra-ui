@@ -174,7 +174,8 @@ const WorkflowDashboard = _.flow(
             ...Utils.newTabLinkProps,
             href: bucketBrowserUrl(`${bucketName}/${submissionId}/${workflowName}/${workflowId}`),
             style: { padding: '0.6rem' },
-            tooltip: 'Execution directory' }, [
+            tooltip: 'Execution directory'
+          }, [
             div({ style: { display: 'flex', alignItems: 'center' } }, [
               icon('folder-open', { size: 18 }),
               span([' Execution Directory'])
@@ -187,7 +188,7 @@ const WorkflowDashboard = _.flow(
         ])
       ]),
       makeSection('Call Statuses', [
-        workflow.calls && false ? statusCell(workflow) : div({ style: { padding: '0.6rem' }}, ['No calls have been started by this workflow.'])
+        workflow.calls && false ? statusCell(workflow) : div({ style: { padding: '0.6rem' } }, ['No calls have been started by this workflow.'])
 
       ])
     ]),
