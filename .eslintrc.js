@@ -23,6 +23,7 @@ module.exports = {
     'key-spacing': 'warn',
     'keyword-spacing': 'warn',
     'lines-between-class-members': 'warn',
+    'no-floating-decimal': 'warn',
     'no-lonely-if': 'warn',
     'no-multi-assign': 'warn',
     'no-multiple-empty-lines': 'warn',
@@ -41,6 +42,7 @@ module.exports = {
     'space-before-blocks': 'warn',
     'space-before-function-paren': ['warn', { 'anonymous': 'never', 'named': 'never', 'asyncArrow': 'always' }],
     'space-in-parens': 'warn',
+    'space-infix-ops': 'warn',
 
     // ES6
     'arrow-parens': ['warn', 'as-needed'],
