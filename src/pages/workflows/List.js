@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import AutoSizer from 'react-virtualized-auto-sizer'
+import { AutoSizer } from 'react-virtualized'
 import { Link, TabBar } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { DelayedSearchInput } from 'src/components/input'
@@ -94,8 +94,8 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
             columns: [
               {
                 headerRenderer: () => h(Sortable, { sort, field: 'name', onSort: setSort }, [h(HeaderCell, ['Workflow'])]),
-                cellRenderer: ({ index }) => {
-                  const { namespace, name } = sortedWorkflows[index]
+                cellRenderer: ({ rowIndex }) => {
+                  const { namespace, name } = sortedWorkflows[rowIndex]
 
                   return h(TooltipCell, { tooltip: `${namespace}/${name}` }, [
                     div({ style: { fontSize: 12 } }, [namespace]),
@@ -106,8 +106,8 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
               },
               {
                 headerRenderer: () => h(Sortable, { sort, field: 'synopsis', onSort: setSort }, [h(HeaderCell, ['Synopsis'])]),
-                cellRenderer: ({ index }) => {
-                  const { synopsis } = sortedWorkflows[index]
+                cellRenderer: ({ rowIndex }) => {
+                  const { synopsis } = sortedWorkflows[rowIndex]
 
                   return h(TooltipCell, [synopsis])
                 },
@@ -115,8 +115,8 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
               },
               {
                 headerRenderer: () => h(Sortable, { sort, field: 'managers', onSort: setSort }, [h(HeaderCell, ['Owners'])]),
-                cellRenderer: ({ index }) => {
-                  const { managers } = sortedWorkflows[index]
+                cellRenderer: ({ rowIndex }) => {
+                  const { managers } = sortedWorkflows[rowIndex]
 
                   return h(TooltipCell, [managers?.join(', ')])
                 },
@@ -124,8 +124,8 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
               },
               {
                 headerRenderer: () => h(Sortable, { sort, field: 'numSnapshots', onSort: setSort }, [h(HeaderCell, ['Snapshots'])]),
-                cellRenderer: ({ index }) => {
-                  const { numSnapshots } = sortedWorkflows[index]
+                cellRenderer: ({ rowIndex }) => {
+                  const { numSnapshots } = sortedWorkflows[rowIndex]
 
                   return div({ style: { textAlign: 'end', flex: 1 } }, [numSnapshots])
                 },
@@ -133,8 +133,8 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
               },
               {
                 headerRenderer: () => h(Sortable, { sort, field: 'numConfigurations', onSort: setSort }, [h(HeaderCell, ['Configurations'])]),
-                cellRenderer: ({ index }) => {
-                  const { numConfigurations } = sortedWorkflows[index]
+                cellRenderer: ({ rowIndex }) => {
+                  const { numConfigurations } = sortedWorkflows[rowIndex]
 
                   return div({ style: { textAlign: 'end', flex: 1 } }, [numConfigurations])
                 },

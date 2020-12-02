@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
-import AutoSizer from 'react-virtualized-auto-sizer'
+import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, Clickable, Link, spinnerOverlay } from 'src/components/common'
 import { DelayedSearchInput } from 'src/components/input'
@@ -169,10 +169,10 @@ const JobHistory = _.flow(
               {
                 size: { basis: 500, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['Submission (click for details)']),
-                cellRenderer: ({ index }) => {
+                cellRenderer: ({ rowIndex }) => {
                   const {
                     methodConfigurationNamespace, methodConfigurationName, submitter, submissionId, workflowStatuses
-                  } = filteredSubmissions[index]
+                  } = filteredSubmissions[rowIndex]
                   const { failed, running, submitted } = collapsedStatuses(workflowStatuses)
 
                   return h(Clickable, {
@@ -203,24 +203,24 @@ const JobHistory = _.flow(
               {
                 size: { basis: 250, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['Data entity']),
-                cellRenderer: ({ index }) => {
-                  const { submissionEntity: { entityName, entityType } = {} } = filteredSubmissions[index]
+                cellRenderer: ({ rowIndex }) => {
+                  const { submissionEntity: { entityName, entityType } = {} } = filteredSubmissions[rowIndex]
                   return h(TooltipCell, [entityName && `${entityName} (${entityType})`])
                 }
               },
               {
                 size: { basis: 170, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['No. of Workflows']),
-                cellRenderer: ({ index }) => {
-                  const { workflowStatuses } = filteredSubmissions[index]
+                cellRenderer: ({ rowIndex }) => {
+                  const { workflowStatuses } = filteredSubmissions[rowIndex]
                   return h(TextCell, Utils.formatNumber(_.sum(_.values(workflowStatuses))))
                 }
               },
               {
                 size: { basis: 150, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['Status']),
-                cellRenderer: ({ index }) => {
-                  const { workflowStatuses, status } = filteredSubmissions[index]
+                cellRenderer: ({ rowIndex }) => {
+                  const { workflowStatuses, status } = filteredSubmissions[rowIndex]
                   return h(Fragment, [
                     statusCell(workflowStatuses), _.keys(collapsedStatuses(workflowStatuses)).length === 1 && status
                   ])
@@ -229,11 +229,11 @@ const JobHistory = _.flow(
               {
                 size: { min: 220, max: 220 },
                 headerRenderer: () => h(HeaderCell, ['Actions']),
-                cellRenderer: ({ index }) => {
+                cellRenderer: ({ rowIndex }) => {
                   const {
                     methodConfigurationNamespace, methodConfigurationName, methodConfigurationDeleted, submissionId, workflowStatuses,
                     status, submissionEntity
-                  } = filteredSubmissions[index]
+                  } = filteredSubmissions[rowIndex]
                   return h(Fragment, [
                     (!isTerminal(status) && status !== 'Aborting') && h(ButtonPrimary, {
                       onClick: () => this.setState({ aborting: submissionId })
@@ -254,16 +254,16 @@ const JobHistory = _.flow(
               {
                 size: { basis: 150, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['Submitted']),
-                cellRenderer: ({ index }) => {
-                  const { submissionDate } = filteredSubmissions[index]
+                cellRenderer: ({ rowIndex }) => {
+                  const { submissionDate } = filteredSubmissions[rowIndex]
                   return h(TooltipCell, { tooltip: Utils.makeCompleteDate(submissionDate) }, [Utils.makeCompleteDate(submissionDate)])
                 }
               },
               {
                 size: { basis: 150, grow: 1 },
                 headerRenderer: () => h(HeaderCell, ['Submission ID']),
-                cellRenderer: ({ index }) => {
-                  const { submissionId } = filteredSubmissions[index]
+                cellRenderer: ({ rowIndex }) => {
+                  const { submissionId } = filteredSubmissions[rowIndex]
                   return h(TooltipCell, { tooltip: submissionId }, [
                     h(Link, {
                       ...Utils.newTabLinkProps,

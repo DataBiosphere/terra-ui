@@ -1,8 +1,7 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
-import AutoSizer from 'react-virtualized-auto-sizer'
-import { FixedSizeList } from 'react-window'
+import { AutoSizer, List } from 'react-virtualized'
 import ButtonBar from 'src/components/ButtonBar'
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select } from 'src/components/common'
 import * as Style from 'src/libs/style'
@@ -69,30 +68,28 @@ const IGVFileSelector = ({ selectedEntities, onSuccess }) => {
       h(Link, { style: { padding: '0 0.5rem' }, onClick: () => setSelections(_.map(_.set('isSelected', false))) }, ['none'])
     ]),
     div({ style: { flex: 1, marginBottom: '3rem' } }, [
-      _.isEmpty(selections) ?
-        'No valid files with indices found' :
-        h(AutoSizer, [
-          ({ width, height }) => {
-            return h(FixedSizeList, {
-              height,
-              width,
-              itemCount: selections.length,
-              itemSize: 30
-            }, [
-              ({ index, style }) => {
-                const { filePath, isSelected } = selections[index]
-                return div({ style: { ...style, display: 'flex' } }, [
-                  h(LabeledCheckbox, {
-                    checked: isSelected,
-                    onChange: () => toggleSelected(index)
-                  }, [
-                    div({ style: { paddingLeft: '0.25rem', flex: 1, ...Style.noWrapEllipsis } }, [_.last(filePath.split('/'))])
-                  ])
+      h(AutoSizer, [
+        ({ width, height }) => {
+          return h(List, {
+            height,
+            width,
+            rowCount: selections.length,
+            rowHeight: 30,
+            noRowsRenderer: () => 'No valid files with indices found',
+            rowRenderer: ({ index, style, key }) => {
+              const { filePath, isSelected } = selections[index]
+              return div({ key, style: { ...style, display: 'flex' } }, [
+                h(LabeledCheckbox, {
+                  checked: isSelected,
+                  onChange: () => toggleSelected(index)
+                }, [
+                  div({ style: { paddingLeft: '0.25rem', flex: 1, ...Style.noWrapEllipsis } }, [_.last(filePath.split('/'))])
                 ])
-              }
-            ])
-          }
-        ])
+              ])
+            }
+          })
+        }
+      ])
     ]),
     h(ButtonBar, {
       style: Style.modalDrawer.buttonBar,

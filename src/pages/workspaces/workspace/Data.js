@@ -6,7 +6,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, createRef, Fragment, useEffect, useState } from 'react'
 import { div, form, h, img, input } from 'react-hyperscript-helpers'
-import AutoSizer from 'react-virtualized-auto-sizer'
+import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, Clickable, Link, MenuButton, Select, spinnerOverlay } from 'src/components/common'
@@ -254,23 +254,23 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
         columns: [{
           size: { basis: 400, grow: 0 },
           headerRenderer: () => h(HeaderCell, ['Key']),
-          cellRenderer: ({ index }) => editIndex === index ?
+          cellRenderer: ({ rowIndex }) => editIndex === rowIndex ?
             h(TextInput, {
               'aria-label': 'Workspace data key',
               autoFocus: true,
               value: editKey,
               onChange: setEditKey
             }) :
-            renderDataCell(amendedAttributes[index][0], namespace)
+            renderDataCell(amendedAttributes[rowIndex][0], namespace)
         }, {
           size: { grow: 1 },
           headerRenderer: () => h(HeaderCell, ['Value']),
-          cellRenderer: ({ index }) => {
-            const [originalKey, originalValue] = amendedAttributes[index]
+          cellRenderer: ({ rowIndex }) => {
+            const [originalKey, originalValue] = amendedAttributes[rowIndex]
 
             return h(Fragment, [
               div({ style: { flex: 1, minWidth: 0, display: 'flex' } }, [
-                editIndex === index ?
+                editIndex === rowIndex ?
                   h(TextInput, {
                     'aria-label': 'Workspace data value',
                     value: editValue,
@@ -278,7 +278,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
                   }) :
                   renderDataCell(originalValue, namespace)
               ]),
-              editIndex === index ?
+              editIndex === rowIndex ?
                 h(Fragment, [
                   h(Select, {
                     styles: { container: base => ({ ...base, marginLeft: '1rem', width: 150 }) },
@@ -308,7 +308,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
                     tooltip: Utils.editWorkspaceError(workspace) || 'Edit variable',
                     style: { marginLeft: '1rem' },
                     onClick: () => {
-                      setEditIndex(index)
+                      setEditIndex(rowIndex)
                       setEditValue(_.isObject(originalValue) ? originalValue.items.join(', ') : originalValue)
                       setEditKey(originalKey)
                       setEditType(_.isObject(originalValue) ? `${typeof originalValue.items[0]} list` : typeof originalValue)
@@ -319,7 +319,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
                     disabled: !!Utils.editWorkspaceError(workspace),
                     tooltip: Utils.editWorkspaceError(workspace) || 'Delete variable',
                     style: { marginLeft: '1rem' },
-                    onClick: () => setDeleteIndex(index)
+                    onClick: () => setDeleteIndex(rowIndex)
                   }, [icon('trash', { size: 19 })])
                 ])
             ])
@@ -384,12 +384,12 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
             {
               size: { basis: 400, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Key']),
-              cellRenderer: ({ index }) => renderDataCell(selectedData[index].key, namespace)
+              cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].key, namespace)
             },
             {
               size: { grow: 1 },
               headerRenderer: () => h(HeaderCell, ['Value']),
-              cellRenderer: ({ index }) => renderDataCell(selectedData[index].value, namespace)
+              cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, namespace)
             }
           ]
         })

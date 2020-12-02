@@ -3,7 +3,7 @@ import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import AutoSizer from 'react-virtualized-auto-sizer'
+import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonSecondary, Link, Select, TabBar } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -209,8 +209,8 @@ const WorkflowConfigs = () => {
           columns: [
             {
               headerRenderer: () => {},
-              cellRenderer: ({ index }) => {
-                const config = allConfigs[index]
+              cellRenderer: ({ rowIndex }) => {
+                const config = allConfigs[rowIndex]
 
                 return !_.find(_.isEqual(config), snapshotConfigs) && h(TooltipTrigger, {
                   content: `This configuration is not fully compatible with snapshot ${snapshotId}`
@@ -220,8 +220,8 @@ const WorkflowConfigs = () => {
             },
             {
               headerRenderer: () => h(HeaderCell, ['Configuration']),
-              cellRenderer: ({ index }) => {
-                const { namespace, name, snapshotId } = allConfigs[index]
+              cellRenderer: ({ rowIndex }) => {
+                const { namespace, name, snapshotId } = allConfigs[rowIndex]
 
                 return h(Link, [`${namespace}/${name} Snapshot ID: ${snapshotId}`])
               },
@@ -229,8 +229,8 @@ const WorkflowConfigs = () => {
             },
             {
               headerRenderer: () => h(HeaderCell, ['Workflow Snapshot']),
-              cellRenderer: ({ index }) => {
-                const { payloadObject: { methodRepoMethod: { methodVersion } } } = allConfigs[index]
+              cellRenderer: ({ rowIndex }) => {
+                const { payloadObject: { methodRepoMethod: { methodVersion } } } = allConfigs[rowIndex]
 
                 return methodVersion
               },
@@ -238,8 +238,8 @@ const WorkflowConfigs = () => {
             },
             {
               headerRenderer: () => h(HeaderCell, ['Synopsis']),
-              cellRenderer: ({ index }) => {
-                const { synopsis } = allConfigs[index]
+              cellRenderer: ({ rowIndex }) => {
+                const { synopsis } = allConfigs[rowIndex]
 
                 return synopsis
               },

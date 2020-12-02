@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import AutoSizer from 'react-virtualized-auto-sizer'
+import { AutoSizer } from 'react-virtualized'
 import { Link, makeMenuIcon, MenuButton, Select, SimpleTabBar, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
@@ -175,18 +175,18 @@ export const WorkspaceList = () => {
     ({ width, height }) => h(FlexTable, {
       width, height,
       rowCount: sortedWorkspaces.length,
-      noContentMessage: Utils.cond(
+      noContentRenderer: () => Utils.cond(
         [loadingWorkspaces, () => null],
         [_.isEmpty(initialFiltered.myWorkspaces) && tab === 'myWorkspaces', () => noWorkspacesMessage],
         () => div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
       ),
       variant: 'light',
-      itemSize: 70,
+      rowHeight: 70,
       columns: [
         {
           headerRenderer: makeHeaderRenderer('name'),
-          cellRenderer: ({ index }) => {
-            const { accessLevel, workspace: { workspaceId, namespace, name, attributes: { description } } } = sortedWorkspaces[index]
+          cellRenderer: ({ rowIndex }) => {
+            const { accessLevel, workspace: { workspaceId, namespace, name, attributes: { description } } } = sortedWorkspaces[rowIndex]
             const canView = Utils.canRead(accessLevel)
 
             return div({ style: styles.tableCellContainer }, [
@@ -210,8 +210,8 @@ export const WorkspaceList = () => {
           size: { basis: 400, grow: 2, shrink: 0 }
         }, {
           headerRenderer: makeHeaderRenderer('lastModified'),
-          cellRenderer: ({ index }) => {
-            const { workspace: { lastModified } } = sortedWorkspaces[index]
+          cellRenderer: ({ rowIndex }) => {
+            const { workspace: { lastModified } } = sortedWorkspaces[rowIndex]
 
             return div({ style: styles.tableCellContainer }, [
               div({ style: styles.tableCellContent }, [
@@ -222,8 +222,8 @@ export const WorkspaceList = () => {
           size: { basis: 100, grow: 1, shrink: 0 }
         }, {
           headerRenderer: makeHeaderRenderer('createdBy'),
-          cellRenderer: ({ index }) => {
-            const { workspace: { createdBy } } = sortedWorkspaces[index]
+          cellRenderer: ({ rowIndex }) => {
+            const { workspace: { createdBy } } = sortedWorkspaces[rowIndex]
 
             return div({ style: styles.tableCellContainer }, [
               div({ style: styles.tableCellContent }, [span({ style: Style.noWrapEllipsis }, [createdBy])])
@@ -232,8 +232,8 @@ export const WorkspaceList = () => {
           size: { basis: 200, grow: 1, shrink: 0 }
         }, {
           headerRenderer: makeHeaderRenderer('accessLevel'),
-          cellRenderer: ({ index }) => {
-            const { accessLevel } = sortedWorkspaces[index]
+          cellRenderer: ({ rowIndex }) => {
+            const { accessLevel } = sortedWorkspaces[rowIndex]
 
             return div({ style: styles.tableCellContainer }, [
               div({ style: styles.tableCellContent }, [Utils.normalizeLabel(accessLevel)])
@@ -242,8 +242,8 @@ export const WorkspaceList = () => {
           size: { basis: 120, grow: 1, shrink: 0 }
         }, {
           headerRenderer: () => null,
-          cellRenderer: ({ index }) => {
-            const { accessLevel, workspace: { workspaceId, namespace, name }, ...workspace } = sortedWorkspaces[index]
+          cellRenderer: ({ rowIndex }) => {
+            const { accessLevel, workspace: { workspaceId, namespace, name }, ...workspace } = sortedWorkspaces[rowIndex]
             const onClone = () => setCloningWorkspaceId(workspaceId)
             const onDelete = () => setDeletingWorkspaceId(workspaceId)
             const onShare = () => setSharingWorkspaceId(workspaceId)
