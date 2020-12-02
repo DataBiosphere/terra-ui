@@ -569,6 +569,17 @@ class EntitiesContent extends Component {
       }
     }
     this.downloadForm = createRef()
+
+    // The following won't change, so they don't need to be in state.
+    // Note that this component will be destroyed and recreated rather than re-rendered
+    // if the selected entity type changes, because it's given a key when it's used,
+    // which is a special React prop which causes a component to be unmounted and replaced
+    // with a new instance if it is changed, rather than just updated in place.
+    // This means that, even though it's not in state or reset, if the entity type changes
+    // the constructor will be run again, so it'll be reset for the new instance.
+    const { initialX, initialY } = props.firstRender ? StateHistory.get() : {}
+    this.initialX = initialX
+    this.initialY = initialY
   }
 
   renderDownloadButton(columnSettings) {
@@ -706,7 +717,6 @@ class EntitiesContent extends Component {
     } = this.props
     const { selectedEntities, deletingEntities, copyingEntities, refreshKey, showToolSelector, igvData: { selectedFiles, refGenome } } = this.state
 
-    const { initialX, initialY } = firstRender ? StateHistory.get() : {}
     const selectedKeys = _.keys(selectedEntities)
     const selectedLength = selectedKeys.length
 
@@ -716,7 +726,7 @@ class EntitiesContent extends Component {
         h(DataTable, {
           persist: true, firstRender, refreshKey, editable: !Utils.editWorkspaceError(workspace),
           entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
-          onScroll: saveScroll, initialX, initialY,
+          onScroll: saveScroll, initialX: this.initialX, initialY: this.initialY,
           selectionModel: {
             selected: selectedEntities,
             setSelected: e => this.setState({ selectedEntities: e })

@@ -1,12 +1,12 @@
 import arrayMove from 'array-move'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment, useImperativeHandle, useRef, useState } from 'react'
+import { Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
 import { button, div, h, label, option, select } from 'react-hyperscript-helpers'
 import Pagination from 'react-paginating'
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
-import { AutoSizer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
+import { AutoSizer, Grid as RVGrid, List, MultiGrid } from 'react-virtualized'
 import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
@@ -288,92 +288,68 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
   width, height, initialX = 0, initialY = 0,
   rowCount, columns, styleCell = () => ({}), onScroll: customOnScroll = _.noop
 }, ref) => {
-  const [scrollbarSize, setScrollbarSize] = useState(0)
-  const header = useRef()
-  const body = useRef()
-  const scrollSync = useRef()
+  const [forcedScroll, setForcedScroll] = useState(false)
 
-  Utils.useOnMount(() => {
-    body.current.measureAllCells()
+  const grid = useRef()
+  const scrollClass = Utils.useUniqueId()
 
-    scrollSync.current._onScroll({ scrollLeft: initialX }) //BEWARE: utilizing private method from scrollSync that is not intended to be used
-
-    body.current.scrollToPosition({ scrollLeft: initialX, scrollTop: initialY }) // waiting to let ScrollSync initialize
-  })
+  useEffect(() => {
+    // check if we haven't restored scroll yet, but the grid has rendered:
+    if (!forcedScroll && document.getElementsByClassName(scrollClass)[0]) {
+      grid.current.measureAllCells()
+      document.getElementsByClassName(scrollClass)[0].scrollTo({ left: initialX, top: initialY })
+      setForcedScroll(true)
+    }
+  }, [columns]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useImperativeHandle(ref, () => ({
     recomputeColumnSizes: () => {
-      header.current.recomputeGridSize()
-      body.current.recomputeGridSize()
-      body.current.measureAllCells()
+      grid.current.recomputeGridSize()
+      grid.current.measureAllCells()
     },
     scrollToTop: () => {
-      body.current.scrollToPosition({ scrollTop: 0, scrollLeft: 0 })
+      document.getElementsByClassName(scrollClass)[0].scrollTo({ left: 0, top: 0 })
     }
   }))
 
-  return h(RVScrollSync, {
-    ref: scrollSync
-  }, [
-    ({ onScroll, scrollLeft }) => {
-      return div([
-        h(RVGrid, {
-          ref: header,
-          width: width - scrollbarSize,
-          height: 48,
-          columnWidth: ({ index }) => columns[index].width,
-          rowHeight: 48,
-          rowCount: 1,
-          columnCount: columns.length,
-          cellRenderer: data => {
-            return div({
-              key: data.key,
-              className: 'table-cell',
-              style: { ...data.style, ...styles.header(data.columnIndex, columns.length) }
-            }, [
-              columns[data.columnIndex].headerRenderer(data)
-            ])
-          },
-          style: { outline: 'none', overflowX: 'hidden', overflowY: 'hidden' },
-          scrollLeft,
-          onScroll
-        }),
-        h(RVGrid, {
-          ref: body,
-          width,
-          height: height - 48,
-          columnWidth: ({ index }) => columns[index].width,
-          rowHeight: 48,
-          rowCount,
-          columnCount: columns.length,
-          onScrollbarPresenceChange: ({ vertical, size }) => {
-            setScrollbarSize(vertical ? size : 0)
-          },
-          cellRenderer: data => {
-            return div({
-              key: data.key,
-              className: 'table-cell',
-              style: {
-                ...data.style,
-                ...styles.cell(data.columnIndex, columns.length),
-                backgroundColor: 'white',
-                ...styleCell(data)
-              }
-            }, [
-              columns[data.columnIndex].cellRenderer(data)
-            ])
-          },
-          style: { outline: 'none' },
-          scrollLeft,
-          onScroll: details => {
-            onScroll(details)
-            const { scrollLeft, scrollTop } = details
-            customOnScroll(scrollLeft, scrollTop)
-          }
-        })
+  const columnCount = columns.length
+
+  return h(MultiGrid, {
+    ref: grid,
+    width,
+    height,
+    columnWidth: ({ index }) => columns[index].width,
+    rowHeight: 48,
+    fixedRowCount: 1,
+    rowCount: rowCount + 1, // add a row for the header
+    columnCount,
+    classNameBottomRightGrid: scrollClass, // so it can be scrolled programmatically, unfortunately this is the best way to get it
+    cellRenderer: data => {
+      const { columnIndex, rowIndex } = data
+      const isHeader = rowIndex === 0
+
+      return div({
+        key: data.key,
+        className: 'table-cell',
+        style: {
+          ...data.style,
+          ...(isHeader ?
+            styles.header(columnIndex, columnCount) :
+            { ...styles.cell(columnIndex, columnCount), ...styleCell(data) }
+          )
+        }
+      }, [
+        isHeader ?
+          columns[columnIndex].headerRenderer(data) :
+          columns[columnIndex].cellRenderer({ ...data, rowIndex: rowIndex - 1 }) // accounting for header
       ])
+    },
+    styleBottomRightGrid: { outline: 'none' },
+    styleTopRightGrid: { outline: 'none' },
+    onScroll: ({ scrollLeft, scrollTop }) => {
+      customOnScroll(scrollLeft, scrollTop)
     }
-  ])
+  })
 })
 
 GridTable.propTypes = {
