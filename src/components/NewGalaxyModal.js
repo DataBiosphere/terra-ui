@@ -75,7 +75,7 @@ export const NewGalaxyModal = _.flow(
   const renderCreateWarning = () => {
     return h(Fragment, [
       div({ style: { marginBottom: '1rem' } }, ['Environment will consist of an application and cloud compute.']),
-      div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(.1), boxShadow: Style.standardShadow } }, [
+      div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
           span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('info-circle', { size: 25, color: colors.accent() })]),
           div([
@@ -119,7 +119,7 @@ export const NewGalaxyModal = _.flow(
 
   const renderDefaultCase = () => {
     const { cpu, memory } = _.find({ name: 'n1-standard-8' }, machineTypes)
-    const cost = getGalaxyCost(app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8' } })
+    const cost = getGalaxyCost(app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8', numNodes: 2 } })
     return h(Fragment, [
       div([`Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`]),
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [

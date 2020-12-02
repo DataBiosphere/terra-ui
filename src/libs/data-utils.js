@@ -308,7 +308,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             wrap: 'off',
             style: {
               fontFamily: 'monospace', height: 100,
-              backgroundColor: isInvalid ? colors.danger(.1) : colors.light(0.1),
+              backgroundColor: isInvalid ? colors.danger(0.1) : colors.light(0.1),
               border: isInvalid ? `1px solid ${colors.danger()}` : undefined,
               boxShadow: 'none'
             }
