@@ -58,7 +58,7 @@ const ChoiceButton = ({ iconName, title, detail, style, ...props }) => {
 const ImportData = () => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
-  const { query: { url, format, ad, wid, template } } = Nav.useRoute()
+  const { query: { url, format, ad, wid, template, snapshotId, snapshotName } } = Nav.useRoute()
   const [mode, setMode] = useState(wid ? 'existing' : undefined)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCloneOpen, setIsCloneOpen] = useState(false)
@@ -104,6 +104,10 @@ const ImportData = () => {
       ['entitiesJson', async () => {
         await Ajax().Workspaces.workspace(namespace, name).importJSON(url)
         notify('success', 'Data imported successfully.', { timeout: 3000 })
+      }],
+      ['snapshot', async () => {
+        await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName)
+        notify('success', 'Snapshot imported successfully.', { timeout: 3000 })
       }],
       [Utils.DEFAULT, async () => {
         await Ajax().Workspaces.workspace(namespace, name).importBagit(url)

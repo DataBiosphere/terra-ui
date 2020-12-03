@@ -7,7 +7,6 @@ import * as Group from 'src/pages/groups/Group'
 import * as Groups from 'src/pages/groups/List'
 import * as HoF from 'src/pages/HoF'
 import * as ImportData from 'src/pages/ImportData'
-import * as ImportSnapshot from 'src/pages/ImportSnapshot'
 import * as ImportWorkflow from 'src/pages/ImportWorkflow'
 import * as LandingPage from 'src/pages/LandingPage'
 import * as Code from 'src/pages/library/Code'
@@ -39,7 +38,6 @@ const routes = _.flatten([
   WorkspaceList.navPaths,
   WorkflowView.navPaths,
   ImportData.navPaths,
-  ImportSnapshot.navPaths,
   ImportWorkflow.navPaths,
   PrivacyPolicy.navPaths,
   Dashboard.navPaths,
