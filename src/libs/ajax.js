@@ -750,6 +750,11 @@ const Workspaces = signal => ({
         return res.json()
       },
 
+      importSnapshot: async (snapshotId, name) => {
+        const res = await fetchRawls(`${root}/snapshots`, _.mergeAll([authOpts(), jsonBody({ snapshotId, name }), { signal, method: 'POST' }]))
+        return res.json()
+      },
+
       importAttributes: file => {
         const formData = new FormData()
         formData.set('attributes', file)
