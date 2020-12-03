@@ -239,7 +239,7 @@ const User = signal => ({
 
   acceptTos: async () => {
     // try to accept TOS 3 times, if fails 3rd time throw the error
-    for (let i = 4; i > 0; i--) {
+    for (let i = 3; i > 0; i--) {
       try {
         return await fetchOk(
           `${getConfig().tosUrlRoot}/user/response`,
