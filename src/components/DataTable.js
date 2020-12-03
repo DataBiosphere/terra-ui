@@ -199,7 +199,7 @@ const DataTable = props => {
                 [index === 1, () => 'name'],
                 () => visibleColumns[index - 2].name
               ),
-              makeCellKey: ({columnIndex, rowIndex}) => Utils.cond(
+              makeCellKey: ({ columnIndex, rowIndex }) => Utils.cond(
                 [columnIndex === 0, () => `${entities[rowIndex].name}-checkbox`],
                 [columnIndex === 1, () => `${entities[rowIndex].name}-name`],
                 () => `${entities[rowIndex].name}-${visibleColumns[columnIndex - 2].name}`

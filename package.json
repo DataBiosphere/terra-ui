@@ -48,7 +48,6 @@
     "react-switch": "^5.0.1",
     "react-textarea-autosize": "^8.2.0",
     "react-transition-group": "^4.4.1",
-    "react-virtualized": "^9.22.2",
     "react-virtualized-auto-sizer": "^1.0.2",
     "react-window": "^1.8.6",
     "uuid": "^8.3.1",
