@@ -1,14 +1,14 @@
 import arrayMove from 'array-move'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Fragment, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react'
+import { Fragment, memo, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
 import { button, div, h, label, option, select } from 'react-hyperscript-helpers'
 import Pagination from 'react-paginating'
 import { ScrollSync, ScrollSyncPane } from 'react-scroll-sync'
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
 import AutoSizer from 'react-virtualized-auto-sizer'
-import { FixedSizeList, VariableSizeGrid, VariableSizeList } from 'react-window'
+import { areEqual, FixedSizeList, VariableSizeGrid, VariableSizeList } from 'react-window'
 import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
@@ -200,9 +200,6 @@ export const FlexTable = ({
       initialScrollOffset: initialY,
       itemSize: 48,
       itemCount: rowCount,
-      onScrollbarPresenceChange: ({ vertical, size }) => {
-        setScrollbarSize(vertical ? size : 0)
-      },
       style: { outline: 'none' },
       onScroll: ({ scrollOffset }) => onScroll(scrollOffset),
       ...props
@@ -292,8 +289,16 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
   makeHeaderKey, makeCellKey,
   rowCount, columns, styleCell = () => ({}), onScroll: customOnScroll = _.noop
 }, ref) => {
+  const [scrollbarSize, setScrollbarSize] = useState(0)
   const header = useRef()
   const body = useRef()
+  const bodyDom = useRef()
+
+  useLayoutEffect(() => {
+    if (bodyDom.current) {
+      setScrollbarSize(width - bodyDom.current.parentNode.clientWidth)
+    }
+  }, [columns, width, height])
 
   useImperativeHandle(ref, () => ({
     recomputeColumnSizes: () => {
@@ -307,35 +312,48 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
 
   const columnCount = columns.length
 
-  return h(ScrollSync, { vertical: false }, [
+  const headerRenderer = memo(({ index, style }) => {
+    return div({
+      className: 'table-cell',
+      style: {
+        ...style,
+        ...styles.header(index, columnCount)
+      }
+    }, [columns[index].headerRenderer()])
+  }, areEqual)
+
+  const cellRenderer = memo(data => {
+    const { columnIndex, style } = data
+    return div({
+      className: 'table-cell',
+      style: {
+        ...style,
+        ...styles.cell(columnIndex, columnCount),
+        ...styleCell(data)
+      }
+    }, [columns[columnIndex].cellRenderer(data)])
+  }, areEqual)
+
+  return h(ScrollSync, { vertical: false, proportional: false }, [
     div([
       h(ScrollSyncPane, [
         h(VariableSizeList, {
           ref: header,
           itemSize: index => columns[index].width,
           estimatedItemSize: 150,
-          width,
+          width: width - scrollbarSize,
           height: 48,
           initialScrollOffset: initialX,
           itemCount: columnCount,
           itemKey: makeHeaderKey,
           layout: 'horizontal',
-          style: { outline: 'none', scrollbarWidth: 'none' }
-        }, [
-          ({ index, style }) => {
-            return div({
-              className: 'table-cell',
-              style: {
-                ...style,
-                ...styles.header(index, columnCount)
-              }
-            }, [columns[index].headerRenderer()])
-          }
-        ])
+          style: { outline: 'none', overflow: 'hidden' }
+        }, [headerRenderer])
       ]),
       h(ScrollSyncPane, [
         h(VariableSizeGrid, {
           ref: body,
+          innerRef: bodyDom,
           columnWidth: index => columns[index].width,
           estimatedColumnWidth: 150,
           estimatedRowHeight: 48,
@@ -351,17 +369,7 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
           },
           rowCount,
           style: { outline: 'none' }
-        }, [data => {
-          const { columnIndex, style } = data
-          return div({
-            className: 'table-cell',
-            style: {
-              ...style,
-              ...styles.cell(columnIndex, columnCount),
-              ...styleCell(data)
-            }
-          }, [columns[columnIndex].cellRenderer(data)])
-        }])
+        }, [cellRenderer])
       ])
     ])
   ])
