@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Component, Fragment, useState } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, IdContainer, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -10,7 +10,7 @@ import Modal from 'src/components/Modal'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -31,66 +31,54 @@ const groupNameValidator = existing => ({
   }
 })
 
-const NewGroupModal = class NewGroupModal extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      groupName: '',
-      groupNameTouched: false,
-      allowAccessRequests: true
-    }
-  }
+const NewGroupModal = ({ onSuccess, onDismiss, existingGroups }) => {
+  const [groupName, setGroupName] = useState('')
+  const [groupNameTouched, setGroupNameTouched] = useState(false)
+  const [allowAccessRequests, setAllowAccessRequests] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
 
-  render() {
-    const { onDismiss, existingGroups } = this.props
-    const { groupName, groupNameTouched, allowAccessRequests, submitting } = this.state
+  const submit = _.flow(
+    Utils.withBusyState(setSubmitting),
+    withErrorReporting('Error creating group')
+  )(async () => {
+    const groupAjax = Ajax().Groups.group(groupName)
+    await groupAjax.create()
+    await groupAjax.setPolicy('admin-notifier', allowAccessRequests)
+    onSuccess()
+  })
 
-    const errors = validate({ groupName }, { groupName: groupNameValidator(existingGroups) })
+  const errors = validate({ groupName }, { groupName: groupNameValidator(existingGroups) })
 
-    return h(Modal, {
-      onDismiss,
-      title: 'Create New Group',
-      okButton: h(ButtonPrimary, {
-        disabled: errors,
-        onClick: () => this.submit()
-      }, ['Create Group'])
-    }, [
-      h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { required: true, htmlFor: id }, ['Enter a unique name']),
-        h(ValidatedInput, {
-          inputProps: {
-            id,
-            autoFocus: true,
-            value: groupName,
-            onChange: v => this.setState({ groupName: v, groupNameTouched: true })
-          },
-          error: groupNameTouched && Utils.summarizeErrors(errors && errors.groupName)
-        })
-      ])]),
-      !(groupNameTouched && errors) && formHint('Only letters, numbers, underscores, and dashes allowed'),
-      h(AdminNotifierCheckbox, {
-        checked: allowAccessRequests,
-        onChange: v => this.setState({ allowAccessRequests: v })
-      }),
-      submitting && spinnerOverlay
-    ])
-  }
-
-  async submit() {
-    const { onSuccess } = this.props
-    const { groupName, allowAccessRequests } = this.state
-
-    try {
-      this.setState({ submitting: true })
-      const groupAjax = Ajax().Groups.group(groupName)
-      await groupAjax.create()
-      await groupAjax.setPolicy('admin-notifier', allowAccessRequests)
-      onSuccess()
-    } catch (error) {
-      this.setState({ submitting: false })
-      reportError('Error creating group', error)
-    }
-  }
+  return h(Modal, {
+    onDismiss,
+    title: 'Create New Group',
+    okButton: h(ButtonPrimary, {
+      disabled: errors,
+      onClick: () => submit()
+    }, ['Create Group'])
+  }, [
+    h(IdContainer, [id => h(Fragment, [
+      h(FormLabel, { required: true, htmlFor: id }, ['Enter a unique name']),
+      h(ValidatedInput, {
+        inputProps: {
+          id,
+          autoFocus: true,
+          value: groupName,
+          onChange: v => {
+            setGroupName(v)
+            setGroupNameTouched(true)
+          }
+        },
+        error: groupNameTouched && Utils.summarizeErrors(errors && errors.groupName)
+      })
+    ])]),
+    !(groupNameTouched && errors) && formHint('Only letters, numbers, underscores, and dashes allowed'),
+    h(AdminNotifierCheckbox, {
+      checked: allowAccessRequests,
+      onChange: setAllowAccessRequests
+    }),
+    submitting && spinnerOverlay
+  ])
 }
 
 const DeleteGroupModal = ({ groupName, onDismiss, onSubmit }) => {

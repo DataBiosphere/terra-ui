@@ -111,9 +111,26 @@ const deleteRuntimes = _.flow(withSignedInPage, withUserToken)(async ({ page, bi
 })
 
 const registerUser = withSignedInPage(async ({ page }) => {
+  // TODO: make this available to all puppeteer browser windows
+  await page.evaluate(() => {
+    window.catchErrorResponse = async fn => {
+      try {
+        await fn()
+      } catch (e) {
+        if (e instanceof Response) {
+          const text = await e.text()
+          throw new Error(`Failed to Ajax: ${e.url} ${e.status}: ${text}`)
+        } else {
+          throw e
+        }
+      }
+    }
+  })
   await page.evaluate(async () => {
-    await window.Ajax().User.profile.set({ firstName: 'Integration', lastName: 'Test', contactEmail: 'me@example.com' })
-    await window.Ajax().User.acceptTos()
+    await window.catchErrorResponse(async () => {
+      await window.Ajax().User.profile.set({ firstName: 'Integration', lastName: 'Test', contactEmail: 'me@example.com' })
+      await window.Ajax().User.acceptTos()
+    })
   })
 })
 

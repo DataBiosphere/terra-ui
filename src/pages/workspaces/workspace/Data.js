@@ -718,7 +718,6 @@ class EntitiesContent extends Component {
           entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
           onScroll: saveScroll, initialX, initialY,
           selectionModel: {
-            type: 'multiple',
             selected: selectedEntities,
             setSelected: e => this.setState({ selectedEntities: e })
           },

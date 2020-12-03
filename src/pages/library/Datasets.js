@@ -1,4 +1,4 @@
-import { Component, Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { b, div, h, img, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -69,47 +69,39 @@ const logoBox = ({ src, alt, height }) => div({
 ])
 
 
-class Participant extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { showingModal: false }
-  }
+const Participant = ({ logo, title, shortDescription, description, sizeText, children }) => {
+  const [showingModal, setShowingModal] = useState(false)
 
-  render() {
-    const { logo, title, shortDescription, description, sizeText, children } = this.props
-    const { showingModal } = this.state
+  const titleElement = div({ style: styles.participant.title }, [title])
 
-    const titleElement = div({ style: styles.participant.title }, [title])
-
-    return div({
-      style: styles.participant.container
-    }, [
-      div({ style: { display: 'flex', flexDirection: 'column' } }, [
-        logoBox(logo),
-        titleElement,
-        div({ style: styles.participant.description }, [
-          shortDescription || description,
-          shortDescription && h(Link, {
-            style: { marginLeft: '0.5rem' },
-            onClick: () => this.setState({ showingModal: true })
-          }, ['READ MORE'])
-        ]),
-        div({ style: styles.participant.sizeText }, [sizeText]),
-        div({ style: { marginTop: '1rem' } }, [children])
+  return div({
+    style: styles.participant.container
+  }, [
+    div({ style: { display: 'flex', flexDirection: 'column' } }, [
+      logoBox(logo),
+      titleElement,
+      div({ style: styles.participant.description }, [
+        shortDescription || description,
+        shortDescription && h(Link, {
+          style: { marginLeft: '0.5rem' },
+          onClick: () => setShowingModal(true)
+        }, ['READ MORE'])
       ]),
-      showingModal && h(Modal, {
-        contentLabel: title,
-        onDismiss: () => this.setState({ showingModal: false }),
-        width: 880,
-        showCancel: false
-      }, [
-        img({ src: logo.src, alt: logo.alt, height: 150, width: 'auto' }),
-        titleElement,
-        description,
-        sizeText && p([sizeText])
-      ])
+      div({ style: styles.participant.sizeText }, [sizeText]),
+      div({ style: { marginTop: '1rem' } }, [children])
+    ]),
+    showingModal && h(Modal, {
+      contentLabel: title,
+      onDismiss: () => setShowingModal(false),
+      width: 880,
+      showCancel: false
+    }, [
+      img({ src: logo.src, alt: logo.alt, height: 150, width: 'auto' }),
+      titleElement,
+      description,
+      sizeText && p([sizeText])
     ])
-  }
+  ])
 }
 
 
