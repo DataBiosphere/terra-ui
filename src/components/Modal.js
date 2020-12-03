@@ -33,12 +33,12 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
 
   Utils.useOnMount(() => {
     previouslyFocusedNode.current = document.activeElement
-    return () => previouslyFocusedNode.current && previouslyFocusedNode.current.focus()
+    return () => previouslyFocusedNode.current?.focus()
   })
 
   // react-modal applies aria-hidden to the app root *and* takes care of limiting what can be tab-focused - see appLoader.js
   return h(RModal, {
-    contentRef: node => modalNode.current = node,
+    contentRef: node => { modalNode.current = node },
     parentSelector: () => document.getElementById('modal-root'),
     isOpen: true,
     shouldFocusAfterRender: false,

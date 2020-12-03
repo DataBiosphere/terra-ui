@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Component, Fragment } from 'react'
+import { Component, Fragment, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -66,117 +66,109 @@ const noBillingMessage = onClick => div({ style: { fontSize: 20, margin: '2rem' 
   ])
 ])
 
-const NewBillingProjectModal = class NewBillingProjectModal extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      billingProjectName: '',
-      billingProjectNameTouched: false,
-      existing: [],
-      isBusy: false,
-      chosenBillingAccount: ''
-    }
-  }
+const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAccounts }) => {
+  const [billingProjectName, setBillingProjectName] = useState('')
+  const [billingProjectNameTouched, setBillingProjectNameTouched] = useState(false)
+  const [existing, setExisting] = useState([])
+  const [isBusy, setIsBusy] = useState(false)
+  const [chosenBillingAccount, setChosenBillingAccount] = useState('')
 
-  render() {
-    const { onDismiss, billingAccounts } = this.props
-    const { billingProjectName, billingProjectNameTouched, chosenBillingAccount, existing, isBusy } = this.state
-    const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
-
-    return h(Modal, {
-      onDismiss,
-      shouldCloseOnOverlayClick: false,
-      title: 'Create Billing Project',
-      showCancel: !(billingAccounts && billingAccounts.length === 0),
-      showButtons: !!billingAccounts,
-      okButton: billingAccounts && billingAccounts.length !== 0 ?
-        h(ButtonPrimary, {
-          disabled: errors || !chosenBillingAccount || !chosenBillingAccount.firecloudHasAccess,
-          onClick: () => this.submit()
-        }, ['Create Billing Project']) :
-        h(ButtonPrimary, {
-          onClick: () => onDismiss()
-        }, ['Ok'])
-    }, [
-      billingAccounts && billingAccounts.length === 0 && h(Fragment, [
-        `You don't have access to any billing accounts.  `,
-        h(Link, {
-          href: `https://support.terra.bio/hc/en-us/articles/360026182251`,
-          ...Utils.newTabLinkProps
-        }, ['Learn how to create a billing account.', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })])
-      ]),
-      billingAccounts && billingAccounts.length !== 0 && h(Fragment, [
-        h(IdContainer, [id => h(Fragment, [
-          h(FormLabel, { htmlFor: id, required: true }, ['Enter name']),
-          h(ValidatedInput, {
-            inputProps: {
-              id,
-              autoFocus: true,
-              value: billingProjectName,
-              onChange: v => this.setState({ billingProjectName: v, billingProjectNameTouched: true })
-            },
-            error: billingProjectNameTouched && Utils.summarizeErrors(errors && errors.billingProjectName)
-          })
-        ])]),
-        !(billingProjectNameTouched && errors) && formHint('Name must be unique and cannot be changed.'),
-        h(IdContainer, [id => h(Fragment, [
-          h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
-          div({ style: { fontSize: 14 } }, [
-            h(Select, {
-              id,
-              isMulti: false,
-              placeholder: 'Select billing account',
-              value: chosenBillingAccount,
-              onChange: selected => this.setState({ chosenBillingAccount: selected.value }),
-              options: _.map(account => {
-                return {
-                  value: account,
-                  label: account.displayName
-                }
-              }, billingAccounts)
-            })
-          ])
-        ])]),
-        !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 13 } }, [
-          div({ style: { margin: '0.25rem 0 0.25rem 0', color: colors.danger() } },
-            'Terra does not have access to this account. '),
-          div({ style: { marginBottom: '0.25rem' } }, ['To grant access, add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'),
-            ' as a ', span({ style: { fontWeight: 'bold' } }, 'Billing Account User'), ' on the ',
-            h(Link, {
-              href: `https://console.cloud.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
-              ...Utils.newTabLinkProps
-            }, ['Google Cloud Console', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])]),
-          div({ style: { marginBottom: '0.25rem' } }, ['Then, ',
-            h(Link, { onClick: () => this.loadAccounts() }, ['click here']), ' to refresh your billing accounts.']),
-          div({ style: { marginTop: '0.5rem' } }, [
-            h(Link, {
-              href: `https://support.terra.bio/hc/en-us/articles/360026182251`,
-              ...Utils.newTabLinkProps
-            }, ['Need help?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])
-          ])
-        ])
-      ]),
-      (isBusy || !billingAccounts) && spinnerOverlay
-    ])
-  }
-
-  submit = _.flow(
+  const submit = _.flow(
     withErrorReporting('Error creating billing project'),
-    Utils.withBusyState(isBusy => this.setState({ isBusy }))
+    Utils.withBusyState(setIsBusy)
   )(async () => {
-    const { onSuccess } = this.props
-    const { billingProjectName, chosenBillingAccount, existing } = this.state
     try {
       await Ajax().Billing.createProject(billingProjectName, chosenBillingAccount.accountName)
       onSuccess()
     } catch (error) {
       if (error.status === 409) {
-        this.setState({ existing: _.concat(billingProjectName, existing) })
+        setExisting(_.concat(billingProjectName, existing))
       } else {
         throw error
       }
     }
   })
+
+  const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
+
+  return h(Modal, {
+    onDismiss,
+    shouldCloseOnOverlayClick: false,
+    title: 'Create Billing Project',
+    showCancel: !(billingAccounts && billingAccounts.length === 0),
+    showButtons: !!billingAccounts,
+    okButton: billingAccounts && billingAccounts.length !== 0 ?
+      h(ButtonPrimary, {
+        disabled: errors || !chosenBillingAccount || !chosenBillingAccount.firecloudHasAccess,
+        onClick: () => submit()
+      }, ['Create Billing Project']) :
+      h(ButtonPrimary, {
+        onClick: () => onDismiss()
+      }, ['Ok'])
+  }, [
+    billingAccounts && billingAccounts.length === 0 && h(Fragment, [
+      `You don't have access to any billing accounts.  `,
+      h(Link, {
+        href: `https://support.terra.bio/hc/en-us/articles/360026182251`,
+        ...Utils.newTabLinkProps
+      }, ['Learn how to create a billing account.', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })])
+    ]),
+    billingAccounts && billingAccounts.length !== 0 && h(Fragment, [
+      h(IdContainer, [id => h(Fragment, [
+        h(FormLabel, { htmlFor: id, required: true }, ['Enter name']),
+        h(ValidatedInput, {
+          inputProps: {
+            id,
+            autoFocus: true,
+            value: billingProjectName,
+            onChange: v => {
+              setBillingProjectName(v)
+              setBillingProjectNameTouched(true)
+            }
+          },
+          error: billingProjectNameTouched && Utils.summarizeErrors(errors && errors.billingProjectName)
+        })
+      ])]),
+      !(billingProjectNameTouched && errors) && formHint('Name must be unique and cannot be changed.'),
+      h(IdContainer, [id => h(Fragment, [
+        h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
+        div({ style: { fontSize: 14 } }, [
+          h(Select, {
+            id,
+            isMulti: false,
+            placeholder: 'Select billing account',
+            value: chosenBillingAccount,
+            onChange: ({ value }) => setChosenBillingAccount(value),
+            options: _.map(account => {
+              return {
+                value: account,
+                label: account.displayName
+              }
+            }, billingAccounts)
+          })
+        ])
+      ])]),
+      !!chosenBillingAccount && !chosenBillingAccount.firecloudHasAccess && div({ style: { fontWeight: 500, fontSize: 13 } }, [
+        div({ style: { margin: '0.25rem 0 0.25rem 0', color: colors.danger() } },
+          'Terra does not have access to this account. '),
+        div({ style: { marginBottom: '0.25rem' } }, ['To grant access, add ', span({ style: { fontWeight: 'bold' } }, 'terra-billing@terra.bio'),
+          ' as a ', span({ style: { fontWeight: 'bold' } }, 'Billing Account User'), ' on the ',
+          h(Link, {
+            href: `https://console.cloud.google.com/billing/${chosenBillingAccount.accountName.split('/')[1]}?authuser=${Auth.getUser().email}`,
+            ...Utils.newTabLinkProps
+          }, ['Google Cloud Console', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])]),
+        div({ style: { marginBottom: '0.25rem' } }, ['Then, ',
+          h(Link, { onClick: () => loadAccounts() }, ['click here']), ' to refresh your billing accounts.']),
+        div({ style: { marginTop: '0.5rem' } }, [
+          h(Link, {
+            href: `https://support.terra.bio/hc/en-us/articles/360026182251`,
+            ...Utils.newTabLinkProps
+          }, ['Need help?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])
+        ])
+      ])
+    ]),
+    (isBusy || !billingAccounts) && spinnerOverlay
+  ])
 }
 
 export const BillingList = _.flow(
@@ -282,6 +274,7 @@ export const BillingList = _.flow(
         ]),
         creatingBillingProject && h(NewBillingProjectModal, {
           billingAccounts,
+          loadAccounts: () => this.loadAccounts(),
           onDismiss: () => this.setState({ creatingBillingProject: false }),
           onSuccess: () => {
             this.setState({ creatingBillingProject: false })

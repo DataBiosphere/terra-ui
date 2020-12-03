@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
 import { IdContainer, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -11,7 +11,7 @@ import { WorkspaceImporter } from 'src/components/workspace-utils'
 import importBackground from 'src/images/hex-import-background.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -36,78 +36,31 @@ const styles = {
   }
 }
 
-const DockstoreImporter = Utils.withCancellationSignal(class DockstoreImporter extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { isImporting: false, wdl: undefined, workflowName: '' }
-  }
+const DockstoreImporter = ({ path, version }) => {
+  const [isBusy, setIsBusy] = useState(false)
+  const [wdl, setWdl] = useState(undefined)
+  const [workflowName, setWorkflowName] = useState('')
 
-  componentDidMount() {
-    this.loadWdl()
-  }
+  const signal = Utils.useCancellation()
 
-  async loadWdl() {
-    try {
-      const { path, version, signal } = this.props
-      const wdl = await Ajax(signal).Dockstore.getWdl(path, version)
-      this.setState({ wdl, workflowName: _.last(path.split('/')) })
-    } catch (error) {
-      reportError('Error loading WDL', error)
-    }
-  }
+  const loadWdl = _.flow(
+    withErrorReporting('Error loading WDL'),
+    Utils.withBusyState(setIsBusy)
+  )(async () => {
+    const wdl = await Ajax(signal).Dockstore.getWdl(path, version)
+    setWdl(wdl)
+    setWorkflowName(_.last(path.split('/')))
+  })
 
-  render() {
-    const { path, version } = this.props
-    const { isImporting, wdl, workflowName } = this.state
-    const errors = (validate({ workflowName }, { workflowName: workflowNameValidation() }))
+  Utils.useOnMount(() => {
+    loadWdl()
+  })
 
-    return div({ style: styles.container }, [
-      div({ style: { ...styles.card, maxWidth: 740 } }, [
-        div({ style: styles.title }, ['Importing from Dockstore']),
-        div({ style: { fontSize: 18 } }, [path]),
-        div({ style: { fontSize: 13, color: colors.dark() } }, [`V. ${version}`]),
-        div({
-          style: {
-            display: 'flex', alignItems: 'center',
-            margin: '1rem 0', color: colors.warning()
-          }
-        }, [
-          icon('warning-standard', { title: 'Warning', size: 32, style: { marginRight: '0.5rem', flex: 'none' } }),
-          'Please note: Dockstore cannot guarantee that the WDL and Docker image referenced ',
-          'by this Workflow will not change. We advise you to review the WDL before future runs.'
-        ]),
-        wdl && h(WDLViewer, { wdl, style: { height: 500 } })
-      ]),
-      div({ style: { ...styles.card, margin: '0 2.5rem', maxWidth: 430 } }, [
-        h(IdContainer, [
-          id => h(Fragment, [
-            div([label({ htmlFor: id, style: { ...styles.title } }, 'Workflow Name')]),
-            div({ style: { marginTop: '2rem' } }, [h(ValidatedInput, {
-              inputProps: {
-                id,
-                onChange: workflowName => { this.setState({ workflowName }) },
-                value: workflowName
-              },
-              error: Utils.summarizeErrors(errors)
-            })])
-          ])
-        ]),
-        div({ style: { ...styles.title, paddingTop: '2rem' } }, ['Destination Workspace']),
-        h(WorkspaceImporter,
-          { onImport: workspace => this.import_(workspace), additionalErrors: errors }),
-        isImporting && spinnerOverlay
-      ])
-    ])
-  }
-
-  async import_(workspace) {
+  const doImport = Utils.withBusyState(setIsBusy, async workspace => {
     const { name, namespace } = workspace
     const eventData = { source: 'dockstore', ...extractWorkspaceDetails({ workspace }) }
 
     try {
-      this.setState({ isImporting: true })
-      const { path, version } = this.props
-      const workflowName = this.state.workflowName
       const rawlsWorkspace = Ajax().Workspaces.workspace(namespace, name)
       const entityMetadata = await rawlsWorkspace.entityMetadata()
       await rawlsWorkspace.importMethodConfigFromDocker({
@@ -124,11 +77,48 @@ const DockstoreImporter = Utils.withCancellationSignal(class DockstoreImporter e
     } catch (error) {
       reportError('Error importing workflow', error)
       Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: false })
-    } finally {
-      this.setState({ isImporting: false })
     }
-  }
-})
+  })
+
+  const errors = (validate({ workflowName }, { workflowName: workflowNameValidation() }))
+
+  return div({ style: styles.container }, [
+    div({ style: { ...styles.card, maxWidth: 740 } }, [
+      div({ style: styles.title }, ['Importing from Dockstore']),
+      div({ style: { fontSize: 18 } }, [path]),
+      div({ style: { fontSize: 13, color: colors.dark() } }, [`V. ${version}`]),
+      div({
+        style: {
+          display: 'flex', alignItems: 'center',
+          margin: '1rem 0', color: colors.warning()
+        }
+      }, [
+        icon('warning-standard', { title: 'Warning', size: 32, style: { marginRight: '0.5rem', flex: 'none' } }),
+        'Please note: Dockstore cannot guarantee that the WDL and Docker image referenced ',
+        'by this Workflow will not change. We advise you to review the WDL before future runs.'
+      ]),
+      wdl && h(WDLViewer, { wdl, style: { height: 500 } })
+    ]),
+    div({ style: { ...styles.card, margin: '0 2.5rem', maxWidth: 430 } }, [
+      h(IdContainer, [
+        id => h(Fragment, [
+          div([label({ htmlFor: id, style: { ...styles.title } }, 'Workflow Name')]),
+          div({ style: { marginTop: '2rem' } }, [h(ValidatedInput, {
+            inputProps: {
+              id,
+              onChange: setWorkflowName,
+              value: workflowName
+            },
+            error: Utils.summarizeErrors(errors)
+          })])
+        ])
+      ]),
+      div({ style: { ...styles.title, paddingTop: '2rem' } }, ['Destination Workspace']),
+      h(WorkspaceImporter, { onImport: doImport, additionalErrors: errors }),
+      isBusy && spinnerOverlay
+    ])
+  ])
+}
 
 
 const Importer = ({ source, item }) => {

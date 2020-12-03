@@ -1,12 +1,10 @@
 import _ from 'lodash/fp'
-import PropTypes from 'prop-types'
-import { Component, Fragment } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { b, div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, spinnerOverlay } from 'src/components/common'
-import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
+import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
@@ -40,45 +38,78 @@ const InfoTile = ({ isError = false, content }) => {
   ])
 }
 
+const displayEntities = (entities, runningSubmissionsCount, showType) => {
+  return _.map(([i, entity]) => div({
+    style: {
+      borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
+      padding: '0.6rem 1.25rem', margin: '0 -1.25rem',
+      ...Style.noWrapEllipsis
+    }
+  }, showType ? `${entity.entityName} (${entity.entityType})` : entity),
+  Utils.toIndexPairs(entities))
+}
 
-const ExportDataModal = withWorkspaces(class ExportDataModal extends Component {
-  static propTypes = {
-    onDismiss: PropTypes.func.isRequired,
-    selectedEntities: PropTypes.array.isRequired,
-    selectedDataType: PropTypes.string.isRequired,
-    runningSubmissionsCount: PropTypes.number.isRequired,
-    workspace: PropTypes.object.isRequired
-  }
 
-  constructor(props) {
-    super(props)
+const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runningSubmissionsCount, workspace }) => {
+  // State
+  const [hardConflicts, setHardConflicts] = useState([])
+  const [softConflicts, setSoftConflicts] = useState([])
+  const [additionalDeletions, setAdditionalDeletions] = useState([])
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(undefined)
+  const [copying, setCopying] = useState(false)
+  const [copied, setCopied] = useState(false)
 
-    this.state = {
-      hardConflicts: [],
-      softConflicts: [],
-      additionalDeletions: [],
-      selectedWorkspaceId: undefined,
-      error: undefined,
-      copying: false
+  const scollableRef = useRef()
+  const { workspaces, loading } = useWorkspaces()
+
+  // Helpers
+  const getSelectedWorkspace = () => _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces).workspace
+
+  const copy = async () => {
+    const selectedWorkspace = getSelectedWorkspace()
+    const entitiesToDelete = _.concat(hardConflicts, additionalDeletions)
+    setCopying(true)
+    if (!!hardConflicts.length) {
+      try {
+        await Ajax().Workspaces.workspace(selectedWorkspace.namespace, selectedWorkspace.name).deleteEntities(entitiesToDelete)
+        setHardConflicts([])
+        setAdditionalDeletions([])
+      } catch (error) {
+        switch (error.status) {
+          case 409:
+            setAdditionalDeletions(_.filter(entity => entity.entityType !== selectedDataType,
+              await error.json())) //handles dangling references when deleting entities
+            setCopying(false)
+            return
+          default:
+            await reportError('Error deleting data entries', error)
+            onDismiss()
+        }
+      }
+    }
+    try {
+      await Ajax().Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
+        .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedDataType, selectedEntities,
+          !!softConflicts.length)
+      setCopied(true)
+    } catch (error) {
+      switch (error.status) {
+        case 409:
+          const { hardConflicts, softConflicts } = await error.json()
+          setHardConflicts(hardConflicts)
+          setSoftConflicts(softConflicts)
+          setCopying(false)
+          scollableRef.current.scrollTo({ top: 0, left: 0, behavior: 'smooth' })
+          break
+        default:
+          await reportError('Error copying data entries', error)
+          onDismiss()
+      }
     }
   }
 
-  getSelectedWorkspace() {
-    const { workspaces } = this.props
-    const { selectedWorkspaceId } = this.state
-    return _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
-  }
-
-  render() {
-    const { copied } = this.state
-    return copied ? this.renderPostCopy() : this.renderCopyForm()
-  }
-
-  renderCopyForm() {
-    const { onDismiss, selectedEntities, runningSubmissionsCount, workspace, workspaces } = this.props
-    const { copying, hardConflicts, softConflicts, error, selectedWorkspaceId, additionalDeletions } = this.state
-    const moreToDelete = !!additionalDeletions.length
-
+  // Rendering
+  const renderCopyForm = () => {
     const errors = validate(
       { selectedWorkspaceId },
       { selectedWorkspaceId: { presence: true } }
@@ -88,51 +119,50 @@ const ExportDataModal = withWorkspaces(class ExportDataModal extends Component {
       onDismiss,
       title: 'Export Data to Workspace',
       okButton: h(ButtonPrimary, {
-        tooltip: (hardConflicts.length !== 0) ? 'Are you sure you want to override existing data?' : Utils.summarizeErrors(errors),
+        tooltip: !!hardConflicts.length ? 'Are you sure you want to override existing data?' : Utils.summarizeErrors(errors),
         disabled: !!errors || copying,
-        onClick: () => this.copy()
-      }, ['Copy'])
+        onClick: () => copy()
+      }, ['Copy']),
+      overlayRef: node => { scollableRef.current = node }
     }, [
       runningSubmissionsCount > 0 && InfoTile({
         content: `WARNING: ${runningSubmissionsCount} workflows are currently running in this workspace. ` +
           'Copying the following data could cause failures if a workflow is using this data.'
       }),
-      !((hardConflicts.length !== 0) || moreToDelete || (softConflicts.length !== 0)) && h(Fragment, [
+      !(!!hardConflicts.length || !!additionalDeletions.length || !!softConflicts.length) && h(Fragment, [
         h(FormLabel, { required: true }, ['Destination']),
         h(WorkspaceSelector, {
           workspaces: _.filter(Utils.isValidWsExportTarget(workspace), workspaces),
           value: selectedWorkspaceId,
-          onChange: v => this.setState({ selectedWorkspaceId: v })
+          onChange: setSelectedWorkspaceId
         })
       ]),
-      (hardConflicts.length !== 0) && InfoTile({
+      !!hardConflicts.length && InfoTile({
         isError: true,
         content: 'Some of the following data already exists in the selected workspace. Click CANCEL to go back or COPY to override the existing data.'
       }),
-      moreToDelete && InfoTile({
+      !!additionalDeletions.length && InfoTile({
         content: 'To override the selected data entries, the following entries that reference the original data will also be deleted.'
       }),
-      (softConflicts.length !== 0) && InfoTile({
+      !!softConflicts.length && InfoTile({
         content: 'The following data is linked to entries which already exist in the selected workspace. You may re-link the following data to the existing entries by clicking COPY.'
       }),
       h(FormLabel, ['Entries selected']),
       ...Utils.cond(
-        [moreToDelete, () => this.displayEntities(additionalDeletions, runningSubmissionsCount, true)],
-        [(hardConflicts.length !== 0), () => this.displayEntities(hardConflicts, runningSubmissionsCount, true)],
-        [(softConflicts.length !== 0), () => this.displayEntities(softConflicts, runningSubmissionsCount, true)],
-        () => this.displayEntities(selectedEntities, runningSubmissionsCount, false)
+        [!!additionalDeletions.length, () => displayEntities(additionalDeletions, runningSubmissionsCount, true)],
+        [!!hardConflicts.length, () => displayEntities(hardConflicts, runningSubmissionsCount, true)],
+        [!!softConflicts.length, () => displayEntities(softConflicts, runningSubmissionsCount, true)],
+        () => displayEntities(selectedEntities, runningSubmissionsCount, false)
       ),
       div({
-        style: { ...warningStyle, textAlign: 'right', marginTop: (hardConflicts.length !== 0) ? '1rem' : undefined }
+        style: { ...warningStyle, textAlign: 'right', marginTop: !!hardConflicts.length ? '1rem' : undefined }
       }, [`${selectedEntities.length} data entries to be copied.`]),
-      copying && spinnerOverlay,
-      error && h(ErrorView, { error })
+      (copying || loading) && spinnerOverlay
     ])
   }
 
-  renderPostCopy() {
-    const { onDismiss } = this.props
-    const selectedWorkspace = this.getSelectedWorkspace().workspace
+  const renderPostCopy = () => {
+    const selectedWorkspace = getSelectedWorkspace()
 
     return h(Modal, {
       title: 'Copy to Workspace',
@@ -153,58 +183,7 @@ const ExportDataModal = withWorkspaces(class ExportDataModal extends Component {
     ])
   }
 
-  displayEntities(entities, runningSubmissionsCount, showType) {
-    return _.map(([i, entity]) => div({
-      style: {
-        borderTop: (i === 0 && runningSubmissionsCount === 0) ? undefined : Style.standardLine,
-        padding: '0.6rem 1.25rem', margin: '0 -1.25rem',
-        ...Style.noWrapEllipsis
-      }
-    }, showType ? `${entity.entityName} (${entity.entityType})` : entity),
-    Utils.toIndexPairs(entities))
-  }
-
-  async copy() {
-    const { onDismiss, selectedEntities, selectedDataType, workspace } = this.props
-    const { additionalDeletions, hardConflicts, softConflicts } = this.state
-    const selectedWorkspace = this.getSelectedWorkspace().workspace
-    const entitiesToDelete = _.concat(hardConflicts, additionalDeletions)
-    this.setState({ copying: true })
-    if ((hardConflicts.length !== 0)) {
-      try {
-        await Ajax().Workspaces.workspace(selectedWorkspace.namespace, selectedWorkspace.name).deleteEntities(entitiesToDelete)
-        this.setState({ hardConflicts: [], additionalDeletions: [] })
-      } catch (error) {
-        switch (error.status) {
-          case 409:
-            this.setState({
-              additionalDeletions: _.filter(entity => entity.entityType !== selectedDataType,
-                await error.json()), copying: false
-            }) //handles dangling references when deleting entities
-            return
-          default:
-            await reportError('Error deleting data entries', error)
-            onDismiss()
-        }
-      }
-    }
-    try {
-      await Ajax().Workspaces.workspace(workspace.workspace.namespace, workspace.workspace.name)
-        .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedDataType, selectedEntities,
-          (softConflicts.length !== 0))
-      this.setState({ copied: true })
-    } catch (error) {
-      switch (error.status) {
-        case 409:
-          const { hardConflicts, softConflicts } = await error.json()
-          this.setState({ hardConflicts, softConflicts, copying: false })
-          break
-        default:
-          await reportError('Error copying data entries', error)
-          onDismiss()
-      }
-    }
-  }
-})
+  return copied ? renderPostCopy() : renderCopyForm()
+}
 
 export default ExportDataModal

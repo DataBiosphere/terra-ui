@@ -95,7 +95,7 @@ const DiskSelector = ({ value, onChange }) => {
 const RadioBlock = ({ labelText, children, name, checked, onChange, style = {} }) => {
   return div({
     style: {
-      backgroundColor: colors.warning(.2),
+      backgroundColor: colors.warning(0.2),
       borderRadius: 3, border: `1px solid ${checked ? colors.accent() : 'transparent'}`,
       boxShadow: checked ? Style.standardShadow : undefined,
       display: 'flex', alignItems: 'baseline', padding: '.75rem',
