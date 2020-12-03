@@ -243,7 +243,7 @@ const User = signal => ({
       try {
         return await fetchOk(
           `${getConfig().tosUrlRoot}/user/response`,
-          _.mergeAll([{ signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
+          _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
         )
       } catch (e) {
         if (i <= 1) {
