@@ -100,7 +100,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
   const [openLibraryMenu, setOpenLibraryMenu] = useState(false)
   const [openSupportMenu, setOpenSupportMenu] = useState(false)
   const [openCookiesModal, setOpenCookiesModal] = useState(false)
-  const [finalizeTrial, setFinalizeTrial] = useState(false)
   const [openFirecloudModal, setOpenFirecloudModal] = useState(false)
 
   const authState = Utils.useStore(authStore)
