@@ -380,6 +380,8 @@ GridTable.propTypes = {
   height: PropTypes.number.isRequired,
   initialX: PropTypes.number,
   initialY: PropTypes.number,
+  makeHeaderKey: PropTypes.func.isRequired,
+  makeCellKey: PropTypes.func.isRequired,
   rowCount: PropTypes.number.isRequired,
   styleCell: PropTypes.func,
   columns: PropTypes.arrayOf(PropTypes.shape({ width: PropTypes.number.isRequired })),
