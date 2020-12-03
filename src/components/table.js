@@ -1,13 +1,13 @@
 import arrayMove from 'array-move'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
-import { Component, createRef, Fragment, useState } from 'react'
+import { Fragment, useImperativeHandle, useRef, useState } from 'react'
 import Draggable from 'react-draggable'
 import { button, div, h, label, option, select } from 'react-hyperscript-helpers'
 import Pagination from 'react-paginating'
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
 import { AutoSizer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
-import { ButtonPrimary, Checkbox, Clickable, IdContainer, Link } from 'src/components/common'
+import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
@@ -35,12 +35,10 @@ const paginatorButton = (props, label) => button(_.merge({
  * @param {number} props.itemsPerPage
  * @param {number[]} [props.itemsPerPageOptions=[10,25,50,100]]
  */
-export const paginator = props => {
-  const {
-    filteredDataLength, unfilteredDataLength, pageNumber, setPageNumber, setItemsPerPage,
-    itemsPerPage, itemsPerPageOptions = [10, 25, 50, 100]
-  } = props
-
+export const paginator = ({
+  filteredDataLength, unfilteredDataLength, pageNumber, setPageNumber, setItemsPerPage,
+  itemsPerPage, itemsPerPageOptions = [10, 25, 50, 100]
+}) => {
   return h(Pagination, {
     total: filteredDataLength,
     limit: itemsPerPage,
@@ -163,102 +161,88 @@ const styles = {
  * A virtual table with a fixed header and flexible column widths. Intended to take up the full
  * available container width, without horizontal scrolling.
  */
-export class FlexTable extends Component {
-  static propTypes = {
-    width: PropTypes.number.isRequired,
-    height: PropTypes.number.isRequired,
-    initialY: PropTypes.number,
-    rowCount: PropTypes.number.isRequired,
-    variant: PropTypes.oneOf(['light']),
-    noContentMessage: PropTypes.node,
-    columns: PropTypes.arrayOf(PropTypes.shape({
-      headerRenderer: PropTypes.func.isRequired,
-      cellRenderer: PropTypes.func.isRequired,
-      size: PropTypes.shape({
-        basis: PropTypes.number, // flex-basis in px, default 0
-        grow: PropTypes.number, // flex-grow, default 1
-        max: PropTypes.number, // max-width in px
-        min: PropTypes.number, // min-width in px, default 0
-        shrink: PropTypes.number // flex-shrink, default 1
-      })
-    })),
-    hoverHighlight: PropTypes.bool,
-    onScroll: PropTypes.func
-  }
+export const FlexTable = ({
+  initialY = 0, width, height, rowCount, variant, columns = [], hoverHighlight = false,
+  onScroll = _.noop, noContentMessage = null, ...props
+}) => {
+  const [scrollbarSize, setScrollbarSize] = useState(0)
+  const body = useRef()
 
-  static defaultProps = {
-    initialY: 0,
-    columns: [],
-    hoverHighlight: false,
-    onScroll: _.noop,
-    noContentMessage: null
-  }
+  Utils.useOnMount(() => {
+    body.current.scrollToPosition({ scrollTop: initialY })
+  })
 
-  constructor(props) {
-    super(props)
-    this.state = { scrollbarSize: 0 }
-    this.body = createRef()
-  }
+  return div([
+    div({
+      style: {
+        width: width - scrollbarSize,
+        height: 48,
+        display: 'flex'
+      }
+    }, [
+      ..._.map(([i, { size, headerRenderer }]) => {
+        return div({
+          key: i,
+          style: { ...styles.flexCell(size), ...(variant === 'light' ? {} : styles.header(i * 1, columns.length)) }
+        }, [headerRenderer()])
+      }, _.toPairs(columns))
+    ]),
+    h(RVGrid, {
+      ref: body,
+      width,
+      height: height - 48,
+      columnWidth: width - scrollbarSize,
+      rowHeight: 48,
+      rowCount,
+      columnCount: 1,
+      onScrollbarPresenceChange: ({ vertical, size }) => {
+        setScrollbarSize(vertical ? size : 0)
+      },
+      cellRenderer: data => {
+        return h(Interactive, {
+          key: data.key,
+          as: 'div',
+          className: 'table-row',
+          style: { ...data.style, backgroundColor: 'white', display: 'flex' },
+          hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
+        }, [
+          _.map(([i, { size, cellRenderer }]) => {
+            return div({
+              key: i,
+              className: 'table-cell',
+              style: { ...styles.flexCell(size), ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length)) }
+            }, [cellRenderer(data)])
+          }, _.toPairs(columns))
+        ])
+      },
+      style: { outline: 'none' },
+      onScroll: ({ scrollTop }) => onScroll(scrollTop),
+      noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage]),
+      ...props
+    })
+  ])
+}
 
-  componentDidMount() {
-    const { initialY: scrollTop } = this.props
-    this.body.current.scrollToPosition({ scrollTop })
-  }
-
-  render() {
-    const { width, height, rowCount, variant, columns, hoverHighlight, onScroll, noContentMessage, ...props } = this.props
-    const { scrollbarSize } = this.state
-
-    return div([
-      div({
-        style: {
-          width: width - scrollbarSize,
-          height: 48,
-          display: 'flex'
-        }
-      }, [
-        ..._.map(([i, { size, headerRenderer }]) => {
-          return div({
-            key: i,
-            style: { ...styles.flexCell(size), ...(variant === 'light' ? {} : styles.header(i * 1, columns.length)) }
-          }, [headerRenderer()])
-        }, _.toPairs(columns))
-      ]),
-      h(RVGrid, {
-        ref: this.body,
-        width,
-        height: height - 48,
-        columnWidth: width - scrollbarSize,
-        rowHeight: 48,
-        rowCount,
-        columnCount: 1,
-        onScrollbarPresenceChange: ({ vertical, size }) => {
-          this.setState({ scrollbarSize: vertical ? size : 0 })
-        },
-        cellRenderer: data => {
-          return h(Interactive, {
-            key: data.key,
-            as: 'div',
-            className: 'table-row',
-            style: { ...data.style, backgroundColor: 'white', display: 'flex' },
-            hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
-          }, [
-            _.map(([i, { size, cellRenderer }]) => {
-              return div({
-                key: i,
-                className: 'table-cell',
-                style: { ...styles.flexCell(size), ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length)) }
-              }, [cellRenderer(data)])
-            }, _.toPairs(columns))
-          ])
-        },
-        style: { outline: 'none' },
-        onScroll: ({ scrollTop }) => onScroll(scrollTop),
-        noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage]),
-        ...props
-      })
-    ])
-  }
+FlexTable.propTypes = {
+  width: PropTypes.number.isRequired,
+  height: PropTypes.number.isRequired,
+  initialY: PropTypes.number,
+  rowCount: PropTypes.number.isRequired,
+  variant: PropTypes.oneOf(['light']),
+  noContentMessage: PropTypes.node,
+  columns: PropTypes.arrayOf(PropTypes.shape({
+    headerRenderer: PropTypes.func.isRequired,
+    cellRenderer: PropTypes.func.isRequired,
+    size: PropTypes.shape({
+      basis: PropTypes.number, // flex-basis in px, default 0
+      grow: PropTypes.number, // flex-grow, default 1
+      max: PropTypes.number, // max-width in px
+      min: PropTypes.number, // min-width in px, default 0
+      shrink: PropTypes.number // flex-shrink, default 1
+    })
+  })),
+  hoverHighlight: PropTypes.bool,
+  onScroll: PropTypes.func
 }
 
 /**
@@ -300,120 +284,107 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHigh
  * A virtual table with a fixed header and explicit column widths. Intended for displaying large
  * datasets which may require horizontal scrolling.
  */
-export class GridTable extends Component {
-  static propTypes = {
-    width: PropTypes.number.isRequired,
-    height: PropTypes.number.isRequired,
-    initialX: PropTypes.number,
-    initialY: PropTypes.number,
-    rowCount: PropTypes.number.isRequired,
-    styleCell: PropTypes.func,
-    columns: PropTypes.arrayOf(PropTypes.shape({ width: PropTypes.number.isRequired })),
-    onScroll: PropTypes.func
-  }
+export const GridTable = Utils.forwardRefWithName('GridTable', ({
+  width, height, initialX = 0, initialY = 0,
+  rowCount, columns, styleCell = () => ({}), onScroll: customOnScroll = _.noop
+}, ref) => {
+  const [scrollbarSize, setScrollbarSize] = useState(0)
+  const header = useRef()
+  const body = useRef()
+  const scrollSync = useRef()
 
-  static defaultProps = {
-    initialX: 0,
-    initialY: 0,
-    styleCell: () => ({}),
-    columns: [],
-    onScroll: _.noop
-  }
+  Utils.useOnMount(() => {
+    body.current.measureAllCells()
 
-  constructor(props) {
-    super(props)
-    this.state = { scrollbarSize: 0 }
-    this.header = createRef()
-    this.body = createRef()
-    this.scrollSync = createRef()
-  }
+    scrollSync.current._onScroll({ scrollLeft: initialX }) //BEWARE: utilizing private method from scrollSync that is not intended to be used
 
-  componentDidMount() {
-    this.body.current.measureAllCells()
+    body.current.scrollToPosition({ scrollLeft: initialX, scrollTop: initialY }) // waiting to let ScrollSync initialize
+  })
 
-    const { initialX: scrollLeft, initialY: scrollTop } = this.props
+  useImperativeHandle(ref, () => ({
+    recomputeColumnSizes: () => {
+      header.current.recomputeGridSize()
+      body.current.recomputeGridSize()
+      body.current.measureAllCells()
+    },
+    scrollToTop: () => {
+      body.current.scrollToPosition({ scrollTop: 0, scrollLeft: 0 })
+    }
+  }))
 
-    this.scrollSync.current._onScroll({ scrollLeft }) //BEWARE: utilizing private method from scrollSync that is not intended to be used
+  return h(RVScrollSync, {
+    ref: scrollSync
+  }, [
+    ({ onScroll, scrollLeft }) => {
+      return div([
+        h(RVGrid, {
+          ref: header,
+          width: width - scrollbarSize,
+          height: 48,
+          columnWidth: ({ index }) => columns[index].width,
+          rowHeight: 48,
+          rowCount: 1,
+          columnCount: columns.length,
+          cellRenderer: data => {
+            return div({
+              key: data.key,
+              className: 'table-cell',
+              style: { ...data.style, ...styles.header(data.columnIndex, columns.length) }
+            }, [
+              columns[data.columnIndex].headerRenderer(data)
+            ])
+          },
+          style: { outline: 'none', overflowX: 'hidden', overflowY: 'hidden' },
+          scrollLeft,
+          onScroll
+        }),
+        h(RVGrid, {
+          ref: body,
+          width,
+          height: height - 48,
+          columnWidth: ({ index }) => columns[index].width,
+          rowHeight: 48,
+          rowCount,
+          columnCount: columns.length,
+          onScrollbarPresenceChange: ({ vertical, size }) => {
+            setScrollbarSize(vertical ? size : 0)
+          },
+          cellRenderer: data => {
+            return div({
+              key: data.key,
+              className: 'table-cell',
+              style: {
+                ...data.style,
+                ...styles.cell(data.columnIndex, columns.length),
+                backgroundColor: 'white',
+                ...styleCell(data)
+              }
+            }, [
+              columns[data.columnIndex].cellRenderer(data)
+            ])
+          },
+          style: { outline: 'none' },
+          scrollLeft,
+          onScroll: details => {
+            onScroll(details)
+            const { scrollLeft, scrollTop } = details
+            customOnScroll(scrollLeft, scrollTop)
+          }
+        })
+      ])
+    }
+  ])
+})
 
-    this.body.current.scrollToPosition({ scrollLeft, scrollTop }) // waiting to let ScrollSync initialize
-  }
-
-  recomputeColumnSizes() {
-    this.header.current.recomputeGridSize()
-    this.body.current.recomputeGridSize()
-    this.body.current.measureAllCells()
-  }
-
-  scrollToTop() {
-    this.body.current.scrollToPosition({ scrollTop: 0, scrollLeft: 0 })
-  }
-
-  render() {
-    const { width, height, rowCount, columns, styleCell, onScroll: customOnScroll } = this.props
-    const { scrollbarSize } = this.state
-    return h(RVScrollSync, {
-      ref: this.scrollSync
-    }, [
-      ({ onScroll, scrollLeft }) => {
-        return div([
-          h(RVGrid, {
-            ref: this.header,
-            width: width - scrollbarSize,
-            height: 48,
-            columnWidth: ({ index }) => columns[index].width,
-            rowHeight: 48,
-            rowCount: 1,
-            columnCount: columns.length,
-            cellRenderer: data => {
-              return div({
-                key: data.key,
-                className: 'table-cell',
-                style: { ...data.style, ...styles.header(data.columnIndex, columns.length) }
-              }, [
-                columns[data.columnIndex].headerRenderer(data)
-              ])
-            },
-            style: { outline: 'none', overflowX: 'hidden', overflowY: 'hidden' },
-            scrollLeft,
-            onScroll
-          }),
-          h(RVGrid, {
-            ref: this.body,
-            width,
-            height: height - 48,
-            columnWidth: ({ index }) => columns[index].width,
-            rowHeight: 48,
-            rowCount,
-            columnCount: columns.length,
-            onScrollbarPresenceChange: ({ vertical, size }) => {
-              this.setState({ scrollbarSize: vertical ? size : 0 })
-            },
-            cellRenderer: data => {
-              return div({
-                key: data.key,
-                className: 'table-cell',
-                style: {
-                  ...data.style,
-                  ...styles.cell(data.columnIndex, columns.length),
-                  backgroundColor: 'white',
-                  ...styleCell(data)
-                }
-              }, [
-                columns[data.columnIndex].cellRenderer(data)
-              ])
-            },
-            style: { outline: 'none' },
-            scrollLeft,
-            onScroll: details => {
-              onScroll(details)
-              const { scrollLeft, scrollTop } = details
-              customOnScroll(scrollLeft, scrollTop)
-            }
-          })
-        ])
-      }
-    ])
-  }
+GridTable.propTypes = {
+  width: PropTypes.number.isRequired,
+  height: PropTypes.number.isRequired,
+  initialX: PropTypes.number,
+  initialY: PropTypes.number,
+  rowCount: PropTypes.number.isRequired,
+  styleCell: PropTypes.func,
+  columns: PropTypes.arrayOf(PropTypes.shape({ width: PropTypes.number.isRequired })),
+  onScroll: PropTypes.func
 }
 
 export const SimpleTable = ({ columns, rows }) => {
@@ -535,89 +506,85 @@ const SortableHandleDiv = SortableHandle(props => div(props))
  * @param {bool} columnSettings[].visible
  * @param {function(Object[])} onSave - called with modified settings when user saves
  */
-export class ColumnSelector extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { open: false, modifiedColumnSettings: undefined }
+export const ColumnSelector = ({ onSave, columnSettings }) => {
+  const [open, setOpen] = useState(false)
+  const [modifiedColumnSettings, setModifiedColumnSettings] = useState(undefined)
+
+  const toggleVisibility = index => {
+    setModifiedColumnSettings(_.update([index, 'visible'], b => !b))
   }
 
-  toggleVisibility(index) {
-    this.setState(_.update(['modifiedColumnSettings', index, 'visible'], b => !b))
+  const setAll = value => {
+    setModifiedColumnSettings(_.map(_.set('visible', value)))
   }
 
-  setAll(value) {
-    this.setState(_.update(['modifiedColumnSettings'], _.map(_.set('visible', value))))
+  const sort = () => {
+    setModifiedColumnSettings(_.sortBy('name'))
   }
 
-  sort() {
-    this.setState(_.update(['modifiedColumnSettings'], _.sortBy('name')))
+  const reorder = ({ oldIndex, newIndex }) => {
+    setModifiedColumnSettings(arrayMove(modifiedColumnSettings, oldIndex, newIndex))
   }
 
-  reorder({ oldIndex, newIndex }) {
-    const { modifiedColumnSettings } = this.state
-    this.setState({ modifiedColumnSettings: arrayMove(modifiedColumnSettings, oldIndex, newIndex) })
-  }
-
-  render() {
-    const { onSave, columnSettings } = this.props
-    const { open, modifiedColumnSettings } = this.state
-    return h(Fragment, [
-      h(Clickable, {
-        'aria-label': 'Select columns',
-        style: styles.columnSelector,
-        tooltip: 'Select columns',
-        onClick: () => this.setState({ open: true, modifiedColumnSettings: columnSettings })
-      }, [icon('cog', { size: 20 })]),
-      open && h(Modal, {
-        title: 'Select columns',
-        onDismiss: () => this.setState({ open: false }),
-        okButton: h(ButtonPrimary, {
-          onClick: () => {
-            onSave(modifiedColumnSettings)
-            this.setState({ open: false })
-          }
-        }, ['Done'])
-      }, [
-        div({ style: { marginBottom: '1rem', display: 'flex' } }, [
-          div({ style: { fontWeight: 500 } }, ['Show:']),
-          h(Link, { style: { padding: '0 0.5rem' }, onClick: () => this.setAll(true) }, ['all']),
-          '|',
-          h(Link, { style: { padding: '0 0.5rem' }, onClick: () => this.setAll(false) }, ['none']),
-          div({ style: { marginLeft: 'auto', fontWeight: 500 } }, ['Sort:']),
-          h(Link, { style: { padding: '0 0.5rem' }, onClick: () => this.sort() }, ['alphabetical'])
-        ]),
-        h(AutoSizer, { disableHeight: true }, [
-          ({ width }) => {
-            return h(SortableList, {
-              style: { outline: 'none' },
-              lockAxis: 'y',
-              useDragHandle: true,
-              width, height: 400,
-              rowCount: modifiedColumnSettings.length,
-              rowHeight: 30,
-              rowRenderer: ({ index, style, key }) => {
-                const { name, visible } = modifiedColumnSettings[index]
-                return h(SortableDiv, { key, index, style: { ...style, display: 'flex' } }, [
-                  h(SortableHandleDiv, { style: styles.columnHandle }, [
-                    icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })
-                  ]),
-                  div({ style: { display: 'flex', alignItems: 'center' } }, [
-                    h(Checkbox, {
-                      checked: visible,
-                      onChange: () => this.toggleVisibility(index)
-                    })
-                  ]),
-                  h(Clickable, {
-                    style: styles.columnName,
-                    onClick: () => this.toggleVisibility(index)
-                  }, [name])
+  return h(Fragment, [
+    h(Clickable, {
+      'aria-label': 'Select columns',
+      style: styles.columnSelector,
+      tooltip: 'Select columns',
+      onClick: () => {
+        setOpen(true)
+        setModifiedColumnSettings(columnSettings)
+      }
+    }, [icon('cog', { size: 20 })]),
+    open && h(Modal, {
+      title: 'Select columns',
+      onDismiss: () => setOpen(false),
+      okButton: h(ButtonPrimary, {
+        onClick: () => {
+          onSave(modifiedColumnSettings)
+          setOpen(false)
+        }
+      }, ['Done'])
+    }, [
+      div({ style: { marginBottom: '1rem', display: 'flex' } }, [
+        div({ style: { fontWeight: 500 } }, ['Show:']),
+        h(Link, { style: { padding: '0 0.5rem' }, onClick: () => setAll(true) }, ['all']),
+        '|',
+        h(Link, { style: { padding: '0 0.5rem' }, onClick: () => setAll(false) }, ['none']),
+        div({ style: { marginLeft: 'auto', fontWeight: 500 } }, ['Sort:']),
+        h(Link, { style: { padding: '0 0.5rem' }, onClick: () => sort() }, ['alphabetical'])
+      ]),
+      h(AutoSizer, { disableHeight: true }, [
+        ({ width }) => {
+          return h(SortableList, {
+            style: { outline: 'none' },
+            lockAxis: 'y',
+            useDragHandle: true,
+            width, height: 400,
+            rowCount: modifiedColumnSettings.length,
+            rowHeight: 30,
+            rowRenderer: ({ index, style, key }) => {
+              const { name, visible } = modifiedColumnSettings[index]
+              return h(SortableDiv, { key, index, style: { ...style, display: 'flex' } }, [
+                h(SortableHandleDiv, { style: styles.columnHandle }, [
+                  icon('columnGrabber', { style: { transform: 'rotate(90deg)' } })
+                ]),
+                div({ style: { display: 'flex', alignItems: 'center' } }, [
+                  h(LabeledCheckbox, {
+                    checked: visible,
+                    onChange: () => toggleVisibility(index)
+                  }, [
+                    h(Clickable, {
+                      style: styles.columnName
+                    }, [name])
+                  ])
                 ])
-              },
-              onSortEnd: v => this.reorder(v)
-            })
-          }
-        ])
+              ])
+            },
+            onSortEnd: v => reorder(v)
+          })
+        }
       ])
     ])
-  }
+  ])
 }
