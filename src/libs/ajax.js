@@ -1,3 +1,4 @@
+import { getDefaultProperties } from '@databiosphere/bard-client'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { version } from 'src/data/machines'
@@ -8,7 +9,6 @@ import * as Nav from 'src/libs/nav'
 import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { v4 as uuid } from 'uuid'
-import { getDefaultProperties } from '@databiosphere/bard-client'
 
 
 window.ajaxOverrideUtils = {
