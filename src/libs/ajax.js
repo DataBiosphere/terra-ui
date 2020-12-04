@@ -130,6 +130,7 @@ const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIden
 const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchGoogleBilling = withUrlPrefix('https://cloudbilling.googleapis.com/v1/', fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
+const fetchDataRepo = _.flow(withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
 const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
 const fetchAgora = _.flow(withUrlPrefix(`${getConfig().agoraUrlRoot}/api/v1/`), withAppIdentifier)(fetchOk)
@@ -621,6 +622,14 @@ const Workspaces = signal => ({
         return res.json()
       },
 
+      listSnapshot: async (limit, offset) => {
+        const path = `${root}/snapshots?offset=${offset}&limit=${limit}`
+        const res = await fetchRawls(path, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+
+
       submission: submissionId => {
         const submissionPath = `${root}/submissions/${submissionId}`
 
@@ -662,6 +671,11 @@ const Workspaces = signal => ({
 
       entityMetadata: async () => {
         const res = await fetchRawls(`${root}/entities`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      snapshotEntityMetadata: async (billingProject, dataReference) => {
+        const res = await fetchRawls(`${root}/entities?billingProject=${billingProject}&dataReference=${dataReference}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
@@ -790,6 +804,19 @@ const Workspaces = signal => ({
   }
 })
 
+
+const DataRepoSnapshots = signal => ({
+  snapshots: () => {
+    const root = `repository/v1/snapshots`
+
+    return {
+      getSnapshotDetails: async (snapshotId) => {
+        const res = await fetchDataRepo(`${root}/${snapshotId}`, _.merge(authOpts(), { signal, }))
+        return res.json()
+      }
+    }
+  }
+})
 
 const Buckets = signal => ({
   getObject: async (bucket, object, namespace, params = {}) => {
@@ -1256,6 +1283,7 @@ export const Ajax = signal => {
     Groups: Groups(signal),
     Billing: Billing(signal),
     Workspaces: Workspaces(signal),
+    DataRepoSnapshots: DataRepoSnapshots(signal),
     Buckets: Buckets(signal),
     GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),

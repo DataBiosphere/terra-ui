@@ -1,12 +1,14 @@
 import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AsyncCreatableSelect, ButtonPrimary, Link, Select } from 'src/components/common'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { workspacesStore } from 'src/libs/state'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
@@ -54,6 +56,35 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, ...props }) => 
     )(workspaces),
     ...props
   })
+}
+
+export const SnapshotInfo = ({ snapshotId }) => {
+  const [snapshotInfo, setSelectedSnapshotInfo] = useState()
+  const signal = Utils.useCancellation()
+
+  Utils.useOnMount(() => {
+    const loadSnapshotInfo = async () => {
+      const snapshotInfo = await Ajax(signal).DataRepoSnapshots.snapshots().getSnapshotDetails(snapshotId)
+      setSelectedSnapshotInfo(snapshotInfo)
+    }
+
+    loadSnapshotInfo()
+  })
+
+  const { name, description, createdDate } = snapshotInfo
+
+  console.log('snapshotInfo', snapshotInfo)
+  return div({
+    style: { ...Style.elements.card.container, color: colors.accent(), height: 125 }
+  }, [
+    div({ style: Style.elements.sectionHeader }, [name]),
+    div({ style: { display: 'flex', justifyContent: 'center', alignItems: 'center' } }, [
+      div([description]),
+      div({ style: { flexGrow: 1 } }),
+      div([`Creation date: ${createdDate}`])
+    ]),
+    div({ style: { margin: '1.5rem 0 1rem', borderBottom: `1px solid ${colors.dark(0.35)}` } })
+  ])
 }
 
 export const WorkspaceImporter = _.flow(
