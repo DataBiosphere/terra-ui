@@ -1,6 +1,6 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -70,29 +70,30 @@ const WorkflowDashboard = _.flow(
   const [failureCopied, setFailureCopied] = useState()
 
   const signal = Utils.useCancellation()
+  const stateRefreshTimer = useRef()
 
   /*
    * Data fetchers
    */
 
-  useEffect(() => {
-    const initialize = withErrorReporting('Unable to fetch Workflow Details',
-      async () => {
-        // If the workflow is empty, or we need to refresh after 60s:
-        if (_.isEmpty(workflow) || _.includes(workflow.status, ['Running', 'Submitted'])) {
-          if (!_.isEmpty(workflow)) {
-            await Utils.delay(60000)
-          }
-          const includeKey = [
-            'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'workflowName'
-          ]
-          const wf = await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).getWorkflow(workflowId, includeKey)
-          setWorkflow(wf)
-        }
-      })
+  Utils.useOnMount(() => {
+    const loadWorkflow = async () => {
+      const includeKey = [
+        'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'workflowName'
+      ]
+      const wf = await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).getWorkflow(workflowId, includeKey)
+      setWorkflow(wf)
 
-    initialize()
-  }, [workflow]) // eslint-disable-line react-hooks/exhaustive-deps
+      if (_.includes(wf.status, ['Running', 'Submitted'])) {
+        stateRefreshTimer.current = setTimeout(loadWorkflow, 60000)
+      }
+    }
+
+    loadWorkflow()
+    return () => {
+      clearTimeout(stateRefreshTimer.current)
+    }
+  })
 
   /*
    * Page render
