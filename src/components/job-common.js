@@ -25,12 +25,14 @@ export const collapseCromwellExecutionStatus = status => {
   switch (status) {
     case 'Done':
       return 'succeeded'
-    case 'Aborting': // only on submissions not workflows
+    case 'Aborting':
     case 'Aborted':
     case 'Failed':
       return 'failed'
     case 'Running':
       return 'running'
+    case 'Submitted':
+      return 'submitted'
     default:
       return `Unexpected status (${status})`
   }

@@ -27,16 +27,12 @@ const styles = {
   sectionTableLabel: { paddingRight: '0.6rem', fontWeight: 600 }
 }
 
-const groupCallStatuses = callsObject => {
-  const statusCounts = {}
-  for (const callname in callsObject) {
-    for (const attempt in callsObject[callname]) {
-      const executionStatus = collapseCromwellExecutionStatus(callsObject[callname][attempt].executionStatus)
-      statusCounts[executionStatus] = (statusCounts[executionStatus] || 0) + 1
-    }
-  }
-  return statusCounts
-}
+// Note: this can take a while with large data inputs. Consider memoization if the page ever needs re-rendering.
+const groupCallStatuses = _.flow(
+  _.values,
+  _.flattenDepth(1),
+  _.countBy(a => collapseCromwellExecutionStatus(a.executionStatus))
+)
 
 const statusCell = ({ calls }) => {
   const { succeeded, failed, running, submitted, ...others } = groupCallStatuses(calls)
