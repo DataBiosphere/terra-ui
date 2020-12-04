@@ -8,6 +8,7 @@ import * as Nav from 'src/libs/nav'
 import { ajaxOverridesStore, authStore, knownBucketRequesterPaysStatuses, requesterPaysProjectStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { v4 as uuid } from 'uuid'
+import { getDefaultProperties } from '@databiosphere/bard-client'
 
 
 window.ajaxOverrideUtils = {
@@ -1233,7 +1234,8 @@ const Metrics = signal => ({
         distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
         appId: 'Saturn',
         hostname: window.location.hostname,
-        appPath: Nav.getCurrentRoute().name
+        appPath: Nav.getCurrentRoute().name,
+        ...getDefaultProperties()
       }
     }
 
