@@ -9,21 +9,12 @@ import { div, form, h, img, input, p } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import Collapse from 'src/components/Collapse'
-import {
-  ButtonPrimary,
-  Clickable,
-  Link,
-  MenuButton,
-  RadioButton,
-  Select,
-  spinnerOverlay
-} from 'src/components/common'
+import { ButtonPrimary, Clickable, Link, MenuButton, Select, spinnerOverlay } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import Dropzone from 'src/components/Dropzone'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
-import { centeredSpinner, icon, spinner, wdlIcon } from 'src/components/icons'
+import { icon, spinner } from 'src/components/icons'
 import IGVBrowser from 'src/components/IGVBrowser'
 import IGVFileSelector from 'src/components/IGVFileSelector'
 import { DelayedSearchInput, TextInput } from 'src/components/input'
@@ -35,7 +26,7 @@ import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/tab
 import TitleBar from 'src/components/TitleBar'
 import UriViewer from 'src/components/UriViewer'
 import WorkflowSelector from 'src/components/WorkflowSelector'
-import { SnapshotInfo, WorkspaceSelector } from 'src/components/workspace-utils'
+import { SnapshotInfo } from 'src/components/workspace-utils'
 import datasets from 'src/data/datasets'
 import dataExplorerLogo from 'src/images/data-explorer-logo.svg'
 import igvLogo from 'src/images/igv-logo.png'
