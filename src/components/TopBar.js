@@ -231,10 +231,10 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               ...Utils.newTabLinkProps
             }, ['How-to Guides']),
             isBaseline() && h(DropDownSubItem, {
-              href: 'https://blog.projectbaseline.com/',
+              href: 'https://support.terra.bio/hc/en-us/sections/360010495892-Baseline',
               onClick: hideNav,
               ...Utils.newTabLinkProps
-            }, ['Baseline Blog']),
+            }, ['Baseline Documentation']),
             h(DropDownSubItem, {
               href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
               onClick: hideNav,
