@@ -100,17 +100,16 @@ const WorkflowDashboard = _.flow(
    */
   const { end, failures, start, status, workflowLog, workflowName, submittedFiles: { workflow: wdl } = {} } = workflow
 
-  const restructureFailures = _.map(({ message, causedBy }) => ({
-    message,
-    ...(!_.isEmpty(causedBy) ? { causedBy: simplifyDidNotStartFailures(restructureFailures(causedBy)) } : {})
-  }))
-
-  const simplifyDidNotStartFailures = failuresArray => {
+  const restructureFailures = failuresArray => {
     const filtered = _.filter(({ message }) => !_.isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
-    const sizeDiff = !_.isEmpty(failuresArray) ? failuresArray.length - filtered.length : 0
+    const sizeDiff = failuresArray.length - filtered.length
     const newMessage = sizeDiff > 0 ? [{ message: `${sizeDiff} jobs were queued in Cromwell but never sent to the cloud backend due to failures elsewhere in the workflow` }] : []
+    const simplifiedFailures = [...filtered, ...newMessage]
 
-    return [...filtered, ...newMessage]
+    return _.map(({ message, causedBy }) => ({
+      message,
+      ...(!_.isEmpty(causedBy) ? { causedBy: restructureFailures(causedBy) } : {})
+    }), simplifiedFailures)
   }
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
@@ -197,7 +196,7 @@ const WorkflowDashboard = _.flow(
       enableClipboard: false,
       displayDataTypes: false,
       displayObjectSize: false,
-      src: simplifyDidNotStartFailures(restructureFailures(failures))
+      src: restructureFailures(failures)
     })]),
     wdl && h(Collapse, {
       title: div({ style: Style.elements.sectionHeader }, ['Submitted workflow script'])
