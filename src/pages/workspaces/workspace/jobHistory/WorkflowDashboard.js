@@ -1,6 +1,6 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -41,34 +41,19 @@ const groupCallStatuses = callsObject => {
 const statusCell = ({ calls }) => {
   const { succeeded, failed, running, submitted, ...others } = groupCallStatuses(calls)
 
-  return table({ style: { margin: '0.5rem' } }, [
-    tbody([
-      submitted && tr([
-        td(styles.statusDetailCell, [submittedIcon()]),
-        td(['Submitted']),
-        td(styles.statusDetailCell, [submitted])
-      ]),
-      running && tr([
-        td(styles.statusDetailCell, [runningIcon()]),
-        td(['Running']),
-        td(styles.statusDetailCell, [running])
-      ]),
-      succeeded && tr([
-        td(styles.statusDetailCell, [successIcon()]),
-        td(['Succeeded']),
-        td(styles.statusDetailCell, [succeeded])
-      ]),
-      failed && tr([
-        td(styles.statusDetailCell, [failedIcon()]),
-        td(['Failed']),
-        td(styles.statusDetailCell, [failed])
-      ]),
-      _.map(other => tr([
-        td(styles.statusDetailCell, [unknownIcon()]),
-        td([other]),
-        td(styles.statusDetailCell, [others[other]])
-      ]), Object.keys(others))
+  const makeRow = (count, icon, text) => {
+    return !!count && div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.3rem' } }, [
+      icon,
+      span([` ${count} ${text}`])
     ])
+  }
+
+  return h(Fragment, [
+    makeRow(submitted, submittedIcon(), 'Submitted'),
+    makeRow(running, runningIcon(), 'Running'),
+    makeRow(succeeded, successIcon(), 'Succeeded'),
+    makeRow(failed, failedIcon(), 'Failed'),
+    _.map(([name, count]) => makeRow(count, unknownIcon(), name), _.toPairs(others))
   ])
 }
 
