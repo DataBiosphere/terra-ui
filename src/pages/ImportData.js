@@ -65,6 +65,7 @@ const ImportData = () => {
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(wid)
   const [selectedTemplateWorkspaceKey, setSelectedTemplateWorkspaceKey] = useState()
   const [allTemplates, setAllTemplates] = useState()
+
   const isDataset = format !== 'snapshot'
   const noteMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.'
 
