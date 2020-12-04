@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Link, Select } from 'src/components/common'
@@ -212,7 +212,9 @@ const SubmissionDetails = _.flow(
               headerRenderer: () => h(Sortable, { sort, field: 'workflowEntity', onSort: setSort }, ['Data Entity']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowEntity: { entityName, entityType } = {} } = filteredWorkflows[rowIndex]
-                return h(TooltipCell, [entityName ? `${entityName} (${entityType})` : '--'])
+                return h(TooltipCell, [
+                  entityName ? `${entityName} (${entityType})` : span({ style: { color: colors.dark(0.7) } }, ['--'])
+                ])
               }
             }, {
               size: { basis: 225, grow: 0 },
@@ -255,31 +257,30 @@ const SubmissionDetails = _.flow(
               }
             }, {
               size: { basis: 150, grow: 0 },
-              headerRenderer: () => div({ style: { display: 'flex' } }, ['Links']),
+              headerRenderer: () => 'Links',
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
                 return workflowId && h(Fragment, [
                   h(Link, {
                     ...Utils.newTabLinkProps,
                     href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-                    style: { padding: '.6rem' },
-                    tooltip: 'Job Manager'
-                  }, [div({ style: { display: 'flex', alignItems: 'center' } }, [
-                    icon('tasks', { size: 18 })
-                  ])]),
+                    style: { padding: '.6rem', display: 'flex' },
+                    tooltip: 'Job Manager',
+                    'aria-label': 'Job Manager'
+                  }, [icon('tasks', { size: 18 })]),
                   h(Link, {
                     href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
-                    style: { padding: '.6rem' },
-                    tooltip: 'Workflow Dashboard [alpha]'
-                  }, [div({ style: { display: 'flex', alignItems: 'center' } }, [
-                    icon('dashboard', { size: 18 })
-                  ])]),
+                    style: { padding: '.6rem', display: 'flex' },
+                    tooltip: 'Workflow Dashboard [alpha]',
+                    'aria-label': 'Workflow Dashboard [alpha]'
+                  }, [icon('tachometer', { size: 18 })]),
                   inputName &&
                     h(Link, {
                       ...Utils.newTabLinkProps,
                       href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`),
-                      style: { padding: '.6rem' },
-                      tooltip: 'Execution directory'
+                      style: { padding: '.6rem', display: 'flex' },
+                      tooltip: 'Execution directory',
+                      'aria-label': 'Execution directory'
                     }, [icon('folder-open', { size: 18 })]
                     )
                 ])
