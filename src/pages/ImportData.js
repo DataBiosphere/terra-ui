@@ -19,6 +19,7 @@ import { notify } from 'src/libs/notifications'
 import { pfbImportJobStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { DEFAULT } from 'src/libs/utils'
 
 
 const styles = {
@@ -65,8 +66,9 @@ const ImportData = () => {
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(wid)
   const [selectedTemplateWorkspaceKey, setSelectedTemplateWorkspaceKey] = useState()
   const [allTemplates, setAllTemplates] = useState()
+  const datatypeName = format.localeCompare('snapshot') ? 'dataset' : 'snapshot'
 
-  const noteMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.'
+  const noteMessage = format.localeCompare('snapshot') ? 'Note that the import process may take some time after you are redirected into your destination workspace.': ''
 
   const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
 
@@ -126,7 +128,7 @@ const ImportData = () => {
         div({ style: styles.title }, ['Importing Data']),
         div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
         div({ style: { marginTop: '1rem' } }, [
-          'The dataset(s) you just chose to import to Terra will be made available to you within a workspace of your choice where you can then perform analysis.'
+          ['The ', datatypeName, '(s) you just chose to import to Terra will be made available to you within a workspace of your choice where you can then perform analysis.']
         ])
       ]),
       div({ style: { ...styles.card, marginLeft: '2rem' } }, [
