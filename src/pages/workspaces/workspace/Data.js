@@ -1152,8 +1152,7 @@ const WorkspaceData = _.flow(
             ['bucketObjects', () => h(BucketContent, {
               workspace, onClose: () => this.setState({ selectedDataType: undefined }),
               firstRender, refreshKey
-            })]
-            ,
+            })],
             ['entities', () => h(EntitiesContent, {
               key: refreshKey,
               workspace,
