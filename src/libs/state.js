@@ -22,8 +22,6 @@ lastActiveTimeStore.update(v => v || {})
 export const toggleStateAtom = staticStorageSlot(sessionStorage, 'toggleState')
 toggleStateAtom.update(v => v || { notebooksTab: true })
 
-export const freeCreditsActive = Utils.atom(false)
-
 export const notificationStore = Utils.atom([])
 
 export const contactUsActive = Utils.atom(false)
