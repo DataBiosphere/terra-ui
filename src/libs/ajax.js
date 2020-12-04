@@ -628,8 +628,6 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-
-
       submission: submissionId => {
         const submissionPath = `${root}/submissions/${submissionId}`
 
@@ -810,8 +808,8 @@ const DataRepoSnapshots = signal => ({
     const root = `repository/v1/snapshots`
 
     return {
-      getSnapshotDetails: async (snapshotId) => {
-        const res = await fetchDataRepo(`${root}/${snapshotId}`, _.merge(authOpts(), { signal, }))
+      getSnapshotDetails: async snapshotId => {
+        const res = await fetchDataRepo(`${root}/${snapshotId}`, _.merge(authOpts(), { signal }))
         return res.json()
       }
     }
