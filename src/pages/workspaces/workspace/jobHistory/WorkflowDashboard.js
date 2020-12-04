@@ -9,7 +9,7 @@ import { Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import {
   collapseCromwellExecutionStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon,
-  submittedIcon, successIcon, unknownIcon
+  submittedIcon, successIcon, unknownIcon, workflowDetailsBreadcrumbSubtitle
 } from 'src/components/job-common'
 import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
@@ -113,19 +113,7 @@ const WorkflowDashboard = _.flow(
   }
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-    div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center' } }, [
-      h(Link, {
-        href: Nav.getLink('workspace-job-history', { namespace, name }),
-        style: { alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0' }
-      }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Job History']),
-      div({ style: { margin: '0 0.5rem' } }, ['>']),
-      h(Link, {
-        href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId }),
-        style: { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', padding: '0.5rem 0' }
-      }, [`Submission ${submissionId}`]),
-      div({ style: { margin: '0 0.5rem' } }, ['>']),
-      div({ style: Style.elements.sectionHeader }, [`Workflow ${workflowId}`])
-    ]),
+    workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId),
     _.isEmpty(workflow) ? centeredSpinner() : div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
       makeSection('Workflow Status', [
         div({ style: { lineHeight: '24px' } }, [makeStatusLine(style => statusIcon(status, style), status)])

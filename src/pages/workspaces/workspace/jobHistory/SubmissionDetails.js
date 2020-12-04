@@ -7,7 +7,17 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { collapseStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon, submittedIcon, successIcon } from 'src/components/job-common'
+import {
+  collapseStatus,
+  failedIcon,
+  jobHistoryBreadcrumbTitle,
+  makeSection,
+  makeStatusLine,
+  runningIcon,
+  statusIcon, submissionDetailsBreadcrumbSubtitle,
+  submittedIcon,
+  successIcon
+} from 'src/components/job-common'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
@@ -127,14 +137,7 @@ const SubmissionDetails = _.flow(
    * Page render
    */
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-    div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center' } }, [
-      h(Link, {
-        href: Nav.getLink('workspace-job-history', { namespace, name }),
-        style: { alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', padding: '0.5rem 0' }
-      }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Job History']),
-      div({ style: { margin: '0 0.5rem' } }, ['>']),
-      div({ style: Style.elements.sectionHeader }, [`Submission ${submissionId}`])
-    ]),
+    submissionDetailsBreadcrumbSubtitle(namespace, name, submissionId),
     _.isEmpty(submission) ? centeredSpinner() : h(Fragment, [
       div({ style: { display: 'flex' } }, [
         div({ style: { flex: '0 0 200px', marginRight: '2rem', lineHeight: '24px' } }, [
