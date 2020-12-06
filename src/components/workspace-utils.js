@@ -2,7 +2,7 @@ import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { AsyncCreatableSelect, ButtonPrimary, Link, Select } from 'src/components/common'
+import { AsyncCreatableSelect, ButtonPrimary, Link, Select, spinnerOverlay } from 'src/components/common'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -58,13 +58,13 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, ...props }) => 
   })
 }
 
-export const SnapshotInfo = ({ snapshotId }) => {
-  const [snapshotInfo, setSelectedSnapshotInfo] = useState()
+export const SnapshotInfo = ({ snapshotId, snapshotName }) => {
+  const [snapshotInfo, setSelectedSnapshotInfo] = useState({})
   const signal = Utils.useCancellation()
 
   Utils.useOnMount(() => {
     const loadSnapshotInfo = async () => {
-      const snapshotInfo = await Ajax(signal).DataRepoSnapshots.snapshots().getSnapshotDetails(snapshotId)
+      const snapshotInfo = await Ajax(signal).DataRepo.snapshots().snapshot(snapshotId).details()
       setSelectedSnapshotInfo(snapshotInfo)
     }
 
@@ -73,17 +73,19 @@ export const SnapshotInfo = ({ snapshotId }) => {
 
   const { name, description, createdDate } = snapshotInfo
 
-  console.log('snapshotInfo', snapshotInfo)
-  return div({
-    style: { ...Style.elements.card.container, color: colors.accent(), height: 125 }
+  return _.isEqual(snapshotInfo, {}) ? spinnerOverlay : div({
+    style: { ...Style.elements.card.container }
   }, [
-    div({ style: Style.elements.sectionHeader }, [name]),
-    div({ style: { display: 'flex', justifyContent: 'center', alignItems: 'center' } }, [
-      div([description]),
-      div({ style: { flexGrow: 1 } }),
-      div([`Creation date: ${createdDate}`])
-    ]),
-    div({ style: { margin: '1.5rem 0 1rem', borderBottom: `1px solid ${colors.dark(0.35)}` } })
+    div({ style: Style.elements.sectionHeader }, [snapshotName]),
+    div({ style: { display: 'flex', justifyContent: 'center', marginTop: '10px' } }, [
+      div({ style: { flexGrow: 1, borderRight: `1px solid ${colors.dark(0.35)}`, paddingRight: '10px', marginRight: '10px' } }, [description]),
+
+      div([
+        div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, 'Underlying Snapshot'),
+        div({ style: { lineHeight: '20px' } }, [`Name: ${name}`]),
+        div({ style: { lineHeight: '20px' } }, [`Creation date: ${createdDate}`])
+      ])
+    ])
   ])
 }
 

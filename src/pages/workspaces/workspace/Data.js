@@ -15,6 +15,7 @@ import Dropzone from 'src/components/Dropzone'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
+import Collapse from 'src/components/Collapse'
 import IGVBrowser from 'src/components/IGVBrowser'
 import IGVFileSelector from 'src/components/IGVFileSelector'
 import { DelayedSearchInput, TextInput } from 'src/components/input'
@@ -105,22 +106,6 @@ const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 1
     div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
       children
     ])
-  ])
-}
-
-const SnapshotCollapse = ({ title, buttonStyle, children, ...props }) => {
-  const [isOpened, setIsOpened] = useState(false)
-  return div({ style: { width: '1.5rem' }, ...props }, [
-    h(Link, {
-      'aria-expanded': isOpened,
-      style: { display: 'flex', alignItems: 'center', ...buttonStyle },
-      onClick: () => setIsOpened(!isOpened)
-    }, [
-      [title],
-      div({ style: { flexGrow: 1 } }),
-      icon(isOpened ? 'angle-down' : 'angle-right', { style: { marginRight: '0.25rem', flexShrink: 0 } })
-    ]),
-    isOpened && div([children])
   ])
 }
 
@@ -722,57 +707,57 @@ class EntitiesContent extends Component {
       entityKey, entityMetadata, snapshotDetails, loadMetadata, firstRender
     } = this.props
     const { selectedEntities, deletingEntities, copyingEntities, refreshKey, showToolSelector, igvData: { selectedFiles, refGenome } } = this.state
+
     const { initialX, initialY } = firstRender ? StateHistory.get() : {}
     const selectedKeys = _.keys(selectedEntities)
     const selectedLength = selectedKeys.length
 
     return Utils.cond(
-      [_.isArray(entityKey), ((snapshotDetails !== undefined) ? h(SnapshotInfo, { snapshotId: snapshotDetails[entityKey[0]].id } ) : spinnerOverlay())],
-      [selectedFiles ?
-        h(IGVBrowser, { selectedFiles, refGenome, workspace, onDismiss: () => this.setState(_.set(['igvData', 'selectedFiles'], undefined)) }) :
-        h(Fragment, [
-          h(DataTable, {
-            persist: true, firstRender, refreshKey, editable: !Utils.editWorkspaceError(workspace),
-            entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
-            onScroll: saveScroll, initialX, initialY,
-            selectionModel: {
-              selected: selectedEntities,
-              setSelected: e => this.setState({ selectedEntities: e })
-            },
-            childrenBefore: ({ entities, columnSettings }) => div({
-              style: { display: 'flex', alignItems: 'center', flex: 'none' }
-            }, [
-              this.renderDownloadButton(columnSettings),
-              !_.endsWith('_set', entityKey) && this.renderCopyButton(entities, columnSettings),
-              div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
-              div({ style: { marginRight: '0.5rem' } }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
-              this.renderSelectedRowsMenu(columnSettings)
-            ])
-          }),
-          deletingEntities && h(EntityDeleter, {
-            onDismiss: () => this.setState({ deletingEntities: false }),
-            onSuccess: () => {
-              this.setState({ deletingEntities: false, selectedEntities: {}, refreshKey: refreshKey + 1 })
-              loadMetadata()
-            },
-            namespace, name,
-            selectedEntities: selectedKeys, selectedDataType: entityKey, runningSubmissionsCount
-          }),
-          copyingEntities && h(ExportDataModal, {
-            onDismiss: () => this.setState({ copyingEntities: false }),
-            workspace,
-            selectedEntities: selectedKeys, selectedDataType: entityKey, runningSubmissionsCount
-          }),
-          h(ToolDrawer, {
-            workspace,
-            isOpen: showToolSelector,
-            onDismiss: () => this.setState({ showToolSelector: false }),
-            onIgvSuccess: newIgvData => this.setState({ showToolSelector: false, igvData: newIgvData }),
-            entityMetadata,
-            entityKey,
-            selectedEntities
-          })
-        ])]
+      [_.isArray(entityKey), () => snapshotDetails === undefined ? spinnerOverlay : h(SnapshotInfo, { snapshotId: snapshotDetails[entityKey[0]].id, snapshotName: entityKey[0] })],
+      [selectedFiles !== undefined, () => h(IGVBrowser, { selectedFiles, refGenome, workspace, onDismiss: () => this.setState(_.set(['igvData', 'selectedFiles'], undefined)) })],
+      () => h(Fragment, [
+        h(DataTable, {
+          persist: true, firstRender, refreshKey, editable: !Utils.editWorkspaceError(workspace),
+          entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
+          onScroll: saveScroll, initialX, initialY,
+          selectionModel: {
+            selected: selectedEntities,
+            setSelected: e => this.setState({ selectedEntities: e })
+          },
+          childrenBefore: ({ entities, columnSettings }) => div({
+            style: { display: 'flex', alignItems: 'center', flex: 'none' }
+          }, [
+            this.renderDownloadButton(columnSettings),
+            !_.endsWith('_set', entityKey) && this.renderCopyButton(entities, columnSettings),
+            div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
+            div({ style: { marginRight: '0.5rem' } }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
+            this.renderSelectedRowsMenu(columnSettings)
+          ])
+        }),
+        deletingEntities && h(EntityDeleter, {
+          onDismiss: () => this.setState({ deletingEntities: false }),
+          onSuccess: () => {
+            this.setState({ deletingEntities: false, selectedEntities: {}, refreshKey: refreshKey + 1 })
+            loadMetadata()
+          },
+          namespace, name,
+          selectedEntities: selectedKeys, selectedDataType: entityKey, runningSubmissionsCount
+        }),
+        copyingEntities && h(ExportDataModal, {
+          onDismiss: () => this.setState({ copyingEntities: false }),
+          workspace,
+          selectedEntities: selectedKeys, selectedDataType: entityKey, runningSubmissionsCount
+        }),
+        h(ToolDrawer, {
+          workspace,
+          isOpen: showToolSelector,
+          onDismiss: () => this.setState({ showToolSelector: false }),
+          onIgvSuccess: newIgvData => this.setState({ showToolSelector: false, igvData: newIgvData }),
+          entityMetadata,
+          entityKey,
+          selectedEntities
+        })
+      ])
     )
   }
 }
@@ -969,7 +954,6 @@ const WorkspaceData = _.flow(
       Ajax(signal).Workspaces.workspace(namespace, name).listSnapshot(1000, 0)
     ])
 
-
     const snapshotEntities = await Promise.all(_.map(({ name: snapshotName }) => {
       return Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, snapshotName)
     }, snapshotMetadata))
@@ -988,7 +972,6 @@ const WorkspaceData = _.flow(
       snapshotDetails
     })
   })
-
 
   componentDidMount() {
     this.loadMetadata()
@@ -1013,17 +996,12 @@ const WorkspaceData = _.flow(
     )
   }
 
-
   render() {
     const { namespace, name, workspace, workspace: { workspace: { attributes } }, refreshWorkspace, pfbImportJobs } = this.props
     const { selectedDataType, entityMetadata, snapshotDetails, importingReference, deletingReference, firstRender, refreshKey, uploadingFile } = this.state
     const referenceData = getReferenceData(attributes)
     const sortedEntityPairs = _.flow(_.toPairs, _.sortBy(_.first))(entityMetadata)
     const sortedSnapshotPairs = _.flow(_.toPairs, _.sortBy(_.first))(snapshotDetails)
-    console.log('SORTED ENTITY PAIRS')
-    console.log(sortedEntityPairs)
-    console.log('SORTED SNAPSHOT PAIRS')
-    console.log(sortedSnapshotPairs)
 
     return div({ style: styles.tableContainer }, [
       !entityMetadata ? spinnerOverlay : h(Fragment, [
@@ -1050,20 +1028,21 @@ const WorkspaceData = _.flow(
           div({ style: Style.navList.heading }, ['Snapshots']),
           _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables }]) => {
             const snapshotTablePairs = _.flow(_.toPairs, _.sortBy(_.first))(snapshotTables)
-            return h(SnapshotCollapse, {
+            return h(Collapse, {
+              key: snapshotName,
               buttonStyle: { color: colors.dark(), fontWeight: 600 },
-              style: { fontSize: 14, marginRight: '0.5rem', lineHeight: '50px', padding: '0 1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
+              style: { fontSize: 14, lineHeight: '50px', paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
               title: snapshotName
             }, [
-              p({ style: { fontSize: 14, lineHeight: '1.5' } },
+              div({ style: { fontSize: 14, lineHeight: '1.5' } },
                 _.map(([tableName, { count }]) => {
-                  return [h(DataTypeButton, {
-                    key: snapshotName,
+                  return h(DataTypeButton, {
+                    key: snapshotName + '_' + tableName,
                     selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
                     onClick: () => {
                       this.setState({ selectedDataType: [snapshotName, tableName], refreshKey: refreshKey + 1 })
                     }
-                  }, [`${tableName} (${count})`])]
+                  }, [`${tableName} (${count})`])
                 }, snapshotTablePairs))
             ])
           }, sortedSnapshotPairs),

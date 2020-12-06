@@ -623,8 +623,7 @@ const Workspaces = signal => ({
       },
 
       listSnapshot: async (limit, offset) => {
-        const path = `${root}/snapshots?offset=${offset}&limit=${limit}`
-        const res = await fetchRawls(path, _.merge(authOpts(), { signal }))
+        const res = await fetchRawls(`${root}/snapshots?offset=${offset}&limit=${limit}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
@@ -803,18 +802,24 @@ const Workspaces = signal => ({
 })
 
 
-const DataRepoSnapshots = signal => ({
+const DataRepo = signal => ({
   snapshots: () => {
     const root = `repository/v1/snapshots`
 
     return {
-      getSnapshotDetails: async snapshotId => {
-        const res = await fetchDataRepo(`${root}/${snapshotId}`, _.merge(authOpts(), { signal }))
-        return res.json()
+      snapshot: snapshotId => {
+
+        return {
+          details: async () => {
+            const res = await fetchDataRepo(`${root}/${snapshotId}`, _.merge(authOpts(), { signal }))
+            return res.json()
+          }
+        }
       }
     }
   }
 })
+
 
 const Buckets = signal => ({
   getObject: async (bucket, object, namespace, params = {}) => {
@@ -1281,7 +1286,7 @@ export const Ajax = signal => {
     Groups: Groups(signal),
     Billing: Billing(signal),
     Workspaces: Workspaces(signal),
-    DataRepoSnapshots: DataRepoSnapshots(signal),
+    DataRepo: DataRepo(signal),
     Buckets: Buckets(signal),
     GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),
