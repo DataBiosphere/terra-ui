@@ -958,13 +958,10 @@ const WorkspaceData = _.flow(
       return Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, snapshotName)
     }, snapshotMetadata))
 
-    const snapshotDetails = _.reduce(
-      (acc, [i, { name: snapshotName, reference: { snapshot: snapshotId }, ...snapshotDetail }]) => {
-        return _.set(snapshotName, { entityMetadata: snapshotEntities[i], id: snapshotId }, acc)
-      },
-      {},
-      Utils.toIndexPairs(snapshotMetadata)
-    )
+    const snapshotDetails = _.fromPairs(_.map(([entities, metadata]) => {
+      return [metadata.name, { entityMetadata: entities, id: metadata.reference.snapshot }]
+    },
+    _.zip(snapshotEntities, snapshotMetadata)))
 
     this.setState({
       selectedDataType: this.selectionType() === 'entities' && !entityMetadata[selectedDataType] ? undefined : selectedDataType,
@@ -1030,12 +1027,12 @@ const WorkspaceData = _.flow(
             const snapshotTablePairs = _.flow(_.toPairs, _.sortBy(_.first))(snapshotTables)
             return h(Collapse, {
               key: snapshotName,
-              buttonStyle: { color: colors.dark(), fontWeight: 600 },
+              buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0 },
               style: { fontSize: 14, lineHeight: '50px', paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
               title: snapshotName
             }, [
-              div({ style: { fontSize: 14, lineHeight: '1.5' } },
-                _.map(([tableName, { count }]) => {
+              div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
+                div(_.map(([tableName, { count }]) => {
                   return h(DataTypeButton, {
                     key: `${snapshotName}_${tableName}`,
                     selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
@@ -1043,7 +1040,7 @@ const WorkspaceData = _.flow(
                       this.setState({ selectedDataType: [snapshotName, tableName], refreshKey: refreshKey + 1 })
                     }
                   }, [`${tableName} (${count})`])
-                }, snapshotTablePairs))
+                }, snapshotTablePairs))])
             ])
           }, sortedSnapshotPairs),
           div({ style: Style.navList.heading }, [

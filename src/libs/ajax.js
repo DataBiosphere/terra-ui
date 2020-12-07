@@ -130,7 +130,7 @@ const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIden
 const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchGoogleBilling = withUrlPrefix('https://cloudbilling.googleapis.com/v1/', fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
-const fetchDataRepo = _.flow(withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`), withAppIdentifier)(fetchOk)
+const fetchDataRepo = _.flow(withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`))(fetchOk)
 const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
 const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
 const fetchAgora = _.flow(withUrlPrefix(`${getConfig().agoraUrlRoot}/api/v1/`), withAppIdentifier)(fetchOk)
@@ -803,17 +803,11 @@ const Workspaces = signal => ({
 
 
 const DataRepo = signal => ({
-  snapshots: () => {
-    const root = `repository/v1/snapshots`
-
+  snapshot: snapshotId => {
     return {
-      snapshot: snapshotId => {
-        return {
-          details: async () => {
-            const res = await fetchDataRepo(`${root}/${snapshotId}`, _.merge(authOpts(), { signal }))
-            return res.json()
-          }
-        }
+      details: async () => {
+        const res = await fetchDataRepo(`repository/v1/snapshots/${snapshotId}`, _.merge(authOpts(), { signal }))
+        return res.json()
       }
     }
   }
