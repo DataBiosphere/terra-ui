@@ -124,14 +124,14 @@ const SubmissionDetails = _.flow(
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
           makeSection('Workflow Configuration', [
             Utils.cond(
-              [methodAccessible, () => h(Link, {
-                href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }),
-                style: Style.noWrapEllipsis
-              },
-              [`${workflowNamespace}/${workflowName}`]
-              )],
-              [methodAccessible === false,
-                () => div({ style: { display: 'flex', alignItems: 'center' } }, [
+              [methodAccessible, () => {
+                return h(Link, {
+                  href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }),
+                  style: Style.noWrapEllipsis
+                }, [`${workflowNamespace}/${workflowName}`])
+              }],
+              [methodAccessible === false, () => {
+                return div({ style: { display: 'flex', alignItems: 'center' } }, [
                   h(TooltipTrigger, {
                     content: `${workflowNamespace}/${workflowName}` // TODO fix this width or wrap better
                   }, [div({ style: Style.noWrapEllipsis }, [`${workflowNamespace}/${workflowName}`])]),
@@ -140,7 +140,8 @@ const SubmissionDetails = _.flow(
                   }, [
                     icon('ban', { size: 16, style: { color: colors.warning(), marginLeft: '0.3rem' } })
                   ])
-                ])],
+                ])
+              }],
               () => div({ style: Style.noWrapEllipsis }, [`${workflowNamespace}/${workflowName}`])
             )
           ]),
