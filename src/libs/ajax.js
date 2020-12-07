@@ -176,7 +176,7 @@ const User = signal => ({
       return res.json()
     },
 
-    //We are not calling SAM directly because free credits logic is in orchestration
+    //We are not calling Thurloe directly because free credits logic was in orchestration
     set: keysAndValues => {
       const blankProfile = {
         firstName: 'N/A',
@@ -203,18 +203,6 @@ const User = signal => ({
     preferLegacyFirecloud: () => {
       return fetchOrchestration('api/profile/terra', _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
     }
-  },
-
-  acceptEula: () => {
-    return fetchOrchestration('api/profile/trial/userAgreement', _.merge(authOpts(), { signal, method: 'PUT' }))
-  },
-
-  startTrial: () => {
-    return fetchOrchestration('api/profile/trial', _.merge(authOpts(), { signal, method: 'POST' }))
-  },
-
-  finalizeTrial: () => {
-    return fetchOrchestration('api/profile/trial?operation=finalize', _.merge(authOpts(), { signal, method: 'POST' }))
   },
 
   getProxyGroup: async email => {
