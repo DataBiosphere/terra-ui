@@ -1,10 +1,9 @@
-import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Link, Select } from 'src/components/common'
+import { ClipboardButton, Link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon, submissionDetailsBreadcrumbSubtitle, submittedIcon, successIcon } from 'src/components/job-common'
@@ -19,21 +18,6 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-
-
-const CopyLink = ({ workflowId }) => {
-  const [wfidCopied, setWfidCopied] = useState()
-  return h(Link, {
-    style: { margin: '0 0.5rem' },
-    tooltip: 'Copy to clipboard',
-    onClick: withErrorReporting('Error copying to clipboard', async () => {
-      await clipboard.writeText(workflowId)
-      setWfidCopied(true)
-      await Utils.delay(1500)
-      setWfidCopied(undefined)
-    })
-  }, [icon(wfidCopied ? 'check' : 'copy-to-clipboard')])
-}
 
 
 const SubmissionDetails = _.flow(
@@ -245,7 +229,7 @@ const SubmissionDetails = _.flow(
                 const { workflowId } = filteredWorkflows[rowIndex]
                 return workflowId && h(Fragment, [
                   h(TooltipCell, { tooltip: workflowId }, [workflowId]),
-                  h(CopyLink, { workflowId })
+                  h(ClipboardButton, { text: workflowId, style: { marginLeft: '0.5rem' } })
                 ])
               }
             }, {
