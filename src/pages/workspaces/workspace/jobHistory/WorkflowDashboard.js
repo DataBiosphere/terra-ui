@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useRef, useState } from 'react'
-import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
+import { Fragment, useRef, useState } from 'react'
+import { div, h, span } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
@@ -17,14 +17,13 @@ import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const styles = {
-  sectionTableLabel: { paddingRight: '0.6rem', fontWeight: 600 }
+  sectionTableLabel: { fontWeight: 600 }
 }
 
 // Note: this can take a while with large data inputs. Consider memoization if the page ever needs re-rendering.
@@ -119,11 +118,9 @@ const WorkflowDashboard = _.flow(
         div({ style: { lineHeight: '24px' } }, [makeStatusLine(style => statusIcon(status, style), status)])
       ]),
       makeSection('Workflow Timing', [
-        table({ style: { marginTop: '0.3rem', lineHeight: '20px' } }, [
-          tbody([
-            tr([td({ style: styles.sectionTableLabel }, ['Start:']), td([start ? Utils.makeCompleteDate(start) : 'N/A'])]),
-            tr([td({ style: styles.sectionTableLabel }, ['End:']), td([end ? Utils.makeCompleteDate(end) : 'N/A'])])
-          ])
+        div({ style: { marginTop: '0.3rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
+          div({ style: styles.sectionTableLabel }, ['Start:']), div([start ? Utils.makeCompleteDate(start) : 'N/A']),
+          div({ style: styles.sectionTableLabel }, ['End:']), div([end ? Utils.makeCompleteDate(end) : 'N/A'])
         ])
       ]),
       makeSection('Links', [
@@ -201,4 +198,3 @@ export const navPaths = [
     title: ({ name }) => `${name} - Workflow Dashboard`
   }
 ]
-

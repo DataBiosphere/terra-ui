@@ -7,17 +7,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { Link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import {
-  collapseStatus,
-  failedIcon,
-  jobHistoryBreadcrumbTitle,
-  makeSection,
-  makeStatusLine,
-  runningIcon,
-  statusIcon, submissionDetailsBreadcrumbSubtitle,
-  submittedIcon,
-  successIcon
-} from 'src/components/job-common'
+import { collapseStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon, submissionDetailsBreadcrumbSubtitle, submittedIcon, successIcon } from 'src/components/job-common'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
@@ -253,10 +243,10 @@ const SubmissionDetails = _.flow(
               headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId } = filteredWorkflows[rowIndex]
-                return workflowId && [
+                return workflowId && h(Fragment, [
                   h(TooltipCell, { tooltip: workflowId }, [workflowId]),
                   h(CopyLink, { workflowId })
-                ]
+                ])
               }
             }, {
               size: { basis: 150, grow: 0 },
@@ -277,15 +267,13 @@ const SubmissionDetails = _.flow(
                     tooltip: 'Workflow Dashboard [alpha]',
                     'aria-label': 'Workflow Dashboard [alpha]'
                   }, [icon('tachometer', { size: 18 })]),
-                  inputName &&
-                    h(Link, {
-                      ...Utils.newTabLinkProps,
-                      href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`),
-                      style: { padding: '.6rem', display: 'flex' },
-                      tooltip: 'Execution directory',
-                      'aria-label': 'Execution directory'
-                    }, [icon('folder-open', { size: 18 })]
-                    )
+                  inputName && h(Link, {
+                    ...Utils.newTabLinkProps,
+                    href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`),
+                    style: { padding: '.6rem', display: 'flex' },
+                    tooltip: 'Execution directory',
+                    'aria-label': 'Execution directory'
+                  }, [icon('folder-open', { size: 18 })])
                 ])
               }
             }
