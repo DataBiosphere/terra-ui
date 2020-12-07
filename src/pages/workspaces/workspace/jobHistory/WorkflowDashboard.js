@@ -35,7 +35,7 @@ const statusCell = ({ calls }) => {
   const { succeeded, failed, running, submitted, ...others } = groupCallStatuses(calls)
 
   const makeRow = (count, icon, text) => {
-    return !!count && div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.3rem' } }, [
+    return !!count && div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.25rem' } }, [
       icon,
       span([` ${count} ${text}`])
     ])
@@ -115,43 +115,33 @@ const WorkflowDashboard = _.flow(
         div({ style: { lineHeight: '24px' } }, [makeStatusLine(style => statusIcon(status, style), status)])
       ]),
       makeSection('Workflow Timing', [
-        div({ style: { marginTop: '0.3rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
+        div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
           div({ style: styles.sectionTableLabel }, ['Start:']), div([start ? Utils.makeCompleteDate(start) : 'N/A']),
           div({ style: styles.sectionTableLabel }, ['End:']), div([end ? Utils.makeCompleteDate(end) : 'N/A'])
         ])
       ]),
       makeSection('Links', [
-        div({ style: { display: 'flex' } }, [
+        div({ style: { display: 'flex', marginTop: '0.5rem' } }, [
           h(Link, {
             ...Utils.newTabLinkProps,
             href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-            style: { padding: '0.6rem', display: 'flex' },
+            style: { display: 'flex' },
             tooltip: 'Job Manager'
-          }, [
-            icon('tasks', { size: 18 }),
-            span([' Job Manager'])
-          ]),
+          }, [icon('tasks', { size: 18 }), span([' Job Manager'])]),
           h(Link, {
             ...Utils.newTabLinkProps,
             href: bucketBrowserUrl(`${bucketName}/${submissionId}/${workflowName}/${workflowId}`),
-            style: { padding: '0.6rem', display: 'flex' },
+            style: { display: 'flex', marginLeft: '1rem' },
             tooltip: 'Execution directory'
-          }, [
-            icon('folder-open', { size: 18 }),
-            span([' Execution Directory'])
-          ]),
+          }, [icon('folder-open', { size: 18 }), span([' Execution Directory'])]),
           h(Link, {
             onClick: () => setShowLog(true),
-            style: { padding: '.6rem', display: 'flex' }
-          }, [
-            icon('fileAlt', { size: 18 }),
-            span([' View execution log'])
-          ])
+            style: { display: 'flex', marginLeft: '1rem' }
+          }, [icon('fileAlt', { size: 18 }), span([' View execution log'])])
         ])
       ]),
       makeSection('Call Statuses', [
-        workflow.calls ? statusCell(workflow) : div({ style: { padding: '0.6rem' } }, ['No calls have been started by this workflow.'])
-
+        workflow.calls ? statusCell(workflow) : div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.'])
       ])
     ]),
     failures && h(Collapse, {
