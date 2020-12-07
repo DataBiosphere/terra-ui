@@ -5,17 +5,17 @@ import JSZip from 'jszip'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Component, createRef, Fragment, useEffect, useState } from 'react'
-import { div, form, h, img, input, p } from 'react-hyperscript-helpers'
+import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
+import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, Clickable, Link, MenuButton, Select, spinnerOverlay } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import Dropzone from 'src/components/Dropzone'
 import ExportDataModal from 'src/components/ExportDataModal'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
-import Collapse from 'src/components/Collapse'
 import IGVBrowser from 'src/components/IGVBrowser'
 import IGVFileSelector from 'src/components/IGVFileSelector'
 import { DelayedSearchInput, TextInput } from 'src/components/input'
@@ -1037,7 +1037,7 @@ const WorkspaceData = _.flow(
               div({ style: { fontSize: 14, lineHeight: '1.5' } },
                 _.map(([tableName, { count }]) => {
                   return h(DataTypeButton, {
-                    key: snapshotName + '_' + tableName,
+                    key: `${snapshotName}_${tableName}`,
                     selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
                     onClick: () => {
                       this.setState({ selectedDataType: [snapshotName, tableName], refreshKey: refreshKey + 1 })

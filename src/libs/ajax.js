@@ -808,7 +808,6 @@ const DataRepo = signal => ({
 
     return {
       snapshot: snapshotId => {
-
         return {
           details: async () => {
             const res = await fetchDataRepo(`${root}/${snapshotId}`, _.merge(authOpts(), { signal }))
