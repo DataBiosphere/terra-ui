@@ -1,12 +1,15 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ClipboardButton, Link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { collapseStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon, submissionDetailsBreadcrumbSubtitle, submittedIcon, successIcon } from 'src/components/job-common'
+import {
+  collapseStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon,
+  submissionDetailsBreadcrumbSubtitle, submittedIcon, successIcon
+} from 'src/components/job-common'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
@@ -132,9 +135,7 @@ const SubmissionDetails = _.flow(
               }],
               [methodAccessible === false, () => {
                 return div({ style: { display: 'flex', alignItems: 'center' } }, [
-                  h(TooltipTrigger, {
-                    content: `${workflowNamespace}/${workflowName}` // TODO fix this width or wrap better
-                  }, [div({ style: Style.noWrapEllipsis }, [`${workflowNamespace}/${workflowName}`])]),
+                  h(TooltipCell, [`${workflowNamespace}/${workflowName}`]), // TODO fix this width or wrap better
                   h(TooltipTrigger, {
                     content: 'This configuration was updated or deleted since this submission ran.'
                   }, [
@@ -190,9 +191,9 @@ const SubmissionDetails = _.flow(
               headerRenderer: () => h(Sortable, { sort, field: 'workflowEntity', onSort: setSort }, ['Data Entity']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowEntity: { entityName, entityType } = {} } = filteredWorkflows[rowIndex]
-                return h(TooltipCell, [
-                  entityName ? `${entityName} (${entityType})` : span({ style: { color: colors.dark(0.7) } }, ['--'])
-                ])
+                return !!entityName ?
+                  h(TooltipCell, [`${entityName} (${entityType})`]) :
+                  div({ style: { color: colors.dark(0.7) } }, ['--'])
               }
             }, {
               size: { basis: 225, grow: 0 },

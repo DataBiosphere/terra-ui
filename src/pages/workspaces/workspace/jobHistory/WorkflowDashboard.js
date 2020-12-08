@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
@@ -37,7 +37,7 @@ const statusCell = ({ calls }) => {
   const makeRow = (count, icon, text) => {
     return !!count && div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.25rem' } }, [
       icon,
-      span([` ${count} ${text}`])
+      ` ${count} ${text}`
     ])
   }
 
@@ -62,7 +62,7 @@ const WorkflowDashboard = _.flow(
   /*
    * State setup
    */
-  const [workflow, setWorkflow] = useState({})
+  const [workflow, setWorkflow] = useState()
   const [showLog, setShowLog] = useState(false)
 
   const signal = Utils.useCancellation()
@@ -94,12 +94,14 @@ const WorkflowDashboard = _.flow(
   /*
    * Page render
    */
-  const { end, failures, start, status, workflowLog, workflowName, submittedFiles: { workflow: wdl } = {} } = workflow
+  const { end, failures, start, status, workflowLog, workflowName, submittedFiles: { workflow: wdl } = {} } = workflow || {}
 
   const restructureFailures = failuresArray => {
     const filtered = _.filter(({ message }) => !_.isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
     const sizeDiff = failuresArray.length - filtered.length
-    const newMessage = sizeDiff > 0 ? [{ message: `${sizeDiff} jobs were queued in Cromwell but never sent to the cloud backend due to failures elsewhere in the workflow` }] : []
+    const newMessage = sizeDiff > 0 ? [{
+      message: `${sizeDiff} jobs were queued in Cromwell but never sent to the cloud backend due to failures elsewhere in the workflow`
+    }] : []
     const simplifiedFailures = [...filtered, ...newMessage]
 
     return _.map(({ message, causedBy }) => ({
@@ -127,17 +129,17 @@ const WorkflowDashboard = _.flow(
             href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
             style: { display: 'flex' },
             tooltip: 'Job Manager'
-          }, [icon('tasks', { size: 18 }), span([' Job Manager'])]),
+          }, [icon('tasks', { size: 18 }), ' Job Manager']),
           h(Link, {
             ...Utils.newTabLinkProps,
             href: bucketBrowserUrl(`${bucketName}/${submissionId}/${workflowName}/${workflowId}`),
             style: { display: 'flex', marginLeft: '1rem' },
             tooltip: 'Execution directory'
-          }, [icon('folder-open', { size: 18 }), span([' Execution Directory'])]),
+          }, [icon('folder-open', { size: 18 }), ' Execution Directory']),
           h(Link, {
             onClick: () => setShowLog(true),
             style: { display: 'flex', marginLeft: '1rem' }
-          }, [icon('fileAlt', { size: 18 }), span([' View execution log'])])
+          }, [icon('fileAlt', { size: 18 }), ' View execution log'])
         ])
       ]),
       makeSection('Call Statuses', [
