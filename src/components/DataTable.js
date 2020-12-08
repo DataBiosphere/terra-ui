@@ -181,7 +181,7 @@ const DataTable = props => {
     ])
   })
 
-  const columnHeaderRenderer = _.memoize((memoKey, thisWidth, name) => {
+  const columnHeaderRenderer = _.memoize((name, thisWidth) => {
     const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(name)
     return h(Resizable, {
       width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(name, thisWidth + delta))
@@ -196,7 +196,7 @@ const DataTable = props => {
     ])
   })
 
-  const dataCellRenderer = _.memoize((memoKey, dataInfo, entityName) => {
+  const dataCellRenderer = _.memoize((dataInfo, entityName) => {
     const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), namespace)
     return h(Fragment, [
       (!!dataInfo && _.isArray(dataInfo.items)) ?
@@ -291,10 +291,10 @@ const DataTable = props => {
                   const thisWidth = columnWidths[name] || 300
                   return {
                     width: thisWidth,
-                    headerRenderer: () => columnHeaderRenderer(`${thisWidth}-${name}`, thisWidth, name),
+                    headerRenderer: () => columnHeaderRenderer(name, thisWidth),
                     cellRenderer: ({ rowIndex }) => {
                       const { attributes: { [name]: dataInfo }, name: entityName } = entities[rowIndex]
-                      return dataCellRenderer(`${dataInfo}-${entityName}`, dataInfo, entityName)
+                      return dataCellRenderer(dataInfo, entityName)
                     }
                   }
                 }, _.filter('visible', columnSettings))
