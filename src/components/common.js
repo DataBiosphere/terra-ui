@@ -527,15 +527,11 @@ export const WarningTitle = ({ children }) => {
   ])
 }
 
-export const ClipboardButton = ({ text, onClick, style, ...props }) => {
+export const ClipboardButton = ({ text, onClick, ...props }) => {
   const [copied, setCopied] = useState(false)
   return h(Link, {
     ...props,
     tooltip: 'Copy to clipboard',
-    style: {
-      color: colors.accent(),
-      ...style
-    },
     onClick: _.flow(
       withErrorReporting('Error copying to clipboard'),
       Utils.withBusyState(setCopied)
