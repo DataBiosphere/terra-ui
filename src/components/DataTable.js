@@ -167,11 +167,11 @@ const DataTable = props => {
     return h(Checkbox, {
       'aria-label': entityName,
       checked,
-      onChange: () => setSelected((checked ? _.unset([entity]) : _.set([entityName], entity))(selected))
+      onChange: () => setSelected((checked ? _.unset([entityName]) : _.set([entityName], entity))(selected))
     })
   })
 
-  const nameCellRenderer = _.memoize((memoKey, entityName) => {
+  const nameCellRenderer = _.memoize(entityName => {
     return h(Fragment, [
       renderDataCell(entityName, namespace),
       div({ style: { flexGrow: 1 } }),
@@ -286,21 +286,15 @@ const DataTable = props => {
                       h(HeaderCell, [`${entityType}_id`])
                     ])
                   ]),
-                  cellRenderer: ({ rowIndex }) => {
-                    const { name: entityName } = entities[rowIndex]
-                    return nameCellRenderer(`${nameWidth}-${entityName}`, entityName)
-                  }
+                  cellRenderer: ({ rowIndex }) => nameCellRenderer(entities[rowIndex].name)
                 },
                 ..._.map(({ name }) => {
                   const thisWidth = columnWidths[name] || 300
                   return {
                     width: thisWidth,
-                    headerRenderer: () => {
-                      return columnHeaderRenderer(`${thisWidth}-${name}`, thisWidth, name)
-                    },
+                    headerRenderer: () => columnHeaderRenderer(`${thisWidth}-${name}`, thisWidth, name),
                     cellRenderer: ({ rowIndex }) => {
                       const { attributes: { [name]: dataInfo }, name: entityName } = entities[rowIndex]
-
                       return dataCellRenderer(`${dataInfo}-${entityName}`, dataInfo, entityName)
                     }
                   }
