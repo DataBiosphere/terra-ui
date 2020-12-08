@@ -287,7 +287,7 @@ const DataTable = props => {
                     ])
                   ]),
                   cellRenderer: ({ rowIndex }) => {
-                    const {name: entityName} = entities[rowIndex]
+                    const { name: entityName } = entities[rowIndex]
                     return nameCellRenderer(`${nameWidth}-${entityName}`, entityName)
                   }
                 },
