@@ -301,7 +301,7 @@ const DataTable = props => {
                     cellRenderer: ({ rowIndex }) => {
                       const { attributes: { [name]: dataInfo }, name: entityName } = entities[rowIndex]
 
-                      return dataCellRenderer(`${thisWidth}-${dataInfo}-${entityName}`, dataInfo, entityName)
+                      return dataCellRenderer(`${dataInfo}-${entityName}`, dataInfo, entityName)
                     }
                   }
                 }, _.filter('visible', columnSettings))
