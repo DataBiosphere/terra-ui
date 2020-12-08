@@ -558,6 +558,10 @@ const ToolDrawer = _.flow(
   ])
 })
 
+const SnapshotContent = ({ snapshotDetails, entityKey }) => {
+  return snapshotDetails === undefined ? spinnerOverlay : h(SnapshotInfo, { snapshotId: snapshotDetails[entityKey[0]].id, snapshotName: entityKey[0] })
+}
+
 class EntitiesContent extends Component {
   constructor(props) {
     super(props)
@@ -712,10 +716,9 @@ class EntitiesContent extends Component {
     const selectedKeys = _.keys(selectedEntities)
     const selectedLength = selectedKeys.length
 
-    return Utils.cond(
-      [_.isArray(entityKey), () => snapshotDetails === undefined ? spinnerOverlay : h(SnapshotInfo, { snapshotId: snapshotDetails[entityKey[0]].id, snapshotName: entityKey[0] })],
-      [selectedFiles !== undefined, () => h(IGVBrowser, { selectedFiles, refGenome, workspace, onDismiss: () => this.setState(_.set(['igvData', 'selectedFiles'], undefined)) })],
-      () => h(Fragment, [
+    return selectedFiles ?
+      h(IGVBrowser, { selectedFiles, refGenome, workspace, onDismiss: () => this.setState(_.set(['igvData', 'selectedFiles'], undefined)) }) :
+      h(Fragment, [
         h(DataTable, {
           persist: true, firstRender, refreshKey, editable: !Utils.editWorkspaceError(workspace),
           entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
@@ -758,7 +761,6 @@ class EntitiesContent extends Component {
           selectedEntities
         })
       ])
-    )
   }
 }
 
@@ -988,6 +990,7 @@ const WorkspaceData = _.flow(
       [!selectedDataType, () => 'none'],
       [selectedDataType === localVariables, () => 'localVariables'],
       [selectedDataType === bucketObjects, () => 'bucketObjects'],
+      [_.isArray(selectedDataType), () => 'snapshots'],
       [_.includes(selectedDataType, _.keys(referenceData)), () => 'referenceData'],
       () => 'entities'
     )
@@ -1040,7 +1043,8 @@ const WorkspaceData = _.flow(
                       this.setState({ selectedDataType: [snapshotName, tableName], refreshKey: refreshKey + 1 })
                     }
                   }, [`${tableName} (${count})`])
-                }, snapshotTablePairs))])
+                }, snapshotTablePairs))
+              ])
             ])
           }, sortedSnapshotPairs),
           div({ style: Style.navList.heading }, [
@@ -1128,6 +1132,10 @@ const WorkspaceData = _.flow(
             ['bucketObjects', () => h(BucketContent, {
               workspace, onClose: () => this.setState({ selectedDataType: undefined }),
               firstRender, refreshKey
+            })],
+            ['snapshots', () => h(SnapshotContent, {
+              snapshotDetails,
+              entityKey: selectedDataType
             })],
             ['entities', () => h(EntitiesContent, {
               key: refreshKey,
