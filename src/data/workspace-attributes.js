@@ -27,7 +27,8 @@ export const displayLibraryAttributes = [
   { key: 'library:cohortCountry', title: 'Cohort Country of Origin' },
   { key: 'library:requiresExternalApproval', title: 'Requires External Approval' },
   { key: 'library:lmsvn', title: 'Library Metadata Schema Version Number' },
-  { key: 'library:dulvn', title: 'Structured Data Use Limitations Version Number' }
+  { key: 'library:dulvn', title: 'Structured Data Use Limitations Version Number' },
+  { key: 'library:orsp', title: 'Structured Data Use Limitations ID' }
 ]
 
 export const displayConsentCodes = [
