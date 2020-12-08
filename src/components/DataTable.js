@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, memo, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Checkbox, Clickable, Link, MenuButton, spinnerOverlay } from 'src/components/common'
@@ -161,7 +161,7 @@ const DataTable = props => {
 
 
   // Memoized components
-  const checkboxCellRenderer = _.memoize((entityName, entity) => {
+  const CheckboxCell = memo(({ entityName, entity }) => {
     const checked = _.has([entityName], selected)
     return h(Checkbox, {
       'aria-label': entityName,
@@ -170,7 +170,7 @@ const DataTable = props => {
     })
   })
 
-  const nameCellRenderer = _.memoize(entityName => {
+  const NameCell = memo(({ entityName }) => {
     return h(Fragment, [
       renderDataCell(entityName, namespace),
       div({ style: { flexGrow: 1 } }),
@@ -181,7 +181,7 @@ const DataTable = props => {
     ])
   })
 
-  const columnHeaderRenderer = _.memoize((name, thisWidth) => {
+  const ColumnHeader = memo(({ name, thisWidth }) => {
     const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(name)
     return h(Resizable, {
       width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(name, thisWidth + delta))
@@ -196,7 +196,7 @@ const DataTable = props => {
     ])
   })
 
-  const dataCellRenderer = _.memoize((dataInfo, entityName) => {
+  const DataCell = memo(({ dataInfo, entityName }) => {
     const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), namespace)
     return h(Fragment, [
       (!!dataInfo && _.isArray(dataInfo.items)) ?
@@ -271,7 +271,7 @@ const DataTable = props => {
                   },
                   cellRenderer: ({ rowIndex }) => {
                     const entity = entities[rowIndex]
-                    return checkboxCellRenderer(entity.name, entity)
+                    return h(CheckboxCell, { entityName: entity.name, entity })
                   }
                 },
                 {
@@ -285,16 +285,16 @@ const DataTable = props => {
                       h(HeaderCell, [`${entityType}_id`])
                     ])
                   ]),
-                  cellRenderer: ({ rowIndex }) => nameCellRenderer(entities[rowIndex].name)
+                  cellRenderer: ({ rowIndex }) => h(NameCell, { entityName: entities[rowIndex].name })
                 },
                 ..._.map(({ name }) => {
                   const thisWidth = columnWidths[name] || 300
                   return {
                     width: thisWidth,
-                    headerRenderer: () => columnHeaderRenderer(name, thisWidth),
+                    headerRenderer: () => h(ColumnHeader, { name, thisWidth }),
                     cellRenderer: ({ rowIndex }) => {
                       const { attributes: { [name]: dataInfo }, name: entityName } = entities[rowIndex]
-                      return dataCellRenderer(dataInfo, entityName)
+                      return h(DataCell, { dataInfo, entityName })
                     }
                   }
                 }, _.filter('visible', columnSettings))
