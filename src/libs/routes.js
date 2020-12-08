@@ -19,13 +19,14 @@ import * as Profile from 'src/pages/Profile'
 import * as TermsOfService from 'src/pages/TermsOfService'
 import * as TestLogin from 'src/pages/TestLogin'
 import * as WorkflowsList from 'src/pages/workflows/List'
-import * as WorkflowDashboard from 'src/pages/workflows/workflow/WorkflowDetails'
+import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails'
 import * as WorkspaceList from 'src/pages/workspaces/List'
 import * as AppLauncher from 'src/pages/workspaces/workspace/applications/AppLauncher'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
 import * as Data from 'src/pages/workspaces/workspace/Data'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/SubmissionDetails'
+import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard'
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
 import * as Workflows from 'src/pages/workspaces/workspace/Workflows'
@@ -45,6 +46,7 @@ const routes = _.flatten([
   Notebooks.navPaths,
   JobHistory.navPaths,
   SubmissionDetails.navPaths,
+  WorkflowDashboard.navPaths,
   Workflows.navPaths,
   NotebookLauncher.navPaths,
   Profile.navPaths,
@@ -60,7 +62,7 @@ const routes = _.flatten([
   HoF.navPaths,
   Environments.navPaths,
   WorkflowsList.navPaths,
-  WorkflowDashboard.navPaths,
+  WorkflowDetails.navPaths,
   NotFound.navPaths // must be last
 ])
 

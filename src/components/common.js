@@ -1,3 +1,4 @@
+import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
@@ -524,4 +525,20 @@ export const WarningTitle = ({ children }) => {
     icon('warning-standard', { size: 36, style: { color: colors.warning(), marginRight: '0.75rem' } }),
     children
   ])
+}
+
+export const ClipboardButton = ({ text, onClick, ...props }) => {
+  const [copied, setCopied] = useState(false)
+  return h(Link, {
+    ...props,
+    tooltip: 'Copy to clipboard',
+    onClick: _.flow(
+      withErrorReporting('Error copying to clipboard'),
+      Utils.withBusyState(setCopied)
+    )(async e => {
+      onClick?.(e) // eslint-disable-line no-unused-expressions
+      await clipboard.writeText(text)
+      await Utils.delay(1500)
+    })
+  }, [icon(copied ? 'check' : 'copy-to-clipboard')])
 }

@@ -3,10 +3,13 @@ import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Link, Select } from 'src/components/common'
+import { ClipboardButton, Link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { collapseStatus, failedIcon, runningIcon, statusIcon, submittedIcon, successIcon } from 'src/components/job-common'
+import {
+  collapseStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon,
+  submissionDetailsBreadcrumbSubtitle, submittedIcon, successIcon
+} from 'src/components/job-common'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
@@ -37,7 +40,8 @@ const SubmissionDetails = _.flow(
   const [statusFilter, setStatusFilter] = useState([])
   const [textFilter, setTextFilter] = useState('')
   const [sort, setSort] = useState({ field: 'workflowEntity', direction: 'asc' })
-  const { Workspaces } = Ajax(Utils.useCancellation())
+
+  const signal = Utils.useCancellation()
 
   /*
    * Data fetchers
@@ -65,14 +69,14 @@ const SubmissionDetails = _.flow(
 
               return _.set('asText', wfAsText, wf)
             }),
-            await Workspaces.workspace(namespace, name).submission(submissionId).get())
+            await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).get())
 
           setSubmission(sub)
 
           if (_.isEmpty(submission)) {
             try {
               const { methodConfigurationName: configName, methodConfigurationNamespace: configNamespace } = sub
-              await Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).get()
+              await Ajax(signal).Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).get()
               setMethodAccessible(true)
             } catch {
               setMethodAccessible(false)
@@ -84,23 +88,6 @@ const SubmissionDetails = _.flow(
     initialize()
   }, [submission]) // eslint-disable-line react-hooks/exhaustive-deps
 
-
-  /*
-   * Sub-component constructors
-   */
-  const makeStatusLine = (iconFn, text) => div({ style: { display: 'flex', marginTop: '0.5rem', fontSize: 14 } }, [
-    iconFn({ marginRight: '0.5rem' }), text
-  ])
-
-  const makeSection = (label, children) => div({
-    style: {
-      flex: '0 0 33%', padding: '0 0.5rem 0.5rem',
-      whiteSpace: 'pre', textOverflow: 'ellipsis', overflow: 'hidden'
-    }
-  }, [
-    div({ style: Style.elements.sectionHeader }, label),
-    h(Fragment, children)
-  ])
 
   /*
    * Data prep
@@ -127,10 +114,7 @@ const SubmissionDetails = _.flow(
    * Page render
    */
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-    h(Link, {
-      href: Nav.getLink('workspace-job-history', { namespace, name }),
-      style: { alignSelf: 'flex-start', display: 'flex', alignItems: 'center', padding: '0.5rem 0' }
-    }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to list']),
+    submissionDetailsBreadcrumbSubtitle(namespace, name, submissionId),
     _.isEmpty(submission) ? centeredSpinner() : h(Fragment, [
       div({ style: { display: 'flex' } }, [
         div({ style: { flex: '0 0 200px', marginRight: '2rem', lineHeight: '24px' } }, [
@@ -141,24 +125,27 @@ const SubmissionDetails = _.flow(
           submitted && makeStatusLine(submittedIcon, `Submitted: ${submitted.length}`)
         ]),
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
-          makeSection('Workflow Configuration',
+          makeSection('Workflow Configuration', [
             Utils.cond(
-              [methodAccessible, () => [h(Link,
-                { href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }) },
-                [`${workflowNamespace}/${workflowName}`]
-              )]],
-              [methodAccessible === false,
-                () => [div({ style: { display: 'flex', alignItems: 'center' } }, [
-                  `${workflowNamespace}/${workflowName}`,
+              [methodAccessible, () => {
+                return h(Link, {
+                  href: Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName }),
+                  style: Style.noWrapEllipsis
+                }, [`${workflowNamespace}/${workflowName}`])
+              }],
+              [methodAccessible === false, () => {
+                return div({ style: { display: 'flex', alignItems: 'center' } }, [
+                  h(TooltipCell, [`${workflowNamespace}/${workflowName}`]), // TODO fix this width or wrap better
                   h(TooltipTrigger, {
                     content: 'This configuration was updated or deleted since this submission ran.'
                   }, [
                     icon('ban', { size: 16, style: { color: colors.warning(), marginLeft: '0.3rem' } })
                   ])
-                ])]],
-              () => [`${workflowNamespace}/${workflowName}`]
+                ])
+              }],
+              () => div({ style: Style.noWrapEllipsis }, [`${workflowNamespace}/${workflowName}`])
             )
-          ),
+          ]),
           makeSection('Submitted by', [
             div([submitter]), Utils.makeCompleteDate(submissionDate)
           ]),
@@ -200,22 +187,13 @@ const SubmissionDetails = _.flow(
           noContentMessage: 'No matching workflows',
           columns: [
             {
-              size: { basis: 75, grow: 0 },
-              headerRenderer: () => {},
-              cellRenderer: ({ rowIndex }) => {
-                const { workflowId } = filteredWorkflows[rowIndex]
-                return workflowId && h(Link, {
-                  ...Utils.newTabLinkProps,
-                  href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-                  style: { flexGrow: 1, textAlign: 'center' }
-                }, ['View'])
-              }
-            }, {
-              size: { basis: 225, grow: 0 },
+              size: { basis: 225 },
               headerRenderer: () => h(Sortable, { sort, field: 'workflowEntity', onSort: setSort }, ['Data Entity']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowEntity: { entityName, entityType } = {} } = filteredWorkflows[rowIndex]
-                return h(TooltipCell, [entityName && `${entityName} (${entityType})`])
+                return !!entityName ?
+                  h(TooltipCell, [`${entityName} (${entityType})`]) :
+                  div({ style: { color: colors.dark(0.7) } }, ['--'])
               }
             }, {
               size: { basis: 225, grow: 0 },
@@ -234,10 +212,11 @@ const SubmissionDetails = _.flow(
               size: { basis: 125, grow: 0 },
               headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, ['Run Cost']),
               cellRenderer: ({ rowIndex }) => {
-                return cost ? h(TextCell, [Utils.formatUSD(filteredWorkflows[rowIndex].cost)]) : 'N/A'
+                // handle undefined workflow cost as $0
+                return cost ? h(TextCell, [Utils.formatUSD(filteredWorkflows[rowIndex].cost || 0)]) : 'N/A'
               }
             }, {
-              size: { basis: 200 },
+              size: _.some(({ messages }) => !_.isEmpty(messages), filteredWorkflows) ? { basis: 200 } : { basis: 100, grow: 0 },
               headerRenderer: () => h(Sortable, { sort, field: 'messages', onSort: setSort }, ['Messages']),
               cellRenderer: ({ rowIndex }) => {
                 const messages = _.join('\n', filteredWorkflows[rowIndex].messages)
@@ -246,15 +225,41 @@ const SubmissionDetails = _.flow(
                 }, [messages])
               }
             }, {
-              size: { basis: 375, grow: 0 },
+              size: { basis: 150 },
               headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
               cellRenderer: ({ rowIndex }) => {
+                const { workflowId } = filteredWorkflows[rowIndex]
+                return workflowId && h(Fragment, [
+                  h(TooltipCell, { tooltip: workflowId }, [workflowId]),
+                  h(ClipboardButton, { text: workflowId, style: { marginLeft: '0.5rem' } })
+                ])
+              }
+            }, {
+              size: { basis: 150, grow: 0 },
+              headerRenderer: () => 'Links',
+              cellRenderer: ({ rowIndex }) => {
                 const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
-                return h(TooltipCell, { tooltip: workflowId }, [
-                  inputName ? h(Link, {
+                return workflowId && h(Fragment, [
+                  h(Link, {
                     ...Utils.newTabLinkProps,
-                    href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`)
-                  }, [workflowId]) : workflowId
+                    href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
+                    style: { padding: '.6rem', display: 'flex' },
+                    tooltip: 'Job Manager',
+                    'aria-label': 'Job Manager'
+                  }, [icon('tasks', { size: 18 })]),
+                  h(Link, {
+                    href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
+                    style: { padding: '.6rem', display: 'flex' },
+                    tooltip: 'Workflow Dashboard [alpha]',
+                    'aria-label': 'Workflow Dashboard [alpha]'
+                  }, [icon('tachometer', { size: 18 })]),
+                  inputName && h(Link, {
+                    ...Utils.newTabLinkProps,
+                    href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`),
+                    style: { padding: '.6rem', display: 'flex' },
+                    tooltip: 'Execution directory',
+                    'aria-label': 'Execution directory'
+                  }, [icon('folder-open', { size: 18 })])
                 ])
               }
             }

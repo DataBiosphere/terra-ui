@@ -1,19 +1,17 @@
-import * as clipboard from 'clipboard-polyfill/text'
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, img, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
-import { ButtonPrimary, Clickable, Link } from 'src/components/common'
-import { icon, spinner } from 'src/components/icons'
+import { ButtonPrimary, ClipboardButton, Link } from 'src/components/common'
+import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import DownloadPrices from 'src/data/download-prices'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getUserProjectForWorkspace, parseGsUri } from 'src/libs/data-utils'
-import { withErrorReporting } from 'src/libs/error'
 import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -146,7 +144,6 @@ const UriViewer = _.flow(
 )(({ googleProject, uri, onDismiss, onRequesterPaysError }) => {
   const signal = Utils.useCancellation()
   const [metadata, setMetadata] = useState()
-  const [copied, setCopied] = useState()
   const [loadingError, setLoadingError] = useState()
 
   const loadMetadata = async () => {
@@ -223,16 +220,10 @@ const UriViewer = _.flow(
                 value: gsutilCommand,
                 style: { flexGrow: 1, fontWeight: 400, fontFamily: 'Menlo, monospace' }
               }),
-              h(Clickable, {
-                style: { margin: '0 1rem', color: colors.accent() },
-                tooltip: 'Copy to clipboard',
-                onClick: withErrorReporting('Error copying to clipboard', async () => {
-                  await clipboard.writeText(gsutilCommand)
-                  setCopied(true)
-                  await Utils.delay(1500)
-                  setCopied(undefined)
-                })
-              }, [icon(copied ? 'check' : 'copy-to-clipboard')])
+              h(ClipboardButton, {
+                text: gsutilCommand,
+                style: { margin: '0 1rem' }
+              })
             ])
           ])
         ]),
