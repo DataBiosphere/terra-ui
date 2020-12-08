@@ -160,6 +160,60 @@ const DataTable = props => {
   }, [pageNumber, itemsPerPage])
 
 
+  // Memoized components
+
+  const checkboxCellRenderer = _.memoize((entityName, entity) => {
+    const checked = _.has([entityName], selected)
+    return h(Checkbox, {
+      'aria-label': entityName,
+      checked,
+      onChange: () => setSelected((checked ? _.unset([entity]) : _.set([entityName], entity))(selected))
+    })
+  })
+
+  const nameCellRenderer = _.memoize((memoKey, entityName) => {
+    return h(Fragment, [
+      renderDataCell(entityName, namespace),
+      div({ style: { flexGrow: 1 } }),
+      editable && h(EditDataLink, {
+        'aria-label': 'Rename entity',
+        onClick: () => setRenamingEntity(entityName)
+      })
+    ])
+  })
+
+  const columnHeaderRenderer = _.memoize((memoKey, thisWidth, name) => {
+    const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(name)
+    return h(Resizable, {
+      width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(name, thisWidth + delta))
+    }, [
+      h(Sortable, { sort, field: name, onSort: setSort }, [
+        h(HeaderCell, [
+          !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } },
+            columnNamespace)
+        ]),
+        [columnName]
+      ])
+    ])
+  })
+
+  const dataCellRenderer = _.memoize((memoKey, dataInfo, entityName) => {
+    const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), namespace)
+    return h(Fragment, [
+      (!!dataInfo && _.isArray(dataInfo.items)) ?
+        h(Link, {
+          style: Style.noWrapEllipsis,
+          onClick: () => setViewData(dataInfo)
+        }, [dataCell]) : dataCell,
+      div({ style: { flexGrow: 1 } }),
+      editable && h(EditDataLink, {
+        'aria-label': `Edit attribute ${name} of ${entityType} ${entityName}`,
+        onClick: () => setUpdatingEntity({ entityName, attributeName: name, attributeValue: dataInfo })
+      })
+    ])
+  })
+
+
   // Render
   const columnSettings = applyColumnSettings(columnState || [], entityMetadata[entityType].attributeNames)
   const nameWidth = columnWidths['name'] || 150
@@ -217,14 +271,8 @@ const DataTable = props => {
                     ])
                   },
                   cellRenderer: ({ rowIndex }) => {
-                    const thisEntity = entities[rowIndex]
-                    const { name } = thisEntity
-                    const checked = _.has([name], selected)
-                    return h(Checkbox, {
-                      'aria-label': name,
-                      checked,
-                      onChange: () => setSelected((checked ? _.unset([name]) : _.set([name], thisEntity))(selected))
-                    })
+                    const entity = entities[rowIndex]
+                    return checkboxCellRenderer(entity.name, entity)
                   }
                 },
                 {
@@ -239,48 +287,21 @@ const DataTable = props => {
                     ])
                   ]),
                   cellRenderer: ({ rowIndex }) => {
-                    const { name: entityName } = entities[rowIndex]
-                    return h(Fragment, [
-                      renderDataCell(entityName, namespace),
-                      div({ style: { flexGrow: 1 } }),
-                      editable && h(EditDataLink, {
-                        'aria-label': 'Rename entity',
-                        onClick: () => setRenamingEntity(entityName)
-                      })
-                    ])
+                    const {name: entityName} = entities[rowIndex]
+                    return nameCellRenderer(`${nameWidth}-${entityName}`, entityName)
                   }
                 },
                 ..._.map(({ name }) => {
                   const thisWidth = columnWidths[name] || 300
-                  const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(name)
                   return {
                     width: thisWidth,
-                    headerRenderer: () => h(Resizable, {
-                      width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(name, thisWidth + delta))
-                    }, [
-                      h(Sortable, { sort, field: name, onSort: setSort }, [
-                        h(HeaderCell, [
-                          !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } },
-                            columnNamespace)
-                        ]),
-                        [columnName]
-                      ])
-                    ]),
+                    headerRenderer: () => {
+                      return columnHeaderRenderer(`${thisWidth}-${name}`, thisWidth, name)
+                    },
                     cellRenderer: ({ rowIndex }) => {
                       const { attributes: { [name]: dataInfo }, name: entityName } = entities[rowIndex]
-                      const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), namespace)
-                      return h(Fragment, [
-                        (!!dataInfo && _.isArray(dataInfo.items)) ?
-                          h(Link, {
-                            style: Style.noWrapEllipsis,
-                            onClick: () => setViewData(dataInfo)
-                          }, [dataCell]) : dataCell,
-                        div({ style: { flexGrow: 1 } }),
-                        editable && h(EditDataLink, {
-                          'aria-label': `Edit attribute ${name} of ${entityType} ${entityName}`,
-                          onClick: () => setUpdatingEntity({ entityName, attributeName: name, attributeValue: dataInfo })
-                        })
-                      ])
+
+                      return dataCellRenderer(`${thisWidth}-${dataInfo}-${entityName}`, dataInfo, entityName)
                     }
                   }
                 }, _.filter('visible', columnSettings))
