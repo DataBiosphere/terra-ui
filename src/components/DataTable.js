@@ -161,7 +161,6 @@ const DataTable = props => {
 
 
   // Memoized components
-
   const checkboxCellRenderer = _.memoize((entityName, entity) => {
     const checked = _.has([entityName], selected)
     return h(Checkbox, {
