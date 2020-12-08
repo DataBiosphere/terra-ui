@@ -558,8 +558,8 @@ const ToolDrawer = _.flow(
   ])
 })
 
-const SnapshotContent = ({ snapshotDetails, entityKey }) => {
-  return snapshotDetails === undefined ? spinnerOverlay : h(SnapshotInfo, { snapshotId: snapshotDetails[entityKey[0]].id, snapshotName: entityKey[0] })
+const SnapshotContent = ({ snapshotDetails, snapshotKey }) => {
+  return snapshotDetails === undefined ? spinnerOverlay : h(SnapshotInfo, { snapshotId: snapshotDetails[snapshotKey[0]].id, snapshotName: snapshotKey[0] })
 }
 
 class EntitiesContent extends Component {
@@ -708,7 +708,7 @@ class EntitiesContent extends Component {
   render() {
     const {
       workspace, workspace: { workspace: { namespace, name, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount } },
-      entityKey, entityMetadata, snapshotDetails, loadMetadata, firstRender
+      entityKey, entityMetadata, loadMetadata, firstRender
     } = this.props
     const { selectedEntities, deletingEntities, copyingEntities, refreshKey, showToolSelector, igvData: { selectedFiles, refGenome } } = this.state
 
@@ -1135,13 +1135,12 @@ const WorkspaceData = _.flow(
             })],
             ['snapshots', () => h(SnapshotContent, {
               snapshotDetails,
-              entityKey: selectedDataType
+              snapshotKey: selectedDataType
             })],
             ['entities', () => h(EntitiesContent, {
               key: refreshKey,
               workspace,
               entityMetadata,
-              snapshotDetails,
               entityKey: selectedDataType,
               loadMetadata: () => this.loadMetadata(),
               firstRender
