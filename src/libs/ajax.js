@@ -1,3 +1,4 @@
+import { getDefaultProperties } from '@databiosphere/bard-client'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { version } from 'src/data/machines'
@@ -1231,7 +1232,8 @@ const Metrics = signal => ({
         distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
         appId: 'Saturn',
         hostname: window.location.hostname,
-        appPath: Nav.getCurrentRoute().name
+        appPath: Nav.getCurrentRoute().name,
+        ...getDefaultProperties()
       }
     }
 
