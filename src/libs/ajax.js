@@ -544,6 +544,13 @@ const Workspaces = signal => ({
         return res.json()
       },
 
+      checkBucketLocation: async bucket => {
+        const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=location%2ClocationType`,
+          _.merge(authOpts(await saToken(namespace)), { signal }))
+
+        return res.json()
+      },
+
       details: async fields => {
         const res = await fetchRawls(`${root}?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }))
         return res.json()
