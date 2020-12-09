@@ -1,13 +1,13 @@
 import _ from 'lodash/fp'
 import { Component, Fragment } from 'react'
-import { div, h, i, span } from 'react-hyperscript-helpers'
+import { div, h, i, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
-import RegionFlaggedContent from 'src/components/RegionFlaggedContent'
-import { SimpleTable } from 'src/components/table'
+import { regionInfo, unknownRegionFlag } from 'src/components/region-common'
+import { SimpleTable, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { displayConsentCodes, displayLibraryAttributes } from 'src/data/workspace-attributes'
@@ -190,6 +190,7 @@ export const WorkspaceDashboard = _.flow(
       consentStatus, tagsList, busy, bucketLocation, bucketLocationType
     } = this.state
     const isEditing = _.isString(editDescription)
+    const { flag, regionDescription } = regionInfo(bucketLocation, bucketLocationType)
 
     return div({ style: { flex: 1, display: 'flex' } }, [
       div({ style: Style.dashboard.leftBox }, [
@@ -311,13 +312,18 @@ export const WorkspaceDashboard = _.flow(
         div({ style: { fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
           'Google Bucket'
         ]),
-        div({ style: { display: 'flex', alignItems: 'center' } }, [
-          h(RegionFlaggedContent, { location: bucketLocation, locationType: bucketLocationType, content: bucketName, clipboardText: bucketName }, [])
-        ]),
-        h(Link, {
-          ...Utils.newTabLinkProps,
-          href: bucketBrowserUrl(bucketName)
-        }, ['Open in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])
+        div( { style: { display: 'flex' } }, [
+          (bucketLocation ?
+            h(TooltipCell, { style: { marginRight: '0.5rem' }, tooltip: `Bucket region: ${regionDescription}` }, [flag]) :
+            h(TooltipCell, { style: { marginRight: '0.5rem' }, tooltip: 'Bucket region loading...' }, [unknownRegionFlag])),
+          span({ style: { marginRight: '0.5rem', ...Style.noWrapEllipsis } }, [bucketName]),
+          h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } }),
+          h(Link, {
+            ...Utils.newTabLinkProps,
+            href: bucketBrowserUrl(bucketName),
+            tooltip: 'Open in browser'
+          }, [icon('pop-out', { style: { marginLeft: '0.25rem' } })])
+        ])
       ])
     ])
   }
