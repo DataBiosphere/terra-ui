@@ -59,7 +59,7 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, ...props }) => 
 }
 
 export const SnapshotInfo = ({ snapshotId, snapshotName }) => {
-  const [snapshotInfo, setSelectedSnapshotInfo] = useState({})
+  const [snapshotInfo, setSelectedSnapshotInfo] = useState()
   const signal = Utils.useCancellation()
 
   Utils.useOnMount(() => {
@@ -71,9 +71,9 @@ export const SnapshotInfo = ({ snapshotId, snapshotName }) => {
     loadSnapshotInfo()
   })
 
-  const { name, description, createdDate } = snapshotInfo
+  const { name, description, createdDate } = snapshotInfo || {}
 
-  return _.isEqual(snapshotInfo, {}) ? spinnerOverlay : div({
+  return snapshotInfo === undefined ? spinnerOverlay : div({
     style: Style.elements.card.container
   }, [
     div({ style: { ...Style.elements.sectionHeader, fontSize: 20, marginBottom: '0.5rem' } }, [snapshotName]),

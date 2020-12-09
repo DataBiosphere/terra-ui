@@ -558,8 +558,9 @@ const ToolDrawer = _.flow(
   ])
 })
 
-const SnapshotContent = ({ snapshotDetails, snapshotKey }) => {
-  return snapshotDetails === undefined ? spinnerOverlay : h(SnapshotInfo, { snapshotId: snapshotDetails[snapshotKey[0]].id, snapshotName: snapshotKey[0] })
+const SnapshotContent = ({ snapshotDetails, snapshotKey: [snapshotName] }) => {
+  // ToDo: Add rendering of snapshot tables
+  return h(SnapshotInfo, { snapshotId: snapshotDetails[snapshotName].id, snapshotName })
 }
 
 class EntitiesContent extends Component {
@@ -1036,7 +1037,7 @@ const WorkspaceData = _.flow(
               title: snapshotName
             }, [
               div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
-                div(_.map(([tableName, { count }]) => {
+                _.map(([tableName, { count }]) => {
                   return h(DataTypeButton, {
                     buttonStyle: { borderBottom: 0, height: 40 },
                     key: `${snapshotName}_${tableName}`,
@@ -1045,7 +1046,7 @@ const WorkspaceData = _.flow(
                       this.setState({ selectedDataType: [snapshotName, tableName], refreshKey: refreshKey + 1 })
                     }
                   }, [`${tableName} (${count})`])
-                }, snapshotTablePairs))
+                }, snapshotTablePairs)
               ])
             ])
           }, sortedSnapshotPairs),
@@ -1135,10 +1136,12 @@ const WorkspaceData = _.flow(
               workspace, onClose: () => this.setState({ selectedDataType: undefined }),
               firstRender, refreshKey
             })],
-            ['snapshots', () => h(SnapshotContent, {
-              snapshotDetails,
-              snapshotKey: selectedDataType
-            })],
+            ['snapshots', () => snapshotDetails === undefined ?
+              spinnerOverlay :
+              h(SnapshotContent, {
+                snapshotDetails,
+                snapshotKey: selectedDataType
+              })],
             ['entities', () => h(EntitiesContent, {
               key: refreshKey,
               workspace,
