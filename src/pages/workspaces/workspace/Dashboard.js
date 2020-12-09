@@ -316,7 +316,7 @@ export const WorkspaceDashboard = _.flow(
           (bucketLocation ?
             h(TooltipCell, { style: { marginRight: '0.5rem' }, tooltip: `Bucket region: ${regionDescription}` }, [flag]) :
             h(TooltipCell, { style: { marginRight: '0.5rem' }, tooltip: 'Bucket region loading...' }, [unknownRegionFlag])),
-          span({ style: { marginRight: '0.5rem', ...Style.noWrapEllipsis } }, [bucketName]),
+          h(TooltipCell, { tooltip: bucketName, style: { marginRight: '0.5rem', ...Style.noWrapEllipsis } }, [bucketName]),
           h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } }),
           h(Link, {
             ...Utils.newTabLinkProps,
