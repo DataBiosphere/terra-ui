@@ -130,6 +130,7 @@ const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIden
 const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchGoogleBilling = withUrlPrefix('https://cloudbilling.googleapis.com/v1/', fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
+const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
 const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
 const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
 const fetchAgora = _.flow(withUrlPrefix(`${getConfig().agoraUrlRoot}/api/v1/`), withAppIdentifier)(fetchOk)
@@ -621,6 +622,11 @@ const Workspaces = signal => ({
         return res.json()
       },
 
+      listSnapshot: async (limit, offset) => {
+        const res = await fetchRawls(`${root}/snapshots?offset=${offset}&limit=${limit}`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
       submission: submissionId => {
         const submissionPath = `${root}/submissions/${submissionId}`
 
@@ -662,6 +668,11 @@ const Workspaces = signal => ({
 
       entityMetadata: async () => {
         const res = await fetchRawls(`${root}/entities`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      snapshotEntityMetadata: async (billingProject, dataReference) => {
+        const res = await fetchRawls(`${root}/entities?billingProject=${billingProject}&dataReference=${dataReference}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
@@ -784,6 +795,18 @@ const Workspaces = signal => ({
 
       accessInstructions: async () => {
         const res = await fetchRawls(`${root}/accessInstructions`, _.merge(authOpts(), { signal }))
+        return res.json()
+      }
+    }
+  }
+})
+
+
+const DataRepo = signal => ({
+  snapshot: snapshotId => {
+    return {
+      details: async () => {
+        const res = await fetchDataRepo(`repository/v1/snapshots/${snapshotId}`, _.merge(authOpts(), { signal }))
         return res.json()
       }
     }
@@ -1256,6 +1279,7 @@ export const Ajax = signal => {
     Groups: Groups(signal),
     Billing: Billing(signal),
     Workspaces: Workspaces(signal),
+    DataRepo: DataRepo(signal),
     Buckets: Buckets(signal),
     GoogleBilling: GoogleBilling(signal),
     Methods: Methods(signal),
