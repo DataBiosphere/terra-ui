@@ -76,16 +76,10 @@ export const SnapshotInfo = ({ snapshotId, snapshotName }) => {
   return _.isEqual(snapshotInfo, {}) ? spinnerOverlay : div({
     style: Style.elements.card.container
   }, [
-    div({ style: Style.elements.sectionHeader }, [snapshotName]),
-    div({ style: { display: 'flex', justifyContent: 'center', marginTop: '10px' } }, [
-      div({ style: { flexGrow: 1, borderRight: `1px solid ${colors.dark(0.35)}`, paddingRight: '10px', marginRight: '10px' } }, [description]),
-
-      div([
-        div({ style: { marginBottom: '0.5rem', fontWeight: 'bold' } }, ['Underlying Snapshot']),
-        div({ style: { lineHeight: '20px' } }, [`Name: ${name}`]),
-        div({ style: { lineHeight: '20px' } }, [`Creation date: ${createdDate}`])
-      ])
-    ])
+    div({ style: { ...Style.elements.sectionHeader, fontSize: 20, marginBottom: '0.5rem' } }, [snapshotName]),
+    div({ style: { fontWeight: 'bold' } }, [`Data Repo Snapshot Name: ${name}`]),
+    div({ style: { lineHeight: '20px', marginBottom: '0.5rem' } }, [`Creation date: ${createdDate}`]),
+    div({ style: { paddingRight: '10px', marginRight: '10px' } }, [description])
   ])
 }
 

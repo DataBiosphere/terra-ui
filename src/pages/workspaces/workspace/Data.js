@@ -94,9 +94,9 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
   ])
 }
 
-const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
+const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, buttonStyle, ...props }) => {
   return h(Clickable, {
-    style: { ...Style.navList.item(selected), color: colors.accent(1.2) },
+    style: { ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
     hover: Style.navList.itemHover(selected),
     ...props
   }, [
@@ -1029,14 +1029,16 @@ const WorkspaceData = _.flow(
           _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables }]) => {
             const snapshotTablePairs = _.flow(_.toPairs, _.sortBy(_.first))(snapshotTables)
             return h(Collapse, {
+              titleFirst: true,
               key: snapshotName,
-              buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0 },
+              buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0, marginRight: '10px' },
               style: { fontSize: 14, lineHeight: '50px', paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
               title: snapshotName
             }, [
               div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
                 div(_.map(([tableName, { count }]) => {
                   return h(DataTypeButton, {
+                    buttonStyle: { borderBottom: 0, height: 40 },
                     key: `${snapshotName}_${tableName}`,
                     selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
                     onClick: () => {
