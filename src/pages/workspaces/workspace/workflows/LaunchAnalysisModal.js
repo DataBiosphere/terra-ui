@@ -120,9 +120,9 @@ const LaunchAnalysisModal = ({
       location ? h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [flag]),
         span({ style: { marginRight: '0.5rem' } }, [regionDescription]),
         h(InfoBox, [
-          p(['Cromwell will instruct its job runners to delocalize call outputs to your workspace bucket in this region.']),
+          p(['Output (and intermediate) files will be written to your workspace bucket in this region.']),
           p(['Tasks within your workflow might additionally move or copy the data elsewhere. You should carefully vet the workflows you run if region requirements are a concern.']),
-          p(['Note that metadata about this run will also be stored in the US.'])
+          p(['Note that metadata about this run will be stored in the US.'])
         ])]) : 'Loading...'
     ])
   ])
