@@ -3,7 +3,6 @@
   "bardRoot": "https://terra-bard-staging.appspot.com",
   "bondUrlRoot": "https://broad-bond-staging.appspot.com",
   "calhounUrlRoot": "https://terra-calhoun-staging.appspot.com",
-  "dataRepoUrlRoot": "https://jade.datarepo-dev.broadinstitute.org",
   "devUrlRoot": "https://bvdp-saturn-staging.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-staging",
