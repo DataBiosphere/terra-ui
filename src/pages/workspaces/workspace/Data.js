@@ -9,6 +9,7 @@ import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
+import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, Clickable, Link, MenuButton, Select, spinnerOverlay } from 'src/components/common'
 import DataTable from 'src/components/DataTable'
 import Dropzone from 'src/components/Dropzone'
@@ -26,6 +27,7 @@ import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/tab
 import TitleBar from 'src/components/TitleBar'
 import UriViewer from 'src/components/UriViewer'
 import WorkflowSelector from 'src/components/WorkflowSelector'
+import { SnapshotInfo } from 'src/components/workspace-utils'
 import datasets from 'src/data/datasets'
 import dataExplorerLogo from 'src/images/data-explorer-logo.svg'
 import igvLogo from 'src/images/igv-logo.png'
@@ -92,9 +94,9 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
   ])
 }
 
-const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, ...props }) => {
+const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, buttonStyle, ...props }) => {
   return h(Clickable, {
-    style: { ...Style.navList.item(selected), color: colors.accent(1.2) },
+    style: { ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
     hover: Style.navList.itemHover(selected),
     ...props
   }, [
@@ -556,6 +558,11 @@ const ToolDrawer = _.flow(
   ])
 })
 
+const SnapshotContent = ({ snapshotDetails, snapshotKey: [snapshotName] }) => {
+  // ToDo: Add rendering of snapshot tables
+  return h(SnapshotInfo, { snapshotId: snapshotDetails[snapshotName].id, snapshotName })
+}
+
 class EntitiesContent extends Component {
   constructor(props) {
     super(props)
@@ -944,10 +951,25 @@ const WorkspaceData = _.flow(
   loadMetadata = withErrorReporting('Error loading workspace entity data', async () => {
     const { namespace, name, signal } = this.props
     const { selectedDataType } = this.state
-    const entityMetadata = await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata()
+
+    const [entityMetadata, { resources: snapshotMetadata }] = await Promise.all([
+      Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata(),
+      Ajax(signal).Workspaces.workspace(namespace, name).listSnapshot(1000, 0)
+    ])
+
+    const snapshotEntities = await Promise.all(_.map(({ name: snapshotName }) => {
+      return Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, snapshotName)
+    }, snapshotMetadata))
+
+    const snapshotDetails = _.fromPairs(_.map(([entities, metadata]) => {
+      return [metadata.name, { entityMetadata: entities, id: metadata.reference.snapshot }]
+    },
+    _.zip(snapshotEntities, snapshotMetadata)))
+
     this.setState({
       selectedDataType: this.selectionType() === 'entities' && !entityMetadata[selectedDataType] ? undefined : selectedDataType,
-      entityMetadata
+      entityMetadata,
+      snapshotDetails
     })
   })
 
@@ -969,6 +991,7 @@ const WorkspaceData = _.flow(
       [!selectedDataType, () => 'none'],
       [selectedDataType === localVariables, () => 'localVariables'],
       [selectedDataType === bucketObjects, () => 'bucketObjects'],
+      [_.isArray(selectedDataType), () => 'snapshots'],
       [_.includes(selectedDataType, _.keys(referenceData)), () => 'referenceData'],
       () => 'entities'
     )
@@ -976,9 +999,10 @@ const WorkspaceData = _.flow(
 
   render() {
     const { namespace, name, workspace, workspace: { workspace: { attributes } }, refreshWorkspace, pfbImportJobs } = this.props
-    const { selectedDataType, entityMetadata, importingReference, deletingReference, firstRender, refreshKey, uploadingFile } = this.state
+    const { selectedDataType, entityMetadata, snapshotDetails, importingReference, deletingReference, firstRender, refreshKey, uploadingFile } = this.state
     const referenceData = getReferenceData(attributes)
     const sortedEntityPairs = _.flow(_.toPairs, _.sortBy(_.first))(entityMetadata)
+    const sortedSnapshotPairs = _.flow(_.toPairs, _.sortBy(_.first))(snapshotDetails)
 
     return div({ style: styles.tableContainer }, [
       !entityMetadata ? spinnerOverlay : h(Fragment, [
@@ -1002,6 +1026,30 @@ const WorkspaceData = _.flow(
               }
             }, [`${type} (${typeDetails.count})`])
           }, sortedEntityPairs),
+          div({ style: Style.navList.heading }, ['Snapshots']),
+          _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables }]) => {
+            const snapshotTablePairs = _.flow(_.toPairs, _.sortBy(_.first))(snapshotTables)
+            return h(Collapse, {
+              titleFirst: true,
+              key: snapshotName,
+              buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0, marginRight: '10px' },
+              style: { fontSize: 14, lineHeight: '50px', paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
+              title: snapshotName
+            }, [
+              div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
+                _.map(([tableName, { count }]) => {
+                  return h(DataTypeButton, {
+                    buttonStyle: { borderBottom: 0, height: 40 },
+                    key: `${snapshotName}_${tableName}`,
+                    selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
+                    onClick: () => {
+                      this.setState({ selectedDataType: [snapshotName, tableName], refreshKey: refreshKey + 1 })
+                    }
+                  }, [`${tableName} (${count})`])
+                }, snapshotTablePairs)
+              ])
+            ])
+          }, sortedSnapshotPairs),
           div({ style: Style.navList.heading }, [
             div(['Reference Data']),
             h(Link, {
@@ -1088,6 +1136,12 @@ const WorkspaceData = _.flow(
               workspace, onClose: () => this.setState({ selectedDataType: undefined }),
               firstRender, refreshKey
             })],
+            ['snapshots', () => snapshotDetails === undefined ?
+              spinnerOverlay :
+              h(SnapshotContent, {
+                snapshotDetails,
+                snapshotKey: selectedDataType
+              })],
             ['entities', () => h(EntitiesContent, {
               key: refreshKey,
               workspace,

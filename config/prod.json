@@ -3,6 +3,7 @@
   "bardRoot": "https://terra-bard-prod.appspot.com",
   "bondUrlRoot": "https://broad-bond-prod.appspot.com",
   "calhounUrlRoot": "https://terra-calhoun-prod.appspot.com",
+  "dataRepoUrlRoot": "https://jade.datarepo-prod.broadinstitute.org",
   "dockstoreUrlRoot": "https://dockstore.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts",
   "firecloudUrlRoot": "https://portal.firecloud.org",
