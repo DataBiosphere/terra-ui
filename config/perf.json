@@ -3,7 +3,6 @@
   "bardRoot": "https://terra-bard-perf.appspot.com",
   "bondUrlRoot": "https://broad-bond-perf.appspot.com",
   "calhounUrlRoot": "https://terra-calhoun-perf.appspot.com",
-  "dataRepoUrlRoot": "https://jade.datarepo-perf.broadinstitute.org",
   "devUrlRoot": "https://bvdp-saturn-perf.appspot.com",
   "dockstoreUrlRoot": "https://staging.dockstore.org",
   "firecloudBucketRoot": "https://storage.googleapis.com/firecloud-alerts-perf",

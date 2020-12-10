@@ -2,12 +2,11 @@ import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { AsyncCreatableSelect, ButtonPrimary, Link, Select, spinnerOverlay } from 'src/components/common'
+import { AsyncCreatableSelect, ButtonPrimary, Link, Select } from 'src/components/common'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import { workspacesStore } from 'src/libs/state'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
@@ -55,31 +54,6 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, ...props }) => 
     )(workspaces),
     ...props
   })
-}
-
-export const SnapshotInfo = ({ snapshotId, snapshotName }) => {
-  const [snapshotInfo, setSelectedSnapshotInfo] = useState()
-  const signal = Utils.useCancellation()
-
-  Utils.useOnMount(() => {
-    const loadSnapshotInfo = async () => {
-      const snapshotInfo = await Ajax(signal).DataRepo.snapshot(snapshotId).details()
-      setSelectedSnapshotInfo(snapshotInfo)
-    }
-
-    loadSnapshotInfo()
-  })
-
-  const { name, description, createdDate } = snapshotInfo || {}
-
-  return snapshotInfo === undefined ? spinnerOverlay : div({
-    style: Style.elements.card.container
-  }, [
-    div({ style: { ...Style.elements.sectionHeader, fontSize: 20, marginBottom: '0.5rem' } }, [snapshotName]),
-    div({ style: { fontWeight: 'bold' } }, [`Data Repo Snapshot Name: ${name}`]),
-    div({ style: { lineHeight: '20px', marginBottom: '0.5rem' } }, [`Creation date: ${createdDate}`]),
-    div({ style: { paddingRight: '10px', marginRight: '10px' } }, [description])
-  ])
 }
 
 export const WorkspaceImporter = _.flow(
