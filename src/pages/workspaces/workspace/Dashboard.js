@@ -312,18 +312,20 @@ export const WorkspaceDashboard = _.flow(
         div({ style: { fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
           'Google Bucket'
         ]),
-        div({ style: { display: 'flex' } }, [
-          (bucketLocation ?
-            h(TooltipCell, { style: { marginRight: '0.5rem' }, tooltip: `Bucket region: ${regionDescription}` }, [flag]) :
-            h(TooltipCell, { style: { marginRight: '0.5rem' }, tooltip: 'Bucket region loading...' }, [unknownRegionFlag])),
+        div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
+          div({ style: { marginRight: '0.5rem', fontWeight: 500 } }, ['Name:']),
           h(TooltipCell, { tooltip: bucketName, style: { marginRight: '0.5rem', ...Style.noWrapEllipsis } }, [bucketName]),
-          h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } }),
-          h(Link, {
-            ...Utils.newTabLinkProps,
-            href: bucketBrowserUrl(bucketName),
-            tooltip: 'Open in browser'
-          }, [icon('pop-out', { style: { marginLeft: '0.25rem' } })])
-        ])
+          h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } })
+        ]),
+        div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
+          div({ style: { marginRight: '0.5rem', fontWeight: 500 } }, ['Location:']),
+          div({ style: { marginRight: '0.5rem' } }, [flag || unknownRegionFlag]),
+          regionDescription || 'loading...'
+        ]),
+        h(Link, {
+          ...Utils.newTabLinkProps,
+          href: bucketBrowserUrl(bucketName)
+        }, ['Open in browser', icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })])
       ])
     ])
   }
