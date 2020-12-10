@@ -1026,30 +1026,32 @@ const WorkspaceData = _.flow(
               }
             }, [`${type} (${typeDetails.count})`])
           }, sortedEntityPairs),
-          div({ style: Style.navList.heading }, ['Snapshots']),
-          _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables }]) => {
-            const snapshotTablePairs = _.flow(_.toPairs, _.sortBy(_.first))(snapshotTables)
-            return h(Collapse, {
-              titleFirst: true,
-              key: snapshotName,
-              buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0, marginRight: '10px' },
-              style: { fontSize: 14, lineHeight: '50px', paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
-              title: snapshotName
-            }, [
-              div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
-                _.map(([tableName, { count }]) => {
-                  return h(DataTypeButton, {
-                    buttonStyle: { borderBottom: 0, height: 40 },
-                    key: `${snapshotName}_${tableName}`,
-                    selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
-                    onClick: () => {
-                      this.setState({ selectedDataType: [snapshotName, tableName], refreshKey: refreshKey + 1 })
-                    }
-                  }, [`${tableName} (${count})`])
-                }, snapshotTablePairs)
+          !_.isEmpty(sortedSnapshotPairs) && h(Fragment, [
+            div({ style: Style.navList.heading }, ['Snapshots']),
+            _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables }]) => {
+              const snapshotTablePairs = _.flow(_.toPairs, _.sortBy(_.first))(snapshotTables)
+              return h(Collapse, {
+                titleFirst: true,
+                key: snapshotName,
+                buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0, marginRight: '10px' },
+                style: { fontSize: 14, lineHeight: '50px', paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
+                title: snapshotName
+              }, [
+                div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
+                  _.map(([tableName, { count }]) => {
+                    return h(DataTypeButton, {
+                      buttonStyle: { borderBottom: 0, height: 40 },
+                      key: `${snapshotName}_${tableName}`,
+                      selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
+                      onClick: () => {
+                        this.setState({ selectedDataType: [snapshotName, tableName], refreshKey: refreshKey + 1 })
+                      }
+                    }, [`${tableName} (${count})`])
+                  }, snapshotTablePairs)
+                ])
               ])
-            ])
-          }, sortedSnapshotPairs),
+            }, sortedSnapshotPairs)
+          ]),
           div({ style: Style.navList.heading }, [
             div(['Reference Data']),
             h(Link, {

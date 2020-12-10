@@ -623,6 +623,9 @@ const Workspaces = signal => ({
       },
 
       listSnapshot: async (limit, offset) => {
+        if (getConfig().hideSnapshots) {
+          return { resources: [] }
+        }
         const res = await fetchRawls(`${root}/snapshots?offset=${offset}&limit=${limit}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
