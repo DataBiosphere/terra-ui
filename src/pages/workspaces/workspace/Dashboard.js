@@ -6,7 +6,7 @@ import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link, spinnerOverlay }
 import { icon, spinner } from 'src/components/icons'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { regionInfo, unknownRegionFlag } from 'src/components/region-common'
+import { regionInfo } from 'src/components/region-common'
 import { SimpleTable, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { WorkspaceTagSelect } from 'src/components/workspace-utils'
