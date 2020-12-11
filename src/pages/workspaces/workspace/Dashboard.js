@@ -113,7 +113,7 @@ export const WorkspaceDashboard = _.flow(
 
   loadBucketLocation = withErrorReporting('Error loading bucket location data', async () => {
     const { signal, namespace, workspaceName, workspace: { workspace: { bucketName } } } = this.props
-    const { location, locationType } = !_.isEmpty(bucketName) ? await Ajax(signal).Workspaces.workspace(namespace, workspaceName).checkBucketLocation(bucketName) : {}
+    const { location, locationType } = await Ajax(signal).Workspaces.workspace(namespace, workspaceName).checkBucketLocation(bucketName)
     this.setState({ bucketLocation: location, bucketLocationType: locationType })
   })
 
@@ -314,13 +314,15 @@ export const WorkspaceDashboard = _.flow(
         ]),
         div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
           div({ style: { marginRight: '0.5rem', fontWeight: 500 } }, ['Name:']),
-          h(TooltipCell, { tooltip: bucketName, style: { marginRight: '0.5rem', ...Style.noWrapEllipsis } }, [bucketName]),
+          h(TooltipCell, { style: { marginRight: '0.5rem' } }, [bucketName]),
           h(ClipboardButton, { text: bucketName, style: { marginLeft: '0.25rem' } })
         ]),
         div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
           div({ style: { marginRight: '0.5rem', fontWeight: 500 } }, ['Location:']),
-          div({ style: { marginRight: '0.5rem' } }, [flag || unknownRegionFlag]),
-          regionDescription || 'loading...'
+          bucketLocation ? h(Fragment, [
+            div({ style: { marginRight: '0.5rem' } }, [flag]),
+            regionDescription
+          ]) : 'Loading...'
         ]),
         h(Link, {
           ...Utils.newTabLinkProps,
