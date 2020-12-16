@@ -16,7 +16,7 @@ const testRunNotebookFn = _.flow(
   await signIntoTerra(page, token)
   await dismissNotifications(page)
   await findElement(page, clickable({ textContains: workspaceName }))
-  await waitForNoSpinners(page)
+  await delay(5000)
   await click(page, clickable({ textContains: workspaceName }))
   await pRetry(async () => {
     try {
