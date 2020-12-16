@@ -1,3 +1,4 @@
+import { getDefaultProperties } from '@databiosphere/bard-client'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { version } from 'src/data/machines'
@@ -176,7 +177,7 @@ const User = signal => ({
       return res.json()
     },
 
-    //We are not calling SAM directly because free credits logic is in orchestration
+    //We are not calling Thurloe directly because free credits logic was in orchestration
     set: keysAndValues => {
       const blankProfile = {
         firstName: 'N/A',
@@ -205,31 +206,12 @@ const User = signal => ({
     }
   },
 
-  acceptEula: () => {
-    return fetchOrchestration('api/profile/trial/userAgreement', _.merge(authOpts(), { signal, method: 'PUT' }))
-  },
-
-  startTrial: () => {
-    return fetchOrchestration('api/profile/trial', _.merge(authOpts(), { signal, method: 'POST' }))
-  },
-
-  finalizeTrial: () => {
-    return fetchOrchestration('api/profile/trial?operation=finalize', _.merge(authOpts(), { signal, method: 'POST' }))
-  },
-
   getProxyGroup: async email => {
     const res = await fetchOrchestration(`api/proxyGroup/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
   getTosAccepted: async () => {
-    await fetchOk(
-      `${getConfig().tosUrlRoot}/user/response`,
-      _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
-    )
-  },
-
-  acceptTos: async () => {
     const url = `${getConfig().tosUrlRoot}/user/response?${qs.stringify(tosData)}`
     try {
       const res = await fetchOk(url, _.merge(authOpts(), { signal }))
@@ -242,6 +224,13 @@ const User = signal => ({
         throw error
       }
     }
+  },
+
+  acceptTos: async () => {
+    await fetchOk(
+      `${getConfig().tosUrlRoot}/user/response`,
+      _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
+    )
   },
 
   // If you are making changes to the Support Request Modal, make sure you test the following:
@@ -555,6 +544,13 @@ const Workspaces = signal => ({
         return res.json()
       },
 
+      checkBucketLocation: async bucket => {
+        const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=location%2ClocationType`,
+          _.merge(authOpts(await saToken(namespace)), { signal }))
+
+        return res.json()
+      },
+
       details: async fields => {
         const res = await fetchRawls(`${root}?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }))
         return res.json()
@@ -643,6 +639,11 @@ const Workspaces = signal => ({
 
           abort: () => {
             return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }))
+          },
+
+          getWorkflow: async (workflowId, includeKey) => {
+            const res = await fetchRawls(`${submissionPath}/workflows/${workflowId}?${qs.stringify({ includeKey }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
+            return res.json()
           }
         }
       },
@@ -747,6 +748,11 @@ const Workspaces = signal => ({
 
       importPFBStatus: async jobId => {
         const res = await fetchOrchestration(`api/${root}/importPFB/${jobId}`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      importSnapshot: async (snapshotId, name) => {
+        const res = await fetchRawls(`${root}/snapshots`, _.mergeAll([authOpts(), jsonBody({ snapshotId, name }), { signal, method: 'POST' }]))
         return res.json()
       },
 
@@ -1233,7 +1239,8 @@ const Metrics = signal => ({
         distinct_id: isRegistered ? undefined : authStore.get().anonymousId,
         appId: 'Saturn',
         hostname: window.location.hostname,
-        appPath: Nav.getCurrentRoute().name
+        appPath: Nav.getCurrentRoute().name,
+        ...getDefaultProperties()
       }
     }
 
