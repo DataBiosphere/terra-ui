@@ -28,7 +28,7 @@ export const displayLibraryAttributes = [
   { key: 'library:requiresExternalApproval', title: 'Requires External Approval' },
   { key: 'library:lmsvn', title: 'Library Metadata Schema Version Number' },
   { key: 'library:dulvn', title: 'Structured Data Use Limitations Version Number' },
-  { key: 'library:orsp', title: 'Structured Data Use Limitations ID' }
+  { key: 'library:orsp', title: 'ORSP Consent Code' }
 ]
 
 export const displayConsentCodes = [
