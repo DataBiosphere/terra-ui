@@ -1,12 +1,15 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { b, div, h, wbr } from 'react-hyperscript-helpers'
+import { b, div, h, p, span, wbr } from 'react-hyperscript-helpers'
 import { ButtonPrimary, CromwellVersionLink } from 'src/components/common'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { InfoBox } from 'src/components/PopupTrigger'
+import { regionInfo } from 'src/components/region-common'
 import { Ajax } from 'src/libs/ajax'
 import { launch } from 'src/libs/analysis'
 import colors from 'src/libs/colors'
+import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 import {
   chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet
@@ -15,15 +18,24 @@ import {
 
 const LaunchAnalysisModal = ({
   onDismiss, entityMetadata,
-  workspace, workspace: { workspace: { namespace, name } }, processSingle,
+  workspace, workspace: { workspace: { namespace, name: workspaceName, bucketName } }, processSingle,
   entitySelectionModel: { type, selectedEntities, newSetName },
   config, config: { rootEntityType }, useCallCache, deleteIntermediateOutputFiles, onSuccess
 }) => {
   const [launching, setLaunching] = useState(undefined)
   const [message, setMessage] = useState(undefined)
   const [launchError, setLaunchError] = useState(undefined)
-
+  const [bucketLocation, setBucketLocation] = useState({})
   const signal = Utils.useCancellation()
+
+  Utils.useOnMount(() => {
+    const loadBucketLocation = withErrorReporting('Error loading bucket location', async () => {
+      const { location, locationType } = await Ajax(signal).Workspaces.workspace(namespace, workspaceName).checkBucketLocation(bucketName)
+      setBucketLocation({ location, locationType })
+    })
+
+    loadBucketLocation()
+  })
 
   const doLaunch = async () => {
     try {
@@ -32,7 +44,7 @@ const LaunchAnalysisModal = ({
         [processSingle, () => ({})],
         [type === processAll, async () => {
           setMessage('Fetching data...')
-          const selectedEntityNames = _.map('name', await Ajax(signal).Workspaces.workspace(namespace, name).entitiesOfType(rootEntityType))
+          const selectedEntityNames = _.map('name', await Ajax(signal).Workspaces.workspace(namespace, workspaceName).entitiesOfType(rootEntityType))
           return { selectedEntityType: rootEntityType, selectedEntityNames }
         }],
         [type === chooseRows || type === chooseSets, () => ({ selectedEntityType: rootEntityType, selectedEntityNames: _.keys(selectedEntities) })],
@@ -44,7 +56,7 @@ const LaunchAnalysisModal = ({
         [type === chooseSetComponents, () => ({ selectedEntityType: baseEntityType, selectedEntityNames: _.keys(selectedEntities) })],
         [type === processAllAsSet, async () => {
           setMessage('Fetching data...')
-          const selectedEntityNames = _.map('name', await Ajax(signal).Workspaces.workspace(namespace, name).entitiesOfType(baseEntityType))
+          const selectedEntityNames = _.map('name', await Ajax(signal).Workspaces.workspace(namespace, workspaceName).entitiesOfType(baseEntityType))
           return { selectedEntityType: baseEntityType, selectedEntityNames }
         }]
       )
@@ -71,6 +83,8 @@ const LaunchAnalysisModal = ({
     [type === processMergedSet, () => _.flow(mergeSets, _.uniqBy('entityName'))(selectedEntities).length]
   )
   const wrappableOnPeriods = _.flow(str => str?.split(/(\.)/), _.flatMap(sub => sub === '.' ? [wbr(), '.'] : sub))
+  const { location, locationType } = bucketLocation
+  const { flag, regionDescription } = regionInfo(location, locationType)
 
   return h(Modal, {
     title: !launching ? 'Confirm launch' : 'Launching Analysis',
@@ -100,6 +114,16 @@ const LaunchAnalysisModal = ({
     ]),
     div({ style: { color: colors.danger(), overflowWrap: 'break-word' } }, [
       h(Fragment, wrappableOnPeriods(launchError))
+    ]),
+    div(['Output files will be saved as workspace data in:']),
+    div({ style: { margin: '1rem' } }, [
+      location ? h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [flag]),
+        span({ style: { marginRight: '0.5rem' } }, [regionDescription]),
+        h(InfoBox, [
+          p(['Output (and intermediate) files will be written to your workspace bucket in this region.']),
+          p(['Tasks within your workflow might additionally move or copy the data elsewhere. You should carefully vet the workflows you run if region requirements are a concern.']),
+          p(['Note that metadata about this run will be stored in the US.'])
+        ])]) : 'Loading...'
     ])
   ])
 }

@@ -58,7 +58,7 @@ const ChoiceButton = ({ iconName, title, detail, style, ...props }) => {
 const ImportData = () => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
-  const { query: { url, format, ad, wid, template } } = Nav.useRoute()
+  const { query: { url, format, ad, wid, template, snapshotId, snapshotName } } = Nav.useRoute()
   const [mode, setMode] = useState(wid ? 'existing' : undefined)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCloneOpen, setIsCloneOpen] = useState(false)
@@ -66,6 +66,7 @@ const ImportData = () => {
   const [selectedTemplateWorkspaceKey, setSelectedTemplateWorkspaceKey] = useState()
   const [allTemplates, setAllTemplates] = useState()
 
+  const isDataset = format !== 'snapshot'
   const noteMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.'
 
   const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
@@ -105,6 +106,10 @@ const ImportData = () => {
         await Ajax().Workspaces.workspace(namespace, name).importJSON(url)
         notify('success', 'Data imported successfully.', { timeout: 3000 })
       }],
+      ['snapshot', async () => {
+        await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName)
+        notify('success', 'Snapshot imported successfully.', { timeout: 3000 })
+      }],
       [Utils.DEFAULT, async () => {
         await Ajax().Workspaces.workspace(namespace, name).importBagit(url)
         notify('success', 'Data imported successfully.', { timeout: 3000 })
@@ -116,13 +121,14 @@ const ImportData = () => {
 
   return h(FooterWrapper, [
     backgroundLogo,
-    h(TopBar, { title: 'Import Data' }),
+    h(TopBar, { title: `Import ${isDataset ? 'Data' : 'Snapshot'}` }),
     div({ role: 'main', style: styles.container }, [
       div({ style: styles.card }, [
-        div({ style: styles.title }, ['Importing Data']),
+        div({ style: styles.title }, [`Importing ${isDataset ? 'Data' : `Snapshot ${snapshotName}`}`]),
         div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
         div({ style: { marginTop: '1rem' } }, [
-          'The dataset(s) you just chose to import to Terra will be made available to you within a workspace of your choice where you can then perform analysis.'
+          `The ${isDataset ? 'dataset' : 'snapshot'}(s) you just chose to import to Terra will be made available to you `,
+          'within a workspace of your choice where you can then perform analysis.'
         ])
       ]),
       div({ style: { ...styles.card, marginLeft: '2rem' } }, [
@@ -139,8 +145,7 @@ const ImportData = () => {
                 value: selectedWorkspaceId,
                 onChange: setSelectedWorkspaceId
               }),
-              div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } },
-                [noteMessage]),
+              isDataset && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [noteMessage]),
               div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
                 h(ButtonSecondary, { onClick: () => setMode(), style: { marginLeft: 'auto' } }, ['Back']),
                 h(ButtonPrimary, {
@@ -154,9 +159,7 @@ const ImportData = () => {
           ['template', () => {
             return h(Fragment, [
               div({ style: styles.title }, ['Start with a template']),
-              div({ style: { marginBottom: '1rem', lineHeight: '1.5' } }, [
-                noteMessage
-              ]),
+              isDataset && div({ style: { marginBottom: '1rem', lineHeight: '1.5' } }, [noteMessage]),
               div({ style: { overflow: 'auto', maxHeight: '25rem' } }, [
                 _.map(([i, ws]) => {
                   const { name, namespace, description, hasNotebooks, hasWorkflows } = ws
@@ -223,7 +226,7 @@ const ImportData = () => {
               }),
               isCreateOpen && h(NewWorkspaceModal, {
                 requiredAuthDomain: ad,
-                customMessage: noteMessage,
+                customMessage: isDataset && noteMessage,
                 onDismiss: () => setIsCreateOpen(false),
                 onSuccess: w => {
                   setMode('existing')
@@ -240,7 +243,7 @@ const ImportData = () => {
           cloneWorkspace: _.find({ workspace: selectedTemplateWorkspaceKey }, workspaces),
           title: `Clone ${selectedTemplateWorkspaceKey.name} and Import Data`,
           buttonText: 'Clone and Import',
-          customMessage: noteMessage,
+          customMessage: isDataset && noteMessage,
           onDismiss: () => setIsCloneOpen(false),
           onSuccess: w => {
             setMode('existing')

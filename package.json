@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
+    "@databiosphere/bard-client": "^0.1.0",
     "@fortawesome/fontawesome-svg-core": "^1.2.32",
     "@fortawesome/free-regular-svg-icons": "^5.15.1",
     "@fortawesome/free-solid-svg-icons": "^5.15.1",
@@ -36,6 +37,7 @@
     "react-favicon": "^0.0.18",
     "react-focus-lock": "^2.4.1",
     "react-hyperscript-helpers": "^1.2.0",
+    "react-json-view": "^1.19.1",
     "react-modal": "^3.11.2",
     "react-notifications-component": "^2.4.1",
     "react-onclickoutside": "^6.9.0",

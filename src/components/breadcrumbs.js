@@ -1,4 +1,4 @@
-import { a } from 'react-hyperscript-helpers/lib/index'
+import { a } from 'react-hyperscript-helpers'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
 import { isTerra } from 'src/libs/config'

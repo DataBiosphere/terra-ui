@@ -4,7 +4,7 @@ import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, div, h, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
 import {
-  ButtonPrimary, Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay
+  Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay
 } from 'src/components/common'
 import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
@@ -14,10 +14,10 @@ import fcIconWhite from 'src/images/brands/firecloud/FireCloud-icon-white.svg'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
 import { Ajax } from 'src/libs/ajax'
-import { refreshTerraProfile, signOut } from 'src/libs/auth'
+import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { getConfig, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
-import { reportError, withErrorReporting } from 'src/libs/error'
+import { getConfig, isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
+import { withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import { topBarLogo, versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
@@ -100,7 +100,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
   const [openLibraryMenu, setOpenLibraryMenu] = useState(false)
   const [openSupportMenu, setOpenSupportMenu] = useState(false)
   const [openCookiesModal, setOpenCookiesModal] = useState(false)
-  const [finalizeTrial, setFinalizeTrial] = useState(false)
   const [openFirecloudModal, setOpenFirecloudModal] = useState(false)
 
   const authState = Utils.useStore(authStore)
@@ -122,7 +121,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
   }
 
   const buildNav = transitionState => {
-    const { isSignedIn, profile: { firstName = 'Loading...', lastName = '', trialState } } = authState
+    const { isSignedIn, profile: { firstName = 'Loading...', lastName = '' } } = authState
 
     return h(FocusTrapper, {
       onBreakout: () => setNavShown(false),
@@ -210,27 +209,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               onClick: hideNav
             }, ['Workflows'])
           ]),
-          Utils.switchCase(trialState,
-            ['Enrolled', () => {
-              return h(NavSection, {
-                href: 'https://software.broadinstitute.org/firecloud/documentation/freecredits',
-                ...Utils.newTabLinkProps,
-                onClick: hideNav
-              }, [
-                div({ style: styles.nav.icon }, [icon('cloud', { size: 20 })]),
-                'Access free credits',
-                icon('pop-out', { size: 20, style: { paddingLeft: '0.5rem' } })
-              ])
-            }],
-            ['Terminated', () => {
-              return h(NavSection, {
-                onClick: () => setFinalizeTrial(true)
-              }, [
-                div({ style: styles.nav.icon }, [icon('cloud', { size: 20 })]),
-                'Your free trial has ended'
-              ])
-            }]
-          ),
           h(DropDownSection, {
             titleIcon: 'help',
             title: 'Support',
@@ -252,6 +230,11 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               onClick: hideNav,
               ...Utils.newTabLinkProps
             }, ['How-to Guides']),
+            isBaseline() && h(DropDownSubItem, {
+              href: 'https://support.terra.bio/hc/en-us/sections/360010495892-Baseline',
+              onClick: hideNav,
+              ...Utils.newTabLinkProps
+            }, ['Baseline Documentation']),
             h(DropDownSubItem, {
               href: 'https://support.terra.bio/hc/en-us/community/topics/360000500452',
               onClick: hideNav,
@@ -377,22 +360,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
         ])
       ]),
       children,
-      finalizeTrial && h(Modal, {
-        title: 'Remove button',
-        onDismiss: () => setFinalizeTrial(false),
-        okButton: h(ButtonPrimary, {
-          onClick: async () => {
-            try {
-              await Ajax().User.finalizeTrial()
-              await refreshTerraProfile()
-            } catch (error) {
-              reportError('Error finalizing trial', error)
-            } finally {
-              setFinalizeTrial(false)
-            }
-          }
-        }, ['Confirm'])
-      }, ['Click confirm to remove button forever.']),
       openCookiesModal && h(CookiesModal, {
         onDismiss: () => setOpenCookiesModal(false)
       }),

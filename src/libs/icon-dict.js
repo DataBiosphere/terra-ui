@@ -1,9 +1,9 @@
-import { faClipboard, faClock, faClone, faEye, faFolder, faFolderOpen, faListAlt, faTimesCircle } from '@fortawesome/free-regular-svg-icons'
+import { faClipboard, faClock, faClone, faEye, faFileAlt, faFolder, faFolderOpen, faListAlt, faTimesCircle } from '@fortawesome/free-regular-svg-icons'
 import {
   faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faCloud, faCog, faCreditCard, faDownload,
   faEllipsisV, faExclamationCircle, faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown,
-  faLongArrowAltUp, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid,
-  faTerminal, faTrashAlt, faVirus
+  faLongArrowAltUp, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid,
+  faTachometerAlt, faTasks, faTerminal, faTrashAlt, faVirus
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
@@ -67,6 +67,7 @@ const iconDict = {
   'error-standard': fa(faExclamationCircle),
   export: custom(fileExport),
   eye: fa(faEye),
+  fileAlt: fa(faFileAlt),
   fileSearchSolid: custom(fileSearchSolid),
   folder: fa(faFolder),
   'folder-open': fa(faFolderOpen),
@@ -86,6 +87,7 @@ const iconDict = {
   'lighter-plus-circle': props => fa(faPlus, { mask: faCircle, transform: 'shrink-6', ...props }),
   'pop-out': custom(externalLinkAlt),
   purchaseOrder: fa(faFileInvoiceDollar),
+  question: fa(faQuestion),
   renameIcon: custom(renameIcon),
   search: fa(faSearch),
   share: fa(faShareAlt),
@@ -93,6 +95,8 @@ const iconDict = {
   squareSolid: fa(faSquareSolid),
   'success-standard': fa(faCheckCircle),
   sync: custom(syncAlt),
+  tachometer: fa(faTachometerAlt),
+  tasks: fa(faTasks),
   terminal: props => fa(faTerminal, { mask: faSquareSolid, transform: 'shrink-8', ...props }),
   times: custom(times),
   'times-circle': fa(faTimesCircle),
