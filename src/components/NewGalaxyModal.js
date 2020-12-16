@@ -50,6 +50,14 @@ export const NewGalaxyModal = _.flow(
     return onSuccess()
   })
 
+  const pauseGalaxy = _.flow(
+    Utils.withBusyState(setLoading),
+    withErrorReporting('Error deleting galaxy instance')
+  )(async () => {
+    Ajax().Metrics.captureEvent(Events.applicationPause, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
+    return onSuccess()
+  })
+
   const renderActionButton = () => {
     return Utils.switchCase(viewMode,
       ['deleteWarn', () => {
@@ -61,10 +69,17 @@ export const NewGalaxyModal = _.flow(
       ['launchWarn', () => {
         return h(GalaxyLaunchButton, { app, onClick: onDismiss })
       }],
+      ['paused', () => {
+        return h(Fragment, [
+                           h(ButtonPrimary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
+                           h(ButtonSecondary, { style: { marginRight: '1rem' }}, ['Resume'])
+                         ])
+      }],
       [Utils.DEFAULT, () => {
         return !!app ?
           h(Fragment, [
             h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
+            h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setViewMode('paused')}, ['Pause']),
             h(ButtonPrimary, { onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
           ]) :
           h(ButtonPrimary, { onClick: () => setViewMode('createWarn') }, ['Next'])
@@ -88,6 +103,11 @@ export const NewGalaxyModal = _.flow(
             div({ style: { lineHeight: 1.5 } }, [
               div(['Please delete the cloud environment when finished; it will']),
               div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running.'])
+            ]),
+            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Pause and auto-pause']),
+            div({ style: { lineHeight: 1.5 } }, [
+              div(['You can pause anything during the compute, but it will auto-paused when']),
+              div(['the instance is idled more than 1 hour if the analysis is done.'])
             ])
           ])
         ])
@@ -111,10 +131,43 @@ export const NewGalaxyModal = _.flow(
     ])
   }
 
+
+
   const renderLaunchWarning = () => {
     return div({ style: { lineHeight: '22px' } }, [
       h(GalaxyWarning)
     ])
+  }
+
+  const renderPaused = () => {
+    const { cpu, memory } = _.find({ name: 'n1-standard-8' }, machineTypes)
+    const cost = getGalaxyCost(app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8', numNodes: 2 } })
+    return h(Fragment, [
+          div([`Cloud environment is now paused...`]),
+          div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+            div([
+              div({ style: styles.headerText }, ['Environment Settings']),
+              ul({ style: { paddingLeft: '1rem', lineHeight: 1.5 } }, [
+                li({ style: { marginTop: '1rem' } }, [
+                  'Galaxy version 20.09'
+                ]),
+                li({ style: { marginTop: '1rem' } }, [
+                  'Cloud Compute size of ',
+                  // Temporarily hard-coded disk size, once it can be customized this should be revisited
+                  span({ style: { fontWeight: 600 } }, [`${cpu} CPUS, ${memory} GB of memory, 250 GB disk space`])
+                ]),
+                li({ style: { marginTop: '1rem' } }, [
+                  'Estimated cost of cloud compute: ',
+                  span({ style: { fontWeight: 600 } }, [Utils.formatUSD(cost), ' per hr'])
+                ])
+              ]),
+              h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
+                'Learn more about Galaxy interactive environments',
+                icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+              ])
+            ])
+          ])
+        ])
   }
 
   const renderDefaultCase = () => {
@@ -153,6 +206,7 @@ export const NewGalaxyModal = _.flow(
       title: Utils.switchCase(viewMode,
         ['launchWarn', () => h(WarningTitle, ['Launch Galaxy'])],
         ['deleteWarn', () => 'Delete Cloud Environment for Galaxy'],
+        ['paused', () => 'Cloud environment is now pausing'],
         [Utils.DEFAULT, () => 'Cloud environment']
       ),
       style: { marginBottom: '0.5rem' },
@@ -163,6 +217,7 @@ export const NewGalaxyModal = _.flow(
       ['createWarn', renderCreateWarning],
       ['deleteWarn', renderDeleteWarning],
       ['launchWarn', renderLaunchWarning],
+      ['paused', renderPaused],
       [Utils.DEFAULT, renderDefaultCase]
     ),
     div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [
