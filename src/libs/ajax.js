@@ -223,18 +223,10 @@ const User = signal => ({
   },
 
   getTosAccepted: async () => {
-    const url = `${getConfig().tosUrlRoot}/user/response?${qs.stringify(tosData)}`
-    try {
-      const res = await fetchOk(url, _.merge(authOpts(), { signal }))
-      const { accepted } = await res.json()
-      return accepted
-    } catch (error) {
-      if (error.status === 403 || error.status === 404) {
-        return false
-      } else {
-        throw error
-      }
-    }
+    await fetchOk(
+      `${getConfig().tosUrlRoot}/user/response`,
+      _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
+    )
   },
 
   acceptTos: async () => {

@@ -17,6 +17,7 @@ const testRunNotebookFn = _.flow(
   await findElement(page, clickable({ textContains: workspaceName }))
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: workspaceName }))
+  await delay(3000)
   await click(page, clickable({ text: 'notebooks' }))
   await click(page, clickable({ textContains: 'Create a' }))
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
