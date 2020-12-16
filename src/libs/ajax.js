@@ -230,18 +230,10 @@ const User = signal => ({
   },
 
   acceptTos: async () => {
-    for (let i = 3; i > 0; i--) {
-      try {
-        return await fetchOk(
-          `${getConfig().tosUrlRoot}/user/response`,
-          _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
-        )
-      } catch (e) {
-        if (i <= 1) {
-          throw e
-        }
-      }
-    }
+    await fetchOk(
+      `${getConfig().tosUrlRoot}/user/response`,
+      _.mergeAll([authOpts(), { signal, method: 'POST' }, jsonBody({ ...tosData, accepted: true })])
+    )
   },
 
   // If you are making changes to the Support Request Modal, make sure you test the following:
