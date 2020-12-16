@@ -1,6 +1,7 @@
 const _ = require('lodash/fp')
 const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
 const { click, clickable, delay, signIntoTerra, findElement, waitForNoSpinners, select, fillIn, input, findIframe, findText, dismissNotifications } = require('../utils/integration-utils')
+const pRetry = require('p-retry')
 
 
 const notebookName = 'TestNotebook'
@@ -17,9 +18,15 @@ const testRunNotebookFn = _.flow(
   await findElement(page, clickable({ textContains: workspaceName }))
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: workspaceName }))
-  await click(page, clickable({ text: 'notebooks' }))
-  await waitForNoSpinners(page)
-  await click(page, clickable({ textContains: 'Create a' }))
+  await pRetry(async () => {
+    try {
+      await click(page, clickable({ text: 'notebooks' }))
+      await delay(1000)
+      await click(page, clickable({ textContains: 'Create a' }))
+    } catch (e) {
+      throw new Error(e)
+    }
+  }, { retries: 10, factor: 1 })
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
   await select(page, 'Language', 'Python 2')
   await click(page, clickable({ text: 'Create Notebook' }))
@@ -52,7 +59,7 @@ const testRunNotebookFn = _.flow(
 const testRunNotebook = {
   name: 'run-notebook',
   fn: testRunNotebookFn,
-  timeout: 15 * 60 * 1000
+  timeout: 20 * 60 * 1000
 }
 
 module.exports = { testRunNotebook }
