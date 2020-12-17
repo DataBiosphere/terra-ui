@@ -129,6 +129,7 @@ const registerUser = withSignedInPage(async ({ page }) => {
   await page.evaluate(async () => {
     await window.catchErrorResponse(async () => {
       await window.Ajax().User.profile.set({ firstName: 'Integration', lastName: 'Test', contactEmail: 'me@example.com' })
+      await window.Ajax().User.profile.get()
       await window.Ajax().User.acceptTos()
     })
   })
