@@ -4,7 +4,7 @@ import filesize from 'filesize'
 import JSZip from 'jszip'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Component, createRef, Fragment, useEffect, useRef, useState } from 'react'
+import { Component, Fragment, useEffect, useRef, useState } from 'react'
 import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -781,144 +781,142 @@ const DeleteObjectModal = ({ name, workspace: { workspace: { namespace, bucketNa
 }
 
 const BucketContent = _.flow(
-  Utils.withCancellationSignal,
+  Utils.withDisplayName('BucketContent'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
-)(class BucketContent extends Component {
-  constructor(props) {
-    super(props)
-    const { prefix = '', objects } = props.firstRender ? StateHistory.get() : {}
-    this.state = {
-      prefix,
-      objects,
-      deletingName: undefined,
-      viewingName: undefined
-    }
-  }
+)(({
+  workspace, workspace: { workspace: { namespace, bucketName } }, firstRender, refreshKey,
+  onRequesterPaysError
+}) => {
+  // State
+  const [prefix, setPrefix] = useState(() => firstRender ? (StateHistory.get().prefix || '') : '')
+  const [prefixes, setPrefixes] = useState(undefined)
+  const [objects, setObjects] = useState(() => firstRender ? StateHistory.get().objects : undefined)
+  const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [deletingName, setDeletingName] = useState(undefined)
+  const [viewingName, setViewingName] = useState(undefined)
 
-  componentDidMount() {
-    this.load()
-  }
+  const signal = Utils.useCancellation()
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.refreshKey !== this.props.refreshKey) {
-      this.load('')
-    }
-    StateHistory.update(_.pick(['objects', 'prefix'], this.state))
-  }
-
-  load = _.flow(
-    withRequesterPaysHandler(this.props.onRequesterPaysError),
+  // Helpers
+  const load = _.flow(
+    withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error loading bucket data'),
-    Utils.withBusyState(v => this.setState({ loading: v }))
-  )(async (prefix = this.state.prefix) => {
-    const { workspace: { workspace: { namespace, bucketName } }, signal } = this.props
-    const { items, prefixes } = await Ajax(signal).Buckets.list(namespace, bucketName, prefix)
-    this.setState({ objects: items, prefixes, prefix })
+    Utils.withBusyState(setLoading)
+  )(async (targetPrefix = prefix) => {
+    const { items, prefixes } = await Ajax(signal).Buckets.list(namespace, bucketName, targetPrefix)
+    setPrefix(targetPrefix)
+    setPrefixes(prefixes)
+    setObjects(items)
   })
 
-  uploadFiles = _.flow(
+  const uploadFiles = _.flow(
     withErrorReporting('Error uploading file'),
-    Utils.withBusyState(v => this.setState({ uploading: v }))
-  )(async files => {
-    const { workspace: { workspace: { namespace, bucketName } } } = this.props
-    const { prefix } = this.state
-    await Ajax().Buckets.upload(namespace, bucketName, prefix, files[0])
-    this.load()
+    Utils.withBusyState(setUploading)
+  )(async ([file]) => {
+    await Ajax().Buckets.upload(namespace, bucketName, prefix, file)
+    load()
   })
 
-  render() {
-    const { workspace, workspace: { workspace: { namespace, bucketName } } } = this.props
-    const { prefix, prefixes, objects, loading, uploading, deletingName, viewingName } = this.state
-    const prefixParts = _.dropRight(1, prefix.split('/'))
-    const makeBucketLink = ({ label, target, onClick }) => h(Link, {
-      style: { textDecoration: 'underline' },
-      href: target,
-      onClick: e => {
-        e.preventDefault()
-        onClick()
-      }
-    }, [label])
+  // Lifecycle
+  useEffect(() => {
+    load(firstRender ? undefined : '')
+  }, [refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
-    return h(Dropzone, {
-      disabled: !!Utils.editWorkspaceError(workspace),
-      style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.dark(0.55)}`, padding: '1rem' },
-      activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
-      onDropAccepted: files => this.uploadFiles(files)
-    }, [({ openUploader }) => h(Fragment, [
-      div([
-        _.map(({ label, target }) => {
-          return h(Fragment, { key: target }, [
-            makeBucketLink({ label, target, onClick: () => this.load(target) }),
-            ' / '
-          ])
-        }, [
-          { label: 'Files', target: '' },
-          ..._.map(n => {
-            return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
-          }, _.range(0, prefixParts.length))
+  useEffect(() => {
+    StateHistory.update({ objects, prefix })
+  }, [objects, prefix])
+
+  // Render
+  const prefixParts = _.dropRight(1, prefix.split('/'))
+  const makeBucketLink = ({ label, target, onClick }) => h(Link, {
+    style: { textDecoration: 'underline' },
+    href: target,
+    onClick: e => {
+      e.preventDefault()
+      onClick()
+    }
+  }, [label])
+
+  return h(Dropzone, {
+    disabled: !!Utils.editWorkspaceError(workspace),
+    style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.dark(0.55)}`, padding: '1rem' },
+    activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
+    onDropAccepted: uploadFiles
+  }, [({ openUploader }) => h(Fragment, [
+    div([
+      _.map(({ label, target }) => {
+        return h(Fragment, { key: target }, [
+          makeBucketLink({ label, target, onClick: () => load(target) }),
+          ' / '
         ])
-      ]),
-      div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
-      h(SimpleTable, {
-        columns: [
-          { size: { basis: 24, grow: 0 }, key: 'button' },
-          { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },
-          { header: h(HeaderCell, ['Size']), size: { basis: 200, grow: 0 }, key: 'size' },
-          { header: h(HeaderCell, ['Last modified']), size: { basis: 200, grow: 0 }, key: 'updated' }
-        ],
-        rows: [
-          ..._.map(p => {
-            return {
-              name: h(TextCell, [
-                makeBucketLink({
-                  label: p.slice(prefix.length),
-                  target: `gs://${bucketName}/${p}`,
-                  onClick: () => this.load(p)
-                })
-              ])
-            }
-          }, prefixes),
-          ..._.map(({ name, size, updated }) => {
-            return {
-              button: h(Link, {
-                style: { display: 'flex' }, onClick: () => this.setState({ deletingName: name }),
-                tooltip: 'Delete file'
-              }, [
-                icon('trash', { size: 16, className: 'hover-only' })
-              ]),
-              name: h(TextCell, [
-                makeBucketLink({
-                  label: name.slice(prefix.length),
-                  target: `gs://${bucketName}/${name}`,
-                  onClick: () => this.setState({ viewingName: name })
-                })
-              ]),
-              size: filesize(size, { round: 0 }),
-              updated: Utils.makePrettyDate(updated)
-            }
-          }, objects)
-        ]
-      }),
-      deletingName && h(DeleteObjectModal, {
-        workspace, name: deletingName,
-        onDismiss: () => this.setState({ deletingName: undefined }),
-        onSuccess: () => {
-          this.setState({ deletingName: undefined })
-          this.load()
-        }
-      }),
-      viewingName && h(UriViewer, {
-        googleProject: namespace, uri: `gs://${bucketName}/${viewingName}`,
-        onDismiss: () => this.setState({ viewingName: undefined })
-      }),
-      !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
-        label: 'UPLOAD',
-        iconShape: 'plus',
-        onClick: openUploader
-      }),
-      (loading || uploading) && spinnerOverlay
-    ])])
-  }
+      }, [
+        { label: 'Files', target: '' },
+        ..._.map(n => {
+          return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
+        }, _.range(0, prefixParts.length))
+      ])
+    ]),
+    div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
+    h(SimpleTable, {
+      columns: [
+        { size: { basis: 24, grow: 0 }, key: 'button' },
+        { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },
+        { header: h(HeaderCell, ['Size']), size: { basis: 200, grow: 0 }, key: 'size' },
+        { header: h(HeaderCell, ['Last modified']), size: { basis: 200, grow: 0 }, key: 'updated' }
+      ],
+      rows: [
+        ..._.map(p => {
+          return {
+            name: h(TextCell, [
+              makeBucketLink({
+                label: p.slice(prefix.length),
+                target: `gs://${bucketName}/${p}`,
+                onClick: () => load(p)
+              })
+            ])
+          }
+        }, prefixes),
+        ..._.map(({ name, size, updated }) => {
+          return {
+            button: h(Link, {
+              style: { display: 'flex' }, onClick: () => setDeletingName(name),
+              tooltip: 'Delete file'
+            }, [
+              icon('trash', { size: 16, className: 'hover-only' })
+            ]),
+            name: h(TextCell, [
+              makeBucketLink({
+                label: name.slice(prefix.length),
+                target: `gs://${bucketName}/${name}`,
+                onClick: () => setViewingName(name)
+              })
+            ]),
+            size: filesize(size, { round: 0 }),
+            updated: Utils.makePrettyDate(updated)
+          }
+        }, objects)
+      ]
+    }),
+    deletingName && h(DeleteObjectModal, {
+      workspace, name: deletingName,
+      onDismiss: () => setDeletingName(),
+      onSuccess: () => {
+        setDeletingName()
+        load()
+      }
+    }),
+    viewingName && h(UriViewer, {
+      googleProject: namespace, uri: `gs://${bucketName}/${viewingName}`,
+      onDismiss: () => setViewingName(undefined)
+    }),
+    !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
+      label: 'UPLOAD',
+      iconShape: 'plus',
+      onClick: openUploader
+    }),
+    (loading || uploading) && spinnerOverlay
+  ])])
 })
 
 const WorkspaceData = _.flow(
