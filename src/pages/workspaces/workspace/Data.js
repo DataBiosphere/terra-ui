@@ -4,7 +4,7 @@ import filesize from 'filesize'
 import JSZip from 'jszip'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Component, Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -924,26 +924,36 @@ const WorkspaceData = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
   }),
-  Utils.withCancellationSignal,
-  Utils.connectStore(pfbImportJobStore, 'pfbImportJobs')
-)(class WorkspaceData extends Component {
-  constructor(props) {
-    super(props)
-    const { selectedDataType, entityMetadata } = StateHistory.get()
-    this.state = {
-      firstRender: true,
-      refreshKey: 0,
-      selectedDataType,
-      entityMetadata,
-      importingReference: false,
-      deletingReference: undefined
-    }
+  Utils.withDisplayName('WorkspaceData')
+)(({ namespace, name, workspace, workspace: { workspace: { attributes } }, refreshWorkspace }) => {
+  // State
+  const [firstRender, setFirstRender] = useState(true)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const forceRefresh = () => setRefreshKey(_.add(1))
+  const [selectedDataType, setSelectedDataType] = useState(() => StateHistory.get().selectedDataType)
+  const [entityMetadata, setEntityMetadata] = useState(() => StateHistory.get().entityMetadata)
+  const [snapshotDetails, setSnapshotDetails] = useState(() => StateHistory.get().snapshotDetails)
+  const [importingReference, setImportingReference] = useState(false)
+  const [deletingReference, setDeletingReference] = useState(undefined)
+  const [uploadingFile, setUploadingFile] = useState(false)
+
+  const signal = Utils.useCancellation()
+  const pfbImportJobs = Utils.useStore(pfbImportJobStore)
+
+  // Helpers
+  const getSelectionType = () => {
+    const referenceData = getReferenceData(attributes)
+    return Utils.cond(
+      [!selectedDataType, () => 'none'],
+      [selectedDataType === localVariables, () => 'localVariables'],
+      [selectedDataType === bucketObjects, () => 'bucketObjects'],
+      [_.isArray(selectedDataType), () => 'snapshots'],
+      [_.includes(selectedDataType, _.keys(referenceData)), () => 'referenceData'],
+      () => 'entities'
+    )
   }
 
-  loadMetadata = withErrorReporting('Error loading workspace entity data', async () => {
-    const { namespace, name, signal } = this.props
-    const { selectedDataType } = this.state
-
+  const loadMetadata = withErrorReporting('Error loading workspace entity data', async () => {
     const [entityMetadata, { resources: snapshotMetadata }] = await Promise.all([
       Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata(),
       Ajax(signal).Workspaces.workspace(namespace, name).listSnapshot(1000, 0)
@@ -958,203 +968,191 @@ const WorkspaceData = _.flow(
     },
     _.zip(snapshotEntities, snapshotMetadata)))
 
-    this.setState({
-      selectedDataType: this.selectionType() === 'entities' && !entityMetadata[selectedDataType] ? undefined : selectedDataType,
-      entityMetadata,
-      snapshotDetails
-    })
+    setSelectedDataType(getSelectionType() === 'entities' && !entityMetadata[selectedDataType] ? undefined : selectedDataType)
+    setEntityMetadata(entityMetadata)
+    setSnapshotDetails(snapshotDetails)
   })
 
-  componentDidMount() {
-    this.loadMetadata()
-    this.setState({ firstRender: false })
-  }
+  const toSortedPairs = _.memoize(_.flow(_.toPairs, _.sortBy(_.first)))
 
-  refresh() {
-    this.setState(({ refreshKey }) => ({ refreshKey: refreshKey + 1 }))
-    this.loadMetadata()
-  }
+  // Lifecycle
+  Utils.useOnMount(() => {
+    loadMetadata()
+    setFirstRender(false)
+  })
 
-  selectionType() {
-    const { workspace: { workspace: { attributes } } } = this.props
-    const { selectedDataType } = this.state
-    const referenceData = getReferenceData(attributes)
-    return Utils.cond(
-      [!selectedDataType, () => 'none'],
-      [selectedDataType === localVariables, () => 'localVariables'],
-      [selectedDataType === bucketObjects, () => 'bucketObjects'],
-      [_.isArray(selectedDataType), () => 'snapshots'],
-      [_.includes(selectedDataType, _.keys(referenceData)), () => 'referenceData'],
-      () => 'entities'
-    )
-  }
+  useEffect(() => {
+    StateHistory.update({ entityMetadata, selectedDataType, snapshotDetails })
+  }, [entityMetadata, selectedDataType, snapshotDetails])
 
-  render() {
-    const { namespace, name, workspace, workspace: { workspace: { attributes } }, refreshWorkspace, pfbImportJobs } = this.props
-    const { selectedDataType, entityMetadata, snapshotDetails, importingReference, deletingReference, firstRender, refreshKey, uploadingFile } = this.state
-    const referenceData = getReferenceData(attributes)
-    const sortedEntityPairs = _.flow(_.toPairs, _.sortBy(_.first))(entityMetadata)
-    const sortedSnapshotPairs = _.flow(_.toPairs, _.sortBy(_.first))(snapshotDetails)
+  // Render
+  const referenceData = getReferenceData(attributes)
+  const sortedEntityPairs = toSortedPairs(entityMetadata)
+  const sortedSnapshotPairs = toSortedPairs(snapshotDetails)
 
-    return div({ style: styles.tableContainer }, [
-      !entityMetadata ? spinnerOverlay : h(Fragment, [
-        div({ style: styles.dataTypeSelectionPanel }, [
-          div({ style: Style.navList.heading }, [
-            div(['Tables']),
-            h(Link, {
-              'aria-label': 'Upload .tsv',
-              disabled: !!Utils.editWorkspaceError(workspace),
-              tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
-              onClick: () => this.setState({ uploadingFile: true })
-            }, [icon('plus-circle', { size: 21 })])
-          ]),
-          _.some({ targetWorkspace: { namespace, name } }, pfbImportJobs) && h(DataImportPlaceholder),
-          _.map(([type, typeDetails]) => {
-            return h(DataTypeButton, {
-              key: type,
-              selected: selectedDataType === type,
-              onClick: () => {
-                this.setState({ selectedDataType: type, refreshKey: refreshKey + 1 })
-              }
-            }, [`${type} (${typeDetails.count})`])
-          }, sortedEntityPairs),
-          !_.isEmpty(sortedSnapshotPairs) && h(Fragment, [
-            div({ style: Style.navList.heading }, ['Snapshots']),
-            _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables }]) => {
-              const snapshotTablePairs = _.flow(_.toPairs, _.sortBy(_.first))(snapshotTables)
-              return h(Collapse, {
-                titleFirst: true,
-                key: snapshotName,
-                buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0, marginRight: '10px' },
-                style: { fontSize: 14, lineHeight: '50px', paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
-                title: snapshotName
-              }, [
-                div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
-                  _.map(([tableName, { count }]) => {
-                    return h(DataTypeButton, {
-                      buttonStyle: { borderBottom: 0, height: 40 },
-                      key: `${snapshotName}_${tableName}`,
-                      selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
-                      onClick: () => {
-                        this.setState({ selectedDataType: [snapshotName, tableName], refreshKey: refreshKey + 1 })
-                      }
-                    }, [`${tableName} (${count})`])
-                  }, snapshotTablePairs)
-                ])
-              ])
-            }, sortedSnapshotPairs)
-          ]),
-          div({ style: Style.navList.heading }, [
-            div(['Reference Data']),
-            h(Link, {
-              'aria-label': 'Add reference data',
-              disabled: !!Utils.editWorkspaceError(workspace),
-              tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
-              onClick: () => this.setState({ importingReference: true })
-            }, [icon('plus-circle', { size: 21 })])
-          ]),
-          importingReference && h(ReferenceDataImporter, {
-            onDismiss: () => this.setState({ importingReference: false }),
-            onSuccess: () => this.setState({ importingReference: false }, refreshWorkspace),
-            namespace, name
-          }),
-          deletingReference && h(ReferenceDataDeleter, {
-            onDismiss: () => this.setState({ deletingReference: false }),
-            onSuccess: () => this.setState({
-              deletingReference: false,
-              selectedDataType: selectedDataType === deletingReference ? undefined : selectedDataType
-            }, refreshWorkspace),
-            namespace, name, referenceDataType: deletingReference
-          }),
-          uploadingFile && h(EntityUploader, {
-            onDismiss: () => this.setState({ uploadingFile: false }),
-            onSuccess: () => this.setState({ uploadingFile: false }, () => {
-              this.refresh()
-            }),
-            namespace, name,
-            entityTypes: _.keys(entityMetadata)
-          }),
-          _.map(type => {
-            return h(DataTypeButton, {
-              key: type,
-              selected: selectedDataType === type,
-              onClick: () => {
-                this.setState({ selectedDataType: type })
-                refreshWorkspace()
-              }
+  return div({ style: styles.tableContainer }, [
+    !entityMetadata ? spinnerOverlay : h(Fragment, [
+      div({ style: styles.dataTypeSelectionPanel }, [
+        div({ style: Style.navList.heading }, [
+          div(['Tables']),
+          h(Link, {
+            'aria-label': 'Upload .tsv',
+            disabled: !!Utils.editWorkspaceError(workspace),
+            tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
+            onClick: () => setUploadingFile(true)
+          }, [icon('plus-circle', { size: 21 })])
+        ]),
+        _.some({ targetWorkspace: { namespace, name } }, pfbImportJobs) && h(DataImportPlaceholder),
+        _.map(([type, typeDetails]) => {
+          return h(DataTypeButton, {
+            key: type,
+            selected: selectedDataType === type,
+            onClick: () => {
+              setSelectedDataType(type)
+              forceRefresh()
+            }
+          }, [`${type} (${typeDetails.count})`])
+        }, sortedEntityPairs),
+        !_.isEmpty(sortedSnapshotPairs) && h(Fragment, [
+          div({ style: Style.navList.heading }, ['Snapshots']),
+          _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables }]) => {
+            const snapshotTablePairs = toSortedPairs(snapshotTables)
+            return h(Collapse, {
+              titleFirst: true,
+              key: snapshotName,
+              buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0, marginRight: '10px' },
+              style: { fontSize: 14, lineHeight: '50px', paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
+              title: snapshotName
             }, [
-              div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-                type,
-                h(Link, {
-                  'aria-label': `Delete ${type}`,
-                  disabled: !!Utils.editWorkspaceError(workspace),
-                  tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
-                  onClick: e => {
-                    e.stopPropagation()
-                    this.setState({ deletingReference: type })
-                  }
-                }, [icon('minus-circle', { size: 16 })])
+              div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
+                _.map(([tableName, { count }]) => {
+                  return h(DataTypeButton, {
+                    buttonStyle: { borderBottom: 0, height: 40 },
+                    key: `${snapshotName}_${tableName}`,
+                    selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
+                    onClick: () => {
+                      setSelectedDataType([snapshotName, tableName])
+                      forceRefresh()
+                    }
+                  }, [`${tableName} (${count})`])
+                }, snapshotTablePairs)
               ])
             ])
-          }, _.keys(referenceData)),
-          div({ style: Style.navList.heading }, 'Other Data'),
-          h(DataTypeButton, {
-            selected: selectedDataType === localVariables,
-            onClick: () => {
-              this.setState({ selectedDataType: localVariables, refreshKey: refreshKey + 1 })
-            }
-          }, ['Workspace Data']),
-          h(DataTypeButton, {
-            iconName: 'folder', iconSize: 18,
-            selected: selectedDataType === bucketObjects,
-            onClick: () => {
-              this.setState({ selectedDataType: bucketObjects, refreshKey: refreshKey + 1 })
-            }
-          }, ['Files'])
+          }, sortedSnapshotPairs)
         ]),
-        div({ style: styles.tableViewPanel }, [
-          Utils.switchCase(this.selectionType(),
-            ['none', () => div({ style: { textAlign: 'center' } }, ['Select a data type'])],
-            ['localVariables', () => h(LocalVariablesContent, {
-              workspace,
-              refreshKey,
-              firstRender
+        div({ style: Style.navList.heading }, [
+          div(['Reference Data']),
+          h(Link, {
+            'aria-label': 'Add reference data',
+            disabled: !!Utils.editWorkspaceError(workspace),
+            tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
+            onClick: () => setImportingReference(true)
+          }, [icon('plus-circle', { size: 21 })])
+        ]),
+        importingReference && h(ReferenceDataImporter, {
+          onDismiss: () => setImportingReference(false),
+          onSuccess: () => {
+            setImportingReference(false)
+            refreshWorkspace()
+          },
+          namespace, name
+        }),
+        deletingReference && h(ReferenceDataDeleter, {
+          onDismiss: () => setDeletingReference(false),
+          onSuccess: () => {
+            setDeletingReference(false)
+            setSelectedDataType(selectedDataType === deletingReference ? undefined : selectedDataType)
+            refreshWorkspace()
+          },
+          namespace, name, referenceDataType: deletingReference
+        }),
+        uploadingFile && h(EntityUploader, {
+          onDismiss: () => setUploadingFile(false),
+          onSuccess: () => {
+            setUploadingFile(false)
+            forceRefresh()
+            loadMetadata()
+          },
+          namespace, name,
+          entityTypes: _.keys(entityMetadata)
+        }),
+        _.map(type => {
+          return h(DataTypeButton, {
+            key: type,
+            selected: selectedDataType === type,
+            onClick: () => {
+              setSelectedDataType(type)
+              refreshWorkspace()
+            }
+          }, [
+            div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+              type,
+              h(Link, {
+                'aria-label': `Delete ${type}`,
+                disabled: !!Utils.editWorkspaceError(workspace),
+                tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
+                onClick: e => {
+                  e.stopPropagation()
+                  setDeletingReference(type)
+                }
+              }, [icon('minus-circle', { size: 16 })])
+            ])
+          ])
+        }, _.keys(referenceData)),
+        div({ style: Style.navList.heading }, 'Other Data'),
+        h(DataTypeButton, {
+          selected: selectedDataType === localVariables,
+          onClick: () => {
+            setSelectedDataType(localVariables)
+            forceRefresh()
+          }
+        }, ['Workspace Data']),
+        h(DataTypeButton, {
+          iconName: 'folder', iconSize: 18,
+          selected: selectedDataType === bucketObjects,
+          onClick: () => {
+            setSelectedDataType(bucketObjects)
+            forceRefresh()
+          }
+        }, ['Files'])
+      ]),
+      div({ style: styles.tableViewPanel }, [
+        Utils.switchCase(getSelectionType(),
+          ['none', () => div({ style: { textAlign: 'center' } }, ['Select a data type'])],
+          ['localVariables', () => h(LocalVariablesContent, {
+            workspace,
+            refreshKey,
+            firstRender
+          })],
+          ['referenceData', () => h(ReferenceDataContent, {
+            key: selectedDataType,
+            workspace,
+            referenceKey: selectedDataType,
+            firstRender
+          })],
+          ['bucketObjects', () => h(BucketContent, {
+            workspace, onClose: () => setSelectedDataType(undefined),
+            firstRender, refreshKey
+          })],
+          ['snapshots', () => snapshotDetails === undefined ?
+            spinnerOverlay :
+            h(SnapshotContent, {
+              snapshotDetails,
+              snapshotKey: selectedDataType
             })],
-            ['referenceData', () => h(ReferenceDataContent, {
-              key: selectedDataType,
-              workspace,
-              referenceKey: selectedDataType,
-              firstRender
-            })],
-            ['bucketObjects', () => h(BucketContent, {
-              workspace, onClose: () => this.setState({ selectedDataType: undefined }),
-              firstRender, refreshKey
-            })],
-            ['snapshots', () => snapshotDetails === undefined ?
-              spinnerOverlay :
-              h(SnapshotContent, {
-                snapshotDetails,
-                snapshotKey: selectedDataType
-              })],
-            ['entities', () => h(EntitiesContent, {
-              key: refreshKey,
-              workspace,
-              entityMetadata,
-              entityKey: selectedDataType,
-              loadMetadata: () => this.loadMetadata(),
-              firstRender
-            })]
-          )
-        ])
+          ['entities', () => h(EntitiesContent, {
+            key: refreshKey,
+            workspace,
+            entityMetadata,
+            entityKey: selectedDataType,
+            loadMetadata,
+            firstRender
+          })]
+        )
       ])
     ])
-  }
-
-  componentDidUpdate() {
-    StateHistory.update(_.pick(['entityMetadata', 'selectedDataType'], this.state))
-  }
+  ])
 })
-
 export const navPaths = [
   {
     name: 'workspace-data',
