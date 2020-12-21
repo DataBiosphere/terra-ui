@@ -4,7 +4,7 @@ import filesize from 'filesize'
 import JSZip from 'jszip'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Component, createRef, Fragment, useEffect, useState } from 'react'
+import { Component, createRef, Fragment, useEffect, useRef, useState } from 'react'
 import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -563,27 +563,28 @@ const SnapshotContent = ({ snapshotDetails, snapshotKey: [snapshotName] }) => {
   return h(SnapshotInfo, { snapshotId: snapshotDetails[snapshotName].id, snapshotName })
 }
 
-class EntitiesContent extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      selectedEntities: {},
-      deletingEntities: false,
-      refreshKey: 0,
-      igvData: {
-        selectedFiles: undefined,
-        igvRefGenome: ''
-      }
-    }
-    this.downloadForm = createRef()
-  }
+const EntitiesContent = ({
+  workspace, workspace: { workspace: { namespace, name, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount } },
+  entityKey, entityMetadata, loadMetadata, firstRender
+}) => {
+  // State
+  const [selectedEntities, setSelectedEntities] = useState({})
+  const [deletingEntities, setDeletingEntities] = useState(false)
+  const [copyingEntities, setCopyingEntities] = useState(false)
+  const [nowCopying, setNowCopying] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [showToolSelector, setShowToolSelector] = useState(false)
+  const [igvFiles, setIgvFiles] = useState(undefined)
+  const [igvRefGenome, setIgvRefGenome] = useState('')
 
-  renderDownloadButton(columnSettings) {
-    const { workspace: { workspace: { namespace, name } }, entityKey } = this.props
+  const downloadForm = useRef()
+
+  // Render helpers
+  const renderDownloadButton = columnSettings => {
     const disabled = entityKey.endsWith('_set_set')
     return h(Fragment, [
       form({
-        ref: this.downloadForm,
+        ref: downloadForm,
         action: `${getConfig().orchestrationUrlRoot}/cookie-authed/workspaces/${namespace}/${name}/entities/${entityKey}/tsv`,
         method: 'POST'
       }, [
@@ -596,7 +597,7 @@ class EntitiesContent extends Component {
         tooltip: disabled ?
           'Downloading sets of sets as TSV is not supported at this time' :
           `Download a .tsv file containing all the ${entityKey}s in this table`,
-        onClick: () => this.downloadForm.current.submit()
+        onClick: () => downloadForm.current.submit()
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
         'Download all Rows'
@@ -604,74 +605,7 @@ class EntitiesContent extends Component {
     ])
   }
 
-  renderCopyButton(entities, columnSettings) {
-    const { entityKey } = this.props
-    const { copying } = this.state
-
-    return h(Fragment, [
-      h(ButtonPrimary, {
-        style: { marginLeft: '1rem' },
-        tooltip: `Copy only the ${entityKey}s visible on the current page to the clipboard in .tsv format`,
-        onClick: _.flow(
-          withErrorReporting('Error copying to clipboard'),
-          Utils.withBusyState(v => this.setState({ copying: v }))
-        )(async () => {
-          const str = this.buildTSV(columnSettings, entities)
-          await clipboard.writeText(str)
-          notify('success', 'Successfully copied to clipboard', { timeout: 3000 })
-        })
-      }, [
-        icon('copy-to-clipboard', { style: { marginRight: '0.5rem' } }),
-        'Copy Page to Clipboard'
-      ]),
-      copying && spinner()
-    ])
-  }
-
-  renderSelectedRowsMenu(columnSettings) {
-    const { workspace, entityKey } = this.props
-    const { selectedEntities } = this.state
-    const isSet = _.endsWith('_set', entityKey)
-    const noEdit = Utils.editWorkspaceError(workspace)
-    const disabled = entityKey.endsWith('_set_set')
-
-    return !_.isEmpty(selectedEntities) && h(PopupTrigger, {
-      side: 'bottom',
-      closeOnClick: true,
-      content: h(Fragment, [
-        h(MenuButton, {
-          disabled,
-          tooltip: disabled ?
-            'Downloading sets of sets as TSV is not supported at this time' :
-            `Download the selected data as a file`,
-          onClick: async () => {
-            const tsv = this.buildTSV(columnSettings, selectedEntities)
-            isSet ?
-              FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
-              FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
-          }
-        }, ['Download as TSV']),
-        h(MenuButton, {
-          tooltip: 'Open the selected data to work with it',
-          onClick: () => this.setState({ showToolSelector: true })
-        }, ['Open with...']),
-        h(MenuButton, {
-          tooltip: 'Send the selected data to another workspace',
-          onClick: () => this.setState({ copyingEntities: true })
-        }, ['Export to Workspace']),
-        h(MenuButton, {
-          tooltip: noEdit ? 'You don\'t have permission to modify this workspace' : 'Permanently delete the selected data',
-          disabled: noEdit,
-          onClick: () => this.setState({ deletingEntities: true })
-        }, ['Delete Data'])
-      ])
-    }, [h(Link, { style: { marginRight: '1rem' } }, [
-      icon('ellipsis-v-circle', { size: 24 })
-    ])])
-  }
-
-  buildTSV(columnSettings, entities) {
-    const { entityKey } = this.props
+  const buildTSV = (columnSettings, entities) => {
     const sortedEntities = _.sortBy('name', entities)
     const isSet = _.endsWith('_set', entityKey)
     const setRoot = entityKey.slice(0, -4)
@@ -706,63 +640,123 @@ class EntitiesContent extends Component {
     }
   }
 
-  render() {
-    const {
-      workspace, workspace: { workspace: { namespace, name, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount } },
-      entityKey, entityMetadata, loadMetadata, firstRender
-    } = this.props
-    const { selectedEntities, deletingEntities, copyingEntities, refreshKey, showToolSelector, igvData: { selectedFiles, refGenome } } = this.state
-
-    const { initialX, initialY } = firstRender ? StateHistory.get() : {}
-    const selectedKeys = _.keys(selectedEntities)
-    const selectedLength = selectedKeys.length
-
-    return selectedFiles ?
-      h(IGVBrowser, { selectedFiles, refGenome, workspace, onDismiss: () => this.setState(_.set(['igvData', 'selectedFiles'], undefined)) }) :
-      h(Fragment, [
-        h(DataTable, {
-          persist: true, firstRender, refreshKey, editable: !Utils.editWorkspaceError(workspace),
-          entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
-          onScroll: saveScroll, initialX, initialY,
-          selectionModel: {
-            selected: selectedEntities,
-            setSelected: e => this.setState({ selectedEntities: e })
-          },
-          childrenBefore: ({ entities, columnSettings }) => div({
-            style: { display: 'flex', alignItems: 'center', flex: 'none' }
-          }, [
-            this.renderDownloadButton(columnSettings),
-            !_.endsWith('_set', entityKey) && this.renderCopyButton(entities, columnSettings),
-            div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
-            div({ style: { marginRight: '0.5rem' } }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
-            this.renderSelectedRowsMenu(columnSettings)
-          ])
-        }),
-        deletingEntities && h(EntityDeleter, {
-          onDismiss: () => this.setState({ deletingEntities: false }),
-          onSuccess: () => {
-            this.setState({ deletingEntities: false, selectedEntities: {}, refreshKey: refreshKey + 1 })
-            loadMetadata()
-          },
-          namespace, name,
-          selectedEntities: selectedKeys, selectedDataType: entityKey, runningSubmissionsCount
-        }),
-        copyingEntities && h(ExportDataModal, {
-          onDismiss: () => this.setState({ copyingEntities: false }),
-          workspace,
-          selectedEntities: selectedKeys, selectedDataType: entityKey, runningSubmissionsCount
-        }),
-        h(ToolDrawer, {
-          workspace,
-          isOpen: showToolSelector,
-          onDismiss: () => this.setState({ showToolSelector: false }),
-          onIgvSuccess: newIgvData => this.setState({ showToolSelector: false, igvData: newIgvData }),
-          entityMetadata,
-          entityKey,
-          selectedEntities
+  const renderCopyButton = (entities, columnSettings) => {
+    return h(Fragment, [
+      h(ButtonPrimary, {
+        style: { marginLeft: '1rem' },
+        tooltip: `Copy only the ${entityKey}s visible on the current page to the clipboard in .tsv format`,
+        onClick: _.flow(
+          withErrorReporting('Error copying to clipboard'),
+          Utils.withBusyState(setNowCopying)
+        )(async () => {
+          const str = buildTSV(columnSettings, entities)
+          await clipboard.writeText(str)
+          notify('success', 'Successfully copied to clipboard', { timeout: 3000 })
         })
-      ])
+      }, [
+        icon('copy-to-clipboard', { style: { marginRight: '0.5rem' } }),
+        'Copy Page to Clipboard'
+      ]),
+      nowCopying && spinner()
+    ])
   }
+
+  const renderSelectedRowsMenu = columnSettings => {
+    const isSet = _.endsWith('_set', entityKey)
+    const noEdit = Utils.editWorkspaceError(workspace)
+    const disabled = entityKey.endsWith('_set_set')
+
+    return !_.isEmpty(selectedEntities) && h(PopupTrigger, {
+      side: 'bottom',
+      closeOnClick: true,
+      content: h(Fragment, [
+        h(MenuButton, {
+          disabled,
+          tooltip: disabled ?
+            'Downloading sets of sets as TSV is not supported at this time' :
+            `Download the selected data as a file`,
+          onClick: async () => {
+            const tsv = buildTSV(columnSettings, selectedEntities)
+            isSet ?
+              FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
+              FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
+          }
+        }, ['Download as TSV']),
+        h(MenuButton, {
+          tooltip: 'Open the selected data to work with it',
+          onClick: () => setShowToolSelector(true)
+        }, ['Open with...']),
+        h(MenuButton, {
+          tooltip: 'Send the selected data to another workspace',
+          onClick: () => setCopyingEntities(true)
+        }, ['Export to Workspace']),
+        h(MenuButton, {
+          tooltip: noEdit ? 'You don\'t have permission to modify this workspace' : 'Permanently delete the selected data',
+          disabled: noEdit,
+          onClick: () => setDeletingEntities(true)
+        }, ['Delete Data'])
+      ])
+    }, [h(Link, { style: { marginRight: '1rem' } }, [
+      icon('ellipsis-v-circle', { size: 24 })
+    ])])
+  }
+
+  // Render
+  const { initialX, initialY } = firstRender ? StateHistory.get() : {}
+  const selectedKeys = _.keys(selectedEntities)
+  const selectedLength = selectedKeys.length
+
+  return igvFiles ?
+    h(IGVBrowser, { selectedFiles: igvFiles, refGenome: igvRefGenome, workspace, onDismiss: () => setIgvFiles(undefined) }) :
+    h(Fragment, [
+      h(DataTable, {
+        persist: true, firstRender, refreshKey, editable: !Utils.editWorkspaceError(workspace),
+        entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
+        onScroll: saveScroll, initialX, initialY,
+        selectionModel: {
+          selected: selectedEntities,
+          setSelected: setSelectedEntities
+        },
+        childrenBefore: ({ entities, columnSettings }) => div({
+          style: { display: 'flex', alignItems: 'center', flex: 'none' }
+        }, [
+          renderDownloadButton(columnSettings),
+          !_.endsWith('_set', entityKey) && renderCopyButton(entities, columnSettings),
+          div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
+          div({ style: { marginRight: '0.5rem' } }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
+          renderSelectedRowsMenu(columnSettings)
+        ])
+      }),
+      deletingEntities && h(EntityDeleter, {
+        onDismiss: () => setDeletingEntities(false),
+        onSuccess: () => {
+          setDeletingEntities(false)
+          setSelectedEntities({})
+          setRefreshKey(_.add(1))
+          loadMetadata()
+        },
+        namespace, name,
+        selectedEntities: selectedKeys, selectedDataType: entityKey, runningSubmissionsCount
+      }),
+      copyingEntities && h(ExportDataModal, {
+        onDismiss: () => setCopyingEntities(false),
+        workspace,
+        selectedEntities: selectedKeys, selectedDataType: entityKey, runningSubmissionsCount
+      }),
+      h(ToolDrawer, {
+        workspace,
+        isOpen: showToolSelector,
+        onDismiss: () => setShowToolSelector(false),
+        onIgvSuccess: ({ selectedFiles, refGenome }) => {
+          setShowToolSelector(false)
+          setIgvFiles(selectedFiles)
+          setIgvRefGenome(refGenome)
+        },
+        entityMetadata,
+        entityKey,
+        selectedEntities
+      })
+    ])
 }
 
 const DeleteObjectModal = ({ name, workspace: { workspace: { namespace, bucketName } }, onSuccess, onDismiss }) => {
