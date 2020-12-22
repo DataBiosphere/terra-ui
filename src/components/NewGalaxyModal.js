@@ -52,9 +52,19 @@ export const NewGalaxyModal = _.flow(
 
   const pauseGalaxy = _.flow(
     Utils.withBusyState(setLoading),
-    withErrorReporting('Error deleting galaxy instance')
+    withErrorReporting('Error stopping galaxy instance')
   )(async () => {
+    await Ajax().Apps.app(app.googleProject, app.appName).pause()
     Ajax().Metrics.captureEvent(Events.applicationPause, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
+    return onSuccess()
+  })
+
+  const resumeGalaxy = _.flow(
+    Utils.withBusyState(setLoading),
+    withErrorReporting('Error starting galaxy instance')
+  )(async () => {
+    await Ajax().Apps.app(app.googleProject, app.appName).resume()
+    Ajax().Metrics.captureEvent(Events.applicationResume, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
     return onSuccess()
   })
 
@@ -72,14 +82,14 @@ export const NewGalaxyModal = _.flow(
       ['paused', () => {
         return h(Fragment, [
                            h(ButtonPrimary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
-                           h(ButtonSecondary, { style: { marginRight: '1rem' }}, ['Resume'])
+                           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => { resumeGalaxy(); setViewMode(Utils.DEFAULT);} }, ['Resume'])
                          ])
       }],
       [Utils.DEFAULT, () => {
         return !!app ?
           h(Fragment, [
             h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
-            h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => setViewMode('paused')}, ['Pause']),
+            h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => { pauseGalaxy(); setViewMode('paused'); }}, ['Pause']),
             h(ButtonPrimary, { onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
           ]) :
           h(ButtonPrimary, { onClick: () => setViewMode('createWarn') }, ['Next'])
