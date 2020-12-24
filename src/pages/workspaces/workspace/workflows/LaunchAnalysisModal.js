@@ -101,6 +101,16 @@ const LaunchAnalysisModal = ({
       h(ButtonPrimary, { onClick: onDismiss }, ['OK'])
   }, [
     div({ style: { margin: '1rem 0' } }, ['This analysis will be run by ', h(CromwellVersionLink), '.']),
+    div(['Output files will be saved as workspace data in:']),
+    div({ style: { margin: '1rem' } }, [
+      location ? h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [flag]),
+        span({ style: { marginRight: '0.5rem' } }, [regionDescription]),
+        h(InfoBox, [
+          p(['Output (and intermediate) files will be written to your workspace bucket in this region.']),
+          p(['Tasks within your workflow might additionally move or copy the data elsewhere. You should carefully vet the workflows you run if region requirements are a concern.']),
+          p(['Note that metadata about this run will be stored in the US.'])
+        ])]) : 'Loading...'
+    ]),
     div({ style: { margin: '1rem 0' } }, [
       'This will launch ', b([entityCount]), ` analys${entityCount === 1 ? 'is' : 'es'}`,
       '.',
@@ -114,16 +124,6 @@ const LaunchAnalysisModal = ({
     ]),
     div({ style: { color: colors.danger(), overflowWrap: 'break-word' } }, [
       h(Fragment, wrappableOnPeriods(launchError))
-    ]),
-    div(['Output files will be saved as workspace data in:']),
-    div({ style: { margin: '1rem' } }, [
-      location ? h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [flag]),
-        span({ style: { marginRight: '0.5rem' } }, [regionDescription]),
-        h(InfoBox, [
-          p(['Output (and intermediate) files will be written to your workspace bucket in this region.']),
-          p(['Tasks within your workflow might additionally move or copy the data elsewhere. You should carefully vet the workflows you run if region requirements are a concern.']),
-          p(['Note that metadata about this run will be stored in the US.'])
-        ])]) : 'Loading...'
     ])
   ])
 }

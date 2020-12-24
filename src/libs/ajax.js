@@ -650,9 +650,38 @@ const Workspaces = signal => ({
             return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }))
           },
 
-          getWorkflow: async (workflowId, includeKey) => {
-            const res = await fetchRawls(`${submissionPath}/workflows/${workflowId}?${qs.stringify({ includeKey }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
+          getWorkflow: async (workflowId, includeKey, excludeKey) => {
+            const res = await fetchRawls(`${submissionPath}/workflows/${workflowId}?${qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
             return res.json()
+          },
+
+          workflow: workflowId => {
+            return {
+              workflow_metadata: async (includeKey, excludeKey) => {
+                const res = await fetchRawls(`${submissionPath}/workflows/${workflowId}?${qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
+                return res.json()
+              },
+
+              call: (callFqn, index, attempt) => {
+                return {
+                  call_metadata: async (includeKey, excludeKey) => {
+                    // TODO: While Cromwell does not support query-by-FQN on the metadata API this method is going to _SUCK_!
+                    const res = await fetchRawls(`${submissionPath}/workflows/${workflowId}?${qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
+                    const asJson = await res.json()
+                    console.log(asJson)
+                    const { calls: { [callFqn]: callObjects } = {} } = asJson
+                    console.log(callObjects)
+                    const firstValid = _.find(co => {
+                      const { shardIndex, attempt: att } = co
+                      return shardIndex.toString() === index.toString() && att.toString() === attempt.toString()
+                    })
+
+                    console.log(firstValid(callObjects))
+                    return firstValid(callObjects)
+                  }
+                }
+              }
+            }
           }
         }
       },

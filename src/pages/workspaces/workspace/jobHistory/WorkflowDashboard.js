@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
+import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
 import { ClipboardButton, Link } from 'src/components/common'
@@ -10,14 +11,18 @@ import {
   collapseCromwellExecutionStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon,
   submittedIcon, successIcon, unknownIcon, workflowDetailsBreadcrumbSubtitle
 } from 'src/components/job-common'
+import { FlexTable } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
+import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import colors from 'src/libs/colors'
 
 
 const styles = {
@@ -50,6 +55,8 @@ const statusCell = ({ calls }) => {
   ])
 }
 
+const naTextDiv = div({ style: { color: colors.dark(0.7), marginTop: '0.5rem' } }, ['N/A'])
+
 const WorkflowDashboard = _.flow(
   Utils.forwardRefWithName('WorkflowDashboard'),
   wrapWorkspace({
@@ -63,6 +70,7 @@ const WorkflowDashboard = _.flow(
    * State setup
    */
   const [workflow, setWorkflow] = useState()
+  const [fetchTime, setFetchTime] = useState()
   const [showLog, setShowLog] = useState(false)
 
   const signal = Utils.useCancellation()
@@ -75,10 +83,14 @@ const WorkflowDashboard = _.flow(
   Utils.useOnMount(() => {
     const loadWorkflow = async () => {
       const includeKey = [
-        'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'workflowName'
+        'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'workflowName', 'callCaching:result'
       ]
-      const wf = await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).getWorkflow(workflowId, includeKey)
+      const excludeKey = []
+
+      const timeBefore = Date.now()
+      const wf = await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).getWorkflow(workflowId, includeKey, excludeKey)
       setWorkflow(wf)
+      setFetchTime(Date.now() - timeBefore)
 
       if (_.includes(wf.status, ['Running', 'Submitted'])) {
         stateRefreshTimer.current = setTimeout(loadWorkflow, 60000)
@@ -94,7 +106,7 @@ const WorkflowDashboard = _.flow(
   /*
    * Page render
    */
-  const { end, failures, start, status, workflowLog, workflowName, submittedFiles: { workflow: wdl } = {} } = workflow || {}
+  const { calls, end, failures, start, status, workflowLog, workflowName, submittedFiles: { workflow: wdl } = {} } = workflow || {}
 
   const restructureFailures = failuresArray => {
     const filtered = _.filter(({ message }) => !_.isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
@@ -110,11 +122,14 @@ const WorkflowDashboard = _.flow(
     }), simplifiedFailures)
   }
 
+  const callNames = _.keys(calls)
+
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId),
+    workflow === undefined || div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, [`Workflow metadata fetched in ${fetchTime}ms`]),
     workflow === undefined ? centeredSpinner() : div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
       makeSection('Workflow Status', [
-        div({ style: { lineHeight: '24px' } }, [makeStatusLine(style => statusIcon(status, style), status)])
+        div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [makeStatusLine(style => statusIcon(status, style), status)])
       ]),
       makeSection('Workflow Timing', [
         div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
@@ -123,7 +138,7 @@ const WorkflowDashboard = _.flow(
         ])
       ]),
       makeSection('Links', [
-        div({ style: { display: 'flex', marginTop: '0.5rem' } }, [
+        div({ style: { display: 'flex', flexFlow: 'row wrap', marginTop: '0.5rem' } }, [
           h(Link, {
             ...Utils.newTabLinkProps,
             href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
@@ -139,11 +154,12 @@ const WorkflowDashboard = _.flow(
           h(Link, {
             onClick: () => setShowLog(true),
             style: { display: 'flex', marginLeft: '1rem' }
-          }, [icon('fileAlt', { size: 18 }), ' View execution log'])
+          }, [icon('fileAlt', { size: 18 }), ' View execution log']),
+          h(Link, {
+            href: Nav.getLink('workspace-call-cache-wizard', { namespace, name, submissionId, workflowId }),
+            style: { display: 'flex', marginTop: '1rem' }
+          }, [icon('fileCopy', { size: 18 }), ' Call Cache Wizard'])
         ])
-      ]),
-      makeSection('Call Statuses', [
-        workflow.calls ? statusCell(workflow) : div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.'])
       ])
     ]),
     failures && h(Collapse, {
@@ -166,6 +182,27 @@ const WorkflowDashboard = _.flow(
       displayObjectSize: false,
       src: restructureFailures(failures)
     })]),
+    h(Collapse, {
+      title: div({ style: Style.elements.sectionHeader }, ['Calls']),
+      initialOpenState: true
+    }, [
+      !_.isEmpty(calls) ? div({ style: { marginLeft: '1rem' } },
+        [makeSection('Total Call Status Counts', [
+          workflow.calls ? statusCell(workflow) : div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.'])
+        ]),
+        makeSection('Call Lists', [
+          _.map(callName => {
+            return h(Collapse, {
+              style: { marginLeft: '1rem', marginTop: '0.5rem' },
+              title: div({ style: { ...Style.codeFont, ...Style.elements.sectionHeader } }, [`${callName} (x ${calls[callName].length})`]),
+              initialOpenState: calls[callName].length < 10
+            }, [
+              h(CallTable, { namespace, name, submissionId, workflowId, callName, callObjects: calls[callName] })
+            ])
+          }, callNames)
+        ])]
+      ) : naTextDiv
+    ]),
     wdl && h(Collapse, {
       title: div({ style: Style.elements.sectionHeader }, ['Submitted workflow script'])
     }, [h(WDLViewer, { wdl })]),
