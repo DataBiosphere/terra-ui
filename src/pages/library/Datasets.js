@@ -164,14 +164,14 @@ const amppd = () => h(Participant, {
       ])
     ])
   ]),
-  sizeText: 'Participants: > 4,000'
+  sizeText: 'Participants: > 10,000'
 }, [
   h(ButtonPrimary, {
     style: { marginBottom: '1rem' },
-    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD Clinical - 2019_v1release_1015' })
+    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD Clinical - 2020_v2release_1218' })
   }, ['Browse Tier 1 Data']),
   h(ButtonPrimary, {
-    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD - 2019_v1release_1015' })
+    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD - 2020_v2release_1218' })
   }, ['Browse Tier 2 Data'])
 ])
 
