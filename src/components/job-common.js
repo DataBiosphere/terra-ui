@@ -83,7 +83,7 @@ export const makeSection = (label, children) => div({
   h(Fragment, children)
 ])
 
-const breadcrumbHistoryCaret = icon('angle-right', { size: 10, style: { margin: '0 0.25rem' } })
+export const breadcrumbHistoryCaret = icon('angle-right', { size: 10, style: { margin: '0 0.25rem' } })
 
 export const jobHistoryBreadcrumbPrefix = (namespace, workspaceName) => {
   return h(Fragment, [

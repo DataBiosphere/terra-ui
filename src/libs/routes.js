@@ -27,7 +27,6 @@ import * as Data from 'src/pages/workspaces/workspace/Data'
 import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/SubmissionDetails'
 import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard'
-import * as CallCacheWizard from 'src/pages/workspaces/workspace/jobHistory/CallCacheWizard'
 import * as CallDetails from 'src/pages/workspaces/workspace/jobHistory/CallDetails'
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
@@ -49,7 +48,6 @@ const routes = _.flatten([
   JobHistory.navPaths,
   SubmissionDetails.navPaths,
   WorkflowDashboard.navPaths,
-  CallCacheWizard.navPaths,
   CallDetails.navPaths,
   Workflows.navPaths,
   NotebookLauncher.navPaths,

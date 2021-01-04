@@ -4,7 +4,7 @@ import { AutoSizer } from 'react-virtualized'
 import { FlexTable, Sortable, TooltipCell } from 'src/components/table'
 import colors from 'src/libs/colors'
 import FailuresViewer from 'src/pages/workspaces/workspace/jobHistory/FailuresViewer'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { Link } from 'src/components/common'
 import * as Nav from 'src/libs/nav'
 import { icon } from 'src/components/icons'
@@ -14,8 +14,12 @@ import {
   makeCromwellStatusLine,
   makeStatusLine
 } from 'src/components/job-common'
+import CallCacheWizard from 'src/pages/workspaces/workspace/jobHistory/CallCacheWizard'
 
 const CallTable = ({ namespace, name, submissionId, workflowId, callName, callObjects }) => {
+
+  const [wizardVisible, setWizardVisible] = useState()
+
   return div([
     h(FlexTable, {
       height: _.min([callObjects.length * 100, 600]),
@@ -51,7 +55,12 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
           cellRenderer: ({ rowIndex }) => {
             const { callCaching: { result } = {} } = callObjects[rowIndex]
             if (result) {
-              return h(TooltipCell, [result])
+              return h(TooltipCell, [
+                result,
+                result === 'Cache Miss' && h(Link, {
+                  onClick: () => setWizardVisible(true)
+                }, ['LINK'])
+              ])
             } else {
               return div({ style: { color: colors.dark(0.7) } }, ['No Information'])
             }
@@ -79,9 +88,12 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
               style: { display: 'flex', alignItems: 'center' }
             }, [icon('fileCopy', { size: 18, marginRight: '0.5rem' }), ' Call Details'])
           }
-
         }
       ]
+    }),
+    wizardVisible && h(CallCacheWizard, {
+      onDismiss: () => setWizardVisible(false),
+      namespace, name, submissionId, workflowId, callFqn: 'foo', attempt: 100, index: 100
     })
   ])
 }

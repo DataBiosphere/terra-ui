@@ -154,11 +154,7 @@ const WorkflowDashboard = _.flow(
           h(Link, {
             onClick: () => setShowLog(true),
             style: { display: 'flex', marginLeft: '1rem' }
-          }, [icon('fileAlt', { size: 18 }), ' View execution log']),
-          h(Link, {
-            href: Nav.getLink('workspace-call-cache-wizard', { namespace, name, submissionId, workflowId }),
-            style: { display: 'flex', marginTop: '1rem' }
-          }, [icon('fileCopy', { size: 18 }), ' Call Cache Wizard'])
+          }, [icon('fileAlt', { size: 18 }), ' View execution log'])
         ])
       ])
     ]),
