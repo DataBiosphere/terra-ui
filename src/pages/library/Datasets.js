@@ -164,7 +164,7 @@ const amppd = () => h(Participant, {
       ])
     ])
   ]),
-  sizeText: 'Participants: > 10,000'
+  sizeText: 'Participants: 10,247'
 }, [
   h(ButtonPrimary, {
     style: { marginBottom: '1rem' },
