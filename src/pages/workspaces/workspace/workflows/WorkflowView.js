@@ -498,7 +498,8 @@ const WorkflowView = _.flow(
 
         this.setState({ versionIds: snapshotIds })
       } else if (sourceRepo === 'dockstore') {
-        const versions = await Ajax(signal).Dockstore.getVersions(methodPath)
+        // TODO: We would need to store 'workflow' vs 'tool' for dockstore imports. For now assume 'workflow':
+        const versions = await Ajax(signal).Dockstore.getVersions('workflow', methodPath)
         const versionIds = _.map('name', versions)
 
         this.setState({ versionIds })
@@ -532,7 +533,8 @@ const WorkflowView = _.flow(
           this.setState({ synopsis, documentation, wdl: payload })
         }
       } else if (sourceRepo === 'dockstore') {
-        const wdl = await Ajax(signal).Dockstore.getWdl(methodPath, methodVersion)
+        // TODO: We would need to store 'workflow' vs 'tool' for dockstore imports:
+        const wdl = await Ajax(signal).Dockstore.getWdl('workflow', methodPath, methodVersion)
         this.setState({ wdl })
       } else {
         throw new Error('unknown sourceRepo')

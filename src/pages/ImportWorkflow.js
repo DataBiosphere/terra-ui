@@ -36,7 +36,14 @@ const styles = {
   }
 }
 
-const DockstoreImporter = ({ path, version }) => {
+const DockstoreImporter = ({ path, version, dockstoreImportType }) => {
+  if (dockstoreImportType !== 'workflow' && dockstoreImportType !== 'tool') {
+    return div({ style: { display: 'flex', align: 'center', justifyContent: 'center', margin: '1rem' } }, [
+      icon('warning-standard', { size: 16, color: 'orange' }),
+      div({ style: { paddingLeft: '0.5rem' } }, [`Invalid dockstoreImportType: '${dockstoreImportType}'. Expected either 'workflow' (default) or 'tool'.`])
+    ])
+  }
+
   const [isBusy, setIsBusy] = useState(false)
   const [wdl, setWdl] = useState(undefined)
   const [workflowName, setWorkflowName] = useState('')
@@ -47,7 +54,7 @@ const DockstoreImporter = ({ path, version }) => {
     withErrorReporting('Error loading WDL'),
     Utils.withBusyState(setIsBusy)
   )(async () => {
-    const wdl = await Ajax(signal).Dockstore.getWdl(path, version)
+    const wdl = await Ajax(signal).Dockstore.getWdl(dockstoreImportType, path, version)
     setWdl(wdl)
     setWorkflowName(_.last(path.split('/')))
   })
@@ -121,14 +128,19 @@ const DockstoreImporter = ({ path, version }) => {
 }
 
 
-const Importer = ({ source, item }) => {
+const Importer = ({ source, item, queryParams }) => {
   const [path, version] = item.split(':')
-
   return h(FooterWrapper, [
     h(TopBar, { title: 'Import Workflow' }),
     div({ role: 'main', style: { flexGrow: 1 } }, [
       Utils.cond(
-        [source === 'dockstore', () => h(DockstoreImporter, { path, version })],
+        [
+          source === 'dockstore',
+          () => {
+            const { dockstoreImportType = 'workflow' } = queryParams
+            return h(DockstoreImporter, { path, version, dockstoreImportType })
+          }
+        ],
         () => `Unknown source '${source}'`
       )
     ])
