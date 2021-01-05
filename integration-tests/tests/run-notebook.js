@@ -17,6 +17,7 @@ const testRunNotebookFn = _.flow(
   await findElement(page, clickable({ textContains: workspaceName }))
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: workspaceName }))
+  await delay(5000)
   await click(page, clickable({ text: 'notebooks' }))
   await click(page, clickable({ textContains: 'Create a' }))
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
@@ -51,7 +52,7 @@ const testRunNotebookFn = _.flow(
 const testRunNotebook = {
   name: 'run-notebook',
   fn: testRunNotebookFn,
-  timeout: 15 * 60 * 1000
+  timeout: 20 * 60 * 1000
 }
 
 module.exports = { testRunNotebook }
