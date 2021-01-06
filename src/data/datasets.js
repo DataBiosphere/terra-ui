@@ -6,13 +6,13 @@ const datasets = [
     origin: 'https://test-data-explorer.appspot.com'
   },
   {
-    name: 'AMP PD - 2019_v1release_1015',
+    name: 'AMP PD - 2020_v2release_1218',
     origin: 'https://data-explorer.amp-pd.org',
     authDomain: 'amp-pd-researchers',
     partner: 'AMP PD'
   },
   {
-    name: 'AMP PD Clinical - 2019_v1release_1015',
+    name: 'AMP PD Clinical - 2020_v2release_1218',
     origin: 'https://clinical-data-explorer.amp-pd.org',
     authDomain: 'amp-pd-clinical-access',
     partner: 'AMP PD'
