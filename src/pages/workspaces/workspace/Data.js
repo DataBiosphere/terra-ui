@@ -4,7 +4,7 @@ import filesize from 'filesize'
 import JSZip from 'jszip'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { div, form, h, img, input } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -920,12 +920,12 @@ const BucketContent = _.flow(
 })
 
 const WorkspaceData = _.flow(
+  Utils.forwardRefWithName('WorkspaceData'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
-  }),
-  Utils.withDisplayName('WorkspaceData')
-)(({ namespace, name, workspace, workspace: { workspace: { attributes } }, refreshWorkspace }) => {
+  })
+)(({ namespace, name, workspace, workspace: { workspace: { attributes } }, refreshWorkspace }, ref) => {
   // State
   const [firstRender, setFirstRender] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -973,7 +973,7 @@ const WorkspaceData = _.flow(
     setSnapshotDetails(snapshotDetails)
   })
 
-  const toSortedPairs = _.memoize(_.flow(_.toPairs, _.sortBy(_.first)))
+  const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first))
 
   // Lifecycle
   Utils.useOnMount(() => {
@@ -984,6 +984,13 @@ const WorkspaceData = _.flow(
   useEffect(() => {
     StateHistory.update({ entityMetadata, selectedDataType, snapshotDetails })
   }, [entityMetadata, selectedDataType, snapshotDetails])
+
+  useImperativeHandle(ref, () => ({
+    refresh: () => {
+      forceRefresh()
+      loadMetadata()
+    }
+  }))
 
   // Render
   const referenceData = getReferenceData(attributes)
@@ -1153,6 +1160,7 @@ const WorkspaceData = _.flow(
     ])
   ])
 })
+
 export const navPaths = [
   {
     name: 'workspace-data',
