@@ -18,7 +18,7 @@ import CallCacheWizard from 'src/pages/workspaces/workspace/jobHistory/CallCache
 
 const CallTable = ({ namespace, name, submissionId, workflowId, callName, callObjects }) => {
 
-  const [wizardVisible, setWizardVisible] = useState()
+  const [wizardSelection, setWizardSelection] = useState()
 
   return div([
     h(FlexTable, {
@@ -53,12 +53,12 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
           size: { basis: 200, grow: 1 },
           headerRenderer: () => 'Call Caching Result',
           cellRenderer: ({ rowIndex }) => {
-            const { callCaching: { result } = {} } = callObjects[rowIndex]
+            const { callCaching: { result } = {}, shardIndex, attempt } = callObjects[rowIndex]
             if (result) {
               return h(TooltipCell, [
                 result,
                 result === 'Cache Miss' && h(Link, {
-                  onClick: () => setWizardVisible(true)
+                  onClick: () => setWizardSelection({ callFqn: callName, index: shardIndex, attempt })
                 }, ['LINK'])
               ])
             } else {
@@ -91,9 +91,9 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
         }
       ]
     }),
-    wizardVisible && h(CallCacheWizard, {
-      onDismiss: () => setWizardVisible(false),
-      namespace, name, submissionId, workflowId, callFqn: 'foo', attempt: 100, index: 100
+    wizardSelection && h(CallCacheWizard, {
+      onDismiss: () => setWizardSelection(undefined),
+      namespace, name, submissionId, workflowId, ...wizardSelection
     })
   ])
 }
