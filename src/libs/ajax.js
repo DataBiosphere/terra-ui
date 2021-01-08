@@ -502,12 +502,17 @@ const CromIAM = signal => ({
     const params = {
       workflowA: thisWorkflowId,
       callA: thisCallFqn,
-      indexA: (thisIndex !== '-1') ? thisIndex : undefined,
+      indexA: (thisIndex !== -1) ? thisIndex : undefined,
       workflowB: thatWorkflowId,
       callB: thatCallFqn,
-      indexB: (thatIndex !== '-1') ? thatIndex : undefined
+      indexB: (thatIndex !== -1) ? thatIndex : undefined
     }
     const res = await fetchCromIAM(`workflows/v1/callcaching/diff?${qs.stringify(params)}`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  workflowMetadata: async (workflowId, includeKey, excludeKey) => {
+    const res = await fetchCromIAM(`workflows/v1/${workflowId}/metadata?${qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
     return res.json()
   }
 })

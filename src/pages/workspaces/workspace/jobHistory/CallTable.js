@@ -1,12 +1,8 @@
 import _ from 'lodash/fp'
+import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { FlexTable, Sortable, TooltipCell } from 'src/components/table'
-import colors from 'src/libs/colors'
-import FailuresViewer from 'src/pages/workspaces/workspace/jobHistory/FailuresViewer'
-import { Fragment, useState } from 'react'
 import { Link } from 'src/components/common'
-import * as Nav from 'src/libs/nav'
 import { icon } from 'src/components/icons'
 import {
   collapseCromwellExecutionStatus,
@@ -14,10 +10,14 @@ import {
   makeCromwellStatusLine,
   makeStatusLine
 } from 'src/components/job-common'
+import { FlexTable, Sortable, TooltipCell } from 'src/components/table'
+import colors from 'src/libs/colors'
+import * as Nav from 'src/libs/nav'
 import CallCacheWizard from 'src/pages/workspaces/workspace/jobHistory/CallCacheWizard'
+import FailuresViewer from 'src/pages/workspaces/workspace/jobHistory/FailuresViewer'
+
 
 const CallTable = ({ namespace, name, submissionId, workflowId, callName, callObjects }) => {
-
   const [wizardSelection, setWizardSelection] = useState()
 
   return div([
@@ -55,11 +55,13 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
           cellRenderer: ({ rowIndex }) => {
             const { callCaching: { result } = {}, shardIndex, attempt } = callObjects[rowIndex]
             if (result) {
-              return h(TooltipCell, [
-                result,
+              return h(Fragment, [
+                h(TooltipCell, [result]),
                 result === 'Cache Miss' && h(Link, {
+                  style: { marginLeft: '0.5rem' },
+                  tooltip: 'Cache Miss Debug Wizard',
                   onClick: () => setWizardSelection({ callFqn: callName, index: shardIndex, attempt })
-                }, ['LINK'])
+                }, [icon('magic', { size: 18 })])
               ])
             } else {
               return div({ style: { color: colors.dark(0.7) } }, ['No Information'])

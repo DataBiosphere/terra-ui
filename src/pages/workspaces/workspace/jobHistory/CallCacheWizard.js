@@ -6,6 +6,7 @@ import Select from 'react-select'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link } from 'src/components/common'
+import ErrorView from 'src/components/ErrorView'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import {
@@ -20,12 +21,11 @@ import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
+import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import { codeFont, noWrapEllipsis } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-import { reportError } from 'src/libs/error'
-import ErrorView from 'src/components/ErrorView'
 
 
 const CallCacheWizard = ({
@@ -35,9 +35,6 @@ const CallCacheWizard = ({
    * State setup
    */
 
-  const [otherNamespace, setOtherNamespace] = useState(namespace)
-  const [otherWorkspaceName, setOtherWorkspaceName] = useState(name)
-  const [otherSubmissionId, setOtherSubmissionId] = useState(submissionId)
   const [otherWorkflowId, setOtherWorkflowId] = useState()
   const [otherWorkflowMetadata, setOtherWorkflowMetadata] = useState()
   const [otherCallFqn, setOtherCallFqn] = useState()
@@ -54,18 +51,19 @@ const CallCacheWizard = ({
    * Data Fetchers
    */
 
-  const readCalls = async (otherNs, otherWs, otherSub, otherWf) => {
+  const readCalls = async otherWf => {
     const includeKey = [
       'end', 'start', 'executionStatus'
     ]
     const excludeKey = []
-    const wf = await Ajax(signal).Workspaces.workspace(otherNs, otherWs).submission(otherSub).getWorkflow(otherWf, includeKey, excludeKey)
+    // const wf = await Ajax(signal).Workspaces.workspace(otherNs, otherWs).submission(otherSub).getWorkflow(otherWf, includeKey, excludeKey)
+    const wf = await Ajax(signal).CromIAM.workflowMetadata(otherWf, includeKey, excludeKey)
     setOtherWorkflowMetadata(wf)
   }
 
   const fetchDiff = async (otherWf, otherCall, otherIx) => {
     try {
-      const diff = await Ajax(signal).CromIAM.callCacheDiff(workflowId, callFqn, index, otherWf, otherCall, otherIx)
+      const diff = await Ajax(signal).CromIAM.callCacheDiff(workflowId, callFqn, Number(index), otherWf, otherCall, Number(otherIx))
       setDiff(diff)
     } catch (error) {
       console.log(error)
@@ -106,38 +104,19 @@ const CallCacheWizard = ({
 
   const step1 = () => {
     return h(Fragment, [
-      div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, ...Style.noWrapEllipsis } }, ['Step 1: Select a workflow you expected to cache from']),
-      '(Note: Default values are from the current workflow)',
-      div({ style: { marginTop: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
-        div({ style: { width: '130px', paddingRight: '0.5rem' } }, ['Namespace:']),
-        div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [h(TextInput, { defaultValue: namespace, style: Style.codeFont, id: 'otherNamespace' })])
+      div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, ...Style.noWrapEllipsis } }, ['Step 1: Select the workflow you expected to cache from']),
+      div({ style: { marginTop: '0.5rem', marginBottom: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
+        div({ style: { paddingRight: '0.5rem' } }, ['Workflow ID:']),
+        div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [h(TextInput, { style: Style.codeFont, id: 'otherWorkflowId' })]),
+        div([h(ButtonPrimary, {
+          style: { float: 'right' },
+          onClick: () => {
+            const otherWf = document.getElementById('otherWorkflowId').value
+            setOtherWorkflowId(otherWf)
+            readCalls(otherWf)
+          }
+        }, ['Continue >'])])
       ]),
-      div({ style: { marginTop: '0.25rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
-        div({ style: { width: '130px', paddingRight: '0.5rem' } }, ['Workspace:']),
-        div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [h(TextInput, { defaultValue: name, style: Style.codeFont, id: 'otherWorkspaceName' })])
-      ]),
-      div({ style: { marginTop: '0.25rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
-        div({ style: { width: '130px', paddingRight: '0.5rem' } }, ['Submission ID:']),
-        div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [h(TextInput, { defaultValue: submissionId, style: Style.codeFont, id: 'otherSubmissionId' })])
-      ]),
-      div({ style: { marginTop: '0.25rem', marginBottom: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
-        div({ style: { width: '130px', paddingRight: '0.5rem' } }, ['Workflow ID:']),
-        div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [h(TextInput, { defaultValue: workflowId, style: Style.codeFont, id: 'otherWorkflowId' })])
-      ]),
-      div([h(ButtonPrimary, {
-        style: { float: 'right' },
-        onClick: () => {
-          const otherNs = document.getElementById('otherNamespace').value
-          const otherWs = document.getElementById('otherWorkspaceName').value
-          const otherSub = document.getElementById('otherSubmissionId').value
-          const otherWf = document.getElementById('otherWorkflowId').value
-          setOtherNamespace(otherNs)
-          setOtherWorkspaceName(otherWs)
-          setOtherSubmissionId(otherSub)
-          setOtherWorkflowId(otherWf)
-          readCalls(otherNs, otherWs, otherSub, otherWf)
-        }
-      }, ['Continue >'])]),
       divider,
       div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, color: 'lightgray', ...Style.noWrapEllipsis } }, ['Step 2: Select the call you expected to cache from']),
       divider,
@@ -147,13 +126,13 @@ const CallCacheWizard = ({
   const step2 = () => {
     const otherCallIndexSelector = (metadata, fqn) => {
       const shards = _.flow(
-        _.map(c => c.shardIndex),
+        _.map(c => Number(c.shardIndex)),
         _.uniq
       )(metadata.calls[fqn])
 
       if (shards.length === 1) {
         if (otherIndex !== shards[0]) { setOtherIndex(shards[0]) }
-        if (shards[0] === '-1') {
+        if (shards[0] === -1) {
           return 'N/A (this call was not scattered)'
         } else {
           return `${shards[0]} (exactly one shard in the scatter)`
@@ -187,11 +166,11 @@ const CallCacheWizard = ({
 
     return h(Fragment, [
       div({ style: { display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
-        div({ style: { width: '350px' } }, ['Step 1: Selected workflow B: ']),
-        div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherSubmissionId),
-        breadcrumbHistoryCaret,
-        div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherWorkflowId),
-        h(ButtonSecondary, { style: { paddingLeft: '1rem', height: '20px', color: 'darkred' }, onClick: () => resetWorkflowSelection() }, ['[X]'])
+        div(['Step 1: Selected workflow B: ']),
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
+          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherWorkflowId)
+        ]),
+        h(ButtonSecondary, { style: { paddingLeft: '1rem', height: '20px', color: 'darkred', justifyContent: 'right' }, onClick: () => resetWorkflowSelection() }, ['[X]'])
       ]),
       divider,
       div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, ...Style.noWrapEllipsis } }, ['Step 2: Select which call in that workflow you expected to cache from']),
@@ -224,11 +203,11 @@ const CallCacheWizard = ({
   const compareDiffs = () => {
     return h(Fragment, [
       div({ style: { display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
-        div({ style: { width: '350px' } }, ['Step 1: Selected workflow B: ']),
-        div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherSubmissionId),
-        breadcrumbHistoryCaret,
-        div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherWorkflowId),
-        h(ButtonSecondary, { style: { paddingLeft: '1rem', height: '20px', color: 'darkred' }, onClick: () => resetWorkflowSelection() }, ['[X]'])
+        div(['Step 1: Selected workflow B: ']),
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
+          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherWorkflowId)
+        ]),
+        h(ButtonSecondary, { style: { paddingLeft: '1rem', height: '20px', color: 'darkred', justifyContent: 'right' }, onClick: () => resetWorkflowSelection() }, ['[X]'])
       ]),
       divider,
       div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
@@ -243,9 +222,21 @@ const CallCacheWizard = ({
         h(ButtonSecondary, { style: { justifyContent: 'right', paddingLeft: '1rem', height: '20px', color: 'darkred' }, onClick: () => resetCallSelection() }, ['[X]'])
       ]),
       divider,
-      div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, color: 'lightgray', ...Style.noWrapEllipsis } }, ['Result: View cache diff']),
-      diffError ? h(ErrorView, { error: diffError }) : (diff ? JSON.stringify(diff) : 'Cache diff loading...'),
-      divider
+      div({ style: { display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, ['Result: View cache diff']),
+      diffError ?
+        h(ErrorView, { error: diffError }) :
+        (diff ?
+          [div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, ['Note: the diff is expressed in terms of hashes of values rather than raw values because it is hashes that determine cache hits.']),
+            h(ReactJson, {
+              style: { whiteSpace: 'pre-wrap', border: 'ridge', padding: '0.5rem' },
+              name: false,
+              shouldCollapse: ({ name }) => { return name === 'callA' || name === 'callB' },
+              enableClipboard: false,
+              displayDataTypes: false,
+              displayObjectSize: false,
+              src: { hashDifferential: diff.hashDifferential, ...diff }
+            })] :
+          'Cache diff loading...')
     ])
   }
 

@@ -83,7 +83,7 @@ const WorkflowDashboard = _.flow(
   Utils.useOnMount(() => {
     const loadWorkflow = async () => {
       const includeKey = [
-        'end', 'executionStatus', 'failures', 'start', 'status', 'submittedFiles:workflow', 'workflowLog', 'workflowName', 'callCaching:result'
+        'end', 'executionStatus', 'failures', 'start', 'status', 'inputs', 'outputs', 'submittedFiles:workflow', 'workflowLog', 'workflowName', 'callCaching:result'
       ]
       const excludeKey = []
 
@@ -106,7 +106,7 @@ const WorkflowDashboard = _.flow(
   /*
    * Page render
    */
-  const { calls, end, failures, start, status, workflowLog, workflowName, submittedFiles: { workflow: wdl } = {} } = workflow || {}
+  const { calls, end, outputs, inputs, failures, start, status, workflowLog, workflowName, submittedFiles: { workflow: wdl } = {} } = workflow || {}
 
   const restructureFailures = failuresArray => {
     const filtered = _.filter(({ message }) => !_.isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
@@ -156,6 +156,32 @@ const WorkflowDashboard = _.flow(
             style: { display: 'flex', marginLeft: '1rem' }
           }, [icon('fileAlt', { size: 18 }), ' View execution log'])
         ])
+      ]),
+      makeSection('Workflow Inputs', [
+        outputs ? div({ style: { height: 200, overflow: 'auto', borderStyle: 'ridge', resize: 'vertical', marginTop: '0.5rem' } }, [
+          h(ReactJson, {
+            style: { whiteSpace: 'pre-wrap' },
+            name: false,
+            collapsed: 1,
+            enableClipboard: false,
+            displayDataTypes: false,
+            displayObjectSize: true,
+            src: inputs
+          })
+        ]) : naTextDiv
+      ]),
+      makeSection('Workflow Outputs', [
+        outputs ? div({ style: { height: 200, overflow: 'auto', borderStyle: 'ridge', resize: 'vertical', marginTop: '0.5rem' } }, [
+          h(ReactJson, {
+            style: { whiteSpace: 'pre-wrap' },
+            name: false,
+            collapsed: 1,
+            enableClipboard: false,
+            displayDataTypes: false,
+            displayObjectSize: true,
+            src: outputs
+          })
+        ]) : naTextDiv
       ])
     ]),
     failures && h(Collapse, {
