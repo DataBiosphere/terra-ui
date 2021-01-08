@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, fieldset, h, legend, span } from 'react-hyperscript-helpers'
+import { div, fieldset, h, img, legend, span } from 'react-hyperscript-helpers'
 import {
   ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, SimpleTabBar, spinnerOverlay,
   Switch
@@ -19,6 +19,7 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import { requesterPaysProjectStore } from 'src/libs/state'
+import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -595,3 +596,34 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
     isBusy && spinnerOverlay
   ])
 }
+
+export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
+  return h(Clickable, _.merge({
+    disabled,
+    style: {
+      color: disabled ? colors.secondary() : colors.accent(),
+      opacity: disabled ? 0.5 : undefined,
+      border: '1px solid transparent',
+      padding: '0 0.875rem', marginBottom: '0.5rem',
+      backgroundColor: 'white',
+      display: 'flex',
+      alignItems: 'center',
+      height: '3rem',
+      fontSize: 18,
+      userSelect: 'none'
+    },
+    hover: {
+      border: `1px solid ${colors.accent(0.8)}`,
+      boxShadow: Style.standardShadow
+    }
+  }, props), [
+    !!icon && div({ style: { display: 'flex', alignItems: 'center', width: 45, marginRight: '1rem' } }, [
+      img({ src: icon, style: { opacity: disabled ? 0.5 : undefined, maxWidth: 45, maxHeight: 40 } })
+    ]),
+    text
+  ])
+}
+
+export const saveScroll = _.throttle(100, (initialX, initialY) => {
+  StateHistory.update({ initialX, initialY })
+})
