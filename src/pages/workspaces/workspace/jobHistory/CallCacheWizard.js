@@ -42,6 +42,7 @@ const CallCacheWizard = ({
   const [otherAttempt, setOtherAttempt] = useState()
   const [otherCallSelected, setOtherCallSelected] = useState(false)
   const [diff, setDiff] = useState()
+  const [metadataFetchError, setMetadataFetchError] = useState()
   const [diffError, setDiffError] = useState()
 
   const signal = Utils.useCancellation()
@@ -52,13 +53,20 @@ const CallCacheWizard = ({
    */
 
   const readCalls = async otherWf => {
-    const includeKey = [
-      'end', 'start', 'executionStatus'
-    ]
-    const excludeKey = []
-    // const wf = await Ajax(signal).Workspaces.workspace(otherNs, otherWs).submission(otherSub).getWorkflow(otherWf, includeKey, excludeKey)
-    const wf = await Ajax(signal).CromIAM.workflowMetadata(otherWf, includeKey, excludeKey)
-    setOtherWorkflowMetadata(wf)
+    try {
+      const includeKey = [
+        'end', 'start', 'executionStatus'
+      ]
+      const excludeKey = []
+      // const wf = await Ajax(signal).Workspaces.workspace(otherNs, otherWs).submission(otherSub).getWorkflow(otherWf, includeKey, excludeKey)
+      const wf = await Ajax(signal).CromIAM.workflowMetadata(otherWf, includeKey, excludeKey)
+      setOtherWorkflowMetadata(wf)
+    } catch (error) {
+      console.log(error)
+      if (error instanceof Response) setMetadataFetchError(await error.text())
+      else if (_.isObject(error)) setMetadataFetchError(JSON.stringify(error))
+      else setMetadataFetchError(error)
+    }
   }
 
   const fetchDiff = async (otherWf, otherCall, otherIx) => {
@@ -84,16 +92,17 @@ const CallCacheWizard = ({
   }
 
   const resetCallSelection = () => {
+    resetDiffResult()
     setOtherCallFqn(undefined)
     setOtherIndex(undefined)
     setOtherAttempt(undefined)
     setOtherCallSelected(false)
-    resetDiffResult()
   }
 
   const resetWorkflowSelection = () => {
     resetCallSelection()
     setOtherWorkflowId(undefined)
+    setMetadataFetchError(undefined)
   }
 
   /*
@@ -172,29 +181,32 @@ const CallCacheWizard = ({
         ]),
         h(ButtonSecondary, { style: { paddingLeft: '1rem', height: '20px', color: 'darkred', justifyContent: 'right' }, onClick: () => resetWorkflowSelection() }, ['[X]'])
       ]),
+      metadataFetchError && h(ErrorView, { error: metadataFetchError }),
       divider,
       div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, ...Style.noWrapEllipsis } }, ['Step 2: Select which call in that workflow you expected to cache from']),
-      otherWorkflowMetadata ? div([
-        div({ style: { marginTop: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
-          div({ style: { paddingRight: '0.5rem' } }, ['Call FQN:']),
-          div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [
-            h(Select, { id: 'otherCallFqn', options: callFqnOptions(otherWorkflowMetadata.calls), onChange: v => setOtherCallFqn(v.value) })
-          ])
-        ]),
-        div({ style: { marginTop: '0.25rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
-          div({ style: { paddingRight: '0.5rem' } }, ['Shard Index:']),
-          otherCallFqn ?
-            div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [otherCallIndexSelector(otherWorkflowMetadata, otherCallFqn)]) :
-            'Select a call FQN first'
-        ]),
-        div({ style: { marginTop: '0.25rem', marginBottom: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
-          div({ style: { paddingRight: '0.5rem' } }, ['Attempt:']),
-          (!!otherCallFqn && otherIndex !== undefined) ?
-            div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [otherCallAttemptDecision(otherWorkflowMetadata, otherCallFqn, otherIndex)]) :
-            'Select a call FQN and an index first'
-        ]),
-        !!(otherCallFqn && otherIndex !== undefined && otherAttempt !== undefined) && h(ButtonPrimary, { style: { float: 'right' }, onClick: () => { fetchDiff(otherWorkflowId, otherCallFqn, otherIndex); setOtherCallSelected(true) } }, ['Compare Diff >'])
-      ]) : 'Loading other workflow calls...',
+      !metadataFetchError && (otherWorkflowMetadata ?
+        div([
+          div({ style: { marginTop: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
+            div({ style: { paddingRight: '0.5rem' } }, ['Call FQN:']),
+            div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [
+              h(Select, { id: 'otherCallFqn', options: callFqnOptions(otherWorkflowMetadata.calls), onChange: v => setOtherCallFqn(v.value) })
+            ])
+          ]),
+          div({ style: { marginTop: '0.25rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
+            div({ style: { paddingRight: '0.5rem' } }, ['Shard Index:']),
+            otherCallFqn ?
+              div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [otherCallIndexSelector(otherWorkflowMetadata, otherCallFqn)]) :
+              'Select a call FQN first'
+          ]),
+          div({ style: { marginTop: '0.25rem', marginBottom: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
+            div({ style: { paddingRight: '0.5rem' } }, ['Attempt:']),
+            (!!otherCallFqn && otherIndex !== undefined) ?
+              div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [otherCallAttemptDecision(otherWorkflowMetadata, otherCallFqn, otherIndex)]) :
+              'Select a call FQN and an index first'
+          ]),
+          !!(otherCallFqn && otherIndex !== undefined && otherAttempt !== undefined) && h(ButtonPrimary, { style: { float: 'right' }, onClick: () => { fetchDiff(otherWorkflowId, otherCallFqn, otherIndex); setOtherCallSelected(true) } }, ['Compare Diff >'])
+        ]) :
+        'Loading other workflow calls...'),
       divider,
       div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, color: 'lightgray', ...Style.noWrapEllipsis } }, ['Result: View cache diff'])
     ])
