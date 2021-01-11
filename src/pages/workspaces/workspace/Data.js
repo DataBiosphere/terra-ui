@@ -20,7 +20,7 @@ import UriViewer from 'src/components/UriViewer'
 import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import { pfbImportJobStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -288,6 +288,17 @@ const BucketContent = _.flow(
   ])])
 })
 
+const DataTypeSection = ({ title, titleExtras, error, retryFunction, children }) => h(Fragment, [
+  div({ style: Style.navList.heading }, [
+    title,
+    error ? h(Link, {
+      onClick: retryFunction,
+      tooltip: 'Error loading, click to retry.'
+    }, [icon('sync', { size: 18 })]) : titleExtras
+  ]),
+  children
+])
+
 const WorkspaceData = _.flow(
   Utils.forwardRefWithName('WorkspaceData'),
   wrapWorkspace({
@@ -305,6 +316,8 @@ const WorkspaceData = _.flow(
   const [importingReference, setImportingReference] = useState(false)
   const [deletingReference, setDeletingReference] = useState(undefined)
   const [uploadingFile, setUploadingFile] = useState(false)
+  const [entityMetadataError, setEntityMetadataError] = useState()
+  const [snapshotMetadataError, setSnapshotMetadataError] = useState()
 
   const signal = Utils.useCancellation()
   const pfbImportJobs = Utils.useStore(pfbImportJobStore)
@@ -322,25 +335,45 @@ const WorkspaceData = _.flow(
     )
   }
 
-  const loadMetadata = withErrorReporting('Error loading workspace entity data', async () => {
-    const [entityMetadata, { resources: snapshotMetadata }] = await Promise.all([
-      Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata(),
-      Ajax(signal).Workspaces.workspace(namespace, name).listSnapshot(1000, 0)
-    ])
+  const loadEntityMetadata = async () => {
+    try {
+      setEntityMetadataError(false)
+      const entityMetadata = await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata()
 
-    const snapshotEntities = await Promise.all(_.map(({ name: snapshotName }) => {
-      return Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, snapshotName)
-    }, snapshotMetadata))
+      setSelectedDataType(getSelectionType() === 'entities' && !entityMetadata[selectedDataType] ? undefined : selectedDataType)
+      setEntityMetadata(entityMetadata)
+    } catch (error) {
+      reportError('Error loading workspace entity data', error)
+      setEntityMetadataError(true)
+      setSelectedDataType(undefined)
+      setEntityMetadata({})
+    }
+  }
 
-    const snapshotDetails = _.fromPairs(_.map(([entities, metadata]) => {
-      return [metadata.name, { entityMetadata: entities, id: metadata.reference.snapshot }]
-    },
-    _.zip(snapshotEntities, snapshotMetadata)))
+  const loadSnapshotMetadata = async () => {
+    try {
+      setSnapshotMetadataError(false)
+      const { resources: snapshotMetadata } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshot(1000, 0)
 
-    setSelectedDataType(getSelectionType() === 'entities' && !entityMetadata[selectedDataType] ? undefined : selectedDataType)
-    setEntityMetadata(entityMetadata)
-    setSnapshotDetails(snapshotDetails)
-  })
+      const snapshotEntities = await Promise.all(_.map(({ name: snapshotName }) => {
+        return Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, snapshotName)
+      }, snapshotMetadata))
+
+      const snapshotDetails = _.fromPairs(_.map(([entities, metadata]) => {
+        return [metadata.name, { entityMetadata: entities, id: metadata.reference.snapshot }]
+      },
+      _.zip(snapshotEntities, snapshotMetadata)))
+
+      setSnapshotDetails(snapshotDetails)
+    } catch (error) {
+      reportError('Error loading workspace snapshot data', error)
+      setSnapshotMetadataError(true)
+      setSelectedDataType(undefined)
+      setSnapshotDetails({})
+    }
+  }
+
+  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata()])
 
   const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first))
 
@@ -369,28 +402,34 @@ const WorkspaceData = _.flow(
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
       div({ style: styles.dataTypeSelectionPanel }, [
-        div({ style: Style.navList.heading }, [
-          div(['Tables']),
-          h(Link, {
+        h(DataTypeSection, {
+          title: 'Tables',
+          titleExtras: h(Link, {
             'aria-label': 'Upload .tsv',
             disabled: !!Utils.editWorkspaceError(workspace),
             tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
             onClick: () => setUploadingFile(true)
-          }, [icon('plus-circle', { size: 21 })])
+          }, [icon('plus-circle', { size: 21 })]),
+          error: entityMetadataError,
+          retryFunction: loadEntityMetadata
+        }, [
+          _.some({ targetWorkspace: { namespace, name } }, pfbImportJobs) && h(DataImportPlaceholder),
+          _.map(([type, typeDetails]) => {
+            return h(DataTypeButton, {
+              key: type,
+              selected: selectedDataType === type,
+              onClick: () => {
+                setSelectedDataType(type)
+                forceRefresh()
+              }
+            }, [`${type} (${typeDetails.count})`])
+          }, sortedEntityPairs)
         ]),
-        _.some({ targetWorkspace: { namespace, name } }, pfbImportJobs) && h(DataImportPlaceholder),
-        _.map(([type, typeDetails]) => {
-          return h(DataTypeButton, {
-            key: type,
-            selected: selectedDataType === type,
-            onClick: () => {
-              setSelectedDataType(type)
-              forceRefresh()
-            }
-          }, [`${type} (${typeDetails.count})`])
-        }, sortedEntityPairs),
-        !_.isEmpty(sortedSnapshotPairs) && h(Fragment, [
-          div({ style: Style.navList.heading }, ['Snapshots']),
+        (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && h(DataTypeSection, {
+          title: 'Snapshots',
+          error: snapshotMetadataError,
+          retryFunction: loadSnapshotMetadata
+        }, [
           _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables }]) => {
             const snapshotTablePairs = toSortedPairs(snapshotTables)
             return h(Collapse, {
