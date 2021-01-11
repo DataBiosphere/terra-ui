@@ -58,7 +58,7 @@ const createEntityInWorkspace = (page, billingProject, workspaceName, testEntity
 const makeUser = async () => {
   const { email } = await fetchLyle('create')
   const { accessToken: token } = await fetchLyle('token', email)
-  console.info(`created a user with token: ${token}`)
+  console.info(`created a user with token: ...${token.toString().substr(-10, 10)}`)
   return { email, token }
 }
 
@@ -112,7 +112,7 @@ const deleteRuntimes = _.flow(withSignedInPage, withUserToken)(async ({ page, bi
 
 const registerUser = withSignedInPage(async ({ page, token }) => {
   // TODO: make this available to all puppeteer browser windows
-  console.info(`token of user in registerUser(): ${token}`)
+  console.info(`token of user in registerUser(): ...${token.toString().substr(-10, 10)}`)
   await page.evaluate(() => {
     window.catchErrorResponse = async fn => {
       try {
@@ -121,7 +121,8 @@ const registerUser = withSignedInPage(async ({ page, token }) => {
         if (e instanceof Response) {
           const text = await e.text()
           const headers = e.headers
-          throw new Error(`Failed to Ajax: ${e.url} authorization header was: ${headers.get('authorization')} and status of: ${e.status}: ${text}`)
+          const headerAuthToken = headers.get('authorization') ? `...${headers.get('authorization').toString().substr(-10, 10)}` : headers.get('authorization')
+          throw new Error(`Failed to Ajax: ${e.url} authorization header was: ${headerAuthToken} and status of: ${e.status}: ${text}`)
         } else {
           throw e
         }
