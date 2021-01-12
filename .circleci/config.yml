@@ -15,9 +15,6 @@ executors:
   gcloud:
     docker:
       - image: google/cloud-sdk:alpine
-  security-scanner:
-    docker:
-      - image: owasp/zap2docker-weekly
 
 commands:
   deploy-env:
@@ -172,19 +169,6 @@ jobs:
           env: "staging"
       - notify-qa:
           channel: "C7H40L71D" # dsde-qa-notify
-  run-dev-security-scans:
-    executor: security-scanner
-    steps:
-      - run:
-          name: Run Dev Security Scans
-          shell: /bin/bash
-          command: |
-            docker pull owasp/zap2docker-weekly
-            (
-              env="https://bvdp-saturn-dev.appspot.com" &&
-              docker run -t owasp/zap2docker-weekly zap-baseline.py -t ${env};
-              if [ $? -ne 1 ]; then exit 0; else exit 1; fi;
-            )
   integration-tests-branch-against-dev:
     executor: puppeteer
     steps:
@@ -244,12 +228,6 @@ workflows:
       - deploy-staging:
           requires:
             - build
-          filters:
-            branches:
-              only: dev
-  run-security-scans:
-    jobs:
-      - run-dev-security-scans:
           filters:
             branches:
               only: dev
