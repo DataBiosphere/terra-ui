@@ -103,9 +103,6 @@ export const NewGalaxyModal = _.flow(
       [viewMode === 'createWarn', renderCreateWarning],
       [viewMode === 'deleteWarn', renderDeleteWarning],
       [viewMode === 'launchWarn', renderLaunchWarning],
-      [!!app && (app.status === 'STOPPED'), renderPaused],
-      [!!app && (app.status === 'STOPPING'), renderStoppingWarning],
-      [!!app && (app.status === 'STARTING'), renderStartingWarning],
       [Utils.DEFAULT, renderDefaultCase]
     )
   }
@@ -113,6 +110,12 @@ export const NewGalaxyModal = _.flow(
 
   const renderCreateWarning = () => {
     return h(Fragment, [
+      h(TitleBar, {
+        title: 'Cloud environment',
+        style: { marginBottom: '0.5rem' },
+        onDismiss,
+        onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
+      }),
       div({ style: { marginBottom: '1rem' } }, ['Environment will consist of an application and cloud compute.']),
       div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
@@ -130,8 +133,8 @@ export const NewGalaxyModal = _.flow(
             ]),
             div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Pause and auto-pause']),
             div({ style: { lineHeight: 1.5 } }, [
-              div(['You can pause anything during the compute, but it will auto-paused when']),
-              div(['the instance is idled more than 1 hour if the analysis is done.'])
+              div(['You can pause anything during the compute, but it will auto-pause when']),
+              div(['the instance is idle more than 1 hour if the analysis is done.'])
             ])
           ])
         ])
@@ -140,79 +143,39 @@ export const NewGalaxyModal = _.flow(
   }
 
   const renderDeleteWarning = () => {
-    return div({ style: { lineHeight: '22px' } }, [
-      div({ style: { marginTop: '0.5rem' } }, [
-        'Deleting your Cloud Environment will also ',
-        span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk']),
-        ' (e.g. results files). Double check that your workflow results were written to ',
-        'the data tab in the workspace before clicking “Delete”'
-      ]),
-      div({ style: { marginTop: '1rem' } }, [
-        'Deleting your Cloud Environment will stop your ',
-        'running Galaxy application and your application costs. You can create a new Cloud Environment ',
-        'for Galaxy later, which will take 8-10 minutes.'
-      ])
-    ])
-  }
-
-  const renderStoppingWarning = () => {
     return h(Fragment, [
-      div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
-        div([
-          ul({ style: { paddingLeft: '1rem', lineHeight: 1.5 } }, [
-            'The cloud environment is now pausing. This process will take up to a few minutes. Please check back when the environment has stopped.'
-          ])
-        ])
-      ])
-    ])
-  }
-
-
-  const renderStartingWarning = () => {
-    return h(Fragment, [
-      div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
-        div([
-          ul({ style: { paddingLeft: '1rem', lineHeight: 1.5 } }, [
-            'The cloud environment is now starting. This process will take up to a few minutes. Please check back when the environment is running.'
-          ])
+      h(TitleBar, {
+        title: 'Delete Cloud Environment for Galaxy',
+        style: { marginBottom: '0.5rem' },
+        onDismiss,
+        onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
+      }),
+      div({ style: { lineHeight: '22px' } }, [
+        div({ style: { marginTop: '0.5rem' } }, [
+          'Deleting your Cloud Environment will also ',
+          span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk']),
+          ' (e.g. results files). Double check that your workflow results were written to ',
+          'the data tab in the workspace before clicking “Delete”'
+        ]),
+        div({ style: { marginTop: '1rem' } }, [
+          'Deleting your Cloud Environment will stop your ',
+          'running Galaxy application and your application costs. You can create a new Cloud Environment ',
+          'for Galaxy later, which will take 8-10 minutes.'
         ])
       ])
     ])
   }
 
   const renderLaunchWarning = () => {
-    return div({ style: { lineHeight: '22px' } }, [
-      h(GalaxyWarning)
-    ])
-  }
-
-  const renderPaused = () => {
-    const { cpu, memory } = _.find({ name: 'n1-standard-8' }, machineTypes)
-    const cost = getGalaxyCost(app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8', numNodes: 2 } })
     return h(Fragment, [
-      div([`Cloud environment is now paused...`]),
-      div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
-        div([
-          div({ style: styles.headerText }, ['Environment Settings']),
-          ul({ style: { paddingLeft: '1rem', lineHeight: 1.5 } }, [
-            li({ style: { marginTop: '1rem' } }, [
-              'Galaxy version 20.09'
-            ]),
-            li({ style: { marginTop: '1rem' } }, [
-              'Cloud Compute size of ',
-              // Temporarily hard-coded disk size, once it can be customized this should be revisited
-              span({ style: { fontWeight: 600 } }, [`${cpu} CPUS, ${memory} GB of memory, 250 GB disk space`])
-            ]),
-            li({ style: { marginTop: '1rem' } }, [
-              'Estimated cost of cloud compute: ',
-              span({ style: { fontWeight: 600 } }, [Utils.formatUSD(cost), ' per hr'])
-            ])
-          ]),
-          h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
-            'Learn more about Galaxy interactive environments',
-            icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-          ])
-        ])
+      h(TitleBar, {
+        title: h(WarningTitle, ['Launch Galaxy']),
+        style: { marginBottom: '0.5rem' },
+        onDismiss,
+        onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
+      }),
+      div({ style: { lineHeight: '22px' } }, [
+        h(GalaxyWarning)
       ])
     ])
   }
@@ -221,7 +184,29 @@ export const NewGalaxyModal = _.flow(
     const { cpu, memory } = _.find({ name: 'n1-standard-8' }, machineTypes)
     const cost = getGalaxyCost(app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8', numNodes: 2 } })
     return h(Fragment, [
-      div([`Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`]),
+      h(TitleBar, {
+        title: Utils.cond(
+          [!!app && (app.status === 'STOPPED'), () => 'Cloud environment is now paused'],
+          [!!app && (app.status === 'PRESTOPPING'), () => 'Cloud environment is preparing to stop.'],
+          [!!app && (app.status === 'STOPPING'), () => 'Cloud environment is now pausing'],
+          [!!app && (app.status === 'PRESTARTING'), () => 'Cloud environment is preparing to start.'],
+          [!!app && (app.status === 'STARTING'), () => 'Cloud environment is now starting'],
+          () => 'Cloud environment'
+        ),
+        style: { marginBottom: '0.5rem' },
+        onDismiss,
+        onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
+      }),
+      div([
+        Utils.cond(
+          [!!app && (app.status === 'STOPPED'), () => `Cloud environment is now paused...`],
+          [!!app && (app.status === 'PRESTOPPING'), () => `Cloud environment is preparing to stop.`],
+          [!!app && (app.status === 'STOPPING'), () => `Cloud environment is pausing. This process will take up to a few minutes`],
+          [!!app && (app.status === 'PRESTARTING'), () => `Cloud environment is preparing to start.`],
+          [!!app && (app.status === 'STARTING'), () => `Cloud environment is starting. This process will take up to a few minutes`],
+          () => `Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`
+        )
+      ]),
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div([
           div({ style: styles.headerText }, ['Environment Settings']),
@@ -249,19 +234,6 @@ export const NewGalaxyModal = _.flow(
   }
 
   return div({ style: styles.drawerContent }, [
-    h(TitleBar, {
-      title: Utils.cond(
-        [viewMode === 'launchWarn', () => h(WarningTitle, ['Launch Galaxy'])],
-        [viewMode === 'deleteWarn', () => 'Delete Cloud Environment for Galaxy'],
-        [!!app && (app.status === 'STOPPED'), () => 'Cloud environment is now paused'],
-        [!!app && (app.status === 'STOPPING'), () => 'Cloud environment is now pausing'],
-        [!!app && (app.status === 'STARTING'), () => 'Cloud environment is now starting'],
-        () => 'Cloud environment'
-      ),
-      style: { marginBottom: '0.5rem' },
-      onDismiss,
-      onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
-    }),
     renderMessaging(),
     div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [
       renderActionButton()
