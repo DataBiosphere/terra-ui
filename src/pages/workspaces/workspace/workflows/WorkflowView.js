@@ -386,6 +386,12 @@ const WorkflowView = _.flow(
     return value
   }
 
+  updateDataReference(selection) {
+    const value = !!selection ? selection.value : undefined
+    this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value))
+    return value
+  }
+
   updateEntityTypeUI(config) {
     this.setState({ selectedEntityType: config.rootEntityType })
   }
@@ -447,8 +453,36 @@ const WorkflowView = _.flow(
   }
 
   async loadSnapshotTables() {
-    return ['hello', 'world']
+    //b8c2a3f1-0775-4c86-bf83-ee66bc3baa63
+    const { snapshotId, signal } = this.props
+
+    try {
+      return await Ajax(signal).DataRepo.snapshot(snapshotId).details
+    } catch (e) {
+      if (e.status === 404) {
+        return false
+      } else {
+        throw e
+      }
+    }
   }
+
+  // loadSnapshotTables = _.flow(
+  //   withErrorReporting('Error loading snapshot tables'),
+  //   Utils.withBusyState(v => this.setState({ snapshotTableNames: v }))
+  // )(async snapshotDetails => {
+  //   const { signal } = this.props
+  //   const { modifiedConfig: { methodRepoMethod: { methodNamespace, methodName, methodPath, sourceRepo } }, currentSnapRedacted } = this.state
+  //   const config = await Ajax(signal).Methods.template({ methodNamespace, methodName, methodPath, sourceRepo, methodVersion: newSnapshotId })
+  //   const modifiedInputsOutputs = await Ajax(signal).Methods.configInputsOutputs(config)
+  //   this.setState(
+  //     { modifiedInputsOutputs, savedSnapRedacted: currentSnapRedacted, currentSnapRedacted: false })
+  //   this.setState(_.update('modifiedConfig', _.flow(
+  //     _.set('methodRepoMethod', config.methodRepoMethod),
+  //     filterConfigIO(modifiedInputsOutputs)
+  //   )))
+  //   this.fetchInfo(config)
+  // })
 
   async componentDidMount() {
     const {
@@ -759,12 +793,17 @@ const WorkflowView = _.flow(
                   isDisabled: !!Utils.editWorkspaceError(ws),
                   isClearable: false,
                   isSearchable: false,
-                  value: methodVersion,
+                  // value: snapshotTable,
+                  onChange: selection => {
+                    const foo = this.loadSnapshotTables()
+                    console.log(foo)
+                    const value = this.updateDataReference(selection)
+                    // this.setState({ entitySelectionModel: this.resetSelectionModel(value), selectedEntitySource: selection.source, selectingSnapshotTable: selection.source === 'snapshot' })
+                    console.log(selection)
+                  },
                   styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
-                  options: this.loadSnapshotTables(),
-                  isOptionDisabled: ({ value }) => (currentSnapRedacted || savedSnapRedacted) &&
-                    (value === savedConfig.methodRepoMethod.methodVersion),
-                  onChange: chosenSnapshot => this.loadNewMethodConfig(chosenSnapshot.value)
+                  options: ['hello', 'world']
+                  // options: this.loadSnapshotTables()
                 })
               ])])
             ])
