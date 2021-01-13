@@ -5,7 +5,7 @@ import { Component, Fragment, useEffect, useState } from 'react'
 import { b, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select,
+  ButtonPrimary, ButtonSecondary, Clickable, GroupedSelect, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton, Select,
   spinnerOverlay
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
@@ -446,6 +446,10 @@ const WorkflowView = _.flow(
     }
   }
 
+  async loadSnapshotTables() {
+    return ['hello', 'world']
+  }
+
   async componentDidMount() {
     const {
       namespace, name, workflowNamespace, workflowName,
@@ -469,6 +473,9 @@ const WorkflowView = _.flow(
       const selection = workflowSelectionStore.get()
       const readSelection = selectionKey && selection.key === selectionKey
 
+      const selectedEntitySource = 'none'
+      const { resources: snapshots } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshot(1000, 0)
+
       // Dockstore users who target floating tags can change their WDL via Github without explicitly selecting a new version in Terra.
       // Before letting the user edit the config we retrieved from the DB, drop any keys that are no longer valid. [WA-291]
       // N.B. this causes `config` and `modifiedConfig` to be unequal, so we (accurately) prompt the user to save before launching
@@ -482,6 +489,9 @@ const WorkflowView = _.flow(
         savedConfig: config, modifiedConfig,
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
         entityMetadata,
+        availableSnapshots: snapshots,
+        selectedEntitySource: selectedEntitySource,
+        selectingSnapshotTable: selectedEntitySource === 'snapshot',
         savedInputsOutputs: inputsOutputs,
         modifiedInputsOutputs: inputsOutputs,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
@@ -587,7 +597,7 @@ const WorkflowView = _.flow(
   renderSummary() {
     const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
-      modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
+      modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation, availableSnapshots, selectedEntitySource, snapshotTableNames = [], selectingSnapshotTable,
       selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, deleteIntermediateOutputFiles, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
@@ -705,7 +715,7 @@ const WorkflowView = _.flow(
               div([
                 div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 1']),
                 label(['Select root entity type:']),
-                h(Select, {
+                h(GroupedSelect, {
                   'aria-label': 'Entity type selector',
                   isClearable: false,
                   isDisabled: currentSnapRedacted || this.isSingle() || !!Utils.editWorkspaceError(ws),
@@ -715,12 +725,23 @@ const WorkflowView = _.flow(
                   value: selectedEntityType,
                   onChange: selection => {
                     const value = this.updateEntityType(selection)
-                    this.setState({ entitySelectionModel: this.resetSelectionModel(value) })
+                    this.setState({ entitySelectionModel: this.resetSelectionModel(value), selectedEntitySource: selection.source, selectingSnapshotTable: selection.source === 'snapshot' })
+                    console.log(selection.source)
+                    console.log(selectingSnapshotTable)
                   },
-                  options: [...entityTypes, ...possibleSetTypes].sort()
+                  options: [
+                    {
+                      label: 'TABLES',
+                      options: _.map(entityType => ({ value: entityType, source: 'table' }), [...entityTypes, ...possibleSetTypes].sort())
+                    },
+                    ...(!_.isEmpty(availableSnapshots) ? [{
+                      label: 'SNAPSHOTS',
+                      options: _.map(({ name }) => ({ value: name, source: 'snapshot' }), availableSnapshots)
+                    }] : [])
+                  ]
                 })
               ]),
-              div({ style: { marginLeft: '2rem', paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, flex: 1 } }, [
+              !selectingSnapshotTable && div({ style: { marginLeft: '2rem', paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, flex: 1 } }, [
                 div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 2']),
                 div({ style: { display: 'flex', alignItems: 'center' } }, [
                   h(ButtonPrimary, {
@@ -731,7 +752,21 @@ const WorkflowView = _.flow(
                   }, ['Select Data']),
                   label({ style: { marginLeft: '1rem' } }, [`${this.describeSelectionModel()}`])
                 ])
-              ])
+              ]),
+              selectingSnapshotTable && h(IdContainer, [id => div({ style: { margin: '2rem 0 0 2rem' } }, [
+                h(Select, {
+                  id,
+                  isDisabled: !!Utils.editWorkspaceError(ws),
+                  isClearable: false,
+                  isSearchable: false,
+                  value: methodVersion,
+                  styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
+                  options: this.loadSnapshotTables(),
+                  isOptionDisabled: ({ value }) => (currentSnapRedacted || savedSnapRedacted) &&
+                    (value === savedConfig.methodRepoMethod.methodVersion),
+                  onChange: chosenSnapshot => this.loadNewMethodConfig(chosenSnapshot.value)
+                })
+              ])])
             ])
           ]),
           div({ style: { marginTop: '1rem' } }, [
