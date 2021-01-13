@@ -1,12 +1,20 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 
 
-const Collapse = ({ title, buttonStyle, initialOpenState, children, titleFirst, ...props }) => {
+const Collapse = ({ title, buttonStyle, initialOpenState, children, titleFirst, onFirstOpen = () => {}, refreshKey, ...props }) => {
   const [isOpened, setIsOpened] = useState(initialOpenState)
   const angleIcon = icon(isOpened ? 'angle-down' : 'angle-right', { style: { marginRight: '0.25rem', flexShrink: 0 } })
+
+  const firstOpenCallback = useCallback(onFirstOpen, [refreshKey])
+
+  useEffect(() => {
+    if (isOpened) {
+      firstOpenCallback()
+    }
+  }, [firstOpenCallback, isOpened, refreshKey])
 
   return div(props, [
     h(Link, {
