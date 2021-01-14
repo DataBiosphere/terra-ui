@@ -395,7 +395,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
 
   canUpdateNumberOfWorkers() {
     const { currentRuntimeDetails } = this.state
-    return currentRuntimeDetails.status === 'Running'
+    return !currentRuntimeDetails || currentRuntimeDetails.status === 'Running'
   }
 
   canUpdateRuntime() {
