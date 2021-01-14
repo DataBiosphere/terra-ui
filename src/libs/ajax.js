@@ -1020,6 +1020,7 @@ const Methods = signal => ({
             },
             name,
             namespace,
+            dataReferenceName: '',
             rootEntityType: '',
             prerequisites: {},
             inputs: {},

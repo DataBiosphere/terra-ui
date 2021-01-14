@@ -12,7 +12,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 import {
-  chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet
+  chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet, processSnapshotTable
 } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
@@ -81,6 +81,7 @@ const LaunchAnalysisModal = ({
     [type === processAllAsSet, () => 1],
     [type === chooseSetComponents, () => 1],
     [type === processMergedSet, () => _.flow(mergeSets, _.uniqBy('entityName'))(selectedEntities).length]
+    [type === processSnapshotTable, () => 0]
   )
   const wrappableOnPeriods = _.flow(str => str?.split(/(\.)/), _.flatMap(sub => sub === '.' ? [wbr(), '.'] : sub))
   const { location, locationType } = bucketLocation
