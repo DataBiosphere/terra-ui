@@ -7,7 +7,7 @@ import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { regionInfo } from 'src/components/region-common'
 import { Ajax } from 'src/libs/ajax'
-import { launch } from 'src/libs/analysis'
+import { launch, launchSnapshot } from 'src/libs/analysis'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
@@ -63,12 +63,19 @@ const LaunchAnalysisModal = ({
           return { selectedEntityType: rootEntityType }
         }]
       )
-      const { submissionId } = await launch({
-        workspace, config, selectedEntityType, selectedEntityNames, newSetName, useCallCache, deleteIntermediateOutputFiles,
-        onProgress: stage => {
-          setMessage({ createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage])
-        }
-      })
+      const { submissionId } = (type === processSnapshotTable) ?
+        await launchSnapshot({
+          workspace, config, useCallCache, deleteIntermediateOutputFiles,
+          onProgress: stage => {
+            setMessage({ launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage])
+          }
+        }) :
+        await launch({
+          workspace, config, selectedEntityType, selectedEntityNames, newSetName, useCallCache, deleteIntermediateOutputFiles,
+          onProgress: stage => {
+            setMessage({ createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage])
+          }
+        })
       onSuccess(submissionId)
     } catch (error) {
       setLaunchError(await (error instanceof Response ? error.text() : error.message))

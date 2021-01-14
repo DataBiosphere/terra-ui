@@ -61,3 +61,21 @@ export const launch = async ({
     useCallCache, deleteIntermediateOutputFiles
   })
 }
+
+export const launchSnapshot = async ({
+  workspace: { workspace: { namespace, name, bucketName }, accessLevel },
+  config: { namespace: configNamespace, name: configName, rootEntityType },
+  useCallCache = true, deleteIntermediateOutputFiles,
+  onProgress
+}) => {
+  onProgress('checkBucketAccess')
+  try {
+    await Ajax().Workspaces.workspace(namespace, name).checkBucketAccess(bucketName, accessLevel)
+  } catch (error) {
+    throw new Error('Error confirming workspace bucket access. This may be a transient problem. Please try again in a few minutes. If the problem persists, please contact support.')
+  }
+  onProgress('launch')
+  return Ajax().Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
+    useCallCache, deleteIntermediateOutputFiles
+  })
+}

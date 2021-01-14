@@ -397,6 +397,7 @@ const WorkflowView = _.flow(
     const value = !!selection ? selection.value : undefined
     this.setState({ selectedTableName: value })
     this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
+    this.setState(_.unset(['modifiedConfig', 'entityName']))
     return value
   }
 
