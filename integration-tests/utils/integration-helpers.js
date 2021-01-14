@@ -134,6 +134,10 @@ const registerUser = withSignedInPage(async ({ page, token }) => {
   await page.evaluate(async () => {
     await window.catchErrorResponse(async () => {
       await window.Ajax().User.profile.set({ firstName: 'Integration', lastName: 'Test', contactEmail: 'me@example.com' })
+      console.log('here')
+      await new Promise(resolve => setTimeout(resolve, 20000))
+      console.log(`User isreg after set: ${await window.Ajax().User.isUserRegistered()}`)
+      await new Promise(resolve => setTimeout(resolve, 40000))
       await window.Ajax().User.profile.get()
       await window.Ajax().User.acceptTos()
     })

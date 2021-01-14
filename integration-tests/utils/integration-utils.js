@@ -88,7 +88,9 @@ const dismissNotifications = async page => {
 const signIntoTerra = async (page, token) => {
   await page.waitForXPath('//*[contains(normalize-space(.),"Loading Terra")]', { hidden: true })
   await waitForNoSpinners(page)
+  console.info(`token being passed to forcesign in: ${token.toString().substr(-10, 10)}`)
   return page.evaluate(token => window.forceSignIn(token), token)
+  delay(40000)
 }
 
 const findElement = (page, xpath, options) => {

@@ -128,6 +128,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async token => 
     'https://www.googleapis.com/oauth2/v3/userinfo',
     { headers: { Authorization: `Bearer ${token}` } }
   )
+  console.info(`User token: ${token.toString().substr(-10, 10)} has made it to forceSignIn`)
   const data = await res.json()
   authStore.update(state => {
     return {
@@ -147,6 +148,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async token => 
       }
     }
   })
+  console.info(`User token: ${token.toString().substr(-10, 10)} has been persisted to authStore`)
 })
 
 authStore.subscribe(withErrorReporting('Error checking registration', async (state, oldState) => {
