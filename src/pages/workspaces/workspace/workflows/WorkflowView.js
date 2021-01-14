@@ -324,9 +324,11 @@ const WorkflowView = _.flow(
   resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata, selectedEntitySource) {
     const { workflowName } = this.props
 
+    console.log(selectedEntitySource)
+
     // If the default for non-set types changes from `processAllAsSet` then the calculation of `noLaunchReason` in `renderSummary` needs to be updated accordingly.
     // Currently, `renderSummary` assumes that it is not possible to have nothing selected for non-set types.
-    return {
+    const foo = {
       type: Utils.cond(
         [selectedEntitySource === 'snapshot', () => processSnapshotTable],
         [isSet(value), () => _.includes(value, _.keys(entityMetadata)) ? chooseSets : processAllAsSet],
@@ -336,6 +338,9 @@ const WorkflowView = _.flow(
       selectedEntities,
       newSetName: Utils.sanitizeEntityName(`${workflowName}_${new Date().toISOString().slice(0, -5)}`)
     }
+
+    console.log(foo)
+    return foo
   }
 
   constructor(props) {
@@ -603,7 +608,8 @@ const WorkflowView = _.flow(
       [type === processAllAsSet, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType]?.count || 0} ${baseEntityType}s ${newSetMessage}`],
       [type === chooseSets, () => !!count ?
         `${count} selected ${rootEntityType}s ${newSetMessage}` :
-        `No ${rootEntityType}s selected`]
+        `No ${rootEntityType}s selected`],
+      [type === processSnapshotTable, () => `process entire snapshot table`]
     )
   }
 
@@ -776,19 +782,7 @@ const WorkflowView = _.flow(
                   ]
                 })
               ]),
-              !selectingSnapshotTable && div({ style: { marginLeft: '2rem', paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, flex: 1 } }, [
-                div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 2']),
-                div({ style: { display: 'flex', alignItems: 'center' } }, [
-                  h(ButtonPrimary, {
-                    disabled: currentSnapRedacted || this.isSingle() || !rootEntityType ||
-                      !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
-                    tooltip: Utils.editWorkspaceError(ws),
-                    onClick: () => this.setState({ selectingData: true })
-                  }, ['Select Data']),
-                  label({ style: { marginLeft: '1rem' } }, [`${this.describeSelectionModel()}`])
-                ])
-              ]),
-              selectingSnapshotTable && h(IdContainer, [id => div({ style: { margin: '2rem 0 0 2rem' } }, [
+              selectingSnapshotTable ? h(IdContainer, [id => div({ style: { margin: '2rem 0 0 2rem' } }, [
                 h(Select, {
                   id,
                   isDisabled: !!Utils.editWorkspaceError(ws),
@@ -801,7 +795,19 @@ const WorkflowView = _.flow(
                   styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
                   options: selectedSnapshotTableNames
                 })
-              ])])
+              ])]) :
+                div({ style: { marginLeft: '2rem', paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, flex: 1 } }, [
+                  div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 2']),
+                  div({ style: { display: 'flex', alignItems: 'center' } }, [
+                    h(ButtonPrimary, {
+                      disabled: currentSnapRedacted || this.isSingle() || !rootEntityType ||
+                        !_.includes(selectedEntityType, [...entityTypes, ...possibleSetTypes]) || !!Utils.editWorkspaceError(ws),
+                      tooltip: Utils.editWorkspaceError(ws),
+                      onClick: () => this.setState({ selectingData: true })
+                    }, ['Select Data']),
+                    label({ style: { marginLeft: '1rem' } }, [`${this.describeSelectionModel()}`])
+                  ])
+                ])
             ])
           ]),
           div({ style: { marginTop: '1rem' } }, [
