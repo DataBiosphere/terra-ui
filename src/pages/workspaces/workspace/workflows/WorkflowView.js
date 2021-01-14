@@ -384,6 +384,7 @@ const WorkflowView = _.flow(
     const value = !!selection ? selection.value : undefined
     this.setState({ selectedEntityType: value })
     this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
+    this.setState(_.unset(['modifiedConfig', 'dataReferenceName']))
     return value
   }
 
@@ -470,13 +471,10 @@ const WorkflowView = _.flow(
   }
 
   async loadSnapshotTables() {
-    //b8c2a3f1-0775-4c86-bf83-ee66bc3baa63
     const { snapshotId, signal } = this.props
 
     try {
-      const { tables } = await Ajax(signal).DataRepo.snapshot(snapshotId).details
-      console.log(tables)
-      return tables
+      return await Ajax(signal).DataRepo.snapshot(snapshotId).details
     } catch (e) {
       if (e.status === 404) {
         return false
@@ -509,7 +507,7 @@ const WorkflowView = _.flow(
       const selection = workflowSelectionStore.get()
       const readSelection = selectionKey && selection.key === selectionKey
 
-      const selectedEntitySource = 'none'
+      const selectedEntitySource = ''
       const selectedSnapshotTableNames = []
       const { resources: snapshots } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshot(1000, 0)
 
@@ -629,15 +627,6 @@ const WorkflowView = _.flow(
       filterConfigIO(modifiedInputsOutputs)
     )))
     this.fetchInfo(config)
-  })
-
-  loadSnapshotTables2 = _.flow(
-    withErrorReporting('Error loading snapshot tables'),
-    Utils.withBusyState(v => this.setState({ snapshotTableNames: v }))
-  )(async snapshotId => {
-    const { signal } = this.props
-    const { tables } = await Ajax(signal).DataRepo.snapshot(snapshotId).details()
-    return tables
   })
 
 
