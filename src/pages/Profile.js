@@ -1,7 +1,7 @@
 import { addDays, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Component, Fragment, useState } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h, label, span } from 'react-hyperscript-helpers'
 import {
   ButtonPrimary, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay, UnlinkFenceAccount
@@ -236,189 +236,176 @@ const FenceLink = ({ provider: { key, name } }) => {
 
 const sectionTitle = text => div({ style: styles.sectionTitle }, [text])
 
-const Profile = _.flow(
-  Utils.withCancellationSignal,
-  Utils.connectStore(authStore, 'authState')
-)(class Profile extends Component {
-  constructor(props) {
-    super(props)
+const Profile = ({ queryParams = {} }) => {
+  // Hooks
+  const [profileInfo, setProfileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
+  const [proxyGroup, setProxyGroup] = useState()
+  const [saving, setSaving] = useState()
 
-    this.state = { profileInfo: _.mapValues(v => v === 'N/A' ? '' : v, props.authState.profile) }
-  }
+  const signal = Utils.useCancellation()
 
-  render() {
-    const { queryParams = {} } = this.props
-    const { profileInfo, saving } = this.state
-    const { firstName } = profileInfo
 
-    return h(FooterWrapper, [
-      saving && spinnerOverlay,
-      h(TopBar),
-      div({ role: 'main', style: { flexGrow: 1 } }, [
-        !profileInfo ? centeredSpinner() : h(Fragment, [
-          div({ style: { marginLeft: '2rem' } }, [sectionTitle('Profile')]),
-          div({ style: styles.header.line }, [
-            div({ style: { position: 'relative' } }, [
-              profilePic({ size: 48 }),
-              h(InfoBox, { style: { alignSelf: 'flex-end' } }, [
-                'To change your profile image, visit your ',
-                h(Link, {
-                  href: `https://myaccount.google.com?authuser=${getUser().email}`,
-                  ...Utils.newTabLinkProps
-                }, ['Google account page.'])
-              ])
-            ]),
-            div({ style: styles.header.nameLine }, [
-              `Hello again, ${firstName}`
+  // Lifecycle
+  Utils.useOnMount(() => {
+    const loadProxyGroup = async () => {
+      setProxyGroup(await Ajax(signal).User.getProxyGroup(authStore.get().profile.email))
+    }
+
+    loadProxyGroup()
+  })
+
+
+  // Helpers
+  const assignValue = _.curry((key, value) => {
+    setProfileInfo(_.set(key, value))
+  })
+
+  const line = children => div({ style: styles.form.line }, children)
+
+  const textField = (key, title, { placeholder, required } = {}) => h(IdContainer, [id => div({ style: styles.form.container }, [
+    label({ htmlFor: id, style: styles.form.title }, [title]),
+    required ?
+      h(ValidatedInput, {
+        inputProps: {
+          id,
+          value: profileInfo[key],
+          onChange: assignValue(key),
+          placeholder: placeholder || 'Required'
+        },
+        error: Utils.summarizeErrors(errors && errors[key])
+      }) :
+      h(TextInput, {
+        id,
+        value: profileInfo[key],
+        onChange: assignValue(key),
+        placeholder
+      })
+  ])])
+
+  const radioButton = (key, value) => h(RadioButton, {
+    text: value, name: key, checked: profileInfo[key] === value,
+    labelStyle: { margin: '0 2rem 0 0.25rem' },
+    onChange: () => assignValue(key, value)
+  })
+
+  const checkbox = (key, title) => div({ style: styles.form.checkboxLine }, [
+    h(LabeledCheckbox, {
+      checked: profileInfo[key] === 'true',
+      onChange: v => assignValue(key, v.toString())
+    }, [span({ style: styles.form.checkboxLabel }, [title])])
+  ])
+
+
+  // Render
+  const { firstName, lastName } = profileInfo
+  const required = { presence: { allowEmpty: false } }
+  const errors = validate({ firstName, lastName }, { firstName: required, lastName: required })
+
+  return h(FooterWrapper, [
+    saving && spinnerOverlay,
+    h(TopBar),
+    div({ role: 'main', style: { flexGrow: 1 } }, [
+      !profileInfo ? centeredSpinner() : h(Fragment, [
+        div({ style: { marginLeft: '2rem' } }, [sectionTitle('Profile')]),
+        div({ style: styles.header.line }, [
+          div({ style: { position: 'relative' } }, [
+            profilePic({ size: 48 }),
+            h(InfoBox, { style: { alignSelf: 'flex-end' } }, [
+              'To change your profile image, visit your ',
+              h(Link, {
+                href: `https://myaccount.google.com?authuser=${getUser().email}`,
+                ...Utils.newTabLinkProps
+              }, ['Google account page.'])
             ])
           ]),
-          div({ style: { display: 'flex' } }, [
-            div({ style: styles.page }, [
-              this.renderForm()
+          div({ style: styles.header.nameLine }, [
+            `Hello again, ${firstName}`
+          ])
+        ]),
+        div({ style: { display: 'flex' } }, [
+          div({ style: styles.page }, [
+            line([
+              textField('firstName', 'First Name', { required: true }),
+              textField('lastName', 'Last Name', { required: true })
             ]),
-            div({ style: { marginTop: '0', marginLeft: '1rem' } }, [
-              sectionTitle('Identity & External Servers'),
-              h(NihLink, { nihToken: queryParams['nih-username-token'] }),
-              _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders)
-            ])
+            line([
+              textField('title', 'Title')
+            ]),
+            line([
+              div([
+                div({ style: styles.form.title }, ['Email']),
+                div({ style: { margin: '1rem' } }, [profileInfo.email])
+              ]),
+              textField('contactEmail', 'Contact Email for Notifications (if different)', { placeholder: profileInfo.email })
+            ]),
+            line([
+              textField('institute', 'Institution'),
+              textField('institutionalProgram', 'Institutional Program')
+            ]),
+
+            div({ style: styles.form.title }, [
+              span({ style: { marginRight: '0.5rem' } }, ['Proxy Group']),
+              h(InfoBox, [
+                'For more information about proxy groups, see the ',
+                h(Link, {
+                  href: 'https://support.terra.bio/hc/en-us/articles/360031023592',
+                  ...Utils.newTabLinkProps
+                }, ['user guide.'])
+              ])
+            ]),
+            div({ style: { margin: '1rem' } }, [proxyGroup]),
+
+            sectionTitle('Program Info'),
+
+            div({ style: styles.form.title }, ['Non-Profit Status']),
+            div({ style: { margin: '1rem' } }, [
+              radioButton('nonProfitStatus', 'Profit'),
+              radioButton('nonProfitStatus', 'Non-Profit')
+            ]),
+            line([
+              textField('pi', 'Principal Investigator/Program Lead')
+            ]),
+            line([
+              textField('programLocationCity', 'City'),
+              textField('programLocationState', 'State')
+            ]),
+            line([
+              textField('programLocationCountry', 'Country')
+            ]),
+
+            sectionTitle('Account Notifications'),
+
+            checkbox('notifications/GroupAccessRequestNotification', 'Group Access Requested'),
+            checkbox('notifications/WorkspaceAddedNotification', 'Workspace Access Added'),
+            checkbox('notifications/WorkspaceRemovedNotification', 'Workspace Access Removed'),
+
+            h(ButtonPrimary, {
+              style: { marginTop: '3rem' },
+              onClick: _.flow(
+                Utils.withBusyState(setSaving),
+                withErrorReporting('Error saving profile')
+              )(async () => {
+                const [prefsData, profileData] = _.over([_.pickBy, _.omitBy])((v, k) => _.startsWith('notifications/', k), profileInfo)
+                await Promise.all([
+                  Ajax().User.profile.set(_.pickBy(_.identity, profileData)),
+                  Ajax().User.profile.setPreferences(prefsData)
+                ])
+                await refreshTerraProfile()
+              }),
+              disabled: !!errors,
+              tooltip: !!errors && 'Please fill out all required fields'
+            }, ['Save Profile'])
+          ]),
+          div({ style: { marginTop: '0', marginLeft: '1rem' } }, [
+            sectionTitle('Identity & External Servers'),
+            h(NihLink, { nihToken: queryParams['nih-username-token'] }),
+            _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders)
           ])
         ])
       ])
     ])
-  }
-
-  renderForm() {
-    const { profileInfo, proxyGroup } = this.state
-
-    const { firstName, lastName } = profileInfo
-    const required = { presence: { allowEmpty: false } }
-    const errors = validate({ firstName, lastName }, { firstName: required, lastName: required })
-
-    const line = (...children) => div({ style: styles.form.line }, children)
-
-    const textField = (key, title, { placeholder, required } = {}) => h(IdContainer, [id => div({ style: styles.form.container }, [
-      label({ htmlFor: id, style: styles.form.title }, [title]),
-      required ?
-        h(ValidatedInput, {
-          inputProps: {
-            id,
-            value: profileInfo[key],
-            onChange: v => this.assignValue(key, v),
-            placeholder: placeholder || 'Required'
-          },
-          error: Utils.summarizeErrors(errors && errors[key])
-        }) :
-        h(TextInput, {
-          id,
-          value: profileInfo[key],
-          onChange: v => this.assignValue(key, v),
-          placeholder
-        })
-    ])])
-
-    const radioButton = (key, value) => h(RadioButton, {
-      text: value, name: key, checked: profileInfo[key] === value,
-      labelStyle: { margin: '0 2rem 0 0.25rem' },
-      onChange: () => this.assignValue(key, value)
-    })
-
-    const checkbox = (key, title) => div({ style: styles.form.checkboxLine }, [
-      h(LabeledCheckbox, {
-        checked: profileInfo[key] === 'true',
-        onChange: v => this.assignValue(key, v.toString())
-      }, [span({ style: styles.form.checkboxLabel }, [title])])
-    ])
-
-    return h(Fragment, [
-      line(
-        textField('firstName', 'First Name', { required: true }),
-        textField('lastName', 'Last Name', { required: true })
-      ),
-      line(
-        textField('title', 'Title')
-      ),
-      line(
-        div([
-          div({ style: styles.form.title }, ['Email']),
-          div({ style: { margin: '1rem' } }, [profileInfo.email])
-        ]),
-        textField('contactEmail', 'Contact Email for Notifications (if different)', { placeholder: profileInfo.email })
-      ),
-      line(
-        textField('institute', 'Institution'),
-        textField('institutionalProgram', 'Institutional Program')
-      ),
-
-      div({ style: styles.form.title }, [
-        span({ style: { marginRight: '0.5rem' } }, ['Proxy Group']),
-        h(InfoBox, [
-          'For more information about proxy groups, see the ',
-          h(Link, {
-            href: 'https://support.terra.bio/hc/en-us/articles/360031023592',
-            ...Utils.newTabLinkProps
-          }, ['user guide.'])
-        ])
-      ]),
-      div({ style: { margin: '1rem' } }, [proxyGroup]),
-
-      sectionTitle('Program Info'),
-
-      div({ style: styles.form.title }, ['Non-Profit Status']),
-      div({ style: { margin: '1rem' } }, [
-        radioButton('nonProfitStatus', 'Profit'),
-        radioButton('nonProfitStatus', 'Non-Profit')
-      ]),
-      line(
-        textField('pi', 'Principal Investigator/Program Lead')
-      ),
-      line(
-        textField('programLocationCity', 'City'),
-        textField('programLocationState', 'State')
-      ),
-      line(
-        textField('programLocationCountry', 'Country')
-      ),
-
-      sectionTitle('Account Notifications'),
-
-      checkbox('notifications/GroupAccessRequestNotification', 'Group Access Requested'),
-      checkbox('notifications/WorkspaceAddedNotification', 'Workspace Access Added'),
-      checkbox('notifications/WorkspaceRemovedNotification', 'Workspace Access Removed'),
-
-      h(ButtonPrimary, {
-        style: { marginTop: '3rem' },
-        onClick: () => this.save(),
-        disabled: !!errors,
-        tooltip: !!errors && 'Please fill out all required fields'
-      }, ['Save Profile'])
-    ])
-  }
-
-  assignValue(key, value) {
-    this.setState({ profileInfo: _.set(key, value, this.state.profileInfo) })
-  }
-
-  save = _.flow(
-    Utils.withBusyState(v => this.setState({ saving: v })),
-    withErrorReporting('Error saving profile')
-  )(async () => {
-    const { profileInfo } = this.state
-
-    const [prefsData, profileData] = _.over([_.pickBy, _.omitBy])((v, k) => _.startsWith('notifications/', k), profileInfo)
-    await Promise.all([
-      Ajax().User.profile.set(_.pickBy(_.identity, profileData)),
-      Ajax().User.profile.setPreferences(prefsData)
-    ])
-    await refreshTerraProfile()
-  })
-
-  async componentDidMount() {
-    const { signal, authState: { profile: { email } } } = this.props
-
-    this.setState({ proxyGroup: await Ajax(signal).User.getProxyGroup(email) })
-  }
-})
-
+  ])
+}
 
 export const navPaths = [
   {
