@@ -59,8 +59,7 @@ const LaunchAnalysisModal = ({
           const selectedEntityNames = _.map('name', await Ajax(signal).Workspaces.workspace(namespace, workspaceName).entitiesOfType(baseEntityType))
           return { selectedEntityType: baseEntityType, selectedEntityNames }
         }],
-        [type === processSnapshotTable, () => ({ selectedEntityType: rootEntityType })
-        ]
+        [type === processSnapshotTable, () => ({ selectedEntityType: rootEntityType })]
       )
       const { submissionId } = (type === processSnapshotTable) ?
         await launchSnapshot({
