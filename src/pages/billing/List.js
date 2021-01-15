@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Component, Fragment, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -15,7 +15,6 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
-import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -171,157 +170,147 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
   ])
 }
 
-export const BillingList = _.flow(
-  Utils.withCancellationSignal,
-  Utils.connectStore(authStore, 'authState')
-)(class BillingList extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      billingProjects: null,
-      creatingBillingProject: false,
-      billingAccounts: null,
-      isOwner: false,
-      ...StateHistory.get()
-    }
-  }
+export const BillingList = ({ queryParams: { selectedName } }) => {
+  // Hooks
+  const [billingProjects, setBillingProjects] = useState(StateHistory.get().billingProjects || null)
+  const [creatingBillingProject, setCreatingBillingProject] = useState(false)
+  const [billingAccounts, setBillingAccounts] = useState(null)
+  const [isOwner, setIsOwner] = useState(false)
+  const [isLoadingProjects, setIsLoadingProjects] = useState(false)
+  const [isAuthorizing, setIsAuthorizing] = useState(false)
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)
 
-  componentDidMount() {
-    this.loadProjects()
-    this.loadAccounts()
-    this.checkOwner()
-  }
+  const signal = Utils.useCancellation()
+  const interval = useRef()
 
-  loadProjects = _.flow(
+
+  // Helpers
+  const loadProjects = _.flow(
     withErrorReporting('Error loading billing projects list'),
-    Utils.withBusyState(isLoadingProjects => this.setState({ isLoadingProjects }))
+    Utils.withBusyState(setIsLoadingProjects)
   )(async () => {
-    const { signal } = this.props
     const rawBillingProjects = await Ajax(signal).Billing.listProjects()
     const billingProjects = _.flow(
       _.groupBy('projectName'),
       _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
       _.sortBy('projectName')
     )(rawBillingProjects)
-    this.setState({ billingProjects })
+    setBillingProjects(billingProjects)
   })
 
-  authorizeAndLoadAccounts = _.flow(
+  const authorizeAndLoadAccounts = _.flow(
     withErrorReporting('Error setting up authorization'),
-    Utils.withBusyState(isAuthorizing => this.setState({ isAuthorizing }))
+    Utils.withBusyState(setIsAuthorizing)
   )(async () => {
     await Auth.ensureBillingScope()
-    await this.loadAccounts()
+    await loadAccounts()
   })
 
-  loadAccounts = _.flow(
+  const loadAccounts = _.flow(
     withErrorReporting('Error loading billing accounts'),
-    Utils.withBusyState(isLoadingAccounts => this.setState({ isLoadingAccounts }))
+    Utils.withBusyState(setIsLoadingAccounts)
   )(async () => {
-    const { signal } = this.props
     if (Auth.hasBillingScope()) {
-      const billingAccounts = await Ajax(signal).Billing.listAccounts()
-      this.setState({ billingAccounts })
+      setBillingAccounts(await Ajax(signal).Billing.listAccounts())
     }
   })
 
-  checkOwner() {
-    const { billingProjects, isOwner } = this.state
-    !isOwner && _.map(project => _.includes('Owner', project.role) ? this.setState({ isOwner: true }) : null, billingProjects)
+  const checkOwner = () => {
+    !isOwner && _.map(project => _.includes('Owner', project.role) ? setIsOwner(true) : null, billingProjects)
   }
 
-  showCreateProjectModal = async () => {
+  const showCreateProjectModal = async () => {
     if (Auth.hasBillingScope()) {
-      this.setState({ creatingBillingProject: true })
+      setCreatingBillingProject(true)
     } else {
-      await this.authorizeAndLoadAccounts()
-      Auth.hasBillingScope() && this.setState({ creatingBillingProject: true })
+      await authorizeAndLoadAccounts()
+      Auth.hasBillingScope() && setCreatingBillingProject(true)
     }
   }
 
-  render() {
-    const { billingProjects, isLoadingProjects, isLoadingAccounts, isAuthorizing, creatingBillingProject, billingAccounts, isOwner } = this.state
-    const { queryParams: { selectedName } } = this.props
-    const hasBillingProjects = !_.isEmpty(billingProjects)
-    const breadcrumbs = `Billing > Billing Project`
 
-    return h(FooterWrapper, [
-      h(TopBar, { title: 'Billing' }, [
-        !!selectedName && div({
-          style: {
-            color: 'white', paddingLeft: '5rem', minWidth: 0, marginRight: '0.5rem'
-          }
-        }, [
-          div(breadcrumbs),
-          div({ style: Style.breadcrumb.textUnderBreadcrumb }, [selectedName])
-        ])
-      ]),
-      div({ role: 'main', style: { display: 'flex', flex: 1, position: 'relative' } }, [
-        div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
-          div({ style: Style.navList.heading }, [
-            'Billing Projects',
-            h(Clickable, {
-              'aria-label': 'Create new billing project',
-              onClick: this.showCreateProjectModal
-            },
-            [icon('plus-circle', { size: 21, style: { color: colors.accent() } })]
-            )
-          ]),
-          _.map(project => h(ProjectTab, {
-            project, key: project.projectName,
-            isActive: !!selectedName && project.projectName === selectedName
-          }), billingProjects)
-        ]),
-        creatingBillingProject && h(NewBillingProjectModal, {
-          billingAccounts,
-          loadAccounts: () => this.loadAccounts(),
-          onDismiss: () => this.setState({ creatingBillingProject: false }),
-          onSuccess: () => {
-            this.setState({ creatingBillingProject: false })
-            this.loadProjects()
-          }
-        }),
-        Utils.cond(
-          [selectedName && hasBillingProjects && !_.some({ projectName: selectedName }, billingProjects),
-            () => div({ style: { margin: '1rem auto 0 auto' } }, [
-              h2(['Error loading selected billing project.']),
-              p(['It may not exist, or you may not have access to it.'])
-            ])],
-          [selectedName && hasBillingProjects, () => h(ProjectDetail, {
-            key: selectedName,
-            project: _.find({ projectName: selectedName }, billingProjects),
-            billingAccounts,
-            authorizeAndLoadAccounts: this.authorizeAndLoadAccounts
-          })],
-          [isOwner && !selectedName && hasBillingProjects, () => div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Billing Project'])],
-          [!hasBillingProjects, () => noBillingMessage(this.showCreateProjectModal)]
-        ),
-        (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
-      ])
-    ])
-  }
+  // Lifecycle
+  Utils.useOnMount(() => {
+    loadProjects()
+    loadAccounts()
+    checkOwner()
+  })
 
-  componentDidUpdate() {
-    const { billingProjects } = this.state
+  useEffect(() => {
     const anyProjectsCreating = _.some({ creationStatus: 'Creating' }, billingProjects)
 
-    if (anyProjectsCreating && !this.interval) {
-      this.interval = setInterval(() => this.loadProjects(), 10000)
-    } else if (!anyProjectsCreating && this.interval) {
-      clearInterval(this.interval)
-      this.interval = undefined
+    if (anyProjectsCreating && interval.current) {
+      interval.current = setInterval(loadProjects, 10000)
+    } else if (!anyProjectsCreating && interval.current) {
+      clearInterval(interval.current)
+      interval.current = undefined
     }
 
-    StateHistory.update(_.pick(
-      ['billingProjects'],
-      this.state)
-    )
-  }
+    StateHistory.update({ billingProjects })
 
-  componentWillUnmount() {
-    clearInterval(this.interval)
-  }
-})
+    return () => clearInterval(interval.current)
+  })
+
+
+  // Render
+  const hasBillingProjects = !_.isEmpty(billingProjects)
+  const breadcrumbs = `Billing > Billing Project`
+
+  return h(FooterWrapper, [
+    h(TopBar, { title: 'Billing' }, [
+      !!selectedName && div({
+        style: {
+          color: 'white', paddingLeft: '5rem', minWidth: 0, marginRight: '0.5rem'
+        }
+      }, [
+        div(breadcrumbs),
+        div({ style: Style.breadcrumb.textUnderBreadcrumb }, [selectedName])
+      ])
+    ]),
+    div({ role: 'main', style: { display: 'flex', flex: 1, position: 'relative' } }, [
+      div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
+        div({ style: Style.navList.heading }, [
+          'Billing Projects',
+          h(Clickable, {
+            'aria-label': 'Create new billing project',
+            onClick: showCreateProjectModal
+          }, [
+            icon('plus-circle', { size: 21, style: { color: colors.accent() } })
+          ])
+        ]),
+        _.map(project => h(ProjectTab, {
+          project, key: project.projectName,
+          isActive: !!selectedName && project.projectName === selectedName
+        }), billingProjects)
+      ]),
+      creatingBillingProject && h(NewBillingProjectModal, {
+        billingAccounts,
+        loadAccounts,
+        onDismiss: () => setCreatingBillingProject(false),
+        onSuccess: () => {
+          setCreatingBillingProject(false)
+          loadProjects()
+        }
+      }),
+      Utils.cond(
+        [selectedName && hasBillingProjects && !_.some({ projectName: selectedName }, billingProjects),
+          () => div({ style: { margin: '1rem auto 0 auto' } }, [
+            h2(['Error loading selected billing project.']),
+            p(['It may not exist, or you may not have access to it.'])
+          ])],
+        [selectedName && hasBillingProjects, () => h(ProjectDetail, {
+          key: selectedName,
+          project: _.find({ projectName: selectedName }, billingProjects),
+          billingAccounts,
+          authorizeAndLoadAccounts
+        })],
+        [isOwner && !selectedName && hasBillingProjects, () => div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Billing Project'])],
+        [!hasBillingProjects, () => noBillingMessage(showCreateProjectModal)]
+      ),
+      (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
+    ])
+  ])
+}
 
 
 export const navPaths = [
