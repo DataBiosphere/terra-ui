@@ -328,9 +328,9 @@ const WorkflowView = _.flow(
 
     // If the default for non-set types changes from `processAllAsSet` then the calculation of `noLaunchReason` in `renderSummary` needs to be updated accordingly.
     // Currently, `renderSummary` assumes that it is not possible to have nothing selected for non-set types.
-    const foo = {
+    return {
       type: Utils.cond(
-        [selectedEntitySource === 'snapshot', () => processSnapshotTable],
+        [(selectedEntitySource === 'snapshot'), () => processSnapshotTable],
         [isSet(value), () => _.includes(value, _.keys(entityMetadata)) ? chooseSets : processAllAsSet],
         [_.isEmpty(selectedEntities), () => processAll],
         () => chooseRows
@@ -338,9 +338,6 @@ const WorkflowView = _.flow(
       selectedEntities,
       newSetName: Utils.sanitizeEntityName(`${workflowName}_${new Date().toISOString().slice(0, -5)}`)
     }
-
-    console.log(foo)
-    return foo
   }
 
   constructor(props) {
@@ -401,15 +398,16 @@ const WorkflowView = _.flow(
     return value
   }
 
-  async updateDataReference(selection) {
+  async loadSnapshotTableNames(snapshotId) {
+    const { signal } = this.props
+    const { tables } = await Ajax(signal).DataRepo.snapshot(snapshotId).details()
+    this.setState({selectedSnapshotTableNames: tables.map(x => x.name)})
+  }
+
+  updateDataReference(selection) {
     const value = !!selection ? selection.value : undefined
     this.setState({ selectedEntityType: value })
     this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value))
-
-    //TODO: this is not the right place but leaving it here for the moment...
-    const { signal } = this.props
-    const { tables } = await Ajax(signal).DataRepo.snapshot('b8c2a3f1-0775-4c86-bf83-ee66bc3baa63').details()
-    this.setState({selectedSnapshotTableNames: tables.map(x => x.name)})
 
     return value
   }
@@ -533,7 +531,6 @@ const WorkflowView = _.flow(
         availableSnapshots: snapshots,
         selectedEntitySource: selectedEntitySource,
         selectedSnapshotTableNames: selectedSnapshotTableNames,
-        selectingSnapshotTable: selectedEntitySource === 'snapshot',
         savedInputsOutputs: inputsOutputs,
         modifiedInputsOutputs: inputsOutputs,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
@@ -641,7 +638,7 @@ const WorkflowView = _.flow(
     const { workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      availableSnapshots, selectedEntitySource, selectedSnapshotTableNames, selectingSnapshotTable, selectedTableName,
+      availableSnapshots, selectedEntitySource, selectedSnapshotTableNames, selectedTableName,
       selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, deleteIntermediateOutputFiles, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
@@ -768,8 +765,9 @@ const WorkflowView = _.flow(
                   styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
                   value: selectedEntityType,
                   onChange: selection => {
+                    this.loadSnapshotTableNames('b8c2a3f1-0775-4c86-bf83-ee66bc3baa63')
                     const value = (selection.source === 'snapshot') ? this.updateDataReference(selection) : this.updateEntityType(selection)
-                    this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, selection.source), selectedEntitySource: selection.source, selectingSnapshotTable: selection.source === 'snapshot' })
+                    this.setState({ entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, selection.source), selectedEntitySource: selection.source })
                   },
                   options: [
                     {
@@ -783,7 +781,7 @@ const WorkflowView = _.flow(
                   ]
                 })
               ]),
-              selectingSnapshotTable ? h(IdContainer, [id => div({ style: { margin: '2rem 0 0 2rem' } }, [
+              (selectedEntitySource === 'snapshot') ? h(IdContainer, [id => div({ style: { margin: '2rem 0 0 2rem' } }, [
                 h(Select, {
                   id,
                   isDisabled: !!Utils.editWorkspaceError(ws),
@@ -842,7 +840,7 @@ const WorkflowView = _.flow(
             onChangeTab: v => this.setState({ activeTab: v, filter: '' }),
             finalStep: h(ButtonPrimary, {
               style: { marginLeft: '1rem' },
-              disabled: !!Utils.computeWorkspaceError(ws) || (!!noLaunchReason && selectedEntitySource === 'table') || currentSnapRedacted,
+              disabled: !!Utils.computeWorkspaceError(ws) || (!!noLaunchReason && !(selectedEntitySource === 'snapshot')) || currentSnapRedacted,
               tooltip: Utils.computeWorkspaceError(ws) || noLaunchReason || (currentSnapRedacted && 'Workflow version was redacted.'),
               onClick: () => this.setState({ launching: true })
             }, ['Run analysis'])
