@@ -1,35 +1,20 @@
 import _ from 'lodash/fp'
-import { Fragment, useRef, useState } from 'react'
-import { div, h, hr, span } from 'react-hyperscript-helpers'
+import { Fragment, useState } from 'react'
+import { div, h, hr } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import Select from 'react-select'
-import * as breadcrumbs from 'src/components/breadcrumbs'
-import Collapse from 'src/components/Collapse'
-import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
-import { centeredSpinner, icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
-import {
-  breadcrumbHistoryCaret,
-  callCacheWizardBreadcrumbSubtitle,
-  collapseCromwellExecutionStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon,
-  submittedIcon, successIcon, unknownIcon, workflowDetailsBreadcrumbSubtitle
-} from 'src/components/job-common'
+import { breadcrumbHistoryCaret } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
-import UriViewer from 'src/components/UriViewer'
-import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
-import { bucketBrowserUrl } from 'src/libs/auth'
-import { getConfig } from 'src/libs/config'
-import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
-import { codeFont, noWrapEllipsis } from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const CallCacheWizard = ({
-  onDismiss, namespace, name, submissionId, workflowId, callFqn, attempt, index
+  onDismiss, workflowId, callFqn, attempt, index
 }) => {
   /*
    * State setup
@@ -46,7 +31,6 @@ const CallCacheWizard = ({
   const [diffError, setDiffError] = useState()
 
   const signal = Utils.useCancellation()
-  const stateRefreshTimer = useRef()
 
   /*
    * Data Fetchers

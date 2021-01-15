@@ -119,17 +119,13 @@ export const workflowDetailsBreadcrumbSubtitle = (namespace, workspaceName, subm
 }
 
 export const callDetailsBreadcrumbSubtitle = (namespace, workspaceName, submissionId, workflowId, callFqn, index, attempt) => {
-  const indexString = index === '-1' ? '' : ` (scatter index ${index})`
-  const attemptString = Number(attempt) > '1' ? ` (attempt ${attempt})` : ''
   return div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center' } }, [
     jobHistoryBreadcrumbPrefix(namespace, workspaceName),
     breadcrumbLink(`Submission ${submissionId}`, Nav.getLink('workspace-submission-details', { namespace, name: workspaceName, submissionId })),
     breadcrumbLink(`Workflow ${workflowId}`, Nav.getLink('workspace-workflow-dashboard', { namespace, name: workspaceName, submissionId, workflowId })),
     breadcrumbPageTitle(['Call ', span({ style: Style.codeFont }, [callFqn])]),
-    breadcrumbHistoryCaret,
-    breadcrumbPageTitle(`index ${index}`),
-    breadcrumbHistoryCaret,
-    breadcrumbPageTitle(`attempt ${attempt}`)
+    index !== '-1' ? [breadcrumbHistoryCaret, breadcrumbPageTitle(`index ${index}`)] : [],
+    Number(attempt) > 1 ? [breadcrumbHistoryCaret, breadcrumbPageTitle(`attempt ${attempt}`)] : []
   ])
 }
 

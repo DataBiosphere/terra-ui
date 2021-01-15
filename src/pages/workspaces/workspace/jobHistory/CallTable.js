@@ -1,16 +1,10 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { AutoSizer } from 'react-virtualized'
 import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import {
-  collapseCromwellExecutionStatus,
-  cromwellExecutionStatusIcon,
-  makeCromwellStatusLine,
-  makeStatusLine
-} from 'src/components/job-common'
-import { FlexTable, Sortable, TooltipCell } from 'src/components/table'
+import { makeCromwellStatusLine } from 'src/components/job-common'
+import { FlexTable, TooltipCell } from 'src/components/table'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import CallCacheWizard from 'src/pages/workspaces/workspace/jobHistory/CallCacheWizard'

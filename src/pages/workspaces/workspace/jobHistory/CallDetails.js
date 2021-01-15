@@ -3,34 +3,19 @@ import { Fragment, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import Collapse from 'src/components/Collapse'
-import { ClipboardButton, Link } from 'src/components/common'
+import { Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import {
-  callCacheWizardBreadcrumbSubtitle,
-  callDetailsBreadcrumbSubtitle,
-  collapseCromwellExecutionStatus,
-  cromwellExecutionStatusIcon,
-  failedIcon,
-  makeSection,
-  makeStatusLine,
-  runningIcon,
-  statusIcon,
-  submittedIcon,
-  successIcon,
-  unknownIcon,
-  workflowDetailsBreadcrumbSubtitle
-} from 'src/components/job-common'
+import { callDetailsBreadcrumbSubtitle, cromwellExecutionStatusIcon, makeSection, makeStatusLine } from 'src/components/job-common'
+import { TooltipCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
-import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
-import { getConfig } from 'src/libs/config'
-import * as Nav from 'src/libs/nav'
+import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import CallCacheWizard from 'src/pages/workspaces/workspace/jobHistory/CallCacheWizard'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-import colors from 'src/libs/colors'
+
 
 const naTextDiv = div({ style: { color: colors.dark(0.7), marginTop: '0.5rem' } }, ['N/A'])
 
@@ -47,9 +32,8 @@ const CallDetails = _.flow(
    * State setup
    */
   const [callMetadata, setCallMetadata] = useState()
-  const [showCloudLog, setShowCloudLog] = useState()
-  const [showTaskStdout, setShowTaskStdout] = useState()
-  const [showTaskStderr, setShowTaskStderr] = useState()
+  const [shownUrlFile, setShownUrlFile] = useState()
+  const [wizardSelection, setWizardSelection] = useState()
 
   const signal = Utils.useCancellation()
   const stateRefreshTimer = useRef()
@@ -61,7 +45,7 @@ const CallDetails = _.flow(
   Utils.useOnMount(() => {
     const loadWorkflow = async () => {
       const initialQueryIncludeKey = [
-        'end', 'start', 'status', 'executionStatus', 'backendStatus', 'workflowName', 'callCaching', 'backendLogs', 'outputs', 'stdout', 'stderr'
+        'end', 'start', 'status', 'executionStatus', 'backendStatus', 'workflowName', 'callCaching', 'backendLogs', 'inputs', 'outputs', 'stdout', 'stderr', 'callRoot', 'callCaching'
       ]
       const excludeKey = []
       const call = await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).workflow(workflowId).call(callFqn, index, attempt).call_metadata(initialQueryIncludeKey, excludeKey)
@@ -81,7 +65,10 @@ const CallDetails = _.flow(
   /*
    * Page render
    */
-  const { start, end, executionStatus, backendStatus, backendLogs: { log: papiLog } = {}, outputs, stdout, stderr } = callMetadata || {}
+  const {
+    start, end, executionStatus, backendStatus, backendLogs: { log: papiLog } = {}, inputs, outputs, stdout, stderr, callRoot,
+    callCaching: { result: ccResult, effectiveCallCachingMode } = {}
+  } = callMetadata || {}
 
   const [workflowName, callName] = callFqn.split('.')
   const browserBucketUrl = () => {
@@ -89,6 +76,25 @@ const CallDetails = _.flow(
     const withShard = Number(index) >= 0 ? `${base}/shard-${index}` : base
     const withAttempt = Number(attempt) >= 2 ? `${withShard}/attempt-${attempt}` : withShard
     return withAttempt
+  }
+
+  const fileUrlLinks = {
+    script: {
+      name: 'Evaluated task script',
+      url: callRoot && `${callRoot}/script`
+    },
+    stdout: {
+      name: 'Task stdout',
+      url: stdout
+    },
+    stderr: {
+      name: 'Task stderr',
+      url: stderr
+    },
+    papiLog: {
+      name: 'Cloud execution log',
+      url: papiLog
+    }
   }
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
@@ -121,21 +127,33 @@ const CallDetails = _.flow(
             href: bucketBrowserUrl(browserBucketUrl()),
             style: { display: 'flex', marginLeft: '1rem', marginTop: '0.5rem' }
           }, [icon('folder-open', { size: 18 }), ' Call execution directory']),
-          h(Link, {
-            onClick: () => setShowCloudLog(true),
-            style: { display: 'flex', marginLeft: '1rem', marginTop: '0.5rem' }
-          }, [icon('fileAlt', { size: 18 }), ' Cloud execution log']),
-          stdout && h(Link, {
-            onClick: () => setShowTaskStdout(true),
-            style: { display: 'flex', marginLeft: '1rem', marginTop: '0.5rem' }
-          }, [icon('fileAlt', { size: 18 }), ' Task stdout']),
-          stderr && h(Link, {
-            onClick: () => setShowTaskStderr(true),
-            style: { display: 'flex', marginLeft: '1rem', marginTop: '0.5rem' }
-          }, [icon('fileAlt', { size: 18 }), ' Task stderr'])
+          _.map(urlFileLinkKey => {
+            const { name, url } = fileUrlLinks[urlFileLinkKey]
+            const tooltip = !url && `${name} path is not in the call metadata.`
+            return h(Link, {
+              onClick: () => setShownUrlFile(urlFileLinkKey),
+              disabled: !url,
+              tooltip,
+              style: { display: 'flex', marginLeft: '1rem', marginTop: '0.5rem' }
+            }, [icon('fileAlt', { size: 18 }), ` ${name}`])
+          }
+          )(_.keys(fileUrlLinks))
         ])
       ]),
-      makeSection('Outputs', [
+      makeSection('Call Inputs', [
+        outputs ? div({ style: { height: 200, overflow: 'auto', borderStyle: 'ridge', resize: 'vertical', marginTop: '0.5rem' } }, [
+          h(ReactJson, {
+            style: { whiteSpace: 'pre-wrap' },
+            name: false,
+            collapsed: 1,
+            enableClipboard: false,
+            displayDataTypes: false,
+            displayObjectSize: true,
+            src: inputs
+          })
+        ]) : naTextDiv
+      ]),
+      makeSection('Call Outputs', [
         outputs ? div({ style: { height: 200, overflow: 'auto', borderStyle: 'ridge', resize: 'vertical', marginTop: '0.5rem' } }, [
           h(ReactJson, {
             style: { whiteSpace: 'pre-wrap' },
@@ -148,9 +166,29 @@ const CallDetails = _.flow(
           })
         ]) : naTextDiv
       ]),
-      showCloudLog && h(UriViewer, { googleProject: namespace, uri: papiLog, onDismiss: () => setShowCloudLog(false) }),
-      showTaskStdout && h(UriViewer, { googleProject: namespace, uri: stdout, onDismiss: () => setShowTaskStdout(false) }),
-      showTaskStderr && h(UriViewer, { googleProject: namespace, uri: stderr, onDismiss: () => setShowTaskStderr(false) })
+      makeSection('Call Caching', [
+        div({ style: { display: 'flex', flexFlow: 'column' } }, [
+          div({ style: { marginTop: '0.5rem', marginRight: '1rem', display: 'flex', alignItems: 'center' } }, [
+            div({ style: { fontSize: 15, fontWeight: 'bold' } }, ['Call cache outcome: ']),
+            ccResult ? h(Fragment, [
+              h(TooltipCell, [ccResult]),
+              ccResult === 'Cache Miss' && h(Link, {
+                style: { marginLeft: '0.5rem' },
+                tooltip: 'Cache Miss Debug Wizard',
+                onClick: () => setWizardSelection({ callFqn, index, attempt })
+              }, [icon('magic', { size: 18 })])
+            ]) : div({ style: { color: colors.dark(0.7) } }, ['No Information'])
+          ]),
+          div({ style: { marginTop: '0.5rem', marginRight: '1rem', display: 'flex', alignItems: 'center' } }, [
+            div({ style: { fontWeight: 'bold' } }, ['Call cache mode: ']),
+            effectiveCallCachingMode !== undefined ?
+              div({ style: { fontSize: 15, ...Style.codeFont } }, [String(effectiveCallCachingMode)]) :
+              div({ style: { color: colors.dark(0.7) } }, ['No Information'])
+          ])
+        ])
+      ]),
+      shownUrlFile && h(UriViewer, { googleProject: namespace, uri: fileUrlLinks[shownUrlFile].url, onDismiss: () => setShownUrlFile(undefined) }),
+      wizardSelection && h(CallCacheWizard, { onDismiss: () => setWizardSelection(undefined), namespace, name, submissionId, workflowId, ...wizardSelection })
     ])
   ])
 })

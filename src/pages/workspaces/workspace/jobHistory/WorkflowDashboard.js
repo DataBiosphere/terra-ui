@@ -2,7 +2,6 @@ import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
-import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import Collapse from 'src/components/Collapse'
 import { ClipboardButton, Link } from 'src/components/common'
@@ -11,18 +10,16 @@ import {
   collapseCromwellExecutionStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon,
   submittedIcon, successIcon, unknownIcon, workflowDetailsBreadcrumbSubtitle
 } from 'src/components/job-common'
-import { FlexTable } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
 import WDLViewer from 'src/components/WDLViewer'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
+import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
-import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-import colors from 'src/libs/colors'
 
 
 const styles = {
