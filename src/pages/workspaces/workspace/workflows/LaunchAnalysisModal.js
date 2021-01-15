@@ -59,9 +59,8 @@ const LaunchAnalysisModal = ({
           const selectedEntityNames = _.map('name', await Ajax(signal).Workspaces.workspace(namespace, workspaceName).entitiesOfType(baseEntityType))
           return { selectedEntityType: baseEntityType, selectedEntityNames }
         }],
-        [type === processSnapshotTable, () => {
-          return { selectedEntityType: rootEntityType }
-        }]
+        [type === processSnapshotTable, () => ({ selectedEntityType: rootEntityType })
+        ]
       )
       const { submissionId } = (type === processSnapshotTable) ?
         await launchSnapshot({
@@ -91,11 +90,8 @@ const LaunchAnalysisModal = ({
     [type === processAllAsSet, () => 1],
     [type === chooseSetComponents, () => 1],
     [type === processMergedSet, () => _.flow(mergeSets, _.uniqBy('entityName'))(selectedEntities).length],
-    [type === processSnapshotTable, () => 1] //TODO: should probably be rowCount
+    [type === processSnapshotTable, () => 1] //TODO: could be table rowCount but rowCount to workflow conversion is currently unclear
   )
-
-  console.log(type)
-
   const wrappableOnPeriods = _.flow(str => str?.split(/(\.)/), _.flatMap(sub => sub === '.' ? [wbr(), '.'] : sub))
   const { location, locationType } = bucketLocation
   const { flag, regionDescription } = regionInfo(location, locationType)
