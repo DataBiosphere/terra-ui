@@ -324,8 +324,6 @@ const WorkflowView = _.flow(
   resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata, selectedEntitySource) {
     const { workflowName } = this.props
 
-    console.log(selectedEntitySource)
-
     // If the default for non-set types changes from `processAllAsSet` then the calculation of `noLaunchReason` in `renderSummary` needs to be updated accordingly.
     // Currently, `renderSummary` assumes that it is not possible to have nothing selected for non-set types.
     return {
@@ -401,7 +399,7 @@ const WorkflowView = _.flow(
   async loadSnapshotTableNames(snapshotId) {
     const { signal } = this.props
     const { tables } = await Ajax(signal).DataRepo.snapshot(snapshotId).details()
-    this.setState({selectedSnapshotTableNames: tables.map(x => x.name)})
+    this.setState({ selectedSnapshotTableNames: tables.map(table => table.name) })
   }
 
   updateDataReference(selection) {
@@ -529,8 +527,8 @@ const WorkflowView = _.flow(
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
         entityMetadata,
         availableSnapshots: snapshots,
-        selectedEntitySource: selectedEntitySource,
-        selectedSnapshotTableNames: selectedSnapshotTableNames,
+        selectedEntitySource,
+        selectedSnapshotTableNames,
         savedInputsOutputs: inputsOutputs,
         modifiedInputsOutputs: inputsOutputs,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
