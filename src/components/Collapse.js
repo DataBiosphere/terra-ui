@@ -21,9 +21,11 @@ const Collapse = ({ title, buttonStyle, initialOpenState, children, titleFirst, 
       'aria-expanded': isOpened,
       style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem', ...buttonStyle },
       onClick: () => setIsOpened(!isOpened)
-    },
-    titleFirst ? [div({ style: { flexGrow: 1 } }, [title]), angleIcon] : [angleIcon, title]
-    ),
+    }, [
+      titleFirst && div({ style: { flexGrow: 1 } }, [title]),
+      angleIcon,
+      !titleFirst && title
+    ]),
     isOpened && div([children])
   ])
 }

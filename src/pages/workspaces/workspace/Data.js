@@ -373,8 +373,14 @@ const WorkspaceData = _.flow(
   const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata()])
 
   const loadSnapshotEntities = async snapshotName => {
-    const entities = await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, snapshotName)
-    setSnapshotDetails(_.set([snapshotName, 'entityMetadata'], entities))
+    try {
+      setSnapshotDetails(_.set([snapshotName, 'error'], false))
+      const entities = await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, snapshotName)
+      setSnapshotDetails(_.set([snapshotName, 'entityMetadata'], entities))
+    } catch (error) {
+      reportError(`Error loading entities in snapshot ${snapshotName}`, error)
+      setSnapshotDetails(_.set([snapshotName, 'error'], true))
+    }
   }
 
   const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first))
@@ -432,37 +438,45 @@ const WorkspaceData = _.flow(
           error: snapshotMetadataError,
           retryFunction: loadSnapshotMetadata
         }, [
-          _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables }]) => {
+          _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables, error: snapshotTablesError }]) => {
             const snapshotTablePairs = toSortedPairs(snapshotTables)
             return h(Collapse, {
               titleFirst: true,
               key: snapshotName,
               buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0, marginRight: '10px' },
-              style: { fontSize: 14, lineHeight: '50px', paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
-              title: snapshotName,
+              style: { paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
+              title: div({ style: { lineHeight: '50px' } }, [snapshotName]),
               refreshKey,
               initialOpenState: _.head(selectedDataType) === snapshotName,
               onFirstOpen: () => loadSnapshotEntities(snapshotName)
-            }, [
-              div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
-                snapshotTables === undefined ?
-                  div({ style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' } }, [
-                    'Loading snapshot contents...',
-                    spinner({ style: { marginLeft: '1rem' } })
-                  ]) :
-                  _.map(([tableName, { count }]) => {
-                    return h(DataTypeButton, {
-                      buttonStyle: { borderBottom: 0, height: 40 },
-                      key: `${snapshotName}_${tableName}`,
-                      selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
-                      onClick: () => {
-                        setSelectedDataType([snapshotName, tableName])
-                        forceRefresh()
-                      }
-                    }, [`${tableName} (${count})`])
-                  }, snapshotTablePairs)
-              ])
-            ])
+            }, [Utils.cond(
+              [snapshotTablesError, () => div({
+                style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
+              }, [
+                'Failed to load tables',
+                h(Link, {
+                  onClick: () => loadSnapshotEntities(snapshotName),
+                  tooltip: 'Error loading, click to retry.'
+                }, [icon('sync', { size: 24, style: { marginLeft: '1rem' } })])
+              ])],
+              [snapshotTables === undefined, () => div({
+                style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
+              }, [
+                'Loading snapshot contents...',
+                spinner({ style: { marginLeft: '1rem' } })
+              ])],
+              () => _.map(([tableName, { count }]) => {
+                return h(DataTypeButton, {
+                  buttonStyle: { borderBottom: 0, height: 40 },
+                  key: `${snapshotName}_${tableName}`,
+                  selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
+                  onClick: () => {
+                    setSelectedDataType([snapshotName, tableName])
+                    forceRefresh()
+                  }
+                }, [`${tableName} (${count})`])
+              }, snapshotTablePairs)
+            )])
           }, sortedSnapshotPairs)
         ]),
         div({ style: Style.navList.heading }, [
