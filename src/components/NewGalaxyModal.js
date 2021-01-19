@@ -88,7 +88,7 @@ export const NewGalaxyModal = _.flow(
       [Utils.DEFAULT, () => {
         return !!app ?
           h(Fragment, [
-            h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
+            (app.status === 'RUNNING') && h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
             (app.status === 'RUNNING') && h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => { pauseGalaxy() } }, ['Pause']),
             (app.status === 'STOPPED') && h(ButtonPrimary, { style: { marginRight: '1rem' }, onClick: () => { resumeGalaxy() } }, ['Resume']),
             (app.status === 'RUNNING') && h(ButtonPrimary, { onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
