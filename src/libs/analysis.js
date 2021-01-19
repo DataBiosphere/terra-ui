@@ -4,6 +4,7 @@ import * as Utils from 'src/libs/utils'
 
 
 export const launch = async ({
+  isSnapshot,
   workspace: { workspace: { namespace, name, bucketName }, accessLevel },
   config: { namespace: configNamespace, name: configName, rootEntityType },
   selectedEntityType, selectedEntityNames, newSetName, useCallCache = true, deleteIntermediateOutputFiles,
@@ -29,7 +30,7 @@ export const launch = async ({
     throw new Error('Error confirming workspace bucket access. This may be a transient problem. Please try again in a few minutes. If the problem persists, please contact support.')
   }
   const { entityName, processSet = false } = await Utils.cond(
-    [selectedEntityType === undefined, () => ({})],
+    [isSnapshot || (selectedEntityType === undefined), () => ({})],
     [`${selectedEntityType}_set` === rootEntityType, async () => {
       await createSet()
       return { entityName: newSetName }
@@ -58,24 +59,6 @@ export const launch = async ({
     ),
     entityName,
     expression: processSet ? `this.${rootEntityType}s` : undefined,
-    useCallCache, deleteIntermediateOutputFiles
-  })
-}
-
-export const launchSnapshot = async ({
-  workspace: { workspace: { namespace, name, bucketName }, accessLevel },
-  config: { namespace: configNamespace, name: configName, rootEntityType },
-  useCallCache = true, deleteIntermediateOutputFiles,
-  onProgress
-}) => {
-  onProgress('checkBucketAccess')
-  try {
-    await Ajax().Workspaces.workspace(namespace, name).checkBucketAccess(bucketName, accessLevel)
-  } catch (error) {
-    throw new Error('Error confirming workspace bucket access. This may be a transient problem. Please try again in a few minutes. If the problem persists, please contact support.')
-  }
-  onProgress('launch')
-  return Ajax().Workspaces.workspace(namespace, name).methodConfig(configNamespace, configName).launch({
     useCallCache, deleteIntermediateOutputFiles
   })
 }
