@@ -147,7 +147,7 @@ const registerUser = withSignedInPage(async ({ page, token }) => {
       }
     }
   })
-  await findText('New User Registration')
+  await findText(page, 'New User Registration')
   await page.evaluate(async () => {
     await window.catchErrorResponse(async () => {
       await window.Ajax().User.profile.set({ firstName: 'Integration', lastName: 'Test', contactEmail: 'me@example.com' })
