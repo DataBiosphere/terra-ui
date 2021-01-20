@@ -40,7 +40,7 @@ export const findMachineType = name => {
 }
 
 export const runtimeConfigCost = config => {
-  const { masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = normalizeRuntimeConfig(config)
+  const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = normalizeRuntimeConfig(config)
   const { price: masterPrice } = findMachineType(masterMachineType)
   const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
   return _.sum([
@@ -48,6 +48,7 @@ export const runtimeConfigCost = config => {
     numberOfWorkers * workerPrice,
     numberOfPreemptibleWorkers * preemptiblePrice,
     numberOfPreemptibleWorkers * workerDiskSize * storagePrice,
+    cloudService === cloudServices.DATAPROC && numberOfPreemptibleWorkers * dataprocCpuPrice,
     runtimeConfigBaseCost(config)
   ])
 }
