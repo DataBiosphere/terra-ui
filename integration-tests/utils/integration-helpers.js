@@ -71,8 +71,11 @@ const withUser = test => async args => {
 
   await pRetry(async () => {
     try {
-      const res = await fetch(`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${token}`)
-      if (!!await res.json().name) {
+      const res = await fetch(
+        'https://www.googleapis.com/oauth2/v3/userinfo',
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+      if (!(await res.json()).email) {
         throw Error
       }
     } catch (e) {
