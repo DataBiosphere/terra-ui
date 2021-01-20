@@ -71,12 +71,8 @@ const withUser = test => async args => {
 
   await pRetry(async () => {
     try {
-      const res = await fetch(
-        'https://www.googleapis.com/oauth2/v3/userinfo',
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-
-      return !!(await res.json()).user_id
+      const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`)
+      return !!(await res.json()).name // make sure user exists
     } catch (e) {
       throw new Error(e)
     }
