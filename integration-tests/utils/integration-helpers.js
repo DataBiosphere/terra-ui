@@ -1,4 +1,6 @@
 const _ = require('lodash/fp')
+const pRetry = require('p-retry')
+const fetch = require('node-fetch')
 
 const { signIntoTerra } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
@@ -66,6 +68,19 @@ const makeUser = async () => {
 
 const withUser = test => async args => {
   const { email, token } = await makeUser()
+
+  await pRetry(async () => {
+    try {
+      const res = await fetch(
+        'https://www.googleapis.com/oauth2/v3/userinfo',
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+
+      return !!(await res.json()).user_id
+    } catch (e) {
+      throw new Error(e)
+    }
+  }, { retries: 5, factor: 1 })
 
   try {
     await test({ ...args, email, token })
