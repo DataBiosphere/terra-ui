@@ -82,7 +82,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
             return h(Link, {
               href: Nav.getLink('workspace-call-details', { namespace, name, submissionId, workflowId, callFqn: callName, index: shardIndex, attempt }),
               style: { display: 'flex', alignItems: 'center' }
-            }, [icon('fileCopy', { size: 18, marginRight: '0.5rem' }), ' Call Details'])
+            }, [icon('code-branch', { size: 18, marginRight: '0.5rem' }), ' Call Details'])
           }
         }
       ]

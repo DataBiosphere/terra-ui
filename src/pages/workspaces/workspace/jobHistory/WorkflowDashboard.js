@@ -205,11 +205,11 @@ const WorkflowDashboard = _.flow(
       title: div({ style: Style.elements.sectionHeader }, ['Calls']),
       initialOpenState: true
     }, [
-      !_.isEmpty(calls) ? div({ style: { marginLeft: '1rem' } },
+      div({ style: { marginLeft: '1rem' } },
         [makeSection('Total Call Status Counts', [
-          workflow.calls ? statusCell(workflow) : div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.'])
+          !_.isEmpty(calls) ? statusCell(workflow) : div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.'])
         ]),
-        makeSection('Call Lists', [
+        !_.isEmpty(calls) && makeSection('Call Lists', [
           _.map(callName => {
             return h(Collapse, {
               style: { marginLeft: '1rem', marginTop: '0.5rem' },
@@ -220,7 +220,7 @@ const WorkflowDashboard = _.flow(
             ])
           }, callNames)
         ])]
-      ) : naTextDiv
+      )
     ]),
     wdl && h(Collapse, {
       title: div({ style: Style.elements.sectionHeader }, ['Submitted workflow script'])

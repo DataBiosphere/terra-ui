@@ -1,6 +1,6 @@
-import { faClipboard, faClock, faClone, faCopy, faEye, faFileAlt, faFolder, faFolderOpen, faListAlt, faTimesCircle } from '@fortawesome/free-regular-svg-icons'
+import { faClipboard, faClock, faClone, faEye, faFileAlt, faFolder, faFolderOpen, faListAlt, faTimesCircle } from '@fortawesome/free-regular-svg-icons'
 import {
-  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faCloud, faCog, faCreditCard, faDownload,
+  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faCloud, faCodeBranch, faCog, faCreditCard, faDownload,
   faEllipsisV, faExclamationCircle, faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown,
   faLongArrowAltUp, faMagic, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle, faSearch, faShareAlt,
   faSquare as faSquareSolid, faTachometerAlt, faTasks, faTerminal, faTrashAlt, faVirus
@@ -53,6 +53,7 @@ const iconDict = {
   check: fa(faCheck),
   clock: fa(faClock),
   cloud: fa(faCloud),
+  'code-branch': fa(faCodeBranch),
   cog: fa(faCog),
   columnGrabber: custom(columnGrabber),
   copy: fa(faClone),
@@ -68,7 +69,6 @@ const iconDict = {
   export: custom(fileExport),
   eye: fa(faEye),
   fileAlt: fa(faFileAlt),
-  fileCopy: fa(faCopy),
   fileSearchSolid: custom(fileSearchSolid),
   folder: fa(faFolder),
   'folder-open': fa(faFolderOpen),

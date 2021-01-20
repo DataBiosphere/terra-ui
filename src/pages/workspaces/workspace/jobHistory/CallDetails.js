@@ -34,6 +34,7 @@ const CallDetails = _.flow(
   const [callMetadata, setCallMetadata] = useState()
   const [shownUrlFile, setShownUrlFile] = useState()
   const [wizardSelection, setWizardSelection] = useState()
+  const [fetchTime, setFetchTime] = useState()
 
   const signal = Utils.useCancellation()
   const stateRefreshTimer = useRef()
@@ -44,12 +45,14 @@ const CallDetails = _.flow(
 
   Utils.useOnMount(() => {
     const loadWorkflow = async () => {
+      const timeBefore = Date.now()
       const initialQueryIncludeKey = [
         'end', 'start', 'status', 'executionStatus', 'backendStatus', 'workflowName', 'callCaching', 'backendLogs', 'inputs', 'outputs', 'stdout', 'stderr', 'callRoot', 'callCaching'
       ]
       const excludeKey = []
       const call = await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).workflow(workflowId).call(callFqn, index, attempt).call_metadata(initialQueryIncludeKey, excludeKey)
-      setCallMetadata(call || { status: 'Done' })
+      setCallMetadata(call)
+      setFetchTime(Date.now() - timeBefore)
 
       if (call && _.includes(call.status, ['Running', 'Submitted'])) {
         stateRefreshTimer.current = setTimeout(loadWorkflow, 60000)
@@ -99,6 +102,7 @@ const CallDetails = _.flow(
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     callDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId, callFqn, index, attempt),
+    callMetadata === undefined || div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, [`Call metadata fetched in ${fetchTime}ms`]),
     callMetadata === undefined ? centeredSpinner() : div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
       makeSection('Call Status', [
         div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.5rem' } }, [

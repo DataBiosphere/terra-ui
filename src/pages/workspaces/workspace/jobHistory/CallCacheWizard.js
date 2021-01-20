@@ -24,7 +24,7 @@ const CallCacheWizard = ({
   const [otherWorkflowMetadata, setOtherWorkflowMetadata] = useState()
   const [otherCallFqn, setOtherCallFqn] = useState()
   const [otherIndex, setOtherIndex] = useState()
-  const [otherAttempt, setOtherAttempt] = useState()
+  const [otherAttemptSucceeded, setOtherAttemptSucceeded] = useState()
   const [otherCallSelected, setOtherCallSelected] = useState(false)
   const [diff, setDiff] = useState()
   const [metadataFetchError, setMetadataFetchError] = useState()
@@ -65,7 +65,7 @@ const CallCacheWizard = ({
     }
   }
 
-  const callFqnOptions = _.flow(
+  const otherCallFqnSelectionOptions = _.flow(
     _.keys,
     _.map(name => { return { value: name, label: name } })
   )
@@ -79,7 +79,7 @@ const CallCacheWizard = ({
     resetDiffResult()
     setOtherCallFqn(undefined)
     setOtherIndex(undefined)
-    setOtherAttempt(undefined)
+    setOtherAttemptSucceeded(undefined)
     setOtherCallSelected(false)
   }
 
@@ -143,17 +143,12 @@ const CallCacheWizard = ({
         _.first
       )(metadata.calls[fqn])
 
-      const unsuccessfulStatusesString = _.flow(
-        _.filter(c => c.shardIndex === index && c.executionStatus !== 'Done'),
-        _.map(c => `${c.attempt}: ${c.executionStatus}`),
-        _.join(', ')
-      )
+      if (otherAttemptSucceeded !== successfulAttempt) setOtherAttemptSucceeded(successfulAttempt)
 
       if (successfulAttempt) {
-        if (otherAttempt !== successfulAttempt) setOtherAttempt(successfulAttempt)
         return `${successfulAttempt} (the first successful attempt of this call)`
       } else {
-        return `This index of the call had 0 successful attempts. Attempt statuses were: ${unsuccessfulStatusesString(metadata.calls[fqn])}`
+        return 'This index of the call did not succeed'
       }
     }
 
@@ -173,7 +168,7 @@ const CallCacheWizard = ({
           div({ style: { marginTop: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
             div({ style: { paddingRight: '0.5rem' } }, ['Call FQN:']),
             div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [
-              h(Select, { id: 'otherCallFqn', options: callFqnOptions(otherWorkflowMetadata.calls), onChange: v => setOtherCallFqn(v.value) })
+              h(Select, { id: 'otherCallFqn', options: otherCallFqnSelectionOptions(otherWorkflowMetadata.calls), onChange: v => setOtherCallFqn(v.value) })
             ])
           ]),
           div({ style: { marginTop: '0.25rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
@@ -188,7 +183,7 @@ const CallCacheWizard = ({
               div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [otherCallAttemptDecision(otherWorkflowMetadata, otherCallFqn, otherIndex)]) :
               'Select a call FQN and an index first'
           ]),
-          !!(otherCallFqn && otherIndex !== undefined && otherAttempt !== undefined) && h(ButtonPrimary, { style: { float: 'right' }, onClick: () => { fetchDiff(otherWorkflowId, otherCallFqn, otherIndex); setOtherCallSelected(true) } }, ['Compare Diff >'])
+          !!(otherCallFqn && otherIndex !== undefined && otherAttemptSucceeded) && h(ButtonPrimary, { style: { float: 'right' }, onClick: () => { fetchDiff(otherWorkflowId, otherCallFqn, otherIndex); setOtherCallSelected(true) } }, ['Compare Diff >'])
         ]) :
         'Loading other workflow calls...'),
       divider,
@@ -211,9 +206,7 @@ const CallCacheWizard = ({
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
           div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherCallFqn),
           breadcrumbHistoryCaret,
-          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, `index ${otherIndex}`),
-          breadcrumbHistoryCaret,
-          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, `attempt ${otherAttempt}`)
+          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, `index ${otherIndex}`)
         ]),
         h(ButtonSecondary, { style: { justifyContent: 'right', paddingLeft: '1rem', height: '20px', color: 'darkred' }, onClick: () => resetCallSelection() }, ['[X]'])
       ]),

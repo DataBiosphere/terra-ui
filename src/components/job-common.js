@@ -36,7 +36,7 @@ export const collapseCromwellExecutionStatus = status => {
     case 'Submitted':
       return 'submitted'
     default:
-      return status
+      return `Unexpected status (${status})`
   }
 }
 
@@ -56,21 +56,22 @@ export const statusIcon = (status, style, collapseFunction = collapseStatus) => 
       return failedIcon(style)
     case 'running':
       return runningIcon(style)
-    default:
+    case 'submitted':
       return submittedIcon(style)
+    default:
+      return unknownIcon(style)
   }
 }
 
 export const cromwellExecutionStatusIcon = (status, style) => statusIcon(status, style, collapseCromwellExecutionStatus)
 
-export const makeStatusLine = (iconFn, text, style) => div(
-  {
-    style: { display: 'flex', alignItems: 'center', fontSize: 14, textTransform: 'capitalize', ...style }
-  }, [iconFn({ marginRight: '0.5rem' }), text])
+export const makeStatusLine = (iconFn, text, style) => div({ style: { display: 'flex', alignItems: 'center', fontSize: 14, textTransform: 'capitalize', ...style } }, [
+  iconFn({ marginRight: '0.5rem' }), text
+])
 
 export const makeCromwellStatusLine = cromwellStatus => {
   const collapsedStatus = collapseCromwellExecutionStatus(cromwellStatus)
-  return makeStatusLine(style => cromwellExecutionStatusIcon(collapsedStatus, style), collapsedStatus, { marginLeft: '0.5rem' })
+  return makeStatusLine(style => cromwellExecutionStatusIcon(cromwellStatus, style), collapsedStatus, { marginLeft: '0.5rem' })
 }
 
 export const makeSection = (label, children) => div({
@@ -103,15 +104,17 @@ const breadcrumbLink = (title, link) => [
 
 const breadcrumbPageTitle = title => div({ style: Style.elements.sectionHeader }, [title])
 
+const breadcrumbSubtitleStyle = { marginBottom: '0.5rem', display: 'flex', alignItems: 'center' }
+
 export const submissionDetailsBreadcrumbSubtitle = (namespace, workspaceName, submissionId) => {
-  return div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center' } }, [
+  return div({ style: breadcrumbSubtitleStyle }, [
     jobHistoryBreadcrumbPrefix(namespace, workspaceName),
     breadcrumbPageTitle(`Submission ${submissionId}`)
   ])
 }
 
 export const workflowDetailsBreadcrumbSubtitle = (namespace, workspaceName, submissionId, workflowId) => {
-  return div({ style: { marginBottom: '0.5rem', display: 'flex', alignItems: 'center' } }, [
+  return div({ style: breadcrumbSubtitleStyle }, [
     jobHistoryBreadcrumbPrefix(namespace, workspaceName),
     breadcrumbLink(`Submission ${submissionId}`, Nav.getLink('workspace-submission-details', { namespace, name: workspaceName, submissionId })),
     breadcrumbPageTitle(`Workflow ${workflowId}`)
@@ -119,21 +122,12 @@ export const workflowDetailsBreadcrumbSubtitle = (namespace, workspaceName, subm
 }
 
 export const callDetailsBreadcrumbSubtitle = (namespace, workspaceName, submissionId, workflowId, callFqn, index, attempt) => {
-  return div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center' } }, [
+  return div({ style: breadcrumbSubtitleStyle }, [
     jobHistoryBreadcrumbPrefix(namespace, workspaceName),
     breadcrumbLink(`Submission ${submissionId}`, Nav.getLink('workspace-submission-details', { namespace, name: workspaceName, submissionId })),
     breadcrumbLink(`Workflow ${workflowId}`, Nav.getLink('workspace-workflow-dashboard', { namespace, name: workspaceName, submissionId, workflowId })),
     breadcrumbPageTitle(['Call ', span({ style: Style.codeFont }, [callFqn])]),
     index !== '-1' ? [breadcrumbHistoryCaret, breadcrumbPageTitle(`index ${index}`)] : [],
     Number(attempt) > 1 ? [breadcrumbHistoryCaret, breadcrumbPageTitle(`attempt ${attempt}`)] : []
-  ])
-}
-
-export const callCacheWizardBreadcrumbSubtitle = (namespace, workspaceName, submissionId, workflowId) => {
-  return div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center' } }, [
-    jobHistoryBreadcrumbPrefix(namespace, workspaceName),
-    breadcrumbLink(`Submission ${submissionId}`, Nav.getLink('workspace-submission-details', { namespace, name: workspaceName, submissionId })),
-    breadcrumbLink(`Workflow ${workflowId}`, Nav.getLink('workspace-workflow-dashboard', { namespace, name: workspaceName, submissionId, workflowId })),
-    breadcrumbPageTitle('Call Cache Wizard')
   ])
 }
