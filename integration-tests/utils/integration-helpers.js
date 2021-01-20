@@ -4,7 +4,7 @@ const fetch = require('node-fetch')
 
 const { signIntoTerra } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
-const { withUserToken } = require('../utils/terra-sa-utils')
+const { findText, withUserToken } = require('../utils/terra-sa-utils')
 
 
 const defaultTimeout = 5 * 60 * 1000
@@ -147,6 +147,7 @@ const registerUser = withSignedInPage(async ({ page, token }) => {
       }
     }
   })
+  await findText('New User Registration')
   await page.evaluate(async () => {
     await window.catchErrorResponse(async () => {
       await window.Ajax().User.profile.set({ firstName: 'Integration', lastName: 'Test', contactEmail: 'me@example.com' })
