@@ -48,7 +48,7 @@ export const runtimeConfigCost = config => {
     numberOfWorkers * workerPrice,
     numberOfPreemptibleWorkers * preemptiblePrice,
     numberOfPreemptibleWorkers * workerDiskSize * storagePrice,
-    cloudService === cloudServices.DATAPROC && numberOfPreemptibleWorkers * dataprocCpuPrice,
+    cloudService === cloudServices.DATAPROC && numberOfPreemptibleWorkers * workerCpu * dataprocCpuPrice,
     runtimeConfigBaseCost(config)
   ])
 }
