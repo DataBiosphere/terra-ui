@@ -90,6 +90,7 @@ export const NewGalaxyModal = _.flow(
           h(Fragment, [
             (app.status === 'RUNNING') && h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
             (app.status === 'RUNNING') && h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => { pauseGalaxy() } }, ['Pause']),
+            (app.status === 'STOPPED') && h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
             (app.status === 'STOPPED') && h(ButtonPrimary, { style: { marginRight: '1rem' }, onClick: () => { resumeGalaxy() } }, ['Resume']),
             (app.status === 'RUNNING') && h(ButtonPrimary, { onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
           ]) :
@@ -180,32 +181,29 @@ export const NewGalaxyModal = _.flow(
     ])
   }
 
+  const getEnvMessageBasedOnStatus = isTitle => {
+    return Utils.cond(
+      [!!app && (app.status === 'STOPPED'), () => `Cloud environment is now paused ${!isTitle ? '...' : undefined}`],
+      [!!app && (app.status === 'PRESTOPPING'), () => 'Cloud environment is preparing to stop.'],
+      [!!app && (app.status === 'STOPPING'), () => `Cloud environment is pausing ${!isTitle ? 'This process will take up to a few minutes' : undefined}`],
+      [!!app && (app.status === 'PRESTARTING'), () => 'Cloud environment is preparing to start.'],
+      [!!app && (app.status === 'STARTING'), () => `Cloud environment is starting ${!isTitle ? 'This process will take up to a few minutes' : undefined}`],
+      () => isTitle ? 'Cloud environment' : `Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`
+    )
+  }
+
   const renderDefaultCase = () => {
     const { cpu, memory } = _.find({ name: 'n1-standard-8' }, machineTypes)
     const cost = getGalaxyCost(app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8', numNodes: 2 } })
     return h(Fragment, [
       h(TitleBar, {
-        title: Utils.cond(
-          [!!app && (app.status === 'STOPPED'), () => 'Cloud environment is now paused'],
-          [!!app && (app.status === 'PRESTOPPING'), () => 'Cloud environment is preparing to stop.'],
-          [!!app && (app.status === 'STOPPING'), () => 'Cloud environment is now pausing'],
-          [!!app && (app.status === 'PRESTARTING'), () => 'Cloud environment is preparing to start.'],
-          [!!app && (app.status === 'STARTING'), () => 'Cloud environment is now starting'],
-          () => 'Cloud environment'
-        ),
+        title: getEnvMessageBasedOnStatus(true),
         style: { marginBottom: '0.5rem' },
         onDismiss,
         onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
       }),
       div([
-        Utils.cond(
-          [!!app && (app.status === 'STOPPED'), () => `Cloud environment is now paused...`],
-          [!!app && (app.status === 'PRESTOPPING'), () => `Cloud environment is preparing to stop.`],
-          [!!app && (app.status === 'STOPPING'), () => `Cloud environment is pausing. This process will take up to a few minutes`],
-          [!!app && (app.status === 'PRESTARTING'), () => `Cloud environment is preparing to start.`],
-          [!!app && (app.status === 'STARTING'), () => `Cloud environment is starting. This process will take up to a few minutes`],
-          () => `Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`
-        )
+        getEnvMessageBasedOnStatus(false)
       ]),
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div([
