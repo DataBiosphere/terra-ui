@@ -201,7 +201,7 @@ const EntitiesContent = ({
   workspace, workspace: {
     workspace: { namespace, name, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount }
   },
-  entityKey, entityMetadata, loadMetadata, firstRender
+  entityKey, entityMetadata, loadMetadata, firstRender, snapshotName
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({})
@@ -349,6 +349,7 @@ const EntitiesContent = ({
         persist: true, firstRender, refreshKey, editable: !Utils.editWorkspaceError(workspace),
         entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
         onScroll: saveScroll, initialX, initialY,
+        snapshotName,
         selectionModel: {
           selected: selectedEntities,
           setSelected: setSelectedEntities

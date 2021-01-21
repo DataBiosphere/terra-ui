@@ -123,9 +123,18 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
   ])
 }
 
-const SnapshotContent = ({ snapshotDetails, snapshotKey: [snapshotName] }) => {
+const SnapshotContent = ({ workspace, snapshotDetails, entityKey, loadMetadata, firstRender, snapshotKey: [snapshotName, tableName] }) => {
   // ToDo: Add rendering of snapshot tables
-  return h(SnapshotInfo, { snapshotId: snapshotDetails[snapshotName].id, snapshotName })
+  //return h(SnapshotInfo, { snapshotId: snapshotDetails[snapshotName].id, snapshotName })
+
+  return h(EntitiesContent, {
+    snapshotName,
+    workspace,
+    entityMetadata: snapshotDetails[snapshotName].entityMetadata,
+    entityKey: tableName,
+    loadMetadata,
+    firstRender
+  })
 }
 
 const DeleteObjectModal = ({ name, workspace: { workspace: { namespace, bucketName } }, onSuccess, onDismiss }) => {
@@ -552,8 +561,12 @@ const WorkspaceData = _.flow(
           ['snapshots', () => snapshotDetails === undefined ?
             spinnerOverlay :
             h(SnapshotContent, {
+              key: refreshKey,
+              workspace,
               snapshotDetails,
-              snapshotKey: selectedDataType
+              snapshotKey: selectedDataType,
+              loadMetadata,
+              firstRender
             })],
           ['entities', () => h(EntitiesContent, {
             key: refreshKey,

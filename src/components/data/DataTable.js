@@ -53,7 +53,8 @@ const DataTable = props => {
     selectionModel: { selected, setSelected },
     childrenBefore,
     editable,
-    persist, refreshKey, firstRender
+    persist, refreshKey, firstRender,
+    snapshotName
   } = props
 
   const persistenceId = `${namespace}/${name}/${entityType}`
@@ -69,7 +70,7 @@ const DataTable = props => {
   const stateHistory = firstRender ? StateHistory.get() : {}
   const [itemsPerPage, setItemsPerPage] = useState(stateHistory.itemsPerPage || 25)
   const [pageNumber, setPageNumber] = useState(stateHistory.pageNumber || 1)
-  const [sort, setSort] = useState(stateHistory.sort || { field: 'name', direction: 'asc' })
+  const [sort, setSort] = useState(stateHistory.sort || { field: !!snapshotName ? entityMetadata[entityType].attributeNames[0] : 'name', direction: 'asc' })
   const [activeTextFilter, setActiveTextFilter] = useState(stateHistory.activeTextFilter || '')
 
   const [columnWidths, setColumnWidths] = useState(() => getLocalPref(persistenceId)?.columnWidths || {})
@@ -105,7 +106,10 @@ const DataTable = props => {
   )(async () => {
     const { results, resultMetadata: { filteredCount, unfilteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name)
       .paginatedEntitiesOfType(entityType, {
-        page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction, filterTerms: activeTextFilter
+        page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction,
+        ...(!!snapshotName ?
+          { billingProject: namespace, dataReference: snapshotName } :
+          { filterTerms: activeTextFilter })
       })
     setEntities(results)
     setFilteredCount(filteredCount)
