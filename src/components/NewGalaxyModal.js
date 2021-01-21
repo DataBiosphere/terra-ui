@@ -92,6 +92,7 @@ export const NewGalaxyModal = _.flow(
             (app.status === 'RUNNING') && h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => { pauseGalaxy() } }, ['Pause']),
             (app.status === 'STOPPED') && h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
             (app.status === 'STOPPED') && h(ButtonPrimary, { style: { marginRight: '1rem' }, onClick: () => { resumeGalaxy() } }, ['Resume']),
+            (app.status === 'ERROR') && h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
             (app.status === 'RUNNING') && h(ButtonPrimary, { onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
           ]) :
           h(ButtonPrimary, { onClick: () => setViewMode('createWarn') }, ['Next'])
@@ -185,9 +186,10 @@ export const NewGalaxyModal = _.flow(
     return Utils.cond(
       [!!app && (app.status === 'STOPPED'), () => `Cloud environment is now paused ${!isTitle ? '...' : undefined}`],
       [!!app && (app.status === 'PRESTOPPING'), () => 'Cloud environment is preparing to stop.'],
-      [!!app && (app.status === 'STOPPING'), () => `Cloud environment is pausing ${!isTitle ? 'This process will take up to a few minutes' : undefined}`],
+      [!!app && (app.status === 'STOPPING'), () => `Cloud environment is pausing. ${!isTitle ? 'This process will take up to a few minutes' : undefined}`],
       [!!app && (app.status === 'PRESTARTING'), () => 'Cloud environment is preparing to start.'],
-      [!!app && (app.status === 'STARTING'), () => `Cloud environment is starting ${!isTitle ? 'This process will take up to a few minutes' : undefined}`],
+      [!!app && (app.status === 'STARTING'), () => `Cloud environment is starting. ${!isTitle ? 'This process will take up to a few minutes' : undefined}`],
+      [!!app && (app.status === 'ERROR'), () => `An error has occurred on your Cloud Environment. ${!isTitle ? 'Your cloud environment has returned an error. You will not be able to launch the app' : undefined}`],
       () => isTitle ? 'Cloud environment' : `Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`
     )
   }
