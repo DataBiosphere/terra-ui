@@ -82,8 +82,7 @@ const LaunchAnalysisModal = ({
     [type === processAll, () => entityMetadata[rootEntityType].count],
     [type === processAllAsSet, () => 1],
     [type === chooseSetComponents, () => 1],
-    [type === processMergedSet, () => _.flow(mergeSets, _.uniqBy('entityName'))(selectedEntities).length],
-    [type === processSnapshotTable, () => 1] //TODO: could be table rowCount but rowCount to workflow conversion is currently unclear
+    [type === processMergedSet, () => _.flow(mergeSets, _.uniqBy('entityName'))(selectedEntities).length]
   )
   const wrappableOnPeriods = _.flow(str => str?.split(/(\.)/), _.flatMap(sub => sub === '.' ? [wbr(), '.'] : sub))
   const { location, locationType } = bucketLocation

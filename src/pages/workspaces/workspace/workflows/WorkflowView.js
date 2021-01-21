@@ -376,7 +376,7 @@ const WorkflowView = _.flow(
   updateSingleOrMultipleRadioState(config) {
     this.setState({
       processSingle: !config.rootEntityType,
-      selectedEntityType: config.rootEntityType
+      selectedEntityType: config.dataReferenceName ? config.dataReferenceName : config.rootEntityType
     })
   }
 
@@ -470,17 +470,25 @@ const WorkflowView = _.flow(
         !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
       )(config)
 
+      const selectedSnapshotId = modifiedConfig.dataReferenceName ? _.find({ name: modifiedConfig.dataReferenceName }, snapshots).reference.snapshot : undefined
+      const { tables } = selectedSnapshotId ? await Ajax(signal).DataRepo.snapshot(selectedSnapshotId).details() : []
+
       this.setState({
         savedConfig: config, modifiedConfig,
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
         entityMetadata,
         availableSnapshots: snapshots,
         selectedEntitySource: '',
-        selectedSnapshotTableNames: [],
+        selectedTableName: modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined,
+        selectedSnapshotTableNames: _.map('name', tables),
         savedInputsOutputs: inputsOutputs,
         modifiedInputsOutputs: inputsOutputs,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
-        entitySelectionModel: this.resetSelectionModel(modifiedConfig.rootEntityType, readSelection ? selection.entities : {}, entityMetadata, ''),
+        entitySelectionModel: this.resetSelectionModel(
+          modifiedConfig.dataReferenceName ? modifiedConfig.dataReferenceName : modifiedConfig.rootEntityType,
+          readSelection ? selection.entities : {},
+          entityMetadata, modifiedConfig.dataReferenceName ? 'snapshot' : ''
+        ),
         workspaceAttributes: _.flow(
           _.without(['description']),
           _.remove(s => s.includes(':'))
