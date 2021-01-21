@@ -40,9 +40,9 @@ Requests related to the funtionality or usability of the UI can be submitted as 
     yarn start
     ```
     
-    If you get an error that resembles
+    If you get an error that resembles:
     
-    ```sh
+    ```
     Failed to compile.
 
     ./node_modules/react-dev-utils/webpackHotDevClient.js
@@ -53,7 +53,8 @@ Requests related to the funtionality or usability of the UI can be submitted as 
     - ... (While processing: "...js")
     ```
     
-    try 
+    try:
+
     ```sh
     rm -rf node_modules
     yarn install
