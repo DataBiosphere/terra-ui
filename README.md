@@ -39,6 +39,26 @@ Requests related to the funtionality or usability of the UI can be submitted as 
     ```sh
     yarn start
     ```
+    
+    If you get an error that resembles
+    
+    ```sh
+    Failed to compile.
+
+    ./node_modules/react-dev-utils/webpackHotDevClient.js
+    Error: [BABEL] /Users/.../terra-ui/node_modules/react-scripts/node_modules/react-dev-utils/webpackHotDevClient.js: Cannot find module '...'
+    Require stack:
+    - ...
+    - ...
+    - ... (While processing: "...js")
+    ```
+    
+    try 
+    ```sh
+    rm -rf node_modules
+    yarn install
+    yarn start
+    ```
 4. Testing:
     
     ```sh
