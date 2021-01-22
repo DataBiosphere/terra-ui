@@ -566,8 +566,8 @@ const WorkflowView = _.flow(
   }
 
   canSave() {
-    const { modifiedConfig: { rootEntityType } } = this.state
-    return this.isSingle() || !!rootEntityType
+    const { modifiedConfig: { rootEntityType, dataReferenceName } } = this.state
+    return (this.isSingle() || !!rootEntityType) || (!!dataReferenceName && !!rootEntityType)
   }
 
   loadNewMethodConfig = _.flow(
@@ -726,7 +726,7 @@ const WorkflowView = _.flow(
 
                       this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value))
                       this.setState({
-                        selectedEntityType: value,
+                        selectedEntityType: value, selectedTableName: undefined,
                         entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, source), selectedEntitySource: source,
                         selectedSnapshotTableNames: _.map('name', tables)
                       })
@@ -734,7 +734,7 @@ const WorkflowView = _.flow(
                       this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
                       this.setState(_.unset(['modifiedConfig', 'dataReferenceName']))
                       this.setState({
-                        selectedEntityType: value,
+                        selectedEntityType: value, selectedSapshotTableNames: undefined,
                         entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, source), selectedEntitySource: source
                       })
                     }
