@@ -184,12 +184,12 @@ export const NewGalaxyModal = _.flow(
 
   const getEnvMessageBasedOnStatus = isTitle => {
     return Utils.cond(
-      [!!app && (app.status === 'STOPPED'), () => `Cloud environment is now paused ${!isTitle ? '...' : undefined}`],
+      [!!app && (app.status === 'STOPPED'), () => `Cloud environment is now paused ${(!isTitle ? '...' : '')}`],
       [!!app && (app.status === 'PRESTOPPING'), () => 'Cloud environment is preparing to stop.'],
-      [!!app && (app.status === 'STOPPING'), () => `Cloud environment is pausing. ${!isTitle ? 'This process will take up to a few minutes' : undefined}`],
+      [!!app && (app.status === 'STOPPING'), () => `Cloud environment is pausing. ${!isTitle ? 'This process will take up to a few minutes' : ''}`],
       [!!app && (app.status === 'PRESTARTING'), () => 'Cloud environment is preparing to start.'],
-      [!!app && (app.status === 'STARTING'), () => `Cloud environment is starting. ${!isTitle ? 'This process will take up to a few minutes' : undefined}`],
-      [!!app && (app.status === 'ERROR'), () => `An error has occurred on your Cloud Environment. ${!isTitle ? 'Your cloud environment has returned an error. You will not be able to launch the app' : undefined}`],
+      [!!app && (app.status === 'STARTING'), () => `Cloud environment is starting. ${!isTitle ? 'This process will take up to a few minutes' : ''}`],
+      [!!app && (app.status === 'ERROR'), () => `An error has occurred on your Cloud Environment. ${!isTitle ? 'This process will take up to a few minutes' : ''}`],
       () => isTitle ? 'Cloud environment' : `Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`
     )
   }
