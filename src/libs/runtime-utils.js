@@ -6,7 +6,10 @@ export const DEFAULT_DISK_SIZE = 50
 
 export const usableStatuses = ['Updating', 'Running']
 
-export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, bootDiskSize }) => {
+export const normalizeRuntimeConfig = ({
+  cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers,
+  numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, bootDiskSize
+}) => {
   const isDataproc = cloudService === cloudServices.DATAPROC
 
   return {
@@ -23,7 +26,9 @@ export const normalizeRuntimeConfig = ({ cloudService, machineType, diskSize, ma
 }
 
 export const runtimeConfigBaseCost = config => {
-  const { cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize } = normalizeRuntimeConfig(
+  const {
+    cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize
+  } = normalizeRuntimeConfig(
     config)
   const { cpu: masterCpu } = findMachineType(masterMachineType)
   const { cpu: workerCpu } = findMachineType(workerMachineType)
@@ -40,7 +45,8 @@ export const findMachineType = name => {
 }
 
 export const runtimeConfigCost = config => {
-  const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = normalizeRuntimeConfig(config)
+  const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = normalizeRuntimeConfig(
+    config)
   const { price: masterPrice } = findMachineType(masterMachineType)
   const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
   return _.sum([
@@ -74,7 +80,8 @@ export const runtimeCost = ({ runtimeConfig, status }) => {
 export const getGalaxyCost = app => {
   // numNodes * price per node + diskCost + defaultNodepoolCost
   const defaultNodepoolCost = machineCost('n1-standard-1')
-  const appCost = app.kubernetesRuntimeConfig.numNodes * machineCost(app.kubernetesRuntimeConfig.machineType) + persistentDiskCost({ size: 250 + 10 + 100 + 100, status: 'Running' })
+  const appCost = app.kubernetesRuntimeConfig.numNodes * machineCost(app.kubernetesRuntimeConfig.machineType) +
+    persistentDiskCost({ size: 250 + 10 + 100 + 100, status: 'Running' })
   return appCost + defaultNodepoolCost
   // diskCost: 250Gb for the NFS disk, 10Gb for the postgres disk, and 200Gb for boot disks (1 boot disk per nodepool)
   // to do: retrieve the disk sizes from the app not just hardcode them
