@@ -104,6 +104,7 @@ const DataTable = props => {
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
+    // TODO: Kai notes: snapshot contents need a loading spinner, and it blows up if you choose an entitytype with nothing inside it I think because it's trying to sort on nothing
     const { results, resultMetadata: { filteredCount, unfilteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name)
       .paginatedEntitiesOfType(entityType, {
         page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction,
