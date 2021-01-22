@@ -756,7 +756,6 @@ const WorkflowView = _.flow(
                   id,
                   isDisabled: !!Utils.editWorkspaceError(ws),
                   isClearable: false,
-                  isSearchable: false,
                   value: selectedTableName,
                   onChange: ({ value }) => {
                     this.setState({ selectedTableName: value })
@@ -764,7 +763,7 @@ const WorkflowView = _.flow(
                     this.setState(_.unset(['modifiedConfig', 'entityName']))
                   },
                   styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
-                  options: selectedSnapshotTableNames
+                  options: _.sortBy(_.identity)(selectedSnapshotTableNames)
                 })
               ])]) :
                 div({ style: { marginLeft: '2rem', paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, flex: 1 } }, [
