@@ -2,7 +2,7 @@ const _ = require('lodash/fp')
 const pRetry = require('p-retry')
 const fetch = require('node-fetch')
 
-const { findText, signIntoTerra } = require('./integration-utils')
+const { signIntoTerra } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 

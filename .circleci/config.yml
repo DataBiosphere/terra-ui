@@ -65,14 +65,14 @@ commands:
           at: .
       - restore_cache:
           keys:
-            - test-deps4-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
-            - test-deps4-{{ checksum "integration-tests/package.json" }}-
-            - test-deps4-
+            - test-deps5-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
+            - test-deps5-{{ checksum "integration-tests/package.json" }}-
+            - test-deps5-
       - run:
           working_directory: integration-tests
           command: yarn install --frozen-lockfile
       - save_cache:
-          key: test-deps4-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
+          key: test-deps5-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
           paths:
             - integration-tests/node_modules
       - when:
