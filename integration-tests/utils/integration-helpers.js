@@ -147,14 +147,13 @@ const registerUser = withSignedInPage(async ({ page, token }) => {
       }
     }
   })
-  await findText(page, 'New User Registration')
-  await page.evaluate(async () => {
+  await page.evaluate(async token => {
     await window.catchErrorResponse(async () => {
+      window.forceSignIn(token)
       await window.Ajax().User.profile.set({ firstName: 'Integration', lastName: 'Test', contactEmail: 'me@example.com' })
-      await window.Ajax().User.profile.get()
       await window.Ajax().User.acceptTos()
     })
-  })
+  }, token)
 })
 
 const withRegisteredUser = test => withUser(async options => {
