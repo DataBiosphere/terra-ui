@@ -49,6 +49,7 @@ export const runtimeConfigCost = config => {
     config)
   const { price: masterPrice } = findMachineType(masterMachineType)
   const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
+  const { cpu: workerCpu } = findMachineType(workerMachineType)
   return _.sum([
     masterPrice,
     numberOfWorkers * workerPrice,
