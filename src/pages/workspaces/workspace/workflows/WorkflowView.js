@@ -734,7 +734,7 @@ const WorkflowView = _.flow(
                       this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
                       this.setState(_.unset(['modifiedConfig', 'dataReferenceName']))
                       this.setState({
-                        selectedEntityType: value, selectedSapshotTableNames: undefined,
+                        selectedEntityType: value, selectedSnapshotTableNames: undefined,
                         entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, source), selectedEntitySource: source
                       })
                     }
