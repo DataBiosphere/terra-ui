@@ -88,12 +88,12 @@ export const NewGalaxyModal = _.flow(
       [Utils.DEFAULT, () => {
         return !!app ?
           h(Fragment, [
-            (app.status === 'RUNNING') && h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
-            (app.status === 'RUNNING') && h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => { pauseGalaxy() } }, ['Pause']),
-            (app.status === 'STOPPED') && h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
-            (app.status === 'STOPPED') && h(ButtonPrimary, { style: { marginRight: '1rem' }, onClick: () => { resumeGalaxy() } }, ['Resume']),
-            (app.status === 'ERROR') && h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
-            (app.status === 'RUNNING') && h(ButtonPrimary, { onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
+            (app.status === 'RUNNING') && h(Fragment, [h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
+              h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => { pauseGalaxy() } }, ['Pause']),
+              h(ButtonPrimary, { onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])]),
+            (app.status === 'STOPPED') && h(Fragment, [h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
+              h(ButtonPrimary, { style: { marginRight: '1rem' }, onClick: () => { resumeGalaxy() } }, ['Resume'])]),
+            (app.status === 'ERROR') && h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete'])
           ]) :
           h(ButtonPrimary, { onClick: () => setViewMode('createWarn') }, ['Next'])
       }]
