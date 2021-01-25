@@ -446,7 +446,6 @@ const WorkspaceData = _.flow(
               buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0, marginRight: '10px' },
               style: { paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
               title: div({ style: { lineHeight: '50px' } }, [snapshotName]),
-              refreshKey,
               initialOpenState: _.head(selectedDataType) === snapshotName,
               onFirstOpen: () => loadSnapshotEntities(snapshotName)
             }, [Utils.cond(
