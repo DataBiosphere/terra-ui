@@ -171,10 +171,10 @@ const DataTable = props => {
 
   return h(Fragment, [
     !!entities && h(Fragment, [
-      !snapshotName && div({ style: { display: 'flex', marginBottom: '1rem' } }, [
+      div({ style: { display: 'flex', marginBottom: '1rem' } }, [
         childrenBefore && childrenBefore({ entities, columnSettings }),
         div({ style: { flexGrow: 1 } }),
-        div({ style: { width: 300 } }, [
+        !snapshotName && div({ style: { width: 300 } }, [
           h(ConfirmedSearchInput, {
             'aria-label': 'Search',
             placeholder: 'Search',
