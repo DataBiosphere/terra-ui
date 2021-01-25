@@ -24,7 +24,6 @@ import * as Nav from 'src/libs/nav'
 import { authStore, contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { CookiesModal } from 'src/pages/SignIn'
 
 
 const styles = {
@@ -99,7 +98,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
   const [openUserMenu, setOpenUserMenu] = useState(false)
   const [openLibraryMenu, setOpenLibraryMenu] = useState(false)
   const [openSupportMenu, setOpenSupportMenu] = useState(false)
-  const [openCookiesModal, setOpenCookiesModal] = useState(false)
   const [openFirecloudModal, setOpenFirecloudModal] = useState(false)
 
   const authState = Utils.useStore(authStore)
@@ -175,11 +173,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                   }
                 }, ['SIGN IN']) :
                 div([
-                  h(Clickable, {
-                    hover: { textDecoration: 'underline' },
-                    style: { color: 'white', marginLeft: '9rem', fontWeight: 600 },
-                    onClick: () => setOpenCookiesModal(true)
-                  }, ['Cookies policy']),
                   h(SignInButton)
                 ])
             ]),
@@ -360,9 +353,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
         ])
       ]),
       children,
-      openCookiesModal && h(CookiesModal, {
-        onDismiss: () => setOpenCookiesModal(false)
-      }),
       openFirecloudModal && h(PreferFirecloudModal, {
         onDismiss: () => setOpenFirecloudModal(false),
         authState

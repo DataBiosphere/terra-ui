@@ -1,12 +1,10 @@
 import { Component, Fragment } from 'react'
 import { div, h, p } from 'react-hyperscript-helpers'
-import { Clickable, HeroWrapper, Link } from 'src/components/common'
-import Modal from 'src/components/Modal'
+import { HeroWrapper, Link } from 'src/components/common'
 import SignInButton from 'src/components/SignInButton'
 import colors from 'src/libs/colors'
 import { isAnvil, isBioDataCatalyst, isFirecloud } from 'src/libs/config'
 import { getAppName } from 'src/libs/logos'
-import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -21,27 +19,8 @@ const styles = {
   }
 }
 
-export const CookiesModal = (({ onDismiss }) => {
-  return h(Modal, {
-    showCancel: false,
-    onDismiss
-  }, [
-    `${getAppName()} uses cookies to enable sign on and other essential features when signed in, and to provide statistics to our development team regarding how the site is used. For more information, see our `,
-    h(Link, {
-      ...Utils.newTabLinkProps,
-      href: Nav.getLink('privacy')
-    }, ['privacy policy.'])
-  ])
-})
-
 export default class SignIn extends Component {
-  constructor(props) {
-    super(props)
-    this.state = { openCookiesModal: false }
-  }
-
   render() {
-    const { openCookiesModal } = this.state
     return h(HeroWrapper, { showMenu: false }, [
       div({ style: { maxWidth: 600 } }, [
         div({ style: { fontSize: 36, color: colors.dark(0.6) } }, ['New User?']),
@@ -50,10 +29,6 @@ export default class SignIn extends Component {
           `${getAppName()} uses your Google account. Once you have signed in and completed the user profile registration step, you can start using ${getAppName()}.`
         ]),
         h(SignInButton),
-        h(Clickable, {
-          style: { color: colors.accent(), marginTop: '1rem' },
-          onClick: () => this.setState({ openCookiesModal: true })
-        }, ['Cookies policy']),
         !isAnvil() && div({ style: styles.warningNoticeContainer }, [
           div({ style: styles.warningNotice }, ['Warning Notice']),
           p([`
@@ -124,10 +99,7 @@ export default class SignIn extends Component {
               website and is advised that if such monitoring reveals possible evidence of criminal activity, 
               evidence may be provided to law enforcement officials.
             `])
-        ]),
-        openCookiesModal && h(CookiesModal, {
-          onDismiss: () => this.setState({ openCookiesModal: false })
-        })
+        ])
       ])
     ])
   }

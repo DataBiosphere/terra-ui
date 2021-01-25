@@ -2,11 +2,13 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { b, div, h, p } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Link, spinnerOverlay } from 'src/components/common'
+import { cookiesAcceptedKey } from 'src/components/CookieWarning'
 import { icon, spinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
+import { getLocalPref } from 'src/libs/prefs'
 import { collapsedRuntimeStatus, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -98,7 +100,7 @@ export const AuthenticatedCookieSetter = () => {
 
 export const PeriodicCookieSetter = () => {
   const signal = Utils.useCancellation()
-  Utils.usePollingEffect(
+  getLocalPref(cookiesAcceptedKey) !== false && Utils.usePollingEffect(
     withErrorIgnoring(async () => {
       await Ajax(signal).Runtimes.setCookie()
       cookieReadyStore.set(true)
