@@ -12,11 +12,6 @@ import * as Utils from 'src/libs/utils'
 
 
 export const cookiesAcceptedKey = 'cookiesAccepted'
-const styles = {
-  cookiePopupLinks: {
-    textDecoration: 'underline'
-  }
-}
 
 export const CookieWarning = () => {
   const signal = Utils.useCancellation()
@@ -52,7 +47,7 @@ export const CookieWarning = () => {
       ' and to improve your experience on our site. By clicking Agree or continuing to use our site, you consent to the use of these functional',
       ' cookies. If you do not wish to allow use of these cookies, you may tell us that by clicking on Reject. As a result, you will be unable',
       ' to use our site. To find out more, read our ',
-      h(Link, { style: styles.cookiePopupLinks, href: Nav.getLink('privacy') }, ['privacy policy']), '.']),
+      h(Link, { style: { textDecoration: 'underline' }, href: Nav.getLink('privacy') }, ['privacy policy']), '.']),
     div({ style: { padding: '2rem', display: 'flex' } }, [
       h(ButtonPrimary, { onClick: () => acceptCookies(true) }, ['Agree']),
       h(ButtonSecondary, { style: { marginLeft: '2rem' }, onClick: () => { rejectCookies() } }, ['Reject'])
