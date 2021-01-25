@@ -70,7 +70,7 @@ const DataTable = props => {
   const stateHistory = firstRender ? StateHistory.get() : {}
   const [itemsPerPage, setItemsPerPage] = useState(stateHistory.itemsPerPage || 25)
   const [pageNumber, setPageNumber] = useState(stateHistory.pageNumber || 1)
-  const [sort, setSort] = useState(stateHistory.sort || { field: !!snapshotName ? entityMetadata[entityType].attributeNames[0] : 'name', direction: 'asc' })
+  const [sort, setSort] = useState(stateHistory.sort || { field: 'name', direction: 'asc' })
   const [activeTextFilter, setActiveTextFilter] = useState(stateHistory.activeTextFilter || '')
 
   const [columnWidths, setColumnWidths] = useState(() => getLocalPref(persistenceId)?.columnWidths || {})
@@ -171,7 +171,7 @@ const DataTable = props => {
 
   return h(Fragment, [
     !!entities && h(Fragment, [
-      div({ style: { display: 'flex', marginBottom: '1rem' } }, [
+      !snapshotName && div({ style: { display: 'flex', marginBottom: '1rem' } }, [
         childrenBefore && childrenBefore({ entities, columnSettings }),
         div({ style: { flexGrow: 1 } }),
         div({ style: { width: 300 } }, [
@@ -195,6 +195,7 @@ const DataTable = props => {
               ref: table,
               width, height,
               rowCount: entities.length,
+              noContentMessage: `No ${entityType}s to display.`,
               onScroll,
               initialX,
               initialY,
@@ -240,7 +241,7 @@ const DataTable = props => {
                     }
                   }, [
                     h(Sortable, { sort, field: 'name', onSort: setSort }, [
-                      h(HeaderCell, [`${entityType}_id`])
+                      h(HeaderCell, [entityMetadata[entityType].idName])
                     ])
                   ]),
                   cellRenderer: ({ rowIndex }) => {
@@ -301,7 +302,7 @@ const DataTable = props => {
           onSave: setColumnState
         })
       ]),
-      div({ style: { flex: 'none', marginTop: '1rem' } }, [
+      !_.isEmpty(entities) && div({ style: { flex: 'none', marginTop: '1rem' } }, [
         paginator({
           filteredDataLength: filteredCount,
           unfilteredDataLength: totalRowCount,

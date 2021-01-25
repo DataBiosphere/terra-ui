@@ -56,7 +56,7 @@ const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 1
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
       icon(iconName, { size: iconSize })
     ]),
-    div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
+    div({ style: { flex: 1, ...Style.noWrapEllipsis }, title: children }, [
       children
     ])
   ])
