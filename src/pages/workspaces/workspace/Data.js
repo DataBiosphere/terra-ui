@@ -127,14 +127,16 @@ const SnapshotContent = ({ workspace, snapshotDetails, entityKey, loadMetadata, 
   // ToDo: Add rendering of snapshot tables
   //return h(SnapshotInfo, { snapshotId: snapshotDetails[snapshotName].id, snapshotName })
 
-  return h(EntitiesContent, {
-    snapshotName,
-    workspace,
-    entityMetadata: snapshotDetails[snapshotName].entityMetadata,
-    entityKey: tableName,
-    loadMetadata,
-    firstRender
-  })
+  return !!tableName ?
+    h(EntitiesContent, {
+      snapshotName,
+      workspace,
+      entityMetadata: snapshotDetails[snapshotName].entityMetadata,
+      entityKey: tableName,
+      loadMetadata,
+      firstRender
+    }) :
+    h(SnapshotInfo, { snapshotId: snapshotDetails[snapshotName].id, snapshotName })
 }
 
 const DeleteObjectModal = ({ name, workspace: { workspace: { namespace, bucketName } }, onSuccess, onDismiss }) => {
@@ -441,26 +443,37 @@ const WorkspaceData = _.flow(
         }, [
           _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables }]) => {
             const snapshotTablePairs = toSortedPairs(snapshotTables)
-            return h(Collapse, {
-              titleFirst: true,
+            return div({
               key: snapshotName,
-              buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0, marginRight: '10px' },
-              style: { fontSize: 14, lineHeight: '50px', paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
-              title: snapshotName
+              style: { display: 'flex', lineHeight: '50px', borderBottom: `1px solid ${colors.dark(0.2)}` }
             }, [
-              div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
-                _.map(([tableName, { count }]) => {
-                  return h(DataTypeButton, {
-                    buttonStyle: { borderBottom: 0, height: 40 },
-                    key: `${snapshotName}_${tableName}`,
-                    selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
-                    onClick: () => {
-                      setSelectedDataType([snapshotName, tableName])
-                      forceRefresh()
-                    }
-                  }, [`${tableName} (${count})`])
-                }, snapshotTablePairs)
-              ])
+              h(Collapse, {
+                titleFirst: true,
+                buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0 },
+                style: { fontSize: 14, paddingLeft: '1.5rem', flex: 1 },
+                title: snapshotName
+              }, [
+                div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
+                  _.map(([tableName, { count }]) => {
+                    return h(DataTypeButton, {
+                      buttonStyle: { borderBottom: 0, height: 40 },
+                      key: `${snapshotName}_${tableName}`,
+                      selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
+                      onClick: () => {
+                        setSelectedDataType([snapshotName, tableName])
+                        forceRefresh()
+                      }
+                    }, [`${tableName} (${count})`])
+                  }, snapshotTablePairs)
+                ])
+              ]),
+              h(Link, {
+                style: { marginRight: '0.5rem' },
+                onClick: () => {
+                  setSelectedDataType([snapshotName])
+                  forceRefresh()
+                }
+              }, [icon('info-circle')])
             ])
           }, sortedSnapshotPairs)
         ]),
