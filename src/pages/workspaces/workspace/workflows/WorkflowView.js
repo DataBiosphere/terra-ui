@@ -324,6 +324,8 @@ const WorkflowView = _.flow(
   resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata, selectedEntitySource) {
     const { workflowName } = this.props
 
+    console.log(entityMetadata)
+
     // If the default for non-set types changes from `processAllAsSet` then the calculation of `noLaunchReason` in `renderSummary` needs to be updated accordingly.
     // Currently, `renderSummary` assumes that it is not possible to have nothing selected for non-set types.
     return {
@@ -470,8 +472,8 @@ const WorkflowView = _.flow(
         !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
       )(config)
 
-      const selectedSnapshotTables = modifiedConfig.dataReferenceName ? await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, modifiedConfig.dataReferenceName) : {}
-      const selectedSnapshotTableNames = _.keys(selectedSnapshotTables)
+      const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ? await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, modifiedConfig.dataReferenceName) : {}
+      const selectedSnapshotTableNames = _.keys(selectedSnapshotEntityMetadata)
 
       this.setState({
         savedConfig: config, modifiedConfig,
@@ -480,8 +482,9 @@ const WorkflowView = _.flow(
         availableSnapshots: snapshots,
         selectedEntitySource: '',
         selectedTableName: modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined,
-        cachedSnapshotTableNames: modifiedConfig.dataReferenceName ? [{ snapshotName: modifiedConfig.dataReferenceName, tableNames: selectedSnapshotTableNames }] : [{}],
+        cachedSnapshotEntityMetadata: modifiedConfig.dataReferenceName ? [{ snapshotName: modifiedConfig.dataReferenceName, metadata: selectedSnapshotEntityMetadata }] : [{}],
         selectedSnapshotTableNames,
+        selectedSnapshotEntityMetadata,
         savedInputsOutputs: inputsOutputs,
         modifiedInputsOutputs: inputsOutputs,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
@@ -593,7 +596,7 @@ const WorkflowView = _.flow(
     const { signal, workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      availableSnapshots, cachedSnapshotTableNames, selectedSnapshotTableNames, selectedTableName,
+      availableSnapshots, cachedSnapshotEntityMetadata, selectedSnapshotTableNames, selectedTableName,
       selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, deleteIntermediateOutputFiles, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
@@ -722,17 +725,17 @@ const WorkflowView = _.flow(
                   value: selectedEntityType,
                   onChange: async ({ value, source }) => {
                     if (source === 'snapshot') {
-                      const selectedSnapshotCachedTableNames = _.find({ snapshotName: value }, cachedSnapshotTableNames)
+                      const selectedSnapshotCachedMetadata = _.find({ snapshotName: value }, cachedSnapshotEntityMetadata)
 
-                      const tableNames = selectedSnapshotCachedTableNames ?
-                        selectedSnapshotCachedTableNames.tableNames :
-                        _.keys(await Ajax(signal).Workspaces.workspace(namespace, workspaceName).snapshotEntityMetadata(namespace, value))
+                      const selectedSnapshotMetadata = selectedSnapshotCachedMetadata ?
+                        selectedSnapshotCachedMetadata.metadata :
+                        await Ajax(signal).Workspaces.workspace(namespace, workspaceName).snapshotEntityMetadata(namespace, value)
 
                       this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value))
                       this.setState({
-                        selectedEntityType: value, selectedTableName: undefined, selectedSnapshotTableNames: tableNames,
-                        entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, source), selectedEntitySource: source,
-                        cachedSnapshotTableNames: _.concat(cachedSnapshotTableNames, { snapshotName: value, tableNames })
+                        selectedEntityType: value, selectedTableName: undefined, selectedSnapshotTableNames: _.keys(selectedSnapshotMetadata),
+                        entitySelectionModel: this.resetSelectionModel(value, {}, {}, source), selectedEntitySource: source,
+                        cachedSnapshotEntityMetadata: _.concat(cachedSnapshotEntityMetadata, { snapshotName: value, metadata: selectedSnapshotMetadata })
                       })
                     } else {
                       this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
@@ -920,9 +923,11 @@ const WorkflowView = _.flow(
 
   renderIOTable(key) {
     const { workspace } = this.props
-    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, filter } = this.state
+    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, filter, selectedSnapshotEntityMetadata, selectedTableName } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
-    const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], entityMetadata) || []
+
+    const selectionMetadata = selectedTableName ? selectedSnapshotEntityMetadata : entityMetadata
+    const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata) || []
     const suggestions = [
       ...(modifiedConfig.rootEntityType ? _.map(name => `this.${name}`, [`${modifiedConfig.rootEntityType}_id`, ...attributeNames]) : []),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
