@@ -4,7 +4,7 @@ import { Clickable, HeroWrapper, Link } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import SignInButton from 'src/components/SignInButton'
 import colors from 'src/libs/colors'
-import { isBioDataCatalyst, isFirecloud } from 'src/libs/config'
+import { isAnvil, isBioDataCatalyst, isFirecloud } from 'src/libs/config'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -44,7 +44,7 @@ export default class SignIn extends Component {
           style: { color: colors.accent(), marginTop: '1rem' },
           onClick: () => this.setState({ openCookiesModal: true })
         }, ['Cookies policy']),
-        div({ style: { lineHeight: 1.5, marginTop: '2rem', paddingTop: '1rem', borderTop: Style.standardLine } }, [
+        !isAnvil() && div({ style: { lineHeight: 1.5, marginTop: '2rem', paddingTop: '1rem', borderTop: Style.standardLine } }, [
           div({ style: { fontWeight: 500 } }, ['WARNING NOTICE']),
           p([`
             By continuing to log in, you acknowledge that you are accessing a US Government web site
@@ -95,6 +95,25 @@ export default class SignIn extends Component {
               href: 'https://www.federalregister.gov/documents/2018/03/14/2018-05176/privacy-act-of-1974-system-of-records'
             }, ['https://www.federalregister.gov/documents/2018/03/14/2018-05176/privacy-act-of-1974-system-of-records'])
           ])
+        ]),
+        isAnvil() && div({ style: { lineHeight: 1.5, marginTop: '2rem', paddingTop: '1rem', borderTop: Style.standardLine } }, [
+          div({ style: { fontWeight: 500 } }, ['WARNING NOTICE']),
+          p([`
+            You are accessing a web site created by the Genomic Data Science Analysis, Visualization, 
+            and Informatics Lab-space (AnVIL), funded by the National Human Genome Research Institute.
+            `]),
+          p([`
+              Unauthorized attempts to upload information, change information, or use of this web site 
+              may result in disciplinary action, civil, and/or criminal penalties. Unauthorized users 
+              of this website should have no expectation of privacy regarding any communications or 
+              data processed by this website.
+            `]),
+          p([`
+              By continuing to log in, anyone accessing this website expressly consents to monitoring 
+              of their actions and all communications or data transiting or stored on related to this 
+              website and is advised that if such monitoring reveals possible evidence of criminal activity, 
+              evidence may be provided to law enforcement officials.
+            `])
         ]),
         openCookiesModal && h(CookiesModal, {
           onDismiss: () => this.setState({ openCookiesModal: false })
