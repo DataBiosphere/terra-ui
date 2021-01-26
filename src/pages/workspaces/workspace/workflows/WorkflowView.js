@@ -470,8 +470,8 @@ const WorkflowView = _.flow(
         !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
       )(config)
 
-      const selectedSnapshotId = modifiedConfig.dataReferenceName ? _.find({ name: modifiedConfig.dataReferenceName }, snapshots).reference.snapshot : undefined
-      const { tables } = selectedSnapshotId ? await Ajax(signal).DataRepo.snapshot(selectedSnapshotId).details() : []
+      const selectedSnapshotTables = modifiedConfig.dataReferenceName ? await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, modifiedConfig.dataReferenceName) : {}
+      const selectedSnapshotTableNames = _.keys(selectedSnapshotTables)
 
       this.setState({
         savedConfig: config, modifiedConfig,
@@ -480,7 +480,8 @@ const WorkflowView = _.flow(
         availableSnapshots: snapshots,
         selectedEntitySource: '',
         selectedTableName: modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined,
-        selectedSnapshotTableNames: _.map('name', tables),
+        cachedSnapshotTableNames: modifiedConfig.dataReferenceName ? [{ snapshotName: modifiedConfig.dataReferenceName, tableNames: selectedSnapshotTableNames }] : [{}],
+        selectedSnapshotTableNames,
         savedInputsOutputs: inputsOutputs,
         modifiedInputsOutputs: inputsOutputs,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
@@ -592,7 +593,7 @@ const WorkflowView = _.flow(
     const { signal, workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      availableSnapshots, selectedSnapshotTableNames, selectedTableName,
+      availableSnapshots, cachedSnapshotTableNames, selectedSnapshotTableNames, selectedTableName,
       selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, deleteIntermediateOutputFiles, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
@@ -721,20 +722,23 @@ const WorkflowView = _.flow(
                   value: selectedEntityType,
                   onChange: async ({ value, source }) => {
                     if (source === 'snapshot') {
-                      const snapshotId = _.find({ name: value }, availableSnapshots).reference.snapshot
-                      const { tables } = await Ajax(signal).DataRepo.snapshot(snapshotId).details()
+                      const selectedSnapshotCachedTableNames = _.find({ snapshotName: value }, cachedSnapshotTableNames)
+
+                      const tableNames = selectedSnapshotCachedTableNames ?
+                        selectedSnapshotCachedTableNames.tableNames :
+                        _.keys(await Ajax(signal).Workspaces.workspace(namespace, workspaceName).snapshotEntityMetadata(namespace, value))
 
                       this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value))
                       this.setState({
-                        selectedEntityType: value, selectedTableName: undefined,
+                        selectedEntityType: value, selectedTableName: undefined, selectedSnapshotTableNames: tableNames,
                         entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, source), selectedEntitySource: source,
-                        selectedSnapshotTableNames: _.map('name', tables)
+                        cachedSnapshotTableNames: _.concat(cachedSnapshotTableNames, { snapshotName: value, tableNames })
                       })
                     } else {
                       this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
                       this.setState(_.unset(['modifiedConfig', 'dataReferenceName']))
                       this.setState({
-                        selectedEntityType: value, selectedSnapshotTableNames: undefined,
+                        selectedEntityType: value,
                         entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, source), selectedEntitySource: source
                       })
                     }
@@ -1016,7 +1020,7 @@ const WorkflowView = _.flow(
         savedInputsOutputs: modifiedInputsOutputs,
         ...(type === processSnapshotTable ?
           { selectedEntityType: modifiedConfig.dataReferenceName, selectedTableName: modifiedConfig.rootEntityType } :
-          { selectedEntityType: modifiedConfig.rootEntityType }
+          { selectedEntityType: modifiedConfig.rootEntityType, selectedTableName: undefined }
         )
       }, () => setTimeout(() => this.setState({ saved: false }), 3000))
     } catch (error) {
