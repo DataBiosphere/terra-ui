@@ -3,12 +3,14 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { FrameworkServiceLink, ShibbolethLink, UnlinkFenceAccount } from 'src/components/common'
+import { cookiesAcceptedKey } from 'src/components/CookieWarning'
 import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
+import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import { allProviders } from 'src/libs/providers'
 import { authStore, cookieReadyStore, pfbImportJobStore, requesterPaysProjectStore, workspacesStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -103,10 +105,13 @@ export const initializeAuth = _.memoize(async () => {
         profile: isSignedIn ? state.profile : {},
         nihStatus: isSignedIn ? state.nihStatus : undefined,
         fenceStatus: isSignedIn ? state.fenceStatus : {},
+        // Load whether a user has input a cookie acceptance in a previous session on this system,
+        // or whether they input cookie acceptance previously in this session
+        cookiesAccepted: isSignedIn ? state.cookiesAccepted || getLocalPrefForUserId(user.getId(), cookiesAcceptedKey) : undefined,
         isTimeoutEnabled: isSignedIn ? state.isTimeoutEnabled : undefined,
         user: {
-          token: authResponse && authResponse.access_token,
-          id: user.getId(),
+          token: authResponse ? authResponse.access_token : undefined,
+          id: user.getId() || undefined,
           ...(profile ? {
             email: profile.getEmail(),
             name: profile.getName(),
@@ -136,6 +141,7 @@ window.forceSignIn = withErrorReporting('Error forcing sign in', async token => 
       isSignedIn: true,
       registrationStatus: undefined,
       isTimeoutEnabled: undefined,
+      cookiesAccepted: true,
       profile: {},
       user: {
         token,
@@ -182,6 +188,16 @@ authStore.subscribe(async (state, oldState) => {
     window.Appcues && window.Appcues.identify(state.user.id, {
       dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime()
     })
+  }
+})
+
+authStore.subscribe(state => {
+  // We can't guarantee that someone reopening the window is the same user,
+  // so we should not persist cookie acceptance across sessions for people signed out
+  // Per compliance recommendation, we could probably persist through a session, but
+  // that would require a second store in session storage instead of local storage
+  if (state.isSignedIn && state.cookiesAccepted !== getLocalPref(cookiesAcceptedKey)) {
+    setLocalPref(cookiesAcceptedKey, state.cookiesAccepted)
   }
 })
 

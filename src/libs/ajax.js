@@ -1057,11 +1057,11 @@ const Runtimes = signal => ({
   },
 
   invalidateCookie: () => {
-    return fetchLeo(`proxy/invalidateToken`, _.merge(authOpts(), { signal }))
+    return fetchLeo('proxy/invalidateToken', _.merge(authOpts(), { signal }))
   },
 
   setCookie: () => {
-    return fetchLeo(`proxy/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
+    return fetchLeo('proxy/setCookie', _.merge(authOpts(), { signal, credentials: 'include' }))
   },
 
   runtime: (project, name) => {

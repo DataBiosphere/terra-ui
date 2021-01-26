@@ -104,9 +104,7 @@ const PrivacyPolicy = () => {
   return div({ role: 'main', style: { padding: '1rem', marginBottom: 90 } }, [
     h(MarkdownViewer, {
       // We want to cap the width of large amounts of text to ensure that they are readable.
-      style: {
-        maxWidth: '45rem'
-      },
+      style: { maxWidth: '45rem' },
       renderers: {
         link: newWindowLinkRenderer
       }

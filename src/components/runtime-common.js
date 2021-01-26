@@ -95,12 +95,12 @@ export const RuntimeStatusMonitor = ({ runtime, onRuntimeStoppedRunning = _.noop
 
 export const AuthenticatedCookieSetter = () => {
   const { registrationStatus } = Utils.useStore(authStore)
-  return registrationStatus === 'registered' ? h(PeriodicCookieSetter) : null
+  return registrationStatus === 'registered' && getLocalPref(cookiesAcceptedKey) !== false ? h(PeriodicCookieSetter) : null
 }
 
 export const PeriodicCookieSetter = () => {
   const signal = Utils.useCancellation()
-  getLocalPref(cookiesAcceptedKey) !== false && Utils.usePollingEffect(
+  Utils.usePollingEffect(
     withErrorIgnoring(async () => {
       await Ajax(signal).Runtimes.setCookie()
       cookieReadyStore.set(true)

@@ -1,28 +1,24 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
-import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
 export const cookiesAcceptedKey = 'cookiesAccepted'
 
-export const CookieWarning = () => {
+const CookieWarning = () => {
   const signal = Utils.useCancellation()
-  const [acceptedCookies, setAcceptedCookies] = useState(getLocalPref(cookiesAcceptedKey))
-  authStore.subscribe(state => {
-    setAcceptedCookies(getLocalPref(cookiesAcceptedKey))
-  })
+  const { cookiesAccepted } = Utils.useStore(authStore)
+
   const acceptCookies = acceptedCookies => {
-    setLocalPref(cookiesAcceptedKey, acceptedCookies)
-    setAcceptedCookies(getLocalPref(cookiesAcceptedKey))
+    authStore.update(_.set('cookiesAccepted', acceptedCookies))
   }
+
   const rejectCookies = async () => {
     const cookies = document.cookie.split(';')
     acceptCookies(false)
@@ -36,21 +32,28 @@ export const CookieWarning = () => {
     }, cookies)
     signOut()
   }
-  return !(acceptedCookies) && div({
+
+  return !cookiesAccepted && div({
     style: {
       position: 'fixed', height: 100, bottom: 0, width: '100%',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      backgroundColor: 'white', borderTop: `6px solid ${colors.primary()}`
+      backgroundColor: 'white', borderTop: `6px solid ${colors.primary()}`,
+      // Minimum supported page width
+      minWidth: 1200
     }
   }, [
-    div({ style: { padding: '2rem' } }, ['Terra uses cookies to enable the proper functioning and security of our website,',
-      ' and to improve your experience on our site. By clicking Agree or continuing to use our site, you consent to the use of these functional',
-      ' cookies. If you do not wish to allow use of these cookies, you may tell us that by clicking on Reject. As a result, you will be unable',
-      ' to use our site. To find out more, read our ',
-      h(Link, { style: { textDecoration: 'underline' }, href: Nav.getLink('privacy') }, ['privacy policy']), '.']),
+    div({ style: { padding: '1.5rem 2rem' } }, [
+      `Terra uses cookies to enable the proper functioning and security of our website,
+      and to improve your experience on our site. By clicking Agree or continuing to use our site, you consent to the use of these functional
+      cookies. If you do not wish to allow use of these cookies, you may tell us that by clicking on Reject. As a result, you will be unable
+      to use our site. To find out more, read our `,
+      h(Link, { style: { textDecoration: 'underline' }, href: Nav.getLink('privacy') }, ['privacy policy']), '.'
+    ]),
     div({ style: { padding: '2rem', display: 'flex' } }, [
       h(ButtonPrimary, { onClick: () => acceptCookies(true) }, ['Agree']),
       h(ButtonSecondary, { style: { marginLeft: '2rem' }, onClick: () => { rejectCookies() } }, ['Reject'])
     ])
   ])
 }
+
+export default CookieWarning
