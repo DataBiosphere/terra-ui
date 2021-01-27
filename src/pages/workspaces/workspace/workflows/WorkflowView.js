@@ -1023,8 +1023,8 @@ const WorkflowView = _.flow(
         errors: augmentErrors(validationResponse),
         savedInputsOutputs: modifiedInputsOutputs,
         ...(type === processSnapshotTable ?
-          { selectedEntityType: modifiedConfig.dataReferenceName, selectedTableName: modifiedConfig.rootEntityType } :
-          { selectedEntityType: modifiedConfig.rootEntityType, selectedTableName: undefined }
+          { selectedEntityType: validationResponse.modifiedConfig.dataReferenceName, selectedTableName: validationResponse.modifiedConfig.rootEntityType } :
+          { selectedEntityType: validationResponse.modifiedConfig.rootEntityType, selectedTableName: undefined }
         )
       }, () => setTimeout(() => this.setState({ saved: false }), 3000))
     } catch (error) {
