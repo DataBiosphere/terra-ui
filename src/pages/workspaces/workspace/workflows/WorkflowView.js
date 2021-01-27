@@ -725,21 +725,21 @@ const WorkflowView = _.flow(
                     if (source === 'snapshot') {
                       const selectedSnapshotCachedMetadata = _.find({ snapshotName: value }, cachedSnapshotEntityMetadata)
 
-                      const selectedSnapshotMetadata = selectedSnapshotCachedMetadata ?
+                      const selectedSnapshotEntityMetadata = selectedSnapshotCachedMetadata ?
                         selectedSnapshotCachedMetadata.metadata :
                         await Ajax(signal).Workspaces.workspace(namespace, workspaceName).snapshotEntityMetadata(namespace, value)
 
                       this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value))
                       this.setState({
-                        selectedEntityType: value, selectedTableName: undefined, selectedSnapshotTableNames: _.keys(selectedSnapshotMetadata),
+                        selectedSnapshotEntityMetadata, selectedEntityType: value, selectedTableName: undefined, selectedSnapshotTableNames: _.keys(selectedSnapshotEntityMetadata),
                         entitySelectionModel: this.resetSelectionModel(value, {}, {}, source), selectedEntitySource: source,
-                        cachedSnapshotEntityMetadata: _.concat(cachedSnapshotEntityMetadata, { snapshotName: value, metadata: selectedSnapshotMetadata })
+                        cachedSnapshotEntityMetadata: _.concat(cachedSnapshotEntityMetadata, { snapshotName: value, metadata: selectedSnapshotEntityMetadata })
                       })
                     } else {
                       this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
                       this.setState(_.unset(['modifiedConfig', 'dataReferenceName']))
                       this.setState({
-                        selectedEntityType: value,
+                        selectedEntityType: value, selectedTableName: undefined,
                         entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, source), selectedEntitySource: source
                       })
                     }
@@ -921,13 +921,13 @@ const WorkflowView = _.flow(
 
   renderIOTable(key) {
     const { workspace } = this.props
-    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, filter, selectedSnapshotEntityMetadata, selectedTableName } = this.state
+    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, filter, selectedSnapshotEntityMetadata, selectedTableName, selectedEntitySource } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
 
     const selectionMetadata = selectedTableName ? selectedSnapshotEntityMetadata : entityMetadata
     const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata) || []
     const suggestions = [
-      ...!selectedTableName ? [`this.${modifiedConfig.rootEntityType}_id`] : [],
+      ...(!selectedTableName && selectedEntitySource === 'table') ? [`this.${modifiedConfig.rootEntityType}_id`] : [],
       ...(modifiedConfig.rootEntityType ? _.map(name => `this.${name}`, attributeNames) : []),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
