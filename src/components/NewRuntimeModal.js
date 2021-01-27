@@ -793,7 +793,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                   onlyInteger: true,
                   value: numberOfPreemptibleWorkers,
                   disabled: !this.canUpdateNumberOfWorkers(),
-                  tooltip: !this.canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change preemptibles' : undefined,
+                  tooltip: !this.canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of preemptibles' : undefined,
                   onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
                 })
               ])
