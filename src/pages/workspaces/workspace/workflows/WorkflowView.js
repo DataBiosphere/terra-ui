@@ -478,7 +478,7 @@ const WorkflowView = _.flow(
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
         entityMetadata,
         availableSnapshots: snapshots,
-        selectedEntitySource: '',
+        selectedEntitySource: modifiedConfig.dataReferenceName ? 'snapshot' : 'table',
         selectedTableName: modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined,
         cachedSnapshotEntityMetadata: modifiedConfig.dataReferenceName ? [{ snapshotName: modifiedConfig.dataReferenceName, metadata: selectedSnapshotEntityMetadata }] : [{}],
         selectedSnapshotTableNames,
