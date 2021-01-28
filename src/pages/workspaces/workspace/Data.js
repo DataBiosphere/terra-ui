@@ -443,37 +443,32 @@ const WorkspaceData = _.flow(
         }, [
           _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables }]) => {
             const snapshotTablePairs = toSortedPairs(snapshotTables)
-            return div({
+            return h(Collapse, {
               key: snapshotName,
-              style: { display: 'flex', lineHeight: '50px', borderBottom: `1px solid ${colors.dark(0.2)}` }
-            }, [
-              h(Collapse, {
-                titleFirst: true,
-                buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0 },
-                style: { fontSize: 14, paddingLeft: '1.5rem', flex: 1 },
-                title: snapshotName
-              }, [
-                div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
-                  _.map(([tableName, { count }]) => {
-                    return h(DataTypeButton, {
-                      buttonStyle: { borderBottom: 0, height: 40 },
-                      key: `${snapshotName}_${tableName}`,
-                      selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
-                      onClick: () => {
-                        setSelectedDataType([snapshotName, tableName])
-                        forceRefresh()
-                      }
-                    }, [`${tableName} (${count})`])
-                  }, snapshotTablePairs)
-                ])
-              ]),
-              h(Link, {
+              titleFirst: true,
+              buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0 },
+              style: { lineHeight: '50px', fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
+              title: snapshotName,
+              afterToggle: h(Link, {
                 style: { marginRight: '0.5rem' },
-                onClick: () => {
-                  setSelectedDataType([snapshotName])
-                  forceRefresh()
-                }
+                tooltip: 'Source Snapshot Info',
+                tooltipSide: 'right',
+                onClick: () => setSelectedDataType([snapshotName])
               }, [icon('info-circle')])
+            }, [
+              div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
+                _.map(([tableName, { count }]) => {
+                  return h(DataTypeButton, {
+                    buttonStyle: { borderBottom: 0, height: 40 },
+                    key: `${snapshotName}_${tableName}`,
+                    selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
+                    onClick: () => {
+                      setSelectedDataType([snapshotName, tableName])
+                      forceRefresh()
+                    }
+                  }, [`${tableName} (${count})`])
+                }, snapshotTablePairs)
+              ])
             ])
           }, sortedSnapshotPairs)
         ]),
