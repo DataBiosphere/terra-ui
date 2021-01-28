@@ -756,10 +756,10 @@ const WorkflowView = _.flow(
                   ]
                 })
               ]),
-              (entitySelectionModel.type === processSnapshotTable) ? h(IdContainer, [id => div({ style: { margin: '2rem 0 0 2rem' } }, [
+              (entitySelectionModel.type === processSnapshotTable) ? div({ style: { margin: '2rem 0 0 2rem' } }, [
                 h(Select, {
-                  id,
                   isDisabled: !!Utils.editWorkspaceError(ws),
+                  'aria-label': 'Snapshot table selector',
                   isClearable: false,
                   value: selectedTableName,
                   onChange: ({ value }) => {
@@ -770,7 +770,7 @@ const WorkflowView = _.flow(
                   styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
                   options: _.sortBy(_.identity, selectedSnapshotTableNames)
                 })
-              ])]) :
+              ]) :
                 div({ style: { marginLeft: '2rem', paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, flex: 1 } }, [
                   div({ style: { height: '2rem', fontWeight: 'bold' } }, ['Step 2']),
                   div({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -1023,8 +1023,8 @@ const WorkflowView = _.flow(
         errors: augmentErrors(validationResponse),
         savedInputsOutputs: modifiedInputsOutputs,
         ...(type === processSnapshotTable ?
-          { selectedEntityType: validationResponse.modifiedConfig.dataReferenceName, selectedTableName: validationResponse.modifiedConfig.rootEntityType } :
-          { selectedEntityType: validationResponse.modifiedConfig.rootEntityType, selectedTableName: undefined }
+          { selectedEntityType: validationResponse.methodConfiguration.dataReferenceName, selectedTableName: validationResponse.methodConfiguration.rootEntityType } :
+          { selectedEntityType: validationResponse.methodConfiguration.rootEntityType, selectedTableName: undefined }
         )
       }, () => setTimeout(() => this.setState({ saved: false }), 3000))
     } catch (error) {
