@@ -23,7 +23,6 @@ export const signOut = () => {
   // When IA-2236 is done, add that call here.
   cookieReadyStore.reset()
   sessionStorage.clear()
-  console.log('signOut')
   getAuthInstance().signOut()
 }
 
@@ -85,7 +84,6 @@ export const initializeAuth = _.memoize(async () => {
       const authResponse = user.getAuthResponse(true)
       const profile = user.getBasicProfile()
       const isSignedIn = user.isSignedIn()
-      console.log({ authResponse, profile, isSignedIn })
       //The following few lines of code are to handle sign-in failures due to privacy tools.
       if (state.isSignedIn === false && isSignedIn === false) {
         //if both of these values are false, it means that the user was initially not signed in (state.isSignedIn === false),
@@ -126,6 +124,7 @@ export const initializeAuth = _.memoize(async () => {
 
 // This is intended for tests to short circuit the login flow
 window.forceSignIn = withErrorReporting('Error forcing sign in', async token => {
+  await initializeAuth()
   const res = await fetchOk(
     'https://www.googleapis.com/oauth2/v3/userinfo',
     { headers: { Authorization: `Bearer ${token}` } }

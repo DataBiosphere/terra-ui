@@ -13,7 +13,6 @@ export const authStore = Utils.atom({
   profile: {},
   fenceStatus: {}
 })
-window.authStore = authStore // for debugging purposes
 
 export const cookieReadyStore = Utils.atom(false)
 

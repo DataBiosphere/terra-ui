@@ -1,6 +1,4 @@
 const _ = require('lodash/fp')
-const pRetry = require('p-retry')
-const fetch = require('node-fetch')
 
 const { signIntoTerra } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
@@ -69,20 +67,6 @@ const makeUser = async () => {
 const withUser = test => async args => {
   const { email, token } = await makeUser()
 
-  await pRetry(async () => {
-    try {
-      const res = await fetch(
-        'https://www.googleapis.com/oauth2/v3/userinfo',
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-      if (!(await res.json()).email) {
-        throw Error
-      }
-    } catch (e) {
-      throw new Error(e)
-    }
-  }, { retries: 5, factor: 1 })
-
   try {
     await test({ ...args, email, token })
   } finally {
@@ -149,7 +133,6 @@ const registerUser = withSignedInPage(async ({ page, token }) => {
   })
   await page.evaluate(async token => {
     await window.catchErrorResponse(async () => {
-      window.forceSignIn(token)
       await window.Ajax().User.profile.set({ firstName: 'Integration', lastName: 'Test', contactEmail: 'me@example.com' })
       await window.Ajax().User.acceptTos()
     })
