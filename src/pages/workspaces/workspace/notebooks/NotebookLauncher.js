@@ -63,7 +63,9 @@ const NotebookLauncher = _.flow(
       mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
       h(NewRuntimeModal, {
         isOpen: createOpen,
-        namespace, name, runtimes, persistentDisks,
+        workspace,
+        runtimes,
+        persistentDisks,
         onDismiss: () => {
           chooseMode(undefined)
           setCreateOpen(false)
