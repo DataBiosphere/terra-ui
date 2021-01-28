@@ -480,7 +480,7 @@ const WorkflowView = _.flow(
         availableSnapshots: snapshots,
         selectedEntitySource: modifiedConfig.dataReferenceName ? 'snapshot' : 'table',
         selectedTableName: modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined,
-        cachedSnapshotEntityMetadata: modifiedConfig.dataReferenceName ? [{ snapshotName: modifiedConfig.dataReferenceName, metadata: selectedSnapshotEntityMetadata }] : [{}],
+        cachedSnapshotEntityMetadata: modifiedConfig.dataReferenceName ? [{ snapshotName: modifiedConfig.dataReferenceName, metadata: selectedSnapshotEntityMetadata }] : [],
         selectedSnapshotTableNames,
         selectedSnapshotEntityMetadata,
         savedInputsOutputs: inputsOutputs,
@@ -489,7 +489,7 @@ const WorkflowView = _.flow(
         entitySelectionModel: this.resetSelectionModel(
           modifiedConfig.dataReferenceName ? modifiedConfig.dataReferenceName : modifiedConfig.rootEntityType,
           readSelection ? selection.entities : {},
-          entityMetadata, modifiedConfig.dataReferenceName ? 'snapshot' : ''
+          entityMetadata, modifiedConfig.dataReferenceName ? 'snapshot' : 'table'
         ),
         workspaceAttributes: _.flow(
           _.without(['description']),
@@ -768,7 +768,7 @@ const WorkflowView = _.flow(
                     this.setState(_.unset(['modifiedConfig', 'entityName']))
                   },
                   styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
-                  options: _.sortBy(_.identity)(selectedSnapshotTableNames)
+                  options: _.sortBy(_.identity, selectedSnapshotTableNames)
                 })
               ])]) :
                 div({ style: { marginLeft: '2rem', paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, flex: 1 } }, [
