@@ -730,6 +730,7 @@ const WorkflowView = _.flow(
                         await Ajax(signal).Workspaces.workspace(namespace, workspaceName).snapshotEntityMetadata(namespace, value)
 
                       this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value))
+                      this.setState(_.unset(['modifiedConfig', 'rootEntityType']))
                       this.setState({
                         selectedSnapshotEntityMetadata, selectedEntityType: value, selectedTableName: undefined, selectedSnapshotTableNames: _.keys(selectedSnapshotEntityMetadata),
                         entitySelectionModel: this.resetSelectionModel(value, {}, {}, source), selectedEntitySource: source
