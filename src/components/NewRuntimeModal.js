@@ -393,6 +393,11 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     return oldRuntime?.persistentDiskAttached
   }
 
+  canUpdateNumberOfWorkers() {
+    const { currentRuntimeDetails } = this.state
+    return !currentRuntimeDetails || currentRuntimeDetails.status === 'Running'
+  }
+
   canUpdateRuntime() {
     const { runtime: oldRuntime } = this.getOldEnvironmentConfig()
     const { runtime: newRuntime } = this.getNewEnvironmentConfig()
@@ -770,6 +775,8 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                   isClearable: false,
                   onlyInteger: true,
                   value: numberOfWorkers,
+                  disabled: !this.canUpdateNumberOfWorkers(),
+                  tooltip: !this.canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of workers' : undefined,
                   onChange: v => this.setState({
                     numberOfWorkers: v
                   })
@@ -785,6 +792,8 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                   isClearable: false,
                   onlyInteger: true,
                   value: numberOfPreemptibleWorkers,
+                  disabled: !this.canUpdateNumberOfWorkers(),
+                  tooltip: !this.canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of preemptibles' : undefined,
                   onChange: v => this.setState({ numberOfPreemptibleWorkers: v })
                 })
               ])

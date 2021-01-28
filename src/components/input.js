@@ -6,6 +6,7 @@ import TextAreaAutosize from 'react-textarea-autosize'
 import { ButtonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
 
@@ -144,11 +145,11 @@ export const SearchInput = ({ value, onChange, ...props }) => {
 
 export const DelayedSearchInput = withDebouncedChange(SearchInput)
 
-export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity, onlyInteger = false, isClearable = true, value, ...props }) => {
+export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity, onlyInteger = false, isClearable = true, tooltip, value, ...props }) => {
   Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, NumberInput needs a label')
   const [internalValue, setInternalValue] = useState()
 
-  return input(_.merge({
+  const numberInputChild = div([input(_.merge({
     type: 'number',
     className: 'focus-style',
     min, max,
@@ -171,7 +172,13 @@ export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity,
       fontSize: 14,
       backgroundColor: props.disabled ? colors.dark(0.25) : undefined
     }
-  }, props))
+  }, props))])
+
+  if (tooltip) {
+    return h(TooltipTrigger, { content: tooltip, side: 'right' }, [numberInputChild])
+  } else {
+    return numberInputChild
+  }
 }
 
 /**

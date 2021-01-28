@@ -1,12 +1,21 @@
-import { useState } from 'react'
+import _ from 'lodash/fp'
+import { useEffect, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 
 
-const Collapse = ({ title, buttonStyle, initialOpenState, children, titleFirst, afterToggle, ...props }) => {
+const Collapse = ({ title, buttonStyle, initialOpenState, children, titleFirst, afterToggle, onFirstOpen = () => {}, ...props }) => {
   const [isOpened, setIsOpened] = useState(initialOpenState)
   const angleIcon = icon(isOpened ? 'angle-down' : 'angle-right', { style: { marginRight: '0.25rem', flexShrink: 0 } })
+
+  const firstOpenRef = useRef(_.once(onFirstOpen))
+
+  useEffect(() => {
+    if (isOpened) {
+      firstOpenRef.current()
+    }
+  }, [firstOpenRef, isOpened])
 
   return div(props, [
     div({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -14,9 +23,11 @@ const Collapse = ({ title, buttonStyle, initialOpenState, children, titleFirst, 
         'aria-expanded': isOpened,
         style: { display: 'flex', flex: 1, alignItems: 'center', marginBottom: '0.5rem', ...buttonStyle },
         onClick: () => setIsOpened(!isOpened)
-      },
-      titleFirst ? [div({ style: { flexGrow: 1 } }, [title]), angleIcon] : [angleIcon, title]
-      ),
+      },[
+        titleFirst && div({ style: { flexGrow: 1 } }, [title]),
+        angleIcon,
+        !titleFirst && title
+      ]),
       afterToggle
     ]),
     isOpened && div([children])

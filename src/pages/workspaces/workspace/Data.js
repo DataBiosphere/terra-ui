@@ -12,7 +12,7 @@ import EntitiesContent from 'src/components/data/EntitiesContent'
 import LocalVariablesContent from 'src/components/data/LocalVariablesContent'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
-import { icon } from 'src/components/icons'
+import { icon, spinner } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
@@ -366,16 +366,13 @@ const WorkspaceData = _.flow(
       setSnapshotMetadataError(false)
       const { resources: snapshotMetadata } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshot(1000, 0)
 
-      const snapshotEntities = await Promise.all(_.map(({ name: snapshotName }) => {
-        return Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, snapshotName)
-      }, snapshotMetadata))
-
-      const snapshotDetails = _.fromPairs(_.map(([entities, metadata]) => {
-        return [metadata.name, { entityMetadata: entities, id: metadata.reference.snapshot }]
+      const snapshots = _.reduce((acc, { name, reference: { snapshot } }) => {
+        return _.set([name, 'id'], snapshot, acc)
       },
-      _.zip(snapshotEntities, snapshotMetadata)))
+      snapshotDetails || {}, // retain entities if loaded from state history
+      snapshotMetadata)
 
-      setSnapshotDetails(snapshotDetails)
+      setSnapshotDetails(snapshots)
     } catch (error) {
       reportError('Error loading workspace snapshot data', error)
       setSnapshotMetadataError(true)
@@ -385,6 +382,17 @@ const WorkspaceData = _.flow(
   }
 
   const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata()])
+
+  const loadSnapshotEntities = async snapshotName => {
+    try {
+      setSnapshotDetails(_.set([snapshotName, 'error'], false))
+      const entities = await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, snapshotName)
+      setSnapshotDetails(_.set([snapshotName, 'entityMetadata'], entities))
+    } catch (error) {
+      reportError(`Error loading entities in snapshot ${snapshotName}`, error)
+      setSnapshotDetails(_.set([snapshotName, 'error'], true))
+    }
+  }
 
   const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first))
 
@@ -441,7 +449,7 @@ const WorkspaceData = _.flow(
           error: snapshotMetadataError,
           retryFunction: loadSnapshotMetadata
         }, [
-          _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables }]) => {
+          _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables, error: snapshotTablesError }]) => {
             const snapshotTablePairs = toSortedPairs(snapshotTables)
             return h(Collapse, {
               key: snapshotId,
@@ -456,9 +464,26 @@ const WorkspaceData = _.flow(
                   setSelectedDataType([snapshotName])
                   forceRefresh()
                 }
-              }, [icon(`info-circle${_.isEqual(selectedDataType, [snapshotName]) ? '' : '-regular'}`, { size: 20 })])
-            }, [
-              div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
+              }, [icon(`info-circle${_.isEqual(selectedDataType, [snapshotName]) ? '' : '-regular'}`, { size: 20 })]),
+              initialOpenState: _.head(selectedDataType) === snapshotName,
+              onFirstOpen: () => loadSnapshotEntities(snapshotName)
+            }, [Utils.cond(
+              [snapshotTablesError, () => div({
+                style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
+              }, [
+                'Failed to load tables',
+                h(Link, {
+                  onClick: () => loadSnapshotEntities(snapshotName),
+                  tooltip: 'Error loading, click to retry.'
+                }, [icon('sync', { size: 24, style: { marginLeft: '1rem' } })])
+              ])],
+              [snapshotTables === undefined, () => div({
+                style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' }
+              }, [
+                'Loading snapshot contents...',
+                spinner({ style: { marginLeft: '1rem' } })
+              ])],
+              () => div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
                 _.map(([tableName, { count }]) => {
                   return h(DataTypeButton, {
                     buttonStyle: { borderBottom: 0, height: 40 },
@@ -471,7 +496,7 @@ const WorkspaceData = _.flow(
                   }, [`${tableName} (${count})`])
                 }, snapshotTablePairs)
               ])
-            ])
+            )])
           }, sortedSnapshotPairs)
         ]),
         div({ style: Style.navList.heading }, [
