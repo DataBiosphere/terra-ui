@@ -21,7 +21,7 @@ const ApplicationLauncher = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: _.get('application')
   })
-)(({ namespace, name, refreshRuntimes, runtimes, persistentDisks, application }, ref) => {
+)(({ namespace, name, refreshRuntimes, runtimes, persistentDisks, application, workspace }, ref) => {
   const cookieReady = Utils.useStore(cookieReadyStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -68,7 +68,9 @@ const ApplicationLauncher = _.flow(
         ]),
         h(NewRuntimeModal, {
           isOpen: showCreate,
-          namespace, name, runtimes, persistentDisks,
+          workspace,
+          runtimes,
+          persistentDisks,
           onDismiss: () => setShowCreate(false),
           onSuccess: _.flow(
             withErrorReporting('Error loading cloud environment'),
