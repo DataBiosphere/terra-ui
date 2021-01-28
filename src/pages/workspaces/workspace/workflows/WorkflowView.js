@@ -732,9 +732,9 @@ const WorkflowView = _.flow(
                       this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value))
                       this.setState({
                         selectedSnapshotEntityMetadata, selectedEntityType: value, selectedTableName: undefined, selectedSnapshotTableNames: _.keys(selectedSnapshotEntityMetadata),
-                        entitySelectionModel: this.resetSelectionModel(value, {}, {}, source), selectedEntitySource: source,
-                        cachedSnapshotEntityMetadata: _.concat(cachedSnapshotEntityMetadata, { snapshotName: value, metadata: selectedSnapshotEntityMetadata })
+                        entitySelectionModel: this.resetSelectionModel(value, {}, {}, source), selectedEntitySource: source
                       })
+                      if (!_.find({ snapshotName: value }, cachedSnapshotEntityMetadata)) this.setState({ cachedSnapshotEntityMetadata: _.concat(cachedSnapshotEntityMetadata, { snapshotName: value, metadata: selectedSnapshotEntityMetadata }) })
                     } else {
                       this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
                       this.setState(_.unset(['modifiedConfig', 'dataReferenceName']))
