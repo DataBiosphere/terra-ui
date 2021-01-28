@@ -444,17 +444,20 @@ const WorkspaceData = _.flow(
           _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables }]) => {
             const snapshotTablePairs = toSortedPairs(snapshotTables)
             return h(Collapse, {
-              key: snapshotName,
+              key: snapshotId,
               titleFirst: true,
-              buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0 },
-              style: { lineHeight: '50px', fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
+              buttonStyle: { height: 50, color: colors.dark(), fontWeight: 600, marginBottom: 0 },
+              style: { fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
               title: snapshotName,
               afterToggle: h(Link, {
                 style: { marginRight: '0.5rem' },
-                tooltip: 'Source Snapshot Info',
+                tooltip: 'Snapshot Info',
                 tooltipSide: 'right',
-                onClick: () => setSelectedDataType([snapshotName])
-              }, [icon('info-circle')])
+                onClick: () => {
+                  setSelectedDataType([snapshotName])
+                  forceRefresh()
+                }
+              }, [icon(`info-circle${_.isEqual(selectedDataType, [snapshotName]) ? '' : '-regular'}`, { size: 20 })])
             }, [
               div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
                 _.map(([tableName, { count }]) => {
