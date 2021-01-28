@@ -124,7 +124,7 @@ export const initializeAuth = _.memoize(async () => {
 
 // This is intended for tests to short circuit the login flow
 window.forceSignIn = withErrorReporting('Error forcing sign in', async token => {
-  await initializeAuth()
+  await initializeAuth() // don't want this clobbered when real auth initializes
   const res = await fetchOk(
     'https://www.googleapis.com/oauth2/v3/userinfo',
     { headers: { Authorization: `Bearer ${token}` } }
