@@ -11,6 +11,16 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
+const styles = {
+  warningNoticeContainer: {
+    lineHeight: 1.5, marginTop: '2rem',
+    paddingTop: '1rem', borderTop: Style.standardLine
+  },
+  warningNotice: {
+    fontWeight: 500, textTransform: 'uppercase'
+  }
+}
+
 export const CookiesModal = (({ onDismiss }) => {
   return h(Modal, {
     showCancel: false,
@@ -44,8 +54,8 @@ export default class SignIn extends Component {
           style: { color: colors.accent(), marginTop: '1rem' },
           onClick: () => this.setState({ openCookiesModal: true })
         }, ['Cookies policy']),
-        !isAnvil() && div({ style: { lineHeight: 1.5, marginTop: '2rem', paddingTop: '1rem', borderTop: Style.standardLine } }, [
-          div({ style: { fontWeight: 500 } }, ['WARNING NOTICE']),
+        !isAnvil() && div({ style: styles.warningNoticeContainer }, [
+          div({ style: styles.warningNotice }, ['Warning Notice']),
           p([`
             By continuing to log in, you acknowledge that you are accessing a US Government web site
             which may contain information that must be protected under the US Privacy Act or other
@@ -96,8 +106,8 @@ export default class SignIn extends Component {
             }, ['https://www.federalregister.gov/documents/2018/03/14/2018-05176/privacy-act-of-1974-system-of-records'])
           ])
         ]),
-        isAnvil() && div({ style: { lineHeight: 1.5, marginTop: '2rem', paddingTop: '1rem', borderTop: Style.standardLine } }, [
-          div({ style: { fontWeight: 500 } }, ['WARNING NOTICE']),
+        isAnvil() && div({ style: styles.warningNoticeContainer }, [
+          div({ style: styles.warningNotice }, ['Warning Notice']),
           p([`
             You are accessing a web site created by the Genomic Data Science Analysis, Visualization, 
             and Informatics Lab-space (AnVIL), funded by the National Human Genome Research Institute.
