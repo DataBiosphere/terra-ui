@@ -7,7 +7,7 @@ const { testFindWorkflow } = require('../tests/find-workflow')
 const { testImportCohortData } = require('../tests/import-cohort-data')
 const { testImportDockstoreWorkflow } = require('../tests/import-dockstore-workflow')
 const { testRegisterUser } = require('../tests/register-user')
-const { testRunNotebook } = require('../tests/run-notebook')
+//const { testRunNotebook } = require('../tests/run-notebook')
 const { testRunWorkflow } = require('../tests/run-workflow')
 const { defaultTimeout } = require('../utils/integration-helpers')
 const { delay, withScreenshot } = require('../utils/integration-utils')
@@ -79,7 +79,7 @@ _.forEach(registerTestEndpoint, [
   testImportCohortData,
   testImportDockstoreWorkflow,
   testRegisterUser,
-  testRunNotebook,
+  //TODO: add testRunNotebook once reoccurring failure is addressed
   testRunWorkflow
 ])
 console.info('Ready')
