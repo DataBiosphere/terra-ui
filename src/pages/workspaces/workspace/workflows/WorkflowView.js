@@ -802,6 +802,13 @@ const WorkflowView = _.flow(
                 onChange: v => this.setState({ useReferenceDisks: v }),
                 style: { marginLeft: '1rem' }
               }, [' Use reference disks'])
+            ]),
+            h(InfoBox, [
+              'Use a reference disk image if available rather than localizing reference inputs. ',
+              h(Link, {
+                href: 'https://support.terra.bio/hc/en-us/articles/360039681632', // ! NOT THE CORRECT LINK !
+                ...Utils.newTabLinkProps
+              }, ['Click here to learn more.'])
             ])
           ]),
           h(StepButtons, {
