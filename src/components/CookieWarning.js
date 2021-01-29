@@ -4,6 +4,7 @@ import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -41,7 +42,7 @@ const CookieWarning = () => {
   }, [
     div({ style: { padding: '0.9rem 2rem', height: '100%', display: 'flex', alignItems: 'center' } }, [
       div({ style: { overflowY: 'auto', height: '100%' } }, [
-        `Terra uses cookies to enable the proper functioning and security of our website,
+        `${getAppName()} uses cookies to enable the proper functioning and security of our website,
         and to improve your experience. By clicking Agree or continuing to use our site, you consent to the use of these functional
         cookies. If you do not wish to allow use of these cookies, you may tell us that by clicking on Reject. As a result, you will be unable
         to use our site. To find out more, read our `,
