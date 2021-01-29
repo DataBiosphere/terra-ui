@@ -122,9 +122,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
     ])
   ])
 }
-
 const SnapshotContent = ({ workspace, snapshotDetails, entityKey, loadMetadata, firstRender, snapshotKey: [snapshotName, tableName] }) => {
-
   return !!tableName ?
     h(EntitiesContent, {
       snapshotName,
