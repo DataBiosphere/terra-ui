@@ -32,22 +32,22 @@ const CookieWarning = () => {
     }, cookies)
     signOut()
   }
-
   return !cookiesAccepted && div({
     style: {
       position: 'fixed', height: 100, bottom: 0, width: '100%',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      backgroundColor: colors.dark(0.15), borderTop: `6px solid ${colors.primary()}`,
-      // Minimum supported page width
-      minWidth: 1200
+      backgroundColor: colors.dark(0.15), borderTop: `6px solid ${colors.primary()}`
     }
   }, [
-    div({ style: { padding: '1.5rem 2rem' } }, [
-      `Terra uses cookies to enable the proper functioning and security of our website,
-      and to improve your experience. By clicking Agree or continuing to use our site, you consent to the use of these functional
-      cookies. If you do not wish to allow use of these cookies, you may tell us that by clicking on Reject. As a result, you will be unable
-      to use our site. To find out more, read our `,
-      h(Link, { style: { textDecoration: 'underline' }, href: Nav.getLink('privacy') }, ['privacy policy']), '.'
+    div({ style: { padding: '0.9rem 2rem', height: '100%', display: 'flex', alignItems: 'center' } }, [
+      div({ style: { overflowY: 'auto', height: '100%' } }, [
+        `Terra uses cookies to enable the proper functioning and security of our website,
+        and to improve your experience. By clicking Agree or continuing to use our site, you consent to the use of these functional
+        cookies. If you do not wish to allow use of these cookies, you may tell us that by clicking on Reject. As a result, you will be unable
+        to use our site. To find out more, read our `,
+        h(Link, { style: { textDecoration: 'underline' }, href: Nav.getLink('privacy') }, ['privacy policy']), '.'
+      ])
+
     ]),
     div({ style: { padding: '2rem', display: 'flex' } }, [
       h(ButtonPrimary, { onClick: () => acceptCookies(true) }, ['Agree']),
