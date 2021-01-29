@@ -124,8 +124,6 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
 }
 
 const SnapshotContent = ({ workspace, snapshotDetails, entityKey, loadMetadata, firstRender, snapshotKey: [snapshotName, tableName] }) => {
-  // ToDo: Add rendering of snapshot tables
-  //return h(SnapshotInfo, { snapshotId: snapshotDetails[snapshotName].id, snapshotName })
 
   return !!tableName ?
     h(EntitiesContent, {
