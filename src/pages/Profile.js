@@ -237,22 +237,12 @@ const FenceLink = ({ provider: { key, name } }) => {
 const sectionTitle = text => div({ style: styles.sectionTitle }, [text])
 
 const Profile = ({ queryParams = {} }) => {
-  // Hooks
+  // State
   const [profileInfo, setProfileInfo] = useState(() => _.mapValues(v => v === 'N/A' ? '' : v, authStore.get().profile))
   const [proxyGroup, setProxyGroup] = useState()
   const [saving, setSaving] = useState()
 
   const signal = Utils.useCancellation()
-
-
-  // Lifecycle
-  Utils.useOnMount(() => {
-    const loadProxyGroup = async () => {
-      setProxyGroup(await Ajax(signal).User.getProxyGroup(authStore.get().profile.email))
-    }
-
-    loadProxyGroup()
-  })
 
 
   // Helpers
@@ -294,6 +284,16 @@ const Profile = ({ queryParams = {} }) => {
       onChange: v => assignValue(key, v.toString())
     }, [span({ style: styles.form.checkboxLabel }, [title])])
   ])
+
+
+  // Lifecycle
+  Utils.useOnMount(() => {
+    const loadProxyGroup = async () => {
+      setProxyGroup(await Ajax(signal).User.getProxyGroup(authStore.get().profile.email))
+    }
+
+    loadProxyGroup()
+  })
 
 
   // Render

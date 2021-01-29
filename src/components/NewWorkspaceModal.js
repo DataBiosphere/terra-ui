@@ -107,7 +107,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   })
 
 
-  // Hooks
+  // Lifecycle
   Utils.useOnMount(() => { loadProjectsGroups() })
 
 

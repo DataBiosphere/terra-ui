@@ -35,8 +35,11 @@ export const CookiesModal = (({ onDismiss }) => {
 })
 
 const SignIn = () => {
+  // State
   const [openCookiesModal, setOpenCookiesModal] = useState(false)
 
+
+  // Render
   return h(HeroWrapper, { showMenu: false }, [
     div({ style: { maxWidth: 600 } }, [
       div({ style: { fontSize: 36, color: colors.dark(0.6) } }, ['New User?']),

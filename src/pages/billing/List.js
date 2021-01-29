@@ -171,7 +171,7 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
 }
 
 export const BillingList = ({ queryParams: { selectedName } }) => {
-  // Hooks
+  // State
   const [billingProjects, setBillingProjects] = useState(StateHistory.get().billingProjects || null)
   const [creatingBillingProject, setCreatingBillingProject] = useState(false)
   const [billingAccounts, setBillingAccounts] = useState(null)
