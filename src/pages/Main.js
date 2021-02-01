@@ -5,6 +5,7 @@ import { h } from 'react-hyperscript-helpers'
 import ReactNotification from 'react-notifications-component'
 import AuthContainer from 'src/components/AuthContainer'
 import ConfigOverridesWarning from 'src/components/ConfigOverridesWarning'
+import CookieWarning from 'src/components/CookieWarning'
 import ErrorWrapper from 'src/components/ErrorWrapper'
 import Favicon from 'src/components/Favicon'
 import FirecloudNotification from 'src/components/FirecloudNotification'
@@ -34,7 +35,8 @@ const Main = () => {
     h(PageViewReporter),
     h(SupportRequest),
     h(NpsSurvey),
-    h(ConfigOverridesWarning)
+    h(ConfigOverridesWarning),
+    h(CookieWarning)
   ])
 }
 
