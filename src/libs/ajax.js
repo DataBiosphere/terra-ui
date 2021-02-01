@@ -1183,6 +1183,12 @@ const Apps = signal => ({
           appType
         }
         return fetchLeo(root, _.mergeAll([authOpts(), jsonBody(body), { signal, method: 'POST' }, appIdentifier]))
+      },
+      pause: () => {
+        return fetchLeo(`${root}/stop`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
+      },
+      resume: () => {
+        return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
       }
     }
   }
