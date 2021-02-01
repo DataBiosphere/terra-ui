@@ -71,10 +71,10 @@ export const NewGalaxyModal = _.flow(
   const renderActionButton = () => {
     return Utils.switchCase(viewMode,
       ['deleteWarn', () => {
-        return h(ButtonPrimary, { onClick: () => deleteGalaxy() }, ['Delete'])
+        return h(ButtonPrimary, { onClick: deleteGalaxy }, ['Delete'])
       }],
       ['createWarn', () => {
-        return h(ButtonPrimary, { onClick: () => createGalaxy() }, ['Create'])
+        return h(ButtonPrimary, { onClick: createGalaxy }, ['Create'])
       }],
       ['launchWarn', () => {
         return h(GalaxyLaunchButton, { app, onClick: onDismiss })
@@ -82,7 +82,7 @@ export const NewGalaxyModal = _.flow(
       ['paused', () => {
         return h(Fragment, [
           h(ButtonPrimary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
-          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => { resumeGalaxy() } }, ['Resume'])
+          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: resumeGalaxy }, ['Resume'])
         ])
       }],
       [Utils.DEFAULT, () => {
@@ -101,10 +101,10 @@ export const NewGalaxyModal = _.flow(
   }
 
   const renderMessaging = () => {
-    return Utils.cond(
-      [viewMode === 'createWarn', renderCreateWarning],
-      [viewMode === 'deleteWarn', renderDeleteWarning],
-      [viewMode === 'launchWarn', renderLaunchWarning],
+    return Utils.switchCase( viewMode,
+      ['createWarn', renderCreateWarning],
+      ['deleteWarn', renderDeleteWarning],
+      ['launchWarn', renderLaunchWarning],
       [Utils.DEFAULT, renderDefaultCase]
     )
   }
@@ -135,7 +135,7 @@ export const NewGalaxyModal = _.flow(
             ]),
             div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Pause and auto-pause']),
             div({ style: { lineHeight: 1.5 } }, [
-              div(['You can pause anything during the compute, but it will auto-pause when']),
+              div(['You can pause  during the compute, but it will auto-pause when']),
               div(['the instance is idle more than 1 hour if the analysis is done.'])
             ])
           ])
@@ -184,12 +184,12 @@ export const NewGalaxyModal = _.flow(
 
   const getEnvMessageBasedOnStatus = isTitle => {
     return Utils.cond(
-      [!!app && (app.status === 'STOPPED'), () => `Cloud environment is now paused ${(!isTitle ? '...' : '')}`],
-      [!!app && (app.status === 'PRESTOPPING'), () => 'Cloud environment is preparing to stop.'],
-      [!!app && (app.status === 'STOPPING'), () => `Cloud environment is pausing. ${!isTitle ? 'This process will take up to a few minutes' : ''}`],
-      [!!app && (app.status === 'PRESTARTING'), () => 'Cloud environment is preparing to start.'],
-      [!!app && (app.status === 'STARTING'), () => `Cloud environment is starting. ${!isTitle ? 'This process will take up to a few minutes' : ''}`],
-      [!!app && (app.status === 'ERROR'), () => `An error has occurred on your Cloud Environment. ${!isTitle ? 'This process will take up to a few minutes' : ''}`],
+      [ (app?.status === 'STOPPED'), () => `Cloud environment is now paused ${(!isTitle ? '...' : '')}`],
+      [ (app?.status === 'PRESTOPPING'), () => 'Cloud environment is preparing to stop.'],
+      [ (app?.status === 'STOPPING'), () => `Cloud environment is pausing. ${!isTitle ? 'This process will take up to a few minutes' : ''}`],
+      [ (app?.status === 'PRESTARTING'), () => 'Cloud environment is preparing to start.'],
+      [ (app?.status === 'STARTING'), () => `Cloud environment is starting. ${!isTitle ? 'This process will take up to a few minutes' : ''}`],
+      [ (app?.status === 'ERROR'), () => `An error has occurred on your Cloud Environment. ${!isTitle ? 'This process will take up to a few minutes' : ''}`],
       () => isTitle ? 'Cloud environment' : `Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`
     )
   }
