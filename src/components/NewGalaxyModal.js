@@ -68,6 +68,8 @@ export const NewGalaxyModal = _.flow(
     return onSuccess()
   })
 
+  const deleteButton = h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete'])
+
   const renderActionButton = () => {
     return Utils.switchCase(viewMode,
       ['deleteWarn', () => {
@@ -85,23 +87,25 @@ export const NewGalaxyModal = _.flow(
           h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: resumeGalaxy }, ['Resume'])
         ])
       }],
-      [Utils.DEFAULT, () => {
-        return !!app ?
-          h(Fragment, [
-            (app.status === 'RUNNING') && h(Fragment, [h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
-              h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => { pauseGalaxy() } }, ['Pause']),
-              h(ButtonPrimary, { onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])]),
-            (app.status === 'STOPPED') && h(Fragment, [h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
-              h(ButtonPrimary, { style: { marginRight: '1rem' }, onClick: () => { resumeGalaxy() } }, ['Resume'])]),
-            (app.status === 'ERROR') && h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete'])
-          ]) :
-          h(ButtonPrimary, { onClick: () => setViewMode('createWarn') }, ['Next'])
-      }]
+      [Utils.DEFAULT, () => !app ?
+        h(ButtonPrimary, { onClick: () => setViewMode('createWarn') }, ['Next']) :
+        Utils.switchCase(app.status,
+          ['RUNNING', () => h(Fragment, [
+            deleteButton,
+            h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => { pauseGalaxy() } }, ['Pause']),
+            h(ButtonPrimary, { onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
+          ])],
+          ['STOPPED', () => h(Fragment, [
+            deleteButton,
+            h(ButtonPrimary, { style: { marginRight: '1rem' }, onClick: () => { resumeGalaxy() } }, ['Resume'])
+          ])],
+          ['ERROR', () => deleteButton]
+        )]
     )
   }
 
   const renderMessaging = () => {
-    return Utils.switchCase( viewMode,
+    return Utils.switchCase(viewMode,
       ['createWarn', renderCreateWarning],
       ['deleteWarn', renderDeleteWarning],
       ['launchWarn', renderLaunchWarning],
@@ -183,15 +187,19 @@ export const NewGalaxyModal = _.flow(
   }
 
   const getEnvMessageBasedOnStatus = isTitle => {
-    return Utils.cond(
-      [ (app?.status === 'STOPPED'), () => `Cloud environment is now paused ${(!isTitle ? '...' : '')}`],
-      [ (app?.status === 'PRESTOPPING'), () => 'Cloud environment is preparing to stop.'],
-      [ (app?.status === 'STOPPING'), () => `Cloud environment is pausing. ${!isTitle ? 'This process will take up to a few minutes' : ''}`],
-      [ (app?.status === 'PRESTARTING'), () => 'Cloud environment is preparing to start.'],
-      [ (app?.status === 'STARTING'), () => `Cloud environment is starting. ${!isTitle ? 'This process will take up to a few minutes' : ''}`],
-      [ (app?.status === 'ERROR'), () => `An error has occurred on your Cloud Environment. ${!isTitle ? 'This process will take up to a few minutes' : ''}`],
-      () => isTitle ? 'Cloud environment' : `Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`
-    )
+    const waitMessage = isTitle ? '' : 'This process will take up to a few minutes'
+
+    return !app ?
+      isTitle ? 'Cloud environment' : 'Environment will consist of an application and cloud compute.' :
+      Utils.switchCase(app.status,
+        ['STOPPED', () => `Cloud environment is now paused ${!isTitle ? '...' : ''}`],
+        ['PRESTOPPING', () => 'Cloud environment is preparing to stop.'],
+        ['STOPPING', () => `Cloud environment is pausing. ${waitMessage}`],
+        ['PRESTARTING', () => 'Cloud environment is preparing to start.'],
+        ['STARTING', () => `Cloud environment is starting. ${waitMessage}`],
+        ['RUNNING', () => 'Environment consists of an application and cloud compute.'],
+        ['ERROR', () => `An error has occurred on your Cloud Environment. ${waitMessage}`]
+      )
   }
 
   const renderDefaultCase = () => {
