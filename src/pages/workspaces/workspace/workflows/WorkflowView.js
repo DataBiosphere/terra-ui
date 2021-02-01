@@ -487,7 +487,7 @@ const WorkflowView = _.flow(
         modifiedInputsOutputs: inputsOutputs,
         errors: isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse),
         entitySelectionModel: this.resetSelectionModel(
-          modifiedConfig.dataReferenceName ? modifiedConfig.dataReferenceName : modifiedConfig.rootEntityType,
+          modifiedConfig.dataReferenceName || modifiedConfig.rootEntityType,
           readSelection ? selection.entities : {},
           entityMetadata, modifiedConfig.dataReferenceName ? 'snapshot' : 'table'
         ),
