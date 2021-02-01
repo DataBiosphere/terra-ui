@@ -376,7 +376,7 @@ const WorkflowView = _.flow(
   updateSingleOrMultipleRadioState(config) {
     this.setState({
       processSingle: !config.rootEntityType,
-      selectedEntityType: config.dataReferenceName ? config.dataReferenceName : config.rootEntityType
+      selectedEntityType: config.dataReferenceName || config.rootEntityType
     })
   }
 
