@@ -8,11 +8,13 @@ import { makeCromwellStatusLine } from 'src/components/job-common'
 import { FlexTable, tableHeight, TooltipCell } from 'src/components/table'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
+import CallCacheWizard from 'src/pages/workspaces/workspace/jobHistory/CallCacheWizard'
 import { FailuresModal } from 'src/pages/workspaces/workspace/jobHistory/FailuresViewer'
 
 
 const CallTable = ({ namespace, name, submissionId, workflowId, callName, callObjects }) => {
   const [failuresModalParams, setFailuresModalParams] = useState()
+  const [wizardSelection, setWizardSelection] = useState()
 
   return div([
     h(AutoSizer, { disableHeight: true }, [
@@ -64,7 +66,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
             cellRenderer: ({ rowIndex }) => {
               const { callCaching: { effectiveCallCachingMode, result } = {} } = callObjects[rowIndex]
               if (effectiveCallCachingMode === 'ReadAndWriteCache' || effectiveCallCachingMode === 'ReadCache') {
-                return result ? h(TooltipCell, [result]) : div({ style: { color: colors.dark(0.7) } }, ['No Information'])
+                return result ? [h(TooltipCell, [result])] : div({ style: { color: colors.dark(0.7) } }, ['No Information'])
               } else if (effectiveCallCachingMode === 'WriteCache') {
                 return div({ style: { color: colors.dark(0.7) } }, ['Lookup disabled; write enabled'])
               } else {
@@ -76,17 +78,25 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
             size: { basis: 200, grow: 2 },
             headerRenderer: () => 'Links',
             cellRenderer: ({ rowIndex }) => {
-              const { failures, shardIndex: index, attempt } = callObjects[rowIndex]
+              const { failures, shardIndex: index, attempt, callCaching: { result: ccResult } = {} } = callObjects[rowIndex]
               const failureCount = _.size(failures)
-              return failures ? [
+              const linkCount = (failures ? 1 : 0) + (ccResult === 'Cache Miss' ? 1 : 0)
+              return linkCount > 0 ? [
                 h(Link, {
                   style: { marginLeft: '0.5rem' },
+                  tooltip: `${failureCount} Message${failureCount > 1 ? 's' : ''}`,
                   onClick: () => setFailuresModalParams({ index, attempt, failures })
+                }, [div({ style: { display: 'flex', alignItems: 'center' } }, [
+                  icon('warning-standard', { size: 18, style: { color: colors.warning() } }),
+                  linkCount === 1 && ` ${failureCount} Message${failureCount > 1 ? 's' : ''}`
+                ])]),
+                ccResult === 'Cache Miss' && h(Link, {
+                  style: { marginLeft: '0.5rem' },
+                  tooltip: 'Call Cache Debug Wizard',
+                  onClick: () => setWizardSelection({ callFqn: callName, index, attempt })
                 }, [
-                  div({ style: { display: 'flex', alignItems: 'center' } }, [
-                    icon('warning-standard', { size: 18, style: { color: colors.warning(), marginRight: '0.5rem' } }),
-                    `${failureCount} Message${failureCount > 1 ? 's' : ''}`
-                  ])
+                  icon('magic', { size: 18 }),
+                  linkCount === 1 && ' Cache Debug Wizard'
                 ])
               ] : undefined
             }
@@ -94,7 +104,8 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
         ]
       })
     ]),
-    failuresModalParams && h(FailuresModal, { ...failuresModalParams, callFqn: callName, onDismiss: () => setFailuresModalParams(undefined) })
+    failuresModalParams && h(FailuresModal, { ...failuresModalParams, callFqn: callName, onDismiss: () => setFailuresModalParams(undefined) }),
+    wizardSelection && h(CallCacheWizard, { onDismiss: () => setWizardSelection(undefined), namespace, name, submissionId, workflowId, ...wizardSelection })
   ])
 }
 

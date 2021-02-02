@@ -130,6 +130,7 @@ const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIden
 const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchGoogleBilling = withUrlPrefix('https://cloudbilling.googleapis.com/v1/', fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
+const fetchCromIAM = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
 const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
 const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
@@ -499,6 +500,27 @@ const attributesUpdateOps = _.flow(
       [{ op: 'AddUpdateAttribute', attributeName: k, addUpdateAttribute: v }]
   })
 )
+
+const CromIAM = signal => ({
+  callCacheDiff: async (thisWorkflowId, thisCallFqn, thisIndex, thatWorkflowId, thatCallFqn, thatIndex) => {
+    const params = {
+      workflowA: thisWorkflowId,
+      callA: thisCallFqn,
+      indexA: (thisIndex !== -1) ? thisIndex : undefined,
+      workflowB: thatWorkflowId,
+      callB: thatCallFqn,
+      indexB: (thatIndex !== -1) ? thatIndex : undefined
+    }
+    const res = await fetchCromIAM(`workflows/v1/callcaching/diff?${qs.stringify(params)}`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  workflowMetadata: async (workflowId, includeKey, excludeKey) => {
+    const res = await fetchCromIAM(`workflows/v1/${workflowId}/metadata?${qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
+    return res.json()
+  }
+})
+
 
 const Workspaces = signal => ({
   list: async fields => {
@@ -1324,7 +1346,8 @@ export const Ajax = signal => {
     Martha: Martha(signal),
     Duos: Duos(signal),
     Metrics: Metrics(signal),
-    Disks: Disks(signal)
+    Disks: Disks(signal),
+    CromIAM: CromIAM(signal)
   }
 }
 
