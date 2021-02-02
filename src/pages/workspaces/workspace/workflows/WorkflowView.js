@@ -478,7 +478,6 @@ const WorkflowView = _.flow(
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
         entityMetadata,
         availableSnapshots: snapshots,
-        selectedTableName: modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined,
         cachedSnapshotEntityMetadata: modifiedConfig.dataReferenceName ? [{ snapshotName: modifiedConfig.dataReferenceName, metadata: selectedSnapshotEntityMetadata }] : [],
         selectedSnapshotTableNames,
         selectedSnapshotEntityMetadata,
@@ -593,7 +592,7 @@ const WorkflowView = _.flow(
     const { signal, workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      availableSnapshots, cachedSnapshotEntityMetadata, selectedSnapshotTableNames, selectedTableName,
+      availableSnapshots, cachedSnapshotEntityMetadata, selectedSnapshotTableNames,
       selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, deleteIntermediateOutputFiles, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
@@ -602,7 +601,7 @@ const WorkflowView = _.flow(
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
-      [entitySelectionModel.type === processSnapshotTable && (!rootEntityType || !selectedTableName), () => 'A snapshot and table must be selected'],
+      [entitySelectionModel.type === processSnapshotTable && (!rootEntityType || !(modifiedConfig.dataReferenceName)), () => 'A snapshot and table must be selected'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
       [entitySelectionModel.type !== processSnapshotTable && this.isMultiple() && (!entityMetadata[rootEntityType] && !_.includes(rootEntityType, possibleSetTypes)), () => `There are no ${selectedEntityType}s in this workspace.`],
       // Default for _set types is `chooseSets` so we need to make sure something is selected.
@@ -732,7 +731,7 @@ const WorkflowView = _.flow(
                       this.setState(_.unset(['modifiedConfig', 'rootEntityType']))
 
                       this.setState({
-                        selectedSnapshotEntityMetadata, selectedEntityType: value, selectedTableName: undefined, selectedSnapshotTableNames: _.keys(selectedSnapshotEntityMetadata),
+                        selectedSnapshotEntityMetadata, selectedEntityType: value, selectedSnapshotTableNames: _.keys(selectedSnapshotEntityMetadata),
                         entitySelectionModel: this.resetSelectionModel(value, {}, {}, true)
                       })
                       if (!_.find({ snapshotName: value }, cachedSnapshotEntityMetadata)) this.setState({ cachedSnapshotEntityMetadata: _.concat(cachedSnapshotEntityMetadata, { snapshotName: value, metadata: selectedSnapshotEntityMetadata }) })
@@ -740,8 +739,7 @@ const WorkflowView = _.flow(
                       this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
                       this.setState(_.unset(['modifiedConfig', 'dataReferenceName']))
                       this.setState({
-                        selectedEntityType: value, selectedTableName: undefined,
-                        entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, false)
+                        selectedEntityType: value, entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, false)
                       })
                     }
                   },
@@ -762,9 +760,8 @@ const WorkflowView = _.flow(
                   isDisabled: !!Utils.editWorkspaceError(ws),
                   'aria-label': 'Snapshot table selector',
                   isClearable: false,
-                  value: selectedTableName,
+                  value: modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined,
                   onChange: ({ value }) => {
-                    this.setState({ selectedTableName: value })
                     this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
                     this.setState(_.unset(['modifiedConfig', 'entityName']))
                   },
@@ -922,9 +919,10 @@ const WorkflowView = _.flow(
 
   renderIOTable(key) {
     const { workspace } = this.props
-    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, filter, selectedSnapshotEntityMetadata, selectedTableName } = this.state
+    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, filter, selectedSnapshotEntityMetadata } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
 
+    const selectedTableName = modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined
     const selectionMetadata = selectedTableName ? selectedSnapshotEntityMetadata : entityMetadata
     const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata) || []
     const suggestions = [
