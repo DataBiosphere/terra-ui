@@ -321,14 +321,14 @@ const WorkflowView = _.flow(
   }),
   Utils.withCancellationSignal
 )(class WorkflowView extends Component {
-  resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata, selectedEntitySource) {
+  resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata, isSnapshot) {
     const { workflowName } = this.props
 
     // If the default for non-set types changes from `processAllAsSet` then the calculation of `noLaunchReason` in `renderSummary` needs to be updated accordingly.
     // Currently, `renderSummary` assumes that it is not possible to have nothing selected for non-set types.
     return {
       type: Utils.cond(
-        [selectedEntitySource === 'snapshot', () => processSnapshotTable],
+        [isSnapshot, () => processSnapshotTable],
         [isSet(value), () => _.includes(value, _.keys(entityMetadata)) ? chooseSets : processAllAsSet],
         [_.isEmpty(selectedEntities), () => processAll],
         () => chooseRows
@@ -478,7 +478,6 @@ const WorkflowView = _.flow(
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
         entityMetadata,
         availableSnapshots: snapshots,
-        selectedEntitySource: modifiedConfig.dataReferenceName ? 'snapshot' : 'table',
         selectedTableName: modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined,
         cachedSnapshotEntityMetadata: modifiedConfig.dataReferenceName ? [{ snapshotName: modifiedConfig.dataReferenceName, metadata: selectedSnapshotEntityMetadata }] : [],
         selectedSnapshotTableNames,
@@ -489,7 +488,7 @@ const WorkflowView = _.flow(
         entitySelectionModel: this.resetSelectionModel(
           modifiedConfig.dataReferenceName || modifiedConfig.rootEntityType,
           readSelection ? selection.entities : {},
-          entityMetadata, modifiedConfig.dataReferenceName ? 'snapshot' : 'table'
+          entityMetadata, !!modifiedConfig.dataReferenceName
         ),
         workspaceAttributes: _.flow(
           _.without(['description']),
@@ -731,9 +730,10 @@ const WorkflowView = _.flow(
 
                       this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value))
                       this.setState(_.unset(['modifiedConfig', 'rootEntityType']))
+
                       this.setState({
                         selectedSnapshotEntityMetadata, selectedEntityType: value, selectedTableName: undefined, selectedSnapshotTableNames: _.keys(selectedSnapshotEntityMetadata),
-                        entitySelectionModel: this.resetSelectionModel(value, {}, {}, source), selectedEntitySource: source
+                        entitySelectionModel: this.resetSelectionModel(value, {}, {}, true)
                       })
                       if (!_.find({ snapshotName: value }, cachedSnapshotEntityMetadata)) this.setState({ cachedSnapshotEntityMetadata: _.concat(cachedSnapshotEntityMetadata, { snapshotName: value, metadata: selectedSnapshotEntityMetadata }) })
                     } else {
@@ -741,7 +741,7 @@ const WorkflowView = _.flow(
                       this.setState(_.unset(['modifiedConfig', 'dataReferenceName']))
                       this.setState({
                         selectedEntityType: value, selectedTableName: undefined,
-                        entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, source), selectedEntitySource: source
+                        entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, false)
                       })
                     }
                   },
@@ -922,13 +922,13 @@ const WorkflowView = _.flow(
 
   renderIOTable(key) {
     const { workspace } = this.props
-    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, filter, selectedSnapshotEntityMetadata, selectedTableName, selectedEntitySource } = this.state
+    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, filter, selectedSnapshotEntityMetadata, selectedTableName } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
 
     const selectionMetadata = selectedTableName ? selectedSnapshotEntityMetadata : entityMetadata
     const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata) || []
     const suggestions = [
-      ...(!selectedTableName && selectedEntitySource === 'table') ? [`this.${modifiedConfig.rootEntityType}_id`] : [],
+      ...(!selectedTableName && !!modifiedConfig.dataReferenceName) ? [`this.${modifiedConfig.rootEntityType}_id`] : [],
       ...(modifiedConfig.rootEntityType ? _.map(name => `this.${name}`, attributeNames) : []),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
