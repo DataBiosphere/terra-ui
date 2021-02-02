@@ -686,6 +686,11 @@ const Workspaces = signal => ({
         return res.json()
       },
 
+      snapshotEntityMetadataMemoize: Utils.memoizeAsync(async (billingProject, dataReference) => {
+        const res = await fetchRawls(`${root}/entities?billingProject=${billingProject}&dataReference=${dataReference}`, _.merge(authOpts(), { signal }))
+        return res.json()
+      }, { keyFn: (...args) => JSON.stringify(args) }),
+
       createEntity: async payload => {
         const res = await fetchRawls(`${root}/entities`, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'POST' }]))
         return res.json()

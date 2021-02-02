@@ -470,7 +470,7 @@ const WorkflowView = _.flow(
         !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
       )(config)
 
-      const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ? await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, modifiedConfig.dataReferenceName) : {}
+      const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ? await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadataMemoize(namespace, modifiedConfig.dataReferenceName) : {}
       const selectedSnapshotTableNames = _.keys(selectedSnapshotEntityMetadata)
 
       this.setState({
@@ -725,7 +725,7 @@ const WorkflowView = _.flow(
 
                       const selectedSnapshotEntityMetadata = selectedSnapshotCachedMetadata ?
                         selectedSnapshotCachedMetadata.metadata :
-                        await Ajax(signal).Workspaces.workspace(namespace, workspaceName).snapshotEntityMetadata(namespace, value)
+                        await Ajax(signal).Workspaces.workspace(namespace, workspaceName).snapshotEntityMetadataMemoize(namespace, value)
 
                       this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value))
                       this.setState(_.unset(['modifiedConfig', 'rootEntityType']))
