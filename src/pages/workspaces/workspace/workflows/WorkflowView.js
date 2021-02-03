@@ -471,14 +471,12 @@ const WorkflowView = _.flow(
       )(config)
 
       const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ? await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, modifiedConfig.dataReferenceName) : {}
-      const selectedSnapshotTableNames = _.keys(selectedSnapshotEntityMetadata)
 
       this.setState({
         savedConfig: config, modifiedConfig,
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
         entityMetadata,
         availableSnapshots: snapshots,
-        selectedSnapshotTableNames,
         selectedSnapshotEntityMetadata,
         savedInputsOutputs: inputsOutputs,
         modifiedInputsOutputs: inputsOutputs,
@@ -590,8 +588,7 @@ const WorkflowView = _.flow(
   renderSummary() {
     const { signal, workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
-      modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      availableSnapshots, selectedSnapshotTableNames,
+      modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation, availableSnapshots, selectedSnapshotEntityMetadata,
       selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, deleteIntermediateOutputFiles, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
@@ -726,7 +723,7 @@ const WorkflowView = _.flow(
                       this.setState(_.unset(['modifiedConfig', 'rootEntityType']))
 
                       this.setState({
-                        selectedSnapshotEntityMetadata, selectedEntityType: value, selectedSnapshotTableNames: _.keys(selectedSnapshotEntityMetadata),
+                        selectedSnapshotEntityMetadata, selectedEntityType: value,
                         entitySelectionModel: this.resetSelectionModel(value, {}, {}, true)
                       })
                     } else {
@@ -760,7 +757,7 @@ const WorkflowView = _.flow(
                     this.setState(_.unset(['modifiedConfig', 'entityName']))
                   },
                   styles: { container: old => ({ ...old, display: 'inline-block', width: 200, marginLeft: '0.5rem' }) },
-                  options: _.sortBy(_.identity, selectedSnapshotTableNames)
+                  options: _.sortBy(_.identity, _.keys(selectedSnapshotEntityMetadata))
                 })
               ]) :
                 div({ style: { marginLeft: '2rem', paddingLeft: '2rem', borderLeft: `2px solid ${colors.dark(0.2)}`, flex: 1 } }, [
