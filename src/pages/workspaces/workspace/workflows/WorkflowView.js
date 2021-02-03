@@ -806,7 +806,7 @@ const WorkflowView = _.flow(
             h(InfoBox, [
               'Use a reference disk image if available rather than localizing reference inputs. ',
               h(Link, {
-                href: 'https://support.terra.bio/hc/en-us/articles/360039681632', // ! NOT THE CORRECT LINK !
+                href: 'https://support.terra.bio/hc/en-us/articles/360056384631',
                 ...Utils.newTabLinkProps
               }, ['Click here to learn more.'])
             ])
