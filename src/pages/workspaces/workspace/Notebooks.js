@@ -348,7 +348,7 @@ const Notebooks = _.flow(
         }, [
           div({ style: { fontSize: 18, lineHeight: '22px', width: 150 } }, [
             div(['Create a']),
-            div(['New Notebook']),
+            div(['New Notebook'] ),
             icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
           ])
         ]),

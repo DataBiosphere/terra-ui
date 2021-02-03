@@ -1060,7 +1060,7 @@ const Runtimes = signal => ({
     return fetchLeo(`proxy/setCookie`, _.merge(authOpts(), { signal, credentials: 'include' }))
   },
 
-  runtime: (project, name, workspaceName) => {
+  runtime: (project, name) => {
     const root = `api/google/v1/runtimes/${project}/${name}`
 
     return {
@@ -1169,7 +1169,7 @@ const Apps = signal => ({
             name: diskName,
             labels: {
               saturnApplication: 'galaxy',
-              workspaceName
+              saturnWorkspaceName: workspaceName
             }
           },
           customEnvironmentVariables: {

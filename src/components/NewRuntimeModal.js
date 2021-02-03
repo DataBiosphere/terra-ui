@@ -271,7 +271,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
           } : {
             name: Utils.generatePersistentDiskName(),
             size: newPersistentDisk.size,
-            labels: { workspaceName: name }
+            labels: { saturnWorkspaceName: name }
           }
         })
       } : {
@@ -310,7 +310,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
         runtimeConfig,
         toolDockerImage: newRuntime.toolDockerImage,
-        labels: { workspaceName: name },
+        labels: { saturnWorkspaceName: name },
         customEnvironmentVariables: customEnvVars,
         ...(newRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: newRuntime.jupyterUserScriptUri } : {})
       })
