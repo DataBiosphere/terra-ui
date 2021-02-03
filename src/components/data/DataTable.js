@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Clickable, Link, MenuButton, spinnerOverlay } from 'src/components/common'
+import { Checkbox, Clickable, fixedSpinnerOverlay, Link, MenuButton } from 'src/components/common'
 import { EditDataLink, EntityEditor, EntityRenamer, renderDataCell } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
@@ -340,7 +340,7 @@ const DataTable = props => {
       },
       onDismiss: () => setUpdatingEntity(undefined)
     }),
-    loading && spinnerOverlay
+    loading && fixedSpinnerOverlay
   ])
 }
 

@@ -221,6 +221,7 @@ const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
       position: 'absolute',
       display: 'flex', alignItems: 'center',
       top: 0, right: 0, bottom: 0, left: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.1)',
       zIndex: 9999, // make sure it's on top of any third party components with z-indicies
       ...outerStyles
     }
@@ -232,11 +233,13 @@ const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
   ]
 )
 
-export const spinnerOverlay = makeBaseSpinner({ outerStyles: { backgroundColor: 'rgba(0, 0, 0, 0.1)' } })
+export const spinnerOverlay = makeBaseSpinner({})
+
+export const fixedSpinnerOverlay = makeBaseSpinner({ innerStyles: { position: 'fixed' } })
 
 export const transparentSpinnerOverlay = makeBaseSpinner({ innerStyles: { backgroundColor: 'rgba(255, 255, 255, 0.0)' } })
 
-export const topSpinnerOverlay = makeBaseSpinner({ outerStyles: { backgroundColor: 'rgba(0, 0, 0, 0.1)' }, innerStyles: { marginTop: 150 } })
+export const topSpinnerOverlay = makeBaseSpinner({ innerStyles: { marginTop: 150 } })
 
 export const comingSoon = span({
   style: {
