@@ -50,30 +50,78 @@ export const NewGalaxyModal = _.flow(
     return onSuccess()
   })
 
+  const pauseGalaxy = _.flow(
+    Utils.withBusyState(setLoading),
+    withErrorReporting('Error stopping galaxy instance')
+  )(async () => {
+    await Ajax().Apps.app(app.googleProject, app.appName).pause()
+    Ajax().Metrics.captureEvent(Events.applicationPause, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
+    return onSuccess()
+  })
+
+  const resumeGalaxy = _.flow(
+    Utils.withBusyState(setLoading),
+    withErrorReporting('Error starting galaxy instance')
+  )(async () => {
+    await Ajax().Apps.app(app.googleProject, app.appName).resume()
+    Ajax().Metrics.captureEvent(Events.applicationResume, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
+    return onSuccess()
+  })
+
+  const deleteButton = h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete'])
+
   const renderActionButton = () => {
     return Utils.switchCase(viewMode,
       ['deleteWarn', () => {
-        return h(ButtonPrimary, { onClick: () => deleteGalaxy() }, ['Delete'])
+        return h(ButtonPrimary, { onClick: deleteGalaxy }, ['Delete'])
       }],
       ['createWarn', () => {
-        return h(ButtonPrimary, { onClick: () => createGalaxy() }, ['Create'])
+        return h(ButtonPrimary, { onClick: createGalaxy }, ['Create'])
       }],
       ['launchWarn', () => {
         return h(GalaxyLaunchButton, { app, onClick: onDismiss })
       }],
-      [Utils.DEFAULT, () => {
-        return !!app ?
-          h(Fragment, [
-            h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
+      ['paused', () => {
+        return h(Fragment, [
+          h(ButtonPrimary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
+          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: resumeGalaxy }, ['Resume'])
+        ])
+      }],
+      [Utils.DEFAULT, () => !app ?
+        h(ButtonPrimary, { onClick: () => setViewMode('createWarn') }, ['Next']) :
+        Utils.switchCase(app.status,
+          ['RUNNING', () => h(Fragment, [
+            deleteButton,
+            h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => { pauseGalaxy() } }, ['Pause']),
             h(ButtonPrimary, { onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
-          ]) :
-          h(ButtonPrimary, { onClick: () => setViewMode('createWarn') }, ['Next'])
-      }]
+          ])],
+          ['STOPPED', () => h(Fragment, [
+            deleteButton,
+            h(ButtonPrimary, { style: { marginRight: '1rem' }, onClick: () => { resumeGalaxy() } }, ['Resume'])
+          ])],
+          ['ERROR', () => deleteButton]
+        )]
     )
   }
 
+  const renderMessaging = () => {
+    return Utils.switchCase(viewMode,
+      ['createWarn', renderCreateWarning],
+      ['deleteWarn', renderDeleteWarning],
+      ['launchWarn', renderLaunchWarning],
+      [Utils.DEFAULT, renderDefaultCase]
+    )
+  }
+
+
   const renderCreateWarning = () => {
     return h(Fragment, [
+      h(TitleBar, {
+        title: 'Cloud environment',
+        style: { marginBottom: '0.5rem' },
+        onDismiss,
+        onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
+      }),
       div({ style: { marginBottom: '1rem' } }, ['Environment will consist of an application and cloud compute.']),
       div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
@@ -88,6 +136,11 @@ export const NewGalaxyModal = _.flow(
             div({ style: { lineHeight: 1.5 } }, [
               div(['Please delete the cloud environment when finished; it will']),
               div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running.'])
+            ]),
+            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Pause and auto-pause']),
+            div({ style: { lineHeight: 1.5 } }, [
+              div(['You can pause  during the compute, but it will auto-pause when']),
+              div(['the instance is idle more than 1 hour if the analysis is done.'])
             ])
           ])
         ])
@@ -96,32 +149,72 @@ export const NewGalaxyModal = _.flow(
   }
 
   const renderDeleteWarning = () => {
-    return div({ style: { lineHeight: '22px' } }, [
-      div({ style: { marginTop: '0.5rem' } }, [
-        'Deleting your Cloud Environment will also ',
-        span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk']),
-        ' (e.g. results files). Double check that your workflow results were written to ',
-        'the data tab in the workspace before clicking “Delete”'
-      ]),
-      div({ style: { marginTop: '1rem' } }, [
-        'Deleting your Cloud Environment will stop your ',
-        'running Galaxy application and your application costs. You can create a new Cloud Environment ',
-        'for Galaxy later, which will take 8-10 minutes.'
+    return h(Fragment, [
+      h(TitleBar, {
+        title: 'Delete Cloud Environment for Galaxy',
+        style: { marginBottom: '0.5rem' },
+        onDismiss,
+        onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
+      }),
+      div({ style: { lineHeight: '22px' } }, [
+        div({ style: { marginTop: '0.5rem' } }, [
+          'Deleting your Cloud Environment will also ',
+          span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk']),
+          ' (e.g. results files). Double check that your workflow results were written to ',
+          'the data tab in the workspace before clicking “Delete”'
+        ]),
+        div({ style: { marginTop: '1rem' } }, [
+          'Deleting your Cloud Environment will stop your ',
+          'running Galaxy application and your application costs. You can create a new Cloud Environment ',
+          'for Galaxy later, which will take 8-10 minutes.'
+        ])
       ])
     ])
   }
 
   const renderLaunchWarning = () => {
-    return div({ style: { lineHeight: '22px' } }, [
-      h(GalaxyWarning)
+    return h(Fragment, [
+      h(TitleBar, {
+        title: h(WarningTitle, ['Launch Galaxy']),
+        style: { marginBottom: '0.5rem' },
+        onDismiss,
+        onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
+      }),
+      div({ style: { lineHeight: '22px' } }, [
+        h(GalaxyWarning)
+      ])
     ])
+  }
+
+  const getEnvMessageBasedOnStatus = isTitle => {
+    const waitMessage = isTitle ? '' : 'This process will take up to a few minutes'
+
+    return !app ?
+      isTitle ? 'Cloud environment' : 'Environment will consist of an application and cloud compute.' :
+      Utils.switchCase(app.status,
+        ['STOPPED', () => `Cloud environment is now paused ${!isTitle ? '...' : ''}`],
+        ['PRESTOPPING', () => 'Cloud environment is preparing to stop.'],
+        ['STOPPING', () => `Cloud environment is pausing. ${waitMessage}`],
+        ['PRESTARTING', () => 'Cloud environment is preparing to start.'],
+        ['STARTING', () => `Cloud environment is starting. ${waitMessage}`],
+        ['RUNNING', () => 'Environment consists of an application and cloud compute.'],
+        ['ERROR', () => `An error has occurred on your Cloud Environment. ${waitMessage}`]
+      )
   }
 
   const renderDefaultCase = () => {
     const { cpu, memory } = _.find({ name: 'n1-standard-8' }, machineTypes)
     const cost = getGalaxyCost(app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8', numNodes: 2 } })
     return h(Fragment, [
-      div([`Environment ${app ? 'consists' : 'will consist'} of an application and cloud compute.`]),
+      h(TitleBar, {
+        title: getEnvMessageBasedOnStatus(true),
+        style: { marginBottom: '0.5rem' },
+        onDismiss,
+        onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
+      }),
+      div([
+        getEnvMessageBasedOnStatus(false)
+      ]),
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div([
           div({ style: styles.headerText }, ['Environment Settings']),
@@ -149,22 +242,7 @@ export const NewGalaxyModal = _.flow(
   }
 
   return div({ style: styles.drawerContent }, [
-    h(TitleBar, {
-      title: Utils.switchCase(viewMode,
-        ['launchWarn', () => h(WarningTitle, ['Launch Galaxy'])],
-        ['deleteWarn', () => 'Delete Cloud Environment for Galaxy'],
-        [Utils.DEFAULT, () => 'Cloud environment']
-      ),
-      style: { marginBottom: '0.5rem' },
-      onDismiss,
-      onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
-    }),
-    Utils.switchCase(viewMode,
-      ['createWarn', renderCreateWarning],
-      ['deleteWarn', renderDeleteWarning],
-      ['launchWarn', renderLaunchWarning],
-      [Utils.DEFAULT, renderDefaultCase]
-    ),
+    renderMessaging(),
     div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [
       renderActionButton()
     ]),

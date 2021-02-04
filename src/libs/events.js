@@ -8,6 +8,8 @@ const eventsList = {
   applicationLaunch: 'application:launch',
   applicationCreate: 'application:create',
   applicationDelete: 'application:delete',
+  applicationPause: 'application:pause',
+  applicationResume: 'application:resume',
   cloudEnvironmentConfigOpen: 'cloudEnvironment:config:open',
   cloudEnvironmentCreate: 'cloudEnvironment:create',
   cloudEnvironmentDelete: 'cloudEnvironment:delete',

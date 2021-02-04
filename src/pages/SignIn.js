@@ -1,12 +1,10 @@
 import { Fragment, useState } from 'react'
 import { div, h, p } from 'react-hyperscript-helpers'
-import { Clickable, HeroWrapper, Link } from 'src/components/common'
-import Modal from 'src/components/Modal'
+import { HeroWrapper, Link } from 'src/components/common'
 import SignInButton from 'src/components/SignInButton'
 import colors from 'src/libs/colors'
 import { isAnvil, isBioDataCatalyst, isFirecloud } from 'src/libs/config'
 import { getAppName } from 'src/libs/logos'
-import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -129,5 +127,7 @@ const SignIn = () => {
     ])
   ])
 }
+
+export default SignIn
 
 export default SignIn
