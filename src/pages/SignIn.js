@@ -21,25 +21,7 @@ const styles = {
   }
 }
 
-export const CookiesModal = (({ onDismiss }) => {
-  return h(Modal, {
-    showCancel: false,
-    onDismiss
-  }, [
-    `${getAppName()} uses cookies to enable sign on and other essential features when signed in, and to provide statistics to our development team regarding how the site is used. For more information, see our `,
-    h(Link, {
-      ...Utils.newTabLinkProps,
-      href: Nav.getLink('privacy')
-    }, ['privacy policy.'])
-  ])
-})
-
 const SignIn = () => {
-  // State
-  const [openCookiesModal, setOpenCookiesModal] = useState(false)
-
-
-  // Render
   return h(HeroWrapper, { showMenu: false }, [
     div({ style: { maxWidth: 600 } }, [
       div({ style: { fontSize: 36, color: colors.dark(0.6) } }, ['New User?']),
@@ -122,10 +104,7 @@ const SignIn = () => {
           website and is advised that if such monitoring reveals possible evidence of criminal activity, 
           evidence may be provided to law enforcement officials.
         `])
-      ]),
-      openCookiesModal && h(CookiesModal, {
-        onDismiss: () => setOpenCookiesModal(false)
-      })
+      ])
     ])
   ])
 }
