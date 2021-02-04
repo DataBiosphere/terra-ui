@@ -167,6 +167,7 @@ const BucketContent = _.flow(
 
   const signal = Utils.useCancellation()
 
+
   // Helpers
   const load = _.flow(
     withRequesterPaysHandler(onRequesterPaysError),
@@ -187,6 +188,7 @@ const BucketContent = _.flow(
     load()
   })
 
+
   // Lifecycle
   useEffect(() => {
     load(firstRender ? undefined : '')
@@ -195,6 +197,7 @@ const BucketContent = _.flow(
   useEffect(() => {
     StateHistory.update({ objects, prefix })
   }, [objects, prefix])
+
 
   // Render
   const prefixParts = _.dropRight(1, prefix.split('/'))
@@ -322,6 +325,7 @@ const WorkspaceData = _.flow(
   const signal = Utils.useCancellation()
   const pfbImportJobs = Utils.useStore(pfbImportJobStore)
 
+
   // Helpers
   const getSelectionType = () => {
     const referenceData = getReferenceData(attributes)
@@ -385,6 +389,7 @@ const WorkspaceData = _.flow(
 
   const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first))
 
+
   // Lifecycle
   Utils.useOnMount(() => {
     loadMetadata()
@@ -401,6 +406,7 @@ const WorkspaceData = _.flow(
       loadMetadata()
     }
   }))
+
 
   // Render
   const referenceData = getReferenceData(attributes)

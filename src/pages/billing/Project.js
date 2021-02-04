@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
@@ -14,187 +14,176 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 
 
-export default Utils.withCancellationSignal(class ProjectDetail extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      filter: '',
-      projectUsers: null,
-      addingUser: false,
-      editingUser: false,
-      deletingUser: false,
-      updating: false,
-      updatingAccount: false,
-      refreshing: false,
-      loadingBillingInfo: false,
-      billingAccountName: null,
-      hasBillingScope: Auth.hasBillingScope(),
-      ...StateHistory.get()
-    }
-  }
+const ProjectDetail = ({ project, project: { projectName, creationStatus }, billingAccounts, authorizeAndLoadAccounts }) => {
+  // State
+  const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || null)
+  const [addingUser, setAddingUser] = useState(false)
+  const [editingUser, setEditingUser] = useState(false)
+  const [deletingUser, setDeletingUser] = useState(false)
+  const [updating, setUpdating] = useState(false)
+  const [updatingAccount, setUpdatingAccount] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const [loadingBillingInfo, setLoadingBillingInfo] = useState(false)
+  const [billingAccountName, setBillingAccountName] = useState(null)
+  const [showBillingModal, setShowBillingModal] = useState(false)
+  const [selectedBilling, setSelectedBilling] = useState()
 
-  updateBillingAccount = _.flow(
+  const signal = Utils.useCancellation()
+
+
+  // Helpers
+  const updateBillingAccount = _.flow(
     withErrorReporting('Error updating billing account'),
-    Utils.withBusyState(updatingAccount => this.setState({ updatingAccount }))
+    Utils.withBusyState(setUpdatingAccount)
   )(async newAccountName => {
-    const { signal, project: { projectName } } = this.props
     const { billingAccountName } = await Ajax(signal).GoogleBilling.changeBillingAccount({ projectId: projectName, newAccountName })
-    this.setState({ billingAccountName })
+    setBillingAccountName(billingAccountName)
   })
 
-  loadBillingInfo = _.flow(
+  const loadBillingInfo = _.flow(
     withErrorReporting('Error loading current billing account'),
-    Utils.withBusyState(loadingBillingInfo => this.setState({ loadingBillingInfo }))
-  )(
-    async () => {
-      const { signal, project: { projectName } } = this.props
-      const { hasBillingScope } = this.state
-      if (hasBillingScope) {
-        const { billingAccountName } = await Ajax(signal).GoogleBilling.getBillingInfo(projectName)
-        this.setState({ billingAccountName })
-      }
-    })
-
-  refresh = _.flow(
-    withErrorReporting('Error loading billing project users list'),
-    Utils.withBusyState(refreshing => this.setState({ refreshing }))
+    Utils.withBusyState(setLoadingBillingInfo)
   )(async () => {
-    const { signal, project } = this.props
-    this.setState({ addingUser: false, deletingUser: false, updating: false, editingUser: false })
+    if (Auth.hasBillingScope()) {
+      const { billingAccountName } = await Ajax(signal).GoogleBilling.getBillingInfo(projectName)
+      setBillingAccountName(billingAccountName)
+    }
+  })
+
+  const refresh = _.flow(
+    withErrorReporting('Error loading billing project users list'),
+    Utils.withBusyState(setRefreshing)
+  )(async () => {
+    setAddingUser(false)
+    setDeletingUser(false)
+    setUpdating(false)
+    setEditingUser(false)
+
     const rawProjectUsers = await Ajax(signal).Billing.project(project.projectName).listUsers()
     const projectUsers = _.flow(
       _.groupBy('email'),
       _.map(gs => ({ ..._.omit('role', gs[0]), roles: _.map('role', gs) })),
       _.sortBy('email')
     )(rawProjectUsers)
-    this.setState({ projectUsers })
+    setProjectUsers(projectUsers)
   })
 
-  componentDidMount() {
-    this.refresh()
-    this.loadBillingInfo()
-  }
 
-  render() {
-    const { project: { projectName, creationStatus }, billingAccounts, authorizeAndLoadAccounts } = this.props
-    const {
-      projectUsers, refreshing, loadingBillingInfo, updating, filter, addingUser, deletingUser, editingUser, billingAccountName,
-      showBillingModal, selectedBilling, updatingAccount
-    } = this.state
-    const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
-    const { displayName = null } = _.find({ accountName: billingAccountName }, billingAccounts) || {}
+  // Lifecycle
+  Utils.useOnMount(() => {
+    refresh()
+    loadBillingInfo()
+  })
 
-    return h(Fragment, [
-      div({ style: { padding: '1.5rem 3rem', flexGrow: 1 } }, [
-        div({ style: { color: colors.dark(), fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center' } }, [
-          projectName,
-          span({ style: { fontWeight: 500, fontSize: 14, margin: '0 1.5rem 0 3rem' } }, creationStatus),
-          Utils.cond(
-            [creationStatus === 'Ready', () => icon('check', { style: { color: colors.success() } })],
-            [creationStatus === 'Creating', () => spinner({ size: 16 })],
-            () => icon('error-standard', { style: { color: colors.danger() } })
-          ),
-          !!displayName && span({ style: { flexShrink: 0, fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' } }, 'Billing Account:'),
-          !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14 } }, displayName),
-          h(ButtonPrimary, {
-            style: { marginLeft: 'auto' },
-            onClick: async () => {
-              if (Auth.hasBillingScope()) {
-                this.setState({ showBillingModal: true })
-              } else {
-                await authorizeAndLoadAccounts()
-                this.setState({ showBillingModal: Auth.hasBillingScope() })
-              }
+  useEffect(() => {
+    StateHistory.update({ projectUsers })
+  }, [projectUsers])
+
+
+  // Render
+  const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
+  const { displayName = null } = _.find({ accountName: billingAccountName }, billingAccounts) || {}
+
+  return h(Fragment, [
+    div({ style: { padding: '1.5rem 3rem', flexGrow: 1 } }, [
+      div({ style: { color: colors.dark(), fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center' } }, [
+        projectName,
+        span({ style: { fontWeight: 500, fontSize: 14, margin: '0 1.5rem 0 3rem' } }, creationStatus),
+        Utils.cond(
+          [creationStatus === 'Ready', () => icon('check', { style: { color: colors.success() } })],
+          [creationStatus === 'Creating', () => spinner({ size: 16 })],
+          () => icon('error-standard', { style: { color: colors.danger() } })
+        ),
+        !!displayName && span({ style: { flexShrink: 0, fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' } }, 'Billing Account:'),
+        !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14 } }, displayName),
+        h(ButtonPrimary, {
+          style: { marginLeft: 'auto' },
+          onClick: async () => {
+            if (Auth.hasBillingScope()) {
+              setShowBillingModal(true)
+            } else {
+              await authorizeAndLoadAccounts()
+              await loadBillingInfo()
+              setShowBillingModal(Auth.hasBillingScope())
             }
-          }, 'Change Account'),
-          showBillingModal && h(Modal, {
-            title: 'Change Billing Account',
-            onDismiss: () => this.setState({ showBillingModal: false }),
-            okButton: h(ButtonPrimary, {
-              disabled: !selectedBilling || billingAccountName === selectedBilling,
-              onClick: async () => {
-                this.setState({ showBillingModal: false })
-                await this.updateBillingAccount(selectedBilling)
-              }
-            }, ['Ok'])
-          }, [
-            h(IdContainer, [id => h(Fragment, [
-              h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
-              h(Select, {
-                id,
-                value: selectedBilling || billingAccountName,
-                isClearable: false,
-                options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
-                onChange: ({ value: newAccountName }) => this.setState({ selectedBilling: newAccountName })
-              })
-            ])])
-          ])
-        ]),
-        div({
-          style: {
-            marginTop: '1rem',
-            display: 'flex'
           }
+        }, 'Change Account'),
+        showBillingModal && h(Modal, {
+          title: 'Change Billing Account',
+          onDismiss: () => setShowBillingModal(false),
+          okButton: h(ButtonPrimary, {
+            disabled: !selectedBilling || billingAccountName === selectedBilling,
+            onClick: async () => {
+              setShowBillingModal(false)
+              await updateBillingAccount(selectedBilling)
+            }
+          }, ['Ok'])
         }, [
-          h(NewUserCard, {
-            onClick: () => this.setState({ addingUser: true })
-          }),
-          div({ style: { flexGrow: 1 } },
-            _.map(member => {
-              return h(MemberCard, {
-                adminLabel: 'Owner',
-                userLabel: 'User',
-                member, adminCanEdit,
-                onEdit: () => this.setState({ editingUser: member }),
-                onDelete: () => this.setState({ deletingUser: member })
-              })
-            }, _.filter(({ email }) => Utils.textMatch(filter, email), projectUsers))
-          )
+          h(IdContainer, [id => h(Fragment, [
+            h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
+            h(Select, {
+              id,
+              value: selectedBilling || billingAccountName,
+              isClearable: false,
+              options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
+              onChange: ({ value: newAccountName }) => setSelectedBilling(newAccountName)
+            })
+          ])])
         ])
       ]),
-      addingUser && h(NewUserModal, {
-        adminLabel: 'Owner',
-        userLabel: 'User',
-        title: 'Add user to Billing Project',
-        footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
-        addFunction: Ajax().Billing.project(projectName).addUser,
-        onDismiss: () => this.setState({ addingUser: false }),
-        onSuccess: () => this.refresh()
-      }),
-      editingUser && h(EditUserModal, {
-        adminLabel: 'Owner',
-        userLabel: 'User',
-        user: editingUser,
-        saveFunction: Ajax().Billing.project(projectName).changeUserRoles,
-        onDismiss: () => this.setState({ editingUser: false }),
-        onSuccess: () => this.refresh()
-      }),
-      !!deletingUser && h(DeleteUserModal, {
-        userEmail: deletingUser.email,
-        onDismiss: () => this.setState({ deletingUser: false }),
-        onSubmit: _.flow(
-          withErrorReporting('Error removing member from billing project'),
-          Utils.withBusyState(v => this.setState({ updating: v }))
-        )(async () => {
-          this.setState({ deletingUser: false })
-          await Ajax().Billing.project(projectName).removeUser(deletingUser.roles, deletingUser.email)
-          this.refresh()
-        })
-      }),
-      (refreshing || loadingBillingInfo || updatingAccount || updating) && spinnerOverlay
-    ])
-  }
+      div({
+        style: {
+          marginTop: '1rem',
+          display: 'flex'
+        }
+      }, [
+        h(NewUserCard, {
+          onClick: () => setAddingUser(true)
+        }),
+        div({ style: { flexGrow: 1 } },
+          _.map(member => {
+            return h(MemberCard, {
+              adminLabel: 'Owner',
+              userLabel: 'User',
+              member, adminCanEdit,
+              onEdit: () => setEditingUser(member),
+              onDelete: () => setDeletingUser(member)
+            })
+          }, projectUsers)
+        )
+      ])
+    ]),
+    addingUser && h(NewUserModal, {
+      adminLabel: 'Owner',
+      userLabel: 'User',
+      title: 'Add user to Billing Project',
+      footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
+      addFunction: Ajax().Billing.project(projectName).addUser,
+      onDismiss: () => setAddingUser(false),
+      onSuccess: refresh
+    }),
+    editingUser && h(EditUserModal, {
+      adminLabel: 'Owner',
+      userLabel: 'User',
+      user: editingUser,
+      saveFunction: Ajax().Billing.project(projectName).changeUserRoles,
+      onDismiss: () => setEditingUser(false),
+      onSuccess: refresh
+    }),
+    !!deletingUser && h(DeleteUserModal, {
+      userEmail: deletingUser.email,
+      onDismiss: () => setDeletingUser(false),
+      onSubmit: _.flow(
+        withErrorReporting('Error removing member from billing project'),
+        Utils.withBusyState(updating)
+      )(async () => {
+        setDeletingUser(false)
+        await Ajax().Billing.project(projectName).removeUser(deletingUser.roles, deletingUser.email)
+        refresh()
+      })
+    }),
+    (refreshing || loadingBillingInfo || updatingAccount || updating) && spinnerOverlay
+  ])
+}
 
-  componentDidUpdate(prevProps, prevState) {
-    const hasBillingScope = Auth.hasBillingScope()
-    if (prevState.hasBillingScope !== hasBillingScope) {
-      this.setState({ hasBillingScope })
-      hasBillingScope && Utils.withBusyState(loading => this.setState({ loading }), this.loadBillingInfo)()
-    }
-
-    StateHistory.update(_.pick(
-      ['projectUsers', 'filter'],
-      this.state)
-    )
-  }
-})
+export default ProjectDetail

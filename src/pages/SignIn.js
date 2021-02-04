@@ -31,22 +31,22 @@ const SignIn = () => {
       !isAnvil() && div({ style: styles.warningNoticeContainer }, [
         div({ style: styles.warningNotice }, ['Warning Notice']),
         p([`
-            By continuing to log in, you acknowledge that you are accessing a US Government web site
-            which may contain information that must be protected under the US Privacy Act or other
-            sensitive information and is intended for Government authorized use only.
-            `]),
+          By continuing to log in, you acknowledge that you are accessing a US Government web site
+          which may contain information that must be protected under the US Privacy Act or other
+          sensitive information and is intended for Government authorized use only.
+        `]),
         p([`
-              Unauthorized attempts to upload information, change information, or use of this web site
-              may result in disciplinary action, civil, and/or criminal penalties. Unauthorized users
-              of this website should have no expectation of privacy regarding any communications or
-              data processed by this website.'
-            `]),
+          Unauthorized attempts to upload information, change information, or use of this web site
+          may result in disciplinary action, civil, and/or criminal penalties. Unauthorized users
+          of this website should have no expectation of privacy regarding any communications or
+          data processed by this website.'
+        `]),
         p([`
-              Anyone accessing this website expressly consents to monitoring of their actions and all
-              communications or data transiting or stored on related to this website and is advised
-              that if such monitoring reveals possible evidence of criminal activity, NIH may provide
-              that evidence to law enforcement officials.
-            `]),
+          Anyone accessing this website expressly consents to monitoring of their actions and all
+          communications or data transiting or stored on related to this website and is advised
+          that if such monitoring reveals possible evidence of criminal activity, NIH may provide
+          that evidence to law enforcement officials.
+        `]),
         isFirecloud() && h(Fragment, [
           div({ style: { fontWeight: 500 } }, ['WARNING NOTICE (when accessing TCGA controlled data)']),
           p([
@@ -69,11 +69,11 @@ const SignIn = () => {
             href: 'https://www.federalregister.gov/documents/2008/11/20/E8-27771/amendments-to-executive-order-9397-relating-to-federal-agency-use-of-social-security-numbers'
           }, ['13478']),
           `. Completing the form is voluntary, however, declining to provide any or all of the requested information may result in denial of access to controlled data.
-             The principal purpose for which the information will be used is to authenticate users who request access to controlled access data. The information will be
-             used to contact you in response to requests you have specifically made on this Web site. Your personal information may also be used to audit your activity
-             on the system in order to ensure compliance with NIH policies. The information you provide will be included in a Privacy Act system of Records, and will be
-             used and may be disclosed for the purposes and routine uses described and published in the following System of Records Notice (SORN):
-             09-90-1401, Records About Restricted Dataset Requesters, HHS/OS/Other `,
+           The principal purpose for which the information will be used is to authenticate users who request access to controlled access data. The information will be
+           used to contact you in response to requests you have specifically made on this Web site. Your personal information may also be used to audit your activity
+           on the system in order to ensure compliance with NIH policies. The information you provide will be included in a Privacy Act system of Records, and will be
+           used and may be disclosed for the purposes and routine uses described and published in the following System of Records Notice (SORN):
+           09-90-1401, Records About Restricted Dataset Requesters, HHS/OS/Other `,
           h(Link, {
             ...Utils.newTabLinkProps,
             href: 'https://www.federalregister.gov/documents/2018/03/14/2018-05176/privacy-act-of-1974-system-of-records'
@@ -83,21 +83,21 @@ const SignIn = () => {
       isAnvil() && div({ style: styles.warningNoticeContainer }, [
         div({ style: styles.warningNotice }, ['Warning Notice']),
         p([`
-            You are accessing a web site created by the Genomic Data Science Analysis, Visualization,
-            and Informatics Lab-space (AnVIL), funded by the National Human Genome Research Institute.
-            `]),
+          You are accessing a web site created by the Genomic Data Science Analysis, Visualization, 
+          and Informatics Lab-space (AnVIL), funded by the National Human Genome Research Institute.
+        `]),
         p([`
-              Unauthorized attempts to upload information, change information, or use of this web site
-              may result in disciplinary action, civil, and/or criminal penalties. Unauthorized users
-              of this website should have no expectation of privacy regarding any communications or
-              data processed by this website.
-            `]),
+          Unauthorized attempts to upload information, change information, or use of this web site 
+          may result in disciplinary action, civil, and/or criminal penalties. Unauthorized users 
+          of this website should have no expectation of privacy regarding any communications or 
+          data processed by this website.
+        `]),
         p([`
-              By continuing to log in, anyone accessing this website expressly consents to monitoring
-              of their actions and all communications or data transiting or stored on related to this
-              website and is advised that if such monitoring reveals possible evidence of criminal activity,
-              evidence may be provided to law enforcement officials.
-            `])
+          By continuing to log in, anyone accessing this website expressly consents to monitoring 
+          of their actions and all communications or data transiting or stored on related to this 
+          website and is advised that if such monitoring reveals possible evidence of criminal activity, 
+          evidence may be provided to law enforcement officials.
+        `])
       ])
     ])
   ])
