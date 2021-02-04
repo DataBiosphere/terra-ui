@@ -14,7 +14,6 @@
   "leoUrlRoot": "https://leonardo.dsde-alpha.broadinstitute.org",
   "marthaUrlRoot": "https://us-central1-broad-dsde-alpha.cloudfunctions.net",
   "orchestrationUrlRoot": "https://firecloud-orchestration.dsde-alpha.broadinstitute.org",
-  "profileUrlRoot": "https://profile-dot-broad-shibboleth-prod.appspot.com/dev",
   "rawlsUrlRoot": "https://rawls.dsde-alpha.broadinstitute.org",
   "rexUrlRoot": "https://terra-rex-alpha.appspot.com",
   "samUrlRoot": "https://sam.dsde-alpha.broadinstitute.org",
