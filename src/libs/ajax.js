@@ -166,7 +166,7 @@ const getFirstTimeStamp = Utils.memoizeAsync(async token => {
   return res.json()
 }, { keyFn: (...args) => JSON.stringify(args) })
 
-const snapshotEntityMetadataMemoize = Utils.memoizeAsync(async (token, workspaceNamespace, workspaceName, billingProject, dataReference) => {
+const getSnapshotEntityMetadata = Utils.memoizeAsync(async (token, workspaceNamespace, workspaceName, billingProject, dataReference) => {
   const res = await fetchRawls(`workspaces/${workspaceNamespace}/${workspaceName}/entities?billingProject=${billingProject}&dataReference=${dataReference}`, authOpts(token))
   return res.json()
 }, { keyFn: (...args) => JSON.stringify(args) })
@@ -687,7 +687,7 @@ const Workspaces = signal => ({
       },
 
       snapshotEntityMetadata: (billingProject, dataReference) => {
-        return snapshotEntityMetadataMemoize(getUser().token, namespace, name, billingProject, dataReference)
+        return getSnapshotEntityMetadata(getUser().token, namespace, name, billingProject, dataReference)
       },
 
       createEntity: async payload => {

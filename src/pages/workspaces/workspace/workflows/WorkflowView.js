@@ -476,7 +476,7 @@ const WorkflowView = _.flow(
         savedConfig: config, modifiedConfig,
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
         entityMetadata,
-        availableSnapshots: snapshots,
+        availableSnapshots: _.sortBy(_.lowerCase, snapshots),
         selectedSnapshotEntityMetadata,
         savedInputsOutputs: inputsOutputs,
         modifiedInputsOutputs: inputsOutputs,
@@ -563,8 +563,8 @@ const WorkflowView = _.flow(
   }
 
   canSave() {
-    const { modifiedConfig: { rootEntityType, dataReferenceName } } = this.state
-    return (this.isSingle() || !!rootEntityType) || (!!dataReferenceName && !!rootEntityType)
+    const { modifiedConfig: { rootEntityType } } = this.state
+    return this.isSingle() || !!rootEntityType
   }
 
   loadNewMethodConfig = _.flow(
@@ -737,16 +737,16 @@ const WorkflowView = _.flow(
                   options: [
                     {
                       label: 'TABLES',
-                      options: _.map(entityType => ({ value: entityType, source: 'table' }), [...entityTypes, ...possibleSetTypes].sort())
+                      options: _.map(entityType => ({ value: entityType, source: 'table' }), _.sortBy(_.lowerCase, [...entityTypes, ...possibleSetTypes]))
                     },
-                    ...(!_.isEmpty(availableSnapshots) ? [{
+                    {
                       label: 'SNAPSHOTS',
                       options: _.map(({ name }) => ({ value: name, source: 'snapshot' }), availableSnapshots)
-                    }] : [])
+                    }
                   ]
                 })
               ]),
-              (entitySelectionModel.type === processSnapshotTable) ? div({ style: { margin: '2rem 0 0 2rem' } }, [
+              entitySelectionModel.type === processSnapshotTable ? div({ style: { margin: '2rem 0 0 2rem' } }, [
                 h(Select, {
                   isDisabled: !!Utils.editWorkspaceError(ws),
                   'aria-label': 'Snapshot table selector',
