@@ -286,7 +286,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHigh
  */
 export const GridTable = Utils.forwardRefWithName('GridTable', ({
   width, height, initialX = 0, initialY = 0,
-  rowCount, columns, styleCell = () => ({}), onScroll: customOnScroll = _.noop
+  rowCount, columns, styleCell = () => ({}), onScroll: customOnScroll = _.noop, noContentMessage
 }, ref) => {
   const [scrollbarSize, setScrollbarSize] = useState(0)
   const header = useRef()
@@ -294,11 +294,13 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
   const scrollSync = useRef()
 
   Utils.useOnMount(() => {
-    body.current.measureAllCells()
+    if (rowCount > 0) {
+      body.current.measureAllCells()
 
-    scrollSync.current._onScroll({ scrollLeft: initialX }) //BEWARE: utilizing private method from scrollSync that is not intended to be used
+      scrollSync.current._onScroll({ scrollLeft: initialX }) //BEWARE: utilizing private method from scrollSync that is not intended to be used
 
-    body.current.scrollToPosition({ scrollLeft: initialX, scrollTop: initialY }) // waiting to let ScrollSync initialize
+      body.current.scrollToPosition({ scrollLeft: initialX, scrollTop: initialY }) // waiting to let ScrollSync initialize
+    }
   })
 
   useImperativeHandle(ref, () => ({
@@ -346,6 +348,7 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
           rowHeight: 48,
           rowCount,
           columnCount: columns.length,
+          noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage]),
           onScrollbarPresenceChange: ({ vertical, size }) => {
             setScrollbarSize(vertical ? size : 0)
           },

@@ -56,7 +56,7 @@ const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 1
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
       icon(iconName, { size: iconSize })
     ]),
-    div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
+    div({ style: { flex: 1, ...Style.noWrapEllipsis }, title: children }, [
       children
     ])
   ])
@@ -122,10 +122,17 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
     ])
   ])
 }
-
-const SnapshotContent = ({ snapshotDetails, snapshotKey: [snapshotName] }) => {
-  // ToDo: Add rendering of snapshot tables
-  return h(SnapshotInfo, { snapshotId: snapshotDetails[snapshotName].id, snapshotName })
+const SnapshotContent = ({ workspace, snapshotDetails, entityKey, loadMetadata, firstRender, snapshotKey: [snapshotName, tableName] }) => {
+  return !!tableName ?
+    h(EntitiesContent, {
+      snapshotName,
+      workspace,
+      entityMetadata: snapshotDetails[snapshotName].entityMetadata,
+      entityKey: tableName,
+      loadMetadata,
+      firstRender
+    }) :
+    h(SnapshotInfo, { snapshotId: snapshotDetails[snapshotName].id, snapshotName })
 }
 
 const DeleteObjectModal = ({ name, workspace: { workspace: { namespace, bucketName } }, onSuccess, onDismiss }) => {
@@ -447,11 +454,19 @@ const WorkspaceData = _.flow(
           _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables, error: snapshotTablesError }]) => {
             const snapshotTablePairs = toSortedPairs(snapshotTables)
             return h(Collapse, {
+              key: snapshotId,
               titleFirst: true,
-              key: snapshotName,
-              buttonStyle: { color: colors.dark(), fontWeight: 600, marginBottom: 0, marginRight: '10px' },
-              style: { paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
-              title: div({ style: { lineHeight: '50px' } }, [snapshotName]),
+              buttonStyle: { height: 50, color: colors.dark(), fontWeight: 600, marginBottom: 0 },
+              style: { fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
+              title: snapshotName,
+              afterToggle: h(Link, {
+                style: { marginRight: '0.5rem' },
+                tooltip: 'Snapshot Info',
+                onClick: () => {
+                  setSelectedDataType([snapshotName])
+                  forceRefresh()
+                }
+              }, [icon(`info-circle${_.isEqual(selectedDataType, [snapshotName]) ? '' : '-regular'}`, { size: 20 })]),
               initialOpenState: _.head(selectedDataType) === snapshotName,
               onFirstOpen: () => loadSnapshotEntities(snapshotName)
             }, [Utils.cond(
@@ -470,17 +485,19 @@ const WorkspaceData = _.flow(
                 'Loading snapshot contents...',
                 spinner({ style: { marginLeft: '1rem' } })
               ])],
-              () => _.map(([tableName, { count }]) => {
-                return h(DataTypeButton, {
-                  buttonStyle: { borderBottom: 0, height: 40 },
-                  key: `${snapshotName}_${tableName}`,
-                  selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
-                  onClick: () => {
-                    setSelectedDataType([snapshotName, tableName])
-                    forceRefresh()
-                  }
-                }, [`${tableName} (${count})`])
-              }, snapshotTablePairs)
+              () => div({ style: { fontSize: 14, lineHeight: '1.5' } }, [
+                _.map(([tableName, { count }]) => {
+                  return h(DataTypeButton, {
+                    buttonStyle: { borderBottom: 0, height: 40 },
+                    key: `${snapshotName}_${tableName}`,
+                    selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
+                    onClick: () => {
+                      setSelectedDataType([snapshotName, tableName])
+                      forceRefresh()
+                    }
+                  }, [`${tableName} (${count})`])
+                }, snapshotTablePairs)
+              ])
             )])
           }, sortedSnapshotPairs)
         ]),
@@ -581,8 +598,12 @@ const WorkspaceData = _.flow(
           ['snapshots', () => snapshotDetails === undefined ?
             spinnerOverlay :
             h(SnapshotContent, {
+              key: refreshKey,
+              workspace,
               snapshotDetails,
-              snapshotKey: selectedDataType
+              snapshotKey: selectedDataType,
+              loadMetadata,
+              firstRender
             })],
           ['entities', () => h(EntitiesContent, {
             key: refreshKey,

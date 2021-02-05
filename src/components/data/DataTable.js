@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Clickable, Link, MenuButton, spinnerOverlay } from 'src/components/common'
+import { Checkbox, Clickable, fixedSpinnerOverlay, Link, MenuButton } from 'src/components/common'
 import { EditDataLink, EntityEditor, EntityRenamer, renderDataCell } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
@@ -53,7 +53,8 @@ const DataTable = props => {
     selectionModel: { selected, setSelected },
     childrenBefore,
     editable,
-    persist, refreshKey, firstRender
+    persist, refreshKey, firstRender,
+    snapshotName
   } = props
 
   const persistenceId = `${namespace}/${name}/${entityType}`
@@ -105,7 +106,10 @@ const DataTable = props => {
   )(async () => {
     const { results, resultMetadata: { filteredCount, unfilteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name)
       .paginatedEntitiesOfType(entityType, {
-        page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction, filterTerms: activeTextFilter
+        page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction,
+        ...(!!snapshotName ?
+          { billingProject: namespace, dataReference: snapshotName } :
+          { filterTerms: activeTextFilter })
       })
     setEntities(results)
     setFilteredCount(filteredCount)
@@ -169,7 +173,7 @@ const DataTable = props => {
       div({ style: { display: 'flex', marginBottom: '1rem' } }, [
         childrenBefore && childrenBefore({ entities, columnSettings }),
         div({ style: { flexGrow: 1 } }),
-        div({ style: { width: 300 } }, [
+        !snapshotName && div({ style: { width: 300 } }, [
           h(ConfirmedSearchInput, {
             'aria-label': 'Search',
             placeholder: 'Search',
@@ -190,6 +194,7 @@ const DataTable = props => {
               ref: table,
               width, height,
               rowCount: entities.length,
+              noContentMessage: `No ${entityType}s to display.`,
               onScroll,
               initialX,
               initialY,
@@ -235,7 +240,7 @@ const DataTable = props => {
                     }
                   }, [
                     h(Sortable, { sort, field: 'name', onSort: setSort }, [
-                      h(HeaderCell, [`${entityType}_id`])
+                      h(HeaderCell, [entityMetadata[entityType].idName])
                     ])
                   ]),
                   cellRenderer: ({ rowIndex }) => {
@@ -296,7 +301,7 @@ const DataTable = props => {
           onSave: setColumnState
         })
       ]),
-      div({ style: { flex: 'none', marginTop: '1rem' } }, [
+      !_.isEmpty(entities) && div({ style: { flex: 'none', marginTop: '1rem' } }, [
         paginator({
           filteredDataLength: filteredCount,
           unfilteredDataLength: totalRowCount,
@@ -335,7 +340,7 @@ const DataTable = props => {
       },
       onDismiss: () => setUpdatingEntity(undefined)
     }),
-    loading && spinnerOverlay
+    loading && fixedSpinnerOverlay
   ])
 }
 
