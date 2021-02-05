@@ -21,7 +21,6 @@ import { ReactComponent as downloadRegular } from 'src/icons/download-regular.sv
 import { ReactComponent as externalLinkAlt } from 'src/icons/external-link-alt-regular.svg'
 import { ReactComponent as fileExport } from 'src/icons/file-export-regular.svg'
 import { ReactComponent as fileSearchSolid } from 'src/icons/file-search-solid.svg'
-import { ReactComponent as infoCircleRegular } from 'src/icons/info-circle-regular.svg'
 import { ReactComponent as list } from 'src/icons/list-regular.svg'
 import { ReactComponent as loadingSpinner } from 'src/icons/loading-spinner.svg'
 import { ReactComponent as renameIcon } from 'src/icons/rename-icon.svg'
@@ -74,7 +73,6 @@ const iconDict = {
   'folder-open': fa(faFolderOpen),
   help: fa(faQuestionCircle),
   'info-circle': fa(faInfoCircle),
-  'info-circle-regular': custom(infoCircleRegular),
   library: custom(books),
   listAlt: fa(faListAlt),
   loadingSpinner: custom(loadingSpinner),

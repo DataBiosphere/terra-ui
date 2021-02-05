@@ -57,13 +57,6 @@ export const WorkspaceSelector = ({ workspaces, value, onChange, ...props }) => 
   })
 }
 
-const SnapshotLabeledInfo = ({ title, text }) => {
-  return div({ style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' } }, [
-    div({ style: { ...Style.elements.sectionHeader, marginRight: '1rem' } }, [title]),
-    text
-  ])
-}
-
 export const SnapshotInfo = ({ snapshotId, snapshotName }) => {
   const [snapshotInfo, setSelectedSnapshotInfo] = useState()
   const signal = Utils.useCancellation()
@@ -77,33 +70,15 @@ export const SnapshotInfo = ({ snapshotId, snapshotName }) => {
     loadSnapshotInfo()
   })
 
-  const { name, description, createdDate, source = [] } = snapshotInfo || {}
+  const { name, description, createdDate } = snapshotInfo || {}
 
-  return snapshotInfo === undefined ? spinnerOverlay : h(Fragment, [
-    div({ style: { padding: '1rem' } }, [
-      div({
-        style: {
-          ...Style.elements.sectionHeader, fontSize: 20,
-          borderBottom: Style.standardLine, paddingBottom: '0.5rem', marginBottom: '1rem'
-        }
-      }, [snapshotName]),
-      h(SnapshotLabeledInfo, { title: 'Source Snapshot Name:', text: name }),
-      h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(createdDate) }),
-      div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
-      div([description]),
-      div({ style: Style.dashboard.header }, [`Data Repo Dataset${source.length > 1 ? 's' : ''}`]),
-      _.map(({ dataset: { id, name: datasetName, description: datasetDescription, createdDate: datasetCreatedDate } }) => {
-        return div({
-          key: id,
-          style: { ...Style.elements.card.container, marginBottom: '1rem' }
-        }, [
-          h(SnapshotLabeledInfo, { title: 'Dataset Name:', text: datasetName }),
-          h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(datasetCreatedDate) }),
-          div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
-          div([datasetDescription])
-        ])
-      }, source)
-    ])
+  return snapshotInfo === undefined ? spinnerOverlay : div({
+    style: Style.elements.card.container
+  }, [
+    div({ style: { ...Style.elements.sectionHeader, fontSize: 20, marginBottom: '0.5rem' } }, [snapshotName]),
+    div({ style: { fontWeight: 'bold' } }, [`Data Repo Snapshot Name: ${name}`]),
+    div({ style: { lineHeight: '20px', marginBottom: '0.5rem' } }, [`Creation date: ${createdDate}`]),
+    div({ style: { paddingRight: '10px', marginRight: '10px' } }, [description])
   ])
 }
 

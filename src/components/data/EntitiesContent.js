@@ -201,7 +201,7 @@ const EntitiesContent = ({
   workspace, workspace: {
     workspace: { namespace, name, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount }
   },
-  entityKey, entityMetadata, loadMetadata, firstRender, snapshotName
+  entityKey, entityMetadata, loadMetadata, firstRender
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({})
@@ -229,7 +229,6 @@ const EntitiesContent = ({
         input({ type: 'hidden', name: 'model', value: 'flexible' })
       ]),
       h(ButtonPrimary, {
-        style: { marginRight: '1rem' },
         disabled,
         tooltip: disabled ?
           'Downloading sets of sets as TSV is not supported at this time' :
@@ -280,6 +279,7 @@ const EntitiesContent = ({
   const renderCopyButton = (entities, columnSettings) => {
     return h(Fragment, [
       h(ButtonPrimary, {
+        style: { marginLeft: '1rem' },
         tooltip: `Copy only the ${entityKey}s visible on the current page to the clipboard in .tsv format`,
         onClick: _.flow(
           withErrorReporting('Error copying to clipboard'),
@@ -318,15 +318,15 @@ const EntitiesContent = ({
               FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
           }
         }, ['Download as TSV']),
-        !snapshotName && h(MenuButton, {
+        h(MenuButton, {
           tooltip: 'Open the selected data to work with it',
           onClick: () => setShowToolSelector(true)
         }, ['Open with...']),
-        !snapshotName && h(MenuButton, {
+        h(MenuButton, {
           tooltip: 'Send the selected data to another workspace',
           onClick: () => setCopyingEntities(true)
         }, ['Export to Workspace']),
-        !snapshotName && h(MenuButton, {
+        h(MenuButton, {
           tooltip: noEdit ? 'You don\'t have permission to modify this workspace' : 'Permanently delete the selected data',
           disabled: noEdit,
           onClick: () => setDeletingEntities(true)
@@ -346,10 +346,9 @@ const EntitiesContent = ({
     h(IGVBrowser, { selectedFiles: igvFiles, refGenome: igvRefGenome, workspace, onDismiss: () => setIgvFiles(undefined) }) :
     h(Fragment, [
       h(DataTable, {
-        persist: true, firstRender, refreshKey, editable: !snapshotName && !Utils.editWorkspaceError(workspace),
+        persist: true, firstRender, refreshKey, editable: !Utils.editWorkspaceError(workspace),
         entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
         onScroll: saveScroll, initialX, initialY,
-        snapshotName,
         selectionModel: {
           selected: selectedEntities,
           setSelected: setSelectedEntities
@@ -357,7 +356,7 @@ const EntitiesContent = ({
         childrenBefore: ({ entities, columnSettings }) => div({
           style: { display: 'flex', alignItems: 'center', flex: 'none' }
         }, [
-          !snapshotName && renderDownloadButton(columnSettings),
+          renderDownloadButton(columnSettings),
           !_.endsWith('_set', entityKey) && renderCopyButton(entities, columnSettings),
           div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
           div({ style: { marginRight: '0.5rem' } }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
