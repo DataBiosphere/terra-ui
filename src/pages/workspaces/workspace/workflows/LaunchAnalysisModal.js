@@ -78,6 +78,7 @@ const LaunchAnalysisModal = ({
   const mergeSets = _.flatMap(`attributes.${rootEntityType}s.items`)
   const entityCount = Utils.cond(
     [processSingle, () => 1],
+    [type === processSnapshotTable, () => entityMetadata[rootEntityType].count],
     [type === chooseRows || type === chooseSets, () => _.size(selectedEntities)],
     [type === processAll, () => entityMetadata[rootEntityType].count],
     [type === processAllAsSet, () => 1],
