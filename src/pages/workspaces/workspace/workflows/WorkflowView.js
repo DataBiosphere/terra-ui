@@ -917,7 +917,7 @@ const WorkflowView = _.flow(
     const selectionMetadata = selectedTableName ? selectedSnapshotEntityMetadata : entityMetadata
     const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata) || []
     const suggestions = [
-      ...(!selectedTableName && !!modifiedConfig.dataReferenceName) ? [`this.${modifiedConfig.rootEntityType}_id`] : [],
+      ...(!selectedTableName && !modifiedConfig.dataReferenceName) ? [`this.${modifiedConfig.rootEntityType}_id`] : [],
       ...(modifiedConfig.rootEntityType ? _.map(name => `this.${name}`, attributeNames) : []),
       ..._.map(name => `workspace.${name}`, workspaceAttributes)
     ]
