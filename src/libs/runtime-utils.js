@@ -48,21 +48,6 @@ export const runtimeConfigBaseCost = config => {
   ])
 }
 
-// export const runtimeConfigBaseCost = config => {
-//   const {
-//     cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize
-//   } = normalizeRuntimeConfig(
-//     config)
-//   const { cpu: masterCpu } = findMachineType(masterMachineType)
-//   const { cpu: workerCpu } = findMachineType(workerMachineType)
-//
-//   return _.sum([
-//     (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice,
-//     cloudService === cloudServices.DATAPROC && (masterCpu + workerCpu * numberOfWorkers) * dataprocCpuPrice,
-//     bootDiskSize * storagePrice
-//   ])
-// }
-
 export const runtimeConfigCost = config => {
   const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = normalizeRuntimeConfig(
     config)
@@ -77,21 +62,6 @@ export const runtimeConfigCost = config => {
     runtimeConfigBaseCost(config)
   ])
 }
-
-// export const runtimeConfigCost = config => {
-//   const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = normalizeRuntimeConfig(
-//     config)
-//   const { price: masterPrice } = findMachineType(masterMachineType)
-//   const { price: workerPrice, preemptiblePrice, cpu: workerCpu } = findMachineType(workerMachineType)
-//   return _.sum([
-//     masterPrice,
-//     numberOfWorkers * workerPrice,
-//     numberOfPreemptibleWorkers * preemptiblePrice,
-//     numberOfPreemptibleWorkers * workerDiskSize * storagePrice,
-//     cloudService === cloudServices.DATAPROC && numberOfPreemptibleWorkers * workerCpu * dataprocCpuPrice,
-//     runtimeConfigBaseCost(config)
-//   ])
-// }
 
 const generateDiskCostFunction = price => ({ size, status }) => {
   return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : size * price
