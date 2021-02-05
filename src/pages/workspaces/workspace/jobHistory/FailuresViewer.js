@@ -1,9 +1,10 @@
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
+import Modal from 'src/components/Modal'
 
 
-const FailuresViewer = ({ failures }) => {
+export const FailuresViewer = ({ failures }) => {
   const restructureFailures = failuresArray => {
     const filtered = _.filter(({ message }) => !_.isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
     const sizeDiff = failuresArray.length - filtered.length
@@ -29,4 +30,15 @@ const FailuresViewer = ({ failures }) => {
   })
 }
 
-export default FailuresViewer
+export const FailuresModal = ({ callFqn, index, attempt, failures, onDismiss }) => {
+  return h(Modal, {
+    title: `Error Messages`,
+    onDismiss,
+    showButtons: false,
+    showX: true,
+    width: '600px'
+  }, [
+    `Failures in ${callFqn} / index ${index} / attempt ${attempt}`,
+    h(FailuresViewer, { failures })
+  ])
+}

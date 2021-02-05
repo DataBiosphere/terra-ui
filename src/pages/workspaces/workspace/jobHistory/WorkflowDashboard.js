@@ -84,7 +84,7 @@ const WorkflowDashboard = _.flow(
 
       const timeBefore = Date.now()
       const wf = await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).workflow(workflowId)
-      const metadata = await wf.metadata(includeKey, excludeKey)
+      const metadata = await wf.metadata({ includeKey, excludeKey })
       setWorkflow(metadata)
       setFetchTime(Date.now() - timeBefore)
 
@@ -118,90 +118,102 @@ const WorkflowDashboard = _.flow(
     }), simplifiedFailures)
   }
 
-  const callNames = _.keys(calls)
+  const callNames = _.sortedUniq(_.keys(calls))
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId),
     workflow === undefined ?
-      div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, [`Fetching workflow metadata...`]) :
-      div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, [`Workflow metadata fetched in ${fetchTime}ms`]),
-    workflow === undefined ? centeredSpinner() : div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
-      makeSection('Workflow Status', [
-        div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [makeStatusLine(style => statusIcon(status, style), status)])
-      ]),
-      makeSection('Workflow Timing', [
-        div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
-          div({ style: styles.sectionTableLabel }, ['Start:']), div([start ? Utils.makeCompleteDate(start) : 'N/A']),
-          div({ style: styles.sectionTableLabel }, ['End:']), div([end ? Utils.makeCompleteDate(end) : 'N/A'])
-        ])
-      ]),
-      makeSection('Links', [
-        div({ style: { display: 'flex', flexFlow: 'row wrap', marginTop: '0.5rem' } }, [
-          h(Link, {
-            ...Utils.newTabLinkProps,
-            href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-            style: { display: 'flex' },
-            tooltip: 'Job Manager'
-          }, [icon('tasks', { size: 18 }), ' Job Manager']),
-          h(Link, {
-            ...Utils.newTabLinkProps,
-            href: bucketBrowserUrl(`${bucketName}/${submissionId}/${workflowName}/${workflowId}`),
-            style: { display: 'flex', marginLeft: '1rem' },
-            tooltip: 'Execution directory'
-          }, [icon('folder-open', { size: 18 }), ' Execution Directory']),
-          h(Link, {
-            onClick: () => setShowLog(true),
-            style: { display: 'flex', marginLeft: '1rem' }
-          }, [icon('fileAlt', { size: 18 }), ' View execution log'])
-        ])
-      ])
-    ]),
-    workflow !== undefined && failures && h(Collapse, {
-      style: { marginBottom: '1rem' },
-      initialOpenState: true,
-      title: div({ style: Style.elements.sectionHeader }, [
-        'Workflow-Level Failures',
-        h(ClipboardButton, {
-          text: JSON.stringify(failures, null, 2),
-          style: { marginLeft: '0.5rem' },
-          onClick: e => e.stopPropagation() // this stops the collapse when copying
-        })
-      ])
-    }, [h(ReactJson, {
-      style: { whiteSpace: 'pre-wrap' },
-      name: false,
-      collapsed: 4,
-      enableClipboard: false,
-      displayDataTypes: false,
-      displayObjectSize: false,
-      src: restructureFailures(failures)
-    })]),
-    workflow !== undefined && h(Collapse, {
-      title: div({ style: Style.elements.sectionHeader }, ['Calls']),
-      initialOpenState: true
-    }, [
-      div({ style: { marginLeft: '1rem' } },
-        [makeSection('Total Call Status Counts', [
-          !_.isEmpty(calls) ? statusCell(workflow) : div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.'])
-        ]),
-        !_.isEmpty(calls) && makeSection('Call Lists', [
-          _.map(callName => {
-            return h(Collapse, {
-              style: { marginLeft: '1rem', marginTop: '0.5rem' },
-              title: div({ style: { ...Style.codeFont, ...Style.elements.sectionHeader } }, [`${callName} (x ${calls[callName].length})`]),
-              initialOpenState: calls[callName].length < 10
-            }, [
-              h(CallTable, { namespace, name, submissionId, workflowId, callName, callObjects: calls[callName] })
+      h(Fragment, [
+        div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, [`Fetching workflow metadata...`]),
+        centeredSpinner()
+      ]) :
+      h(Fragment, [
+        div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, [`Workflow metadata fetched in ${fetchTime}ms`]),
+        div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
+          makeSection('Workflow Status', [
+            div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [makeStatusLine(style => statusIcon(status, style), status)])
+          ]),
+          makeSection('Workflow Timing', [
+            div({ style: { marginTop: '0.5rem', display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '0.5rem' } }, [
+              div({ style: styles.sectionTableLabel }, ['Start:']), div([start ? Utils.makeCompleteDate(start) : 'N/A']),
+              div({ style: styles.sectionTableLabel }, ['End:']), div([end ? Utils.makeCompleteDate(end) : 'N/A'])
             ])
-          }, callNames)
-        ])]
-      )
-    ]),
-    workflow !== undefined && wdl && h(Collapse, {
-      title: div({ style: Style.elements.sectionHeader }, ['Submitted workflow script'])
-    }, [h(WDLViewer, { wdl })]
-    ),
-    workflow !== undefined && showLog && h(UriViewer, { googleProject: namespace, uri: workflowLog, onDismiss: () => setShowLog(false) })
+          ]),
+          makeSection('Links', [
+            div({ style: { display: 'flex', flexFlow: 'row wrap', marginTop: '0.5rem' } }, [
+              h(Link, {
+                ...Utils.newTabLinkProps,
+                href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
+                style: { display: 'flex' },
+                tooltip: 'Job Manager'
+              }, [icon('tasks', { size: 18 }), ' Job Manager']),
+              h(Link, {
+                ...Utils.newTabLinkProps,
+                href: bucketBrowserUrl(`${bucketName}/${submissionId}/${workflowName}/${workflowId}`),
+                style: { display: 'flex', marginLeft: '1rem' },
+                tooltip: 'Execution directory'
+              }, [icon('folder-open', { size: 18 }), ' Execution Directory']),
+              h(Link, {
+                onClick: () => setShowLog(true),
+                style: { display: 'flex', marginLeft: '1rem' }
+              }, [icon('fileAlt', { size: 18 }), ' View execution log'])
+            ])
+          ])
+        ]),
+        failures && h(Collapse,
+          {
+            style: { marginBottom: '1rem' },
+            initialOpenState: true,
+            title: div({ style: Style.elements.sectionHeader }, [
+              'Workflow-Level Failures',
+              h(ClipboardButton, {
+                text: JSON.stringify(failures, null, 2),
+                style: { marginLeft: '0.5rem' },
+                onClick: e => e.stopPropagation() // this stops the collapse when copying
+              })
+            ])
+          }, [h(ReactJson, {
+            style: { whiteSpace: 'pre-wrap' },
+            name: false,
+            collapsed: 4,
+            enableClipboard: false,
+            displayDataTypes: false,
+            displayObjectSize: false,
+            src: restructureFailures(failures)
+          })]
+        ),
+        h(Collapse,
+          {
+            title: div({ style: Style.elements.sectionHeader }, ['Calls']),
+            initialOpenState: true
+          }, [
+            div({ style: { marginLeft: '1rem' } },
+              [makeSection('Total Call Status Counts', [
+                !_.isEmpty(calls) ? statusCell(workflow) : div({ style: { marginTop: '0.5rem' } }, ['No calls have been started by this workflow.'])
+              ]),
+              !_.isEmpty(calls) && makeSection('Call Lists', [
+                _.map(callName => {
+                  return h(Collapse, {
+                    key: callName,
+                    style: { marginLeft: '1rem', marginTop: '0.5rem' },
+                    title: div({ style: { ...Style.codeFont, ...Style.elements.sectionHeader } }, [`${callName} (× ${calls[callName].length})`]),
+                    initialOpenState: !_.isEmpty(_.filter(c => { return c.executionStatus !== 'Done' })(calls[callName]))
+                    // initialOpenState: calls[callName].length < 10
+                  }, [
+                    h(CallTable, { namespace, name, submissionId, workflowId, callName, callObjects: calls[callName] })
+                  ])
+                }, callNames)
+              ])]
+            )
+          ]
+        ),
+        wdl && h(Collapse,
+          {
+            title: div({ style: Style.elements.sectionHeader }, ['Submitted workflow script'])
+          }, [h(WDLViewer, { wdl })]
+        ),
+        showLog && h(UriViewer, { googleProject: namespace, uri: workflowLog, onDismiss: () => setShowLog(false) })
+      ])
   ])
 })
 

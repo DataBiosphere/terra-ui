@@ -655,7 +655,7 @@ const Workspaces = signal => ({
           // But: Because of the slowness of asking via CromIAM, that's probably a non-starter for right now.
           workflow: workflowId => {
             return {
-              metadata: async (includeKey, excludeKey) => {
+              metadata: async ({ includeKey, excludeKey }) => {
                 const res = await fetchRawls(`${submissionPath}/workflows/${workflowId}?${qs.stringify({
                   includeKey,
                   excludeKey
