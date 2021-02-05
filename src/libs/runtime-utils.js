@@ -29,7 +29,7 @@ export const findMachineType = name => {
   return _.find({ name }, machineTypes) || { name, cpu: '?', memory: '?', price: NaN, preemptiblePrice: NaN }
 }
 
-export const dataprocCost = (machineType, numInstances) => {
+const dataprocCost = (machineType, numInstances) => {
   const { cpu: cpuPrice } = findMachineType(machineType)
 
   return cpuPrice * numInstances * dataprocCpuPrice
