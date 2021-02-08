@@ -25,36 +25,40 @@ export const normalizeRuntimeConfig = ({
   }
 }
 
+export const findMachineType = name => {
+  return _.find({ name }, machineTypes) || { name, cpu: '?', memory: '?', price: NaN, preemptiblePrice: NaN }
+}
+
+const dataprocCost = (machineType, numInstances) => {
+  const { cpu: cpuPrice } = findMachineType(machineType)
+
+  return cpuPrice * numInstances * dataprocCpuPrice
+}
+
 export const runtimeConfigBaseCost = config => {
   const {
     cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize
   } = normalizeRuntimeConfig(
     config)
-  const { cpu: masterCpu } = findMachineType(masterMachineType)
-  const { cpu: workerCpu } = findMachineType(workerMachineType)
 
   return _.sum([
     (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice,
-    cloudService === cloudServices.DATAPROC && (masterCpu + workerCpu * numberOfWorkers) * dataprocCpuPrice,
+    cloudService === cloudServices.DATAPROC && (dataprocCost(masterMachineType, 1) + dataprocCost(workerMachineType, numberOfWorkers)),
     bootDiskSize * storagePrice
   ])
-}
-
-export const findMachineType = name => {
-  return _.find({ name }, machineTypes) || { name, cpu: '?', memory: '?', price: NaN, preemptiblePrice: NaN }
 }
 
 export const runtimeConfigCost = config => {
   const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = normalizeRuntimeConfig(
     config)
   const { price: masterPrice } = findMachineType(masterMachineType)
-  const { price: workerPrice, preemptiblePrice, cpu: workerCpu } = findMachineType(workerMachineType)
+  const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
   return _.sum([
     masterPrice,
     numberOfWorkers * workerPrice,
     numberOfPreemptibleWorkers * preemptiblePrice,
     numberOfPreemptibleWorkers * workerDiskSize * storagePrice,
-    cloudService === cloudServices.DATAPROC && numberOfPreemptibleWorkers * workerCpu * dataprocCpuPrice,
+    cloudService === cloudServices.DATAPROC && dataprocCost(workerMachineType, numberOfPreemptibleWorkers),
     runtimeConfigBaseCost(config)
   ])
 }
