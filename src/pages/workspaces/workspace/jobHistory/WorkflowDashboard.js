@@ -196,9 +196,8 @@ const WorkflowDashboard = _.flow(
                   return h(Collapse, {
                     key: callName,
                     style: { marginLeft: '1rem', marginTop: '0.5rem' },
-                    title: div({ style: { ...Style.codeFont, ...Style.elements.sectionHeader } }, [`${callName} (× ${calls[callName].length})`]),
+                    title: div({ style: { ...Style.codeFont, ...Style.elements.sectionHeader } }, [`${callName} × ${calls[callName].length}`]),
                     initialOpenState: !_.isEmpty(_.filter(c => { return c.executionStatus !== 'Done' })(calls[callName]))
-                    // initialOpenState: calls[callName].length < 10
                   }, [
                     h(CallTable, { namespace, name, submissionId, workflowId, callName, callObjects: calls[callName] })
                   ])
