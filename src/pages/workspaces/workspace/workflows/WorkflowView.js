@@ -400,7 +400,7 @@ const WorkflowView = _.flow(
           ['outputs', () => this.renderIOTable('outputs')]
         ),
         launching && h(LaunchAnalysisModal, {
-          workspace, config: savedConfig, entityMetadata: modifiedConfig.dataReferenceName ? selectedSnapshotEntityMetadata : entityMetadata,
+          workspace, config: savedConfig, entityMetadata: selectedSnapshotEntityMetadata || entityMetadata,
           accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache, deleteIntermediateOutputFiles,
           onDismiss: () => this.setState({ launching: false }),
@@ -470,7 +470,7 @@ const WorkflowView = _.flow(
         !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
       )(config)
 
-      const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ? await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, modifiedConfig.dataReferenceName) : {}
+      const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ? await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, modifiedConfig.dataReferenceName) : undefined
 
       this.setState({
         savedConfig: config, modifiedConfig,
@@ -724,13 +724,14 @@ const WorkflowView = _.flow(
 
                       this.setState({
                         selectedSnapshotEntityMetadata, selectedEntityType: value,
-                        entitySelectionModel: this.resetSelectionModel(value, {}, {}, true)
+                        entitySelectionModel: this.resetSelectionModel(value, undefined, undefined, true)
                       })
                     } else {
                       this.setState(_.set(['modifiedConfig', 'rootEntityType'], value))
                       this.setState(_.unset(['modifiedConfig', 'dataReferenceName']))
                       this.setState({
-                        selectedEntityType: value, entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, false)
+                        selectedEntityType: value, entitySelectionModel: this.resetSelectionModel(value, {}, entityMetadata, false),
+                        selectedSnapshotEntityMetadata: undefined
                       })
                     }
                   },
