@@ -12,7 +12,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
 import {
-  chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet
+  chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet, processSnapshotTable
 } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
@@ -58,9 +58,11 @@ const LaunchAnalysisModal = ({
           setMessage('Fetching data...')
           const selectedEntityNames = _.map('name', await Ajax(signal).Workspaces.workspace(namespace, workspaceName).entitiesOfType(baseEntityType))
           return { selectedEntityType: baseEntityType, selectedEntityNames }
-        }]
+        }],
+        [type === processSnapshotTable, () => ({ selectedEntityType: rootEntityType })]
       )
       const { submissionId } = await launch({
+        isSnapshot: type === processSnapshotTable,
         workspace, config, selectedEntityType, selectedEntityNames, newSetName, useCallCache, deleteIntermediateOutputFiles,
         onProgress: stage => {
           setMessage({ createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage])
@@ -76,6 +78,7 @@ const LaunchAnalysisModal = ({
   const mergeSets = _.flatMap(`attributes.${rootEntityType}s.items`)
   const entityCount = Utils.cond(
     [processSingle, () => 1],
+    [type === processSnapshotTable, () => entityMetadata[rootEntityType].count],
     [type === chooseRows || type === chooseSets, () => _.size(selectedEntities)],
     [type === processAll, () => entityMetadata[rootEntityType].count],
     [type === processAllAsSet, () => 1],

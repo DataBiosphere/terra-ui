@@ -4,6 +4,7 @@ import * as Utils from 'src/libs/utils'
 
 
 export const launch = async ({
+  isSnapshot,
   workspace: { workspace: { namespace, name, bucketName }, accessLevel },
   config: { namespace: configNamespace, name: configName, rootEntityType },
   selectedEntityType, selectedEntityNames, newSetName, useCallCache = true, deleteIntermediateOutputFiles,
@@ -29,7 +30,7 @@ export const launch = async ({
     throw new Error('Error confirming workspace bucket access. This may be a transient problem. Please try again in a few minutes. If the problem persists, please contact support.')
   }
   const { entityName, processSet = false } = await Utils.cond(
-    [selectedEntityType === undefined, () => ({})],
+    [isSnapshot || (selectedEntityType === undefined), () => ({})],
     [`${selectedEntityType}_set` === rootEntityType, async () => {
       await createSet()
       return { entityName: newSetName }
