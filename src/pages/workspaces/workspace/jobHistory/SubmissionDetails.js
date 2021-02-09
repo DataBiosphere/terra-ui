@@ -94,7 +94,7 @@ const SubmissionDetails = _.flow(
    */
   const {
     cost, methodConfigurationName: workflowName, methodConfigurationNamespace: workflowNamespace, submissionDate,
-    submissionEntity: { entityType, entityName } = {}, submitter, useCallCache, deleteIntermediateOutputFiles, workflows = []
+    submissionEntity: { entityType, entityName } = {}, submitter, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks, workflows = []
   } = submission
 
   const filteredWorkflows = _.flow(
@@ -156,7 +156,8 @@ const SubmissionDetails = _.flow(
             submissionId
           )]),
           makeSection('Call Caching', [useCallCache ? 'Enabled' : 'Disabled']),
-          makeSection('Delete Intermediate Outputs', [deleteIntermediateOutputFiles ? 'Enabled' : 'Disabled'])
+          makeSection('Delete Intermediate Outputs', [deleteIntermediateOutputFiles ? 'Enabled' : 'Disabled']),
+          makeSection('Use Reference Disks', [useReferenceDisks ? 'Enabled' : 'Disabled'])
         ])
       ]),
       div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [
