@@ -82,7 +82,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
               const failureCount = _.size(failures)
               const linkCount = (failures ? 1 : 0) + (ccResult === 'Cache Miss' ? 1 : 0)
               return linkCount > 0 ? [
-                h(Link, {
+                failureCount > 0 && h(Link, {
                   style: { marginLeft: '0.5rem' },
                   tooltip: `${failureCount} Message${failureCount > 1 ? 's' : ''}`,
                   onClick: () => setFailuresModalParams({ index, attempt, failures })
