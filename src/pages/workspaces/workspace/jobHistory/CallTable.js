@@ -66,7 +66,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
             cellRenderer: ({ rowIndex }) => {
               const { callCaching: { effectiveCallCachingMode, result } = {} } = callObjects[rowIndex]
               if (effectiveCallCachingMode === 'ReadAndWriteCache' || effectiveCallCachingMode === 'ReadCache') {
-                return result ? [h(TooltipCell, [result])] : div({ style: { color: colors.dark(0.7) } }, ['No Information'])
+                return result ? h(TooltipCell, [result]) : div({ style: { color: colors.dark(0.7) } }, ['No Information'])
               } else if (effectiveCallCachingMode === 'WriteCache') {
                 return div({ style: { color: colors.dark(0.7) } }, ['Lookup disabled; write enabled'])
               } else {
