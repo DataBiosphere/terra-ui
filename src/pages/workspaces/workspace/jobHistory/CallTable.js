@@ -83,6 +83,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
               const linkCount = (failures ? 1 : 0) + (ccResult === 'Cache Miss' ? 1 : 0)
               return linkCount > 0 ? [
                 failureCount > 0 && h(Link, {
+                  key: 'failures',
                   style: { marginLeft: '0.5rem' },
                   tooltip: `${failureCount} Message${failureCount > 1 ? 's' : ''}`,
                   onClick: () => setFailuresModalParams({ index, attempt, failures })
@@ -91,6 +92,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
                   linkCount === 1 && ` ${failureCount} Message${failureCount > 1 ? 's' : ''}`
                 ])]),
                 ccResult === 'Cache Miss' && h(Link, {
+                  key: 'cc',
                   style: { marginLeft: '0.5rem' },
                   tooltip: 'Call Cache Debug Wizard',
                   onClick: () => setWizardSelection({ callFqn: callName, index, attempt })
