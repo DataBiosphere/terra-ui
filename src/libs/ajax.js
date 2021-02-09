@@ -135,7 +135,6 @@ const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
 const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
 const fetchAgora = _.flow(withUrlPrefix(`${getConfig().agoraUrlRoot}/api/v1/`), withAppIdentifier)(fetchOk)
 const fetchOrchestration = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlRoot}/`), withAppIdentifier)(fetchOk)
-const fetchProfile = withUrlPrefix(`${getConfig().profileUrlRoot}/`, fetchOk)
 const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
@@ -306,7 +305,7 @@ const User = signal => ({
   },
 
   linkNihAccount: async token => {
-    const res = await fetchProfile('shibboleth-token', _.merge(authOpts(), { body: token, signal, method: 'POST' }))
+    const res = await fetchOrchestration('api/nih/callback', _.mergeAll([authOpts(), jsonBody({ jwt: token }), { signal, method: 'POST' }]))
     return res.json()
   },
 
