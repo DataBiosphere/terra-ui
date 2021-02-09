@@ -118,7 +118,7 @@ const WorkflowDashboard = _.flow(
     }), simplifiedFailures)
   }
 
-  const callNames = _.sortedUniq(_.keys(calls))
+  const callNames = _.sortBy(_.identity, _.keys(calls))
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId),
@@ -197,7 +197,7 @@ const WorkflowDashboard = _.flow(
                     key: callName,
                     style: { marginLeft: '1rem', marginTop: '0.5rem' },
                     title: div({ style: { ...Style.codeFont, ...Style.elements.sectionHeader } }, [`${callName} × ${calls[callName].length}`]),
-                    initialOpenState: !_.isEmpty(_.filter(c => { return c.executionStatus !== 'Done' })(calls[callName]))
+                    initialOpenState: !_.every({ executionStatus: 'Done' }, calls[callName])
                   }, [
                     h(CallTable, { namespace, name, submissionId, workflowId, callName, callObjects: calls[callName] })
                   ])

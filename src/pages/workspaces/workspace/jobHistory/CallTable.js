@@ -18,7 +18,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
     h(AutoSizer, { disableHeight: true }, [
       ({ width }) => h(FlexTable, {
         height: tableHeight({ actualRows: callObjects.length, maxRows: 10.5 }), // The half-row here hints at there being extra rows if scrolled
-        width: _.max([width, 0]),
+        width,
         rowCount: callObjects.length,
         noContentMessage: 'No matching calls',
         columns: [
@@ -78,8 +78,8 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
             cellRenderer: ({ rowIndex }) => {
               const { failures, shardIndex: index, attempt } = callObjects[rowIndex]
               const failureCount = _.size(failures)
-              return [
-                failures && h(Link, {
+              return failures ? [
+                h(Link, {
                   style: { marginLeft: '0.5rem' },
                   onClick: () => setFailuresModalParams({ index, attempt, failures })
                 }, [
@@ -88,7 +88,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
                     `${failureCount} Message${failureCount > 1 ? 's' : ''}`
                   ])
                 ])
-              ]
+              ] : undefined
             }
           }
         ]
