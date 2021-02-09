@@ -131,8 +131,8 @@ const CallCacheWizard = ({
           return `${shards[0]} (exactly one shard in the scatter)`
         }
       } else {
-        const shardOptions = _.map(i => { return { value: i, label: i } }).apply(shards)
-        return h(Select, { id: 'otherCallIndex', options: shardOptions, onChange: i => setOtherIndex(i) })
+        const shardOptions = _.map(i => { return { value: i, label: i } }, shards)
+        return h(Select, { options: shardOptions, onChange: i => { setOtherIndex(i.value) } })
       }
     }
 
