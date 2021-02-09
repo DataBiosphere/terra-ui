@@ -47,7 +47,7 @@ const DockstoreImporter = ({ path, version, source }) => {
     withErrorReporting('Error loading WDL'),
     Utils.withBusyState(setIsBusy)
   )(async () => {
-    const wdl = await Ajax(signal).Dockstore.getWdl(path, version, source === 'dockstoretools')
+    const wdl = await Ajax(signal).Dockstore.getWdl({ path, version, isTool: source === 'dockstoretools' })
     setWdl(wdl)
     setWorkflowName(_.last(path.split('/')))
   })

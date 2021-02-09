@@ -144,7 +144,7 @@ const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
 const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
 
 // %23 = '#', %2F = '/'
-const dockstoreMethodPath = (path, isTool) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
+const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
 
 /**
  * Only use this if the user has write access to the workspace to avoid proliferation of service accounts in projects containing public workspaces.
@@ -1225,14 +1225,14 @@ const Disks = signal => ({
 })
 
 const Dockstore = signal => ({
-  getWdl: async (path, version, isTool) => {
-    const res = await fetchDockstore(`${dockstoreMethodPath(path, isTool)}/${encodeURIComponent(version)}/WDL/descriptor`, { signal })
+  getWdl: async ({ path, version, isTool }) => {
+    const res = await fetchDockstore(`${dockstoreMethodPath({ path, isTool })}/${encodeURIComponent(version)}/WDL/descriptor`, { signal })
     const { url } = await res.json()
     return fetchOk(url, { signal }).then(res => res.text())
   },
 
-  getVersions: async (path, isTool) => {
-    const res = await fetchDockstore(dockstoreMethodPath(path, isTool), { signal })
+  getVersions: async ({ path, isTool }) => {
+    const res = await fetchDockstore(dockstoreMethodPath({ path, isTool }), { signal })
     return res.json()
   }
 })
