@@ -85,7 +85,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
                 }, [
                   div({ style: { display: 'flex', alignItems: 'center' } }, [
                     icon('warning-standard', { size: 18, style: { color: colors.warning(), marginRight: '0.5rem' } }),
-                    `${failureCount} Error Message${failureCount > 1 ? 's' : ''}`
+                    `${failureCount} Message${failureCount > 1 ? 's' : ''}`
                   ])
                 ])
               ]
