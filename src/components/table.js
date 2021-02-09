@@ -157,6 +157,10 @@ const styles = {
   }
 }
 
+// Calculate a suitable pixel height for a table, capped at a certain number of rows.
+// Note: We always need 1 extra row's worth of height for the table header row:
+export const tableHeight = ({ actualRows, maxRows, heightPerRow = 48 }) => (_.min([actualRows, maxRows]) + 1) * heightPerRow
+
 /**
  * A virtual table with a fixed header and flexible column widths. Intended to take up the full
  * available container width, without horizontal scrolling.

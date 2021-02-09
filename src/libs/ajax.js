@@ -655,9 +655,19 @@ const Workspaces = signal => ({
             return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }))
           },
 
-          getWorkflow: async (workflowId, includeKey) => {
-            const res = await fetchRawls(`${submissionPath}/workflows/${workflowId}?${qs.stringify({ includeKey }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
-            return res.json()
+          // NB: This could one day perhaps redirect to CromIAM's 'workflow' like:
+          // workflow: workflowId => Ajax(signal).CromIAM.workflow(workflowId)
+          // But: Because of the slowness of asking via CromIAM, that's probably a non-starter for right now.
+          workflow: workflowId => {
+            return {
+              metadata: async ({ includeKey, excludeKey }) => {
+                const res = await fetchRawls(`${submissionPath}/workflows/${workflowId}?${qs.stringify({
+                  includeKey,
+                  excludeKey
+                }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
+                return res.json()
+              }
+            }
           }
         }
       },
