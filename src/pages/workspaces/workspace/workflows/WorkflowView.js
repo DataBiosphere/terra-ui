@@ -497,8 +497,8 @@ const WorkflowView = _.flow(
         const snapshotIds = _.map('snapshotId', methods)
 
         this.setState({ versionIds: snapshotIds })
-      } else if (sourceRepo === 'dockstore') {
-        const versions = await Ajax(signal).Dockstore.getVersions(methodPath)
+      } else if (sourceRepo === 'dockstore' || sourceRepo === 'dockstoretools') {
+        const versions = await Ajax(signal).Dockstore.getVersions(methodPath, sourceRepo === 'dockstoretools')
         const versionIds = _.map('name', versions)
 
         this.setState({ versionIds })
@@ -531,8 +531,8 @@ const WorkflowView = _.flow(
           const { synopsis, documentation, payload } = await Ajax(signal).Methods.method(methodNamespace, methodName, methodVersion).get()
           this.setState({ synopsis, documentation, wdl: payload })
         }
-      } else if (sourceRepo === 'dockstore') {
-        const wdl = await Ajax(signal).Dockstore.getWdl(methodPath, methodVersion)
+      } else if (sourceRepo === 'dockstore' || sourceRepo === 'dockstoretools') {
+        const wdl = await Ajax(signal).Dockstore.getWdl(methodPath, methodVersion, sourceRepo === 'dockstoretools')
         this.setState({ wdl })
       } else {
         throw new Error('unknown sourceRepo')
