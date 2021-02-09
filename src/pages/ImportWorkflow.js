@@ -36,7 +36,7 @@ const styles = {
   }
 }
 
-const DockstoreImporter = ({ path, version }) => {
+const DockstoreImporter = ({ path, version, source }) => {
   const [isBusy, setIsBusy] = useState(false)
   const [wdl, setWdl] = useState(undefined)
   const [workflowName, setWorkflowName] = useState('')
@@ -47,7 +47,7 @@ const DockstoreImporter = ({ path, version }) => {
     withErrorReporting('Error loading WDL'),
     Utils.withBusyState(setIsBusy)
   )(async () => {
-    const wdl = await Ajax(signal).Dockstore.getWdl(path, version)
+    const wdl = await Ajax(signal).Dockstore.getWdl({ path, version, isTool: source === 'dockstoretools' })
     setWdl(wdl)
     setWorkflowName(_.last(path.split('/')))
   })
@@ -58,7 +58,7 @@ const DockstoreImporter = ({ path, version }) => {
 
   const doImport = Utils.withBusyState(setIsBusy, async workspace => {
     const { name, namespace } = workspace
-    const eventData = { source: 'dockstore', ...extractWorkspaceDetails({ workspace }) }
+    const eventData = { source, ...extractWorkspaceDetails({ workspace }) }
 
     try {
       const rawlsWorkspace = Ajax().Workspaces.workspace(namespace, name)
@@ -67,7 +67,7 @@ const DockstoreImporter = ({ path, version }) => {
         namespace, name: workflowName, rootEntityType: _.head(_.keys(entityMetadata)),
         inputs: {}, outputs: {}, prerequisites: {}, methodConfigVersion: 1, deleted: false,
         methodRepoMethod: {
-          sourceRepo: 'dockstore',
+          sourceRepo: source,
           methodPath: path,
           methodVersion: version
         }
@@ -128,7 +128,7 @@ const Importer = ({ source, item }) => {
     h(TopBar, { title: 'Import Workflow' }),
     div({ role: 'main', style: { flexGrow: 1 } }, [
       Utils.cond(
-        [source === 'dockstore', () => h(DockstoreImporter, { path, version })],
+        [source === 'dockstore' || source === 'dockstoretools', () => h(DockstoreImporter, { path, version, source })],
         () => `Unknown source '${source}'`
       )
     ])
