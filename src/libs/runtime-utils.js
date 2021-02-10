@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { cloudServices, dataprocCpuPrice, machineTypes, monthlyStoragePrice, storagePrice } from 'src/data/machines'
+import { cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, monthlyStoragePrice, storagePrice } from 'src/data/machines'
 
 
 export const DEFAULT_DISK_SIZE = 50
@@ -21,7 +21,6 @@ export const normalizeRuntimeConfig = ({
     workerMachineType: (isDataproc && numberOfWorkers && workerMachineType) || 'n1-standard-4',
     workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || 50,
     bootDiskSize: bootDiskSize || 0
-
   }
 }
 
@@ -53,12 +52,15 @@ export const runtimeConfigCost = config => {
     config)
   const { price: masterPrice } = findMachineType(masterMachineType)
   const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
+  const numberOfStandardVms = 1 + numberOfWorkers // 1 is for the master VM
+
   return _.sum([
     masterPrice,
     numberOfWorkers * workerPrice,
     numberOfPreemptibleWorkers * preemptiblePrice,
     numberOfPreemptibleWorkers * workerDiskSize * storagePrice,
     cloudService === cloudServices.DATAPROC && dataprocCost(workerMachineType, numberOfPreemptibleWorkers),
+    ephemeralExternalIpAddressCost(numberOfStandardVms, numberOfPreemptibleWorkers),
     runtimeConfigBaseCost(config)
   ])
 }
@@ -68,6 +70,11 @@ const generateDiskCostFunction = price => ({ size, status }) => {
 }
 export const persistentDiskCost = generateDiskCostFunction(storagePrice)
 export const persistentDiskCostMonthly = generateDiskCostFunction(monthlyStoragePrice)
+
+// Standard VM is a non-preemptible VM
+const ephemeralExternalIpAddressCost = (numStandardVms, numPreemptibleVms) => {
+  return numStandardVms * ephemeralExternalIpAddressPrice.standard + numPreemptibleVms * ephemeralExternalIpAddressPrice.preemptible
+}
 
 export const runtimeCost = ({ runtimeConfig, status }) => {
   switch (status) {

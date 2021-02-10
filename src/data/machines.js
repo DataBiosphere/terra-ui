@@ -40,6 +40,10 @@ export const machineTypes = _.map(({ price, preemptiblePrice, ...details }) => (
 export const monthlyStoragePrice = 0.04 // from https://cloud.google.com/compute/pricing
 export const storagePrice = monthlyStoragePrice / 730 // per GB hour using 730 hours per month from https://cloud.google.com/compute/pricing
 export const dataprocCpuPrice = 0.01 // dataproc costs $0.01 per cpu per hour
+export const ephemeralExternalIpAddressPrice = { // per hour in dollars for Iowa (us-central1) region per https://cloud.google.com/vpc/network-pricing#ipaddress
+  standard: 0.004,
+  preemptible: 0.002
+}
 
 export const version = '6' // updated jupyter-iframe-extension.js
 
