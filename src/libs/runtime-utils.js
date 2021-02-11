@@ -71,8 +71,8 @@ const generateDiskCostFunction = price => ({ size, status }) => {
 export const persistentDiskCost = generateDiskCostFunction(storagePrice)
 export const persistentDiskCostMonthly = generateDiskCostFunction(monthlyStoragePrice)
 
-// Standard VM is a non-preemptible VM
 const ephemeralExternalIpAddressCost = (numStandardVms, numPreemptibleVms) => {
+  // Google categorizes a VM as 'standard' if it is not 'pre-emptible'.
   return numStandardVms * ephemeralExternalIpAddressPrice.standard + numPreemptibleVms * ephemeralExternalIpAddressPrice.preemptible
 }
 
