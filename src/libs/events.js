@@ -29,7 +29,7 @@ const eventsList = {
 }
 
 export const extractWorkspaceDetails = workspaceObject => {
-  const { workspace: { namespace, name } } = workspaceObject
+  const { name, namespace } = workspaceObject
   return { workspaceName: name, workspaceNamespace: namespace }
 }
 

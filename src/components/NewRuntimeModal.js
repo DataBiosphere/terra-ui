@@ -118,7 +118,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
   static propTypes = {
     runtimes: PropTypes.array,
     persistentDisks: PropTypes.array,
-    namespace: PropTypes.string.isRequired,
+    workspace: PropTypes.object.isRequired,
     onDismiss: PropTypes.func.isRequired,
     onSuccess: PropTypes.func.isRequired
   }
@@ -155,9 +155,8 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     }
   }
 
-  makeWorkspaceObj() {
-    const { namespace, name } = this.props
-    return { workspace: { namespace, name } }
+  getWorkspaceObj() {
+    return this.props.workspace.workspace
   }
 
   getCurrentRuntime() {
@@ -227,7 +226,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     )
 
     Ajax().Metrics.captureEvent(Events[metricsEvent], {
-      ...extractWorkspaceDetails(this.makeWorkspaceObj()),
+      ...extractWorkspaceDetails(this.getWorkspaceObj()),
       ..._.mapKeys(key => `newRuntime_${key}`, newRuntime),
       newRuntime_exists: !!newRuntime,
       newRuntime_cpus: newRuntime && newRuntimeCpus,
@@ -249,7 +248,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     Utils.withBusyState(() => this.setState({ loading: true })),
     withErrorReporting('Error creating cloud environment')
   )(async () => {
-    const { onSuccess, namespace } = this.props
+    const { onSuccess } = this.props
     const { currentRuntimeDetails, currentPersistentDiskDetails } = this.state
     const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
     const { runtime: newRuntime, persistentDisk: newPersistentDisk } = this.getNewEnvironmentConfig()
@@ -258,6 +257,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const shouldUpdateRuntime = this.canUpdateRuntime() && !_.isEqual(newRuntime, oldRuntime)
     const shouldDeleteRuntime = oldRuntime && !this.canUpdateRuntime()
     const shouldCreateRuntime = !this.canUpdateRuntime() && newRuntime
+    const { name, bucketName, googleProject } = this.getWorkspaceObj()
 
     const runtimeConfig = newRuntime && {
       cloudService: newRuntime.cloudService,
@@ -270,7 +270,8 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             name: currentPersistentDiskDetails.name
           } : {
             name: Utils.generatePersistentDiskName(),
-            size: newPersistentDisk.size
+            size: newPersistentDisk.size,
+            labels: { saturnWorkspaceName: name }
           }
         })
       } : {
@@ -285,24 +286,32 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       })
     }
 
+    const customEnvVars = {
+      WORKSPACE_NAME: name,
+      WORKSPACE_BUCKET: `gs://${bucketName}`,
+      GOOGLE_PROJECT: googleProject
+    }
+
     this.sendCloudEnvironmentMetrics()
 
     if (shouldDeleteRuntime) {
-      await Ajax().Runtimes.runtime(namespace, currentRuntimeDetails.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
+      await Ajax().Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName).delete(this.hasAttachedDisk() && shouldDeletePersistentDisk)
     }
     if (shouldDeletePersistentDisk && !this.hasAttachedDisk()) {
-      await Ajax().Disks.disk(namespace, currentPersistentDiskDetails.name).delete()
+      await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).delete()
     }
     if (shouldUpdatePersistentDisk) {
-      await Ajax().Disks.disk(namespace, currentPersistentDiskDetails.name).update(newPersistentDisk.size)
+      await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).update(newPersistentDisk.size)
     }
     if (shouldUpdateRuntime) {
-      await Ajax().Runtimes.runtime(namespace, currentRuntimeDetails.runtimeName).update({ runtimeConfig })
+      await Ajax().Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName).update({ runtimeConfig })
     }
     if (shouldCreateRuntime) {
-      await Ajax().Runtimes.runtime(namespace, Utils.generateRuntimeName()).create({
+      await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
         runtimeConfig,
         toolDockerImage: newRuntime.toolDockerImage,
+        labels: { saturnWorkspaceName: name },
+        customEnvironmentVariables: customEnvVars,
         ...(newRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: newRuntime.jupyterUserScriptUri } : {})
       })
     }
@@ -465,16 +474,16 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     withErrorReporting('Error loading cloud environment'),
     Utils.withBusyState(v => this.setState({ loading: v }))
   )(async () => {
-    const { namespace } = this.props
+    const { googleProject } = this.getWorkspaceObj()
     const currentRuntime = this.getCurrentRuntime()
     const currentPersistentDisk = this.getCurrentPersistentDisk()
 
     Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
-      existingConfig: !!currentRuntime, ...extractWorkspaceDetails(this.makeWorkspaceObj())
+      existingConfig: !!currentRuntime, ...extractWorkspaceDetails(this.getWorkspaceObj())
     })
     const [currentRuntimeDetails, newLeoImages, currentPersistentDiskDetails] = await Promise.all([
       currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
-      Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', namespace, true).then(res => res.json()),
+      Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', googleProject, true).then(res => res.json()),
       currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
     ])
 
@@ -984,7 +993,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const handleLearnMoreAboutPersistentDisk = () => {
       this.setState({ viewMode: 'aboutPersistentDisk' })
       Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
-        ...extractWorkspaceDetails(this.makeWorkspaceObj()),
+        ...extractWorkspaceDetails(this.getWorkspaceObj()),
         currentlyHasAttachedDisk: !!this.hasAttachedDisk()
       })
     }

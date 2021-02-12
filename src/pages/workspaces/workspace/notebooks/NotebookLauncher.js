@@ -42,7 +42,7 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   })
 )(
-  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks, refreshRuntimes },
+  ({ queryParams, notebookName, workspace, accessLevel, canCompute, runtimes, persistentDisks, refreshRuntimes },
     ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const runtime = currentRuntime(runtimes)
@@ -63,7 +63,9 @@ const NotebookLauncher = _.flow(
       mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
       h(NewRuntimeModal, {
         isOpen: createOpen,
-        namespace, name, runtimes, persistentDisks,
+        workspace,
+        runtimes,
+        persistentDisks,
         onDismiss: () => {
           chooseMode(undefined)
           setCreateOpen(false)
