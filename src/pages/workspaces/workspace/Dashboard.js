@@ -180,7 +180,7 @@ export const WorkspaceDashboard = _.flow(
         accessLevel,
         owners,
         workspace: {
-          authorizationDomain, createdDate, lastModified, bucketName,
+          authorizationDomain, createdDate, lastModified, bucketName, googleProject,
           attributes, attributes: { description = '' }
         }
       }
@@ -257,6 +257,12 @@ export const WorkspaceDashboard = _.flow(
           h(InfoTile, { title: 'Access level' }, [roleString[accessLevel]]),
           Utils.canWrite(accessLevel) && h(InfoTile, { title: 'Est. $/month' }, [
             storageCostEstimate || '$ ...'
+          ]),
+          h(InfoTile, { title: 'Google Project Id' }, [
+            div({ style: { display: 'flex' } }, [
+              h(TooltipCell, [googleProject]),
+              h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })
+            ])
           ])
         ]),
         div({ style: Style.dashboard.header }, ['Owners']),
