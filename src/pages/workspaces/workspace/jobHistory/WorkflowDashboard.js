@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
+import { Chart } from 'react-google-charts'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -19,6 +20,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import { WorkflowTimingDiagram } from 'src/pages/workspaces/workspace/jobHistory/WorkflowTimingDiagram'
 
 
 const styles = {
@@ -170,6 +172,13 @@ const WorkflowDashboard = _.flow(
               }, [icon('fileAlt', { size: 18 }), ' View execution log'])
             ])
           ])
+        ]),
+        h(Collapse, {
+          style: { marginBottom: '1rem' },
+          initialOpenState: true,
+          title: div({ style: Style.elements.sectionHeader }, ['Timing Diagram'])
+        }, [
+          h(WorkflowTimingDiagram, { callNames, callData: calls })
         ]),
         failures && h(Collapse,
           {
