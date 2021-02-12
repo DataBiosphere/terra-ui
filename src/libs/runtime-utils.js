@@ -88,12 +88,15 @@ export const runtimeCost = ({ runtimeConfig, status }) => {
   }
 }
 
+// TODO Don't add ephemeral IP address cost when VMs are not running
 export const getGalaxyCost = app => {
   // numNodes * price per node + diskCost + defaultNodepoolCost
   const defaultNodepoolCost = machineCost('n1-standard-1')
   const appCost = app.kubernetesRuntimeConfig.numNodes * machineCost(app.kubernetesRuntimeConfig.machineType) +
     persistentDiskCost({ size: 250 + 10 + 100 + 100, status: 'Running' })
-  return appCost + defaultNodepoolCost
+  const ipAddressCost = ephemeralExternalIpAddressCost(app.kubernetesRuntimeConfig.numNodes + 1, 0)
+
+  return appCost + defaultNodepoolCost + ipAddressCost
   // diskCost: 250Gb for the NFS disk, 10Gb for the postgres disk, and 200Gb for boot disks (1 boot disk per nodepool)
   // to do: retrieve the disk sizes from the app not just hardcode them
 }
@@ -113,7 +116,6 @@ export const trimAppsOldestFirst = _.flow(
   _.remove({ status: 'PREDELETING' }),
   _.sortBy('auditInfo.createdDate'))
 
-// TODO: factor status into cost
 export const machineCost = machineType => {
   return _.find(knownMachineType => knownMachineType.name === machineType, machineTypes).price
 }

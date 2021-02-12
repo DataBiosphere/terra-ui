@@ -32,10 +32,10 @@ export const cloudServices = {
 }
 
 export const machineTypes = _.map(({ price, preemptiblePrice, ...details }) => ({
-  price: price + 0.004,
-  preemptiblePrice: preemptiblePrice + 0.002,
+  price: price,
+  preemptiblePrice: preemptiblePrice,
   ...details
-}), machineBases) // adding prices for ephemeral IP's, per https://cloud.google.com/compute/network-pricing#ipaddress
+}), machineBases)
 
 export const monthlyStoragePrice = 0.04 // from https://cloud.google.com/compute/pricing
 export const storagePrice = monthlyStoragePrice / 730 // per GB hour using 730 hours per month from https://cloud.google.com/compute/pricing
