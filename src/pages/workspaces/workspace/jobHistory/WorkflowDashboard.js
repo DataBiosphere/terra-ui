@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
-import { Chart } from 'react-google-charts'
 import { div, h } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -19,8 +18,8 @@ import { getConfig } from 'src/libs/config'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
-import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 import { WorkflowTimingDiagram } from 'src/pages/workspaces/workspace/jobHistory/WorkflowTimingDiagram'
+import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const styles = {
