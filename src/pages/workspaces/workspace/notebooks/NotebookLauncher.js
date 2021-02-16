@@ -42,7 +42,7 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   })
 )(
-  ({ queryParams, notebookName, workspace, accessLevel, canCompute, runtimes, persistentDisks, refreshRuntimes },
+  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks, refreshRuntimes },
     ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const runtime = currentRuntime(runtimes)
