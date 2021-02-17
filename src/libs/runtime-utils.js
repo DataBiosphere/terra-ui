@@ -98,8 +98,7 @@ export const runtimeCost = ({ runtimeConfig, status }) => {
  * - Disk cost is for 250Gb of NFS disk, 10Gb of postgres disk, and 200Gb of boot disks (1 boot disk per nodepool)
  */
 export const getGalaxyCost = app => {
-  const appStatus = app ? app.status : 'Unknown'
-
+  const appStatus = app ? app.status : 'UNKNOWN'
   const defaultNodepoolComputeCost = machineCost('n1-standard-1')
   const defaultNodepoolIpAddressCost = ephemeralExternalIpAddressCost(1, 0)
 
@@ -109,7 +108,7 @@ export const getGalaxyCost = app => {
   const staticCost = defaultNodepoolComputeCost + defaultNodepoolIpAddressCost + diskCost
   const dynamicCost = app.kubernetesRuntimeConfig.numNodes * machineCost(app.kubernetesRuntimeConfig.machineType) + ephemeralExternalIpAddressCost(app.kubernetesRuntimeConfig.numNodes, 0)
 
-  return (appStatus === 'Running') ? (staticCost + dynamicCost) : staticCost
+  return (['RUNNING', 'PROVISIONING', 'PRECREATING', 'STARTING'].includes(appStatus.toUpperCase())) ? (staticCost + dynamicCost) : staticCost
 }
 
 export const trimRuntimesOldestFirst = _.flow(

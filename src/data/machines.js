@@ -1,6 +1,3 @@
-import _ from 'lodash/fp'
-
-
 export const machineBases = [
   { name: 'n1-standard-1', cpu: 1, memory: 3.75, price: 0.0475, preemptiblePrice: 0.0100 },
   { name: 'n1-standard-2', cpu: 2, memory: 7.50, price: 0.0950, preemptiblePrice: 0.0200 },
