@@ -351,8 +351,7 @@ export default class RuntimeManager extends PureComponent {
         ])]),
         h(NewRuntimeModal, {
           isOpen: createModalDrawerOpen,
-          namespace,
-          name,
+          workspace,
           runtimes,
           persistentDisks,
           onDismiss: () => this.setState({ createModalDrawerOpen: false }),
