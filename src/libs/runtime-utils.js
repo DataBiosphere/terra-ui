@@ -88,17 +88,28 @@ export const runtimeCost = ({ runtimeConfig, status }) => {
   }
 }
 
-// TODO Don't add ephemeral IP address cost when VMs are not running
+/*
+ * - Disk cost is incurred regardless of app status.
+ * - Default nodepool VMs always run and incur compute and external IP cost whereas app
+ *   nodepool VMs incur compute and external IP cost only when an app is running.
+ * - Default nodepool cost is shared across all Kubernetes cluster users. It would
+ *   be complicated to calculate that shared cost dynamically. Therefore, we are being
+ *   conservative by adding default nodepool cost to all apps on a cluster.
+ * - Disk cost is for 250Gb of NFS disk, 10Gb of postgres disk, and 200Gb of boot disks (1 boot disk per nodepool)
+ */
 export const getGalaxyCost = app => {
-  // numNodes * price per node + diskCost + defaultNodepoolCost
-  const defaultNodepoolCost = machineCost('n1-standard-1')
-  const appCost = app.kubernetesRuntimeConfig.numNodes * machineCost(app.kubernetesRuntimeConfig.machineType) +
-    persistentDiskCost({ size: 250 + 10 + 100 + 100, status: 'Running' })
-  const ipAddressCost = ephemeralExternalIpAddressCost(app.kubernetesRuntimeConfig.numNodes + 1, 0)
+  const appStatus = app ? app.status : 'Unknown'
 
-  return appCost + defaultNodepoolCost + ipAddressCost
-  // diskCost: 250Gb for the NFS disk, 10Gb for the postgres disk, and 200Gb for boot disks (1 boot disk per nodepool)
-  // to do: retrieve the disk sizes from the app not just hardcode them
+  const defaultNodepoolComputeCost = machineCost('n1-standard-1')
+  const defaultNodepoolIpAddressCost = ephemeralExternalIpAddressCost(1, 0)
+
+  // TODO: Retrieve disk sizes from the app instead of hardcoding them
+  const diskCost = persistentDiskCost({ size: 250 + 10 + 100 + 100, status: 'Running' })
+
+  const staticCost = defaultNodepoolComputeCost + defaultNodepoolIpAddressCost + diskCost
+  const dynamicCost = app.kubernetesRuntimeConfig.numNodes * machineCost(app.kubernetesRuntimeConfig.machineType) + ephemeralExternalIpAddressCost(app.kubernetesRuntimeConfig.numNodes, 0)
+
+  return (appStatus === 'Running') ? (staticCost + dynamicCost) : staticCost
 }
 
 export const trimRuntimesOldestFirst = _.flow(
