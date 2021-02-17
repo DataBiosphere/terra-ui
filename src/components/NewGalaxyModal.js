@@ -6,7 +6,7 @@ import { icon } from 'src/components/icons'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
-import { machineTypes } from 'src/data/machines'
+import { machineBases } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -203,7 +203,7 @@ export const NewGalaxyModal = _.flow(
   }
 
   const renderDefaultCase = () => {
-    const { cpu, memory } = _.find({ name: 'n1-standard-8' }, machineTypes)
+    const { cpu, memory } = _.find({ name: 'n1-standard-8' }, machineBases)
     const cost = getGalaxyCost(app || { status: 'Unknown', kubernetesRuntimeConfig: { machineType: 'n1-standard-8', numNodes: 2 } })
     return h(Fragment, [
       h(TitleBar, {
