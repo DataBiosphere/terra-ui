@@ -115,7 +115,7 @@ export const getGalaxyCost = app => {
     case 'ERROR':
       return 0.0
     default:
-      return dynamicCost
+      return staticCost + dynamicCost
   }
 }
 
