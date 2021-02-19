@@ -95,7 +95,7 @@ export const runtimeCost = ({ runtimeConfig, status }) => {
  * - Default nodepool cost is shared across all Kubernetes cluster users. It would
  *   be complicated to calculate that shared cost dynamically. Therefore, we are being
  *   conservative by adding default nodepool cost to all apps on a cluster.
- * - Disk cost is for 250Gb of NFS disk, 10Gb of postgres disk, and 200Gb of boot disks (1 boot disk per nodepool)
+ * - Disk cost is for 250GB of NFS disk, 10GB of postgres disk, and 200GB of boot disks (1 boot disk per nodepool)
  */
 export const getGalaxyCost = app => {
   const appStatus = app ? app.status : 'UNKNOWN'
@@ -108,7 +108,15 @@ export const getGalaxyCost = app => {
   const staticCost = defaultNodepoolComputeCost + defaultNodepoolIpAddressCost + diskCost
   const dynamicCost = app.kubernetesRuntimeConfig.numNodes * machineCost(app.kubernetesRuntimeConfig.machineType) + ephemeralExternalIpAddressCost(app.kubernetesRuntimeConfig.numNodes, 0)
 
-  return (['RUNNING', 'PROVISIONING', 'PRECREATING', 'STARTING'].includes(appStatus.toUpperCase())) ? (staticCost + dynamicCost) : staticCost
+  switch (appStatus.toUpperCase()) {
+    case 'STOPPED':
+      return staticCost
+    case 'DELETING':
+    case 'ERROR':
+      return 0.0
+    default:
+      return dynamicCost
+  }
 }
 
 export const trimRuntimesOldestFirst = _.flow(
