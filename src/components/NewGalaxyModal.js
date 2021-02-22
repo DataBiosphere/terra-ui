@@ -187,7 +187,7 @@ export const NewGalaxyModal = _.flow(
   }
 
   const getEnvMessageBasedOnStatus = isTitle => {
-    const waitMessage = isTitle ? '' : 'This process will take up to a few minutes'
+    const waitMessage = isTitle ? '' : 'This process will take up to a few minutes.'
 
     return !app ?
       isTitle ? 'Cloud environment' : 'Environment will consist of an application and cloud compute.' :
@@ -198,7 +198,7 @@ export const NewGalaxyModal = _.flow(
         ['PRESTARTING', () => 'Cloud environment is preparing to start.'],
         ['STARTING', () => `Cloud environment is starting. ${waitMessage}`],
         ['RUNNING', () => 'Environment consists of an application and cloud compute.'],
-        ['ERROR', () => `An error has occurred on your Cloud Environment. ${waitMessage}`]
+        ['ERROR', () => `An error has occurred on your cloud environment.`]
       )
   }
 
