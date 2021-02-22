@@ -199,7 +199,7 @@ const SupportRequest = () => {
           id,
           value: email,
           placeholder: 'Enter your email address',
-          setEmail
+          onChange: setEmail
         })
       ])]),
       h(FormLabel, { required: true }, ['Are you a clinical user?']),
