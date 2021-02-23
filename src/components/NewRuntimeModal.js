@@ -10,7 +10,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { SaveFilesHelp } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
-import { cloudServices, machineBases } from 'src/data/machines'
+import { cloudServices, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -39,7 +39,7 @@ const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/3600
 // distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
 
-const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineBases)
+const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
 
 const MachineSelector = ({ value, onChange }) => {
   const { cpu: currentCpu, memory: currentMemory } = findMachineType(value)

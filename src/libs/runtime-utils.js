@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineBases, monthlyStoragePrice, storagePrice } from 'src/data/machines'
+import { cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, monthlyStoragePrice, storagePrice } from 'src/data/machines'
 
 
 export const DEFAULT_DISK_SIZE = 50
@@ -25,7 +25,7 @@ export const normalizeRuntimeConfig = ({
 }
 
 export const findMachineType = name => {
-  return _.find({ name }, machineBases) || { name, cpu: '?', memory: '?', price: NaN, preemptiblePrice: NaN }
+  return _.find({ name }, machineTypes) || { name, cpu: '?', memory: '?', price: NaN, preemptiblePrice: NaN }
 }
 
 const dataprocCost = (machineType, numInstances) => {
@@ -135,7 +135,7 @@ export const trimAppsOldestFirst = _.flow(
   _.sortBy('auditInfo.createdDate'))
 
 export const machineCost = machineType => {
-  return _.find(knownMachineType => knownMachineType.name === machineType, machineBases).price
+  return _.find(knownMachineType => knownMachineType.name === machineType, machineTypes).price
 }
 
 export const currentApp = _.flow(trimAppsOldestFirst, _.last)
