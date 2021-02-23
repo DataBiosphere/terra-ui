@@ -42,7 +42,6 @@ const CallCacheWizard = ({
         'end', 'start', 'executionStatus'
       ]
       const excludeKey = []
-      // const wf = await Ajax(signal).Workspaces.workspace(otherNs, otherWs).submission(otherSub).getWorkflow(otherWf, includeKey, excludeKey)
       const wf = await Ajax(signal).CromIAM.workflowMetadata(otherWf, includeKey, excludeKey)
       setOtherWorkflowMetadata(wf)
     } catch (error) {
