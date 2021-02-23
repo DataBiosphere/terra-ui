@@ -60,7 +60,7 @@ export const runtimeConfigCost = config => {
     numberOfPreemptibleWorkers * preemptiblePrice,
     numberOfPreemptibleWorkers * workerDiskSize * storagePrice,
     cloudService === cloudServices.DATAPROC && dataprocCost(workerMachineType, numberOfPreemptibleWorkers),
-    ephemeralExternalIpAddressCost(numberOfStandardVms, numberOfPreemptibleWorkers),
+    ephemeralExternalIpAddressCost({ numberOfStandardVms, numberOfPreemptibleWorkers }),
     runtimeConfigBaseCost(config)
   ])
 }
@@ -71,7 +71,7 @@ const generateDiskCostFunction = price => ({ size, status }) => {
 export const persistentDiskCost = generateDiskCostFunction(storagePrice)
 export const persistentDiskCostMonthly = generateDiskCostFunction(monthlyStoragePrice)
 
-const ephemeralExternalIpAddressCost = (numStandardVms, numPreemptibleVms) => {
+const ephemeralExternalIpAddressCost = ({ numStandardVms, numPreemptibleVms }) => {
   // Google categorizes a VM as 'standard' if it is not 'pre-emptible'.
   return numStandardVms * ephemeralExternalIpAddressPrice.standard + numPreemptibleVms * ephemeralExternalIpAddressPrice.preemptible
 }
@@ -100,13 +100,13 @@ export const runtimeCost = ({ runtimeConfig, status }) => {
 export const getGalaxyCost = app => {
   const appStatus = app ? app.status : 'UNKNOWN'
   const defaultNodepoolComputeCost = machineCost('n1-standard-1')
-  const defaultNodepoolIpAddressCost = ephemeralExternalIpAddressCost(1, 0)
+  const defaultNodepoolIpAddressCost = ephemeralExternalIpAddressCost({ numStandardVms: 1, numPreemptibleVms: 0 })
 
   // TODO: Retrieve disk sizes from the app instead of hardcoding them
   const diskCost = persistentDiskCost({ size: 250 + 10 + 100 + 100, status: 'Running' })
 
   const staticCost = defaultNodepoolComputeCost + defaultNodepoolIpAddressCost + diskCost
-  const dynamicCost = app.kubernetesRuntimeConfig.numNodes * machineCost(app.kubernetesRuntimeConfig.machineType) + ephemeralExternalIpAddressCost(app.kubernetesRuntimeConfig.numNodes, 0)
+  const dynamicCost = app.kubernetesRuntimeConfig.numNodes * machineCost(app.kubernetesRuntimeConfig.machineType) + ephemeralExternalIpAddressCost({ numStandardVms: app.kubernetesRuntimeConfig.numNodes, numPreemptibleVms: 0 })
 
   switch (appStatus.toUpperCase()) {
     case 'STOPPED':
