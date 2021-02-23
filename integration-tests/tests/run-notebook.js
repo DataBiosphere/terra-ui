@@ -17,6 +17,7 @@ const testRunNotebookFn = _.flow(
   await findElement(page, clickable({ textContains: workspaceName }))
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: workspaceName }))
+  await dismissNotifications(page)
   await delay(5000)
   await click(page, clickable({ text: 'notebooks' }))
   await click(page, clickable({ textContains: 'Create a' }))
