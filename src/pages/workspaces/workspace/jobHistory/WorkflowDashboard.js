@@ -118,7 +118,7 @@ const WorkflowDashboard = _.flow(
     }), simplifiedFailures)
   }
 
-  const callNames = calls ? _.sortBy(callName => _.minBy(_.start, calls[callName]).start, _.keys(calls)) : []
+  const callNames = calls ? _.sortBy(callName => _.minBy(callObject => callObject.start, calls[callName]).start, _.keys(calls)) : []
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId),
