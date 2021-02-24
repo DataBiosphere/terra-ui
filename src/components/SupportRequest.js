@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, RadioButton, Select, spinnerOverlay } from 'src/components/common'
+import { absoluteSpinnerOverlay, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, Link, RadioButton, Select } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { TextArea, TextInput } from 'src/components/input'
@@ -192,7 +192,6 @@ const SupportRequest = () => {
             icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginLeft: '0.5rem' } })
           ])
         ]),
-      uploadingFile && spinnerOverlay,
       h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { required: true, htmlFor: id }, ['Contact email']),
         h(TextInput, {
@@ -202,9 +201,9 @@ const SupportRequest = () => {
           onChange: setEmail
         })
       ])]),
-      h(FormLabel, { required: true }, ['Are you a clinical user?']),
+      h(FormLabel, { required: true }, ['Are you a clinical user?']), // neither should be checked when undefined, thus ===
       h(RadioButton, {
-        text: 'Yes', name: 'is-clinical-user', checked: clinicalUser,
+        text: 'Yes', name: 'is-clinical-user', checked: clinicalUser === true,
         labelStyle: { margin: '0 2rem 0 0.25rem' },
         onChange: () => setClinicalUser(true)
       }),
@@ -213,7 +212,6 @@ const SupportRequest = () => {
         labelStyle: { margin: '0 2rem 0 0.25rem' },
         onChange: () => setClinicalUser(false)
       }),
-      submitting && spinnerOverlay,
       div({
         style: { marginTop: '1rem', display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline' }
       }, [
@@ -227,7 +225,8 @@ const SupportRequest = () => {
           onClick: submit
         }, ['SEND'])
       ])
-    ])])
+    ])]),
+    (uploadingFile || submitting) && absoluteSpinnerOverlay
   ])
 }
 
