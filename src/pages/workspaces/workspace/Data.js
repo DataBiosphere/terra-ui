@@ -223,18 +223,22 @@ const BucketContent = _.flow(
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
     onDropAccepted: uploadFiles
   }, [({ openUploader }) => h(Fragment, [
-    div([
-      _.map(({ label, target }) => {
-        return h(Fragment, { key: target }, [
-          makeBucketLink({ label, target, onClick: () => load(target) }),
-          ' / '
+    div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+      div([
+        _.map(({ label, target }) => {
+          return h(Fragment, { key: target }, [
+            makeBucketLink({ label, target, onClick: () => load(target) }),
+            ' / '
+          ])
+        }, [
+          { label: 'Files', target: '' },
+          ..._.map(n => {
+            return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
+          }, _.range(0, prefixParts.length))
         ])
-      }, [
-        { label: 'Files', target: '' },
-        ..._.map(n => {
-          return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
-        }, _.range(0, prefixParts.length))
-      ])
+      ]),
+      div({ style: { justifyContent: 'flex-end' } }, ['hello'])
+
     ]),
     div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
     h(SimpleTable, {
