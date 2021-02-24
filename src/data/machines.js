@@ -1,7 +1,4 @@
-import _ from 'lodash/fp'
-
-
-const machineBases = [
+export const machineTypes = [
   { name: 'n1-standard-1', cpu: 1, memory: 3.75, price: 0.0475, preemptiblePrice: 0.0100 },
   { name: 'n1-standard-2', cpu: 2, memory: 7.50, price: 0.0950, preemptiblePrice: 0.0200 },
   { name: 'n1-standard-4', cpu: 4, memory: 15, price: 0.1900, preemptiblePrice: 0.0400 },
@@ -31,15 +28,13 @@ export const cloudServices = {
   DATAPROC: 'DATAPROC'
 }
 
-export const machineTypes = _.map(({ price, preemptiblePrice, ...details }) => ({
-  price: price + 0.004,
-  preemptiblePrice: preemptiblePrice + 0.002,
-  ...details
-}), machineBases) // adding prices for ephemeral IP's, per https://cloud.google.com/compute/network-pricing#ipaddress
-
 export const monthlyStoragePrice = 0.04 // from https://cloud.google.com/compute/pricing
 export const storagePrice = monthlyStoragePrice / 730 // per GB hour using 730 hours per month from https://cloud.google.com/compute/pricing
 export const dataprocCpuPrice = 0.01 // dataproc costs $0.01 per cpu per hour
+export const ephemeralExternalIpAddressPrice = { // per hour in dollars for Iowa (us-central1) region per https://cloud.google.com/vpc/network-pricing#ipaddress
+  standard: 0.004,
+  preemptible: 0.002
+}
 
 export const version = '6' // updated jupyter-iframe-extension.js
 
