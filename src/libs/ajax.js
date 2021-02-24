@@ -641,6 +641,25 @@ const Workspaces = signal => ({
         return res.json()
       },
 
+      snapshot: snapshotId => {
+        const snapshotPath = `${root}/snapshots/${snapshotId}`
+
+        return {
+          details: async () => {
+            const res = await fetchRawls(snapshotPath, _.merge(authOpts(), { signal }))
+            return res.json()
+          },
+
+          update: updateInfo => {
+            return fetchRawls(snapshotPath, _.mergeAll([
+              authOpts(),
+              jsonBody(updateInfo),
+              { signal, method: 'PATCH' }
+            ]))
+          }
+        }
+      },
+
       submission: submissionId => {
         const submissionPath = `${root}/submissions/${submissionId}`
 
