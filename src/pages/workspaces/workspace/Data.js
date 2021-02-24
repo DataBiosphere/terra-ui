@@ -237,7 +237,12 @@ const BucketContent = _.flow(
           }, _.range(0, prefixParts.length))
         ])
       ]),
-      div({ style: { justifyContent: 'flex-end' } }, ['hello'])
+      div({ style: { justifyContent: 'flex-end' } }, [
+        h(Link, {
+          onClick: () => ''
+        }, ['hello']
+        )
+      ])
 
     ]),
     div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
