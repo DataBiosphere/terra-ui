@@ -380,6 +380,19 @@ export const useConsoleAssert = (condition, message) => {
   }
 }
 
+export const useCancelable = () => {
+  const [controller, setController] = useState(new window.AbortController())
+
+  // Abort it automatically in the destructor
+  useEffect(() => {
+    return () => controller.abort()
+  }, [])
+
+  return { signal: controller.signal, abort: () => {
+    controller.abort();
+    setController(new window.AbortController())
+  }}
+}
 
 export const useCancellation = () => {
   const controller = useRef()

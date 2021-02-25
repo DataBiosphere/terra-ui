@@ -81,17 +81,17 @@ export const Link = ({ disabled, variant, children, ...props }) => {
   }, props), [children])
 }
 
-export const ButtonPrimary = ({ disabled, children, ...props }) => {
+export const ButtonPrimary = ({ disabled, danger = false, children, ...props }) => {
   return h(Clickable, _.merge({
     disabled,
     style: {
       ...styles.button,
-      border: `1px solid ${disabled ? colors.dark(0.4) : colors.accent(1.2)}`,
+      border: `1px solid ${disabled ? colors.dark(0.4) : danger ? colors.danger(1.2) : colors.accent(1.2)}`,
       borderRadius: 5, color: 'white', padding: '0.875rem',
-      backgroundColor: disabled ? colors.dark(0.25) : colors.accent(),
+      backgroundColor: disabled ? colors.dark(0.25) : danger ? colors.danger() : colors.accent(),
       cursor: disabled ? 'not-allowed' : 'pointer'
     },
-    hover: disabled ? undefined : { backgroundColor: colors.accent(0.85) }
+    hover: disabled ? undefined : { backgroundColor: danger ? colors.danger(0.85) : colors.accent(0.85) }
   }, props), [children])
 }
 
