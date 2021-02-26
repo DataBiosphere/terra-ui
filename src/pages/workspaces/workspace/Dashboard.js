@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useImperativeHandle, useState } from 'react'
 import { div, h, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link, spinnerOverlay } from 'src/components/common'
@@ -102,6 +102,16 @@ const WorkspaceDashboard = _.flow(
 
   const signal = Utils.useCancellation()
 
+  const refresh = () => {
+    loadSubmissionCount()
+    loadStorageCost()
+    loadConsent()
+    loadWsTags()
+    loadBucketLocation()
+  }
+
+  useImperativeHandle(ref, () => ({ refresh }))
+
 
   // Helpers
   const loadSubmissionCount = withErrorReporting('Error loading submission count data', async () => {
@@ -175,11 +185,7 @@ const WorkspaceDashboard = _.flow(
 
   // Lifecycle
   Utils.useOnMount(() => {
-    loadSubmissionCount()
-    loadStorageCost()
-    loadConsent()
-    loadWsTags()
-    loadBucketLocation()
+    refresh()
   })
 
 
