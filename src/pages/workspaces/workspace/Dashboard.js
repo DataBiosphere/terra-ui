@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useImperativeHandle, useState } from 'react'
 import { div, h, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link, spinnerOverlay } from 'src/components/common'
@@ -71,10 +71,13 @@ const DataUseLimitations = ({ attributes }) => {
   }, _.filter(({ key }) => _.has(key, attributes), displayConsentCodes))
 }
 
-const WorkspaceDashboard = wrapWorkspace({
-  breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
-  activeTab: 'dashboard'
-})(({
+const WorkspaceDashboard = _.flow(
+  Utils.forwardRefWithName('WorkspaceDashboard'),
+  wrapWorkspace({
+    breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
+    activeTab: 'dashboard'
+  })
+)(({
   namespace, name,
   refreshWorkspace,
   workspace, workspace: {
@@ -85,7 +88,7 @@ const WorkspaceDashboard = wrapWorkspace({
       attributes, attributes: { description = '' }
     }
   }
-}) => {
+}, ref) => {
   // State
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
   const [storageCostEstimate, setStorageCostEstimate] = useState(undefined)
@@ -98,6 +101,16 @@ const WorkspaceDashboard = wrapWorkspace({
   const [bucketLocationType, setBucketLocationType] = useState(undefined)
 
   const signal = Utils.useCancellation()
+
+  const refresh = () => {
+    loadSubmissionCount()
+    loadStorageCost()
+    loadConsent()
+    loadWsTags()
+    loadBucketLocation()
+  }
+
+  useImperativeHandle(ref, () => ({ refresh }))
 
 
   // Helpers
@@ -172,11 +185,7 @@ const WorkspaceDashboard = wrapWorkspace({
 
   // Lifecycle
   Utils.useOnMount(() => {
-    loadSubmissionCount()
-    loadStorageCost()
-    loadConsent()
-    loadWsTags()
-    loadBucketLocation()
+    refresh()
   })
 
 
