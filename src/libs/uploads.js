@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { useReducer } from 'react'
 import { Ajax } from 'src/libs/ajax'
 
+
 const init = () => {
   return {
     active: false,
@@ -20,41 +21,53 @@ const init = () => {
 
 export const useUploader = () => {
   return useReducer((state, update) => {
-    switch(update.action) {
+    switch (update.action) {
       // Calculate how many files and how many bytes we are working with
       case 'start':
-        state = init()
-        state.active = true
-        state.files = update.files
-        state.totalFiles = update.files.length
-        state.totalBytes = _.reduce((total, file) => total += file.size, 0, update.files)
-        break
+        return {
+          ...init(),
+          active: true,
+          files: update.files,
+          totalFiles: update.files.length,
+          totalBytes: _.reduce((total, file) => total += file.size, 0, update.files)
+        }
 
       case 'startFile':
-        state.currentFile = update.file
-        state.currentFileNum = update.fileNum
-        break
+        return {
+          ...state,
+          currentFile: update.file,
+          currentFileNum: update.fileNum
+        }
 
       case 'finishFile':
-        state.uploadedBytes += update.file.size
-        state.completedFiles.push(update.file)
-        break
+        return {
+          ...state,
+          uploadedBytes: state.uploadedBytes + update.file.size,
+          completedFiles: state.completedFiles.concat([update.file])
+        }
 
       case 'error':
-        state.errors.push(update.error)
-        break
+        return {
+          ...state,
+          errors: state.errors.concat([update.error])
+        }
 
       case 'abort':
-        state.active = false
-        state.aborted = true
-        break
+        return {
+          ...state,
+          active: false,
+          aborted: true
+        }
 
       case 'finish':
-        state.active = false
-        state.done = true
-        break
+        return {
+          ...state,
+          active: false,
+          done: true
+        }
+      default:
+        return { ...state }
     }
-    return state
   }, null, init)
 }
 
@@ -65,9 +78,9 @@ export const uploadFiles = async ({ namespace, bucketName, prefix, files, status
   }
   setStatus({ action: 'start', files })
 
-  let i = 0;
+  let i = 0
   for (const file of files) {
-    setStatus({ action: 'startFile', file, fileNum: i++})
+    setStatus({ action: 'startFile', file, fileNum: i++ })
 
     if (signal && signal.aborted) {
       setStatus({ action: 'abort' })
@@ -76,27 +89,26 @@ export const uploadFiles = async ({ namespace, bucketName, prefix, files, status
     try {
       await Ajax(signal).Buckets.upload(namespace, bucketName, prefix, file)
       setStatus({ action: 'finishFile', file })
-    }
-    catch (error) {
+    } catch (error) {
       setStatus({ action: 'error', error })
     }
   }
-  setStatus({ action: 'finish' });
+  setStatus({ action: 'finish' })
 }
 
-export const friendlyFileSize = (bytes) => {
+export const friendlyFileSize = bytes => {
   const bins = [
     { pow: 5, fixed: 3, text: 'PB' },
     { pow: 4, fixed: 3, text: 'TB' },
     { pow: 3, fixed: 2, text: 'GB' },
     { pow: 2, fixed: 1, text: 'MB' },
-    { pow: 1, fixed: 0, text: 'kB' },
+    { pow: 1, fixed: 0, text: 'kB' }
   ]
   for (const bin of bins) {
     const pow = Math.pow(1024, bin.pow)
     if (bytes > pow) {
-      return (bytes / pow).toFixed(bin.fixed) + ' ' + bin.text;
+      return `${(bytes / pow).toFixed(bin.fixed)} ${bin.text}`
     }
   }
-  return bytes + ' bytes'
+  return `${bytes} bytes`
 }

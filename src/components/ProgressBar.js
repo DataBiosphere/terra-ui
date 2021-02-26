@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { h, div, p } from 'react-hyperscript-helpers'
+import { h, div, p, dl, dt, dd, strong } from 'react-hyperscript-helpers'
 import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
 import { friendlyFileSize } from 'src/libs/uploads'
@@ -54,12 +54,23 @@ export const UploadProgressModal = ({ status: { totalFiles, totalBytes, uploaded
     okButton: 'Abort Upload',
     danger: true
   }, [
-    p({}, ['Uploading file ', currentFileNum, ' of ', totalFiles]),
-    p({}, ['Currently uploading:', currentFile.name]),
+    p({}, [
+      'Uploading file ',
+      strong([currentFileNum + 1, ' of ', totalFiles])
+    ]),
+    dl([
+      dt(['Currently uploading:']),
+      dd({
+        style: { margin: '0.5rem 0', fontWeight: 600, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }
+      },[currentFile.name])
+    ]),
     h(ProgressBar, {
       max: totalBytes,
       now: uploadedBytes
     }),
-    p({}, ['Transferred ' + friendlyFileSize(uploadedBytes), ' of ', friendlyFileSize(totalBytes)]),
+    p({}, [
+      'Transferred ', friendlyFileSize(uploadedBytes), ' of ', friendlyFileSize(totalBytes),
+      strong([(uploadedBytes / totalBytes * 100).toFixed(0), '%'])
+    ]),
   ])
 }

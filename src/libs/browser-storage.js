@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import * as Utils from 'src/libs/utils'
 import { maybeParseJSON, subscribable } from 'src/libs/utils'
 
 
@@ -87,4 +88,9 @@ export const staticStorageSlot = (storage, key) => {
   }
   listenStatic(storage, key, next)
   return { subscribe, get, set, update: fn => set(fn(get())) }
+}
+
+export const useStaticStorageSlot = (storage, key) => {
+  const store = staticStorageSlot(storage, key)
+  return [ Utils.useStore(store), (value) => store.set(value) ]
 }
