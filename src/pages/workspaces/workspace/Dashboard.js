@@ -71,10 +71,13 @@ const DataUseLimitations = ({ attributes }) => {
   }, _.filter(({ key }) => _.has(key, attributes), displayConsentCodes))
 }
 
-const WorkspaceDashboard = wrapWorkspace({
-  breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
-  activeTab: 'dashboard'
-})(({
+const WorkspaceDashboard = _.flow(
+  Utils.forwardRefWithName('WorkspaceDashboard'),
+  wrapWorkspace({
+    breadcrumbs: () => breadcrumbs.commonPaths.workspaceList(),
+    activeTab: 'dashboard'
+  })
+)(({
   namespace, name,
   refreshWorkspace,
   workspace, workspace: {
@@ -85,7 +88,7 @@ const WorkspaceDashboard = wrapWorkspace({
       attributes, attributes: { description = '' }
     }
   }
-}) => {
+}, ref) => {
   // State
   const [submissionsCount, setSubmissionsCount] = useState(undefined)
   const [storageCostEstimate, setStorageCostEstimate] = useState(undefined)
