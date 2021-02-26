@@ -157,7 +157,7 @@ const CallCacheWizard = ({
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
           div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherWorkflowId)
         ]),
-        h(ButtonSecondary, { style: { textTransform: 'none', paddingLeft: '1rem', height: '20px', justifyContent: 'right' }, onClick: () => resetWorkflowSelection() }, ['(reset)'])
+        h(ButtonSecondary, { style: { textTransform: 'none', paddingLeft: '1rem', height: '20px', justifyContent: 'right' }, onClick: () => resetWorkflowSelection() }, ['Reset'])
       ]),
       metadataFetchError && h(ErrorView, { error: metadataFetchError }),
       div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, ...Style.noWrapEllipsis } }, ['Step 2: Select which call in that workflow you expected to cache from']),
@@ -196,7 +196,7 @@ const CallCacheWizard = ({
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
           div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherWorkflowId)
         ]),
-        h(ButtonSecondary, { style: { textTransform: 'none', paddingLeft: '1rem', height: '20px', justifyContent: 'right' }, onClick: () => resetWorkflowSelection() }, ['(reset)'])
+        h(ButtonSecondary, { style: { textTransform: 'none', paddingLeft: '1rem', height: '20px', justifyContent: 'right' }, onClick: () => resetWorkflowSelection() }, ['Reset'])
       ]),
       div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
         div(['Selected call B: ']),
@@ -205,7 +205,7 @@ const CallCacheWizard = ({
           breadcrumbHistoryCaret,
           div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, `index ${otherIndex}`)
         ]),
-        h(ButtonSecondary, { style: { textTransform: 'none', paddingLeft: '1rem', height: '20px', justifyContent: 'right' }, onClick: () => resetCallSelection() }, ['(reset)'])
+        h(ButtonSecondary, { style: { textTransform: 'none', paddingLeft: '1rem', height: '20px', justifyContent: 'right' }, onClick: () => resetCallSelection() }, ['Reset'])
       ]),
       divider,
       div({ style: { display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, ['Result: View cache diff']),
