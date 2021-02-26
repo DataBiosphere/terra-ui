@@ -5,6 +5,7 @@ import ReactJson from 'react-json-view'
 import Select from 'react-select'
 import { ButtonPrimary, ButtonSecondary } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
+import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import { breadcrumbHistoryCaret } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
@@ -92,7 +93,7 @@ const CallCacheWizard = ({
    * Page render
    */
 
-  const divider = hr({ style: { width: '100%', border: '1px ridge lightgray' } })
+  const divider = hr({ style: { width: '100%', marginTop: '1rem', marginBottom: '1rem', border: '1px ridge lightgray' } })
 
   const step1 = () => {
     return h(Fragment, [
@@ -109,7 +110,6 @@ const CallCacheWizard = ({
           }
         }, ['Continue >'])])
       ]),
-      divider,
       div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, color: 'lightgray', ...Style.noWrapEllipsis } }, ['Step 2: Select the call you expected to cache from']),
       divider,
       div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, color: 'lightgray', ...Style.noWrapEllipsis } }, ['Result: View cache diff'])
@@ -153,14 +153,13 @@ const CallCacheWizard = ({
 
     return h(Fragment, [
       div({ style: { display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
-        div(['Step 1: Selected workflow B: ']),
+        div(['Selected workflow B: ']),
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
           div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherWorkflowId)
         ]),
-        h(ButtonSecondary, { style: { paddingLeft: '1rem', height: '20px', color: 'darkred', justifyContent: 'right' }, onClick: () => resetWorkflowSelection() }, ['[X]'])
+        h(ButtonSecondary, { style: { textTransform: 'none', paddingLeft: '1rem', height: '20px', justifyContent: 'right' }, onClick: () => resetWorkflowSelection() }, ['(reset)'])
       ]),
       metadataFetchError && h(ErrorView, { error: metadataFetchError }),
-      divider,
       div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, ...Style.noWrapEllipsis } }, ['Step 2: Select which call in that workflow you expected to cache from']),
       !metadataFetchError && (otherWorkflowMetadata ?
         div([
@@ -192,22 +191,21 @@ const CallCacheWizard = ({
 
   const compareDiffs = () => {
     return h(Fragment, [
-      div({ style: { display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
-        div(['Step 1: Selected workflow B: ']),
+      div({ style: { paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
+        div(['Selected workflow B: ']),
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
           div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherWorkflowId)
         ]),
-        h(ButtonSecondary, { style: { paddingLeft: '1rem', height: '20px', color: 'darkred', justifyContent: 'right' }, onClick: () => resetWorkflowSelection() }, ['[X]'])
+        h(ButtonSecondary, { style: { textTransform: 'none', paddingLeft: '1rem', height: '20px', justifyContent: 'right' }, onClick: () => resetWorkflowSelection() }, ['(reset)'])
       ]),
-      divider,
       div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
-        div(['Step 2: Selected call B: ']),
+        div(['Selected call B: ']),
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
           div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherCallFqn),
           breadcrumbHistoryCaret,
           div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, `index ${otherIndex}`)
         ]),
-        h(ButtonSecondary, { style: { justifyContent: 'right', paddingLeft: '1rem', height: '20px', color: 'darkred' }, onClick: () => resetCallSelection() }, ['[X]'])
+        h(ButtonSecondary, { style: { textTransform: 'none', paddingLeft: '1rem', height: '20px', justifyContent: 'right' }, onClick: () => resetCallSelection() }, ['(reset)'])
       ]),
       divider,
       div({ style: { display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, ['Result: View cache diff']),
@@ -239,19 +237,29 @@ const CallCacheWizard = ({
   }
 
   return h(Modal, {
-    title: 'Call Cache Debugging Wizard',
+    title: [
+      icon('search'),
+      ' Call Cache Miss Debugging Wizard'
+    ],
     onDismiss,
     width: '50%',
     showButtons: false,
     showX: true
   }, [
     div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-      'Debugging cache miss for call A:',
-      div({ style: { marginTop: '0.5rem', flex: 1, display: 'flex', alignItems: 'center', flexDirection: 'row' } }, [
-        div({ style: { fontSize: 16, fontWeight: 500, ...Style.codeFont } }, [workflowId]), breadcrumbHistoryCaret,
-        div({ style: { fontSize: 16, fontWeight: 500, ...Style.codeFont } }, [callFqn]),
-        Number(index) >= 0 && h(Fragment, [breadcrumbHistoryCaret, 'index', div({ style: { marginLeft: '0.25rem', fontSize: 16, fontWeight: 500, ...Style.codeFont } }, [index])]),
-        Number(attempt) > 1 && h(Fragment, [breadcrumbHistoryCaret, 'attempt', div({ style: { marginLeft: '0.25rem', fontSize: 16, fontWeight: 500, ...Style.codeFont } }, [attempt])])
+      div({ style: { display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
+        div(['Debugging workflow A: ']),
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
+          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, workflowId)
+        ])
+      ]),
+      div({ style: { paddingTop: '0.5rem', display: 'flex', flexDirection: 'row', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
+        div(['Debugging call A: ']),
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
+          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, callFqn),
+          breadcrumbHistoryCaret,
+          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, `index ${index}`)
+        ])
       ]),
       divider,
       chooseStep()

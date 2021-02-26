@@ -64,9 +64,20 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
             size: { basis: 200, grow: 2 },
             headerRenderer: () => 'Call Caching Result',
             cellRenderer: ({ rowIndex }) => {
-              const { callCaching: { effectiveCallCachingMode, result } = {} } = callObjects[rowIndex]
+              const { shardIndex: index, attempt, callCaching: { effectiveCallCachingMode, result } = {} } = callObjects[rowIndex]
               if (effectiveCallCachingMode === 'ReadAndWriteCache' || effectiveCallCachingMode === 'ReadCache') {
-                return result ? h(TooltipCell, [result]) : div({ style: { color: colors.dark(0.7) } }, ['No Information'])
+                return result ? [
+                  h(TooltipCell, [result]),
+                  result === 'Cache Miss' && h(Link, {
+                    key: 'cc',
+                    style: { marginLeft: '0.5rem' },
+                    tooltip: 'Call Cache Debug Wizard',
+                    onClick: () => setWizardSelection({ callFqn: callName, index, attempt })
+                  }, [
+                    icon('search', { size: 18 })
+                  ])
+                ] :
+                  div({ style: { color: colors.dark(0.7) } }, ['No Information'])
               } else if (effectiveCallCachingMode === 'WriteCache') {
                 return div({ style: { color: colors.dark(0.7) } }, ['Lookup disabled; write enabled'])
               } else {
@@ -78,29 +89,19 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
             size: { basis: 200, grow: 2 },
             headerRenderer: () => 'Links',
             cellRenderer: ({ rowIndex }) => {
-              const { failures, shardIndex: index, attempt, callCaching: { result: ccResult } = {} } = callObjects[rowIndex]
+              const { failures, shardIndex: index, attempt } = callObjects[rowIndex]
               const failureCount = _.size(failures)
-              const linkCount = (failures ? 1 : 0) + (ccResult === 'Cache Miss' ? 1 : 0)
-              return linkCount > 0 ? [
-                failureCount > 0 && h(Link, {
+              if (failureCount > 0) {
+                return [h(Link, {
                   key: 'failures',
                   style: { marginLeft: '0.5rem' },
                   tooltip: `${failureCount} Message${failureCount > 1 ? 's' : ''}`,
                   onClick: () => setFailuresModalParams({ index, attempt, failures })
                 }, [div({ style: { display: 'flex', alignItems: 'center' } }, [
                   icon('warning-standard', { size: 18, style: { color: colors.warning() } }),
-                  linkCount === 1 && ` ${failureCount} Message${failureCount > 1 ? 's' : ''}`
-                ])]),
-                ccResult === 'Cache Miss' && h(Link, {
-                  key: 'cc',
-                  style: { marginLeft: '0.5rem' },
-                  tooltip: 'Call Cache Debug Wizard',
-                  onClick: () => setWizardSelection({ callFqn: callName, index, attempt })
-                }, [
-                  icon('magic', { size: 18 }),
-                  linkCount === 1 && ' Cache Debug Wizard'
-                ])
-              ] : undefined
+                  ` ${failureCount} Message${failureCount > 1 ? 's' : ''}`
+                ])])]
+              } else return []
             }
           }
         ]
