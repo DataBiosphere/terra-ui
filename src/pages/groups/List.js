@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, IdContainer, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -10,7 +10,7 @@ import Modal from 'src/components/Modal'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError, withErrorReporting } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -143,114 +143,108 @@ const noGroupsMessage = div({ style: { fontSize: 20, margin: '0 1rem' } }, [
   ])
 ])
 
-export const GroupList = Utils.withCancellationSignal(class GroupList extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      filter: '',
-      groups: null,
-      creatingNewGroup: false,
-      deletingGroup: false,
-      updating: false,
-      ...StateHistory.get()
-    }
-  }
+const GroupList = () => {
+  // State
+  const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
+  const [groups, setGroups] = useState(() => StateHistory.get().groups || null)
+  const [creatingNewGroup, setCreatingNewGroup] = useState(false)
+  const [deletingGroup, setDeletingGroup] = useState(false)
+  const [updating, setUpdating] = useState(false)
+  const [isDataLoaded, setIsDataLoaded] = useState(false)
 
-  async refresh() {
-    const { signal } = this.props
+  const signal = Utils.useCancellation()
 
-    try {
-      this.setState({ isDataLoaded: false, creatingNewGroup: false, deletingGroup: false, updating: false })
-      const rawGroups = await Ajax(signal).Groups.list()
-      const groups = _.flow(
-        _.groupBy('groupName'),
-        _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
-        _.sortBy('groupName')
-      )(rawGroups)
-      this.setState({ groups, isDataLoaded: true })
-    } catch (error) {
-      reportError('Error loading group list', error)
-    }
-  }
 
-  componentDidMount() {
-    this.refresh()
-  }
+  // Helpers
+  const refresh = withErrorReporting('Error loading group list', async () => {
+    setIsDataLoaded(false)
+    setCreatingNewGroup(false)
+    setDeletingGroup(false)
+    setUpdating(false)
 
-  render() {
-    const { groups, isDataLoaded, filter, creatingNewGroup, deletingGroup, updating } = this.state
-    const filteredGroups = _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups)
+    const rawGroups = await Ajax(signal).Groups.list()
+    const groups = _.flow(
+      _.groupBy('groupName'),
+      _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
+      _.sortBy('groupName')
+    )(rawGroups)
+    setGroups(groups)
+    setIsDataLoaded(true)
+  })
 
-    return h(FooterWrapper, [
-      h(TopBar, { title: 'Groups' }, [
-        h(DelayedSearchInput, {
-          'aria-label': 'Search groups',
-          style: { marginLeft: '2rem', width: 500 },
-          placeholder: 'SEARCH GROUPS',
-          onChange: v => this.setState({ filter: v }),
-          value: filter
-        })
+
+  // Lifecycle
+  Utils.useOnMount(() => {
+    refresh()
+  })
+
+  useEffect(() => {
+    StateHistory.update({ filter, groups })
+  }, [filter, groups])
+
+
+  // Render
+  const filteredGroups = _.filter(({ groupName }) => Utils.textMatch(filter, groupName), groups)
+
+  return h(FooterWrapper, [
+    h(TopBar, { title: 'Groups' }, [
+      h(DelayedSearchInput, {
+        'aria-label': 'Search groups',
+        style: { marginLeft: '2rem', width: 500 },
+        placeholder: 'SEARCH GROUPS',
+        onChange: setFilter,
+        value: filter
+      })
+    ]),
+    h(PageBox, { role: 'main', style: { flexGrow: 1 } }, [
+      div({ style: Style.cardList.toolbarContainer }, [
+        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
+          'Group Management'
+        ])
       ]),
-      h(PageBox, { role: 'main', style: { flexGrow: 1 } }, [
-        div({ style: Style.cardList.toolbarContainer }, [
-          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
-            'Group Management'
-          ])
-        ]),
-        div({ style: Style.cardList.cardContainer }, [
-          h(NewGroupCard, {
-            onClick: () => this.setState({ creatingNewGroup: true })
-          }),
-          Utils.cond(
-            [groups && _.isEmpty(groups), () => noGroupsMessage],
-            [!_.isEmpty(groups) && _.isEmpty(filteredGroups), () => {
-              return div({ style: { fontStyle: 'italic' } }, ['No matching groups'])
-            }],
-            () => {
-              return div({ style: { flexGrow: 1 } }, [
-                _.map(group => {
-                  return h(GroupCard, {
-                    group, key: `${group.groupName}`,
-                    onDelete: () => this.setState({ deletingGroup: group })
-                  })
-                }, filteredGroups)
-              ])
-            }
-          ),
-          !isDataLoaded && spinnerOverlay
-        ]),
-        creatingNewGroup && h(NewGroupModal, {
-          existingGroups: _.map('groupName', groups),
-          onDismiss: () => this.setState({ creatingNewGroup: false }),
-          onSuccess: () => this.refresh()
+      div({ style: Style.cardList.cardContainer }, [
+        h(NewGroupCard, {
+          onClick: () => setCreatingNewGroup(true)
         }),
-        deletingGroup && h(DeleteGroupModal, {
-          groupName: deletingGroup.groupName,
-          onDismiss: () => this.setState({ deletingGroup: false }),
-          onSubmit: async () => {
-            try {
-              this.setState({ deletingGroup: false, updating: true })
-              await Ajax().Groups.group(deletingGroup.groupName).delete()
-              this.refresh()
-            } catch (error) {
-              this.setState({ updating: false })
-              reportError('Error deleting group', error)
-            }
+        Utils.cond(
+          [groups && _.isEmpty(groups), () => noGroupsMessage],
+          [!_.isEmpty(groups) && _.isEmpty(filteredGroups), () => {
+            return div({ style: { fontStyle: 'italic' } }, ['No matching groups'])
+          }],
+          () => {
+            return div({ style: { flexGrow: 1 } }, [
+              _.map(group => {
+                return h(GroupCard, {
+                  group, key: `${group.groupName}`,
+                  onDelete: () => setDeletingGroup(group)
+                })
+              }, filteredGroups)
+            ])
           }
-        }),
-        updating && spinnerOverlay
-      ])
+        ),
+        !isDataLoaded && spinnerOverlay
+      ]),
+      creatingNewGroup && h(NewGroupModal, {
+        existingGroups: _.map('groupName', groups),
+        onDismiss: () => setCreatingNewGroup(false),
+        onSuccess: refresh
+      }),
+      deletingGroup && h(DeleteGroupModal, {
+        groupName: deletingGroup.groupName,
+        onDismiss: () => setDeletingGroup(false),
+        onSubmit: _.flow(
+          withErrorReporting('Error deleting group'),
+          Utils.withBusyState(setUpdating)
+        )(async () => {
+          setDeletingGroup(false)
+          await Ajax().Groups.group(deletingGroup.groupName).delete()
+          refresh()
+        })
+      }),
+      updating && spinnerOverlay
     ])
-  }
-
-  componentDidUpdate() {
-    StateHistory.update(_.pick(
-      ['groups', 'filter'],
-      this.state)
-    )
-  }
-})
-
+  ])
+}
 
 export const navPaths = [
   {
