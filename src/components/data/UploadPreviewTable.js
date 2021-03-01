@@ -130,40 +130,42 @@ const UploadDataTable = props => {
   }, [sort, rows, columns])
 
   return div({
-    style: { position: 'relative' },
-  }, [
-    h2('Preview your data table'),
+      style: { display: 'flex', flexDirection: 'column' }
+    },
+    [
     div({
-      style: { position: 'absolute', top: 0, right: 0, marginTop: '1em' },
+      style: { position: 'relative', flex: '0 0 auto' },
     }, [
-      h(ButtonSecondary, {
-        style: { marginRight: '2em' },
-        onClick: () => {
-          onCancel && onCancel()
-        }
-      }, ['Cancel']),
-      h(ButtonPrimary, {
-        onClick: () => {
-          onConfirm && onConfirm({ activeMetadata })
-        }
+      h2('Preview your data table'),
+      div({
+        style: { position: 'absolute', top: 0, right: 0, marginTop: '1em' },
       }, [
-        activeMetadata?.isUpdate ? 'Update Table' : 'Create Table'
+        h(ButtonSecondary, {
+          style: { marginRight: '2em' },
+          onClick: () => {
+            onCancel && onCancel()
+          }
+        }, ['Cancel']),
+        h(ButtonPrimary, {
+          onClick: () => {
+            onConfirm && onConfirm({ activeMetadata })
+          }
+        }, [
+          activeMetadata?.isUpdate ? 'Update Table' : 'Create Table'
+        ]),
       ]),
-    ]),
-    div({
-      style: { flex: 1 }
-    }, [
+      activeMetadata && dl([
+        dt('Table name'),
+        dd([strong(activeMetadata.entityType)])
+      ]),
       p('If this table looks right to you, click the button on the right to create the table in your workspace.'),
     ]),
     activeMetadata && h(Fragment, [
       div({
-        style: { flex: 1 }
+        style: { flex: '1 1 auto' }
       }, [
-        dl([
-          dt('Table name'),
-          dd([strong(activeMetadata.entityType)])
-        ]),
-        h(AutoSizer, [
+        h(AutoSizer, {
+        }, [
           ({ width, height }) => {
             return h(GridTable, {
               ref: table,
