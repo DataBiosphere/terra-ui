@@ -348,7 +348,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
         div({}, [
           div({
             style: title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 }
-          }, [versionTag('Beta')]),
+          }),
           title
         ])
       ]),
