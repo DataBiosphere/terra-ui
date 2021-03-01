@@ -238,9 +238,8 @@ const BucketContent = _.flow(
         ])
       ]),
       div({ style: { justifyContent: 'flex-end' } }, [
-        h(Link, {
-          onClick: () => ''
-        }, ['hello']
+        h(Link, { href: `https://seqr.broadinstitute.org/workspace/${namespace}/${workspace}` },
+          ['Analyze in Seqr ', icon('pop-out', { size: 14 })]
         )
       ])
 
