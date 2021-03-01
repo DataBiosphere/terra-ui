@@ -11,7 +11,7 @@ export const ProgressBar = ({ max, now }) => {
       display: 'flex',
       flexFlow: 'row wrap',
       width: '100%',
-      height: '2rem',
+      height: '1rem',
       justifyContent: 'space-between',
       alignItems: 'stretch',
       marginBottom: '0.5rem'
@@ -38,9 +38,12 @@ export const ProgressBar = ({ max, now }) => {
           backgroundColor: colors.primary(0.75),
           borderRadius: 'inherit',
           textAlign: 'right',
-          transition: 'width 0.4s ease-in-out'
-        },
-        className: [ 'progress-bar-striped', 'progress-bar-animated' ]
+          transition: 'width 0.4s ease-in-out',
+          // From react-bootstrap, creates a barbershop texture
+          backgroundImage: 'linear-gradient(45deg,hsla(0,0%,100%,.15) 25%,transparent 0,transparent 50%,hsla(0,0%,100%,.15) 0,hsla(0,0%,100%,.15) 75%,transparent 0,transparent)',
+          backgroundSize: '1rem 1rem',
+          animation: 'progress-bar-stripes 1s linear infinite'
+        }
       })
     ])
   ])
@@ -61,16 +64,26 @@ export const UploadProgressModal = ({ status: { totalFiles, totalBytes, uploaded
     dl([
       dt(['Currently uploading:']),
       dd({
-        style: { margin: '0.5rem 0', fontWeight: 600, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }
+        style: { margin: '0.4rem 0 1rem 0', fontWeight: 600, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }
       },[currentFile.name])
+    ]),
+    dl([
+      dt(['Size:']),
+      dd({
+        style: { margin: '0.4rem 0 1rem 0', fontWeight: 600 },
+      }, [friendlyFileSize(currentFile.size)])
     ]),
     h(ProgressBar, {
       max: totalBytes,
       now: uploadedBytes
     }),
     p({}, [
-      'Transferred ', friendlyFileSize(uploadedBytes), ' of ', friendlyFileSize(totalBytes),
-      strong([(uploadedBytes / totalBytes * 100).toFixed(0), '%'])
+      'Transferred ',
+      strong([friendlyFileSize(uploadedBytes)]),
+      ' of ',
+      strong([friendlyFileSize(totalBytes)]),
+      ' ',
+      strong(['(', (uploadedBytes / totalBytes * 100).toFixed(0), '%)'])
     ]),
   ])
 }

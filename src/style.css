@@ -114,14 +114,6 @@ a {
   color: #333f52;
 }
 
-/* Progress Bar styles, borrowed from react-bootstrap */
-.progress-bar-striped {
-  background-image: linear-gradient(
-      45deg
-      ,hsla(0,0%,100%,.15) 25%,transparent 0,transparent 50%,hsla(0,0%,100%,.15) 0,hsla(0,0%,100%,.15) 75%,transparent 0,transparent);
-  background-size: 1rem 1rem;
-}
-
 @keyframes progress-bar-stripes {
   0% {
     background-position: 1rem 0

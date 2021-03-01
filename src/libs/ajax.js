@@ -883,6 +883,21 @@ const Buckets = signal => ({
     return res.json()
   },
 
+  listAll: async (namespace, bucket, pageToken = null) => {
+    const res = await fetchBuckets(
+      `storage/v1/b/${bucket}/o?${qs.stringify( { pageToken })}`,
+      _.merge(authOpts(await saToken(namespace)), { signal })
+    )
+    const body = await res.json()
+    const items = body.items || []
+
+    // Get the next page recursively if there is one
+    if (res.nextPageToken) {
+      return _.concat(items, await Buckets(signal).listAll(namespace, bucket, res.nextPageToken))
+    }
+    return items
+  },
+
   delete: async (namespace, bucket, name) => {
     return fetchBuckets(
       `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,

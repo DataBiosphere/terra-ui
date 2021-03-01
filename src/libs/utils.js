@@ -456,3 +456,13 @@ export const sanitizeEntityName = unsafe => unsafe.replace(/[^\w]/g, '-')
 export const makeTSV = rows => {
   return _.join('', _.map(row => `${_.join('\t', row)}\n`, rows))
 }
+
+export const commaJoin = list => {
+  return _.flow(
+    _.toPairs,
+    _.reduce((out, [index, val]) => {
+      const i = parseInt(index)
+      return out + (i === 0 ? '' : i === list.length - 1 ? ' or ' : ', ') + val;
+    }, '')
+  )(list)
+}

@@ -2,9 +2,15 @@ import filesize from 'filesize'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { div, h, h2, h3, h4, li, p, span, ul } from 'react-hyperscript-helpers'
+import { div, h, h2, h3, h4, p, span, code, ul, li, table } from 'react-hyperscript-helpers'
+import { AutoSizer } from 'react-virtualized'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { ButtonPrimary, IdContainer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import {
+  ButtonPrimary, ButtonSecondary, Checkbox, Clickable, IdContainer, Link, MenuButton, Select, topSpinnerOverlay, transparentSpinnerOverlay
+} from 'src/components/common'
+import { EditDataLink, renderDataCell, saveScroll } from 'src/components/data/data-utils'
+import DataTable from 'src/components/data/DataTable'
+import UploadPreviewTable from 'src/components/data/UploadPreviewTable'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -12,8 +18,9 @@ import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
+import PopupTrigger from 'src/components/PopupTrigger'
 import { UploadProgressModal } from 'src/components/ProgressBar'
-import { HeaderCell, SimpleTable, TextCell } from 'src/components/table'
+import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable, SimpleTable, Sortable, TextCell } from 'src/components/table'
 import TopBar from 'src/components/TopBar'
 import UriViewer from 'src/components/UriViewer'
 import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
@@ -23,12 +30,17 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { set } from 'src/libs/state-history'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import { uploadFiles, useUploader } from 'src/libs/uploads'
+import { readFileAsText } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 import { DeleteObjectModal } from 'src/pages/workspaces/workspace/Data'
 
+// As you add support for uploading additional types of metadata, add them here.
+// You may also need to adjust the validation logic.
+const supportedEntityTypes = ['entity'];
 
 const rootPrefix = 'uploads/'
 
@@ -86,21 +98,19 @@ const styles = {
     ...Style.elements.sectionHeader,
     margin: '1rem 0',
     textTransform: 'uppercase',
-    textAlign: 'center'
+    textAlign: 'center',
+    verticalAlign: 'middle'
   },
   instructions: {
-    fontSize: '1.2em',
-    textAlign: 'center'
+    lineHeight: '1.4em'
   },
   nextLink: {
-    fontSize: '1.2em',
     position: 'absolute',
     right: 0,
     top: 0,
     padding: '1rem 0'
   },
   prevLink: {
-    fontSize: '1.2em',
     position: 'absolute',
     left: 0,
     top: 0,
@@ -143,19 +153,19 @@ const DataTypeSection = ({ title, icon, step, currentStep, setCurrentStep, stepI
   ])
 }
 
-const NewDatasetModal = ({ onSuccess, onDismiss }) => {
+const NewCollectionModal = ({ onSuccess, onDismiss }) => {
   const [name, setName] = useState('')
 
   return h(Modal, {
-    title: 'Create a New Dataset',
+    title: 'Create a New Collection',
     onDismiss,
     okButton: h(ButtonPrimary, {
       onClick: () => onSuccess({ name })
-    }, ['Create Dataset'])
+    }, ['Create Collection'])
   }, [
     h(IdContainer, [
       id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, ['Dataset name']),
+        h(FormLabel, { htmlFor: id, required: true }, ['Collection name']),
         h(ValidatedInput, {
           inputProps: {
             id,
@@ -199,7 +209,7 @@ const NewFolderModal = ({ onSuccess, onDismiss }) => {
 
 
 const WorkspaceSelectorPanel = ({
-                                  workspaces, selectedWorkspaceId, setWorkspaceId, setCurrentStep, stepIsEnabled, setCreatingNewWorkspace, children,
+                                  workspaces, selectedWorkspaceId, setWorkspaceId, setCreatingNewWorkspace, children,
                                   ...props
                                 }) => {
   const { query } = Nav.useRoute()
@@ -356,12 +366,12 @@ const WorkspaceSelectorPanel = ({
 
 }
 
-const DatasetSelectorPanel = _.flow(
-  Utils.withDisplayName('DatasetSelectorPanel'),
+const CollectionSelectorPanel = _.flow(
+  Utils.withDisplayName('CollectionSelectorPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
-)(({ workspace, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, selectedDataset, setDataset, children, ...props }) => {
+)(({ workspace, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, selectedCollection, setCollection, children, ...props }) => {
   // State
-  const [datasets, setDatasets] = useState(undefined)
+  const [collections, setCollections] = useState(undefined)
   const [isLoading, setLoading] = useState(false)
   const [isCreating, setCreating] = useState(false)
 
@@ -374,13 +384,13 @@ const DatasetSelectorPanel = _.flow(
     Utils.withBusyState(setLoading)
   )(async () => {
     const { prefixes } = await Ajax(signal).Buckets.list(namespace, bucketName, rootPrefix)
-    setDatasets(_.flow(
+    setCollections(_.flow(
       // Slice off the root and the trailing slash
       _.map(p => p.slice(rootPrefix.length, p.length - 1)),
-      _.concat(selectedDataset),
+      _.concat(selectedCollection),
       _.uniq,
       _.compact,
-      _.sortBy([p => p !== selectedDataset, p => p])
+      _.sortBy([p => p !== selectedCollection, p => p])
     )(prefixes))
   })
 
@@ -392,13 +402,21 @@ const DatasetSelectorPanel = _.flow(
   // Render
 
   return h(div, {}, [
-    h2({ style: styles.heading }, ['Select a dataset']),
+    h2({ style: styles.heading }, [
+      'Select a collection',
+      h(Link, {
+        'aria-label': 'Create new collection', onClick: () => setCreating(true),
+        style: { marginLeft: '0.5rem' },
+        tooltip: 'Create a new collection'
+      },
+      [icon('lighter-plus-circle', { size: 24 })])
+    ]),
     p({ style: styles.instructions }, [
-      'Each dataset represents a collection of file with a single metadata file describing the table structure. ',
-      'You can create a new dataset, or add files to an existing one. '
+      'Each collection represents a group of files with a single metadata file describing the table structure. ',
+      'You can create a new collection, or add files to an existing one. '
     ]),
     children,
-    datasets?.length > 0 && h3({}, ['Choose an existing dataset']),
+    collections?.length > 0 && h3({}, ['Choose an existing collection']),
     div({
       role: 'radiogroup',
       style: styles.workspaceTilesContainer
@@ -409,28 +427,28 @@ const DatasetSelectorPanel = _.flow(
         }, [
           h(Link, {
             role: 'radio',
-            'aria-checked': prefix === selectedDataset,
-            style: _.merge(styles.workspaceTile, prefix === selectedDataset ? styles.workspaceTileSelected : {}),
-            onClick: () => setDataset(prefix),
-            variant: prefix === selectedDataset ? 'light' : 'dark'
+            'aria-checked': prefix === selectedCollection,
+            style: _.merge(styles.workspaceTile, prefix === selectedCollection ? styles.workspaceTileSelected : {}),
+            onClick: () => setCollection(prefix),
+            variant: prefix === selectedCollection ? 'light' : 'dark'
           }, [
             h4({
               style: { margin: '0 0 1rem 0' }
             }, [prefix])
           ])
         ])
-      }, datasets)
+      }, collections)
     ]),
     h(Link, {
-      style: { fontSize: '1.2em' },
+      style: { margin: '2em 0 0 0', textAlign: 'center', width: '100%', display: 'block' },
       onClick: () => setCreating(true)
     }, [
       icon('plus'),
-      ' Create a new dataset'
+      ' Create a new collection'
     ]),
-    isCreating && h(NewDatasetModal, {
+    isCreating && h(NewCollectionModal, {
       onDismiss: () => setCreating(false),
-      onSuccess: ({ name }) => setDataset(name)
+      onSuccess: ({ name }) => setCollection(name)
     }),
     isLoading && topSpinnerOverlay
   ])
@@ -439,9 +457,9 @@ const DatasetSelectorPanel = _.flow(
 const DataUploadPanel = _.flow(
   Utils.withDisplayName('DataUploadPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
-)(({ workspace, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, dataset, setCurrentStep, setUploadFiles, children }) => {
+)(({ workspace, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, collection, setHasFiles, children }) => {
 
-  const basePrefix = `${rootPrefix}${dataset}/`
+  const basePrefix = `${rootPrefix}${collection}/`
   const [prefix, setPrefix] = useState('')
 
   const [prefixes, setPrefixes] = useState(undefined)
@@ -480,6 +498,16 @@ const DataUploadPanel = _.flow(
       _.compact
     )(prefixes))
     setObjects(items)
+
+    // If there are any prefixes or items, we know this bucket has files in it
+    if (prefixes || items) {
+      setHasFiles(true)
+    }
+    // Otherwise, only report that there are no files if this is the base prefix.
+    // If we didn't do this check, we could be in an empty inner folder but the outer folder could still have files.
+    else if (targetPrefix === '' || targetPrefix === basePrefix) {
+      setHasFiles(false)
+    }
   })
 
   // Lifecycle
@@ -525,12 +553,18 @@ const DataUploadPanel = _.flow(
     }),
     h2({ style: styles.heading }, ['Upload Your Data Files']),
     p({ style: styles.instructions }, [
-      'Upload the files to associate with this dataset. You may upload as many files as you wish, but each filename must be unique.'
+      'Upload the files to associate with this collection by dragging them into the table below, or clicking the Upload button.'
+    ]),
+    p({ style: styles.instructions}, [
+      ' You may upload as many files as you wish, but each filename must be unique even within sub-folders.'
     ]),
     children,
     h(Dropzone, {
       disabled: !!Utils.editWorkspaceError(workspace) || uploadStatus.active,
-      style: { flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.dark(0.55)}`, padding: '1rem', position: 'relative' },
+      style: {
+        flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.dark(0.55)}`,
+        padding: '1rem', position: 'relative', minHeight: '10rem'
+      },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       multiple: true,
       maxFiles: 0,
@@ -548,7 +582,7 @@ const DataUploadPanel = _.flow(
             ' / '
           ])
         }, [
-          { label: dataset, target: '' },
+          { label: collection, target: '' },
           ..._.map(n => {
             return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
           }, _.range(0, prefixParts.length))
@@ -559,46 +593,55 @@ const DataUploadPanel = _.flow(
         })
       ]),
       div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
-      h(SimpleTable, {
-        columns: [
-          { size: { basis: 24, grow: 0 }, key: 'button' },
-          { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },
-          { header: h(HeaderCell, ['Size']), size: { basis: 200, grow: 0 }, key: 'size' },
-          { header: h(HeaderCell, ['Last modified']), size: { basis: 200, grow: 0 }, key: 'updated' }
-        ],
-        rows: [
-          ..._.map(p => {
-            return {
-              name: h(TextCell, [
-                makeBucketLink({
-                  label: getBareFilename(p),
-                  target: getFullPrefix(p),
-                  onClick: () => setPrefix(p)
-                })
-              ])
-            }
-          }, prefixes),
-          ..._.map(({ name, size, updated }) => {
-            return {
-              button: h(Link, {
-                style: { display: 'flex' }, onClick: () => setDeletingName(name),
-                tooltip: 'Delete file'
-              }, [
-                icon('trash', { size: 16, className: 'hover-only' })
-              ]),
-              name: h(TextCell, [
-                makeBucketLink({
-                  label: getBareFilename(name),
-                  target: name,
-                  onClick: () => setViewingName(name)
-                })
-              ]),
-              size: filesize(size, { round: 0 }),
-              updated: Utils.makePrettyDate(updated)
-            }
-          }, objects)
-        ]
-      }),
+      (prefixes?.length > 0 || objects?.length > 0) ? div({
+        style: { fontSize: '1rem' }
+      }, [
+        h(SimpleTable, {
+          columns: [
+            { size: { basis: 24, grow: 0 }, key: 'button' },
+            { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },
+            { header: h(HeaderCell, ['Size']), size: { basis: 200, grow: 0 }, key: 'size' },
+            { header: h(HeaderCell, ['Last modified']), size: { basis: 200, grow: 0 }, key: 'updated' }
+          ],
+          rows: [
+            ..._.map(p => {
+              return {
+                name: h(TextCell, [
+                  makeBucketLink({
+                    label: getBareFilename(p),
+                    target: getFullPrefix(p),
+                    onClick: () => setPrefix(p)
+                  })
+                ])
+              }
+            }, prefixes),
+            ..._.map(({ name, size, updated }) => {
+              return {
+                button: h(Link, {
+                  style: { display: 'flex' }, onClick: () => setDeletingName(name),
+                  tooltip: 'Delete file'
+                }, [
+                  icon('trash', { size: 16, className: 'hover-only' })
+                ]),
+                name: h(TextCell, [
+                  makeBucketLink({
+                    label: getBareFilename(name),
+                    target: name,
+                    onClick: () => setViewingName(name)
+                  })
+                ]),
+                size: filesize(size, { round: 0 }),
+                updated: Utils.makePrettyDate(updated)
+              }
+            }, objects)
+          ]
+        })
+      ]): div({
+        style: {
+          color: colors.dark(0.75), width: '100%', margin: '4rem 0', textAlign: 'center',
+          fontSize: '1.5em'
+        }
+      }, ['Drag and drop your files here']),
       deletingName && h(DeleteObjectModal, {
         workspace, name: deletingName,
         onDismiss: () => setDeletingName(),
@@ -613,8 +656,8 @@ const DataUploadPanel = _.flow(
       }),
       isCreating && h(NewFolderModal, {
         onDismiss: () => setCreating(false),
-        onSuccess: ({name}) => {
-          setPrefix(`${name}/`)
+        onSuccess: ({ name }) => {
+          setPrefix(`${prefix}${name}/`)
           setCreating(false)
         }
       }),
@@ -628,6 +671,220 @@ const DataUploadPanel = _.flow(
   ])
 })
 
+const MetadataUploadPanel = _.flow(
+  Utils.withDisplayName('MetadataUploadPanel'),
+  requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
+)(({ workspace, workspace: { workspace: { namespace, bucketName, name } },
+   onRequesterPaysError, collection, children }) => {
+
+  const basePrefix = `${rootPrefix}${collection}/`
+  const [filesLoading, setFilesLoading] = useState(false)
+  const [entitiesLoading, setEntitiesLoading] = useState(false)
+
+  const [metadataFile, setMetadataFile] = useState(null)
+  const [metadataTable, setMetadataTable] = useState(null)
+  const [filenames, setFilenames] = useState({})
+  const [activeMetadata, setActiveMetadata] = useState(null)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const setErrors = errors => {
+    setMetadataTable({ errors })
+  }
+
+  const forceRefresh = () => {
+    setRefreshKey(key => key++)
+  }
+
+  const isPreviewing = metadataTable?.rows?.length > 0
+  const hasErrors = metadataTable?.errors?.length > 0
+
+  const { initialX, initialY } = StateHistory.get() || {}
+
+  const signal = Utils.useCancellation()
+
+  // Get every filename in the bucket, so we can do substitutions
+  useEffect(() => {
+    _.flow(
+      withRequesterPaysHandler(onRequesterPaysError),
+      withErrorReporting('Error loading bucket data'),
+      Utils.withBusyState(setFilesLoading)
+    )(async () => {
+      // Fetch every object in the entire bucket so we don't have to do it recursively, but then
+      // filter out any that aren't in our base prefix
+      const items = await Ajax(signal).Buckets.listAll(namespace, bucketName)
+
+      // Hash the filenames without any prefixes for easy lookup
+      setFilenames(_.flow(
+        _.filter(item => item.name.startsWith(basePrefix)),
+        _.map(item => [ _.last(item.name.split('/')), `gs://${bucketName}/${item.name}` ]),
+        _.fromPairs
+      )(items))
+    })()
+  }, [collection]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const parseMetadata = async (file) => {
+    if (!file) {
+      setMetadataTable(null)
+      return
+    }
+    const errors = [];
+
+    try {
+      // Read the file contents
+      const text = await readFileAsText(file)
+
+      // Split rows by newlines and columns by tabs
+      const rows = _.flow(
+        _.split(/\r\n|\r|\n/),
+        _.compact,
+        _.map(row => row.split('\t'))
+      )(text)
+
+      const headerRow = _.first(rows)
+      const idColumn = _.first(headerRow)
+      let otherRows = _.drop(1, rows)
+
+      // Perform validation on the first row
+      if (!idColumn) {
+        errors.push(['This does not look like a valid .tsv file.'])
+        // Return right away
+        setErrors(errors)
+        return
+      }
+      const entityTypes = _.map(t => `${t}:`, supportedEntityTypes)
+
+      if (!_.some(t => idColumn.startsWith(t), entityTypes)) {
+        errors.push(div(['The first column header ', code(idColumn), ' must start with ', code(Utils.commaJoin(entityTypes))]))
+      }
+      if (!idColumn.endsWith('_id')) {
+        errors.push(div(['The first column header ', code(idColumn), ' must end with ', code('_id')]))
+      }
+      const matches = idColumn?.match(/^([A-Za-z_-]+):([A-Za-z0-9-_.]+)_id$/)
+      if (errors.length === 0 && !matches) {
+        errors.push(div(['The first column header ', code(idColumn), ' must only include alphanumeric characters, dashes, periods or underscores']))
+      }
+      if (headerRow.length < 2) {
+        errors.push('Your metadata file must include at least 2 columns')
+      }
+
+      if (errors.length > 0) {
+        setErrors(errors)
+      }
+      else {
+        const entityClass = matches[1]
+        const entityType = matches[2]
+        const idName = `${entityType}_id`
+
+        // Process each row
+        otherRows = _.map(row => {
+          return _.flow(
+            // Pad all rows to the same length as the header, or else the import will fail
+            (row) => _.concat(row, _.map(() => '', _.range(0, headerRow.length - row.length))),
+            // Replace any file references with bucket paths
+            _.map(cell => {
+              return cell in filenames ? filenames[cell] : cell
+            })
+          )(row)
+        }, otherRows)
+
+        setMetadataTable({ errors, entityClass, entityType, idName, idColumn, columns: headerRow, rows: otherRows })
+      }
+    }
+    catch (e) {
+      console.error('Failed to parse metadata file', e)
+      setErrors(['We were unable to process the metadata file. Are you sure it is in the proper format?'])
+    }
+  }
+
+  // Parse the metadata TSV file so we can show a preview. Refresh this parsing anytime the filenames or entities change
+  useEffect(() => {
+    parseMetadata(metadataFile)
+  }, [metadataFile, filenames])
+
+  // Render
+
+  return h(Fragment, {}, [
+    h2({ style: styles.heading }, ['Upload Your Metadata Files']),
+    div({ style: styles.instructions }, [
+      p('Upload a tab-separated file describing your table structures.'),
+      ul([
+        li('Any columns which reference files should include just the filenames, which will be matched up to the data files in this collection.'),
+        li([
+          p([
+            'The first column must contain the unique identifiers for each row. The name of the first column must start with ',
+            code('entity:'), ' followed by the table name, followed by ', code('_id'), '.'
+          ]),
+        ]),
+      ]),
+      p([
+        'For example, if the first column is named ',
+        code('entity:sample_id'),
+        ', a table named "sample" will be created with "sample_id" as its first column. There are no restrictions on other columns.'
+      ]),
+    ]),
+    children,
+    !isPreviewing && h(Dropzone, {
+      disabled: !!Utils.editWorkspaceError(workspace),
+      style: {
+        flexGrow: 1, backgroundColor: 'white', border: `1px dashed ${colors.dark(0.55)}`,
+        padding: '1rem', position: 'relative', height: '7rem'
+      },
+      activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
+      multiple: false,
+      maxFiles: 1,
+      accept: '.tsv',
+      onDropAccepted: ([file]) => {
+        setMetadataFile(file)
+      },
+      onDropRejected: (errors) => {
+        const e = _.flatMap(error => {
+          return _.map(e => e.message, error.errors)
+        }, errors)
+        setMetadataTable({ errors: e })
+      }
+    }, [
+      ({ openUploader }) => h(Fragment, [
+        div({
+          style: {
+            color: colors.dark(0.75), width: '100%', margin: '2rem 0', textAlign: 'center',
+            fontSize: '1.5em'
+          }
+        }, ['Drag and drop your metadata .tsv file here']),
+        !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
+          label: 'UPLOAD',
+          iconShape: 'plus',
+          onClick: openUploader
+        })
+      ])
+    ]),
+    hasErrors && div({
+      style: { color: colors.danger() }
+    }, [
+      h2(['Error!']),
+      p('The following errors occurred. Please correct them and then try your upload again.'),
+      ul([
+        _.map(e => li({ key: e, }, [e]), metadataTable.errors)
+      ])
+    ]),
+    isPreviewing && div({
+      style: { borderTop: '1px solid', borderColor: colors.dark(0.75) }
+    }, [
+      h(UploadPreviewTable, {
+        workspace, metadataTable,
+        onConfirm: () => {
+          // TODO Do the AJAX submission
+          setMetadataFile(null)
+        },
+        onCancel: () => {
+          setMetadataFile(null)
+          setMetadataTable(null)
+        }
+      })
+    ]),
+    (filesLoading) && topSpinnerOverlay
+  ])
+})
+
 const UploadData = _.flow(
   Utils.forwardRefWithName('Upload')
 )((props, ref) => {
@@ -635,32 +892,36 @@ const UploadData = _.flow(
 
   // State
   const [currentStep, setCurrentStep] = useState(StateHistory.get().currentStep || 'workspaces')
-  const [dataset, setDataset] = useState(StateHistory.get().dataset)
+  const [collection, setCollection] = useState(StateHistory.get().collection)
   const [workspaceId, setWorkspaceId] = useStaticStorageSlot(localStorage, 'uploadWorkspace')
-  const [uploadedFiles, setUploadedFiles] = useState([])
   const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false)
+  const [hasFiles, setHasFiles] = useState(StateHistory.get().hasFiles)
 
   useEffect(() => {
-    // Make sure we have a valid step once the workspaces have finished loading
-    if (!stepIsEnabled(currentStep) && !loadingWorkspaces) {
-      const step = _.findLast((step) => step.test(), steps)
-      setCurrentStep(step?.step || 'workspaces')
-    } else {
-      StateHistory.update({ currentStep, workspaceId, dataset })
-    }
-  }, [currentStep, workspaceId, dataset])
+    StateHistory.update({ currentStep, workspaceId, collection, hasFiles })
+  }, [currentStep, workspaceId, collection, hasFiles])
+
+  const workspace = useMemo(() => {
+    return workspaceId ? _.find({ workspace: { workspaceId: workspaceId } }, workspaces) : null
+  }, [workspaces, workspaceId])
 
   // Steps through the wizard
   const steps = [
     { step: 'workspaces', test: () => true },
-    { step: 'dataset', test: () => workspace },
-    { step: 'data', test: () => dataset },
-    { step: 'metadata', test: () => uploadedFiles.length }
+    { step: 'collection', test: () => workspace },
+    { step: 'data', test: () => collection },
+    { step: 'metadata', test: () => hasFiles }
   ]
 
   const stepIsEnabled = (step) => {
     const s = _.find({ step }, steps)
     return s && s.test()
+  }
+
+  // Make sure we have a valid step once the workspaces have finished loading
+  if (!stepIsEnabled(currentStep) && !loadingWorkspaces) {
+    const step = _.findLast((step) => step.test(), steps)
+    setCurrentStep(step?.step || 'workspaces')
   }
 
   const filteredWorkspaces = useMemo(() => {
@@ -669,16 +930,12 @@ const UploadData = _.flow(
     }, workspaces)
   }, [workspaces])
 
-  const workspace = useMemo(() => {
-    return workspaceId ? _.find({ workspace: { workspaceId: workspaceId } }, workspaces) : null
-  }, [workspaces, workspaceId])
-
   // Render
   return h(FooterWrapper, [
     h(TopBar, { title: 'Data Uploader', href: Nav.getLink('upload') }, [
       //      selectedWorkspace && WorkspaceBreadcrumbHeader({ workspace: selectedWorkspace })
     ]),
-    div({ role: 'main', style: { padding: '1.5rem', flex: 1 } }, [
+    div({ role: 'main', style: { padding: '1.5rem', flex: 1, fontSize: '1.2em' } }, [
       filteredWorkspaces.length === 0 && !loadingWorkspaces ?
         h(NoWorkspacesMessage, { onClick: () => setCreatingNewWorkspace(true) }) :
         div({ style: styles.pageContainer }, [
@@ -691,14 +948,14 @@ const UploadData = _.flow(
             }),
             h(DataTypeSection, {
               currentStep, setCurrentStep, stepIsEnabled,
-              step: 'dataset',
+              step: 'collection',
               icon: icon('folder', { size: 20, style: { marginLeft: '1rem', marginRight: '1rem' } }),
-              title: 'Dataset'
+              title: 'Collection'
             }),
             h(DataTypeSection, {
               currentStep, setCurrentStep, stepIsEnabled,
               step: 'data',
-              icon: icon('folder', { size: 20, style: { marginLeft: '1rem', marginRight: '1rem' } }),
+              icon: icon('fileAlt', { size: 20, style: { marginLeft: '1rem', marginRight: '1rem' } }),
               title: 'Data Files'
             }),
             h(DataTypeSection, {
@@ -716,25 +973,28 @@ const UploadData = _.flow(
                 h(WorkspaceSelectorPanel, {
                   workspaces: filteredWorkspaces,
                   selectedWorkspaceId: workspaceId,
-                  setCurrentStep,
                   setCreatingNewWorkspace,
                   setWorkspaceId: (id) => {
+                    // If the users switches to a different workspace, clear out whatever collection they had selected
+                    if (workspaceId !== id) {
+                      setCollection(null)
+                      setHasFiles(false)
+                    }
                     setWorkspaceId(id)
-                    setCurrentStep('dataset')
+                    setCurrentStep('collection')
                   }
                 }, [
-                  h(NextLink, { step: 'dataset', setCurrentStep, stepIsEnabled })
+                  h(NextLink, { step: 'collection', setCurrentStep, stepIsEnabled })
                 ])
               ])],
-              ['dataset', () => div({
+              ['collection', () => div({
                 style: styles.tabPanelHeader
               }, [
-                workspace && h(DatasetSelectorPanel, {
+                workspace && h(CollectionSelectorPanel, {
                   workspace: workspace,
-                  selectedDataset: dataset,
-                  setCurrentStep,
-                  setDataset: (id) => {
-                    setDataset(id)
+                  selectedCollection: collection,
+                  setCollection: (id) => {
+                    setCollection(id)
                     setCurrentStep('data')
                   }
                 }, [
@@ -745,22 +1005,29 @@ const UploadData = _.flow(
               ['data', () => div({
                 style: styles.tabPanelHeader
               }, [
-                workspace && dataset && h(DataUploadPanel, {
+                workspace && collection && h(DataUploadPanel, {
                   workspace: workspace,
-                  dataset: dataset,
-                  setCurrentStep,
+                  collection: collection,
+                  setHasFiles,
                   setUploadedFiles: (files) => {
                     setUploadedFiles(files)
                     setCurrentStep('metadata')
                   }
                 }, [
-                  h(PrevLink, { step: 'dataset', setCurrentStep }),
+                  h(PrevLink, { step: 'collection', setCurrentStep }),
                   h(NextLink, { step: 'metadata', setCurrentStep, stepIsEnabled })
                 ])
               ])],
-              ['metadata', () => div({}, [
-                'Upload Table Metadata'
-              ])]
+              ['metadata', () => div({
+                style: styles.tabPanelHeader
+              }, [
+                workspace && collection && h(MetadataUploadPanel, {
+                  workspace: workspace,
+                  collection: collection
+                }, [
+                  h(PrevLink, { step: 'collection', setCurrentStep }),
+                ])
+              ])],
             )
           ]),
           creatingNewWorkspace && h(NewWorkspaceModal, {
