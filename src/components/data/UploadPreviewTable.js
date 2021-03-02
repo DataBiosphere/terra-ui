@@ -1,69 +1,36 @@
+import { icon } from '@fortawesome/fontawesome-svg-core'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState, useMemo } from 'react'
-import { dd, div, dl, dt, h, h2, p, span, strong } from 'react-hyperscript-helpers'
+import { dd, div, dl, dt, h, h2, h3, li, p, span, strong, ul, code, h4 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, fixedSpinnerOverlay, Link, MenuButton } from 'src/components/common'
-import { EditDataLink, EntityEditor, EntityRenamer, renderDataCell, saveScroll } from 'src/components/data/data-utils'
-import { icon } from 'src/components/icons'
-import { ConfirmedSearchInput } from 'src/components/input'
-import Modal from 'src/components/Modal'
-import PopupTrigger from 'src/components/PopupTrigger'
-import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
+import { renderDataCell, saveScroll } from 'src/components/data/data-utils'
+import { NameModal } from 'src/components/NameModal'
+import { GridTable, HeaderCell, Resizable, Sortable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import iconDict from 'src/libs/icon-dict'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
 import * as StateHistory from 'src/libs/state-history'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-
-
-const entityMap = entities => {
-  return _.fromPairs(_.map(e => [e.name, e], entities))
-}
-
-const applyColumnSettings = (columnSettings, columns) => {
-  const lookup = _.flow(
-    Utils.toIndexPairs,
-    _.map(([i, v]) => ({ ...v, index: i })),
-    _.keyBy('name')
-  )(columnSettings)
-  return _.flow(
-    _.map(name => lookup[name] || { name, visible: true, index: -1 }),
-    _.sortBy('index'),
-    _.map(_.omit('index'))
-  )(columns)
-}
-
-const displayData = ({ itemsType, items }) => {
-  return !!items.length ?
-    h(Fragment,
-      _.map(([i, entity]) => div({
-        style: { borderBottom: (i !== items.length - 1) ? `1px solid ${colors.dark(0.7)}` : undefined, padding: '0.5rem' }
-      }, [
-        itemsType === 'EntityReference' ? `${entity.entityName} (${entity.entityType})` : JSON.stringify(entity)
-      ]), Utils.toIndexPairs(items))) :
-    div({ style: { padding: '0.5rem', fontStyle: 'italic' } }, ['No items'])
-}
 
 const UploadDataTable = props => {
   const { workspace, workspace: { workspace: { namespace, name } },
     metadataTable, metadataTable: { entityClass, entityType, rows, columns, idName, idColumn },
-    onConfirm, onCancel, refreshKey, children
+    onConfirm, onCancel, onRename, refreshKey, children
   } = props
 
   const persistenceId = `${namespace}/${name}/${entityType}`
   const nonIdColumns = _.drop(1, columns)
 
   // State
-  const [viewData, setViewData] = useState()
-  const [renamingEntity, setRenamingEntity] = useState()
-
   const [entityMetadata, setEntityMetadata] = useState(null)
-  const [activeMetadata, setActiveMetadata] = useState(null)
+  const [metadata, setMetadata] = useState(null)
   const [metadataLoading, setMetadataLoading] = useState(false)
 
   const [sort, setSort] = useState(StateHistory.get().sort || { field: 'name', direction: 'asc' })
+  const [renamingTable, setRenamingTable] = useState(false)
 
   const [columnWidths, setColumnWidths] = useState(() => getLocalPref(persistenceId)?.columnWidths || {})
   const { initialX, initialY } = StateHistory.get() || {}
@@ -89,7 +56,7 @@ const UploadDataTable = props => {
       let columnsUpdated = []
 
       if (!(entityType in entityMetadata)) {
-        metadata = entityMetadata[entityType] = {
+        metadata = {
           attributeNames: nonIdColumns,
           idName: idName,
           count: rows.length
@@ -102,7 +69,7 @@ const UploadDataTable = props => {
         metadata.attributeNames = _.concat(metadata.attributeNames, columnsAdded)
         isUpdate = true
       }
-      setActiveMetadata({
+      setMetadata({
         ... metadata,
         entityType,
         table: metadataTable,
@@ -112,7 +79,7 @@ const UploadDataTable = props => {
       })
     }
     else {
-      setActiveMetadata(null)
+      setMetadata(null)
     }
   }, [metadataTable, entityMetadata])
 
@@ -148,19 +115,45 @@ const UploadDataTable = props => {
         }, ['Cancel']),
         h(ButtonPrimary, {
           onClick: () => {
-            onConfirm && onConfirm({ activeMetadata })
+            onConfirm && onConfirm({ metadata: metadata })
           }
         }, [
-          activeMetadata?.isUpdate ? 'Update Table' : 'Create Table'
+          metadata?.isUpdate ? 'Update Table' : 'Create Table'
         ]),
       ]),
-      activeMetadata && dl([
-        dt('Table name'),
-        dd([strong(activeMetadata.entityType)])
-      ]),
-      p('If this table looks right to you, click the button on the right to create the table in your workspace.'),
+      metadata && div([
+        metadata.isUpdate ? div([
+          h3(['Updating Table: ', strong(metadata.entityType)]),
+          p({
+            style: { color: colors.danger() },
+          }, [
+            icon('exclamation-triangle'),
+            'This workspace already includes a table with this name. If any new rows have the same ',
+            code(metadata.idName), ' as an existing row, the data in that row will be updated with the new values.']),
+          metadata.columnsUpdated?.length > 0 && div([
+            h4('Columns whose values may be overwritten:'),
+            ul([
+            ..._.map(u => li([u]), metadata.columnsUpdated)
+            ])
+          ]),
+          metadata.columnsAdded?.length > 0 && div([
+            h4('New columns to be added:'),
+            ul([
+              ..._.map(u => li([u]), metadata.columnsAdded)
+            ])
+          ]),
+        ]) : div([
+          h3(['Creating a new Table: ', strong(metadata.entityType)]),
+        ]),
+        h(ButtonPrimary,{
+          onClick: () => setRenamingTable(true)
+        }, [
+          'Rename table'
+        ]),
+        p(`If this table looks right to you, click the button on the right to ${metadata.isUpdate ? 'update' : 'create'} the table in your workspace.`),
+      ])
     ]),
-    activeMetadata && h(Fragment, [
+    metadata && h(Fragment, [
       div({
         style: { flex: '1 1 auto' }
       }, [
@@ -205,6 +198,15 @@ const UploadDataTable = props => {
         ]),
       ]),
     ]),
+    renamingTable && h(NameModal, {
+      thing: 'Entity Table',
+      value: metadata.entityType,
+      onDismiss: () => setRenamingTable(false),
+      onSuccess: ({name}) => {
+        onRename({name})
+        setRenamingTable(false)
+      },
+    }),
     metadataLoading && fixedSpinnerOverlay
   ])
 }

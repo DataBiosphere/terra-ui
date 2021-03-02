@@ -196,10 +196,12 @@ export const NoWorkspacesMessage = ({ onClick }) => {
   ])
 }
 
-export const WorkspaceBreadcrumbHeader = ({ workspace: { accessLevel, workspace: { namespace, name }}, ...props }) => {
+export const WorkspaceBreadcrumbHeader = ({ workspace: { accessLevel, workspace: { namespace, name }}, tab, ...props }) => {
   return div({ style: Style.breadcrumb.breadcrumb }, [
     div({ style: Style.noWrapEllipsis }, [
-      commonPaths.workspaceDashboard({namespace, name})
+      tab ?
+        commonPaths.workspaceTab({namespace, name}, tab) :
+        commonPaths.workspaceDashboard({namespace, name})
     ]),
     div({ style: Style.breadcrumb.textUnderBreadcrumb }, [
       `${namespace}/${name}`,

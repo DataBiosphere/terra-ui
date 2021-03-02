@@ -2,39 +2,32 @@ import filesize from 'filesize'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { div, h, h2, h3, h4, p, span, code, ul, li, table } from 'react-hyperscript-helpers'
-import { AutoSizer } from 'react-virtualized'
+import { div, h, h2, h3, h4, p, span, code, ul, li, a } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import {
-  ButtonPrimary, ButtonSecondary, Checkbox, Clickable, IdContainer, Link, MenuButton, Select, topSpinnerOverlay, transparentSpinnerOverlay
-} from 'src/components/common'
-import { EditDataLink, renderDataCell, saveScroll } from 'src/components/data/data-utils'
-import DataTable from 'src/components/data/DataTable'
+import { Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import UploadPreviewTable from 'src/components/data/UploadPreviewTable'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
-import Modal from 'src/components/Modal'
+import { NameModal } from 'src/components/NameModal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import PopupTrigger from 'src/components/PopupTrigger'
 import { UploadProgressModal } from 'src/components/ProgressBar'
-import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable, SimpleTable, Sortable, TextCell } from 'src/components/table'
+import { HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import TopBar from 'src/components/TopBar'
 import UriViewer from 'src/components/UriViewer'
-import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import { NoWorkspacesMessage, useWorkspaces, WorkspaceBreadcrumbHeader, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { useStaticStorageSlot } from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
-import { FormLabel } from 'src/libs/forms'
+import { reportError, withErrorReporting } from 'src/libs/error'
+import { useQueryParam } from 'src/libs/nav'
 import * as Nav from 'src/libs/nav'
-import { set } from 'src/libs/state-history'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import { uploadFiles, useUploader } from 'src/libs/uploads'
-import { readFileAsText } from 'src/libs/utils'
+import { readFileAsText, withBusyState } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 import { DeleteObjectModal } from 'src/pages/workspaces/workspace/Data'
 
@@ -150,60 +143,6 @@ const DataTypeSection = ({ title, icon, step, currentStep, setCurrentStep, stepI
       title
     ]),
     children
-  ])
-}
-
-const NewCollectionModal = ({ onSuccess, onDismiss }) => {
-  const [name, setName] = useState('')
-
-  return h(Modal, {
-    title: 'Create a New Collection',
-    onDismiss,
-    okButton: h(ButtonPrimary, {
-      onClick: () => onSuccess({ name })
-    }, ['Create Collection'])
-  }, [
-    h(IdContainer, [
-      id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, ['Collection name']),
-        h(ValidatedInput, {
-          inputProps: {
-            id,
-            autoFocus: true,
-            placeholder: 'Enter a name',
-            value: name,
-            onChange: v => setName(v)
-          }
-        })
-      ])
-    ])
-  ])
-}
-
-const NewFolderModal = ({ onSuccess, onDismiss }) => {
-  const [name, setName] = useState('')
-
-  return h(Modal, {
-    title: 'Add a New Folder',
-    onDismiss,
-    okButton: h(ButtonPrimary, {
-      onClick: () => onSuccess({ name })
-    }, ['Create Folder'])
-  }, [
-    h(IdContainer, [
-      id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, ['Folder name']),
-        h(ValidatedInput, {
-          inputProps: {
-            id,
-            autoFocus: true,
-            placeholder: 'Enter a name',
-            value: name,
-            onChange: v => setName(v)
-          }
-        })
-      ])
-    ])
   ])
 }
 
@@ -446,7 +385,8 @@ const CollectionSelectorPanel = _.flow(
       icon('plus'),
       ' Create a new collection'
     ]),
-    isCreating && h(NewCollectionModal, {
+    isCreating && h(NameModal, {
+      thing: 'Collection',
       onDismiss: () => setCreating(false),
       onSuccess: ({ name }) => setCollection(name)
     }),
@@ -654,7 +594,8 @@ const DataUploadPanel = _.flow(
         googleProject: namespace, uri: `gs://${bucketName}/${viewingName}`,
         onDismiss: () => setViewingName(undefined)
       }),
-      isCreating && h(NewFolderModal, {
+      isCreating && h(NameModal, {
+        thing: 'Folder',
         onDismiss: () => setCreating(false),
         onSuccess: ({ name }) => {
           setPrefix(`${prefix}${name}/`)
@@ -675,7 +616,7 @@ const MetadataUploadPanel = _.flow(
   Utils.withDisplayName('MetadataUploadPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
 )(({ workspace, workspace: { workspace: { namespace, bucketName, name } },
-   onRequesterPaysError, collection, children }) => {
+   onRequesterPaysError, onSuccess, collection, children }) => {
 
   const basePrefix = `${rootPrefix}${collection}/`
   const [filesLoading, setFilesLoading] = useState(false)
@@ -686,6 +627,7 @@ const MetadataUploadPanel = _.flow(
   const [filenames, setFilenames] = useState({})
   const [activeMetadata, setActiveMetadata] = useState(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [isUploading, setUploading] = useState(false)
 
   const setErrors = errors => {
     setMetadataTable({ errors })
@@ -796,10 +738,37 @@ const MetadataUploadPanel = _.flow(
     }
   }
 
+  const renameTable = ({name}) => {
+    setMetadataTable(m => {
+      const idColumn = `${m.entityClass}:${name}_id`
+      return {
+        ...m,
+        entityType: name,
+        idName: `${name}_id`,
+        idColumn: idColumn,
+        columns: [idColumn, ..._.drop(1, m.columns)]
+      }
+    })
+  }
+
   // Parse the metadata TSV file so we can show a preview. Refresh this parsing anytime the filenames or entities change
   useEffect(() => {
     parseMetadata(metadataFile)
   }, [metadataFile, filenames])
+
+  const doUpload = _.flow(
+    Utils.withBusyState(setUploading)
+  )(async (metadata) => {
+    try {
+      // Convert the table data structure back into a TSV, in case the user made changes
+      const file = Utils.makeTSV([metadata.table.columns, ...metadata.table.rows])
+      const workspace = Ajax().Workspaces.workspace(namespace, name)
+      await workspace.importFlexibleEntitiesFile(file)
+      onSuccess && onSuccess({ file, metadata })
+    } catch (error) {
+      await reportError('Failed to upload entity metadata', error)
+    }
+  })
 
   // Render
 
@@ -871,14 +840,14 @@ const MetadataUploadPanel = _.flow(
     }, [
       h(UploadPreviewTable, {
         workspace, metadataTable,
-        onConfirm: () => {
-          // TODO Do the AJAX submission
-          setMetadataFile(null)
+        onConfirm: ({metadata}) => {
+          doUpload(metadata)
         },
         onCancel: () => {
           setMetadataFile(null)
           setMetadataTable(null)
-        }
+        },
+        onRename: renameTable
       })
     ]),
     (filesLoading) && topSpinnerOverlay
@@ -896,10 +865,11 @@ const UploadData = _.flow(
   const [workspaceId, setWorkspaceId] = useStaticStorageSlot(localStorage, 'uploadWorkspace')
   const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false)
   const [hasFiles, setHasFiles] = useState(StateHistory.get().hasFiles)
+  const [tableName, setTableName] = useState(StateHistory.get().tableName)
 
   useEffect(() => {
-    StateHistory.update({ currentStep, workspaceId, collection, hasFiles })
-  }, [currentStep, workspaceId, collection, hasFiles])
+    StateHistory.update({ currentStep, workspaceId, collection, hasFiles, tableName })
+  }, [currentStep, workspaceId, collection, hasFiles, tableName])
 
   const workspace = useMemo(() => {
     return workspaceId ? _.find({ workspace: { workspaceId: workspaceId } }, workspaces) : null
@@ -910,7 +880,8 @@ const UploadData = _.flow(
     { step: 'workspaces', test: () => true },
     { step: 'collection', test: () => workspace },
     { step: 'data', test: () => collection },
-    { step: 'metadata', test: () => hasFiles }
+    { step: 'metadata', test: () => hasFiles },
+    { step: 'done', test: () => tableName },
   ]
 
   const stepIsEnabled = (step) => {
@@ -924,6 +895,19 @@ const UploadData = _.flow(
     setCurrentStep(step?.step || 'workspaces')
   }
 
+  // Reset subsequent actions if an earlier dependency changes
+  /*
+  useEffect(() => {
+    setCollection(null)
+  }, [workspaceId])
+  useEffect(() => {
+    setHasFiles(false)
+  }, [collection])
+  useEffect(() => {
+    setTableName(null)
+  }, [hasFiles])
+   */
+
   const filteredWorkspaces = useMemo(() => {
     return _.filter(ws => {
       return Utils.canWrite(ws.accessLevel) // && (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
@@ -933,7 +917,7 @@ const UploadData = _.flow(
   // Render
   return h(FooterWrapper, [
     h(TopBar, { title: 'Data Uploader', href: Nav.getLink('upload') }, [
-      //      selectedWorkspace && WorkspaceBreadcrumbHeader({ workspace: selectedWorkspace })
+      workspace && WorkspaceBreadcrumbHeader({ workspace, tab: 'data' })
     ]),
     div({ role: 'main', style: { padding: '1.5rem', flex: 1, fontSize: '1.2em' } }, [
       filteredWorkspaces.length === 0 && !loadingWorkspaces ?
@@ -1023,16 +1007,25 @@ const UploadData = _.flow(
               }, [
                 workspace && collection && h(MetadataUploadPanel, {
                   workspace: workspace,
-                  collection: collection
+                  collection: collection,
+                  onSuccess: ({ metadata: {entityType: tableName } }) => {
+                    setTableName(tableName)
+                    setCurrentStep('done')
+                  }
                 }, [
                   h(PrevLink, { step: 'collection', setCurrentStep }),
                 ])
               ])],
+              ['done', () => div({
+                style: styles.tabPanelHeader
+              }, [
+                h2('Done!')
+              ])]
             )
           ]),
           creatingNewWorkspace && h(NewWorkspaceModal, {
             onDismiss: () => setCreatingNewWorkspace(false),
-            onSuccess: ({ namespace, name }) => refreshWorkspaces()
+            onSuccess: ({ namespace, name }) => refreshWorkspaces(),
           }),
           loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
         ])
