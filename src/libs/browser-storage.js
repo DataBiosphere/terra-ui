@@ -92,7 +92,7 @@ export const staticStorageSlot = (storage, key) => {
 
 export const useStaticStorageSlot = (storage, key) => {
   const store = staticStorageSlot(storage, key)
-  return [ Utils.useStore(store), value => store.set(value) ]
+  return [Utils.useStore(store), value => store.set(value)]
 }
 
 export const dynamicStorageSlot = (storage, key) => {
@@ -108,5 +108,5 @@ export const dynamicStorageSlot = (storage, key) => {
 
 export const useDynamicStorageSlot = (storage, key) => {
   const store = dynamicStorageSlot(storage, key)
-  return [ Utils.useStore(store), newValue => store.set(newValue) ]
+  return [Utils.useStore(store), newValue => store.set(newValue)]
 }

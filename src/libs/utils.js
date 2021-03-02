@@ -386,7 +386,7 @@ export const useCancelable = () => {
   // Abort it automatically in the destructor
   useEffect(() => {
     return () => controller.abort()
-  }, [])
+  }, [controller])
 
   return { signal: controller.signal, abort: () => {
     controller.abort();

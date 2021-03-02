@@ -1,6 +1,5 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
-import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, h2, h3, h4, p, span, code, ul, li, a } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
@@ -19,10 +18,8 @@ import TopBar from 'src/components/TopBar'
 import UriViewer from 'src/components/UriViewer'
 import { NoWorkspacesMessage, useWorkspaces, WorkspaceBreadcrumbHeader, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
-import { useDynamicStorageSlot, useStaticStorageSlot } from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import { useQueryParam } from 'src/libs/nav'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -481,7 +478,9 @@ const DataUploadPanel = _.flow(
   return h(Fragment, {}, [
     uploadStatus.active && h(UploadProgressModal, {
       status: uploadStatus,
-      abort: abortUpload
+      abort: () => {
+        abortUpload()
+      }
     }),
     h2({ style: styles.heading }, ['Upload Your Data Files']),
     p({ style: styles.instructions }, [
@@ -981,7 +980,6 @@ const UploadData = _.flow(
                   collection: collection,
                   setHasFiles,
                   setUploadedFiles: (files) => {
-                    setUploadedFiles(files)
                     setCurrentStep('metadata')
                   }
                 }, [

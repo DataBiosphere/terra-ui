@@ -885,7 +885,7 @@ const Buckets = signal => ({
 
   listAll: async (namespace, bucket, pageToken = null) => {
     const res = await fetchBuckets(
-      `storage/v1/b/${bucket}/o?${qs.stringify( { pageToken })}`,
+      `storage/v1/b/${bucket}/o?${qs.stringify({ pageToken })}`,
       _.merge(authOpts(await saToken(namespace)), { signal })
     )
     const body = await res.json()

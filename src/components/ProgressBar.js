@@ -61,13 +61,13 @@ export const UploadProgressModal = ({ status: { totalFiles, totalBytes, uploaded
       'Uploading file ',
       strong([currentFileNum + 1, ' of ', totalFiles])
     ]),
-    dl([
+    currentFile && dl([
       dt(['Currently uploading:']),
       dd({
         style: { margin: '0.4rem 0 1rem 0', fontWeight: 600, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }
       },[currentFile.name])
     ]),
-    dl([
+    currentFile && dl([
       dt(['Size:']),
       dd({
         style: { margin: '0.4rem 0 1rem 0', fontWeight: 600 },

@@ -78,14 +78,14 @@ export const uploadFiles = async ({ namespace, bucketName, prefix, files, status
   }
   setStatus({ action: 'start', files })
 
+  signal.addEventListener('abort', () => {
+    setStatus({ action: 'abort' })
+    return
+  })
+
   let i = 0
   for (const file of files) {
     setStatus({ action: 'startFile', file, fileNum: i++ })
-
-    if (signal && signal.aborted) {
-      setStatus({ action: 'abort' })
-      return
-    }
     try {
       await Ajax(signal).Buckets.upload(namespace, bucketName, prefix, file)
       setStatus({ action: 'finishFile', file })
