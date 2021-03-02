@@ -202,13 +202,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               onClick: hideNav
             }, ['Workflows'])
           ]),
-          h(NavSection, {
-            href: Nav.getLink('upload'),
-            onClick: hideNav
-          }, [
-            icon('plus', { size: 24, style: styles.nav.icon }),
-            'Upload Files'
-          ]),
           h(DropDownSection, {
             titleIcon: 'help',
             title: 'Support',
