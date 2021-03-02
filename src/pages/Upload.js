@@ -19,7 +19,7 @@ import TopBar from 'src/components/TopBar'
 import UriViewer from 'src/components/UriViewer'
 import { NoWorkspacesMessage, useWorkspaces, WorkspaceBreadcrumbHeader, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
-import { useStaticStorageSlot } from 'src/libs/browser-storage'
+import { useDynamicStorageSlot, useStaticStorageSlot } from 'src/libs/browser-storage'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { useQueryParam } from 'src/libs/nav'
@@ -151,21 +151,13 @@ const WorkspaceSelectorPanel = ({
                                   workspaces, selectedWorkspaceId, setWorkspaceId, setCreatingNewWorkspace, children,
                                   ...props
                                 }) => {
-  const { query } = Nav.useRoute()
-  const [filter, setFilter] = useState(query.filter || '')
-  const [projectsFilter, setProjectsFilter] = useState(query.projectsFilter || undefined)
-  const [tagsFilter, setTagsFilter] = useState(query.tagsFilter || [])
+  const [filter, setFilter] = useState(StateHistory.get().filter || '')
+  const [projectsFilter, setProjectsFilter] = useState(StateHistory.get().projectsFilter || undefined)
+  const [tagsFilter, setTagsFilter] = useState(StateHistory.get().tagsFilter || [])
 
   useEffect(() => {
-    // Note: setting undefined so that falsy values don't show up at all
-    const newSearch = qs.stringify({
-      ...query, filter: filter || undefined, projectsFilter, tagsFilter
-    }, { addQueryPrefix: true })
-
-    if (newSearch !== Nav.history.location.search) {
-      Nav.history.replace({ search: newSearch })
-    }
-  })
+    StateHistory.update({ filter, projectsFilter, tagsFilter } )
+  }, [filter, projectsFilter, tagsFilter])
 
   const filteredWorkspaces = useMemo(() => _.filter(ws => {
     const { workspace: { namespace, name, attributes } } = ws
@@ -620,27 +612,18 @@ const MetadataUploadPanel = _.flow(
 
   const basePrefix = `${rootPrefix}${collection}/`
   const [filesLoading, setFilesLoading] = useState(false)
-  const [entitiesLoading, setEntitiesLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
 
   const [metadataFile, setMetadataFile] = useState(null)
   const [metadataTable, setMetadataTable] = useState(null)
   const [filenames, setFilenames] = useState({})
-  const [activeMetadata, setActiveMetadata] = useState(null)
-  const [refreshKey, setRefreshKey] = useState(0)
-  const [isUploading, setUploading] = useState(false)
 
   const setErrors = errors => {
     setMetadataTable({ errors })
   }
 
-  const forceRefresh = () => {
-    setRefreshKey(key => key++)
-  }
-
   const isPreviewing = metadataTable?.rows?.length > 0
   const hasErrors = metadataTable?.errors?.length > 0
-
-  const { initialX, initialY } = StateHistory.get() || {}
 
   const signal = Utils.useCancellation()
 
@@ -850,7 +833,7 @@ const MetadataUploadPanel = _.flow(
         onRename: renameTable
       })
     ]),
-    (filesLoading) && topSpinnerOverlay
+    (filesLoading || uploading) && topSpinnerOverlay
   ])
 })
 
@@ -860,16 +843,21 @@ const UploadData = _.flow(
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
 
   // State
+  const { query } = Nav.useRoute()
   const [currentStep, setCurrentStep] = useState(StateHistory.get().currentStep || 'workspaces')
-  const [collection, setCollection] = useState(StateHistory.get().collection)
-  const [workspaceId, setWorkspaceId] = useStaticStorageSlot(localStorage, 'uploadWorkspace')
+  const [workspaceId, setWorkspaceId] = useState(query.workspace)
+  const [collection, setCollection] = useState(query.collection)
   const [creatingNewWorkspace, setCreatingNewWorkspace] = useState(false)
   const [hasFiles, setHasFiles] = useState(StateHistory.get().hasFiles)
   const [tableName, setTableName] = useState(StateHistory.get().tableName)
 
   useEffect(() => {
-    StateHistory.update({ currentStep, workspaceId, collection, hasFiles, tableName })
-  }, [currentStep, workspaceId, collection, hasFiles, tableName])
+    Nav.updateSearch(query,{ workspace: workspaceId, collection })
+  }, [workspaceId, collection])
+
+  useEffect(() => {
+    StateHistory.update({ currentStep, hasFiles, tableName })
+  }, [currentStep, hasFiles, tableName])
 
   const workspace = useMemo(() => {
     return workspaceId ? _.find({ workspace: { workspaceId: workspaceId } }, workspaces) : null
@@ -877,10 +865,10 @@ const UploadData = _.flow(
 
   // Steps through the wizard
   const steps = [
-    { step: 'workspaces', test: () => true },
-    { step: 'collection', test: () => workspace },
-    { step: 'data', test: () => collection },
-    { step: 'metadata', test: () => hasFiles },
+    { step: 'workspaces', test: () => true},
+    { step: 'collection', test: () => workspace, clear: () => setCollection(undefined) },
+    { step: 'data', test: () => collection, clear: () => setHasFiles(false) },
+    { step: 'metadata', test: () => hasFiles, clear: () => setTableName(undefined) },
     { step: 'done', test: () => tableName },
   ]
 
@@ -890,23 +878,22 @@ const UploadData = _.flow(
   }
 
   // Make sure we have a valid step once the workspaces have finished loading
-  if (!stepIsEnabled(currentStep) && !loadingWorkspaces) {
-    const step = _.findLast((step) => step.test(), steps)
-    setCurrentStep(step?.step || 'workspaces')
-  }
-
-  // Reset subsequent actions if an earlier dependency changes
-  /*
   useEffect(() => {
-    setCollection(null)
-  }, [workspaceId])
-  useEffect(() => {
-    setHasFiles(false)
-  }, [collection])
-  useEffect(() => {
-    setTableName(null)
-  }, [hasFiles])
-   */
+    let s = currentStep
+    if (!stepIsEnabled(s) && !loadingWorkspaces) {
+      let last = steps[0];
+      for (const step of steps) {
+        if (!step.test()) {
+          setCurrentStep(last.step)
+          return
+        }
+        last = step;
+      }
+    }
+    // Run any initialization steps to ensure we clear out data from later steps
+    const i = _.findIndex({ step: s }, steps)
+    _.forEach(step => step.clear && step.clear(), _.drop(i + 1, steps))
+  }, [currentStep])
 
   const filteredWorkspaces = useMemo(() => {
     return _.filter(ws => {
@@ -1013,19 +1000,41 @@ const UploadData = _.flow(
                     setCurrentStep('done')
                   }
                 }, [
-                  h(PrevLink, { step: 'collection', setCurrentStep }),
+                  h(PrevLink, { step: 'data', setCurrentStep }),
                 ])
               ])],
               ['done', () => div({
                 style: styles.tabPanelHeader
               }, [
-                h2('Done!')
+                h2({ style: styles.heading }, ['Done!']),
+                workspace && div({
+                  style: { }
+                }, [
+                  p([
+                    h(Link, {
+                      href: Nav.getLink('workspace-data', { namespace: workspace.workspace.namespace, name: workspace.workspace.name })
+                    }, ['View the Data Table']),
+                  ]),
+                  p([
+                    h(Link, {
+                      onClick: () => setCurrentStep('metadata')
+                    }, ['Create a new table in the same collection'])
+                  ]),
+                  p([
+                    h(Link, {
+                      onClick: () => setCurrentStep('workspaces')
+                    }, ['Start over with another workspace or collection'])
+                  ])
+                ])
               ])]
             )
           ]),
           creatingNewWorkspace && h(NewWorkspaceModal, {
             onDismiss: () => setCreatingNewWorkspace(false),
-            onSuccess: ({ namespace, name }) => refreshWorkspaces(),
+            onSuccess: ({ namespace, name }) => {
+              setWorkspaceId(name)
+              refreshWorkspaces()
+            },
           }),
           loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
         ])
