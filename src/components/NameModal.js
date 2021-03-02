@@ -8,7 +8,7 @@ import { FormLabel } from 'src/libs/forms'
 
 export const NameModal = ({ onSuccess, onDismiss, thing, value }) => {
   const [name, setName] = useState(value || '')
-  const isUpdate = value !== undefined;
+  const isUpdate = value !== undefined
 
   return h(Modal, {
     title: (isUpdate ? 'Update ' : 'Create a New ') + thing,
@@ -17,7 +17,8 @@ export const NameModal = ({ onSuccess, onDismiss, thing, value }) => {
       onClick: () => onSuccess({ name })
     }, [
       isUpdate ? 'Update ' : 'Create ',
-      thing])
+      thing
+    ])
   }, [
     h(IdContainer, [
       id => h(Fragment, [

@@ -104,25 +104,6 @@ export const Router = () => {
   ])
 }
 
-export const useQueryParam = (param, initial = undefined) => {
-  const location = useContext(locationContext)
-  const handlers = useStore(routeHandlersStore)
-  const route = parseRoute(handlers, location)
-
-  return [
-    route?.query?.[param] || initial,
-    (newValue) => {
-      const newSearch = qs.stringify({
-        ...route?.query, [param]: newValue
-      }, { addQueryPrefix: true })
-
-      if (newSearch !== history.location.search) {
-        history.replace({ search: newSearch })
-      }
-    }
-  ]
-}
-
 export const updateSearch = (query, params) => {
   const newSearch = qs.stringify({
     ...query, ...params

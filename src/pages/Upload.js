@@ -1,7 +1,7 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useMemo, useState } from 'react'
-import { div, h, h2, h3, h4, p, span, code, ul, li, a } from 'react-hyperscript-helpers'
+import { code, div, h, h2, h3, h4, li, p, span, ul } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import UploadPreviewTable from 'src/components/data/UploadPreviewTable'
@@ -9,7 +9,7 @@ import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
-import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
+import { DelayedSearchInput } from 'src/components/input'
 import { NameModal } from 'src/components/NameModal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { UploadProgressModal } from 'src/components/ProgressBar'
@@ -24,13 +24,12 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import { uploadFiles, useUploader } from 'src/libs/uploads'
-import { readFileAsText, withBusyState } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 import { DeleteObjectModal } from 'src/pages/workspaces/workspace/Data'
 
 // As you add support for uploading additional types of metadata, add them here.
 // You may also need to adjust the validation logic.
-const supportedEntityTypes = ['entity'];
+const supportedEntityTypes = ['entity']
 
 const rootPrefix = 'uploads/'
 
@@ -114,8 +113,8 @@ const PrevLink = ({ step, setCurrentStep }) => {
     style: styles.prevLink,
     onClick: () => setCurrentStep(step)
   }, ['< Previous'])
-
 }
+
 const NextLink = ({ step, setCurrentStep, stepIsEnabled }) => {
   return h(Link, {
     style: styles.nextLink,
@@ -145,15 +144,14 @@ const DataTypeSection = ({ title, icon, step, currentStep, setCurrentStep, stepI
 
 
 const WorkspaceSelectorPanel = ({
-                                  workspaces, selectedWorkspaceId, setWorkspaceId, setCreatingNewWorkspace, children,
-                                  ...props
-                                }) => {
+  workspaces, selectedWorkspaceId, setWorkspaceId, setCreatingNewWorkspace, children, ...props
+}) => {
   const [filter, setFilter] = useState(StateHistory.get().filter || '')
   const [projectsFilter, setProjectsFilter] = useState(StateHistory.get().projectsFilter || undefined)
   const [tagsFilter, setTagsFilter] = useState(StateHistory.get().tagsFilter || [])
 
   useEffect(() => {
-    StateHistory.update({ filter, projectsFilter, tagsFilter } )
+    StateHistory.update({ filter, projectsFilter, tagsFilter })
   }, [filter, projectsFilter, tagsFilter])
 
   const filteredWorkspaces = useMemo(() => _.filter(ws => {
@@ -167,11 +165,11 @@ const WorkspaceSelectorPanel = ({
     h2({ style: styles.heading }, [
       'Select a Workspace',
       h(Link, {
-          'aria-label': 'Create new workspace', onClick: () => setCreatingNewWorkspace(true),
-          style: { marginLeft: '0.5rem' },
-          tooltip: 'Create a new workspace'
-        },
-        [icon('lighter-plus-circle', { size: 24 })])
+        'aria-label': 'Create new workspace', onClick: () => setCreatingNewWorkspace(true),
+        style: { marginLeft: '0.5rem' },
+        tooltip: 'Create a new workspace'
+      },
+      [icon('lighter-plus-circle', { size: 24 })])
     ]),
     p({ style: styles.instructions }, [
       'You must first select the workspace you wish to upload your files into. You have access to the following workspaces:'
@@ -247,8 +245,8 @@ const WorkspaceSelectorPanel = ({
               variant: workspaceId === selectedWorkspaceId ? 'light' : 'dark'
             }, [
               h3({
-                style: { 'margin': '0 0 1rem 0' }
-              }, [namespace + ' > ' + name]),
+                style: { margin: '0 0 1rem 0' }
+              }, [namespace, ' > ', name]),
               div({
                 style: { ...styles.tableCellContent }
               }, [
@@ -291,13 +289,14 @@ const WorkspaceSelectorPanel = ({
       )(filteredWorkspaces)
     ])
   ])
-
 }
 
 const CollectionSelectorPanel = _.flow(
   Utils.withDisplayName('CollectionSelectorPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
-)(({ workspace, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, selectedCollection, setCollection, children, ...props }) => {
+)(({
+  workspace, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, selectedCollection, setCollection, children, ...props
+}) => {
   // State
   const [collections, setCollections] = useState(undefined)
   const [isLoading, setLoading] = useState(false)
@@ -325,7 +324,7 @@ const CollectionSelectorPanel = _.flow(
   // Lifecycle
   useEffect(() => {
     load()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Render
 
@@ -387,7 +386,6 @@ const DataUploadPanel = _.flow(
   Utils.withDisplayName('DataUploadPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
 )(({ workspace, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, collection, setHasFiles, children }) => {
-
   const basePrefix = `${rootPrefix}${collection}/`
   const [prefix, setPrefix] = useState('')
 
@@ -431,10 +429,9 @@ const DataUploadPanel = _.flow(
     // If there are any prefixes or items, we know this bucket has files in it
     if (prefixes || items) {
       setHasFiles(true)
-    }
-    // Otherwise, only report that there are no files if this is the base prefix.
-    // If we didn't do this check, we could be in an empty inner folder but the outer folder could still have files.
-    else if (targetPrefix === '' || targetPrefix === basePrefix) {
+    } else if (targetPrefix === '' || targetPrefix === basePrefix) {
+      // Otherwise, only report that there are no files if this is the base prefix.
+      // If we didn't do this check, we could be in an empty inner folder but the outer folder could still have files.
       setHasFiles(false)
     }
   })
@@ -459,7 +456,7 @@ const DataUploadPanel = _.flow(
         signal: uploadSignal
       })
     }
-  }, [uploadingFiles])
+  }, [uploadingFiles]) // eslint-disable-line react-hooks/exhaustive-deps
 
 
   // Render
@@ -486,7 +483,7 @@ const DataUploadPanel = _.flow(
     p({ style: styles.instructions }, [
       'Upload the files to associate with this collection by dragging them into the table below, or clicking the Upload button.'
     ]),
-    p({ style: styles.instructions}, [
+    p({ style: styles.instructions }, [
       ' You may upload as many files as you wish, but each filename must be unique even within sub-folders.'
     ]),
     children,
@@ -567,7 +564,7 @@ const DataUploadPanel = _.flow(
             }, objects)
           ]
         })
-      ]): div({
+      ]) : div({
         style: {
           color: colors.dark(0.75), width: '100%', margin: '4rem 0', textAlign: 'center',
           fontSize: '1.5em'
@@ -606,9 +603,10 @@ const DataUploadPanel = _.flow(
 const MetadataUploadPanel = _.flow(
   Utils.withDisplayName('MetadataUploadPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
-)(({ workspace, workspace: { workspace: { namespace, bucketName, name } },
-   onRequesterPaysError, onSuccess, collection, children }) => {
-
+)(({
+  workspace, workspace: { workspace: { namespace, bucketName, name } },
+  onRequesterPaysError, onSuccess, collection, children
+}) => {
   const basePrefix = `${rootPrefix}${collection}/`
   const [filesLoading, setFilesLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -628,7 +626,7 @@ const MetadataUploadPanel = _.flow(
 
   // Get every filename in the bucket, so we can do substitutions
   useEffect(() => {
-    _.flow(
+    _.flow( // eslint-disable-line lodash-fp/no-unused-result
       withRequesterPaysHandler(onRequesterPaysError),
       withErrorReporting('Error loading bucket data'),
       Utils.withBusyState(setFilesLoading)
@@ -640,22 +638,22 @@ const MetadataUploadPanel = _.flow(
       // Hash the filenames without any prefixes for easy lookup
       setFilenames(_.flow(
         _.filter(item => item.name.startsWith(basePrefix)),
-        _.map(item => [ _.last(item.name.split('/')), `gs://${bucketName}/${item.name}` ]),
+        _.map(item => [_.last(item.name.split('/')), `gs://${bucketName}/${item.name}`]),
         _.fromPairs
       )(items))
     })()
   }, [collection]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const parseMetadata = async (file) => {
+  const parseMetadata = async file => {
     if (!file) {
       setMetadataTable(null)
       return
     }
-    const errors = [];
+    const errors = []
 
     try {
       // Read the file contents
-      const text = await readFileAsText(file)
+      const text = await Utils.readFileAsText(file)
 
       // Split rows by newlines and columns by tabs
       const rows = _.flow(
@@ -664,8 +662,8 @@ const MetadataUploadPanel = _.flow(
         _.map(row => row.split('\t'))
       )(text)
 
-      const headerRow = _.first(rows)
-      const idColumn = _.first(headerRow)
+      const headerRow = _.head(rows)
+      const idColumn = _.head(headerRow)
       let otherRows = _.drop(1, rows)
 
       // Perform validation on the first row
@@ -677,6 +675,7 @@ const MetadataUploadPanel = _.flow(
       }
       const entityTypes = _.map(t => `${t}:`, supportedEntityTypes)
 
+      // TODO Add more validation
       if (!_.some(t => idColumn.startsWith(t), entityTypes)) {
         errors.push(div(['The first column header ', code(idColumn), ' must start with ', code(Utils.commaJoin(entityTypes))]))
       }
@@ -691,43 +690,44 @@ const MetadataUploadPanel = _.flow(
         errors.push('Your metadata file must include at least 2 columns')
       }
 
+      // Make sure no rows are longer than the header row (we take care of padding shorter rows later)
+      _.forEach(([i, row]) => {
+        if (row.length > headerRow.length) {
+          errors.push(`Row ${i} [${row[0]}] has too many columns`)
+        }
+      }, Utils.toIndexPairs(rows))
+
       if (errors.length > 0) {
         setErrors(errors)
-      }
-      else {
+      } else {
         const entityClass = matches[1]
         const entityType = matches[2]
         const idName = `${entityType}_id`
 
         // Process each row
-        otherRows = _.map(row => {
-          return _.flow(
-            // Pad all rows to the same length as the header, or else the import will fail
-            (row) => _.concat(row, _.map(() => '', _.range(0, headerRow.length - row.length))),
-            // Replace any file references with bucket paths
-            _.map(cell => {
-              return cell in filenames ? filenames[cell] : cell
-            })
-          )(row)
-        }, otherRows)
+        otherRows = _.map(_.flow(
+          // Pad all rows to the same length as the header, or else the import will fail
+          row => _.concat(row, _.map(() => '', _.range(0, headerRow.length - row.length))),
+          // Replace any file references with bucket paths
+          _.map(cell => cell in filenames ? filenames[cell] : cell)
+        ), otherRows)
 
         setMetadataTable({ errors, entityClass, entityType, idName, idColumn, columns: headerRow, rows: otherRows })
       }
-    }
-    catch (e) {
+    } catch (e) {
       console.error('Failed to parse metadata file', e)
       setErrors(['We were unable to process the metadata file. Are you sure it is in the proper format?'])
     }
   }
 
-  const renameTable = ({name}) => {
+  const renameTable = ({ name }) => {
     setMetadataTable(m => {
       const idColumn = `${m.entityClass}:${name}_id`
       return {
         ...m,
         entityType: name,
         idName: `${name}_id`,
-        idColumn: idColumn,
+        idColumn,
         columns: [idColumn, ..._.drop(1, m.columns)]
       }
     })
@@ -736,11 +736,11 @@ const MetadataUploadPanel = _.flow(
   // Parse the metadata TSV file so we can show a preview. Refresh this parsing anytime the filenames or entities change
   useEffect(() => {
     parseMetadata(metadataFile)
-  }, [metadataFile, filenames])
+  }, [metadataFile, filenames]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const doUpload = _.flow(
+  const doUpload = _.flow( // eslint-disable-line lodash-fp/no-single-composition
     Utils.withBusyState(setUploading)
-  )(async (metadata) => {
+  )(async metadata => {
     try {
       // Convert the table data structure back into a TSV, in case the user made changes
       const file = Utils.makeTSV([metadata.table.columns, ...metadata.table.rows])
@@ -764,14 +764,14 @@ const MetadataUploadPanel = _.flow(
           p([
             'The first column must contain the unique identifiers for each row. The name of the first column must start with ',
             code('entity:'), ' followed by the table name, followed by ', code('_id'), '.'
-          ]),
-        ]),
+          ])
+        ])
       ]),
       p([
         'For example, if the first column is named ',
         code('entity:sample_id'),
         ', a table named "sample" will be created with "sample_id" as its first column. There are no restrictions on other columns.'
-      ]),
+      ])
     ]),
     children,
     !isPreviewing && h(Dropzone, {
@@ -787,7 +787,7 @@ const MetadataUploadPanel = _.flow(
       onDropAccepted: ([file]) => {
         setMetadataFile(file)
       },
-      onDropRejected: (errors) => {
+      onDropRejected: errors => {
         const e = _.flatMap(error => {
           return _.map(e => e.message, error.errors)
         }, errors)
@@ -814,7 +814,7 @@ const MetadataUploadPanel = _.flow(
       h2(['Error!']),
       p('The following errors occurred. Please correct them and then try your upload again.'),
       ul([
-        _.map(e => li({ key: e, }, [e]), metadataTable.errors)
+        _.map(e => li({ key: e }, [e]), metadataTable.errors)
       ])
     ]),
     isPreviewing && div({
@@ -822,7 +822,7 @@ const MetadataUploadPanel = _.flow(
     }, [
       h(UploadPreviewTable, {
         workspace, metadataTable,
-        onConfirm: ({metadata}) => {
+        onConfirm: ({ metadata }) => {
           doUpload(metadata)
         },
         onCancel: () => {
@@ -836,7 +836,7 @@ const MetadataUploadPanel = _.flow(
   ])
 })
 
-const UploadData = _.flow(
+const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-composition
   Utils.forwardRefWithName('Upload')
 )((props, ref) => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
@@ -851,48 +851,47 @@ const UploadData = _.flow(
   const [tableName, setTableName] = useState(StateHistory.get().tableName)
 
   useEffect(() => {
-    Nav.updateSearch(query,{ workspace: workspaceId, collection })
-  }, [workspaceId, collection])
+    Nav.updateSearch(query, { workspace: workspaceId, collection })
+  }, [workspaceId, collection]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     StateHistory.update({ currentStep, hasFiles, tableName })
   }, [currentStep, hasFiles, tableName])
 
   const workspace = useMemo(() => {
-    return workspaceId ? _.find({ workspace: { workspaceId: workspaceId } }, workspaces) : null
+    return workspaceId ? _.find({ workspace: { workspaceId } }, workspaces) : null
   }, [workspaces, workspaceId])
 
   // Steps through the wizard
   const steps = [
-    { step: 'workspaces', test: () => true},
+    { step: 'workspaces', test: () => true },
     { step: 'collection', test: () => workspace, clear: () => setCollection(undefined) },
     { step: 'data', test: () => collection, clear: () => setHasFiles(false) },
     { step: 'metadata', test: () => hasFiles, clear: () => setTableName(undefined) },
-    { step: 'done', test: () => tableName },
+    { step: 'done', test: () => tableName }
   ]
 
-  const stepIsEnabled = (step) => {
+  const stepIsEnabled = step => {
     const s = _.find({ step }, steps)
     return s && s.test()
   }
 
   // Make sure we have a valid step once the workspaces have finished loading
   useEffect(() => {
-    let s = currentStep
-    if (!stepIsEnabled(s) && !loadingWorkspaces) {
-      let last = steps[0];
+    if (!stepIsEnabled(currentStep) && !loadingWorkspaces) {
+      let last = steps[0]
       for (const step of steps) {
         if (!step.test()) {
           setCurrentStep(last.step)
           return
         }
-        last = step;
+        last = step
       }
     }
     // Run any initialization steps to ensure we clear out data from later steps
-    const i = _.findIndex({ step: s }, steps)
+    const i = _.findIndex({ step: currentStep }, steps)
     _.forEach(step => step.clear && step.clear(), _.drop(i + 1, steps))
-  }, [currentStep])
+  }, [currentStep]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const filteredWorkspaces = useMemo(() => {
     return _.filter(ws => {
@@ -944,7 +943,7 @@ const UploadData = _.flow(
                   workspaces: filteredWorkspaces,
                   selectedWorkspaceId: workspaceId,
                   setCreatingNewWorkspace,
-                  setWorkspaceId: (id) => {
+                  setWorkspaceId: id => {
                     // If the users switches to a different workspace, clear out whatever collection they had selected
                     if (workspaceId !== id) {
                       setCollection(null)
@@ -961,9 +960,9 @@ const UploadData = _.flow(
                 style: styles.tabPanelHeader
               }, [
                 workspace && h(CollectionSelectorPanel, {
-                  workspace: workspace,
+                  workspace,
                   selectedCollection: collection,
-                  setCollection: (id) => {
+                  setCollection: id => {
                     setCollection(id)
                     setCurrentStep('data')
                   }
@@ -976,10 +975,10 @@ const UploadData = _.flow(
                 style: styles.tabPanelHeader
               }, [
                 workspace && collection && h(DataUploadPanel, {
-                  workspace: workspace,
-                  collection: collection,
+                  workspace,
+                  collection,
                   setHasFiles,
-                  setUploadedFiles: (files) => {
+                  setUploadedFiles: files => {
                     setCurrentStep('metadata')
                   }
                 }, [
@@ -991,14 +990,14 @@ const UploadData = _.flow(
                 style: styles.tabPanelHeader
               }, [
                 workspace && collection && h(MetadataUploadPanel, {
-                  workspace: workspace,
-                  collection: collection,
-                  onSuccess: ({ metadata: {entityType: tableName } }) => {
+                  workspace,
+                  collection,
+                  onSuccess: ({ metadata: { entityType: tableName } }) => {
                     setTableName(tableName)
                     setCurrentStep('done')
                   }
                 }, [
-                  h(PrevLink, { step: 'data', setCurrentStep }),
+                  h(PrevLink, { step: 'data', setCurrentStep })
                 ])
               ])],
               ['done', () => div({
@@ -1006,12 +1005,12 @@ const UploadData = _.flow(
               }, [
                 h2({ style: styles.heading }, ['Done!']),
                 workspace && div({
-                  style: { }
+                  style: {}
                 }, [
                   p([
                     h(Link, {
                       href: Nav.getLink('workspace-data', { namespace: workspace.workspace.namespace, name: workspace.workspace.name })
-                    }, ['View the Data Table']),
+                    }, ['View the Data Table'])
                   ]),
                   p([
                     h(Link, {
@@ -1032,7 +1031,7 @@ const UploadData = _.flow(
             onSuccess: ({ namespace, name }) => {
               setWorkspaceId(name)
               refreshWorkspaces()
-            },
+            }
           }),
           loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
         ])

@@ -8,7 +8,6 @@ import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
-import * as Nav from 'src/libs/nav'
 import { workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -196,12 +195,12 @@ export const NoWorkspacesMessage = ({ onClick }) => {
   ])
 }
 
-export const WorkspaceBreadcrumbHeader = ({ workspace: { accessLevel, workspace: { namespace, name }}, tab, ...props }) => {
+export const WorkspaceBreadcrumbHeader = ({ workspace: { accessLevel, workspace: { namespace, name } }, tab, ...props }) => {
   return div({ style: Style.breadcrumb.breadcrumb }, [
     div({ style: Style.noWrapEllipsis }, [
       tab ?
-        commonPaths.workspaceTab({namespace, name}, tab) :
-        commonPaths.workspaceDashboard({namespace, name})
+        commonPaths.workspaceTab({ namespace, name }, tab) :
+        commonPaths.workspaceDashboard({ namespace, name })
     ]),
     div({ style: Style.breadcrumb.textUnderBreadcrumb }, [
       `${namespace}/${name}`,

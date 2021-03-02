@@ -388,10 +388,13 @@ export const useCancelable = () => {
     return () => controller.abort()
   }, [controller])
 
-  return { signal: controller.signal, abort: () => {
-    controller.abort();
-    setController(new window.AbortController())
-  }}
+  return {
+    signal: controller.signal,
+    abort: () => {
+      controller.abort()
+      setController(new window.AbortController())
+    }
+  }
 }
 
 export const useCancellation = () => {
@@ -459,10 +462,9 @@ export const makeTSV = rows => {
 
 export const commaJoin = list => {
   return _.flow(
-    _.toPairs,
-    _.reduce((out, [index, val]) => {
-      const i = parseInt(index)
-      return out + (i === 0 ? '' : i === list.length - 1 ? ' or ' : ', ') + val;
+    toIndexPairs,
+    _.reduce((out, [i, val]) => {
+      return out + (i === 0 ? '' : i === list.length - 1 ? ' or ' : ', ') + val
     }, '')
   )(list)
 }

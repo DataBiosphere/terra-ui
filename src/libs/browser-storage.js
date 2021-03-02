@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
-import * as Utils from 'src/libs/utils'
-import { maybeParseJSON, subscribable } from 'src/libs/utils'
+import { maybeParseJSON, subscribable, useStore } from 'src/libs/utils'
 
 
 /*
@@ -92,7 +91,7 @@ export const staticStorageSlot = (storage, key) => {
 
 export const useStaticStorageSlot = (storage, key) => {
   const store = staticStorageSlot(storage, key)
-  return [Utils.useStore(store), value => store.set(value)]
+  return [useStore(store), value => store.set(value)]
 }
 
 export const dynamicStorageSlot = (storage, key) => {
@@ -108,5 +107,5 @@ export const dynamicStorageSlot = (storage, key) => {
 
 export const useDynamicStorageSlot = (storage, key) => {
   const store = dynamicStorageSlot(storage, key)
-  return [Utils.useStore(store), newValue => store.set(newValue)]
+  return [useStore(store), newValue => store.set(newValue)]
 }
