@@ -136,7 +136,7 @@ export const GalaxyLaunchButton = ({ app, onClick, ...props }) => {
       onClick()
       Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: 'Galaxy' })
     },
-    ...Utils.newTabLinkProps,
+    ...Utils.newTabLinkPropsGalaxy,
     ...props
   }, ['Launch Galaxy'])
 }

@@ -358,6 +358,8 @@ export const useUniqueId = () => {
 
 export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' } // https://mathiasbynens.github.io/rel-noopener/
 
+export const newTabLinkPropsGalaxy = { target: '_blank', rel: 'noopener' } // Galaxy needs the referrer to be present so we can validate it, otherwise we fail with 401
+
 export const createHtmlElement = (doc, name, attrs) => {
   const element = doc.createElement(name)
   _.forEach(([k, v]) => element.setAttribute(k, v), _.toPairs(attrs))
