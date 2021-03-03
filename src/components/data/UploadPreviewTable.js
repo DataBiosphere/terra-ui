@@ -90,6 +90,13 @@ const UploadDataTable = props => {
     StateHistory.update({ sort })
   }, [sort])
 
+
+  // Move the focus to the header the first time this panel is rendered
+  const header = useRef()
+  useEffect(() => {
+    header.current && header.current.focus()
+  }, [])
+
   const sortedRows = useMemo(() => {
     const i = _.findIndex(columns, sort.field)
     return i > -1 ? _.orderBy(row => row[i], sort.direction, rows) : rows
@@ -102,7 +109,9 @@ const UploadDataTable = props => {
     div({
       style: { position: 'relative', flex: '0 0 auto' }
     }, [
-      h2('Preview your data table'),
+      h2([
+        span({ ref: header, tabindex: -1 }, ['Preview your data table'])
+      ]),
       div({
         style: { position: 'absolute', top: 0, right: 0, marginTop: '1em' }
       }, [

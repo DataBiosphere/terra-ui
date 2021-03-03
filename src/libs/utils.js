@@ -460,11 +460,11 @@ export const makeTSV = rows => {
   return _.join('', _.map(row => `${_.join('\t', row)}\n`, rows))
 }
 
-export const commaJoin = list => {
+export const commaJoin = (list, conjunction = 'or') => {
   return span(_.flow(
     toIndexPairs,
     _.flatMap(([i, val]) => {
-      return [(i === 0 ? '' : i === list.length - 1 ? ' or ' : ', '), val]
+      return [(i === 0 ? '' : i === list.length - 1 ? ` ${conjunction} ` : ', '), val]
     })
   )(list))
 }

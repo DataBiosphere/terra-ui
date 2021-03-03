@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import { code, div, h, h2, h3, h4, li, p, span, strong, ul } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
@@ -153,6 +153,12 @@ const WorkspaceSelectorPanel = ({
     StateHistory.update({ filter, projectsFilter, tagsFilter })
   }, [filter, projectsFilter, tagsFilter])
 
+  // Move the focus to the header the first time this panel is rendered
+  const header = useRef()
+  useEffect(() => {
+    header.current && header.current.focus()
+  }, [])
+
   const filteredWorkspaces = useMemo(() => _.filter(ws => {
     const { workspace: { namespace, name, attributes } } = ws
     return Utils.textMatch(filter, `${namespace}/${name}`) &&
@@ -163,7 +169,7 @@ const WorkspaceSelectorPanel = ({
   return div([
     h2({ style: styles.heading }, [
       icon('view-cards', { size: 20, style: { marginRight: '1em' } }),
-      'Select a Workspace',
+      span({ ref: header, tabindex: -1 }, ['Select a Workspace']),
       h(Link, {
         'aria-label': 'Create new workspace', onClick: () => setCreatingNewWorkspace(true),
         style: { marginLeft: '0.5rem' },
@@ -176,6 +182,21 @@ const WorkspaceSelectorPanel = ({
     ]),
     children,
     div({ style: { display: 'flex', marginBottom: '2rem', alignItems: 'center' } }, [
+      span({
+        style: { position: 'absolute', left: -9999 },
+        'aria-live': 'polite', 'aria-atomic': true
+      }, [
+        (filter || tagsFilter?.length > 0 || projectsFilter) ?
+          span([
+            'Filtering workspaces by ',
+            Utils.commaJoin(_.compact([
+              filter ? `search term: ${filter}` : null,
+              tagsFilter?.length > 0 ? `tags: ${tagsFilter}` : null,
+              projectsFilter ? `project: ${projectsFilter}` : null
+            ]), 'and')
+          ]) :
+          'not filtering workspaces'
+      ]),
       div({ style: styles.filter }, [
         h(DelayedSearchInput, {
           placeholder: 'Search Workspaces',
@@ -213,6 +234,7 @@ const WorkspaceSelectorPanel = ({
       ]),
       div({ style: { ...styles.filter, flex: '0 0 auto', minWidth: undefined } }, [
         h(Link, {
+          'aria-label': 'Clear filters',
           onClick: () => {
             setFilter('')
             setProjectsFilter(undefined)
@@ -221,8 +243,7 @@ const WorkspaceSelectorPanel = ({
         }, ['Clear'])
       ])
     ]),
-    div({
-      role: 'radiogroup',
+    ul({
       style: styles.workspaceTilesContainer
     }, [
       _.flow(
@@ -234,12 +255,11 @@ const WorkspaceSelectorPanel = ({
         _.map(w => {
           const { workspace: { workspaceId, namespace, name, lastModified, createdBy, attributes: { description } } } = w
 
-          return div({
+          return li({
             key: workspaceId
           }, [
             h(Link, {
-              role: 'radio',
-              'aria-checked': workspaceId === selectedWorkspaceId,
+              'aria-selected': workspaceId === selectedWorkspaceId,
               style: _.merge(styles.workspaceTile, workspaceId === selectedWorkspaceId ? styles.workspaceTileSelected : {}),
               onClick: () => setWorkspaceId(workspaceId),
               variant: workspaceId === selectedWorkspaceId ? 'light' : 'dark'
@@ -302,6 +322,12 @@ const CollectionSelectorPanel = _.flow(
   const [isLoading, setLoading] = useState(false)
   const [isCreating, setCreating] = useState(false)
 
+  // Move the focus to the header the first time this panel is rendered
+  const header = useRef()
+  useEffect(() => {
+    header.current && header.current.focus()
+  }, [])
+
   const signal = Utils.useCancellation()
 
   // Helpers
@@ -331,7 +357,7 @@ const CollectionSelectorPanel = _.flow(
   return h(div, {}, [
     h2({ style: styles.heading }, [
       icon('folder', { size: 20, style: { marginRight: '1em' } }),
-      'Select a collection',
+      span({ ref: header, tabindex: -1 }, ['Select a collection']),
       h(Link, {
         'aria-label': 'Create new collection', onClick: () => setCreating(true),
         style: { marginLeft: '0.5rem' },
@@ -345,17 +371,15 @@ const CollectionSelectorPanel = _.flow(
     ]),
     children,
     collections?.length > 0 && h3({}, ['Choose an existing collection']),
-    div({
-      role: 'radiogroup',
+    ul({
       style: styles.workspaceTilesContainer
     }, [
       _.map(prefix => {
-        return div({
+        return li({
           key: prefix
         }, [
           h(Link, {
-            role: 'radio',
-            'aria-checked': prefix === selectedCollection,
+            'aria-selected': prefix === selectedCollection,
             style: _.merge(styles.workspaceTile, prefix === selectedCollection ? styles.workspaceTileSelected : {}),
             onClick: () => setCollection(prefix),
             variant: prefix === selectedCollection ? 'light' : 'dark'
@@ -389,10 +413,16 @@ const DataUploadPanel = _.flow(
 )(({ workspace, onRequesterPaysError, collection, setNumFiles, children }) => {
   const basePrefix = `${rootPrefix}${collection}/`
 
+  // Move the focus to the header the first time this panel is rendered
+  const header = useRef()
+  useEffect(() => {
+    header.current && header.current.focus()
+  }, [])
+
   return h(Fragment, {}, [
     h2({ style: styles.heading }, [
       icon('fileAlt', { size: 20, style: { marginRight: '1em' } }),
-      'Upload Your Data Files'
+      span({ ref: header, tabindex: -1 }, ['Upload Your Data Files'])
     ]),
     p({ style: styles.instructions }, [
       'Upload the files to associate with this collection by dragging them into the table below, or clicking the Upload button.'
@@ -402,7 +432,7 @@ const DataUploadPanel = _.flow(
     ]),
     children,
     h(FileBrowserPanel, {
-      workspace, onRequesterPaysError, setNumFiles, basePrefix, collection
+      workspace, onRequesterPaysError, setNumFiles, basePrefix, collection, allowNewFolders: false
     })
   ])
 })
@@ -428,6 +458,13 @@ const MetadataUploadPanel = _.flow(
 
   const isPreviewing = metadataTable?.rows?.length > 0
   const hasErrors = metadataTable?.errors?.length > 0
+
+  // Move the focus to the header the first time this panel is rendered
+  const header = useRef()
+  const uploadButton = useRef()
+  useEffect(() => {
+    header.current && header.current.focus()
+  }, [])
 
   const signal = Utils.useCancellation()
 
@@ -566,7 +603,7 @@ const MetadataUploadPanel = _.flow(
   return h(Fragment, {}, [
     h2({ style: styles.heading }, [
       icon('listAlt', { size: 20, style: { marginRight: '1em' } }),
-      'Upload Your Metadata Files'
+      span({ ref: header, tabindex: -1 }, ['Upload Your Metadata Files'])
     ]),
     div({ style: styles.instructions }, [
       p('Upload a tab-separated file describing your table structures.'),
@@ -614,6 +651,7 @@ const MetadataUploadPanel = _.flow(
           }
         }, ['Drag and drop your metadata .tsv file here']),
         !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
+          ref: uploadButton,
           label: 'UPLOAD',
           iconShape: 'plus',
           onClick: openUploader
@@ -640,6 +678,9 @@ const MetadataUploadPanel = _.flow(
         onCancel: () => {
           setMetadataFile(null)
           setMetadataTable(null)
+
+          // When we go back to upload mode, drop the focus on the upload button
+          uploadButton.current && uploadButton.current.focus()
         },
         onRename: renameTable
       })
@@ -647,6 +688,49 @@ const MetadataUploadPanel = _.flow(
     (filesLoading || uploading) && topSpinnerOverlay
   ])
 })
+
+const DonePanel = ({ workspace, workspace: { workspace: { namespace, name } }, tableName, collection, setCurrentStep}) => {
+  // Move the focus to the header the first time this panel is rendered
+  const header = useRef()
+  useEffect(() => {
+    header.current && header.current.focus()
+  }, [])
+
+  return div([
+    h2({ style: styles.heading }, [
+      span({ ref: header, tabindex: -1 }, ['Done!'])
+    ]),
+    workspace && div({
+      style: {}
+    }, [
+      p([
+        h(Link, {
+          href: Nav.getLink('workspace-data', { namespace: workspace.workspace.namespace, name: workspace.workspace.name }),
+          onClick: () => StateHistory.update({ selectedDataType: tableName })
+        }, [
+          icon('view-cards'),
+          ' View the ', code([tableName]), ' table in the workspace'
+        ])
+      ]),
+      p([
+        h(Link, {
+          onClick: () => setCurrentStep('metadata')
+        }, [
+          icon('listAlt'),
+          ' Create a new table in the ', code([collection]), ' collection'
+        ])
+      ]),
+      p([
+        h(Link, {
+          onClick: () => setCurrentStep('workspaces')
+        }, [
+          icon('folder'),
+          ' Start over with another workspace or collection'
+        ])
+      ])
+    ])
+  ])
+}
 
 const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-composition
   Utils.forwardRefWithName('Upload')
@@ -755,10 +839,7 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
                 ' rows'
               ])
             ]),
-            div({
-              'aria-live': true,
-              'aria-atomic': false
-            }, [
+            div({}, [
               Utils.switchCase(currentStep,
                 ['workspaces', () => div({
                   style: styles.tabPanelHeader
@@ -819,36 +900,9 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
                 ['done', () => div({
                   style: styles.tabPanelHeader
                 }, [
-                  h2({ style: styles.heading }, ['Done!']),
-                  workspace && div({
-                    style: {}
-                  }, [
-                    p([
-                      h(Link, {
-                        href: Nav.getLink('workspace-data', { namespace: workspace.workspace.namespace, name: workspace.workspace.name }),
-                        onClick: () => StateHistory.update({ selectedDataType: tableName })
-                      }, [
-                        icon('view-cards'),
-                        ' View the ', code(tableName), ' table in the workspace'
-                      ])
-                    ]),
-                    p([
-                      h(Link, {
-                        onClick: () => setCurrentStep('metadata')
-                      }, [
-                        icon('listAlt'),
-                        ' Create a new table in the ', code(collection), ' collection'
-                      ])
-                    ]),
-                    p([
-                      h(Link, {
-                        onClick: () => setCurrentStep('workspaces')
-                      }, [
-                        icon('folder'),
-                        ' Start over with another workspace or collection'
-                      ])
-                    ])
-                  ])
+                  h(DonePanel, {
+                    workspace, collection, tableName, setCurrentStep
+                  })
                 ])]
               )
             ])

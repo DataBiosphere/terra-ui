@@ -23,7 +23,7 @@ import { DeleteObjectModal } from 'src/pages/workspaces/workspace/Data'
 export const FileBrowserPanel = _.flow(
   Utils.withDisplayName('DataUploadPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
-)(({ workspace, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, basePrefix, setNumFiles, collection, children }) => {
+)(({ workspace, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, basePrefix, setNumFiles, collection, allowNewFolders = true, children }) => {
   const [prefix, setPrefix] = useState('')
   const [prefixes, setPrefixes] = useState(undefined)
   const [objects, setObjects] = useState(undefined)
@@ -151,7 +151,7 @@ export const FileBrowserPanel = _.flow(
             return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
           }, _.range(0, prefixParts.length))
         ]),
-        makeBucketLink({
+        allowNewFolders && makeBucketLink({
           label: span([icon('plus'), ' New folder']),
           onClick: () => setCreating(true)
         })
@@ -182,7 +182,8 @@ export const FileBrowserPanel = _.flow(
             ..._.map(({ name, size, updated }) => {
               return {
                 button: h(Link, {
-                  style: { display: 'flex' }, onClick: () => setDeletingName(name),
+                  style: { display: 'flex' },
+                  onClick: () => setDeletingName(name),
                   tooltip: 'Delete file'
                 }, [
                   icon('trash', { size: 16, className: 'hover-only' })
