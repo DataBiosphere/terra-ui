@@ -118,7 +118,8 @@ export const SnapshotInfo = ({
           h(Link, {
             style: { marginLeft: '0.5rem' },
             onClick: () => setEditingName(true),
-            'aria-label': 'Edit snapshot name'
+            'aria-label': 'Edit snapshot name',
+            tooltip: 'Edit snapshot name'
           }, [icon('edit')])
         ]),
         div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, [
@@ -126,7 +127,8 @@ export const SnapshotInfo = ({
           !editingDescription && h(Link, {
             style: { marginLeft: '0.5rem' },
             onClick: () => setNewDescription(description),
-            'aria-label': 'Edit description'
+            'aria-label': 'Edit description',
+            tooltip: 'Edit description'
           }, [icon('edit')])
         ]),
         editingDescription ? h(Fragment, [
@@ -187,13 +189,11 @@ export const SnapshotInfo = ({
         h(IdContainer, [id => h(Fragment, [
           h(FormLabel, { htmlFor: id }, ['New snapshot name']),
           h(TextInput, {
-            inputProps: {
-              id,
-              autoFocus: true,
-              placeholder: 'Enter a name',
-              value: newName,
-              onChange: setNewName
-            }
+            id,
+            autoFocus: true,
+            placeholder: 'Enter a name',
+            value: newName,
+            onChange: setNewName
           })
         ])])
       ]),
