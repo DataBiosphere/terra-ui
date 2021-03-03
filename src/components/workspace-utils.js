@@ -1,12 +1,10 @@
 import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
-import { commonPaths } from 'src/components/breadcrumbs'
+import { div, h } from 'react-hyperscript-helpers'
 import { AsyncCreatableSelect, ButtonPrimary, Link, Select, spinnerOverlay } from 'src/components/common'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax } from 'src/libs/ajax'
-import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -191,20 +189,6 @@ export const NoWorkspacesMessage = ({ onClick }) => {
         ...Utils.newTabLinkProps,
         href: `https://support.terra.bio/hc/en-us/articles/360022716811`
       }, [`What's a workspace?`])
-    ])
-  ])
-}
-
-export const WorkspaceBreadcrumbHeader = ({ workspace: { accessLevel, workspace: { namespace, name } }, tab, ...props }) => {
-  return div({ style: Style.breadcrumb.breadcrumb }, [
-    div({ style: Style.noWrapEllipsis }, [
-      tab ?
-        commonPaths.workspaceTab({ namespace, name }, tab) :
-        commonPaths.workspaceDashboard({ namespace, name })
-    ]),
-    div({ style: Style.breadcrumb.textUnderBreadcrumb }, [
-      `${namespace}/${name}`,
-      !Utils.canWrite(accessLevel) && span({ style: { paddingLeft: '0.5rem', color: colors.dark(0.85) } }, '(read only)')
     ])
   ])
 }
