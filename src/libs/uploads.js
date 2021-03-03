@@ -114,7 +114,7 @@ export const friendlyFileSize = bytes => {
     { pow: 4, fixed: 3, text: 'TB' },
     { pow: 3, fixed: 2, text: 'GB' },
     { pow: 2, fixed: 1, text: 'MB' },
-    { pow: 1, fixed: 0, text: 'kB' }
+    { pow: 1, fixed: 0, text: 'KB' }
   ]
   for (const bin of bins) {
     const pow = Math.pow(1024, bin.pow)

@@ -1,7 +1,7 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h, h2, p, span } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { Link, topSpinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
@@ -23,7 +23,7 @@ import { DeleteObjectModal } from 'src/pages/workspaces/workspace/Data'
 export const FileBrowserPanel = _.flow(
   Utils.withDisplayName('DataUploadPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
-)(({ workspace, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, basePrefix, setHasFiles, collection, children }) => {
+)(({ workspace, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, basePrefix, setNumFiles, collection, children }) => {
   const [prefix, setPrefix] = useState('')
   const [prefixes, setPrefixes] = useState(undefined)
   const [objects, setObjects] = useState(undefined)
@@ -61,21 +61,28 @@ export const FileBrowserPanel = _.flow(
       _.compact
     )(prefixes))
     setObjects(items)
+  })
 
-    // If there are any prefixes or items, we know this bucket has files in it
-    if (prefixes || items) {
-      setHasFiles(true)
-    } else if (targetPrefix === '' || targetPrefix === basePrefix) {
-      // Otherwise, only report that there are no files if this is the base prefix.
-      // If we didn't do this check, we could be in an empty inner folder but the outer folder could still have files.
-      setHasFiles(false)
-    }
+  const count = _.flow(
+    withRequesterPaysHandler(onRequesterPaysError),
+    withErrorReporting('Error counting bucket objects'),
+    Utils.withBusyState(setLoading)
+  )(async () => {
+    const items = await Ajax(signal).Buckets.listAll(namespace, bucketName)
+    setNumFiles(_.flow(
+      _.map('name'),
+      _.filter(_.startsWith(basePrefix))
+    )(items).length)
   })
 
   // Lifecycle
   useEffect(() => {
     load(prefix)
   }, [prefix, uploadStatus]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    count()
+  }, [uploadStatus]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     StateHistory.update({ prefix })

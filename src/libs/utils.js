@@ -3,7 +3,7 @@ import { differenceInCalendarMonths } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { forwardRef, memo, useEffect, useRef, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { v4 as uuid } from 'uuid'
 
 
@@ -461,10 +461,10 @@ export const makeTSV = rows => {
 }
 
 export const commaJoin = list => {
-  return _.flow(
+  return span(_.flow(
     toIndexPairs,
-    _.reduce((out, [i, val]) => {
-      return out + (i === 0 ? '' : i === list.length - 1 ? ' or ' : ', ') + val
-    }, '')
-  )(list)
+    _.flatMap(([i, val]) => {
+      return [(i === 0 ? '' : i === list.length - 1 ? ' or ' : ', '), val]
+    })
+  )(list))
 }
