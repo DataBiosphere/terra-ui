@@ -169,7 +169,7 @@ const WorkspaceSelectorPanel = ({
   return div([
     h2({ style: styles.heading }, [
       icon('view-cards', { size: 20, style: { marginRight: '1em' } }),
-      span({ ref: header, tabindex: -1 }, ['Select a Workspace']),
+      span({ ref: header, tabIndex: -1 }, ['Select a Workspace']),
       h(Link, {
         'aria-label': 'Create new workspace', onClick: () => setCreatingNewWorkspace(true),
         style: { marginLeft: '0.5rem' },
@@ -357,7 +357,7 @@ const CollectionSelectorPanel = _.flow(
   return h(div, {}, [
     h2({ style: styles.heading }, [
       icon('folder', { size: 20, style: { marginRight: '1em' } }),
-      span({ ref: header, tabindex: -1 }, ['Select a collection']),
+      span({ ref: header, tabIndex: -1 }, ['Select a collection']),
       h(Link, {
         'aria-label': 'Create new collection', onClick: () => setCreating(true),
         style: { marginLeft: '0.5rem' },
@@ -422,7 +422,7 @@ const DataUploadPanel = _.flow(
   return h(Fragment, {}, [
     h2({ style: styles.heading }, [
       icon('fileAlt', { size: 20, style: { marginRight: '1em' } }),
-      span({ ref: header, tabindex: -1 }, ['Upload Your Data Files'])
+      span({ ref: header, tabIndex: -1 }, ['Upload Your Data Files'])
     ]),
     p({ style: styles.instructions }, [
       'Upload the files to associate with this collection by dragging them into the table below, or clicking the Upload button.'
@@ -603,7 +603,7 @@ const MetadataUploadPanel = _.flow(
   return h(Fragment, {}, [
     h2({ style: styles.heading }, [
       icon('listAlt', { size: 20, style: { marginRight: '1em' } }),
-      span({ ref: header, tabindex: -1 }, ['Upload Your Metadata Files'])
+      span({ ref: header, tabIndex: -1 }, ['Upload Your Metadata Files'])
     ]),
     div({ style: styles.instructions }, [
       p('Upload a tab-separated file describing your table structures.'),
@@ -689,7 +689,7 @@ const MetadataUploadPanel = _.flow(
   ])
 })
 
-const DonePanel = ({ workspace, workspace: { workspace: { namespace, name } }, tableName, collection, setCurrentStep}) => {
+const DonePanel = ({ workspace, workspace: { workspace: { namespace, name } }, tableName, collection, setCurrentStep }) => {
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
   useEffect(() => {
@@ -698,7 +698,7 @@ const DonePanel = ({ workspace, workspace: { workspace: { namespace, name } }, t
 
   return div([
     h2({ style: styles.heading }, [
-      span({ ref: header, tabindex: -1 }, ['Done!'])
+      span({ ref: header, tabIndex: -1 }, ['Done!'])
     ]),
     workspace && div({
       style: {}
