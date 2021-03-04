@@ -22,7 +22,7 @@ const CallCacheWizard = ({
    * State setup
    */
 
-  const [otherWorkflowIdTextboxValue, setOtherWorkflowIdTextboxValue] = useState()
+  const [otherWorkflowIdTextboxValue, setOtherWorkflowIdTextboxValue] = useState('')
   const [otherWorkflowId, setOtherWorkflowId] = useState()
   const [otherWorkflowMetadata, setOtherWorkflowMetadata] = useState()
   const [otherCallFqnDropdownValue, setOtherCallFqnDropdownValue] = useState()
