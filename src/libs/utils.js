@@ -358,6 +358,8 @@ export const useUniqueId = () => {
 
 export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' } // https://mathiasbynens.github.io/rel-noopener/
 
+export const newTabLinkPropsWithReferrer = { target: '_blank', rel: 'noopener' }
+
 export const createHtmlElement = (doc, name, attrs) => {
   const element = doc.createElement(name)
   _.forEach(([k, v]) => element.setAttribute(k, v), _.toPairs(attrs))
