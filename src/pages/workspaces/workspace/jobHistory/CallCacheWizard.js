@@ -10,6 +10,7 @@ import { TextInput } from 'src/components/input'
 import { breadcrumbHistoryCaret } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -135,14 +136,8 @@ const CallCacheWizard = ({
       return h(Select, { options: shardOptions, onChange: i => { setOtherIndexDropdownValue(i.value) } })
     }
 
-    const otherCallSucceeded = (metadata, fqn, index) => {
-      return _.flow(
-        _.filter(c => c.shardIndex === index && c.executionStatus === 'Done'),
-        _.map(c => c.attempt),
-        _.first,
-        !_.isEmpty
-      )(metadata.calls[fqn])
-    }
+    const otherCallSucceeded = otherWorkflowMetadata && otherCallFqnDropdownValue && selectedCallIndex &&
+      _.some({ shardIndex: -1, executionStatus: 'Done' }, otherWorkflowMetadata.calls[otherCallFqnDropdownValue])
 
     return h(Fragment, [
       div({ style: { display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
@@ -169,7 +164,10 @@ const CallCacheWizard = ({
               )
             )
           ]),
-          otherCallFqnDropdownValue && selectedCallIndex && !otherCallSucceeded && 'The call/index you have selected cannot be call cached from because it did not succeed.',
+          otherCallFqnDropdownValue && selectedCallIndex && !otherCallSucceeded && div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.5rem' } }, [
+            icon('warning-standard', { size: 24, style: { color: colors.warning(), marginRight: '0.5rem' } }),
+            'This call is ineligible for call caching because it did not succeed.'
+          ]),
           !!(otherCallFqnDropdownValue && selectedCallIndex && otherCallSucceeded) && h(ButtonPrimary, { style: { float: 'right' }, onClick: () => { fetchDiff(otherWorkflowId, otherCallFqnDropdownValue, selectedCallIndex); setOtherCallSelected(true) } }, ['Compare Diff'])
         ]) :
         'Loading workflow B\'s calls...'
