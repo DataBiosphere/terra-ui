@@ -3,7 +3,7 @@ import { Fragment, useState } from 'react'
 import { div, h, hr } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import Select from 'react-select'
-import { ButtonPrimary, ButtonSecondary } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
@@ -90,8 +90,11 @@ const CallCacheWizard = ({
   const resetWorkflowSelection = (value = undefined) => {
     resetCallSelection()
     setOtherWorkflowId(value)
+    setOtherWorkflowIdTextboxValue(value)
     setMetadataFetchError(undefined)
   }
+
+  const resetLink = resetAction => h(Link, { style: { fontSize: '14px', justifyContent: 'right' }, onClick: resetAction }, ['Reset'])
 
   /*
    * Page render
@@ -101,16 +104,16 @@ const CallCacheWizard = ({
 
   const step1 = () => {
     return h(Fragment, [
-      div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, ...Style.noWrapEllipsis } }, ['Step 1: Select the workflow you expected to cache from']),
+      div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500 } }, ['Step 1: Select the workflow you expected to cache from']),
       div({ style: { marginTop: '0.5rem', marginBottom: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
         div({ style: { paddingRight: '0.5rem' } }, ['Workflow ID:']),
-        div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [h(TextInput, {
+        div({ style: { paddingRight: '0.5rem', flex: '1' } }, [h(TextInput, {
           style: Style.codeFont,
           value: otherWorkflowIdTextboxValue,
-          onChange: setOtherWorkflowIdTextboxValue,
-          id: 'otherWorkflowId'
+          onChange: setOtherWorkflowIdTextboxValue
         })]),
         h(ButtonPrimary, {
+          disabled: _.isEmpty(otherWorkflowIdTextboxValue),
           onClick: () => {
             resetWorkflowSelection(otherWorkflowIdTextboxValue)
             readCalls(otherWorkflowIdTextboxValue)
@@ -142,17 +145,17 @@ const CallCacheWizard = ({
     return h(Fragment, [
       div({ style: { display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
         div(['Selected workflow B: ']),
-        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
-          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherWorkflowId)
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1' } }, [
+          div({ style: { marginLeft: '0.5rem', ...Style.codeFont } }, otherWorkflowId)
         ]),
-        h(ButtonSecondary, { style: { textTransform: 'none', paddingLeft: '1rem', height: '20px', justifyContent: 'right' }, onClick: () => resetWorkflowSelection() }, ['Reset'])
+        resetLink(() => resetWorkflowSelection(undefined))
       ]),
-      div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, ...Style.noWrapEllipsis } }, ['Step 2: Select which call in that workflow you expected to cache from']),
+      div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500 } }, ['Step 2: Select which call in that workflow you expected to cache from']),
       otherWorkflowMetadata ?
         div([
           div({ style: { marginTop: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
-            div({ style: { paddingRight: '0.5rem' } }, ['Call FQN:']),
-            div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [
+            div({ style: { paddingRight: '0.5rem' } }, ['Call name:']),
+            div({ style: { paddingRight: '0.5rem', flex: '1' } }, [
               h(Select, { id: 'otherCallFqn', options: otherCallFqnSelectionOptions(otherWorkflowMetadata.calls), onChange: v => setOtherCallFqnDropdownValue(v.value) })
             ])
           ]),
@@ -168,7 +171,10 @@ const CallCacheWizard = ({
             icon('warning-standard', { size: 24, style: { color: colors.warning(), marginRight: '0.5rem' } }),
             'This call is ineligible for call caching because it did not succeed.'
           ]),
-          !!(otherCallFqnDropdownValue && selectedCallIndex && otherCallSucceeded) && h(ButtonPrimary, { style: { float: 'right' }, onClick: () => { fetchDiff(otherWorkflowId, otherCallFqnDropdownValue, selectedCallIndex); setOtherCallSelected(true) } }, ['Compare Diff'])
+          !!(otherCallFqnDropdownValue && selectedCallIndex && otherCallSucceeded) && h(ButtonPrimary, {
+            style: { float: 'right' },
+            onClick: () => { fetchDiff(otherWorkflowId, otherCallFqnDropdownValue, selectedCallIndex); setOtherCallSelected(true) }
+          }, ['Compare Diff'])
         ]) :
         'Loading workflow B\'s calls...'
     ])
@@ -178,36 +184,38 @@ const CallCacheWizard = ({
     return h(Fragment, [
       div({ style: { paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
         div(['Selected workflow B: ']),
-        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
-          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherWorkflowId)
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1' } }, [
+          div({ style: { marginLeft: '0.5rem', ...Style.codeFont } }, otherWorkflowId)
         ]),
-        h(ButtonSecondary, { style: { textTransform: 'none', paddingLeft: '1rem', height: '20px', justifyContent: 'right' }, onClick: () => resetWorkflowSelection() }, ['Reset'])
+        resetLink(() => resetWorkflowSelection(undefined))
       ]),
       div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
         div(['Selected call B: ']),
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
-          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherCallFqnDropdownValue),
+          div({ style: { marginLeft: '0.5rem', ...Style.codeFont } }, otherCallFqnDropdownValue),
           otherIndexDropdownValue && [breadcrumbHistoryCaret,
-            div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, `index ${otherIndexDropdownValue}`)]
+            div({ style: { marginLeft: '0.5rem', ...Style.codeFont } }, `index ${otherIndexDropdownValue}`)]
         ]),
-        h(ButtonSecondary, { style: { textTransform: 'none', paddingLeft: '1rem', height: '20px', justifyContent: 'right' }, onClick: () => resetCallSelection() }, ['Reset'])
+        resetLink(() => resetCallSelection())
       ]),
       divider,
       div({ style: { display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, ['Result: View cache diff']),
       diffError ?
         h(ErrorView, { error: diffError }) :
         (diff ?
-          [div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, ['Note: the diff is expressed in terms of hashes of values rather than raw values because it is hashes that determine cache hits.']),
-            h(ReactJson, {
-              style: { whiteSpace: 'pre-wrap', border: 'ridge', padding: '0.5rem' },
-              name: false,
-              shouldCollapse: ({ name }) => { return name === 'callA' || name === 'callB' },
-              enableClipboard: false,
-              displayDataTypes: false,
-              displayObjectSize: false,
-              src: { hashDifferential: diff.hashDifferential, ...diff }
-            })] :
-          'Cache diff loading...')
+          div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } },
+            [
+              'Note: the diff is expressed in terms of hashes of values rather than raw values because it is hashes that determine cache hits.',
+              h(ReactJson, {
+                style: { whiteSpace: 'pre-wrap', border: 'ridge', padding: '0.5rem' },
+                name: false,
+                shouldCollapse: ({ name }) => name === 'callA' || name === 'callB',
+                enableClipboard: false,
+                displayDataTypes: false,
+                displayObjectSize: false,
+                src: { hashDifferential: diff.hashDifferential, ...diff }
+              })
+            ]) : 'Cache diff loading...')
     ])
   }
 
@@ -223,11 +231,10 @@ const CallCacheWizard = ({
 
   return h(Modal, {
     title: [
-      icon('search'),
       ' Call Cache Miss Debugging Wizard'
     ],
     onDismiss,
-    width: '50%',
+    width: '850px',
     showButtons: false,
     showX: true
   }, [

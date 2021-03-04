@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link } from 'src/components/common'
@@ -66,17 +66,18 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
             cellRenderer: ({ rowIndex }) => {
               const { shardIndex: index, attempt, callCaching: { effectiveCallCachingMode, result } = {} } = callObjects[rowIndex]
               if (effectiveCallCachingMode === 'ReadAndWriteCache' || effectiveCallCachingMode === 'ReadCache') {
-                return result ? [
+                return result ? h(Fragment, [
                   h(TooltipCell, [result]),
                   result === 'Cache Miss' && h(Link, {
                     key: 'cc',
                     style: { marginLeft: '0.5rem' },
                     tooltip: 'Call Cache Debug Wizard',
+                    'aria-label': 'Call Cache Debug Wizard',
                     onClick: () => setWizardSelection({ callFqn: callName, index, attempt })
                   }, [
                     icon('search', { size: 18 })
                   ])
-                ] :
+                ]) :
                   div({ style: { color: colors.dark(0.7) } }, ['No Information'])
               } else if (effectiveCallCachingMode === 'WriteCache') {
                 return div({ style: { color: colors.dark(0.7) } }, ['Lookup disabled; write enabled'])
