@@ -56,7 +56,10 @@ export const UploadProgressModal = ({ status: { totalFiles, totalBytes, uploaded
     okButton: 'Abort Upload',
     danger: true
   }, [
-    p({}, [
+    p({
+      'aria-live': 'polite',
+      'aria-atomic': true
+    }, [
       'Uploading file ',
       strong([currentFileNum + 1, ' of ', totalFiles])
     ]),
