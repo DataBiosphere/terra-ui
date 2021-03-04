@@ -130,7 +130,6 @@ const fetchSam = _.flow(withUrlPrefix(`${getConfig().samUrlRoot}/`), withAppIden
 const fetchBuckets = _.flow(withRequesterPays, withUrlPrefix('https://storage.googleapis.com/'))(fetchOk)
 const fetchGoogleBilling = withUrlPrefix('https://cloudbilling.googleapis.com/v1/', fetchOk)
 const fetchRawls = _.flow(withUrlPrefix(`${getConfig().rawlsUrlRoot}/api/`), withAppIdentifier)(fetchOk)
-const fetchCromIAM = _.flow(withUrlPrefix(`${getConfig().orchestrationUrlRoot}/api/`), withAppIdentifier)(fetchOk)
 const fetchDataRepo = withUrlPrefix(`${getConfig().dataRepoUrlRoot}/api/`, fetchOk)
 const fetchLeo = withUrlPrefix(`${getConfig().leoUrlRoot}/`, fetchOk)
 const fetchDockstore = withUrlPrefix(`${getConfig().dockstoreUrlRoot}/api/`, fetchOk)
@@ -502,7 +501,10 @@ const attributesUpdateOps = _.flow(
 )
 
 const CromIAM = signal => ({
-  callCacheDiff: async (thisWorkflowId, thisCallFqn, thisIndex, thatWorkflowId, thatCallFqn, thatIndex) => {
+  callCacheDiff: async (thisWorkflow, thatWorkflow) => {
+    const { workflowId: thisWorkflowId, callFqn: thisCallFqn, index: thisIndex } = thisWorkflow
+    const { workflowId: thatWorkflowId, callFqn: thatCallFqn, index: thatIndex } = thatWorkflow
+
     const params = {
       workflowA: thisWorkflowId,
       callA: thisCallFqn,
@@ -511,12 +513,12 @@ const CromIAM = signal => ({
       callB: thatCallFqn,
       indexB: (thatIndex !== -1) ? thatIndex : undefined
     }
-    const res = await fetchCromIAM(`workflows/v1/callcaching/diff?${qs.stringify(params)}`, _.merge(authOpts(), { signal }))
+    const res = await fetchOrchestration(`api/workflows/v1/callcaching/diff?${qs.stringify(params)}`, _.merge(authOpts(), { signal }))
     return res.json()
   },
 
   workflowMetadata: async (workflowId, includeKey, excludeKey) => {
-    const res = await fetchCromIAM(`workflows/v1/${workflowId}/metadata?${qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
+    const res = await fetchOrchestration(`api/workflows/v1/${workflowId}/metadata?${qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
     return res.json()
   }
 })

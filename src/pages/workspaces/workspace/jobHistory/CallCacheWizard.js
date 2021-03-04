@@ -21,11 +21,11 @@ const CallCacheWizard = ({
    * State setup
    */
 
+  const [otherWorkflowIdTextboxValue, setOtherWorkflowIdTextboxValue] = useState()
   const [otherWorkflowId, setOtherWorkflowId] = useState()
   const [otherWorkflowMetadata, setOtherWorkflowMetadata] = useState()
-  const [otherCallFqn, setOtherCallFqn] = useState()
-  const [otherIndex, setOtherIndex] = useState()
-  const [otherAttemptSucceeded, setOtherAttemptSucceeded] = useState()
+  const [otherCallFqnDropdownValue, setOtherCallFqnDropdownValue] = useState()
+  const [otherIndexDropdownValue, setOtherIndexDropdownValue] = useState()
   const [otherCallSelected, setOtherCallSelected] = useState(false)
   const [diff, setDiff] = useState()
   const [metadataFetchError, setMetadataFetchError] = useState()
@@ -46,28 +46,32 @@ const CallCacheWizard = ({
       const wf = await Ajax(signal).CromIAM.workflowMetadata(otherWf, includeKey, excludeKey)
       setOtherWorkflowMetadata(wf)
     } catch (error) {
-      console.log(error)
       if (error instanceof Response) setMetadataFetchError(await error.text())
-      else if (_.isObject(error)) setMetadataFetchError(JSON.stringify(error))
       else setMetadataFetchError(error)
     }
   }
 
   const fetchDiff = async (otherWf, otherCall, otherIx) => {
     try {
-      const diff = await Ajax(signal).CromIAM.callCacheDiff(workflowId, callFqn, Number(index), otherWf, otherCall, Number(otherIx))
+      const diff = await Ajax(signal).CromIAM.callCacheDiff({
+        workflowId,
+        callFqn,
+        index: Number(index)
+      }, {
+        workflowId: otherWf,
+        callFqn: otherCall,
+        index: Number(otherIx)
+      })
       setDiff(diff)
     } catch (error) {
-      console.log(error)
       if (error instanceof Response) setDiffError(await error.text())
-      else if (_.isObject(error)) setDiffError(JSON.stringify(error))
       else setDiffError(error)
     }
   }
 
   const otherCallFqnSelectionOptions = _.flow(
     _.keys,
-    _.map(name => { return { value: name, label: name } })
+    _.map(name => ({ value: name, label: name }))
   )
 
   const resetDiffResult = () => {
@@ -77,15 +81,14 @@ const CallCacheWizard = ({
 
   const resetCallSelection = () => {
     resetDiffResult()
-    setOtherCallFqn(undefined)
-    setOtherIndex(undefined)
-    setOtherAttemptSucceeded(undefined)
+    setOtherCallFqnDropdownValue(undefined)
+    setOtherIndexDropdownValue(undefined)
     setOtherCallSelected(false)
   }
 
-  const resetWorkflowSelection = () => {
+  const resetWorkflowSelection = (value = undefined) => {
     resetCallSelection()
-    setOtherWorkflowId(undefined)
+    setOtherWorkflowId(value)
     setMetadataFetchError(undefined)
   }
 
@@ -100,55 +103,45 @@ const CallCacheWizard = ({
       div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, ...Style.noWrapEllipsis } }, ['Step 1: Select the workflow you expected to cache from']),
       div({ style: { marginTop: '0.5rem', marginBottom: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
         div({ style: { paddingRight: '0.5rem' } }, ['Workflow ID:']),
-        div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [h(TextInput, { style: Style.codeFont, id: 'otherWorkflowId' })]),
-        div([h(ButtonPrimary, {
-          style: { float: 'right' },
+        div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [h(TextInput, {
+          style: Style.codeFont,
+          value: otherWorkflowIdTextboxValue,
+          onChange: setOtherWorkflowIdTextboxValue,
+          id: 'otherWorkflowId'
+        })]),
+        h(ButtonPrimary, {
           onClick: () => {
-            const otherWf = document.getElementById('otherWorkflowId').value
-            setOtherWorkflowId(otherWf)
-            readCalls(otherWf)
+            resetWorkflowSelection(otherWorkflowIdTextboxValue)
+            readCalls(otherWorkflowIdTextboxValue)
           }
-        }, ['Continue >'])])
+        }, ['Continue'])
       ]),
-      div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, color: 'lightgray', ...Style.noWrapEllipsis } }, ['Step 2: Select the call you expected to cache from']),
-      divider,
-      div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, color: 'lightgray', ...Style.noWrapEllipsis } }, ['Result: View cache diff'])
+      metadataFetchError && [
+        'Error loading workflow metadata',
+        h(ErrorView, { error: metadataFetchError })
+      ]
     ])
   }
-  const step2 = () => {
-    const otherCallIndexSelector = (metadata, fqn) => {
-      const shards = _.flow(
-        _.map(c => Number(c.shardIndex)),
-        _.uniq
-      )(metadata.calls[fqn])
 
-      if (shards.length === 1) {
-        if (otherIndex !== shards[0]) { setOtherIndex(shards[0]) }
-        if (shards[0] === -1) {
-          return 'N/A (this call was not scattered)'
-        } else {
-          return `${shards[0]} (exactly one shard in the scatter)`
-        }
-      } else {
-        const shardOptions = _.map(i => { return { value: i, label: i } }, shards)
-        return h(Select, { options: shardOptions, onChange: i => { setOtherIndex(i.value) } })
-      }
+  const step2 = () => {
+    const selectedCallIndex = otherIndexDropdownValue ? otherIndexDropdownValue : (
+      otherWorkflowMetadata && otherCallFqnDropdownValue ? (
+        otherWorkflowMetadata.calls[otherCallFqnDropdownValue].length === 1 ? otherWorkflowMetadata.calls[otherCallFqnDropdownValue][0].shardIndex : undefined
+      ) : undefined
+    )
+
+    const otherCallIndexSelectionElement = (metadata, fqn) => {
+      const shardOptions = _.uniqBy(_.map(({ shardIndex: i }) => { return { value: i, label: i } }, metadata.calls[fqn]), _.identity)
+      return h(Select, { options: shardOptions, onChange: i => { setOtherIndexDropdownValue(i.value) } })
     }
 
-    const otherCallAttemptDecision = (metadata, fqn, index) => {
-      const successfulAttempt = _.flow(
+    const otherCallSucceeded = (metadata, fqn, index) => {
+      return _.flow(
         _.filter(c => c.shardIndex === index && c.executionStatus === 'Done'),
         _.map(c => c.attempt),
-        _.first
+        _.first,
+        !_.isEmpty
       )(metadata.calls[fqn])
-
-      if (otherAttemptSucceeded !== successfulAttempt) setOtherAttemptSucceeded(successfulAttempt)
-
-      if (successfulAttempt) {
-        return `${successfulAttempt} (the first successful attempt of this call)`
-      } else {
-        return 'This index of the call did not succeed'
-      }
     }
 
     return h(Fragment, [
@@ -159,33 +152,27 @@ const CallCacheWizard = ({
         ]),
         h(ButtonSecondary, { style: { textTransform: 'none', paddingLeft: '1rem', height: '20px', justifyContent: 'right' }, onClick: () => resetWorkflowSelection() }, ['Reset'])
       ]),
-      metadataFetchError && h(ErrorView, { error: metadataFetchError }),
       div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, ...Style.noWrapEllipsis } }, ['Step 2: Select which call in that workflow you expected to cache from']),
-      !metadataFetchError && (otherWorkflowMetadata ?
+      otherWorkflowMetadata ?
         div([
           div({ style: { marginTop: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
             div({ style: { paddingRight: '0.5rem' } }, ['Call FQN:']),
             div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [
-              h(Select, { id: 'otherCallFqn', options: otherCallFqnSelectionOptions(otherWorkflowMetadata.calls), onChange: v => setOtherCallFqn(v.value) })
+              h(Select, { id: 'otherCallFqn', options: otherCallFqnSelectionOptions(otherWorkflowMetadata.calls), onChange: v => setOtherCallFqnDropdownValue(v.value) })
             ])
           ]),
-          div({ style: { marginTop: '0.25rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
+          otherCallFqnDropdownValue && div({ style: { marginTop: '0.25rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
             div({ style: { paddingRight: '0.5rem' } }, ['Shard Index:']),
-            otherCallFqn ?
-              div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [otherCallIndexSelector(otherWorkflowMetadata, otherCallFqn)]) :
-              'Select a call FQN first'
+            selectedCallIndex === -1 ? '-1 (not scattered)' : (
+              selectedCallIndex ? String(selectedCallIndex) : (
+                otherCallIndexSelectionElement(otherWorkflowMetadata, otherCallFqnDropdownValue)
+              )
+            )
           ]),
-          div({ style: { marginTop: '0.25rem', marginBottom: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
-            div({ style: { paddingRight: '0.5rem' } }, ['Attempt:']),
-            (!!otherCallFqn && otherIndex !== undefined) ?
-              div({ style: { paddingRight: '0.5rem', flex: '2 1 auto' } }, [otherCallAttemptDecision(otherWorkflowMetadata, otherCallFqn, otherIndex)]) :
-              'Select a call FQN and an index first'
-          ]),
-          !!(otherCallFqn && otherIndex !== undefined && otherAttemptSucceeded) && h(ButtonPrimary, { style: { float: 'right' }, onClick: () => { fetchDiff(otherWorkflowId, otherCallFqn, otherIndex); setOtherCallSelected(true) } }, ['Compare Diff >'])
+          otherCallFqnDropdownValue && selectedCallIndex && !otherCallSucceeded && 'The call/index you have selected cannot be call cached from because it did not succeed.',
+          !!(otherCallFqnDropdownValue && selectedCallIndex && otherCallSucceeded) && h(ButtonPrimary, { style: { float: 'right' }, onClick: () => { fetchDiff(otherWorkflowId, otherCallFqnDropdownValue, selectedCallIndex); setOtherCallSelected(true) } }, ['Compare Diff'])
         ]) :
-        'Loading other workflow calls...'),
-      divider,
-      div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500, color: 'lightgray', ...Style.noWrapEllipsis } }, ['Result: View cache diff'])
+        'Loading workflow B\'s calls...'
     ])
   }
 
@@ -201,9 +188,9 @@ const CallCacheWizard = ({
       div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
         div(['Selected call B: ']),
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
-          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherCallFqn),
-          breadcrumbHistoryCaret,
-          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, `index ${otherIndex}`)
+          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, otherCallFqnDropdownValue),
+          otherIndexDropdownValue && [breadcrumbHistoryCaret,
+            div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, `index ${otherIndexDropdownValue}`)]
         ]),
         h(ButtonSecondary, { style: { textTransform: 'none', paddingLeft: '1rem', height: '20px', justifyContent: 'right' }, onClick: () => resetCallSelection() }, ['Reset'])
       ]),
@@ -227,7 +214,7 @@ const CallCacheWizard = ({
   }
 
   const chooseStep = () => {
-    if (!otherWorkflowId) {
+    if (!otherWorkflowId || metadataFetchError) {
       return step1()
     } else if (!otherCallSelected) {
       return step2()
@@ -257,8 +244,8 @@ const CallCacheWizard = ({
         div(['Debugging call A: ']),
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
           div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, callFqn),
-          breadcrumbHistoryCaret,
-          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, `index ${index}`)
+          index && index >= 0 && [breadcrumbHistoryCaret,
+            div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, `index ${index}`)]
         ])
       ]),
       divider,
