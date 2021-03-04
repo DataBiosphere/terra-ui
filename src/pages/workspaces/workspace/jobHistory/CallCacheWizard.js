@@ -110,7 +110,8 @@ const CallCacheWizard = ({
         div({ style: { paddingRight: '0.5rem', flex: '1' } }, [h(TextInput, {
           style: Style.codeFont,
           value: otherWorkflowIdTextboxValue,
-          onChange: setOtherWorkflowIdTextboxValue
+          onChange: setOtherWorkflowIdTextboxValue,
+          id: 'otherWorkflowId'
         })]),
         h(ButtonPrimary, {
           disabled: _.isEmpty(otherWorkflowIdTextboxValue),
