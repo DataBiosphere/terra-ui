@@ -3,7 +3,7 @@ import { Fragment, useState } from 'react'
 import { div, h, hr, label } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
 import Select from 'react-select'
-import { ButtonPrimary, ButtonSecondary, IdContainer, Link } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Link } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
@@ -16,7 +16,7 @@ import * as Utils from 'src/libs/utils'
 
 
 const CallCacheWizard = ({
-  onDismiss, workflowId, callFqn, attempt, index
+  onDismiss, workflowId, callFqn, index
 }) => {
   /*
    * State setup

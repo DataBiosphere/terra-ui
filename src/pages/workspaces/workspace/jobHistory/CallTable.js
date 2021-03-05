@@ -64,7 +64,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
             size: { basis: 200, grow: 2 },
             headerRenderer: () => 'Call Caching Result',
             cellRenderer: ({ rowIndex }) => {
-              const { shardIndex: index, attempt, callCaching: { effectiveCallCachingMode, result } = {} } = callObjects[rowIndex]
+              const { shardIndex: index, callCaching: { effectiveCallCachingMode, result } = {} } = callObjects[rowIndex]
               if (effectiveCallCachingMode === 'ReadAndWriteCache' || effectiveCallCachingMode === 'ReadCache') {
                 return result ? h(Fragment, [
                   h(TooltipCell, [result]),
@@ -73,7 +73,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
                     style: { marginLeft: '0.5rem' },
                     tooltip: 'Call Cache Debug Wizard',
                     'aria-label': 'Call Cache Debug Wizard',
-                    onClick: () => setWizardSelection({ callFqn: callName, index, attempt })
+                    onClick: () => setWizardSelection({ callFqn: callName, index })
                   }, [
                     icon('search', { size: 18 })
                   ])
