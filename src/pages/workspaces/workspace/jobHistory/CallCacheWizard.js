@@ -133,19 +133,15 @@ const CallCacheWizard = ({
   }
 
   const step2 = () => {
-    const selectedCallIndex = otherIndexDropdownValue ? otherIndexDropdownValue : (
-      otherWorkflowMetadata && otherCallFqnDropdownValue ? (
-        otherWorkflowMetadata.calls[otherCallFqnDropdownValue].length === 1 ? otherWorkflowMetadata.calls[otherCallFqnDropdownValue][0].shardIndex : undefined
-      ) : undefined
+    const selectedCallIndex = Utils.cond(
+      [otherIndexDropdownValue !== undefined, () => otherIndexDropdownValue],
+      [otherWorkflowMetadata && otherCallFqnDropdownValue && otherWorkflowMetadata.calls[otherCallFqnDropdownValue].length === 1,
+        () => otherWorkflowMetadata.calls[otherCallFqnDropdownValue][0].shardIndex],
+      () => undefined
     )
 
-    const otherCallIndexSelectionElement = (metadata, fqn, selectId) => {
-      const shardOptions = _.uniqBy(_.map(({ shardIndex: i }) => { return { value: i, label: i } }, metadata.calls[fqn]), _.identity)
-      return h(Select, { id: selectId, isSearchable: false, options: shardOptions, onChange: i => { setOtherIndexDropdownValue(i.value) } })
-    }
-
-    const otherCallSucceeded = otherWorkflowMetadata && otherCallFqnDropdownValue && selectedCallIndex &&
-      _.some({ shardIndex: -1, executionStatus: 'Done' }, otherWorkflowMetadata.calls[otherCallFqnDropdownValue])
+    const otherCallSucceeded = otherWorkflowMetadata && otherCallFqnDropdownValue && selectedCallIndex !== undefined &&
+      _.some({ shardIndex: selectedCallIndex, executionStatus: 'Done' }, otherWorkflowMetadata.calls[otherCallFqnDropdownValue])
 
     return h(Fragment, [
       div({ style: { display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
@@ -162,27 +158,38 @@ const CallCacheWizard = ({
             h(IdContainer, [id => h(Fragment, [
               label({ htmlFor: id, style: { paddingRight: '0.5rem' } }, ['Call name:']),
               div({ style: { paddingRight: '0.5rem', flex: '1' } }, [
-                h(Select, { id, isSearchable: false, options: otherCallFqnSelectionOptions(otherWorkflowMetadata.calls), onChange: v => setOtherCallFqnDropdownValue(v.value) })
-              ])])])
+                h(Select, {
+                  id,
+                  isSearchable: false,
+                  options: otherCallFqnSelectionOptions(otherWorkflowMetadata.calls),
+                  onChange: v => {
+                    setOtherIndexDropdownValue(undefined)
+                    setOtherCallFqnDropdownValue(v.value)
+                  }
+                })
+              ])
+            ])])
           ]),
           otherCallFqnDropdownValue && div({ style: { marginTop: '0.25rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
             h(IdContainer, [id => h(Fragment, [
               label({ htmlFor: id, style: { paddingRight: '0.5rem' } }, ['Shard Index:']),
               Utils.cond(
-                [selectedCallIndex === -1, () => '-1 (not scattered)'],
-                [selectedCallIndex, () => selectedCallIndex],
-                () => otherCallIndexSelectionElement(otherWorkflowMetadata, otherCallFqnDropdownValue, id)
+                [selectedCallIndex === -1, () => 'N/A (not scattered)'],
+                () => {
+                  const options = _.uniqBy('value', _.map(({ shardIndex: i }) => { return { value: i, label: i } }, otherWorkflowMetadata.calls[otherCallFqnDropdownValue]))
+                  return h(Select, { id, isSearchable: false, options, onChange: i => { setOtherIndexDropdownValue(i.value) } })
+                }
               )
             ])])
           ]),
-          otherCallFqnDropdownValue && selectedCallIndex && !otherCallSucceeded && div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.5rem' } }, [
+          otherCallFqnDropdownValue && selectedCallIndex !== undefined && !otherCallSucceeded && div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.5rem' } }, [
             icon('warning-standard', { size: 24, style: { color: colors.warning(), marginRight: '0.5rem' } }),
-            'This call is ineligible for call caching because it did not succeed.'
+            'This call B is ineligible to call cache from because it did not succeed.'
           ]),
           div({ style: { display: 'flex', justifyContent: 'flex-end' } }, [
-            !!(otherCallFqnDropdownValue && selectedCallIndex && otherCallSucceeded) && h(ButtonPrimary, {
+            (otherCallFqnDropdownValue && selectedCallIndex !== undefined && otherCallSucceeded) && h(ButtonPrimary, {
               onClick: () => { fetchDiff(otherWorkflowId, otherCallFqnDropdownValue, selectedCallIndex); setOtherCallSelected(true) }
-            }, ['Compare Diff'])
+            }, ['Continue'])
           ])
         ]) :
         'Loading workflow B\'s calls...'
@@ -201,9 +208,11 @@ const CallCacheWizard = ({
       div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
         div(['Selected call B: ']),
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
-          div({ style: { marginLeft: '0.5rem', ...Style.codeFont } }, otherCallFqnDropdownValue),
-          otherIndexDropdownValue && [breadcrumbHistoryCaret,
-            div({ style: { marginLeft: '0.5rem', ...Style.codeFont } }, `index ${otherIndexDropdownValue}`)]
+          div({ style: { marginLeft: '0.5rem', ...Style.codeFont } }, [
+            otherCallFqnDropdownValue,
+            otherIndexDropdownValue !== undefined && breadcrumbHistoryCaret,
+            otherIndexDropdownValue !== undefined && div({ style: { marginLeft: '0.5rem', ...Style.codeFont } }, `index ${otherIndexDropdownValue}`)
+          ])
         ]),
         resetLink(() => resetCallSelection())
       ]),
@@ -215,7 +224,7 @@ const CallCacheWizard = ({
           div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } },
             [
               'Note: the diff is expressed in terms of hashes of values rather than raw values because it is hashes that determine cache hits.',
-              diff.callB && diff.callB.allowResultReuse === false && div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem'} }, [
+              diff.callB && diff.callB.allowResultReuse === false && div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
                 icon('warning-standard', { size: 24, style: { color: colors.warning(), marginRight: '0.5rem' } }),
                 'Note: call B has allowResultReuse: false, and is ineligible to call cache from.',
                 ' This can sometimes happen if the WDL task has a \'volatile\' marker in its meta section.'
