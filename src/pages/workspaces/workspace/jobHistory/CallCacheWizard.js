@@ -157,7 +157,7 @@ const CallCacheWizard = ({
           div({ style: { marginTop: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
             h(IdContainer, [id => h(Fragment, [
               label({ htmlFor: id, style: { paddingRight: '0.5rem' } }, ['Call name:']),
-              div({ style: { paddingRight: '0.5rem', flex: '1' } }, [
+              div({ style: { flex: '1' } }, [
                 h(Select, {
                   id,
                   isSearchable: false,
@@ -170,16 +170,16 @@ const CallCacheWizard = ({
               ])
             ])])
           ]),
-          otherCallFqnDropdownValue && div({ style: { marginTop: '0.25rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
+          otherCallFqnDropdownValue && div({ style: { marginTop: '0.25rem', marginBottom: '0.5rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
             h(IdContainer, [id => h(Fragment, [
               label({ htmlFor: id, style: { paddingRight: '0.5rem' } }, ['Shard Index:']),
-              Utils.cond(
+              div({ style: { flex: '1' } }, [Utils.cond(
                 [selectedCallIndex === -1, () => 'N/A (not scattered)'],
                 () => {
                   const options = _.uniqBy('value', _.map(({ shardIndex: i }) => { return { value: i, label: i } }, otherWorkflowMetadata.calls[otherCallFqnDropdownValue]))
                   return h(Select, { id, isSearchable: false, options, onChange: i => { setOtherIndexDropdownValue(i.value) } })
                 }
-              )
+              )])
             ])])
           ]),
           otherCallFqnDropdownValue && selectedCallIndex !== undefined && !otherCallSucceeded && div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.5rem' } }, [
