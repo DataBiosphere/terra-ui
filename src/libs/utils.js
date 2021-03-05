@@ -445,3 +445,11 @@ export const sanitizeEntityName = unsafe => unsafe.replace(/[^\w]/g, '-')
 export const makeTSV = rows => {
   return _.join('', _.map(row => `${_.join('\t', row)}\n`, rows))
 }
+
+export const sha256 = async message => {
+  const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(message))
+  return _.flow(
+    _.map(v => v.toString(16).padStart(2, '0')),
+    _.join('')
+  )(new Uint8Array(hashBuffer))
+}
