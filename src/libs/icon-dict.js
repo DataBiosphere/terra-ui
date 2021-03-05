@@ -2,7 +2,7 @@ import { faClipboard, faClock, faClone, faEye, faFileAlt, faFolder, faFolderOpen
 import {
   faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faCloud, faCog, faCreditCard, faDownload,
   faEllipsisV, faExclamationCircle, faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown,
-  faLongArrowAltUp, faMagic, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid,
+  faLongArrowAltUp, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid,
   faTachometerAlt, faTasks, faTerminal, faTrashAlt, faVirus
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -81,7 +81,6 @@ const iconDict = {
   lock: fa(faLock),
   'long-arrow-alt-down': fa(faLongArrowAltDown),
   'long-arrow-alt-up': fa(faLongArrowAltUp),
-  magic: fa(faMagic),
   'minus-circle': fa(faMinusCircle),
   pause: fa(faPause),
   play: fa(faPlay),
