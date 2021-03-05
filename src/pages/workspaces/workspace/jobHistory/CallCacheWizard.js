@@ -158,11 +158,13 @@ const CallCacheWizard = ({
       div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500 } }, ['Step 2: Select which call in that workflow you expected to cache from']),
       otherWorkflowMetadata ?
         div([
-          div({ style: { marginTop: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [h(IdContainer, [id => h(Fragment[
-            label({ htmlFor: id, style: { paddingRight: '0.5rem' } }, ['Call name:']),
-            div({ style: { paddingRight: '0.5rem', flex: '1' } }, [
-              h(Select, { id, isSearchable: false, options: otherCallFqnSelectionOptions(otherWorkflowMetadata.calls), onChange: v => setOtherCallFqnDropdownValue(v.value) })
-            ])])])]),
+          div({ style: { marginTop: '1rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
+            h(IdContainer, [id => h(Fragment, [
+              label({ htmlFor: id, style: { paddingRight: '0.5rem' } }, ['Call name:']),
+              div({ style: { paddingRight: '0.5rem', flex: '1' } }, [
+                h(Select, { id, isSearchable: false, options: otherCallFqnSelectionOptions(otherWorkflowMetadata.calls), onChange: v => setOtherCallFqnDropdownValue(v.value) })
+              ])])])
+          ]),
           otherCallFqnDropdownValue && div({ style: { marginTop: '0.25rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
             h(IdContainer, [id => h(Fragment, [
               label({ htmlFor: id, style: { paddingRight: '0.5rem' } }, ['Shard Index:']),
@@ -213,6 +215,11 @@ const CallCacheWizard = ({
           div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } },
             [
               'Note: the diff is expressed in terms of hashes of values rather than raw values because it is hashes that determine cache hits.',
+              diff.callB && diff.callB.allowResultReuse === false && div({ style: { marginTop: '0.5rem', marginBottom: '0.5rem'} }, [
+                icon('warning-standard', { size: 24, style: { color: colors.warning(), marginRight: '0.5rem' } }),
+                'Note: call B has allowResultReuse: false, and is ineligible to call cache from.',
+                ' This can sometimes happen if the WDL task has a \'volatile\' marker in its meta section.'
+              ]),
               h(ReactJson, {
                 style: { whiteSpace: 'pre-wrap', border: 'ridge', padding: '0.5rem' },
                 name: false,
