@@ -11,7 +11,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import { currentApp, getGalaxyCost } from 'src/libs/runtime-utils'
+import { currentApp, getGalaxyComputeCost, getGalaxyCost, getGalaxyDiskCost } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -190,7 +190,7 @@ export const NewGalaxyModal = _.flow(
     const waitMessage = isTitle ? '' : 'This process will take up to a few minutes.'
 
     return !app ?
-      isTitle ? 'Cloud environment' : 'Environment will consist of an application and cloud compute.' :
+      isTitle ? 'Cloud environment' : 'Consists of application configuration, cloud compute and persistent disk(s).' :
       Utils.switchCase(app.status,
         ['STOPPED', () => `Cloud environment is now paused ${!isTitle ? '...' : ''}`],
         ['PRESTOPPING', () => 'Cloud environment is preparing to stop.'],
@@ -202,10 +202,42 @@ export const NewGalaxyModal = _.flow(
       )
   }
 
+  // TODO Refactor this and the duplicate in NewRuntimeModal.js
+  const renderGalaxyCostBreakdown = kubernetesRuntimeConfig => {
+    const runningComputeCost = getGalaxyComputeCost({ status: 'RUNNING', kubernetesRuntimeConfig })
+    const pausedComputeCost = getGalaxyComputeCost({ status: 'STOPPED', kubernetesRuntimeConfig })
+
+    return div({
+      style: {
+        backgroundColor: colors.accent(0.2),
+        display: 'flex',
+        borderRadius: 5,
+        padding: '0.5rem 1rem',
+        marginTop: '1rem'
+      }
+    }, [
+      _.map(({ cost, label, unitLabel }) => {
+        return div({ key: label, style: { flex: 1, ...styles.label } }, [
+          div({ style: { fontSize: 10 } }, [label]),
+          div({ style: { color: colors.accent(), marginTop: '0.25rem' } }, [
+            span({ style: { fontSize: 20 } }, [cost]),
+            span([' ', unitLabel])
+          ])
+        ])
+      }, [
+        { label: 'Running cloud compute cost', cost: Utils.formatUSD(runningComputeCost), unitLabel: 'per hr' },
+        { label: 'Paused cloud compute cost', cost: Utils.formatUSD(pausedComputeCost), unitLabel: 'per hr' },
+        { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost()), unitLabel: 'per month' }
+      ])
+    ])
+  }
+
   const renderDefaultCase = () => {
     const defaultMachineType = 'n1-highmem-8'
+    const defaultKubernetesRuntimeConfig = { machineType: defaultMachineType, numNodes: 1 }
     const { cpu, memory } = _.find({ name: defaultMachineType }, machineTypes)
-    const cost = getGalaxyCost(app || { kubernetesRuntimeConfig: { machineType: defaultMachineType, numNodes: 1 } })
+    const appOrDefault = app || { kubernetesRuntimeConfig: defaultKubernetesRuntimeConfig }
+    const cost = getGalaxyCost(appOrDefault)
     return h(Fragment, [
       h(TitleBar, {
         title: getEnvMessageBasedOnStatus(true),
@@ -216,6 +248,7 @@ export const NewGalaxyModal = _.flow(
       div([
         getEnvMessageBasedOnStatus(false)
       ]),
+      renderGalaxyCostBreakdown(appOrDefault.kubernetesRuntimeConfig),
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div([
           div({ style: styles.headerText }, ['Environment Settings']),
