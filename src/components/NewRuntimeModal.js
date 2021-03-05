@@ -794,7 +794,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             ]),
             h(IdContainer, [
               id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, ['Preemptible']),
+                label({ htmlFor: id, style: styles.label }, ['Preemptibles']),
                 h(NumberInput, {
                   id,
                   min: 0,
