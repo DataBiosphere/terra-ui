@@ -458,9 +458,9 @@ const WorkspaceData = _.flow(
             return h(Collapse, {
               key: snapshotName,
               titleFirst: true,
-              buttonStyle: { height: 50, color: colors.dark(), fontWeight: 600, marginBottom: 0 },
+              buttonStyle: { height: 50, color: colors.dark(), fontWeight: 600, marginBottom: 0, overflow: 'hidden' },
               style: { fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
-              title: snapshotName,
+              title: snapshotName, noTitleWrap: true,
               afterToggle: h(Link, {
                 style: { marginRight: '0.5rem' },
                 tooltip: 'Snapshot Info',

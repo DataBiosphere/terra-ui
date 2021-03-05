@@ -4,16 +4,17 @@ import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import { TextInput } from 'src/components/input'
+import { ValidatedInput } from 'src/components/input'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax } from 'src/libs/ajax'
-import { withErrorReporting } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import { workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import validate from 'validate.js'
 
 
 export const useWorkspaces = () => {
@@ -84,9 +85,14 @@ export const SnapshotInfo = ({
 
   // Helpers
   const save = async () => {
-    setSaving(true) // this will be unmounted in the reload, so no need to reset this
-    await Ajax().Workspaces.workspace(namespace, name).snapshot(referenceId).update({ name: newName, description: newDescription })
-    onUpdate(newName)
+    try {
+      setSaving(true) // this will be unmounted in the reload, so no need to reset this
+      await Ajax().Workspaces.workspace(namespace, name).snapshot(referenceId).update({ name: newName, description: newDescription })
+      onUpdate(newName)
+    } catch (e) {
+      setSaving(false)
+      reportError('Error updating snapshot', e)
+    }
   }
 
 
@@ -104,6 +110,14 @@ export const SnapshotInfo = ({
   // Render
   const { name: sourceName, description: sourceDescription, createdDate, source = [] } = snapshotInfo || {}
   const editingDescription = _.isString(newDescription)
+  const errors = validate.single(newName, {
+    presence: { allowEmpty: false, message: 'Name can\'t be blank.' },
+    format: {
+      pattern: /^[a-zA-Z0-9]*\w*$/, // first '*' is so that we won't have format error and presence error at the same time
+      message: 'Name can only contain letters, numbers, and underscores, and can\'t start with an underscore.'
+    },
+    length: { maximum: 63, tooLong: 'Name can\'t be more than 63 characters.' }
+  })
 
   return snapshotInfo === undefined ? spinnerOverlay : h(Fragment, [
     div({ style: { padding: '1rem' } }, [
@@ -115,7 +129,7 @@ export const SnapshotInfo = ({
           }
         }, [
           snapshotName,
-          h(Link, {
+          !editingDescription && h(Link, {
             style: { marginLeft: '0.5rem' },
             onClick: () => setEditingName(true),
             'aria-label': 'Edit snapshot name',
@@ -182,18 +196,21 @@ export const SnapshotInfo = ({
             setEditingName(false)
             save()
           },
-          disabled: snapshotName === newName,
-          tooltip: snapshotName === newName && 'No change to save'
+          disabled: !!errors || (snapshotName === newName),
+          tooltip: Utils.summarizeErrors(errors) || (snapshotName === newName && 'No change to save')
         }, ['Rename'])
       }, [
         h(IdContainer, [id => h(Fragment, [
           h(FormLabel, { htmlFor: id }, ['New snapshot name']),
-          h(TextInput, {
-            id,
-            autoFocus: true,
-            placeholder: 'Enter a name',
-            value: newName,
-            onChange: setNewName
+          h(ValidatedInput, {
+            inputProps: {
+              id,
+              autoFocus: true,
+              placeholder: 'Enter a name',
+              value: newName,
+              onChange: setNewName
+            },
+            error: Utils.summarizeErrors(errors)
           })
         ])])
       ]),
