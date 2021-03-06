@@ -235,6 +235,8 @@ const makeBaseSpinner = ({ outerStyles = {}, innerStyles = {} }) => div(
 
 export const spinnerOverlay = makeBaseSpinner({})
 
+export const absoluteSpinnerOverlay = makeBaseSpinner({ innerStyles: { position: 'absolute' } })
+
 export const fixedSpinnerOverlay = makeBaseSpinner({ innerStyles: { position: 'fixed' } })
 
 export const transparentSpinnerOverlay = makeBaseSpinner({ innerStyles: { backgroundColor: 'rgba(255, 255, 255, 0.0)' } })

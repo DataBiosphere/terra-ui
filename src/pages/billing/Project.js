@@ -175,7 +175,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
       onDismiss: () => setDeletingUser(false),
       onSubmit: _.flow(
         withErrorReporting('Error removing member from billing project'),
-        Utils.withBusyState(updating)
+        Utils.withBusyState(setUpdating)
       )(async () => {
         setDeletingUser(false)
         await Ajax().Billing.project(projectName).removeUser(deletingUser.roles, deletingUser.email)
