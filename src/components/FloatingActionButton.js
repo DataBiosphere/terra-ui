@@ -6,7 +6,7 @@ import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 
 
-const FloatingActionButton = ({ label, iconShape, onClick, bottom = 30, right = 30, ...props }) => {
+const FloatingActionButton = ({ label, iconShape, onClick, bottom = 30, right = 30 }) => {
   const [hover, setHover] = useState(false)
 
   return h(Clickable,
@@ -23,8 +23,7 @@ const FloatingActionButton = ({ label, iconShape, onClick, bottom = 30, right = 
       onClick: () => {
         onClick()
         setHover(false)
-      },
-      ...props
+      }
     },
     [
       div({

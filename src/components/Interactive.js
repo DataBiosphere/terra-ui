@@ -46,7 +46,7 @@ const Interactive = Utils.forwardRefWithName('Interactive', ({
     className: `hover-style ${className}`,
     style: { ...style, ...cssVariables, cursor: computedCursor, outline },
     onKeyDown: onKeyDown || (e => {
-      if (e.key === 'Enter' || e.key === ' ') {
+      if (e.key === 'Enter') {
         e.stopPropagation()
         e.target.click()
       }

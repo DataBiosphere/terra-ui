@@ -110,7 +110,7 @@ const UploadDataTable = props => {
       style: { position: 'relative', flex: '0 0 auto' }
     }, [
       h2([
-        span({ ref: header, tabindex: -1 }, ['Preview your data table'])
+        span({ ref: header, tabIndex: -1 }, ['Preview your data table'])
       ]),
       div({
         style: { position: 'absolute', top: 0, right: 0, marginTop: '1em' }

@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { maybeParseJSON, subscribable, useStore } from 'src/libs/utils'
+import { maybeParseJSON, subscribable } from 'src/libs/utils'
 
 
 /*
@@ -87,25 +87,4 @@ export const staticStorageSlot = (storage, key) => {
   }
   listenStatic(storage, key, next)
   return { subscribe, get, set, update: fn => set(fn(get())) }
-}
-
-export const useStaticStorageSlot = (storage, key) => {
-  const store = staticStorageSlot(storage, key)
-  return [useStore(store), value => store.set(value)]
-}
-
-export const dynamicStorageSlot = (storage, key) => {
-  const { subscribe, next } = subscribable()
-  const get = () => getDynamic(storage, key)
-  const set = newValue => {
-    setDynamic(storage, key, newValue)
-    next(newValue)
-  }
-  listenDynamic(storage, key, next)
-  return { subscribe, get, set, update: fn => set(fn(get())) }
-}
-
-export const useDynamicStorageSlot = (storage, key) => {
-  const store = dynamicStorageSlot(storage, key)
-  return [useStore(store), newValue => store.set(newValue)]
 }

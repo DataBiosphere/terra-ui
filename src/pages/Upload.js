@@ -50,9 +50,9 @@ const styles = {
   },
   tableViewPanel: {
     position: 'relative',
-    overflow: 'hidden',
-    padding: '1rem', width: '100%',
-    flex: 1, display: 'flex', flexDirection: 'column'
+    padding: '1rem',
+    width: '100%',
+    height: '100%'
   },
   workspaceTilesContainer: {
     textAlign: 'left',
@@ -461,7 +461,6 @@ const MetadataUploadPanel = _.flow(
 
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
-  const uploadButton = useRef()
   useEffect(() => {
     header.current && header.current.focus()
   }, [])
@@ -651,7 +650,6 @@ const MetadataUploadPanel = _.flow(
           }
         }, ['Drag and drop your metadata .tsv file here']),
         !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
-          ref: uploadButton,
           label: 'UPLOAD',
           iconShape: 'plus',
           onClick: openUploader
@@ -678,9 +676,6 @@ const MetadataUploadPanel = _.flow(
         onCancel: () => {
           setMetadataFile(null)
           setMetadataTable(null)
-
-          // When we go back to upload mode, drop the focus on the upload button
-          uploadButton.current && uploadButton.current.focus()
         },
         onRename: renameTable
       })
@@ -799,123 +794,121 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
   // Render
   return h(FooterWrapper, [
     h(TopBar, { title: 'Data Uploader', href: Nav.getLink('upload') }, []),
-    div({ role: 'main', style: { padding: '1.5rem', flex: 1, fontSize: '1.2em' } }, [
+    div({ role: 'main', style: { padding: '1.5rem', flex: '1 1 auto', fontSize: '1.2em' } }, [
       filteredWorkspaces.length === 0 && !loadingWorkspaces ?
         h(NoWorkspacesMessage, { onClick: () => setCreatingNewWorkspace(true) }) :
-        div({ style: styles.pageContainer }, [
-          div({ style: styles.tableViewPanel }, [
-            workspace && currentStep !== 'workspaces' && h(AccordionHeader, {
-              iconShape: 'view-cards',
-              title: 'Workspace',
-              onClick: () => setCurrentStep('workspaces')
-            }, [
-              div({ style: { fontSize: '0.8em' } }, [workspace.workspace.namespace]),
-              div({ style: { fontSize: '1.2em' } }, [workspace.workspace.name])
-            ]),
-            collection && currentStep !== 'collection' && h(AccordionHeader, {
-              iconShape: 'folder',
-              title: 'Collection',
-              onClick: () => setCurrentStep('collection')
-            }, [
-              strong([collection])
-            ]),
-            numFiles > 0 && currentStep !== 'data' && h(AccordionHeader, {
-              iconShape: 'fileAlt',
-              title: 'Data Files',
-              onClick: () => setCurrentStep('data')
-            }, [
-              'Includes ', strong([numFiles]), ' files'
-            ]),
-            tableName && currentStep === 'done' && h(AccordionHeader, {
-              iconShape: 'listAlt',
-              title: 'Metadata Tables',
-              onClick: () => setCurrentStep('metadata')
-            }, [
-              tableMetadata?.isUpdate ? 'Updated table ' : 'Created table ',
-              strong([code([tableName])]),
-              tableMetadata && span([
-                ', added or modified ',
-                strong(tableMetadata.table.rows.length),
-                ' rows'
-              ])
-            ]),
-            div({}, [
-              Utils.switchCase(currentStep,
-                ['workspaces', () => div({
-                  style: styles.tabPanelHeader
-                }, [
-                  h(WorkspaceSelectorPanel, {
-                    workspaces: filteredWorkspaces,
-                    selectedWorkspaceId: workspaceId,
-                    setCreatingNewWorkspace,
-                    setWorkspaceId: id => {
-                      setWorkspaceId(id)
-                      setCurrentStep('collection')
-                    }
-                  }, [
-                    h(NextLink, { step: 'collection', setCurrentStep, stepIsEnabled })
-                  ])
-                ])],
-                ['collection', () => div({
-                  style: styles.tabPanelHeader
-                }, [
-                  workspace && h(CollectionSelectorPanel, {
-                    workspace,
-                    selectedCollection: collection,
-                    setCollection: id => {
-                      setCollection(id)
-                      setCurrentStep('data')
-                    }
-                  }, [
-                    h(NextLink, { step: 'data', setCurrentStep, stepIsEnabled })
-                  ])
-                ])],
-                ['data', () => div({
-                  style: styles.tabPanelHeader
-                }, [
-                  workspace && collection && h(DataUploadPanel, {
-                    workspace,
-                    collection,
-                    setNumFiles,
-                    setUploadedFiles: files => {
-                      setCurrentStep('metadata')
-                    }
-                  }, [
-                    h(NextLink, { step: 'metadata', setCurrentStep, stepIsEnabled })
-                  ])
-                ])],
-                ['metadata', () => div({
-                  style: styles.tabPanelHeader
-                }, [
-                  workspace && collection && h(MetadataUploadPanel, {
-                    workspace,
-                    collection,
-                    onSuccess: ({ metadata, metadata: { entityType: tableName } }) => {
-                      setTableName(tableName)
-                      setTableMetadata(metadata)
-                      setCurrentStep('done')
-                    }
-                  }, [])
-                ])],
-                ['done', () => div({
-                  style: styles.tabPanelHeader
-                }, [
-                  h(DonePanel, {
-                    workspace, collection, tableName, setCurrentStep
-                  })
-                ])]
-              )
+        div({ style: styles.tableViewPanel }, [
+          workspace && currentStep !== 'workspaces' && h(AccordionHeader, {
+            iconShape: 'view-cards',
+            title: 'Workspace',
+            onClick: () => setCurrentStep('workspaces')
+          }, [
+            div({ style: { fontSize: '0.8em' } }, [workspace.workspace.namespace]),
+            div({ style: { fontSize: '1.2em' } }, [workspace.workspace.name])
+          ]),
+          collection && currentStep !== 'collection' && h(AccordionHeader, {
+            iconShape: 'folder',
+            title: 'Collection',
+            onClick: () => setCurrentStep('collection')
+          }, [
+            strong([collection])
+          ]),
+          numFiles > 0 && currentStep !== 'data' && h(AccordionHeader, {
+            iconShape: 'fileAlt',
+            title: 'Data Files',
+            onClick: () => setCurrentStep('data')
+          }, [
+            'Includes ', strong([numFiles]), ' files'
+          ]),
+          tableName && currentStep === 'done' && h(AccordionHeader, {
+            iconShape: 'listAlt',
+            title: 'Metadata Tables',
+            onClick: () => setCurrentStep('metadata')
+          }, [
+            tableMetadata?.isUpdate ? 'Updated table ' : 'Created table ',
+            strong([code([tableName])]),
+            tableMetadata && span([
+              ', added or modified ',
+              strong(tableMetadata.table.rows.length),
+              ' rows'
             ])
           ]),
-          creatingNewWorkspace && h(NewWorkspaceModal, {
-            onDismiss: () => setCreatingNewWorkspace(false),
-            onSuccess: ({ namespace, name }) => {
-              setWorkspaceId(name)
-              refreshWorkspaces()
-            }
-          }),
-          loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
-        ])
+          div({}, [
+            Utils.switchCase(currentStep,
+              ['workspaces', () => div({
+                style: styles.tabPanelHeader
+              }, [
+                h(WorkspaceSelectorPanel, {
+                  workspaces: filteredWorkspaces,
+                  selectedWorkspaceId: workspaceId,
+                  setCreatingNewWorkspace,
+                  setWorkspaceId: id => {
+                    setWorkspaceId(id)
+                    setCurrentStep('collection')
+                  }
+                }, [
+                  h(NextLink, { step: 'collection', setCurrentStep, stepIsEnabled })
+                ])
+              ])],
+              ['collection', () => div({
+                style: styles.tabPanelHeader
+              }, [
+                workspace && h(CollectionSelectorPanel, {
+                  workspace,
+                  selectedCollection: collection,
+                  setCollection: id => {
+                    setCollection(id)
+                    setCurrentStep('data')
+                  }
+                }, [
+                  h(NextLink, { step: 'data', setCurrentStep, stepIsEnabled })
+                ])
+              ])],
+              ['data', () => div({
+                style: styles.tabPanelHeader
+              }, [
+                workspace && collection && h(DataUploadPanel, {
+                  workspace,
+                  collection,
+                  setNumFiles,
+                  setUploadedFiles: files => {
+                    setCurrentStep('metadata')
+                  }
+                }, [
+                  h(NextLink, { step: 'metadata', setCurrentStep, stepIsEnabled })
+                ])
+              ])],
+              ['metadata', () => div({
+                style: styles.tabPanelHeader
+              }, [
+                workspace && collection && h(MetadataUploadPanel, {
+                  workspace,
+                  collection,
+                  onSuccess: ({ metadata, metadata: { entityType: tableName } }) => {
+                    setTableName(tableName)
+                    setTableMetadata(metadata)
+                    setCurrentStep('done')
+                  }
+                }, [])
+              ])],
+              ['done', () => div({
+                style: styles.tabPanelHeader
+              }, [
+                h(DonePanel, {
+                  workspace, collection, tableName, setCurrentStep
+                })
+              ])]
+            )
+          ])
+        ]),
+      creatingNewWorkspace && h(NewWorkspaceModal, {
+        onDismiss: () => setCreatingNewWorkspace(false),
+        onSuccess: ({ namespace, name }) => {
+          setWorkspaceId(name)
+          refreshWorkspaces()
+        }
+      }),
+      loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
     ])
   ])
 })
