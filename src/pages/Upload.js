@@ -76,7 +76,8 @@ const styles = {
     color: 'white'
   },
   tabPanelHeader: {
-    position: 'relative'
+    position: 'relative',
+    height: '100%'
   },
   heading: {
     ...Style.elements.sectionHeader,
@@ -599,12 +600,12 @@ const MetadataUploadPanel = _.flow(
 
   // Render
 
-  return h(Fragment, {}, [
-    h2({ style: styles.heading }, [
+  return div({ style: { height: '100%', display: 'flex', flexFlow: 'column nowrap' } }, [
+    h2({ style: { ...styles.heading, flex: 0 } }, [
       icon('listAlt', { size: 20, style: { marginRight: '1em' } }),
       span({ ref: header, tabIndex: -1 }, ['Upload Your Metadata Files'])
     ]),
-    div({ style: styles.instructions }, [
+    div({ style: { ...styles.instructions, flex: 0 } }, [
       p('Upload a tab-separated file describing your table structures.'),
       ul([
         li('Any columns which reference files should include just the filenames, which will be matched up to the data files in this collection.'),
@@ -625,7 +626,7 @@ const MetadataUploadPanel = _.flow(
     !isPreviewing && h(Dropzone, {
       disabled: !!Utils.editWorkspaceError(workspace),
       style: {
-        flexGrow: 1, backgroundColor: 'white', border: `1px dashed ${colors.dark(0.55)}`,
+        flex: 0, backgroundColor: 'white', border: `1px dashed ${colors.dark(0.55)}`,
         padding: '1rem', position: 'relative', height: '7rem'
       },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
@@ -657,7 +658,7 @@ const MetadataUploadPanel = _.flow(
       ])
     ]),
     hasErrors && div({
-      style: { color: colors.danger() }
+      style: { color: colors.danger(), flex: 1 }
     }, [
       h2(['Error!']),
       p('The following errors occurred. Please correct them and then try your upload again.'),
@@ -666,7 +667,7 @@ const MetadataUploadPanel = _.flow(
       ])
     ]),
     isPreviewing && div({
-      style: { borderTop: '1px solid', borderColor: colors.dark(0.75) }
+      style: { borderTop: '1px solid', borderColor: colors.dark(0.75), flex: 1 }
     }, [
       h(UploadPreviewTable, {
         workspace, metadataTable,
@@ -833,73 +834,71 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
               ' rows'
             ])
           ]),
-          div({}, [
-            Utils.switchCase(currentStep,
-              ['workspaces', () => div({
-                style: styles.tabPanelHeader
+          Utils.switchCase(currentStep,
+            ['workspaces', () => div({
+              style: styles.tabPanelHeader
+            }, [
+              h(WorkspaceSelectorPanel, {
+                workspaces: filteredWorkspaces,
+                selectedWorkspaceId: workspaceId,
+                setCreatingNewWorkspace,
+                setWorkspaceId: id => {
+                  setWorkspaceId(id)
+                  setCurrentStep('collection')
+                }
               }, [
-                h(WorkspaceSelectorPanel, {
-                  workspaces: filteredWorkspaces,
-                  selectedWorkspaceId: workspaceId,
-                  setCreatingNewWorkspace,
-                  setWorkspaceId: id => {
-                    setWorkspaceId(id)
-                    setCurrentStep('collection')
-                  }
-                }, [
-                  h(NextLink, { step: 'collection', setCurrentStep, stepIsEnabled })
-                ])
-              ])],
-              ['collection', () => div({
-                style: styles.tabPanelHeader
+                h(NextLink, { step: 'collection', setCurrentStep, stepIsEnabled })
+              ])
+            ])],
+            ['collection', () => div({
+              style: styles.tabPanelHeader
+            }, [
+              workspace && h(CollectionSelectorPanel, {
+                workspace,
+                selectedCollection: collection,
+                setCollection: id => {
+                  setCollection(id)
+                  setCurrentStep('data')
+                }
               }, [
-                workspace && h(CollectionSelectorPanel, {
-                  workspace,
-                  selectedCollection: collection,
-                  setCollection: id => {
-                    setCollection(id)
-                    setCurrentStep('data')
-                  }
-                }, [
-                  h(NextLink, { step: 'data', setCurrentStep, stepIsEnabled })
-                ])
-              ])],
-              ['data', () => div({
-                style: styles.tabPanelHeader
+                h(NextLink, { step: 'data', setCurrentStep, stepIsEnabled })
+              ])
+            ])],
+            ['data', () => div({
+              style: styles.tabPanelHeader
+            }, [
+              workspace && collection && h(DataUploadPanel, {
+                workspace,
+                collection,
+                setNumFiles,
+                setUploadedFiles: files => {
+                  setCurrentStep('metadata')
+                }
               }, [
-                workspace && collection && h(DataUploadPanel, {
-                  workspace,
-                  collection,
-                  setNumFiles,
-                  setUploadedFiles: files => {
-                    setCurrentStep('metadata')
-                  }
-                }, [
-                  h(NextLink, { step: 'metadata', setCurrentStep, stepIsEnabled })
-                ])
-              ])],
-              ['metadata', () => div({
-                style: styles.tabPanelHeader
-              }, [
-                workspace && collection && h(MetadataUploadPanel, {
-                  workspace,
-                  collection,
-                  onSuccess: ({ metadata, metadata: { entityType: tableName } }) => {
-                    setTableName(tableName)
-                    setTableMetadata(metadata)
-                    setCurrentStep('done')
-                  }
-                }, [])
-              ])],
-              ['done', () => div({
-                style: styles.tabPanelHeader
-              }, [
-                h(DonePanel, {
-                  workspace, collection, tableName, setCurrentStep
-                })
-              ])]
-            )
-          ])
+                h(NextLink, { step: 'metadata', setCurrentStep, stepIsEnabled })
+              ])
+            ])],
+            ['metadata', () => div({
+              style: styles.tabPanelHeader
+            }, [
+              workspace && collection && h(MetadataUploadPanel, {
+                workspace,
+                collection,
+                onSuccess: ({ metadata, metadata: { entityType: tableName } }) => {
+                  setTableName(tableName)
+                  setTableMetadata(metadata)
+                  setCurrentStep('done')
+                }
+              }, [])
+            ])],
+            ['done', () => div({
+              style: styles.tabPanelHeader
+            }, [
+              h(DonePanel, {
+                workspace, collection, tableName, setCurrentStep
+              })
+            ])]
+          )
         ]),
       creatingNewWorkspace && h(NewWorkspaceModal, {
         onDismiss: () => setCreatingNewWorkspace(false),
