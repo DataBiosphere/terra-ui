@@ -15,10 +15,11 @@ import { currentApp, getGalaxyComputeCost, getGalaxyCost, getGalaxyDiskCost } fr
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
-
+// TODO Factor out common pieces with NewRuntimeModal.styles into runtime-utils
 const styles = {
+  label: { fontWeight: 600, whiteSpace: 'pre' },
   whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' },
-  drawerContent: { display: 'flex', flexDirection: 'column', flex: 'none', padding: '1.5rem' },
+  drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
   headerText: { fontSize: 16, fontWeight: 600 }
 }
 
@@ -190,7 +191,7 @@ export const NewGalaxyModal = _.flow(
     const waitMessage = isTitle ? '' : 'This process will take up to a few minutes.'
 
     return !app ?
-      isTitle ? 'Cloud environment' : 'Consists of application configuration, cloud compute and persistent disk(s).' :
+      isTitle ? 'Cloud environment' : 'Consists of application configuration, cloud compute and persistent disk(s)' :
       Utils.switchCase(app.status,
         ['STOPPED', () => `Cloud environment is now paused ${!isTitle ? '...' : ''}`],
         ['PRESTOPPING', () => 'Cloud environment is preparing to stop.'],
