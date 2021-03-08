@@ -136,7 +136,7 @@ export const GalaxyLaunchButton = ({ app, onClick, ...props }) => {
       onClick()
       Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: 'Galaxy' })
     },
-    ...Utils.newTabLinkProps,
+    ...Utils.newTabLinkPropsWithReferrer, // Galaxy needs the referrer to be present so we can validate it, otherwise we fail with 401
     ...props
   }, ['Launch Galaxy'])
 }

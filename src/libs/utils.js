@@ -358,6 +358,8 @@ export const useUniqueId = () => {
 
 export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' } // https://mathiasbynens.github.io/rel-noopener/
 
+export const newTabLinkPropsWithReferrer = { target: '_blank', rel: 'noopener' }
+
 export const createHtmlElement = (doc, name, attrs) => {
   const element = doc.createElement(name)
   _.forEach(([k, v]) => element.setAttribute(k, v), _.toPairs(attrs))
@@ -467,4 +469,12 @@ export const commaJoin = (list, conjunction = 'or') => {
       return [(i === 0 ? '' : i === list.length - 1 ? ` ${conjunction} ` : ', '), val]
     })
   )(list))
+}
+
+export const sha256 = async message => {
+  const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(message))
+  return _.flow(
+    _.map(v => v.toString(16).padStart(2, '0')),
+    _.join('')
+  )(new Uint8Array(hashBuffer))
 }

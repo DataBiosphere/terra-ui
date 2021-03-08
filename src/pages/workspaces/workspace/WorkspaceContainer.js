@@ -287,7 +287,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
         refresh: async () => {
           await refreshWorkspace()
-          if (child.current.refresh) {
+          if (child.current?.refresh) {
             child.current.refresh()
           }
         },
