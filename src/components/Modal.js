@@ -26,7 +26,7 @@ const styles = {
   }
 }
 
-const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCancel = true, cancelText = 'Cancel', showX, showButtons = true, okButton, ...props }) => {
+const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCancel = true, cancelText = 'Cancel', showX, showButtons = true, okButton, danger = false, ...props }) => {
   const titleId = Utils.useUniqueId()
   const modalNode = useRef()
   const previouslyFocusedNode = useRef()
@@ -74,9 +74,9 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
         }, [cancelText]) :
         null,
       Utils.cond(
-        [okButton === undefined, () => h(ButtonPrimary, { onClick: onDismiss }, 'OK')],
-        [_.isString(okButton), () => h(ButtonPrimary, { onClick: onDismiss }, okButton)],
-        [_.isFunction(okButton), () => h(ButtonPrimary, { onClick: okButton }, 'OK')],
+        [okButton === undefined, () => h(ButtonPrimary, { onClick: onDismiss, danger }, 'OK')],
+        [_.isString(okButton), () => h(ButtonPrimary, { onClick: onDismiss, danger }, okButton)],
+        [_.isFunction(okButton), () => h(ButtonPrimary, { onClick: okButton, danger }, 'OK')],
         () => okButton
       )
     ])

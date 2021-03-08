@@ -13,7 +13,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import { FlexTable, MiniSortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
-import { useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
+import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -155,18 +155,6 @@ export const WorkspaceList = () => {
     filteredWorkspaces[tab]
   )
 
-  const noWorkspacesMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
-    div([
-      'To get started, ', h(Link, { onClick: () => setCreatingNewWorkspace(true), style: { fontWeight: 600 } }, ['Create a New Workspace'])
-    ]),
-    div({ style: { marginTop: '1rem', fontSize: 16 } }, [
-      h(Link, {
-        ...Utils.newTabLinkProps,
-        href: `https://support.terra.bio/hc/en-us/articles/360022716811`
-      }, [`What's a workspace?`])
-    ])
-  ])
-
   const makeHeaderRenderer = name => () => h(MiniSortable, { sort, field: name, onSort: setSort }, [
     div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
   ])
@@ -177,7 +165,9 @@ export const WorkspaceList = () => {
       rowCount: sortedWorkspaces.length,
       noContentRenderer: () => Utils.cond(
         [loadingWorkspaces, () => null],
-        [_.isEmpty(initialFiltered.myWorkspaces) && tab === 'myWorkspaces', () => noWorkspacesMessage],
+        [_.isEmpty(initialFiltered.myWorkspaces) && tab === 'myWorkspaces', () => NoWorkspacesMessage({
+          onClick: () => setCreatingNewWorkspace(true)
+        })],
         () => div({ style: { fontStyle: 'italic' } }, ['No matching workspaces'])
       ),
       variant: 'light',

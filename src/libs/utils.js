@@ -3,7 +3,7 @@ import { differenceInCalendarMonths } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { forwardRef, memo, useEffect, useRef, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { v4 as uuid } from 'uuid'
 
 
@@ -382,6 +382,22 @@ export const useConsoleAssert = (condition, message) => {
   }
 }
 
+export const useCancelable = () => {
+  const [controller, setController] = useState(new window.AbortController())
+
+  // Abort it automatically in the destructor
+  useEffect(() => {
+    return () => controller.abort()
+  }, [controller])
+
+  return {
+    signal: controller.signal,
+    abort: () => {
+      controller.abort()
+      setController(new window.AbortController())
+    }
+  }
+}
 
 export const useCancellation = () => {
   const controller = useRef()
@@ -444,6 +460,15 @@ export const sanitizeEntityName = unsafe => unsafe.replace(/[^\w]/g, '-')
 
 export const makeTSV = rows => {
   return _.join('', _.map(row => `${_.join('\t', row)}\n`, rows))
+}
+
+export const commaJoin = (list, conjunction = 'or') => {
+  return span(_.flow(
+    toIndexPairs,
+    _.flatMap(([i, val]) => {
+      return [(i === 0 ? '' : i === list.length - 1 ? ` ${conjunction} ` : ', '), val]
+    })
+  )(list))
 }
 
 export const sha256 = async message => {

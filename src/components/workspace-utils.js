@@ -175,3 +175,20 @@ export const WorkspaceTagSelect = props => {
 export const canUseWorkspaceProject = async ({ canCompute, workspace: { namespace } }) => {
   return canCompute || _.some({ projectName: namespace, role: 'Owner' }, await Ajax().Billing.listProjects())
 }
+
+export const NoWorkspacesMessage = ({ onClick }) => {
+  return div({ style: { fontSize: 20, margin: '1rem' } }, [
+    div([
+      'To get started, ', h(Link, {
+        onClick: () => onClick(),
+        style: { fontWeight: 600 }
+      }, ['Create a New Workspace'])
+    ]),
+    div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+      h(Link, {
+        ...Utils.newTabLinkProps,
+        href: `https://support.terra.bio/hc/en-us/articles/360022716811`
+      }, [`What's a workspace?`])
+    ])
+  ])
+}

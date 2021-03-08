@@ -135,7 +135,7 @@ const SnapshotContent = ({ workspace, snapshotDetails, entityKey, loadMetadata, 
     h(SnapshotInfo, { snapshotId: snapshotDetails[snapshotName].id, snapshotName })
 }
 
-const DeleteObjectModal = ({ name, workspace: { workspace: { namespace, bucketName } }, onSuccess, onDismiss }) => {
+export const DeleteObjectModal = ({ name, workspace: { workspace: { namespace, bucketName } }, onSuccess, onDismiss }) => {
   const [deleting, setDeleting] = useState(false)
 
   const doDelete = _.flow(
@@ -149,7 +149,8 @@ const DeleteObjectModal = ({ name, workspace: { workspace: { namespace, bucketNa
   return h(Modal, {
     onDismiss,
     okButton: doDelete,
-    title: 'Delete this file?'
+    title: 'Delete this file?',
+    danger: true
   }, [
     'Are you sure you want to delete this file from the Google bucket?',
     deleting && spinnerOverlay
