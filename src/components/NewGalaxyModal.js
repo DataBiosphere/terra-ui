@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, li, span, ul } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Link, spinnerOverlay, WarningTitle } from 'src/components/common'
+import { div, h, span } from 'react-hyperscript-helpers'
+import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link, spinnerOverlay, WarningTitle } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/runtime-common'
@@ -254,27 +254,33 @@ export const NewGalaxyModal = _.flow(
       renderGalaxyCostBreakdown(appOrDefault.kubernetesRuntimeConfig),
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div([
-          div({ style: styles.headerText }, ['Environment Settings']),
-          ul({ style: { paddingLeft: '1rem', lineHeight: 1.5 } }, [
-            li({ style: { marginTop: '1rem' } }, [
-              'Galaxy version 20.09'
-            ]),
-            li({ style: { marginTop: '1rem' } }, [
-              'Cloud Compute size of ',
-              // Temporarily hard-coded disk size, once it can be customized this should be revisited
-              span({ style: { fontWeight: 600 } }, [`${cpu} CPUS, ${memory} GB of memory, 250 GB disk space`])
-            ]),
-            li({ style: { marginTop: '1rem' } }, [
-              'Estimated cost of cloud compute: ',
-              span({ style: { fontWeight: 600 } }, [Utils.formatUSD(cost), ' per hr'])
-            ])
-          ]),
+          div({ style: styles.headerText }, ['Application configuration']),
+          div({ style: { marginTop: '1rem', lineHeight: 1.5 } }, ['Galaxy version 20.09']),
           h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
             'Learn more about Galaxy interactive environments',
-            icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+            icon('pop-out', { size: 12, style: { marginTop: '1rem', marginLeft: '0.25rem' } })
           ])
         ])
       ])
+      // h(Fragment, [
+      //   div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
+      //     renderApplicationSection(),
+      //     renderRuntimeSection(),
+      //     !!isPersistentDisk && renderPersistentDiskSection(),
+      //     !sparkMode && !isPersistentDisk && div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+      //       div([
+      //         'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
+      //         h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
+      //       ]),
+      //       h(ButtonOutline, {
+      //         style: { marginTop: '1rem' },
+      //         tooltip: 'Upgrade your environment to use a persistent disk. This will require a one-time deletion of your current built-in disk, but after that your data will be stored and preserved on the persistent disk.',
+      //         onClick: () => this.setState({ upgradeDiskSelected: true })
+      //       }, ['Upgrade'])
+      //     ]),
+      //     renderBottomButtons()
+      //   ])
+      // ]),
     ])
   }
 
