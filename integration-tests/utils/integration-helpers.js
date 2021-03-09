@@ -85,7 +85,13 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
     return window.Ajax().Billing.project(billingProject).listUsers()
   }, billingProject)
 
-  console.info(`users in billing project: ${userList}`)
+  function getval(email) {
+
+    let obj = userList.filter(item => item.email === email)
+    return obj[0].role
+  }
+
+  console.info(`test user was added to the billing project with the role: ${getval(email)}`)
 })
 
 const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
