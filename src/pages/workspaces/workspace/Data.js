@@ -237,11 +237,9 @@ const BucketContent = _.flow(
           }, _.range(0, prefixParts.length))
         ])
       ]),
-      [
-        h(Link, { href: `https://seqr.broadinstitute.org/workspace/${namespace}/${workspace.workspace.name}` },
-          ['Analyze in Seqr ', icon('pop-out', { size: 14 })]
-        )
-      ]
+      h(Link, { href: `https://seqr.broadinstitute.org/workspace/${namespace}/${workspace.workspace.name}` },
+        ['Analyze in Seqr ', icon('pop-out', { size: 14 })]
+      )
     ]),
     div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
     h(SimpleTable, {
