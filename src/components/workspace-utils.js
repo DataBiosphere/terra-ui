@@ -111,9 +111,8 @@ export const SnapshotInfo = ({
   const { name: sourceName, description: sourceDescription, createdDate, source = [] } = snapshotInfo || {}
   const editingDescription = _.isString(newDescription)
   const errors = validate.single(newName, {
-    presence: { allowEmpty: false, message: 'Name can\'t be blank.' },
     format: {
-      pattern: /^[a-zA-Z0-9]*\w*$/, // first '*' is so that we won't have format error and presence error at the same time
+      pattern: /^[a-zA-Z0-9]+\w*$/, // don't need presence requirement since '+' enforces at least 1 character
       message: 'Name can only contain letters, numbers, and underscores, and can\'t start with an underscore.'
     },
     length: { maximum: 63, tooLong: 'Name can\'t be more than 63 characters.' }
