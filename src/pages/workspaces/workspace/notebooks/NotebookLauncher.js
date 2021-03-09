@@ -416,7 +416,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
     await Ajax()
       .Runtimes
       .notebooks(namespace, runtimeName)
-      .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
+      .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb|.*\\.Rmd`)
     if (mode === 'edit' && !(await Ajax().Runtimes.notebooks(namespace, runtimeName).lock(`${localBaseDirectory}/${notebookName}`))) {
       notify('error', 'Unable to Edit Notebook', {
         message: 'Another user is currently editing this notebook. You can run it in Playground Mode or make a copy.'
