@@ -122,17 +122,19 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
     ])
   ])
 }
-const SnapshotContent = ({ workspace, snapshotDetails, entityKey, loadMetadata, firstRender, snapshotKey: [snapshotName, tableName] }) => {
-  return !!tableName ?
-    h(EntitiesContent, {
+const SnapshotContent = ({ workspace, snapshotDetails, entityKey, loadMetadata, onUpdate, firstRender, snapshotKey: [snapshotName, tableName] }) => {
+  return Utils.cond(
+    [!snapshotDetails?.[snapshotName], () => spinnerOverlay],
+    [!!tableName, () => h(EntitiesContent, {
       snapshotName,
       workspace,
       entityMetadata: snapshotDetails[snapshotName].entityMetadata,
       entityKey: tableName,
       loadMetadata,
       firstRender
-    }) :
-    h(SnapshotInfo, { snapshotId: snapshotDetails[snapshotName].id, snapshotName })
+    })],
+    () => h(SnapshotInfo, { workspace, resource: snapshotDetails[snapshotName].resource, snapshotName, onUpdate })
+  )
 }
 
 export const DeleteObjectModal = ({ name, workspace: { workspace: { namespace, bucketName } }, onSuccess, onDismiss }) => {
@@ -367,10 +369,10 @@ const WorkspaceData = _.flow(
       setSnapshotMetadataError(false)
       const { resources: snapshotMetadata } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshot(1000, 0)
 
-      const snapshots = _.reduce((acc, { name, reference: { snapshot } }) => {
-        return _.set([name, 'id'], snapshot, acc)
+      const snapshots = _.reduce((acc, { name, ...resource }) => {
+        return _.set([name, 'resource'], resource, acc)
       },
-      snapshotDetails || {}, // retain entities if loaded from state history
+      _.pick(_.map('name', snapshotMetadata), snapshotDetails) || {}, // retain entities if loaded from state history, but only for snapshots that exist
       snapshotMetadata)
 
       setSnapshotDetails(snapshots)
@@ -452,14 +454,14 @@ const WorkspaceData = _.flow(
           error: snapshotMetadataError,
           retryFunction: loadSnapshotMetadata
         }, [
-          _.map(([snapshotName, { id: snapshotId, entityMetadata: snapshotTables, error: snapshotTablesError }]) => {
+          _.map(([snapshotName, { entityMetadata: snapshotTables, error: snapshotTablesError }]) => {
             const snapshotTablePairs = toSortedPairs(snapshotTables)
             return h(Collapse, {
-              key: snapshotId,
+              key: snapshotName,
               titleFirst: true,
-              buttonStyle: { height: 50, color: colors.dark(), fontWeight: 600, marginBottom: 0 },
+              buttonStyle: { height: 50, color: colors.dark(), fontWeight: 600, marginBottom: 0, overflow: 'hidden' },
               style: { fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
-              title: snapshotName,
+              title: snapshotName, noTitleWrap: true,
               afterToggle: h(Link, {
                 style: { marginRight: '0.5rem' },
                 tooltip: 'Snapshot Info',
@@ -596,16 +598,19 @@ const WorkspaceData = _.flow(
             workspace, onClose: () => setSelectedDataType(undefined),
             firstRender, refreshKey
           })],
-          ['snapshots', () => snapshotDetails === undefined ?
-            spinnerOverlay :
-            h(SnapshotContent, {
-              key: refreshKey,
-              workspace,
-              snapshotDetails,
-              snapshotKey: selectedDataType,
-              loadMetadata,
-              firstRender
-            })],
+          ['snapshots', () => h(SnapshotContent, {
+            key: refreshKey,
+            workspace,
+            snapshotDetails,
+            snapshotKey: selectedDataType,
+            loadMetadata: () => loadSnapshotEntities(selectedDataType[0]),
+            onUpdate: async newSnapshotName => {
+              await loadSnapshotMetadata()
+              setSelectedDataType([newSnapshotName])
+              forceRefresh()
+            },
+            firstRender
+          })],
           ['entities', () => h(EntitiesContent, {
             key: refreshKey,
             workspace,
