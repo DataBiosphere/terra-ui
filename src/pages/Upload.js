@@ -902,9 +902,10 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
         ]),
       creatingNewWorkspace && h(NewWorkspaceModal, {
         onDismiss: () => setCreatingNewWorkspace(false),
-        onSuccess: ({ namespace, name }) => {
-          setWorkspaceId(name)
+        onSuccess: ({ workspaceId }) => {
           refreshWorkspaces()
+          setWorkspaceId(workspaceId)
+          setCreatingNewWorkspace(false)
         }
       }),
       loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
