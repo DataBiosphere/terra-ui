@@ -87,7 +87,7 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
 
   const getVal = email => {
     const userKey = _.find({email}, userList)
-    return userKey.map(user=> user.role)
+    return userKey.role
   }
 
   console.info(`test user was added to the billing project with the role: ${getVal(email)}`)
