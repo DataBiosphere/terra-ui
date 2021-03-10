@@ -93,7 +93,7 @@ const styles = {
     position: 'absolute',
     right: 0,
     top: 0,
-    padding: '1rem 0'
+    padding: 0
   },
   filter: { marginRight: '1rem', flex: '1 0 auto', minWidth: '10em' }
 }
@@ -429,7 +429,7 @@ const DataUploadPanel = _.flow(
       'Upload the files to associate with this collection by dragging them into the table below, or clicking the Upload button.'
     ]),
     p({ style: styles.instructions }, [
-      ' You may upload as many files as you wish, but each filename must be unique even within sub-folders.'
+      ' You may upload as many files as you wish, but each filename must be unique.'
     ]),
     children,
     h(FileBrowserPanel, {
@@ -906,6 +906,7 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
           refreshWorkspaces()
           setWorkspaceId(workspaceId)
           setCreatingNewWorkspace(false)
+          setCurrentStep('collection')
         }
       }),
       loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)

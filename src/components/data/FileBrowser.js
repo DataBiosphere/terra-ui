@@ -65,14 +65,10 @@ export const FileBrowserPanel = _.flow(
 
   const count = _.flow(
     withRequesterPaysHandler(onRequesterPaysError),
-    withErrorReporting('Error counting bucket objects'),
-    Utils.withBusyState(setLoading)
+    withErrorReporting('Error counting bucket objects')
   )(async () => {
-    const items = await Ajax(signal).Buckets.listAll(namespace, bucketName)
-    setNumFiles(_.flow(
-      _.map('name'),
-      _.filter(_.startsWith(basePrefix))
-    )(items).length)
+    const items = await Ajax(signal).Buckets.listAll(namespace, bucketName, basePrefix)
+    setNumFiles(items.length)
   })
 
   // Lifecycle
@@ -81,7 +77,10 @@ export const FileBrowserPanel = _.flow(
   }, [prefix, uploadStatus]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    count()
+    // Count all the files in the bucket any time the uploader completes
+    if (!uploadStatus.active) {
+      count()
+    }
   }, [uploadStatus]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -213,6 +212,7 @@ export const FileBrowserPanel = _.flow(
         onSuccess: () => {
           setDeletingName()
           load(prefix)
+          count()
         }
       }),
       viewingName && h(UriViewer, {
