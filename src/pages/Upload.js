@@ -475,13 +475,12 @@ const MetadataUploadPanel = _.flow(
       withErrorReporting('Error loading bucket data'),
       Utils.withBusyState(setFilesLoading)
     )(async () => {
-      // Fetch every object in the entire bucket so we don't have to do it recursively, but then
+      // Fetch every object in the entire bucket so we don't have to do it recursively, but
       // filter out any that aren't in our base prefix
-      const items = await Ajax(signal).Buckets.listAll(namespace, bucketName)
+      const items = await Ajax(signal).Buckets.listAll(namespace, bucketName, basePrefix)
 
       // Hash the filenames without any prefixes for easy lookup
       setFilenames(_.flow(
-        _.filter(item => item.name.startsWith(basePrefix)),
         _.map(item => [_.last(item.name.split('/')), `gs://${bucketName}/${item.name}`]),
         _.fromPairs
       )(items))
