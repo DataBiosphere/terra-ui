@@ -7,7 +7,7 @@ import Modal from 'src/components/Modal'
 import { FormLabel } from 'src/libs/forms'
 
 
-export const NameModal = ({ onSuccess, onDismiss, thing, value, validator = null, validationMessage = null }) => {
+export const NameModal = ({ onSuccess, onDismiss, thing, value, validator = null, validationMessage = 'Invalid input' }) => {
   const [name, setName] = useState(value || '')
   const [error, setError] = useState(null)
   const isUpdate = value !== undefined
@@ -17,7 +17,7 @@ export const NameModal = ({ onSuccess, onDismiss, thing, value, validator = null
       setError(validationMessage)
     } else if (name !== '' && _.isFunction(validator)) {
       const msg = validator(name)
-      setError(msg === false ? null : _.isString(msg) ? msg : validationMessage !== null ? validationMessage : 'Invalid input')
+      setError(msg === false ? null : _.isString(msg) ? msg : validationMessage)
     } else {
       setError(null)
     }
