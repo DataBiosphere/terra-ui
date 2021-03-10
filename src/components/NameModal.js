@@ -1,4 +1,5 @@
-import { Fragment, useState, useEffect } from 'react'
+import _ from 'lodash/fp'
+import { Fragment, useEffect, useState } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer } from 'src/components/common'
 import { ValidatedInput } from 'src/components/input'
@@ -12,22 +13,22 @@ export const NameModal = ({ onSuccess, onDismiss, thing, value, validator = null
   const isUpdate = value !== undefined
 
   useEffect(() => {
-    if (name !== '' && (
-      (_.isRegExp(validator) && !validator.test(name)) ||
-      (_.isFunction(validator) && !validator(name))
-    )) {
+    if (name !== '' && _.isRegExp(validator) && !validator.test(name)) {
       setError(validationMessage)
-    }
-    else {
+    } else if (name !== '' && _.isFunction(validator)) {
+      const msg = validator(name)
+      setError(msg === false ? null : _.isString(msg) ? msg : validationMessage !== null ? validationMessage : 'Invalid input')
+    } else {
       setError(null)
     }
-  }, [name])
+  }, [name]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return h(Modal, {
     title: (isUpdate ? 'Update ' : 'Create a New ') + thing,
     onDismiss,
     okButton: h(ButtonPrimary, {
-      onClick: () => onSuccess({ name })
+      onClick: () => onSuccess({ name }),
+      disabled: error !== null
     }, [
       isUpdate ? 'Update ' : 'Create ',
       thing
