@@ -1179,11 +1179,12 @@ const Apps = signal => ({
         return fetchLeo(`${root}${qs.stringify({ deleteDisk: true }, { addQueryPrefix: true })}`,
           _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
       },
-      create: ({ diskName, appType, namespace, bucketName, workspaceName }) => {
+      create: ({ diskName, diskSize, appType, namespace, bucketName, workspaceName }) => {
         const body = {
           labels: { saturnWorkspaceName: workspaceName },
           diskConfig: {
             name: diskName,
+            size: diskSize,
             labels: {
               saturnApplication: 'galaxy',
               saturnWorkspaceName: workspaceName

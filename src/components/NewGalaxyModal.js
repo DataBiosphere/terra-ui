@@ -1,8 +1,9 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link, spinnerOverlay, WarningTitle } from 'src/components/common'
+import { div, h, label, span } from 'react-hyperscript-helpers'
+import { ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { NumberInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
@@ -11,7 +12,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import { currentApp, getGalaxyComputeCost, getGalaxyCost, getGalaxyDiskCost } from 'src/libs/runtime-utils'
+import { currentApp, findMachineType, getGalaxyComputeCost, getGalaxyDiskCost } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -30,13 +31,18 @@ export const NewGalaxyModal = _.flow(
   const [viewMode, setViewMode] = useState(undefined)
   const [loading, setLoading] = useState(false)
 
+  const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState({ machineType: 'n1-highmem-8', numNodes: 42 })
+  const [dataDiskSize, setDataDiskSize] = useState(250) // GB
+
+  const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
+
   const app = currentApp(apps)
   const createGalaxy = _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error creating app')
   )(async () => {
     await Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create({
-      diskName: Utils.generatePersistentDiskName(), appType: 'GALAXY', namespace, bucketName, workspaceName
+      diskName: Utils.generatePersistentDiskName(), diskSize: dataDiskSize, appType: 'GALAXY', namespace, bucketName, workspaceName
     })
     Ajax().Metrics.captureEvent(Events.applicationCreate, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
     return onSuccess()
@@ -204,9 +210,9 @@ export const NewGalaxyModal = _.flow(
   }
 
   // TODO Refactor this and the duplicate in NewRuntimeModal.js
-  const renderGalaxyCostBreakdown = kubernetesRuntimeConfig => {
-    const runningComputeCost = getGalaxyComputeCost({ status: 'RUNNING', kubernetesRuntimeConfig })
-    const pausedComputeCost = getGalaxyComputeCost({ status: 'STOPPED', kubernetesRuntimeConfig })
+  const renderGalaxyCostBreakdown = app => {
+    const runningComputeCost = getGalaxyComputeCost({ status: 'RUNNING', ...app })
+    const pausedComputeCost = getGalaxyComputeCost({ status: 'STOPPED', ...app })
 
     return div({
       style: {
@@ -229,17 +235,108 @@ export const NewGalaxyModal = _.flow(
       }, [
         { label: 'Running cloud compute cost', cost: Utils.formatUSD(runningComputeCost), unitLabel: 'per hr' },
         { label: 'Paused cloud compute cost', cost: Utils.formatUSD(pausedComputeCost), unitLabel: 'per hr' },
-        { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost()), unitLabel: 'per month' }
+        { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost(app.diskConfig.size)), unitLabel: 'per month' }
+      ])
+    ])
+  }
+
+  const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
+
+  const MachineSelector = value => {
+    const { cpu: currentCpu, memory: currentMemory } = findMachineType(value.machineType)
+    return h(Fragment, [
+      h(IdContainer, [
+        id => h(Fragment, [
+          label({ htmlFor: id, style: styles.label }, ['Nodes']),
+          div([
+            h(NumberInput, {
+              id,
+              min: 1,
+              max: maxNodepoolSize,
+              isClearable: false,
+              onlyInteger: true,
+              value: kubernetesRuntimeConfig.numNodes,
+              onChange: v => setKubernetesRuntimeConfig(prevState => { return { ...prevState, numNodes: v } })
+            })
+          ])
+        ])
+      ]),
+      h(IdContainer, [
+        id => h(Fragment, [
+          label({ htmlFor: id, style: styles.label }, ['CPUs']),
+          div([
+            h(Select, {
+              id,
+              isSearchable: false,
+              value: currentCpu,
+              onChange: option => {
+                const validMachineType = _.find({ cpu: option.value, memory: currentMemory }, validMachineTypes)?.name || value
+                setKubernetesRuntimeConfig(prevState => { return { ...prevState, machineType: validMachineType } })
+              },
+              options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validMachineTypes)
+            })
+          ])
+        ])
+      ]),
+      h(IdContainer, [
+        id => h(Fragment, [
+          label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
+          div([
+            h(Select, {
+              id,
+              isSearchable: false,
+              value: currentMemory,
+              onChange: option => {
+                const validMachineType = _.find({ cpu: currentCpu, memory: option.value }, validMachineTypes)?.name || value
+                setKubernetesRuntimeConfig(prevState => { return { ...prevState, machineType: validMachineType } })
+              },
+              options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
+            })
+          ])
+        ])
+      ])
+    ])
+  }
+
+  const renderCloudComputeProfileSection = () => {
+    const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '0.8rem', alignItems: 'center' }
+    return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+      div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
+      div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
+        h(MachineSelector,
+          {
+            value: kubernetesRuntimeConfig
+          })
+      ])
+    ])
+  }
+
+  const renderPersistentDiskSection = () => {
+    return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+      h(IdContainer, [
+        id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
+          label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
+          div({ style: { marginTop: '0.5rem' } }, [
+            'Stores your analysis data. '
+            // TODO Add info on PDs for Galaxy (similarly to in NewRuntimeModal.js)
+          ]),
+          h(NumberInput, {
+            id,
+            min: 10,
+            max: 64000,
+            isClearable: false,
+            onlyInteger: true,
+            value: dataDiskSize,
+            style: { marginTop: '0.5rem', width: '5rem' },
+            onChange: value => setDataDiskSize(value)
+          })
+        ])
       ])
     ])
   }
 
   const renderDefaultCase = () => {
-    const defaultMachineType = 'n1-highmem-8'
-    const defaultKubernetesRuntimeConfig = { machineType: defaultMachineType, numNodes: 1 }
-    const { cpu, memory } = _.find({ name: defaultMachineType }, machineTypes)
-    const appOrDefault = app || { kubernetesRuntimeConfig: defaultKubernetesRuntimeConfig }
-    const cost = getGalaxyCost(appOrDefault)
+    const appOrDefault = app || { kubernetesRuntimeConfig, diskConfig: { size: dataDiskSize } }
 
     return h(Fragment, [
       h(TitleBar, {
@@ -251,7 +348,7 @@ export const NewGalaxyModal = _.flow(
       div([
         getEnvMessageBasedOnStatus(false)
       ]),
-      renderGalaxyCostBreakdown(appOrDefault.kubernetesRuntimeConfig),
+      renderGalaxyCostBreakdown(appOrDefault),
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div([
           div({ style: styles.headerText }, ['Application configuration']),
@@ -261,26 +358,9 @@ export const NewGalaxyModal = _.flow(
             icon('pop-out', { size: 12, style: { marginTop: '1rem', marginLeft: '0.25rem' } })
           ])
         ])
-      ])
-      // h(Fragment, [
-      //   div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
-      //     renderApplicationSection(),
-      //     renderRuntimeSection(),
-      //     !!isPersistentDisk && renderPersistentDiskSection(),
-      //     !sparkMode && !isPersistentDisk && div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
-      //       div([
-      //         'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
-      //         h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
-      //       ]),
-      //       h(ButtonOutline, {
-      //         style: { marginTop: '1rem' },
-      //         tooltip: 'Upgrade your environment to use a persistent disk. This will require a one-time deletion of your current built-in disk, but after that your data will be stored and preserved on the persistent disk.',
-      //         onClick: () => this.setState({ upgradeDiskSelected: true })
-      //       }, ['Upgrade'])
-      //     ]),
-      //     renderBottomButtons()
-      //   ])
-      // ]),
+      ]),
+      renderCloudComputeProfileSection(),
+      renderPersistentDiskSection()
     ])
   }
 
