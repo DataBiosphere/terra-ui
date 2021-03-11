@@ -31,7 +31,7 @@ export const NewGalaxyModal = _.flow(
   const [viewMode, setViewMode] = useState(undefined)
   const [loading, setLoading] = useState(false)
 
-  const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState({ machineType: 'n1-highmem-8', numNodes: 42 })
+  const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState({ machineType: 'n1-highmem-8', numNodes: 1 })
   const [dataDiskSize, setDataDiskSize] = useState(250) // GB
 
   const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
@@ -242,7 +242,7 @@ export const NewGalaxyModal = _.flow(
 
   const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
 
-  const MachineSelector = value => {
+  const MachineSelector = ({ value, onChange }) => {
     const { cpu: currentCpu, memory: currentMemory } = findMachineType(value.machineType)
     return h(Fragment, [
       h(IdContainer, [
@@ -255,8 +255,8 @@ export const NewGalaxyModal = _.flow(
               max: maxNodepoolSize,
               isClearable: false,
               onlyInteger: true,
-              value: kubernetesRuntimeConfig.numNodes,
-              onChange: v => setKubernetesRuntimeConfig(prevState => { return { ...prevState, numNodes: v } })
+              value: value.numNodes,
+              onChange: n => onChange(prevState => { return { ...prevState, numNodes: n } })
             })
           ])
         ])
@@ -299,41 +299,36 @@ export const NewGalaxyModal = _.flow(
   }
 
   const renderCloudComputeProfileSection = () => {
-    const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '0.8rem', alignItems: 'center' }
+    const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '2rem', alignItems: 'center' }
     return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: styles.headerText }, ['Cloud compute profile']),
       div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
-        h(MachineSelector,
-          {
-            value: kubernetesRuntimeConfig
-          })
+        h(MachineSelector, { value: kubernetesRuntimeConfig, onChange: v => setKubernetesRuntimeConfig(v) })
       ])
     ])
   }
 
   const DiskSelector = ({ value, onChange }) => {
-    return h(Fragment, [
-      h(IdContainer, [
-        id => h(Fragment, [
-          label({ htmlFor: id, style: styles.label }, ['Size (GB)']),
-          div([
-            h(NumberInput, {
-              id,
-              min: 10,
-              max: 64000,
-              isClearable: false,
-              onlyInteger: true,
-              value,
-              onChange
-            })
-          ])
+    return h(IdContainer, [
+      id => h(Fragment, [
+        label({ htmlFor: id, style: styles.label }, ['Size (GB)']),
+        div([
+          h(NumberInput, {
+            id,
+            min: 10,
+            max: 64000,
+            isClearable: false,
+            onlyInteger: true,
+            value,
+            onChange
+          })
         ])
       ])
     ])
   }
 
   const renderPersistentDiskSection = () => {
-    const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '0.8rem', alignItems: 'center' }
+    const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' }
     return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: styles.headerText }, ['Persistent disk']),
       div({ style: { marginTop: '0.5rem' } }, [
