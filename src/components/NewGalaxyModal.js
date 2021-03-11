@@ -308,25 +308,6 @@ export const NewGalaxyModal = _.flow(
     ])
   }
 
-  const DiskSelector = ({ value, onChange }) => {
-    return h(IdContainer, [
-      id => h(Fragment, [
-        label({ htmlFor: id, style: styles.label }, ['Size (GB)']),
-        div([
-          h(NumberInput, {
-            id,
-            min: 10,
-            max: 64000,
-            isClearable: false,
-            onlyInteger: true,
-            value,
-            onChange
-          })
-        ])
-      ])
-    ])
-  }
-
   const renderPersistentDiskSection = () => {
     const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' }
     return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
@@ -336,7 +317,23 @@ export const NewGalaxyModal = _.flow(
         // TODO Add info on PDs for Galaxy (similarly to in NewRuntimeModal.js)
       ]),
       div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
-        h(DiskSelector, { value: dataDiskSize, onChange: v => setDataDiskSize(v) })
+        h(IdContainer, [
+          id => h(Fragment, [
+            label({ htmlFor: id, style: styles.label }, ['Size (GB)']),
+            div([
+              h(NumberInput, {
+                id,
+                min: 10,
+                max: 64000,
+                isClearable: false,
+                onlyInteger: true,
+                value: dataDiskSize,
+                style: { marginTop: '0.5rem', width: '5rem' },
+                onChange: v => setDataDiskSize(v)
+              })
+            ])
+          ])
+        ])
       ])
     ])
   }
