@@ -7,7 +7,7 @@ import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import thousandGenomesAnvil from 'src/images/library/datasets/1000Genome-Anvil-logo.png'
 import thousandGenomesLogo from 'src/images/library/datasets/1000Genome-logo.png'
-import amppdLogo from 'src/images/library/datasets/Amp@2x.png'
+import amppdLogo from 'src/images/library/datasets/AMPPD-logo.png'
 import anvilLogo from 'src/images/library/datasets/Anvil-logo.svg'
 import baselineLogo from 'src/images/library/datasets/baseline.jpg'
 import broadLogo from 'src/images/library/datasets/broad_logo.png'
@@ -140,7 +140,7 @@ const thousandGenomesLowCoverage = () => h(Participant, {
 ])
 
 const amppd = () => h(Participant, {
-  logo: { src: amppdLogo, alt: 'AMP-PD logo' },
+  logo: { src: amppdLogo, alt: 'AMP-PD logo', height: '100%' },
   title: `AMP Parkinson's Disease`,
   shortDescription: `The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National
   Institutes of Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit organizations to
