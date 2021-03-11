@@ -311,7 +311,7 @@ export const NewGalaxyModal = _.flow(
     ])
   }
 
-  const DiskSelector = size => {
+  const DiskSelector = ({ value, onChange }) => {
     return h(Fragment, [
       h(IdContainer, [
         id => h(Fragment, [
@@ -323,9 +323,8 @@ export const NewGalaxyModal = _.flow(
               max: 64000,
               isClearable: false,
               onlyInteger: true,
-              value: size,
-              style: { marginTop: '0.5rem', width: '5rem' },
-              onChange: v => setDataDiskSize(v)
+              value,
+              onChange
             })
           ])
         ])
@@ -342,10 +341,7 @@ export const NewGalaxyModal = _.flow(
         // TODO Add info on PDs for Galaxy (similarly to in NewRuntimeModal.js)
       ]),
       div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
-        h(DiskSelector,
-          {
-            value: dataDiskSize
-          })
+        h(DiskSelector, { value: dataDiskSize, onChange: v => setDataDiskSize(v) })
       ])
     ])
   }
