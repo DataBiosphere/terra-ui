@@ -301,7 +301,7 @@ export const NewGalaxyModal = _.flow(
   const renderCloudComputeProfileSection = () => {
     const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '0.8rem', alignItems: 'center' }
     return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
-      div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
+      div({ style: styles.headerText }, ['Cloud compute profile']),
       div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
         h(MachineSelector,
           {
@@ -311,26 +311,41 @@ export const NewGalaxyModal = _.flow(
     ])
   }
 
-  const renderPersistentDiskSection = () => {
-    return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+  const DiskSelector = size => {
+    return h(Fragment, [
       h(IdContainer, [
-        id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
-          label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
-          div({ style: { marginTop: '0.5rem' } }, [
-            'Stores your analysis data. '
-            // TODO Add info on PDs for Galaxy (similarly to in NewRuntimeModal.js)
-          ]),
-          h(NumberInput, {
-            id,
-            min: 10,
-            max: 64000,
-            isClearable: false,
-            onlyInteger: true,
-            value: dataDiskSize,
-            style: { marginTop: '0.5rem', width: '5rem' },
-            onChange: value => setDataDiskSize(value)
-          })
+        id => h(Fragment, [
+          label({ htmlFor: id, style: styles.label }, ['Size (GB)']),
+          div([
+            h(NumberInput, {
+              id,
+              min: 10,
+              max: 64000,
+              isClearable: false,
+              onlyInteger: true,
+              value: size,
+              style: { marginTop: '0.5rem', width: '5rem' },
+              onChange: v => setDataDiskSize(v)
+            })
+          ])
         ])
+      ])
+    ])
+  }
+
+  const renderPersistentDiskSection = () => {
+    const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '0.8rem', alignItems: 'center' }
+    return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
+      div({ style: styles.headerText }, ['Persistent disk']),
+      div({ style: { marginTop: '0.5rem' } }, [
+        'Stores your analysis data '
+        // TODO Add info on PDs for Galaxy (similarly to in NewRuntimeModal.js)
+      ]),
+      div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
+        h(DiskSelector,
+          {
+            value: dataDiskSize
+          })
       ])
     ])
   }
