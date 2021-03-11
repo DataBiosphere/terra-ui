@@ -902,9 +902,9 @@ const Buckets = signal => ({
     return res.json()
   },
 
-  listAll: async (namespace, bucket, pageToken = null) => {
+  listAll: async (namespace, bucket, prefix = null, pageToken = null) => {
     const res = await fetchBuckets(
-      `storage/v1/b/${bucket}/o?${qs.stringify({ pageToken })}`,
+      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, pageToken })}`,
       _.merge(authOpts(await saToken(namespace)), { signal })
     )
     const body = await res.json()
@@ -912,7 +912,7 @@ const Buckets = signal => ({
 
     // Get the next page recursively if there is one
     if (res.nextPageToken) {
-      return _.concat(items, await Buckets(signal).listAll(namespace, bucket, res.nextPageToken))
+      return _.concat(items, await Buckets(signal).listAll(namespace, bucket, prefix, res.nextPageToken))
     }
     return items
   },

@@ -212,6 +212,8 @@ const UploadDataTable = props => {
     renamingTable && h(NameModal, {
       thing: 'Entity Table',
       value: metadata.entityType,
+      validator: /^[A-Za-z0-9_-]+$/,
+      validationMessage: 'Table name may only contain alphanumeric characters, underscores, and dashes',
       onDismiss: () => setRenamingTable(false),
       onSuccess: ({ name }) => {
         onRename({ name })

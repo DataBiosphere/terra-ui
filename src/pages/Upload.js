@@ -93,7 +93,7 @@ const styles = {
     position: 'absolute',
     right: 0,
     top: 0,
-    padding: '1rem 0'
+    padding: 0
   },
   filter: { marginRight: '1rem', flex: '1 0 auto', minWidth: '10em' }
 }
@@ -429,7 +429,7 @@ const DataUploadPanel = _.flow(
       'Upload the files to associate with this collection by dragging them into the table below, or clicking the Upload button.'
     ]),
     p({ style: styles.instructions }, [
-      ' You may upload as many files as you wish, but each filename must be unique even within sub-folders.'
+      ' You may upload as many files as you wish, but each filename must be unique.'
     ]),
     children,
     h(FileBrowserPanel, {
@@ -475,13 +475,12 @@ const MetadataUploadPanel = _.flow(
       withErrorReporting('Error loading bucket data'),
       Utils.withBusyState(setFilesLoading)
     )(async () => {
-      // Fetch every object in the entire bucket so we don't have to do it recursively, but then
+      // Fetch every object in the entire bucket so we don't have to do it recursively, but
       // filter out any that aren't in our base prefix
-      const items = await Ajax(signal).Buckets.listAll(namespace, bucketName)
+      const items = await Ajax(signal).Buckets.listAll(namespace, bucketName, basePrefix)
 
       // Hash the filenames without any prefixes for easy lookup
       setFilenames(_.flow(
-        _.filter(item => item.name.startsWith(basePrefix)),
         _.map(item => [_.last(item.name.split('/')), `gs://${bucketName}/${item.name}`]),
         _.fromPairs
       )(items))
@@ -902,9 +901,11 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
         ]),
       creatingNewWorkspace && h(NewWorkspaceModal, {
         onDismiss: () => setCreatingNewWorkspace(false),
-        onSuccess: ({ namespace, name }) => {
-          setWorkspaceId(name)
+        onSuccess: ({ workspaceId }) => {
           refreshWorkspaces()
+          setWorkspaceId(workspaceId)
+          setCreatingNewWorkspace(false)
+          setCurrentStep('collection')
         }
       }),
       loadingWorkspaces && (!workspaces ? transparentSpinnerOverlay : topSpinnerOverlay)
