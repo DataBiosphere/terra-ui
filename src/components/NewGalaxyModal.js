@@ -220,7 +220,6 @@ export const NewGalaxyModal = _.flow(
         display: 'flex',
         borderRadius: 5,
         padding: '0.5rem 1rem',
-        borderBottom: `1px solid ${colors.dark(0.4)}`,
         marginTop: '1rem'
       }
     }, [
@@ -351,7 +350,9 @@ export const NewGalaxyModal = _.flow(
       div([
         getEnvMessageBasedOnStatus(false)
       ]),
-      renderGalaxyCostBreakdown(appOrDefault),
+      div({ style: { paddingBottom: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [
+        renderGalaxyCostBreakdown(appOrDefault)
+      ]),
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div([
           div({ style: styles.headerText }, ['Application configuration']),
