@@ -113,3 +113,17 @@ a {
   font-family: "Montserrat", sans-serif;
   color: #333f52;
 }
+
+@keyframes progress-bar-stripes {
+  0% {
+    background-position: 1rem 0
+  }
+  to {
+    background-position: 0 0
+  }
+}
+
+.progress-bar-animated {
+  animation: progress-bar-stripes 1s linear infinite;
+}
+

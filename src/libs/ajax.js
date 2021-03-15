@@ -641,6 +641,25 @@ const Workspaces = signal => ({
         return res.json()
       },
 
+      snapshot: snapshotId => {
+        const snapshotPath = `${root}/snapshots/${snapshotId}`
+
+        return {
+          details: async () => {
+            const res = await fetchRawls(snapshotPath, _.merge(authOpts(), { signal }))
+            return res.json()
+          },
+
+          update: updateInfo => {
+            return fetchRawls(snapshotPath, _.mergeAll([
+              authOpts(),
+              jsonBody(updateInfo),
+              { signal, method: 'PATCH' }
+            ]))
+          }
+        }
+      },
+
       submission: submissionId => {
         const submissionPath = `${root}/submissions/${submissionId}`
 
@@ -881,6 +900,21 @@ const Buckets = signal => ({
       _.merge(authOpts(await saToken(namespace)), { signal })
     )
     return res.json()
+  },
+
+  listAll: async (namespace, bucket, prefix = null, pageToken = null) => {
+    const res = await fetchBuckets(
+      `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, pageToken })}`,
+      _.merge(authOpts(await saToken(namespace)), { signal })
+    )
+    const body = await res.json()
+    const items = body.items || []
+
+    // Get the next page recursively if there is one
+    if (res.nextPageToken) {
+      return _.concat(items, await Buckets(signal).listAll(namespace, bucket, prefix, res.nextPageToken))
+    }
+    return items
   },
 
   delete: async (namespace, bucket, name) => {

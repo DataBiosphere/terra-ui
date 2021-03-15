@@ -103,3 +103,13 @@ export const Router = () => {
     h(component, { key: history.location.pathname, ...params, queryParams: query })
   ])
 }
+
+export const updateSearch = (query, params) => {
+  const newSearch = qs.stringify({
+    ...query, ...params
+  }, { addQueryPrefix: true })
+
+  if (newSearch !== history.location.search) {
+    history.replace({ search: newSearch })
+  }
+}
