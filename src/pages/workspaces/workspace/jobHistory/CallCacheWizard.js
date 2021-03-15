@@ -2,8 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, hr, label } from 'react-hyperscript-helpers'
 import ReactJson from 'react-json-view'
-import Select from 'react-select'
-import { ButtonPrimary, IdContainer, Link } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Link, Select } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
@@ -149,7 +148,7 @@ const CallCacheWizard = ({
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1' } }, [
           div({ style: { marginLeft: '0.5rem', ...Style.codeFont } }, otherWorkflowId)
         ]),
-        resetLink(() => resetWorkflowSelection(undefined))
+        resetLink(() => resetWorkflowSelection(''))
       ]),
       div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500 } }, ['Step 2: Select which call in that workflow you expected to cache from']),
       otherWorkflowMetadata ?
@@ -162,6 +161,7 @@ const CallCacheWizard = ({
                   id,
                   isSearchable: false,
                   options: otherCallFqnSelectionOptions(otherWorkflowMetadata.calls),
+                  value: otherCallFqnDropdownValue,
                   onChange: v => {
                     setOtherIndexDropdownValue(undefined)
                     setOtherCallFqnDropdownValue(v.value)
@@ -175,9 +175,16 @@ const CallCacheWizard = ({
               label({ htmlFor: id, style: { paddingRight: '0.5rem' } }, ['Shard Index:']),
               div({ style: { flex: '1' } }, [Utils.cond(
                 [selectedCallIndex === -1, () => 'N/A (not scattered)'],
+                [_.size(otherWorkflowMetadata.calls[otherCallFqnDropdownValue]) === 1, `${otherWorkflowMetadata.calls[otherCallFqnDropdownValue][0].shardIndex} (exactly one shard in scatter)`],
                 () => {
                   const options = _.uniqBy('value', _.map(({ shardIndex: i }) => { return { value: i, label: i } }, otherWorkflowMetadata.calls[otherCallFqnDropdownValue]))
-                  return h(Select, { id, isSearchable: false, options, onChange: i => { setOtherIndexDropdownValue(i.value) } })
+                  return h(Select, {
+                    id,
+                    isSearchable: false,
+                    options,
+                    value: otherIndexDropdownValue,
+                    onChange: i => { setOtherIndexDropdownValue(i.value) }
+                  })
                 }
               )])
             ])])
@@ -203,18 +210,20 @@ const CallCacheWizard = ({
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1' } }, [
           div({ style: { marginLeft: '0.5rem', ...Style.codeFont } }, otherWorkflowId)
         ]),
-        resetLink(() => resetWorkflowSelection(undefined))
+        (diff || diffError) && resetLink(() => resetWorkflowSelection(''))
       ]),
       div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, [
         div(['Selected call B: ']),
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
           div({ style: { marginLeft: '0.5rem', ...Style.codeFont } }, [
             otherCallFqnDropdownValue,
-            otherIndexDropdownValue !== undefined && breadcrumbHistoryCaret,
-            otherIndexDropdownValue !== undefined && div({ style: { marginLeft: '0.5rem', ...Style.codeFont } }, `index ${otherIndexDropdownValue}`)
+            otherIndexDropdownValue !== undefined && h(Fragment, [
+              breadcrumbHistoryCaret,
+              div({ style: { marginLeft: '0.5rem', ...Style.codeFont } }, `index ${otherIndexDropdownValue}`)
+            ])
           ])
         ]),
-        resetLink(() => resetCallSelection())
+        (diff || diffError) && resetLink(() => resetCallSelection())
       ]),
       divider,
       div({ style: { display: 'flex', alignItems: 'center', fontSize: 16, fontWeight: 500 } }, ['Result: View cache diff']),
@@ -254,9 +263,7 @@ const CallCacheWizard = ({
   }
 
   return h(Modal, {
-    title: [
-      ' Call Cache Miss Debugging Wizard'
-    ],
+    title: ' Call Cache Miss Debugging Wizard',
     onDismiss,
     width: '850px',
     showButtons: false,
@@ -272,8 +279,10 @@ const CallCacheWizard = ({
       div(['Debugging call A: ']),
       div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1 1 100px' } }, [
         div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, callFqn),
-        index && index >= 0 && [breadcrumbHistoryCaret,
-          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, `index ${index}`)]
+        index !== undefined && index >= 0 && h(Fragment, [
+          breadcrumbHistoryCaret,
+          div({ style: { marginLeft: '0.5rem', ...Style.noWrapEllipsis, ...Style.codeFont } }, `index ${index}`)
+        ])
       ])
     ]),
     divider,
