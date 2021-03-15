@@ -148,7 +148,7 @@ const CallCacheWizard = ({
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', flex: '1' } }, [
           div({ style: { marginLeft: '0.5rem', ...Style.codeFont } }, otherWorkflowId)
         ]),
-        resetLink(() => resetWorkflowSelection(''))
+        (otherWorkflowMetadata || metadataFetchError) && resetLink(() => resetWorkflowSelection(''))
       ]),
       div({ style: { paddingTop: '0.5rem', fontSize: 16, fontWeight: 500 } }, ['Step 2: Select which call in that workflow you expected to cache from']),
       otherWorkflowMetadata ?
