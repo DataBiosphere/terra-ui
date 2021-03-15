@@ -270,8 +270,8 @@ export const NewGalaxyModal = _.flow(
               isSearchable: false,
               value: currentCpu,
               onChange: option => {
-                const validMachineType = _.find({ cpu: option.value, memory: currentMemory }, validMachineTypes)?.name || value
-                setKubernetesRuntimeConfig(prevState => { return { ...prevState, machineType: validMachineType } })
+                const validMachineType = _.find({ cpu: option.value }, validMachineTypes)?.name || value.machineType
+                onChange(prevState => { return { ...prevState, machineType: validMachineType } })
               },
               options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validMachineTypes)
             })
@@ -287,8 +287,8 @@ export const NewGalaxyModal = _.flow(
               isSearchable: false,
               value: currentMemory,
               onChange: option => {
-                const validMachineType = _.find({ cpu: currentCpu, memory: option.value }, validMachineTypes)?.name || value
-                setKubernetesRuntimeConfig(prevState => { return { ...prevState, machineType: validMachineType } })
+                const validMachineType = _.find({ cpu: currentCpu, memory: option.value }, validMachineTypes)?.name || value.machineType
+                onChange(prevState => { return { ...prevState, machineType: validMachineType } })
               },
               options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
             })
@@ -355,7 +355,7 @@ export const NewGalaxyModal = _.flow(
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div([
           div({ style: styles.headerText }, ['Application configuration']),
-          div({ style: { marginTop: '1rem', lineHeight: 1.5 } }, ['Galaxy version 20.09']),
+          div({ style: { marginTop: '0.5rem' } }, ['Galaxy version 20.09']),
           h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
             'Learn more about Galaxy interactive environments',
             icon('pop-out', { size: 12, style: { marginTop: '1rem', marginLeft: '0.25rem' } })
