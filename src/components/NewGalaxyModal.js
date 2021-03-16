@@ -31,7 +31,7 @@ export const NewGalaxyModal = _.flow(
   const [viewMode, setViewMode] = useState(undefined)
   const [loading, setLoading] = useState(false)
 
-  const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState({ machineType: 'n1-highmem-8', numNodes: 1 })
+  const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState({ machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false })
   const [dataDiskSize, setDataDiskSize] = useState(250) // GB
 
   const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
@@ -42,7 +42,7 @@ export const NewGalaxyModal = _.flow(
     withErrorReporting('Error creating app')
   )(async () => {
     await Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create({
-      diskName: Utils.generatePersistentDiskName(), diskSize: dataDiskSize, appType: 'GALAXY', namespace, bucketName, workspaceName
+      kubernetesRuntimeConfig, diskName: Utils.generatePersistentDiskName(), diskSize: dataDiskSize, appType: 'GALAXY', namespace, bucketName, workspaceName
     })
     Ajax().Metrics.captureEvent(Events.applicationCreate, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
     return onSuccess()
@@ -129,7 +129,7 @@ export const NewGalaxyModal = _.flow(
         onDismiss,
         onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
       }),
-      div({ style: { marginBottom: '1rem' } }, ['Environment will consist of an application and cloud compute.']),
+      div({ style: { marginBottom: '1rem' } }, ['Consists of application configuration, cloud compute and persistent disk(s)']),
       div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
           span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('info-circle', { size: 25, color: colors.accent() })]),
@@ -204,7 +204,7 @@ export const NewGalaxyModal = _.flow(
         ['STOPPING', () => `Cloud environment is pausing. ${waitMessage}`],
         ['PRESTARTING', () => 'Cloud environment is preparing to start.'],
         ['STARTING', () => `Cloud environment is starting. ${waitMessage}`],
-        ['RUNNING', () => 'Environment consists of an application and cloud compute.'],
+        ['RUNNING', () => 'Cloud environment consists of application configuration, cloud compute and persistent disk(s).'],
         ['ERROR', () => `An error has occurred on your cloud environment.`]
       )
   }
