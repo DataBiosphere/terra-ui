@@ -504,7 +504,7 @@ const WorkspaceData = _.flow(
                       setSelectedDataType([snapshotName, tableName])
                       Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {
                         ...extractWorkspaceDetails({ workspace }),
-                        snapshotName: snapshotName,
+                        snapshotName,
                         entityType: tableName
                       })
                       forceRefresh()
