@@ -500,6 +500,30 @@ const attributesUpdateOps = _.flow(
   })
 )
 
+const CromIAM = signal => ({
+  callCacheDiff: async (thisWorkflow, thatWorkflow) => {
+    const { workflowId: thisWorkflowId, callFqn: thisCallFqn, index: thisIndex } = thisWorkflow
+    const { workflowId: thatWorkflowId, callFqn: thatCallFqn, index: thatIndex } = thatWorkflow
+
+    const params = {
+      workflowA: thisWorkflowId,
+      callA: thisCallFqn,
+      indexA: (thisIndex !== -1) ? thisIndex : undefined,
+      workflowB: thatWorkflowId,
+      callB: thatCallFqn,
+      indexB: (thatIndex !== -1) ? thatIndex : undefined
+    }
+    const res = await fetchOrchestration(`api/workflows/v1/callcaching/diff?${qs.stringify(params)}`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  workflowMetadata: async (workflowId, includeKey, excludeKey) => {
+    const res = await fetchOrchestration(`api/workflows/v1/${workflowId}/metadata?${qs.stringify({ includeKey, excludeKey }, { arrayFormat: 'repeat' })}`, _.merge(authOpts(), { signal }))
+    return res.json()
+  }
+})
+
+
 const Workspaces = signal => ({
   list: async fields => {
     const res = await fetchRawls(`workspaces?${qs.stringify({ fields }, { arrayFormat: 'comma' })}`, _.merge(authOpts(), { signal }))
@@ -1358,7 +1382,8 @@ export const Ajax = signal => {
     Martha: Martha(signal),
     Duos: Duos(signal),
     Metrics: Metrics(signal),
-    Disks: Disks(signal)
+    Disks: Disks(signal),
+    CromIAM: CromIAM(signal)
   }
 }
 
