@@ -175,7 +175,7 @@ const CallCacheWizard = ({
               label({ htmlFor: id, style: { paddingRight: '0.5rem' } }, ['Shard Index:']),
               div({ style: { flex: '1' } }, [Utils.cond(
                 [selectedCallIndex === -1, () => 'N/A (not scattered)'],
-                [_.size(otherWorkflowMetadata.calls[otherCallFqnDropdownValue]) === 1, `${otherWorkflowMetadata.calls[otherCallFqnDropdownValue][0].shardIndex} (exactly one shard in scatter)`],
+                [_.size(otherWorkflowMetadata.calls[otherCallFqnDropdownValue]) === 1, () => `${otherWorkflowMetadata.calls[otherCallFqnDropdownValue][0].shardIndex} (exactly one shard in scatter)`],
                 () => {
                   const options = _.uniqBy('value', _.map(({ shardIndex: i }) => { return { value: i, label: i } }, otherWorkflowMetadata.calls[otherCallFqnDropdownValue]))
                   return h(Select, {
