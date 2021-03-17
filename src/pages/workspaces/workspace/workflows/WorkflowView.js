@@ -837,7 +837,7 @@ const WorkflowView = _.flow(
                 span({ style: styles.placeholder }, 'workflow unique ID')
               ])
             ]),
-            !!rootEntityType && entitySelectionModel.type !== processSnapshotTable && h(Fragment, [
+            !!rootEntityType && (entitySelectionModel.type !== processSnapshotTable) && h(Fragment, [
               div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.dark(0.55)}` } }),
               div({ style: styles.outputInfoLabel }, 'References to outputs will be written to'),
               div({ style: { display: 'flex', alignItems: 'center' } }, [
