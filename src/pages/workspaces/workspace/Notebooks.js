@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Component, Fragment } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
@@ -148,7 +148,7 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
     style: _.merge({
       ...Style.elements.card.title, whiteSpace: 'normal', overflowY: 'auto'
     }, listView ? {
-      marginLeft: '1rem'
+      marginLeft: '1rem', flexGrow: 1
     } : { height: 60, padding: '1rem' })
   }, printName(name))
 
@@ -203,6 +203,7 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
 }
 
 const Notebooks = _.flow(
+  Utils.forwardRefWithName('Notebooks'),
   requesterPaysWrapper({
     onDismiss: () => Nav.history.goBack()
   }),
@@ -210,51 +211,48 @@ const Notebooks = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Notebooks', activeTab: 'notebooks'
   }),
-  withViewToggle('notebooksTab'),
-  Utils.withCancellationSignal,
-  Utils.connectStore(authStore, 'authState')
-)(class Notebooks extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      renamingNotebookName: undefined,
-      copyingNotebookName: undefined,
-      deletingNotebookName: undefined,
-      exportingNotebookName: undefined,
-      sortOrder: defaultSort.value,
-      filter: '',
-      ...StateHistory.get()
-    }
-  }
+  withViewToggle('notebooksTab')
+)(({
+  apps, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { bucketName } },
+  refreshApps, onRequesterPaysError, listView, setListView
+}) => {
+  // State
+  const [renamingNotebookName, setRenamingNotebookName] = useState(undefined)
+  const [copyingNotebookName, setCopyingNotebookName] = useState(undefined)
+  const [deletingNotebookName, setDeletingNotebookName] = useState(undefined)
+  const [exportingNotebookName, setExportingNotebookName] = useState(undefined)
+  const [sortOrder, setSortOrder] = useState(() => StateHistory.get().sortOrder || defaultSort.value)
+  const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
+  const [busy, setBusy] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [notebooks, setNotebooks] = useState(() => StateHistory.get().notebooks || undefined)
+  const [currentUserHash, setCurrentUserHash] = useState(undefined)
+  const [potentialLockers, setPotentialLockers] = useState(undefined)
+  const [openGalaxyConfigDrawer, setOpenGalaxyConfigDrawer] = useState(false)
 
-  getExistingNames() {
-    const { notebooks } = this.state
-    return _.map(({ name }) => printName(name), notebooks)
-  }
+  const authState = Utils.useStore(authStore)
+  const signal = Utils.useCancellation()
 
-  refreshNotebooks = _.flow(
-    withRequesterPaysHandler(this.props.onRequesterPaysError),
+
+  // Helpers
+  const existingNames = _.map(({ name }) => printName(name), notebooks)
+
+  const refreshNotebooks = _.flow(
+    withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error loading notebooks'),
-    Utils.withBusyState(v => this.setState({ loading: v }))
+    Utils.withBusyState(setBusy)
   )(async () => {
-    const { namespace, workspace: { workspace: { bucketName } }, signal } = this.props
     const notebooks = await Ajax(signal).Buckets.listNotebooks(namespace, bucketName)
-    this.setState({ notebooks: _.reverse(_.sortBy('updated', notebooks)) })
+    setNotebooks(_.reverse(_.sortBy('updated', notebooks)))
   })
 
-  refreshApps = _.flow(
+  const doAppRefresh = _.flow(
     withErrorReporting('Error loading Apps'),
-    Utils.withBusyState(v => this.setState({ loading: v }))
-  )(async () => {
-    const { refreshApps } = this.props
-    await refreshApps()
-  })
+    Utils.withBusyState(setBusy)
+  )(refreshApps)
 
-  async uploadFiles(files) {
-    const { namespace, workspace: { workspace: { bucketName } } } = this.props
-    const existingNames = this.getExistingNames()
+  const uploadFiles = Utils.withBusyState(setBusy, async files => {
     try {
-      this.setState({ saving: true })
       await Promise.all(_.map(async file => {
         const name = file.name.slice(0, -6)
         let resolvedName = name
@@ -265,33 +263,38 @@ const Notebooks = _.flow(
         const contents = await Utils.readFileAsText(file)
         return Ajax().Buckets.notebook(namespace, bucketName, resolvedName).create(JSON.parse(contents))
       }, files))
-      this.refreshNotebooks()
+      refreshNotebooks()
     } catch (error) {
       if (error instanceof SyntaxError) {
         reportError('Error uploading notebook', 'This ipynb file is not formatted correctly.')
       } else {
         reportError('Error creating notebook', error)
       }
-    } finally {
-      this.setState({ saving: false })
     }
-  }
+  })
 
-  async componentDidMount() {
-    const { name: wsName, namespace, workspace: { canShare, workspace: { bucketName } }, authState: { user: { email } } } = this.props
-    const [currentUserHash, potentialLockers] = await Promise.all(
-      [notebookLockHash(bucketName, email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
-    this.setState({ currentUserHash, potentialLockers })
-    this.refreshNotebooks()
-  }
 
-  renderNotebooks(openUploader) {
-    const { notebooks, sortOrder: { field, direction }, currentUserHash, potentialLockers, filter } = this.state
-    const {
-      apps,
-      name: wsName, namespace, listView,
-      workspace: { accessLevel }
-    } = this.props
+  // Lifecycle
+  Utils.useOnMount(() => {
+    const load = async () => {
+      const [currentUserHash, potentialLockers] = await Promise.all(
+        [notebookLockHash(bucketName, authState.user.email), findPotentialNotebookLockers({ canShare, namespace, wsName, bucketName })])
+      setCurrentUserHash(currentUserHash)
+      setPotentialLockers(potentialLockers)
+      refreshNotebooks()
+    }
+
+    load()
+  })
+
+  useEffect(() => {
+    StateHistory.update({ notebooks, sortOrder, filter })
+  }, [notebooks, sortOrder, filter])
+
+
+  // Render helpers
+  const renderNotebooks = openUploader => {
+    const { field, direction } = sortOrder
     const app = currentApp(apps)
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.flow(
@@ -300,10 +303,10 @@ const Notebooks = _.flow(
       _.map(({ name, updated, metadata }) => h(NotebookCard, {
         key: name,
         name, updated, metadata, listView, namespace, wsName, canWrite, currentUserHash, potentialLockers,
-        onRename: () => this.setState({ renamingNotebookName: name }),
-        onCopy: () => this.setState({ copyingNotebookName: name }),
-        onExport: () => this.setState({ exportingNotebookName: name }),
-        onDelete: () => this.setState({ deletingNotebookName: name })
+        onRename: () => setRenamingNotebookName(name),
+        onCopy: () => setCopyingNotebookName(name),
+        onExport: () => setExportingNotebookName(name),
+        onDelete: () => setDeletingNotebookName(name)
       }))
     )(notebooks)
 
@@ -321,8 +324,7 @@ const Notebooks = _.flow(
         div({ style: { fontSize: 18, lineHeight: '22px', width: 160, color: colors.accent() } }, [
           div(['Create a Cloud']),
           div(['Environment for ']),
-          div(['Galaxy ', versionTag('Alpha', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` }
-          )]),
+          div(['Galaxy ', versionTag('Alpha', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })]),
           icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
         ])
     }
@@ -342,7 +344,7 @@ const Notebooks = _.flow(
             ...Style.elements.card.container,
             color: colors.accent(), height: 125
           },
-          onClick: () => this.setState({ creating: true }),
+          onClick: () => setCreating(true),
           disabled: !canWrite,
           tooltip: !canWrite ? noWrite : undefined
         }, [
@@ -359,7 +361,7 @@ const Notebooks = _.flow(
             },
             disabled: appIsSettingUp(app),
             tooltip: appIsSettingUp(app) && 'Your Galaxy app is being created',
-            onClick: () => this.setState({ openGalaxyConfigDrawer: true })
+            onClick: () => setOpenGalaxyConfigDrawer(true)
           }, [
             getGalaxyText()
           ])
@@ -391,107 +393,91 @@ const Notebooks = _.flow(
     ])
   }
 
-  render() {
-    const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter, openGalaxyConfigDrawer } = this.state
-    const {
-      apps, namespace, name, listView, setListView, workspace,
-      workspace: { accessLevel, workspace: { bucketName } }
-    } = this.props
-    const existingNames = this.getExistingNames()
 
-    return h(Dropzone, {
-      accept: '.ipynb',
-      disabled: !Utils.canWrite(accessLevel),
-      style: { flexGrow: 1 },
-      activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
-      onDropRejected: () => reportError('Not a valid notebook',
-        'The selected file is not a ipynb notebook file. To import a notebook, upload a file with a .ipynb extension.'),
-      onDropAccepted: files => this.uploadFiles(files)
-    }, [({ openUploader }) => h(Fragment, [
-      notebooks && h(PageBox, [
-        div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
-          div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
-          div({ style: { flex: 1 } }),
-          h(DelayedSearchInput, {
-            'aria-label': 'Search notebooks',
-            style: { marginRight: '0.75rem', width: 220 },
-            placeholder: 'SEARCH NOTEBOOKS',
-            onChange: v => this.setState({ filter: v }),
-            value: filter
-          }),
-          h(IdContainer, [id => h(Fragment, [
-            label({ htmlFor: id, style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
-            h(Select, {
-              id,
-              value: sortOrder,
-              isClearable: false,
-              styles: { container: old => ({ ...old, width: 220, marginRight: '1.10rem' }) },
-              options: sortOptions,
-              onChange: selected => this.setState({ sortOrder: selected.value })
-            })
-          ])]),
-          h(ViewToggleButtons, { listView, setListView }),
-          creating && h(NotebookCreator, {
-            namespace, bucketName, existingNames,
-            reloadList: () => this.refreshNotebooks(),
-            onDismiss: () => this.setState({ creating: false }),
-            onSuccess: () => this.setState({ creating: false })
-          }),
-          renamingNotebookName && h(NotebookDuplicator, {
-            printName: printName(renamingNotebookName),
-            namespace, wsName: name, bucketName, destroyOld: true,
-            onDismiss: () => this.setState({ renamingNotebookName: undefined }),
-            onSuccess: () => {
-              this.setState({ renamingNotebookName: undefined })
-              this.refreshNotebooks()
-            }
-          }),
-          copyingNotebookName && h(NotebookDuplicator, {
-            printName: printName(copyingNotebookName),
-            namespace, wsName: name, bucketName, destroyOld: false,
-            onDismiss: () => this.setState({ copyingNotebookName: undefined }),
-            onSuccess: () => {
-              this.setState({ copyingNotebookName: undefined })
-              this.refreshNotebooks()
-            }
-          }),
-          exportingNotebookName && h(ExportNotebookModal, {
-            printName: printName(exportingNotebookName), workspace,
-            onDismiss: () => this.setState({ exportingNotebookName: undefined })
-          }),
-          deletingNotebookName && h(NotebookDeleter, {
-            printName: printName(deletingNotebookName), namespace, bucketName,
-            onDismiss: () => this.setState({ deletingNotebookName: undefined }),
-            onSuccess: () => {
-              this.setState({ deletingNotebookName: undefined })
-              this.refreshNotebooks()
-            }
-          }),
-          h(NewGalaxyModal, {
-            isOpen: openGalaxyConfigDrawer,
-            workspace,
-            apps,
-            onDismiss: () => {
-              this.setState({ openGalaxyConfigDrawer: false })
-            },
-            onSuccess: () => {
-              this.setState({ openGalaxyConfigDrawer: false })
-              this.refreshApps()
-            }
+  // Render
+  return h(Dropzone, {
+    accept: '.ipynb',
+    disabled: !Utils.canWrite(accessLevel),
+    style: { flexGrow: 1 },
+    activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
+    onDropRejected: () => reportError('Not a valid notebook',
+      'The selected file is not a ipynb notebook file. To import a notebook, upload a file with a .ipynb extension.'),
+    onDropAccepted: uploadFiles
+  }, [({ openUploader }) => h(Fragment, [
+    notebooks && h(PageBox, [
+      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
+        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Notebooks']),
+        div({ style: { flex: 1 } }),
+        h(DelayedSearchInput, {
+          'aria-label': 'Search notebooks',
+          style: { marginRight: '0.75rem', width: 220 },
+          placeholder: 'SEARCH NOTEBOOKS',
+          onChange: setFilter,
+          value: filter
+        }),
+        h(IdContainer, [id => h(Fragment, [
+          label({ htmlFor: id, style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
+          h(Select, {
+            id,
+            value: sortOrder,
+            isClearable: false,
+            styles: { container: old => ({ ...old, width: 220, marginRight: '1.10rem' }) },
+            options: sortOptions,
+            onChange: selected => setSortOrder(selected.value)
           })
-        ]),
-        this.renderNotebooks(openUploader)
+        ])]),
+        h(ViewToggleButtons, { listView, setListView }),
+        creating && h(NotebookCreator, {
+          namespace, bucketName, existingNames,
+          reloadList: refreshNotebooks,
+          onDismiss: () => setCreating(false),
+          onSuccess: () => setCreating(false)
+        }),
+        renamingNotebookName && h(NotebookDuplicator, {
+          printName: printName(renamingNotebookName),
+          namespace, wsName, bucketName, destroyOld: true,
+          onDismiss: () => setRenamingNotebookName(undefined),
+          onSuccess: () => {
+            setRenamingNotebookName(undefined)
+            refreshNotebooks()
+          }
+        }),
+        copyingNotebookName && h(NotebookDuplicator, {
+          printName: printName(copyingNotebookName),
+          namespace, wsName, bucketName, destroyOld: false,
+          onDismiss: () => setCopyingNotebookName(undefined),
+          onSuccess: () => {
+            setCopyingNotebookName(undefined)
+            refreshNotebooks()
+          }
+        }),
+        exportingNotebookName && h(ExportNotebookModal, {
+          printName: printName(exportingNotebookName), workspace,
+          onDismiss: () => setExportingNotebookName(undefined)
+        }),
+        deletingNotebookName && h(NotebookDeleter, {
+          printName: printName(deletingNotebookName), namespace, bucketName,
+          onDismiss: () => setDeletingNotebookName(undefined),
+          onSuccess: () => {
+            setDeletingNotebookName(undefined)
+            refreshNotebooks()
+          }
+        }),
+        h(NewGalaxyModal, {
+          isOpen: openGalaxyConfigDrawer,
+          workspace,
+          apps,
+          onDismiss: () => setOpenGalaxyConfigDrawer(false),
+          onSuccess: () => {
+            setOpenGalaxyConfigDrawer(false)
+            doAppRefresh()
+          }
+        })
       ]),
-      (saving || loading) && spinnerOverlay
-    ])])
-  }
-
-  componentDidUpdate() {
-    StateHistory.update(_.pick(
-      ['notebooks', 'sortOrder', 'filter'],
-      this.state)
-    )
-  }
+      renderNotebooks(openUploader)
+    ]),
+    busy && spinnerOverlay
+  ])])
 })
 
 export const navPaths = [
