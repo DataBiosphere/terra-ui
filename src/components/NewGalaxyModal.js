@@ -203,8 +203,9 @@ export const NewGalaxyModal = _.flow(
   }
 
   const renderDefaultCase = () => {
-    const { cpu, memory } = _.find({ name: 'n1-standard-8' }, machineTypes)
-    const cost = getGalaxyCost(app || { kubernetesRuntimeConfig: { machineType: 'n1-standard-8', numNodes: 2 } })
+    const defaultMachineType = 'n1-highmem-8'
+    const { cpu, memory } = _.find({ name: defaultMachineType }, machineTypes)
+    const cost = getGalaxyCost(app || { kubernetesRuntimeConfig: { machineType: defaultMachineType, numNodes: 1 } })
     return h(Fragment, [
       h(TitleBar, {
         title: getEnvMessageBasedOnStatus(true),

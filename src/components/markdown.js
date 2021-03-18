@@ -7,10 +7,10 @@ import { centeredSpinner } from 'src/components/icons'
 /**
  * WARNING: Be very careful when using custom renderers because they may override marked's built-in
  * content sanitization.
- * @param {string} children markdown content
- * @param renderers element-specific renderers
- * @param props properties for wraper div
- * @returns {object} div containing rendered markdown
+ * @param {string} children - markdown content
+ * @param {Object} renderers - element-specific renderers
+ * @param {Object} props - properties for wrapper div
+ * @returns div containing rendered markdown
  * @constructor
  */
 export const MarkdownViewer = ({ children, renderers = {}, ...props }) => {

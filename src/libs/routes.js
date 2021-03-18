@@ -18,6 +18,7 @@ import * as PrivacyPolicy from 'src/pages/PrivacyPolicy'
 import * as Profile from 'src/pages/Profile'
 import * as TermsOfService from 'src/pages/TermsOfService'
 import * as TestLogin from 'src/pages/TestLogin'
+import * as Upload from 'src/pages/Upload'
 import * as WorkflowsList from 'src/pages/workflows/List'
 import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails'
 import * as WorkspaceList from 'src/pages/workspaces/List'
@@ -63,6 +64,7 @@ const routes = _.flatten([
   Environments.navPaths,
   WorkflowsList.navPaths,
   WorkflowDetails.navPaths,
+  Upload.navPaths,
   NotFound.navPaths // must be last
 ])
 

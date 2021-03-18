@@ -2,13 +2,19 @@ import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { AsyncCreatableSelect, ButtonPrimary, Link, Select, spinnerOverlay } from 'src/components/common'
+import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { icon } from 'src/components/icons'
+import { ValidatedInput } from 'src/components/input'
+import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
+import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax } from 'src/libs/ajax'
-import { withErrorReporting } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
+import { FormLabel } from 'src/libs/forms'
 import { workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import validate from 'validate.js'
 
 
 export const useWorkspaces = () => {
@@ -64,10 +70,33 @@ const SnapshotLabeledInfo = ({ title, text }) => {
   ])
 }
 
-export const SnapshotInfo = ({ snapshotId, snapshotName }) => {
+export const SnapshotInfo = ({
+  workspace: { workspace: { namespace, name } }, resource: { referenceId, description, reference: { snapshot: snapshotId } }, snapshotName, onUpdate
+}) => {
+  // State
   const [snapshotInfo, setSelectedSnapshotInfo] = useState()
+  const [newName, setNewName] = useState(snapshotName)
+  const [editingName, setEditingName] = useState(false)
+  const [newDescription, setNewDescription] = useState(undefined)
+  const [saving, setSaving] = useState(false)
+
   const signal = Utils.useCancellation()
 
+
+  // Helpers
+  const save = async () => {
+    try {
+      setSaving(true) // this will be unmounted in the reload, so no need to reset this
+      await Ajax().Workspaces.workspace(namespace, name).snapshot(referenceId).update({ name: newName, description: newDescription })
+      onUpdate(newName)
+    } catch (e) {
+      setSaving(false)
+      reportError('Error updating snapshot', e)
+    }
+  }
+
+
+  // Lifecycle
   Utils.useOnMount(() => {
     const loadSnapshotInfo = async () => {
       const snapshotInfo = await Ajax(signal).DataRepo.snapshot(snapshotId).details()
@@ -77,32 +106,114 @@ export const SnapshotInfo = ({ snapshotId, snapshotName }) => {
     loadSnapshotInfo()
   })
 
-  const { name, description, createdDate, source = [] } = snapshotInfo || {}
+
+  // Render
+  const { name: sourceName, description: sourceDescription, createdDate, source = [] } = snapshotInfo || {}
+  const editingDescription = _.isString(newDescription)
+  const errors = validate.single(newName, {
+    format: {
+      pattern: /^[a-zA-Z0-9]+\w*$/, // don't need presence requirement since '+' enforces at least 1 character
+      message: 'Name can only contain letters, numbers, and underscores, and can\'t start with an underscore.'
+    },
+    length: { maximum: 63, tooLong: 'Name can\'t be more than 63 characters.' }
+  })
 
   return snapshotInfo === undefined ? spinnerOverlay : h(Fragment, [
     div({ style: { padding: '1rem' } }, [
-      div({
-        style: {
-          ...Style.elements.sectionHeader, fontSize: 20,
-          borderBottom: Style.standardLine, paddingBottom: '0.5rem', marginBottom: '1rem'
-        }
-      }, [snapshotName]),
-      h(SnapshotLabeledInfo, { title: 'Source Snapshot Name:', text: name }),
-      h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(createdDate) }),
-      div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
-      div([description]),
-      div({ style: Style.dashboard.header }, [`Data Repo Dataset${source.length > 1 ? 's' : ''}`]),
-      _.map(({ dataset: { id, name: datasetName, description: datasetDescription, createdDate: datasetCreatedDate } }) => {
-        return div({
-          key: id,
-          style: { ...Style.elements.card.container, marginBottom: '1rem' }
+      div({ style: Style.elements.card.container }, [
+        div({
+          style: {
+            ...Style.elements.sectionHeader, fontSize: 20,
+            borderBottom: Style.standardLine, paddingBottom: '0.5rem', marginBottom: '1rem'
+          }
         }, [
-          h(SnapshotLabeledInfo, { title: 'Dataset Name:', text: datasetName }),
-          h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(datasetCreatedDate) }),
-          div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
-          div([datasetDescription])
-        ])
-      }, source)
+          snapshotName,
+          !editingDescription && h(Link, {
+            style: { marginLeft: '0.5rem' },
+            onClick: () => setEditingName(true),
+            'aria-label': 'Edit snapshot name',
+            tooltip: 'Edit snapshot name'
+          }, [icon('edit')])
+        ]),
+        div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, [
+          'Description:',
+          !editingDescription && h(Link, {
+            style: { marginLeft: '0.5rem' },
+            onClick: () => setNewDescription(description),
+            'aria-label': 'Edit description',
+            tooltip: 'Edit description'
+          }, [icon('edit')])
+        ]),
+        editingDescription ? h(Fragment, [
+          h(MarkdownEditor, {
+            options: {
+              autofocus: true,
+              placeholder: 'Enter a description',
+              renderingConfig: {
+                singleLineBreaks: false,
+                markedOptions: { sanitize: true, sanitizer: _.escape }
+              },
+              status: false
+            },
+            className: 'simplemde-container',
+            value: newDescription,
+            onChange: setNewDescription
+          }),
+          div({ style: { display: 'flex', justifyContent: 'flex-end', margin: '1rem' } }, [
+            h(ButtonSecondary, { onClick: () => setNewDescription(undefined) }, 'Cancel'),
+            h(ButtonPrimary, { style: { marginLeft: '1rem' }, onClick: save }, 'Save')
+          ])
+        ]) : h(MarkdownViewer, [description])
+      ]),
+      div({ style: { paddingLeft: '1rem' } }, [
+        div({ style: Style.dashboard.header }, ['Linked Data Repo Snapshot']),
+        h(SnapshotLabeledInfo, { title: 'Name:', text: sourceName }),
+        h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(createdDate) }),
+        div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
+        div([sourceDescription]),
+        div({ style: Style.dashboard.header }, [`Source Data Repo Dataset${source.length > 1 ? 's' : ''}`]),
+        _.map(({ dataset: { id, name: datasetName, description: datasetDescription, createdDate: datasetCreatedDate } }) => {
+          return div({
+            key: id,
+            style: { marginBottom: '1rem' }
+          }, [
+            h(SnapshotLabeledInfo, { title: 'Name:', text: datasetName }),
+            h(SnapshotLabeledInfo, { title: 'Creation Date:', text: Utils.makeCompleteDate(datasetCreatedDate) }),
+            div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, ['Description:']),
+            div([datasetDescription])
+          ])
+        }, source)
+      ]),
+      editingName && h(Modal, {
+        onDismiss: () => {
+          setNewName(snapshotName)
+          setEditingName(false)
+        },
+        title: `Rename ${snapshotName}`,
+        okButton: h(ButtonPrimary, {
+          onClick: () => {
+            setEditingName(false)
+            save()
+          },
+          disabled: !!errors || (snapshotName === newName),
+          tooltip: Utils.summarizeErrors(errors) || (snapshotName === newName && 'No change to save')
+        }, ['Rename'])
+      }, [
+        h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { htmlFor: id }, ['New snapshot name']),
+          h(ValidatedInput, {
+            inputProps: {
+              id,
+              autoFocus: true,
+              placeholder: 'Enter a name',
+              value: newName,
+              onChange: setNewName
+            },
+            error: Utils.summarizeErrors(errors)
+          })
+        ])])
+      ]),
+      saving && spinnerOverlay
     ])
   ])
 }
@@ -174,4 +285,21 @@ export const WorkspaceTagSelect = props => {
 
 export const canUseWorkspaceProject = async ({ canCompute, workspace: { namespace } }) => {
   return canCompute || _.some({ projectName: namespace, role: 'Owner' }, await Ajax().Billing.listProjects())
+}
+
+export const NoWorkspacesMessage = ({ onClick }) => {
+  return div({ style: { fontSize: 20, margin: '1rem' } }, [
+    div([
+      'To get started, ', h(Link, {
+        onClick: () => onClick(),
+        style: { fontWeight: 600 }
+      }, ['Create a New Workspace'])
+    ]),
+    div({ style: { marginTop: '1rem', fontSize: 16 } }, [
+      h(Link, {
+        ...Utils.newTabLinkProps,
+        href: `https://support.terra.bio/hc/en-us/articles/360022716811`
+      }, [`What's a workspace?`])
+    ])
+  ])
 }

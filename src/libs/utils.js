@@ -3,7 +3,7 @@ import { differenceInCalendarMonths } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { forwardRef, memo, useEffect, useRef, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { v4 as uuid } from 'uuid'
 
 
@@ -358,6 +358,8 @@ export const useUniqueId = () => {
 
 export const newTabLinkProps = { target: '_blank', rel: 'noopener noreferrer' } // https://mathiasbynens.github.io/rel-noopener/
 
+export const newTabLinkPropsWithReferrer = { target: '_blank', rel: 'noopener' }
+
 export const createHtmlElement = (doc, name, attrs) => {
   const element = doc.createElement(name)
   _.forEach(([k, v]) => element.setAttribute(k, v), _.toPairs(attrs))
@@ -380,6 +382,22 @@ export const useConsoleAssert = (condition, message) => {
   }
 }
 
+export const useCancelable = () => {
+  const [controller, setController] = useState(new window.AbortController())
+
+  // Abort it automatically in the destructor
+  useEffect(() => {
+    return () => controller.abort()
+  }, [controller])
+
+  return {
+    signal: controller.signal,
+    abort: () => {
+      controller.abort()
+      setController(new window.AbortController())
+    }
+  }
+}
 
 export const useCancellation = () => {
   const controller = useRef()
@@ -442,4 +460,21 @@ export const sanitizeEntityName = unsafe => unsafe.replace(/[^\w]/g, '-')
 
 export const makeTSV = rows => {
   return _.join('', _.map(row => `${_.join('\t', row)}\n`, rows))
+}
+
+export const commaJoin = (list, conjunction = 'or') => {
+  return span(_.flow(
+    toIndexPairs,
+    _.flatMap(([i, val]) => {
+      return [(i === 0 ? '' : i === list.length - 1 ? ` ${conjunction} ` : ', '), val]
+    })
+  )(list))
+}
+
+export const sha256 = async message => {
+  const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(message))
+  return _.flow(
+    _.map(v => v.toString(16).padStart(2, '0')),
+    _.join('')
+  )(new Uint8Array(hashBuffer))
 }

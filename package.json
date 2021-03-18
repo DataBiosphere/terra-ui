@@ -26,7 +26,7 @@
     "marked": "^0.7.0",
     "outdated-browser-rework": "^2.10.0",
     "path-to-regexp": "^5.0.0",
-    "prismjs": "^1.21.0",
+    "prismjs": "^1.23.0",
     "prop-types": "^15.7.2",
     "qs": "^6.9.4",
     "react": "~16.13.0",
