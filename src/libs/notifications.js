@@ -7,6 +7,7 @@ import ErrorView from 'src/components/ErrorView'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
+import { reportErrorWith } from 'src/libs/error'
 import { notificationStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
@@ -34,12 +35,10 @@ export const notify = (type, title, props) => {
 
 export const clearNotification = id => store.removeNotification(id)
 
-const NotificationDisplay = ({ id }) => {
-  const notificationState = Utils.useStore(notificationStore)
+export const Notification = ({ notifications, onDismiss }) => {
   const [modal, setModal] = useState(false)
   const [notificationNumber, setNotificationNumber] = useState(0)
 
-  const notifications = _.filter(n => n.id === id, notificationState)
   const onFirst = notificationNumber === 0
   const onLast = notificationNumber + 1 === notifications.length
 
@@ -92,7 +91,7 @@ const NotificationDisplay = ({ id }) => {
         style: { alignSelf: 'start' },
         'aria-label': type ? `Dismiss ${type} notification` : 'Dismiss notification',
         title: 'Dismiss notification',
-        onClick: () => store.removeNotification(id)
+        onClick: onDismiss
       }, [icon('times', { size: 20 })])
     ]),
     notifications.length > 1 && div({
@@ -130,6 +129,15 @@ const NotificationDisplay = ({ id }) => {
   ])
 }
 
+const GlobalNotification = ({ id }) => {
+  const notificationState = Utils.useStore(notificationStore)
+  const notifications = _.filter({ id }, notificationState)
+  return h(Notification, {
+    notifications,
+    onDismiss: () => store.removeNotification(id)
+  })
+}
+
 const refreshPage = () => {
   StateHistory.clearCurrent()
   document.location.reload()
@@ -140,7 +148,7 @@ const showNotification = ({ id, timeout }) => {
     id,
     onRemoval: () => notificationStore.update(_.reject({ id })),
     content: div({ style: { width: '100%' } }, [
-      h(NotificationDisplay, { id })
+      h(GlobalNotification, { id })
     ]),
     container: 'top-right',
     dismiss: { duration: !!timeout ? timeout : 0, click: false, touch: false },
@@ -148,4 +156,27 @@ const showNotification = ({ id, timeout }) => {
     animationOut: ['animate__animated', 'animate__slideOutRight'],
     width: 350
   })
+}
+
+export const useNotificationState = () => {
+  const [notifications, setNotifications] = useState([])
+  const notify = (type, title, props) => {
+    setNotifications(Utils.append(makeNotification({ type, title, ...props })))
+  }
+  const reportError = reportErrorWith(notify)
+  return { notificationState: [notifications, setNotifications], notify, reportError }
+}
+
+export const LocalNotifications = ({ notificationState: [notifications, setNotifications] }) => {
+  return !!notifications.length && div({
+    style: {
+      position: 'absolute', top: 0, right: 0, marginRight: '1rem', marginTop: '1rem',
+      display: 'flex', flexDirection: 'column', gap: '0.5rem'
+    }
+  }, [
+    _.map(id => {
+      const matching = _.filter({ id }, notifications)
+      return h(Notification, { key: id, notifications: matching, onDismiss: () => setNotifications(_.remove({ id })) })
+    }, _.uniq(_.map('id', notifications)))
+  ])
 }

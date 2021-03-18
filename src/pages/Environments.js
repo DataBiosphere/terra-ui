@@ -15,17 +15,19 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
+import { LocalNotifications, useNotificationState } from 'src/libs/notifications'
 import { currentRuntime, persistentDiskCostMonthly, runtimeCost } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import { cond, formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
 
 const DeleteRuntimeModal = ({ runtime: { googleProject, runtimeName, runtimeConfig: { persistentDiskId } }, onDismiss, onSuccess }) => {
+  const { notificationState, reportError } = useNotificationState()
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
   const deleteRuntime = _.flow(
     withBusyState(setDeleting),
-    withErrorReporting('Error deleting cloud environment')
+    withErrorReporting(reportError('Error deleting cloud environment'))
   )(async () => {
     await Ajax().Runtimes.runtime(googleProject, runtimeName).delete(deleteDisk)
     onSuccess()
@@ -49,6 +51,7 @@ const DeleteRuntimeModal = ({ runtime: { googleProject, runtimeName, runtimeConf
         'which will take several minutes.'
       ])
     ]),
+    h(LocalNotifications, { notificationState }),
     deleting && spinnerOverlay
   ])
 }
