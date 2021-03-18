@@ -407,7 +407,7 @@ const WorkflowView = _.flow(
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
             const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...extractWorkspaceDetails(workspace), methodVersion, sourceRepo, methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath })
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...extractWorkspaceDetails(workspace), fromSnapshot: entitySelectionModel.type.description === 'process snapshot table', methodVersion, sourceRepo, methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath })
             Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
           }
         }),
