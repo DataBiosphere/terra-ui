@@ -156,9 +156,7 @@ export const machineCost = machineType => {
 export const currentApp = _.flow(trimAppsOldestFirst, _.last)
 
 export const currentDataDisk = (app, galaxyDataDisks) => {
-  const blah = _.find({ name: app?.diskName }, galaxyDataDisks)
-  // return _.find({ name: app?.diskName }, galaxyDataDisks)
-  return blah
+  return _.find({ name: app?.diskName }, galaxyDataDisks)
 }
 
 export const appIsSettingUp = app => {

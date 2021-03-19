@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h, label, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -13,7 +13,6 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { currentApp, currentDataDisk, findMachineType, getGalaxyComputeCost, getGalaxyDiskCost } from 'src/libs/runtime-utils'
-import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -36,23 +35,10 @@ export const NewGalaxyModal = _.flow(
   const dataDisk = currentDataDisk(app, galaxyDataDisks)
 
   // Assumption: If there is an app defined, there must be a data disk corresponding to it.
-  const getDataDiskSize = app => {
-    return dataDisk?.size || defaultDataDiskSize
-  }
-
+  const [dataDiskSize, setDataDiskSize] = useState(dataDisk?.size || defaultDataDiskSize)
+  const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(app?.kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig)
   const [viewMode, setViewMode] = useState(undefined)
   const [loading, setLoading] = useState(false)
-  const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(StateHistory.get().kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig)
-  const [dataDiskSize, setDataDiskSize] = useState(getDataDiskSize(app))
-
-  useEffect(() => {
-    StateHistory.update({ kubernetesRuntimeConfig })
-  }, [kubernetesRuntimeConfig])
-
-  // const app = currentApp(apps)
-  // const dataDisk = currentDataDisk(app, galaxyDataDisks)
-  const dataDiskOrDefault = dataDisk || { name: null, size: defaultDataDiskSize }
-  const appOrDefault = app || { kubernetesRuntimeConfig, diskName: dataDiskOrDefault.name }
 
   const createGalaxy = _.flow(
     Utils.withBusyState(setLoading),
@@ -226,9 +212,9 @@ export const NewGalaxyModal = _.flow(
   }
 
   // TODO Refactor this and the duplicate in NewRuntimeModal.js
-  const renderGalaxyCostBreakdown = (app, dataDiskSize) => {
-    const runningComputeCost = getGalaxyComputeCost({ status: 'RUNNING', ...app })
-    const pausedComputeCost = getGalaxyComputeCost({ status: 'STOPPED', ...app })
+  const renderGalaxyCostBreakdown = (kubernetesRuntimeConfig, dataDiskSize) => {
+    const runningComputeCost = getGalaxyComputeCost({ status: 'RUNNING', kubernetesRuntimeConfig })
+    const pausedComputeCost = getGalaxyComputeCost({ status: 'STOPPED', kubernetesRuntimeConfig })
 
     return div({
       style: {
@@ -366,7 +352,7 @@ export const NewGalaxyModal = _.flow(
         getEnvMessageBasedOnStatus(false)
       ]),
       div({ style: { paddingBottom: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [
-        renderGalaxyCostBreakdown(appOrDefault, dataDiskSize)
+        renderGalaxyCostBreakdown(kubernetesRuntimeConfig, dataDiskSize)
       ]),
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div([
