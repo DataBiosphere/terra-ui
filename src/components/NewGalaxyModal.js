@@ -12,7 +12,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import { currentApp, findMachineType, getGalaxyComputeCost, getGalaxyDiskCost } from 'src/libs/runtime-utils'
+import { currentApp, currentDataDisk, findMachineType, getGalaxyComputeCost, getGalaxyDiskCost } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -27,16 +27,23 @@ const styles = {
 export const NewGalaxyModal = _.flow(
   Utils.withDisplayName('NewGalaxyModal'),
   withModalDrawer({ width: 675 })
-)(({ onDismiss, onSuccess, apps, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
-  const [viewMode, setViewMode] = useState(undefined)
-  const [loading, setLoading] = useState(false)
-
-  const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState({ machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false })
-  const [dataDiskSize, setDataDiskSize] = useState(250) // GB
-
+)(({ onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
+  const defaultDataDiskSize = 250 // GB
+  const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
   const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
 
+  const [viewMode, setViewMode] = useState(undefined)
+  const [loading, setLoading] = useState(false)
+  const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(defaultKubernetesRuntimeConfig)
+  const [dataDiskSize, setDataDiskSize] = useState(defaultDataDiskSize) // GB
+
+  // Assumption: If there is an app defined, there must be a data disk corresponding to it.
   const app = currentApp(apps)
+  const dataDisk = currentDataDisk(app, galaxyDataDisks)
+  if (dataDisk?.size) { setDataDiskSize(dataDisk.size) }
+  const dataDiskOrDefault = dataDisk || { name: null, size: defaultDataDiskSize }
+  const appOrDefault = app || { kubernetesRuntimeConfig, diskName: dataDiskOrDefault.name }
+
   const createGalaxy = _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error creating app')
@@ -119,7 +126,6 @@ export const NewGalaxyModal = _.flow(
       [Utils.DEFAULT, renderDefaultCase]
     )
   }
-
 
   const renderCreateWarning = () => {
     return h(Fragment, [
@@ -210,7 +216,7 @@ export const NewGalaxyModal = _.flow(
   }
 
   // TODO Refactor this and the duplicate in NewRuntimeModal.js
-  const renderGalaxyCostBreakdown = app => {
+  const renderGalaxyCostBreakdown = (app, dataDiskSize) => {
     const runningComputeCost = getGalaxyComputeCost({ status: 'RUNNING', ...app })
     const pausedComputeCost = getGalaxyComputeCost({ status: 'STOPPED', ...app })
 
@@ -234,11 +240,12 @@ export const NewGalaxyModal = _.flow(
       }, [
         { label: 'Running cloud compute cost', cost: Utils.formatUSD(runningComputeCost), unitLabel: 'per hr' },
         { label: 'Paused cloud compute cost', cost: Utils.formatUSD(pausedComputeCost), unitLabel: 'per hr' },
-        { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost(app.diskConfig.size)), unitLabel: 'per month' }
+        { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost(dataDiskSize)), unitLabel: 'per month' }
       ])
     ])
   }
 
+  // TODO Refactor this and its duplicate in NewRuntimeModal.js?
   const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
 
   const MachineSelector = ({ value, onChange }) => {
@@ -338,8 +345,6 @@ export const NewGalaxyModal = _.flow(
   }
 
   const renderDefaultCase = () => {
-    const appOrDefault = app || { kubernetesRuntimeConfig, diskConfig: { size: dataDiskSize } }
-
     return h(Fragment, [
       h(TitleBar, {
         title: getEnvMessageBasedOnStatus(true),
@@ -351,7 +356,7 @@ export const NewGalaxyModal = _.flow(
         getEnvMessageBasedOnStatus(false)
       ]),
       div({ style: { paddingBottom: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [
-        renderGalaxyCostBreakdown(appOrDefault)
+        renderGalaxyCostBreakdown(appOrDefault, dataDiskSize)
       ]),
       div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div([

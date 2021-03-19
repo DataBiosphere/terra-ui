@@ -21,7 +21,7 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import { versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
-import { appIsSettingUp, currentApp, getGalaxyCost } from 'src/libs/runtime-utils'
+import { appIsSettingUp, currentApp, currentDataDisk, getGalaxyCost } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -289,6 +289,7 @@ const Notebooks = _.flow(
     const { notebooks, sortOrder: { field, direction }, currentUserHash, potentialLockers, filter } = this.state
     const {
       apps,
+      galaxyDataDisks,
       name: wsName, namespace, listView,
       workspace: { accessLevel }
     } = this.props
@@ -307,14 +308,13 @@ const Notebooks = _.flow(
       }))
     )(notebooks)
 
-    const getGalaxyText = () => {
+    const getGalaxyText = (app, galaxyDataDisks) => {
       return app ?
         div({ style: { fontSize: 18, lineHeight: '22px', width: 160 } }, [
           div(['Galaxy Interactive']),
           div(['Environment']),
-          // TODO: Actually use status to calculate cost, and actually use disk rather than hardcoding
           div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status), `: ${Utils.formatUSD(
-            getGalaxyCost(app)
+            getGalaxyCost(app, currentDataDisk(app, galaxyDataDisks).size)
           )} per hr`]),
           icon('trash', { size: 21 })
         ]) :
@@ -361,7 +361,7 @@ const Notebooks = _.flow(
             tooltip: appIsSettingUp(app) && 'Your Galaxy app is being created',
             onClick: () => this.setState({ openGalaxyConfigDrawer: true })
           }, [
-            getGalaxyText()
+            getGalaxyText(app, galaxyDataDisks)
           ])
         ]),
         h(Clickable, {
@@ -394,7 +394,7 @@ const Notebooks = _.flow(
   render() {
     const { loading, saving, notebooks, creating, renamingNotebookName, copyingNotebookName, deletingNotebookName, exportingNotebookName, sortOrder, filter, openGalaxyConfigDrawer } = this.state
     const {
-      apps, namespace, name, listView, setListView, workspace,
+      apps, galaxyDataDisks, namespace, name, listView, setListView, workspace,
       workspace: { accessLevel, workspace: { bucketName } }
     } = this.props
     const existingNames = this.getExistingNames()
@@ -471,6 +471,7 @@ const Notebooks = _.flow(
             isOpen: openGalaxyConfigDrawer,
             workspace,
             apps,
+            galaxyDataDisks,
             onDismiss: () => {
               this.setState({ openGalaxyConfigDrawer: false })
             },

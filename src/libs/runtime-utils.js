@@ -88,8 +88,8 @@ export const runtimeCost = ({ runtimeConfig, status }) => {
   }
 }
 
-export const getGalaxyCost = app => {
-  return getGalaxyDiskCost(250) + getGalaxyComputeCost(app)
+export const getGalaxyCost = (app, dataDiskSize) => {
+  return getGalaxyDiskCost(dataDiskSize) + getGalaxyComputeCost(app)
 }
 
 /*
@@ -154,6 +154,12 @@ export const machineCost = machineType => {
 }
 
 export const currentApp = _.flow(trimAppsOldestFirst, _.last)
+
+export const currentDataDisk = (app, galaxyDataDisks) => {
+  const blah = _.find({ name: app?.diskName }, galaxyDataDisks)
+  // return _.find({ name: app?.diskName }, galaxyDataDisks)
+  return blah
+}
 
 export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
