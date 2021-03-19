@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link } from 'src/components/common'
@@ -8,11 +8,13 @@ import { makeCromwellStatusLine } from 'src/components/job-common'
 import { FlexTable, tableHeight, TooltipCell } from 'src/components/table'
 import colors from 'src/libs/colors'
 import * as Utils from 'src/libs/utils'
+import CallCacheWizard from 'src/pages/workspaces/workspace/jobHistory/CallCacheWizard'
 import { FailuresModal } from 'src/pages/workspaces/workspace/jobHistory/FailuresViewer'
 
 
 const CallTable = ({ namespace, name, submissionId, workflowId, callName, callObjects }) => {
   const [failuresModalParams, setFailuresModalParams] = useState()
+  const [wizardSelection, setWizardSelection] = useState()
 
   return div([
     h(AutoSizer, { disableHeight: true }, [
@@ -62,9 +64,21 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
             size: { basis: 200, grow: 2 },
             headerRenderer: () => 'Call Caching Result',
             cellRenderer: ({ rowIndex }) => {
-              const { callCaching: { effectiveCallCachingMode, result } = {} } = callObjects[rowIndex]
+              const { shardIndex: index, callCaching: { effectiveCallCachingMode, result } = {} } = callObjects[rowIndex]
               if (effectiveCallCachingMode === 'ReadAndWriteCache' || effectiveCallCachingMode === 'ReadCache') {
-                return result ? h(TooltipCell, [result]) : div({ style: { color: colors.dark(0.7) } }, ['No Information'])
+                return result ? h(Fragment, [
+                  h(TooltipCell, [result]),
+                  result === 'Cache Miss' && h(Link, {
+                    key: 'cc',
+                    style: { marginLeft: '0.5rem' },
+                    tooltip: 'Call Cache Debug Wizard',
+                    'aria-label': 'Call Cache Debug Wizard',
+                    onClick: () => setWizardSelection({ callFqn: callName, index })
+                  }, [
+                    icon('search', { size: 18 })
+                  ])
+                ]) :
+                  div({ style: { color: colors.dark(0.7) } }, ['No Information'])
               } else if (effectiveCallCachingMode === 'WriteCache') {
                 return div({ style: { color: colors.dark(0.7) } }, ['Lookup disabled; write enabled'])
               } else {
@@ -94,7 +108,8 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
         ]
       })
     ]),
-    failuresModalParams && h(FailuresModal, { ...failuresModalParams, callFqn: callName, onDismiss: () => setFailuresModalParams(undefined) })
+    failuresModalParams && h(FailuresModal, { ...failuresModalParams, callFqn: callName, onDismiss: () => setFailuresModalParams(undefined) }),
+    wizardSelection && h(CallCacheWizard, { onDismiss: () => setWizardSelection(undefined), namespace, name, submissionId, workflowId, ...wizardSelection })
   ])
 }
 
