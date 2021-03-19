@@ -131,7 +131,7 @@ export const NewGalaxyModal = _.flow(
         onDismiss,
         onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
       }),
-      div({ style: { marginBottom: '1rem' } }, ['Consists of application configuration, cloud compute and persistent disk(s)']),
+      div({ style: { marginBottom: '1rem' } }, ['Consists of application configuration, cloud compute and persistent disk(s).']),
       div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
           span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('info-circle', { size: 25, color: colors.accent() })]),
@@ -195,18 +195,18 @@ export const NewGalaxyModal = _.flow(
     ])
   }
 
-  const getEnvMessageBasedOnStatus = isTitle => {
-    const waitMessage = isTitle ? '' : 'This process will take up to a few minutes.'
+  const getEnvMessageBasedOnStatus = app => {
+    const waitMessage = 'This process will take up to a few minutes.'
 
     return !app ?
-      isTitle ? 'Cloud environment' : 'Consists of application configuration, cloud compute and persistent disk(s)' :
+      'consists of application configuration, cloud compute and persistent disk(s).' :
       Utils.switchCase(app.status,
-        ['STOPPED', () => `Cloud environment is now paused ${!isTitle ? '...' : ''}`],
-        ['PRESTOPPING', () => 'Cloud environment is preparing to stop.'],
-        ['STOPPING', () => `Cloud environment is pausing. ${waitMessage}`],
-        ['PRESTARTING', () => 'Cloud environment is preparing to start.'],
-        ['STARTING', () => `Cloud environment is starting. ${waitMessage}`],
-        ['RUNNING', () => 'Cloud environment consists of application configuration, cloud compute and persistent disk(s).'],
+        ['STOPPED', () => `paused.`],
+        ['PRESTOPPING', () => 'is preparing to stop.'],
+        ['STOPPING', () => `is pausing. ${waitMessage}`],
+        ['PRESTARTING', () => 'is preparing to start.'],
+        ['STARTING', () => `is starting. ${waitMessage}`],
+        ['RUNNING', () => 'consists of application configuration, cloud compute and persistent disk(s).'],
         ['ERROR', () => `An error has occurred on your cloud environment.`]
       )
   }
@@ -343,13 +343,13 @@ export const NewGalaxyModal = _.flow(
   const renderDefaultCase = () => {
     return h(Fragment, [
       h(TitleBar, {
-        title: getEnvMessageBasedOnStatus(true),
+        title: 'Cloud environment',
         style: { marginBottom: '0.5rem' },
         onDismiss,
         onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
       }),
       div([
-        getEnvMessageBasedOnStatus(false)
+        getEnvMessageBasedOnStatus(app)
       ]),
       div({ style: { paddingBottom: '1.5rem', borderBottom: `1px solid ${colors.dark(0.4)}` } }, [
         renderGalaxyCostBreakdown(kubernetesRuntimeConfig, dataDiskSize)

@@ -1008,7 +1008,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             title: 'Cloud environment',
             onDismiss
           }),
-          div(['Consists of application configuration, cloud compute and persistent disk(s)'])
+          div(['consists of application configuration, cloud compute and persistent disk(s).'])
         ])
       }
       const renderBottomButtons = () => {
