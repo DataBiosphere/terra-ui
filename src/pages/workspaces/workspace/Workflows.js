@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
@@ -14,7 +14,7 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -156,102 +156,48 @@ const WorkflowCard = Utils.memoWithName('WorkflowCard', ({ listView, name, names
     ])
 })
 
-const FindWorkflowModal = Utils.withCancellationSignal(class FindWorkflowModal extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      selectedWorkflow: undefined,
-      featuredList: undefined,
-      methods: undefined,
-      selectedWorkflowDetails: undefined,
-      exporting: undefined
-    }
-  }
+const FindWorkflowModal = ({ namespace, name, ws, onDismiss }) => {
+  // State
+  const [selectedWorkflow, setSelectedWorkflow] = useState(undefined)
+  const [featuredList, setFeaturedList] = useState(undefined)
+  const [methods, setMethods] = useState(undefined)
+  const [selectedWorkflowDetails, setSelectedWorkflowDetails] = useState(undefined)
+  const [exporting, setExporting] = useState(undefined)
 
-  async componentDidMount() {
-    const { signal } = this.props
+  const signal = Utils.useCancellation()
 
-    const [featuredList, methods] = await Promise.all([
-      fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`).then(res => res.json()),
-      Ajax(signal).Methods.list({ namespace: 'gatk' })
-    ])
 
-    this.setState({ featuredList, methods })
-  }
-
-  render() {
-    const { onDismiss } = this.props
-    const { selectedWorkflow, featuredList, methods, selectedWorkflowDetails, exporting } = this.state
-
-    const featuredMethods = _.compact(_.map(
-      ({ namespace, name }) => _.maxBy('snapshotId', _.filter({ namespace, name }, methods)),
-      featuredList
-    ))
-
-    const { synopsis, managers, documentation } = selectedWorkflowDetails || {}
-
-    const renderDetails = () => [
-      div({ style: { display: 'flex' } }, [
-        div({ style: { flexGrow: 1 } }, [
-          div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Synopsis']),
-          div([synopsis || (selectedWorkflowDetails && 'None')]),
-          div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Method Owner']),
-          div([_.join(',', managers)])
-        ]),
-        div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column' } }, [
-          h(ButtonPrimary, { style: { marginBottom: '0.5rem' }, onClick: () => this.exportMethod() }, ['Add to Workspace']),
-          h(ButtonOutline, { onClick: () => this.setState({ selectedWorkflow: undefined, selectedWorkflowDetails: undefined }) }, ['Return to List'])
-        ])
-      ]),
-      div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Documentation']),
-      documentation && h(MarkdownViewer, { style: { maxHeight: 600, overflowY: 'auto' } }, [documentation]),
-      (!selectedWorkflowDetails || exporting) && spinnerOverlay
-    ]
-
-    const renderList = () => [
-      div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', height: 400, paddingTop: 5, paddingLeft: 5 } }, [
-        ...(featuredMethods ?
-          _.map(method => h(MethodCard, { method, onClick: () => this.loadMethod(method) }), featuredMethods) :
-          [centeredSpinner()])
-      ]),
-      div({ style: { fontSize: 18, fontWeight: 600, marginTop: '1rem' } }, ['Find Additional Workflows']),
-      div({ style: { display: 'flex', padding: '0.5rem' } }, [
-        div({ style: { flex: 1, marginRight: 10 } }, [h(DockstoreTile)]),
-        div({ style: { flex: 1, marginLeft: 10 } }, [h(MethodRepoTile)])
+  // Lifecycle
+  Utils.useOnMount(() => {
+    const load = async () => {
+      const [featuredList, methods] = await Promise.all([
+        fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`).then(res => res.json()),
+        Ajax(signal).Methods.list({ namespace: 'gatk' })
       ])
-    ]
 
-    return h(Modal, {
-      onDismiss,
-      showButtons: false,
-      title: selectedWorkflow ? `Workflow: ${selectedWorkflow.name}` : 'Suggested Workflows',
-      showX: true,
-      width: 900
-    }, Utils.cond(
-      [selectedWorkflow, () => renderDetails()],
-      () => renderList()
-    ))
-  }
+      setFeaturedList(featuredList)
+      setMethods(methods)
+    }
 
-  async loadMethod(selectedWorkflow) {
-    const { signal } = this.props
-    const { namespace, name, snapshotId } = selectedWorkflow
+    load()
+  })
 
-    this.setState({ selectedWorkflow })
+
+  // Helpers
+  const loadMethod = async workflow => {
+    setSelectedWorkflow(workflow)
     try {
-      const selectedWorkflowDetails = await Ajax(signal).Methods.method(namespace, name, snapshotId).get()
-      this.setState({ selectedWorkflowDetails })
+      const { namespace, name, snapshotId } = workflow
+      const details = await Ajax(signal).Methods.method(namespace, name, snapshotId).get()
+      setSelectedWorkflowDetails(details)
     } catch (error) {
       reportError('Error loading workflow', error)
-      this.setState({ selectedWorkflow: undefined })
+      setSelectedWorkflow(undefined)
     }
   }
 
-  async exportMethod() {
-    const { namespace, name, ws } = this.props
-    const { selectedWorkflow } = this.state
-
-    this.setState({ exporting: true })
+  const exportMethod = async () => {
+    setExporting(true)
 
     const eventData = { source: 'repo', ...extractWorkspaceDetails(ws) }
 
@@ -269,10 +215,66 @@ const FindWorkflowModal = Utils.withCancellationSignal(class FindWorkflowModal e
     } catch (error) {
       reportError('Error importing workflow', error)
       Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: false })
-      this.setState({ exporting: false })
+      setExporting(false)
     }
   }
-})
+
+
+  // Render
+  const featuredMethods = _.compact(_.map(
+    ({ namespace, name }) => _.maxBy('snapshotId', _.filter({ namespace, name }, methods)),
+    featuredList
+  ))
+
+
+  const renderDetails = () => {
+    const { synopsis, managers, documentation } = selectedWorkflowDetails || {}
+
+    return h(Fragment, [
+      div({ style: { display: 'flex' } }, [
+        div({ style: { flexGrow: 1 } }, [
+          div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Synopsis']),
+          div([synopsis || (selectedWorkflowDetails && 'None')]),
+          div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Method Owner']),
+          div([_.join(',', managers)])
+        ]),
+        div({ style: { margin: '0 1rem', display: 'flex', flexDirection: 'column' } }, [
+          h(ButtonPrimary, { style: { marginBottom: '0.5rem' }, onClick: exportMethod }, ['Add to Workspace']),
+          h(ButtonOutline, {
+            onClick: () => {
+              setSelectedWorkflow(undefined)
+              setSelectedWorkflowDetails(undefined)
+            }
+          }, ['Return to List'])
+        ])
+      ]),
+      div({ style: { fontSize: 18, fontWeight: 600, margin: '1rem 0 0.5rem' } }, ['Documentation']),
+      documentation && h(MarkdownViewer, { style: { maxHeight: 600, overflowY: 'auto' } }, [documentation]),
+      (!selectedWorkflowDetails || exporting) && spinnerOverlay
+    ])
+  }
+
+  const renderList = () => h(Fragment, [
+    div({ style: { display: 'flex', flexWrap: 'wrap', overflowY: 'auto', height: 400, paddingTop: 5, paddingLeft: 5 } }, [
+      ...(featuredMethods ?
+        _.map(method => h(MethodCard, { method, onClick: () => loadMethod(method) }), featuredMethods) :
+        [centeredSpinner()])
+    ]),
+    div({ style: { fontSize: 18, fontWeight: 600, marginTop: '1rem' } }, ['Find Additional Workflows']),
+    div({ style: { display: 'flex', padding: '0.5rem' } }, [
+      div({ style: { flex: 1, marginRight: 10 } }, [h(DockstoreTile)]),
+      div({ style: { flex: 1, marginLeft: 10 } }, [h(MethodRepoTile)])
+    ])
+  ])
+
+  return h(Modal, {
+    onDismiss,
+    showButtons: false,
+    title: selectedWorkflow ? `Workflow: ${selectedWorkflow.name}` : 'Suggested Workflows',
+    showX: true,
+    width: 900
+  }, [!!selectedWorkflow ? renderDetails() : renderList()])
+}
 
 const noWorkflowsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
   div([
@@ -287,137 +289,134 @@ const noWorkflowsMessage = div({ style: { fontSize: 20, margin: '1rem' } }, [
 ])
 
 export const Workflows = _.flow(
+  Utils.forwardRefWithName('Workflows'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Workflows', activeTab: 'workflows'
   }),
-  withViewToggle('workflowsTab'),
-  Utils.withCancellationSignal
-)(class Workflows extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      loading: true,
-      sortOrder: defaultSort.value,
-      filter: '',
-      ...StateHistory.get()
-    }
-  }
+  withViewToggle('workflowsTab')
+)(({ namespace, name, listView, setListView, workspace: ws, workspace: { workspace } }, ref) => {
+  // State
+  const [loading, setLoading] = useState(true)
+  const [sortOrder, setSortOrder] = useState(() => StateHistory.get().sortOrder || defaultSort.value)
+  const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
+  const [configs, setConfigs] = useState(() => StateHistory.get().configs || undefined)
+  const [workflowToExport, setWorkflowToExport] = useState(undefined)
+  const [workflowToCopy, setWorkflowToCopy] = useState(undefined)
+  const [workflowToDelete, setWorkflowToDelete] = useState(undefined)
+  const [findingWorkflow, setFindingWorkflow] = useState(false)
 
-  async refresh() {
-    const { namespace, name, signal } = this.props
+  const signal = Utils.useCancellation()
 
-    try {
-      this.setState({ loading: true })
-      const configs = await Ajax(signal).Workspaces.workspace(namespace, name).listMethodConfigs()
-      this.setState({ configs })
-    } catch (error) {
-      reportError('Error loading configs', error)
-    } finally {
-      this.setState({ loading: false })
-    }
-  }
 
-  getConfig({ namespace, name }) {
-    const { configs } = this.state
-    return _.find({ namespace, name }, configs)
-  }
+  // Helpers
+  const refresh = _.flow(
+    Utils.withBusyState(setLoading),
+    withErrorReporting('Error loading configs')
+  )(async () => {
+    const configs = await Ajax(signal).Workspaces.workspace(namespace, name).listMethodConfigs()
+    setConfigs(configs)
+  })
 
-  render() {
-    const { namespace, name, listView, setListView, workspace: ws, workspace: { workspace } } = this.props
-    const { loading, configs, exportingWorkflow, copyingWorkflow, deletingWorkflow, findingWorkflow, sortOrder, sortOrder: { field, direction }, filter } = this.state
-    const workflows = _.flow(
-      _.filter(({ name }) => Utils.textMatch(filter, name)),
-      _.orderBy(sortTokens[field] || field, direction),
-      _.map(config => {
-        return h(WorkflowCard, {
-          onExport: () => this.setState({ exportingWorkflow: { namespace: config.namespace, name: config.name } }),
-          onCopy: () => this.setState({ copyingWorkflow: { namespace: config.namespace, name: config.name } }),
-          onDelete: () => this.setState({ deletingWorkflow: { namespace: config.namespace, name: config.name } }),
-          key: `${config.namespace}/${config.name}`, namespace, name, config, listView, workspace: ws
-        })
+  const getConfig = conf => _.find(conf, configs)
+
+
+  // Lifecycle
+  Utils.useOnMount(() => {
+    refresh()
+  })
+
+  useEffect(() => {
+    StateHistory.update({ configs, sortOrder, filter })
+  }, [configs, sortOrder, filter])
+
+
+  // Render
+  const { field, direction } = sortOrder
+
+  const workflows = _.flow(
+    _.filter(({ name }) => Utils.textMatch(filter, name)),
+    _.orderBy(sortTokens[field] || field, direction),
+    _.map(config => {
+      return h(WorkflowCard, {
+        onExport: () => setWorkflowToExport({ namespace: config.namespace, name: config.name }),
+        onCopy: () => setWorkflowToCopy({ namespace: config.namespace, name: config.name }),
+        onDelete: () => setWorkflowToDelete({ namespace: config.namespace, name: config.name }),
+        key: `${config.namespace}/${config.name}`, namespace, name, config, listView, workspace: ws
       })
-    )(configs)
+    })
+  )(configs)
 
-    return h(PageBox, [
-      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workflows']),
-        div({ style: { flexGrow: 1 } }),
-        h(DelayedSearchInput, {
-          'aria-label': 'Search workflows',
-          style: { marginRight: '0.75rem', width: 220 },
-          placeholder: 'SEARCH WORKFLOWS',
-          onChange: v => this.setState({ filter: v }),
-          value: filter
-        }),
-        h(IdContainer, [id => h(Fragment, [
-          label({ htmlFor: id, style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
-          h(Select, {
-            id,
-            value: sortOrder,
-            isClearable: false,
-            styles: { container: old => ({ ...old, width: 220, marginRight: '1.10rem' }) },
-            options: sortOptions,
-            onChange: selected => this.setState({ sortOrder: selected.value })
-          })
-        ])]),
-        h(ViewToggleButtons, { listView, setListView }),
-        exportingWorkflow && h(ExportWorkflowModal, {
-          thisWorkspace: workspace, methodConfig: this.getConfig(exportingWorkflow),
-          onDismiss: () => this.setState({ exportingWorkflow: undefined })
-        }),
-        copyingWorkflow && h(ExportWorkflowModal, {
-          thisWorkspace: workspace, methodConfig: this.getConfig(copyingWorkflow),
-          sameWorkspace: true,
-          onDismiss: () => this.setState({ copyingWorkflow: undefined }),
-          onSuccess: () => {
-            this.refresh()
-            this.setState({ copyingWorkflow: undefined })
-          }
-        }),
-        deletingWorkflow && h(DeleteWorkflowModal, {
-          workspace, methodConfig: this.getConfig(deletingWorkflow),
-          onDismiss: () => this.setState({ deletingWorkflow: undefined }),
-          onSuccess: () => {
-            this.refresh()
-            this.setState({ deletingWorkflow: undefined })
-          }
+  return h(PageBox, [
+    div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' } }, [
+      div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workflows']),
+      div({ style: { flexGrow: 1 } }),
+      h(DelayedSearchInput, {
+        'aria-label': 'Search workflows',
+        style: { marginRight: '0.75rem', width: 220 },
+        placeholder: 'SEARCH WORKFLOWS',
+        onChange: setFilter,
+        value: filter
+      }),
+      h(IdContainer, [id => h(Fragment, [
+        label({ htmlFor: id, style: { marginLeft: 'auto', marginRight: '0.75rem' } }, ['Sort By:']),
+        h(Select, {
+          id,
+          value: sortOrder,
+          isClearable: false,
+          styles: { container: old => ({ ...old, width: 220, marginRight: '1.10rem' }) },
+          options: sortOptions,
+          onChange: selected => setSortOrder(selected.value)
         })
+      ])]),
+      h(ViewToggleButtons, { listView, setListView }),
+      workflowToExport && h(ExportWorkflowModal, {
+        thisWorkspace: workspace, methodConfig: getConfig(workflowToExport),
+        onDismiss: () => setWorkflowToExport(undefined)
+      }),
+      workflowToCopy && h(ExportWorkflowModal, {
+        thisWorkspace: workspace, methodConfig: getConfig(workflowToCopy),
+        sameWorkspace: true,
+        onDismiss: () => setWorkflowToCopy(undefined),
+        onSuccess: () => {
+          refresh()
+          setWorkflowToCopy(undefined)
+        }
+      }),
+      workflowToDelete && h(DeleteWorkflowModal, {
+        workspace, methodConfig: getConfig(workflowToDelete),
+        onDismiss: () => setWorkflowToDelete(undefined),
+        onSuccess: () => {
+          refresh()
+          setWorkflowToDelete(undefined)
+        }
+      })
+    ]),
+    div({ style: styles.cardContainer(listView) }, [
+      h(Clickable, {
+        disabled: !!Utils.editWorkspaceError(ws),
+        tooltip: Utils.editWorkspaceError(ws),
+        style: { ...styles.card, ...styles.shortCard, color: colors.accent(), fontSize: 18, lineHeight: '22px' },
+        onClick: () => setFindingWorkflow(true)
+      }, [
+        'Find a Workflow',
+        icon('plus-circle', { size: 32 })
       ]),
-      div({ style: styles.cardContainer(listView) }, [
-        h(Clickable, {
-          disabled: !!Utils.editWorkspaceError(ws),
-          tooltip: Utils.editWorkspaceError(ws),
-          style: { ...styles.card, ...styles.shortCard, color: colors.accent(), fontSize: 18, lineHeight: '22px' },
-          onClick: () => this.setState({ findingWorkflow: true })
-        }, [
-          'Find a Workflow',
-          icon('plus-circle', { size: 32 })
-        ]),
-        Utils.cond(
-          [configs && _.isEmpty(configs), () => noWorkflowsMessage],
-          [!_.isEmpty(configs) && _.isEmpty(workflows), () => {
-            return div({ style: { fontStyle: 'italic' } }, ['No matching workflows'])
-          }],
-          [listView, () => div({ style: { flex: 1 } }, [workflows])],
-          () => workflows
-        ),
-        findingWorkflow && h(FindWorkflowModal, {
-          namespace, name, ws,
-          onDismiss: () => this.setState({ findingWorkflow: false })
-        }),
-        loading && spinnerOverlay
-      ])
+      Utils.cond(
+        [configs && _.isEmpty(configs), () => noWorkflowsMessage],
+        [!_.isEmpty(configs) && _.isEmpty(workflows), () => {
+          return div({ style: { fontStyle: 'italic' } }, ['No matching workflows'])
+        }],
+        [listView, () => div({ style: { flex: 1 } }, [workflows])],
+        () => workflows
+      ),
+      findingWorkflow && h(FindWorkflowModal, {
+        namespace, name, ws,
+        onDismiss: () => setFindingWorkflow(false)
+      }),
+      loading && spinnerOverlay
     ])
-  }
-
-  componentDidMount() {
-    this.refresh()
-  }
-
-  componentDidUpdate() {
-    StateHistory.update(_.pick(['configs', 'sortOrder', 'filter'], this.state))
-  }
+  ])
 })
 
 export const navPaths = [
