@@ -203,12 +203,10 @@ const FindWorkflowModal = ({ namespace, name, ws, onDismiss }) => {
 
     try {
       const methodAjax = Ajax().Methods.method(selectedWorkflow.namespace, selectedWorkflow.name, selectedWorkflow.snapshotId)
-
       const config = _.maxBy('snapshotId', await methodAjax.configs())
+      const { namespace: workflowNamespace, name: workflowName } = config || selectedWorkflow
 
       await methodAjax.toWorkspace({ namespace, name }, config)
-
-      const { namespace: workflowNamespace, name: workflowName } = config || selectedWorkflow
 
       Ajax().Metrics.captureEvent(Events.workflowImport, { ...eventData, success: true })
       Nav.goToPath('workflow', { namespace, name, workflowNamespace, workflowName })
