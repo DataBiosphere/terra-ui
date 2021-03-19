@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h, label, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -13,6 +13,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { currentApp, currentDataDisk, findMachineType, getGalaxyComputeCost, getGalaxyDiskCost } from 'src/libs/runtime-utils'
+import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -23,7 +24,6 @@ const styles = {
   drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
   headerText: { fontSize: 16, fontWeight: 600 }
 }
-
 export const NewGalaxyModal = _.flow(
   Utils.withDisplayName('NewGalaxyModal'),
   withModalDrawer({ width: 675 })
@@ -32,15 +32,25 @@ export const NewGalaxyModal = _.flow(
   const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
   const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
 
-  const [viewMode, setViewMode] = useState(undefined)
-  const [loading, setLoading] = useState(false)
-  const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(defaultKubernetesRuntimeConfig)
-  const [dataDiskSize, setDataDiskSize] = useState(defaultDataDiskSize) // GB
-
-  // Assumption: If there is an app defined, there must be a data disk corresponding to it.
   const app = currentApp(apps)
   const dataDisk = currentDataDisk(app, galaxyDataDisks)
-  if (dataDisk?.size) { setDataDiskSize(dataDisk.size) }
+
+  // Assumption: If there is an app defined, there must be a data disk corresponding to it.
+  const getDataDiskSize = app => {
+    return dataDisk?.size || defaultDataDiskSize
+  }
+
+  const [viewMode, setViewMode] = useState(undefined)
+  const [loading, setLoading] = useState(false)
+  const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(StateHistory.get().kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig)
+  const [dataDiskSize, setDataDiskSize] = useState(getDataDiskSize(app))
+
+  useEffect(() => {
+    StateHistory.update({ kubernetesRuntimeConfig })
+  }, [kubernetesRuntimeConfig])
+
+  // const app = currentApp(apps)
+  // const dataDisk = currentDataDisk(app, galaxyDataDisks)
   const dataDiskOrDefault = dataDisk || { name: null, size: defaultDataDiskSize }
   const appOrDefault = app || { kubernetesRuntimeConfig, diskName: dataDiskOrDefault.name }
 

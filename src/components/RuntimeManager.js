@@ -117,7 +117,8 @@ export default class RuntimeManager extends PureComponent {
     canCompute: PropTypes.bool.isRequired,
     refreshRuntimes: PropTypes.func.isRequired,
     workspace: PropTypes.object,
-    apps: PropTypes.array
+    apps: PropTypes.array,
+    galaxyDataDisks: PropTypes.array
   }
 
   constructor(props) {
@@ -223,7 +224,7 @@ export default class RuntimeManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, runtimes, refreshRuntimes, canCompute, persistentDisks, apps, refreshApps, workspace } = this.props
+    const { namespace, name, runtimes, refreshRuntimes, canCompute, persistentDisks, apps, galaxyDataDisks, refreshApps, workspace } = this.props
     const { busy, createModalDrawerOpen, errorModalOpen, galaxyDrawerOpen } = this.state
     if (!runtimes || !apps) {
       return null
@@ -366,6 +367,7 @@ export default class RuntimeManager extends PureComponent {
         h(NewGalaxyModal, {
           workspace,
           apps,
+          galaxyDataDisks,
           isOpen: galaxyDrawerOpen,
           onDismiss: () => this.setState({ galaxyDrawerOpen: false }),
           onSuccess: () => {
