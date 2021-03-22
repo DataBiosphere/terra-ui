@@ -24,6 +24,7 @@ import validate from 'validate.js'
 
 const ownerRole = 'Owner'
 
+
 // TODO: Make conform with new mocks from Jerome
 const ProjectTab = ({ project: { projectName, role, creationStatus, message }, isActive }) => {
   const projectReady = creationStatus === 'Ready'
@@ -32,16 +33,19 @@ const ProjectTab = ({ project: { projectName, role, creationStatus, message }, i
     h(InfoBox, {
       style: { color: colors.danger(), margin: '0 1rem 0 0.5rem' }, side: 'right'
     }, [div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [message || 'Error during project creation.'])])
-
-  return div({ style: { ...Style.navList.item(isActive), ...(isActive ? { backgroundColor: colors.dark(0.1) } : {}), paddingLeft: '3rem' } }, [
-    _.includes(ownerRole, role) && projectReady ?
-      h(Clickable, {
-        style: { color: colors.accent() },
-        href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
-        hover: Style.navList.itemHover(isActive)
-      }, [projectName, !projectReady && statusIcon]) :
-      div({ style: { color: colors.dark() } }, [projectName, !projectReady && statusIcon])
-  ])
+  const selectableProject = h(Clickable, {
+    style: { color: colors.accent() },
+    href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
+    hover: Style.navList.itemHover(isActive)
+  }, [projectName, !projectReady && statusIcon])
+  const unselectableProject = div({ style: { color: colors.dark() } }, [projectName, !projectReady && statusIcon])
+  return div({
+    style: {
+      ...Style.navList.item(isActive),
+      ...(isActive ? { backgroundColor: colors.dark(0.1) } : {}),
+      paddingLeft: '3rem'
+    }
+  }, [_.includes(ownerRole, role) && projectReady ? selectableProject : unselectableProject])
 }
 
 const billingProjectNameValidator = existing => ({
