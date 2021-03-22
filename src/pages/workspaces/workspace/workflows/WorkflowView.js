@@ -388,10 +388,11 @@ const WorkflowView = _.flow(
     // modifiedConfig: active data, potentially unsaved
     const {
       isFreshData, savedConfig, entityMetadata, launching, activeTab, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
-      entitySelectionModel, variableSelected, modifiedConfig, updatingConfig, selectedSnapshotEntityMetadata
+      entitySelectionModel, variableSelected, modifiedConfig, updatingConfig, selectedSnapshotEntityMetadata, availableSnapshots
     } = this.state
     const { namespace, name, workspace } = this.props
     const workspaceId = { namespace, name }
+
     return h(Fragment, [
       savedConfig && h(Fragment, [
         this.renderSummary(),
@@ -407,7 +408,16 @@ const WorkflowView = _.flow(
           onDismiss: () => this.setState({ launching: false }),
           onSuccess: submissionId => {
             const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, { ...extractWorkspaceDetails(workspace), fromSnapshot: entitySelectionModel.type === processSnapshotTable, methodVersion, sourceRepo, methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath })
+            // will only match if the current root entity type comes from a snapshot
+            const snapshot = _.find({ name: modifiedConfig.dataReferenceName }, availableSnapshots)
+            Ajax().Metrics.captureEvent(Events.workflowLaunch, {
+              ...extractWorkspaceDetails(workspace),
+              snapshotId: snapshot?.reference.snapshot,
+              referenceId: snapshot?.referenceId,
+              methodVersion,
+              sourceRepo,
+              methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath
+            })
             Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
           }
         }),
