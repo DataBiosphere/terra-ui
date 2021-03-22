@@ -23,13 +23,18 @@ const styles = {
   drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
   headerText: { fontSize: 16, fontWeight: 600 }
 }
+
+const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
+
+// TODO Refactor this if it ends up remaining as the duplicate in NewRuntimeModal.js if?
+const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
+
 export const NewGalaxyModal = _.flow(
   Utils.withDisplayName('NewGalaxyModal'),
   withModalDrawer({ width: 675 })
 )(({ onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
   const defaultDataDiskSize = 250 // GB
   const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
-  const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
 
   const app = currentApp(apps)
   const dataDisk = currentDataDisk(app, galaxyDataDisks)
@@ -241,71 +246,12 @@ export const NewGalaxyModal = _.flow(
     ])
   }
 
-  // TODO Refactor this and the duplicate in NewRuntimeModal.js?
-  const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
-
-  const MachineSelector = ({ value, onChange }) => {
-    const { cpu: currentCpu, memory: currentMemory } = findMachineType(value.machineType)
-    return h(Fragment, [
-      h(IdContainer, [
-        id => h(Fragment, [
-          label({ htmlFor: id, style: styles.label }, ['Nodes']),
-          div([
-            h(NumberInput, {
-              id,
-              min: 1,
-              max: maxNodepoolSize,
-              isClearable: false,
-              onlyInteger: true,
-              value: value.numNodes,
-              onChange: n => onChange(prevState => { return { ...prevState, numNodes: n } })
-            })
-          ])
-        ])
-      ]),
-      h(IdContainer, [
-        id => h(Fragment, [
-          label({ htmlFor: id, style: styles.label }, ['CPUs']),
-          div([
-            h(Select, {
-              id,
-              isSearchable: false,
-              value: currentCpu,
-              onChange: option => {
-                const validMachineType = _.find({ cpu: option.value }, validMachineTypes)?.name || value.machineType
-                onChange(prevState => { return { ...prevState, machineType: validMachineType } })
-              },
-              options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validMachineTypes)
-            })
-          ])
-        ])
-      ]),
-      h(IdContainer, [
-        id => h(Fragment, [
-          label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
-          div([
-            h(Select, {
-              id,
-              isSearchable: false,
-              value: currentMemory,
-              onChange: option => {
-                const validMachineType = _.find({ cpu: currentCpu, memory: option.value }, validMachineTypes)?.name || value.machineType
-                onChange(prevState => { return { ...prevState, machineType: validMachineType } })
-              },
-              options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
-            })
-          ])
-        ])
-      ])
-    ])
-  }
-
   const renderCloudComputeProfileSection = () => {
     const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '2rem', alignItems: 'center' }
     return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: styles.headerText }, ['Cloud compute profile']),
       div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
-        MachineSelector({ value: kubernetesRuntimeConfig, onChange: v => setKubernetesRuntimeConfig(v) })
+        h(MachineSelector, { value: kubernetesRuntimeConfig, onChange: v => setKubernetesRuntimeConfig(v) })
       ])
     ])
   }
@@ -377,3 +323,59 @@ export const NewGalaxyModal = _.flow(
     loading && spinnerOverlay
   ])
 })
+
+const MachineSelector = ({ value, onChange }) => {
+  const { cpu: currentCpu, memory: currentMemory } = findMachineType(value.machineType)
+  return h(Fragment, [
+    h(IdContainer, [
+      id => h(Fragment, [
+        label({ htmlFor: id, style: styles.label }, ['Nodes']),
+        div([
+          h(NumberInput, {
+            id,
+            min: 1,
+            max: maxNodepoolSize,
+            isClearable: false,
+            onlyInteger: true,
+            value: value.numNodes,
+            onChange: n => onChange(prevState => { return { ...prevState, numNodes: n } })
+          })
+        ])
+      ])
+    ]),
+    h(IdContainer, [
+      id => h(Fragment, [
+        label({ htmlFor: id, style: styles.label }, ['CPUs']),
+        div([
+          h(Select, {
+            id,
+            isSearchable: false,
+            value: currentCpu,
+            onChange: option => {
+              const validMachineType = _.find({ cpu: option.value }, validMachineTypes)?.name || value.machineType
+              onChange(prevState => { return { ...prevState, machineType: validMachineType } })
+            },
+            options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validMachineTypes)
+          })
+        ])
+      ])
+    ]),
+    h(IdContainer, [
+      id => h(Fragment, [
+        label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
+        div([
+          h(Select, {
+            id,
+            isSearchable: false,
+            value: currentMemory,
+            onChange: option => {
+              const validMachineType = _.find({ cpu: currentCpu, memory: option.value }, validMachineTypes)?.name || value.machineType
+              onChange(prevState => { return { ...prevState, machineType: validMachineType } })
+            },
+            options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
+          })
+        ])
+      ])
+    ])
+  ])
+}
