@@ -201,11 +201,11 @@ export const NewGalaxyModal = _.flow(
     return !app ?
       'consists of application configuration, cloud compute and persistent disk(s).' :
       Utils.switchCase(app.status,
-        ['STOPPED', () => `paused.`],
-        ['PRESTOPPING', () => 'is preparing to stop.'],
+        ['STOPPED', () => `is paused.`],
+        ['PRESTOPPING', () => 'is preparing to pause.'],
         ['STOPPING', () => `is pausing. ${waitMessage}`],
         ['PRESTARTING', () => 'is preparing to start.'],
-        ['STARTING', () => `is starting. ${waitMessage}`],
+        ['STARTING', () => `is resuming. ${waitMessage}`],
         ['RUNNING', () => 'consists of application configuration, cloud compute and persistent disk(s).'],
         ['ERROR', () => `An error has occurred on your cloud environment.`]
       )
@@ -241,7 +241,7 @@ export const NewGalaxyModal = _.flow(
     ])
   }
 
-  // TODO Refactor this and its duplicate in NewRuntimeModal.js?
+  // TODO Refactor this and the duplicate in NewRuntimeModal.js?
   const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
 
   const MachineSelector = ({ value, onChange }) => {
@@ -305,7 +305,7 @@ export const NewGalaxyModal = _.flow(
     return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: styles.headerText }, ['Cloud compute profile']),
       div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
-        h(MachineSelector, { value: kubernetesRuntimeConfig, onChange: v => setKubernetesRuntimeConfig(v) })
+        MachineSelector({ value: kubernetesRuntimeConfig, onChange: v => setKubernetesRuntimeConfig(v) })
       ])
     ])
   }
