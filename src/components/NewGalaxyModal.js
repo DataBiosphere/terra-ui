@@ -62,7 +62,7 @@ export const NewGalaxyModal = _.flow(
 
   const pauseGalaxy = _.flow(
     Utils.withBusyState(setLoading),
-    withErrorReporting('Error stopping galaxy instance')
+    withErrorReporting('Error pausing galaxy instance')
   )(async () => {
     await Ajax().Apps.app(app.googleProject, app.appName).pause()
     Ajax().Metrics.captureEvent(Events.applicationPause, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
@@ -71,7 +71,7 @@ export const NewGalaxyModal = _.flow(
 
   const resumeGalaxy = _.flow(
     Utils.withBusyState(setLoading),
-    withErrorReporting('Error starting galaxy instance')
+    withErrorReporting('Error resuming galaxy instance')
   )(async () => {
     await Ajax().Apps.app(app.googleProject, app.appName).resume()
     Ajax().Metrics.captureEvent(Events.applicationResume, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
@@ -175,7 +175,8 @@ export const NewGalaxyModal = _.flow(
         div({ style: { marginTop: '1rem' } }, [
           'Deleting your Cloud Environment will stop your ',
           'running Galaxy application and your application costs. You can create a new Cloud Environment ',
-          'for Galaxy later, which will take 8-10 minutes.'
+          'for Galaxy later, which will take 8-10 ' +
+          'minutes.'
         ])
       ])
     ])
@@ -202,10 +203,10 @@ export const NewGalaxyModal = _.flow(
       'consists of application configuration, cloud compute and persistent disk(s).' :
       Utils.switchCase(app.status,
         ['STOPPED', () => `paused.`],
-        ['PRESTOPPING', () => 'is preparing to stop.'],
+        ['PRESTOPPING', () => 'is preparing to pause.'],
         ['STOPPING', () => `is pausing. ${waitMessage}`],
-        ['PRESTARTING', () => 'is preparing to start.'],
-        ['STARTING', () => `is starting. ${waitMessage}`],
+        ['PRESTARTING', () => 'is preparing to resume.'],
+        ['STARTING', () => `is resuming. ${waitMessage}`],
         ['RUNNING', () => 'consists of application configuration, cloud compute and persistent disk(s).'],
         ['ERROR', () => `An error has occurred on your cloud environment.`]
       )

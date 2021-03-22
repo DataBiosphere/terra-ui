@@ -239,16 +239,16 @@ export default class RuntimeManager extends PureComponent {
             shape: 'play',
             onClick: () => this.startRuntime(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Start cloud environment' : noCompute,
-            'aria-label': 'Start cloud environment'
+            tooltip: canCompute ? 'Resume cloud environment' : noCompute,
+            'aria-label': 'Resume cloud environment'
           })
         case 'Running':
           return h(RuntimeIcon, {
             shape: 'pause',
             onClick: () => this.stopRuntime(),
             disabled: busy || !canCompute,
-            tooltip: canCompute ? 'Stop cloud environment' : noCompute,
-            'aria-label': 'Stop cloud environment'
+            tooltip: canCompute ? 'Pause cloud environment' : noCompute,
+            'aria-label': 'Pause cloud environment'
           })
         case 'Starting':
         case 'Stopping':
