@@ -21,7 +21,9 @@ import * as Utils from 'src/libs/utils'
 import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
 
+const ownerRole = 'Owner'
 
+// TODO: Make conform with new mocks from Jerome
 const ProjectTab = ({ project: { projectName, role, creationStatus, message }, isActive }) => {
   const projectReady = creationStatus === 'Ready'
   const statusIcon = creationStatus === 'Creating' ?
@@ -30,9 +32,9 @@ const ProjectTab = ({ project: { projectName, role, creationStatus, message }, i
       style: { color: colors.danger(), margin: '0 1rem 0 0.5rem' }, side: 'right'
     }, [div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [message || 'Error during project creation.'])])
 
-  return _.includes('Owner', role) && projectReady ?
+  return _.includes(ownerRole, role) && projectReady ?
     h(Clickable, {
-      style: { ...Style.navList.item(isActive), color: colors.accent() },
+      style: { ...Style.navList.item(isActive), backgroundColor: colors.dark(0.4), color: colors.accent() },
       href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
       hover: Style.navList.itemHover(isActive)
     }, [projectName, !projectReady && statusIcon]) :
@@ -64,6 +66,8 @@ const noBillingMessage = onClick => div({ style: { fontSize: 20, margin: '2rem' 
     }, [`What is a billing project?`])
   ])
 ])
+
+const BillingProjectSubheader = ({ children }) => div({ style: { fontWeight: 600, padding: '1rem 2rem' } }, [children])
 
 const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAccounts }) => {
   const [billingProjectName, setBillingProjectName] = useState('')
@@ -216,7 +220,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   })
 
   const checkOwner = () => {
-    !isOwner && _.map(project => _.includes('Owner', project.role) ? setIsOwner(true) : null, billingProjects)
+    !isOwner && _.map(project => _.includes(ownerRole, project.role) ? setIsOwner(true) : null, billingProjects)
   }
 
   const showCreateProjectModal = async () => {
@@ -268,20 +272,32 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
       ])
     ]),
     div({ role: 'main', style: { display: 'flex', flex: 1, position: 'relative' } }, [
-      div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
-        div({ style: Style.navList.heading }, [
+      div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' /* TODO: Make scrollable */ } }, [
+        div({
+          style: {
+            fontSize: 16, fontWeight: 600, padding: '2rem',
+            textTransform: 'uppercase', color: colors.dark()
+          }
+        }, [
           'Billing Projects',
-          h(Clickable, {
+          h(ButtonPrimary, {
             'aria-label': 'Create new billing project',
-            onClick: showCreateProjectModal
+            onClick: showCreateProjectModal,
+            style: { marginTop: '1rem' }
           }, [
-            icon('plus-circle', { size: 21, style: { color: colors.accent() } })
+            'New Billing Project'
           ])
         ]),
+        h(BillingProjectSubheader, ['Owned by You']),
         _.map(project => h(ProjectTab, {
           project, key: project.projectName,
           isActive: !!selectedName && project.projectName === selectedName
-        }), billingProjects)
+        }), _.filter(project => _.includes(ownerRole, project.role), billingProjects)),
+        h(BillingProjectSubheader, ['Shared with You']),
+        _.map(project => h(ProjectTab, {
+          project, key: project.projectName,
+          isActive: !!selectedName && project.projectName === selectedName
+        }), _.filter(project => !_.includes(ownerRole, project.role), billingProjects))
       ]),
       creatingBillingProject && h(NewBillingProjectModal, {
         billingAccounts,
