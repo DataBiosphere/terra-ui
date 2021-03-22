@@ -680,6 +680,10 @@ const Workspaces = signal => ({
               jsonBody(updateInfo),
               { signal, method: 'PATCH' }
             ]))
+          },
+
+          delete: () => {
+            return fetchRawls(snapshotPath, _.merge(authOpts(), { signal, method: 'DELETE' }))
           }
         }
       },

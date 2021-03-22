@@ -1,7 +1,7 @@
 import debouncePromise from 'debounce-promise'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { b, div, h, p } from 'react-hyperscript-helpers'
 import { AsyncCreatableSelect, ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
@@ -71,7 +71,8 @@ const SnapshotLabeledInfo = ({ title, text }) => {
 }
 
 export const SnapshotInfo = ({
-  workspace: { workspace: { namespace, name } }, resource: { referenceId, description, reference: { snapshot: snapshotId } }, snapshotName, onUpdate
+  workspace: { workspace: { namespace, name } }, resource: { referenceId, description, reference: { snapshot: snapshotId } }, snapshotName,
+  onUpdate, onDelete
 }) => {
   // State
   const [snapshotInfo, setSelectedSnapshotInfo] = useState()
@@ -79,6 +80,7 @@ export const SnapshotInfo = ({
   const [editingName, setEditingName] = useState(false)
   const [newDescription, setNewDescription] = useState(undefined)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const signal = Utils.useCancellation()
 
@@ -184,6 +186,9 @@ export const SnapshotInfo = ({
           ])
         }, source)
       ]),
+      div({ style: { marginTop: '2rem' } }, [
+        h(ButtonSecondary, { onClick: () => setDeleting(true) }, ['Delete snapshot from workspace'])
+      ]),
       editingName && h(Modal, {
         onDismiss: () => {
           setNewName(snapshotName)
@@ -212,6 +217,27 @@ export const SnapshotInfo = ({
             error: Utils.summarizeErrors(errors)
           })
         ])])
+      ]),
+      deleting && h(Modal, {
+        onDismiss: () => setDeleting(false),
+        okButton: async () => {
+          setSaving(true)
+          setDeleting(false)
+          await Ajax().Workspaces.workspace(namespace, name).snapshot(referenceId).delete()
+          onDelete()
+        },
+        title: `Delete Snapshot`
+      }, [
+        p([
+          'Do you want to remove the snapshot ',
+          b([snapshotName]),
+          ' from this workspace?'
+        ]),
+        p([
+          'Its source snapshot in the Data Repo, ',
+          b([sourceName]),
+          ', will be unaffected.'
+        ])
       ]),
       saving && spinnerOverlay
     ])
