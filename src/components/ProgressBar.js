@@ -1,4 +1,5 @@
 import { dd, div, dl, dt, h, p, strong } from 'react-hyperscript-helpers'
+import { ButtonPrimary } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
 import { friendlyFileSize } from 'src/libs/uploads'
@@ -52,8 +53,11 @@ export const UploadProgressModal = ({ status: { totalFiles, totalBytes, uploaded
   return h(Modal, {
     title: 'Upload in Progress...',
     showCancel: false,
-    onDismiss: abort,
-    okButton: 'Abort Upload',
+    onDismiss: () => {},
+    okButton: h(ButtonPrimary, {
+      onClick: abort,
+      danger: true
+    }, ['Abort Upload']),
     danger: true
   }, [
     p({
