@@ -227,7 +227,7 @@ export const SnapshotInfo = ({
             setDeleting(false)
             await Ajax().Workspaces.workspace(namespace, name).snapshot(referenceId).delete()
             Ajax().Metrics.captureEvent(Events.workspaceSnapshotDelete, {
-              ...extractWorkspaceDetails({ workspace }),
+              ...extractWorkspaceDetails(workspace),
               referenceId,
               snapshotId
             })

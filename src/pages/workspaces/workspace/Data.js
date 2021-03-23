@@ -503,7 +503,7 @@ const WorkspaceData = _.flow(
                     onClick: () => {
                       setSelectedDataType([snapshotName, tableName])
                       Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {
-                        ...extractWorkspaceDetails({ workspace }),
+                        ...extractWorkspaceDetails(workspace.workspace),
                         referenceId,
                         snapshotId: snapshot,
                         entityType: tableName
