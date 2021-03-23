@@ -24,12 +24,11 @@ const styles = {
   headerText: { fontSize: 16, fontWeight: 600 }
 }
 
-const defaultDataDiskSize = 250 // GB
+const defaultDataDiskSize = 500 // GB
 const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
 const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
 
-// TODO Refactor this if it ends up remaining as the duplicate in NewRuntimeModal.js if?
-const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
+const validMachineTypes = _.filter(({ cpu, memory }) => cpu >= 4 && memory >= 52, machineTypes)
 
 export const NewGalaxyModal = _.flow(
   Utils.withDisplayName('NewGalaxyModal'),
