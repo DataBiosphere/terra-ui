@@ -10,6 +10,7 @@ import Modal from 'src/components/Modal'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { Ajax } from 'src/libs/ajax'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { workspacesStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -71,7 +72,7 @@ const SnapshotLabeledInfo = ({ title, text }) => {
 }
 
 export const SnapshotInfo = ({
-  workspace: { workspace: { namespace, name } }, resource: { referenceId, description, reference: { snapshot: snapshotId } }, snapshotName,
+  workspace: { workspace, workspace: { namespace, name } }, resource: { referenceId, description, reference: { snapshot: snapshotId } }, snapshotName,
   onUpdate, onDelete
 }) => {
   // State
@@ -221,10 +222,20 @@ export const SnapshotInfo = ({
       deleting && h(Modal, {
         onDismiss: () => setDeleting(false),
         okButton: async () => {
-          setSaving(true)
-          setDeleting(false)
-          await Ajax().Workspaces.workspace(namespace, name).snapshot(referenceId).delete()
-          onDelete()
+          try {
+            setSaving(true) // this will be unmounted in the reload, so no need to reset this
+            setDeleting(false)
+            await Ajax().Workspaces.workspace(namespace, name).snapshot(referenceId).delete()
+            Ajax().Metrics.captureEvent(Events.workspaceSnapshotDelete, {
+              ...extractWorkspaceDetails({ workspace }),
+              referenceId,
+              snapshotId,
+            })
+            onDelete()
+          } catch (e) {
+            setSaving(false)
+            reportError('Error deleting snapshot', e)
+          }
         },
         title: `Delete Snapshot`
       }, [
