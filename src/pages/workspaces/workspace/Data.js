@@ -123,7 +123,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
     ])
   ])
 }
-const SnapshotContent = ({ workspace, snapshotDetails, entityKey, loadMetadata, onUpdate, firstRender, snapshotKey: [snapshotName, tableName] }) => {
+const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, onDelete, firstRender, snapshotKey: [snapshotName, tableName] }) => {
   return Utils.cond(
     [!snapshotDetails?.[snapshotName], () => spinnerOverlay],
     [!!tableName, () => h(EntitiesContent, {
@@ -134,7 +134,7 @@ const SnapshotContent = ({ workspace, snapshotDetails, entityKey, loadMetadata, 
       loadMetadata,
       firstRender
     })],
-    () => h(SnapshotInfo, { workspace, resource: snapshotDetails[snapshotName].resource, snapshotName, onUpdate })
+    () => h(SnapshotInfo, { workspace, resource: snapshotDetails[snapshotName].resource, snapshotName, onUpdate, onDelete })
   )
 }
 
@@ -503,7 +503,7 @@ const WorkspaceData = _.flow(
                     onClick: () => {
                       setSelectedDataType([snapshotName, tableName])
                       Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {
-                        ...extractWorkspaceDetails({ workspace }),
+                        ...extractWorkspaceDetails(workspace.workspace),
                         referenceId,
                         snapshotId: snapshot,
                         entityType: tableName
@@ -619,6 +619,11 @@ const WorkspaceData = _.flow(
             onUpdate: async newSnapshotName => {
               await loadSnapshotMetadata()
               setSelectedDataType([newSnapshotName])
+              forceRefresh()
+            },
+            onDelete: async () => {
+              await loadSnapshotMetadata()
+              setSelectedDataType()
               forceRefresh()
             },
             firstRender

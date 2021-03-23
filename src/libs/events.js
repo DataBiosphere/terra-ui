@@ -26,6 +26,7 @@ const eventsList = {
   workspaceCreate: 'workspace:create',
   workspaceDataImport: 'workspace:data:import',
   workspaceShare: 'workspace:share',
+  workspaceSnapshotDelete: 'workspace:snapshot:delete',
   workspaceSnapshotContentsView: 'workspace:snapshot:contents:view'
 }
 
