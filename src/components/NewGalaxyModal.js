@@ -24,6 +24,8 @@ const styles = {
   headerText: { fontSize: 16, fontWeight: 600 }
 }
 
+const defaultDataDiskSize = 250 // GB
+const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
 const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
 
 // TODO Refactor this if it ends up remaining as the duplicate in NewRuntimeModal.js if?
@@ -33,13 +35,10 @@ export const NewGalaxyModal = _.flow(
   Utils.withDisplayName('NewGalaxyModal'),
   withModalDrawer({ width: 675 })
 )(({ onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
-  const defaultDataDiskSize = 250 // GB
-  const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
-
+  // Assumption: If there is an app defined, there must be a data disk corresponding to it.
   const app = currentApp(apps)
   const dataDisk = currentDataDisk(app, galaxyDataDisks)
 
-  // Assumption: If there is an app defined, there must be a data disk corresponding to it.
   const [dataDiskSize, setDataDiskSize] = useState(dataDisk?.size || defaultDataDiskSize)
   const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(app?.kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig)
   const [viewMode, setViewMode] = useState(undefined)
