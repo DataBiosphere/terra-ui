@@ -229,7 +229,7 @@ export const SnapshotInfo = ({
             Ajax().Metrics.captureEvent(Events.workspaceSnapshotDelete, {
               ...extractWorkspaceDetails({ workspace }),
               referenceId,
-              snapshotId,
+              snapshotId
             })
             onDelete()
           } catch (e) {
