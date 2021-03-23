@@ -25,7 +25,8 @@ const eventsList = {
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
   workspaceDataImport: 'workspace:data:import',
-  workspaceShare: 'workspace:share'
+  workspaceShare: 'workspace:share',
+  workspaceSnapshotContentsView: 'workspace:snapshot:contents:view'
 }
 
 export const extractWorkspaceDetails = workspaceObject => {

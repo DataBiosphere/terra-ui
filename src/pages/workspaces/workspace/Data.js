@@ -21,6 +21,7 @@ import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { pfbImportJobStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -459,7 +460,7 @@ const WorkspaceData = _.flow(
           error: snapshotMetadataError,
           retryFunction: loadSnapshotMetadata
         }, [
-          _.map(([snapshotName, { entityMetadata: snapshotTables, error: snapshotTablesError }]) => {
+          _.map(([snapshotName, { resource: { referenceId, reference: { snapshot } }, entityMetadata: snapshotTables, error: snapshotTablesError }]) => {
             const snapshotTablePairs = toSortedPairs(snapshotTables)
             return h(Collapse, {
               key: snapshotName,
@@ -501,6 +502,12 @@ const WorkspaceData = _.flow(
                     selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
                     onClick: () => {
                       setSelectedDataType([snapshotName, tableName])
+                      Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {
+                        ...extractWorkspaceDetails({ workspace }),
+                        referenceId,
+                        snapshotId: snapshot,
+                        entityType: tableName
+                      })
                       forceRefresh()
                     }
                   }, [`${tableName} (${count})`])
