@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
+import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
@@ -74,7 +75,12 @@ const noBillingMessage = onClick => div({ style: { fontSize: 20, margin: '2rem' 
   ])
 ])
 
-const BillingProjectSubheader = ({ children }) => div({ style: { fontWeight: 600, padding: '1rem 2rem' } }, [children])
+const BillingProjectSubheader = ({title, children }) => h(Collapse, {
+  title: title,
+  initialOpenState: true,
+  titleFirst: true,
+  buttonStyle: { padding: '1rem 1rem 1rem 2rem', color: colors.dark() }
+}, [children])
 
 const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAccounts }) => {
   const [billingProjectName, setBillingProjectName] = useState('')
@@ -295,16 +301,19 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             'New Billing Project'
           ])
         ]),
-        h(BillingProjectSubheader, ['Owned by You']),
-        _.map(project => h(ProjectTab, {
-          project, key: project.projectName,
-          isActive: !!selectedName && project.projectName === selectedName
-        }), _.filter(project => _.includes(ownerRole, project.role), billingProjects)),
-        h(BillingProjectSubheader, ['Shared with You']),
-        _.map(project => h(ProjectTab, {
-          project, key: project.projectName,
-          isActive: !!selectedName && project.projectName === selectedName
-        }), _.filter(project => !_.includes(ownerRole, project.role), billingProjects))
+
+        h(BillingProjectSubheader, {title: 'Owned by You'}, [
+          _.map(project => h(ProjectTab, {
+              project, key: project.projectName,
+              isActive: !!selectedName && project.projectName === selectedName
+            }), _.filter(project => _.includes(ownerRole, project.role), billingProjects))]),
+
+        h(BillingProjectSubheader, {title: 'Shared with You'}, [
+          _.map(project => h(ProjectTab, {
+              project, key: project.projectName,
+              isActive: !!selectedName && project.projectName === selectedName
+            }), _.filter(project => !_.includes(ownerRole, project.role), billingProjects))
+        ])
       ]),
       creatingBillingProject && h(NewBillingProjectModal, {
         billingAccounts,
