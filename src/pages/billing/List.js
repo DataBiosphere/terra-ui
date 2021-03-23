@@ -25,6 +25,16 @@ import validate from 'validate.js'
 
 const ownerRole = 'Owner'
 
+const styles = {
+  projectTab: selected => {
+    return {
+      ...Style.navList.item(selected),
+      ...(selected ? { backgroundColor: colors.dark(0.1) } : {}),
+      paddingLeft: '3rem'
+    }
+  }
+}
+
 
 // TODO: Make conform with new mocks from Jerome
 const ProjectTab = ({ project: { projectName, role, creationStatus, message }, isActive }) => {
@@ -35,18 +45,12 @@ const ProjectTab = ({ project: { projectName, role, creationStatus, message }, i
       style: { color: colors.danger(), margin: '0 1rem 0 0.5rem' }, side: 'right'
     }, [div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [message || 'Error during project creation.'])])
   const selectableProject = h(Clickable, {
-    style: { color: colors.accent() },
+    style: { ...styles.projectTab(isActive), color: colors.accent() },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
     hover: Style.navList.itemHover(isActive)
   }, [projectName, !projectReady && statusIcon])
-  const unselectableProject = div({ style: { color: colors.dark() } }, [projectName, !projectReady && statusIcon])
-  return div({
-    style: {
-      ...Style.navList.item(isActive),
-      ...(isActive ? { backgroundColor: colors.dark(0.1) } : {}),
-      paddingLeft: '3rem'
-    }
-  }, [_.includes(ownerRole, role) && projectReady ? selectableProject : unselectableProject])
+  const unselectableProject = div({ style: { ...styles.projectTab(isActive), color: colors.dark() } }, [projectName, !projectReady && statusIcon])
+  return div([_.includes(ownerRole, role) && projectReady ? selectableProject : unselectableProject])
 }
 
 const billingProjectNameValidator = existing => ({
@@ -75,8 +79,8 @@ const noBillingMessage = onClick => div({ style: { fontSize: 20, margin: '2rem' 
   ])
 ])
 
-const BillingProjectSubheader = ({title, children }) => h(Collapse, {
-  title: title,
+const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
+  title,
   initialOpenState: true,
   titleFirst: true,
   buttonStyle: { padding: '1rem 1rem 1rem 2rem', color: colors.dark() }
@@ -302,17 +306,18 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           ])
         ]),
 
-        h(BillingProjectSubheader, {title: 'Owned by You'}, [
+        h(BillingProjectSubheader, { title: 'Owned by You' }, [
           _.map(project => h(ProjectTab, {
-              project, key: project.projectName,
-              isActive: !!selectedName && project.projectName === selectedName
-            }), _.filter(project => _.includes(ownerRole, project.role), billingProjects))]),
+            project, key: project.projectName,
+            isActive: !!selectedName && project.projectName === selectedName
+          }), _.filter(project => _.includes(ownerRole, project.role), billingProjects))
+        ]),
 
-        h(BillingProjectSubheader, {title: 'Shared with You'}, [
+        h(BillingProjectSubheader, { title: 'Shared with You' }, [
           _.map(project => h(ProjectTab, {
-              project, key: project.projectName,
-              isActive: !!selectedName && project.projectName === selectedName
-            }), _.filter(project => !_.includes(ownerRole, project.role), billingProjects))
+            project, key: project.projectName,
+            isActive: !!selectedName && project.projectName === selectedName
+          }), _.filter(project => !_.includes(ownerRole, project.role), billingProjects))
         ])
       ]),
       creatingBillingProject && h(NewBillingProjectModal, {
