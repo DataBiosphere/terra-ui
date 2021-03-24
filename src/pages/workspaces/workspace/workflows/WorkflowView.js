@@ -263,8 +263,20 @@ const BucketContentModal = ({ workspace: { workspace: { namespace, bucketName } 
   ])
 }
 
+const DocumentationCollapse = ({ children }) => {
+  const [isOpened, setIsOpened] = useState(false)
 
+  return div([
+    div({
+      style: styles.description,
+      onClick: () => setIsOpened(!isOpened)
+    }, [
+      icon(isOpened ? 'angle-down' : 'angle-right', { style: styles.angle, size: 21 }),
+      isOpened ?
+        h(MarkdownViewer, [children]) :
+        div({ style: { width: '100%', ...Style.noWrapEllipsis } }, [children])
     ])
+  ])
 }
 
 const isSet = _.endsWith('_set')
