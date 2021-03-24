@@ -310,7 +310,7 @@ const Notebooks = _.flow(
 
     const getGalaxyText = (app, galaxyDataDisks) => {
       const dataDisk = currentDataDisk(app, galaxyDataDisks)
-      return app ?
+      return (app && dataDisk) ?
         div({ style: { fontSize: 18, lineHeight: '22px', width: 160 } }, [
           div(['Galaxy Interactive']),
           div(['Environment']),

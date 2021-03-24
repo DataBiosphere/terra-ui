@@ -23,18 +23,21 @@ const styles = {
   drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
   headerText: { fontSize: 16, fontWeight: 600 }
 }
+
+const defaultDataDiskSize = 500 // GB
+const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
+const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
+
+const validMachineTypes = _.filter(({ cpu, memory }) => cpu >= 4 && memory >= 52, machineTypes)
+
 export const NewGalaxyModal = _.flow(
   Utils.withDisplayName('NewGalaxyModal'),
   withModalDrawer({ width: 675 })
 )(({ onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
-  const defaultDataDiskSize = 250 // GB
-  const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
-  const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
-
+  // Assumption: If there is an app defined, there must be a data disk corresponding to it.
   const app = currentApp(apps)
   const dataDisk = currentDataDisk(app, galaxyDataDisks)
 
-  // Assumption: If there is an app defined, there must be a data disk corresponding to it.
   const [dataDiskSize, setDataDiskSize] = useState(dataDisk?.size || defaultDataDiskSize)
   const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(app?.kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig)
   const [viewMode, setViewMode] = useState(undefined)
@@ -202,10 +205,10 @@ export const NewGalaxyModal = _.flow(
     return !app ?
       'consists of application configuration, cloud compute and persistent disk(s).' :
       Utils.switchCase(app.status,
-        ['STOPPED', () => `paused.`],
+        ['STOPPED', () => `is paused.`],
         ['PRESTOPPING', () => 'is preparing to pause.'],
         ['STOPPING', () => `is pausing. ${waitMessage}`],
-        ['PRESTARTING', () => 'is preparing to resume.'],
+        ['PRESTARTING', () => 'is preparing to start.'],
         ['STARTING', () => `is resuming. ${waitMessage}`],
         ['RUNNING', () => 'consists of application configuration, cloud compute and persistent disk(s).'],
         ['ERROR', () => `An error has occurred on your cloud environment.`]
@@ -238,65 +241,6 @@ export const NewGalaxyModal = _.flow(
         { label: 'Running cloud compute cost', cost: Utils.formatUSD(runningComputeCost), unitLabel: 'per hr' },
         { label: 'Paused cloud compute cost', cost: Utils.formatUSD(pausedComputeCost), unitLabel: 'per hr' },
         { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost(dataDiskSize)), unitLabel: 'per month' }
-      ])
-    ])
-  }
-
-  // TODO Refactor this and its duplicate in NewRuntimeModal.js?
-  const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
-
-  const MachineSelector = ({ value, onChange }) => {
-    const { cpu: currentCpu, memory: currentMemory } = findMachineType(value.machineType)
-    return h(Fragment, [
-      h(IdContainer, [
-        id => h(Fragment, [
-          label({ htmlFor: id, style: styles.label }, ['Nodes']),
-          div([
-            h(NumberInput, {
-              id,
-              min: 1,
-              max: maxNodepoolSize,
-              isClearable: false,
-              onlyInteger: true,
-              value: value.numNodes,
-              onChange: n => onChange(prevState => { return { ...prevState, numNodes: n } })
-            })
-          ])
-        ])
-      ]),
-      h(IdContainer, [
-        id => h(Fragment, [
-          label({ htmlFor: id, style: styles.label }, ['CPUs']),
-          div([
-            h(Select, {
-              id,
-              isSearchable: false,
-              value: currentCpu,
-              onChange: option => {
-                const validMachineType = _.find({ cpu: option.value }, validMachineTypes)?.name || value.machineType
-                onChange(prevState => { return { ...prevState, machineType: validMachineType } })
-              },
-              options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validMachineTypes)
-            })
-          ])
-        ])
-      ]),
-      h(IdContainer, [
-        id => h(Fragment, [
-          label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
-          div([
-            h(Select, {
-              id,
-              isSearchable: false,
-              value: currentMemory,
-              onChange: option => {
-                const validMachineType = _.find({ cpu: currentCpu, memory: option.value }, validMachineTypes)?.name || value.machineType
-                onChange(prevState => { return { ...prevState, machineType: validMachineType } })
-              },
-              options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
-            })
-          ])
-        ])
       ])
     ])
   }
@@ -378,3 +322,59 @@ export const NewGalaxyModal = _.flow(
     loading && spinnerOverlay
   ])
 })
+
+const MachineSelector = ({ value, onChange }) => {
+  const { cpu: currentCpu, memory: currentMemory } = findMachineType(value.machineType)
+  return h(Fragment, [
+    h(IdContainer, [
+      id => h(Fragment, [
+        label({ htmlFor: id, style: styles.label }, ['Nodes']),
+        div([
+          h(NumberInput, {
+            id,
+            min: 1,
+            max: maxNodepoolSize,
+            isClearable: false,
+            onlyInteger: true,
+            value: value.numNodes,
+            onChange: n => onChange(prevState => { return { ...prevState, numNodes: n } })
+          })
+        ])
+      ])
+    ]),
+    h(IdContainer, [
+      id => h(Fragment, [
+        label({ htmlFor: id, style: styles.label }, ['CPUs']),
+        div([
+          h(Select, {
+            id,
+            isSearchable: false,
+            value: currentCpu,
+            onChange: option => {
+              const validMachineType = _.find({ cpu: option.value }, validMachineTypes)?.name || value.machineType
+              onChange(prevState => { return { ...prevState, machineType: validMachineType } })
+            },
+            options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validMachineTypes)
+          })
+        ])
+      ])
+    ]),
+    h(IdContainer, [
+      id => h(Fragment, [
+        label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
+        div([
+          h(Select, {
+            id,
+            isSearchable: false,
+            value: currentMemory,
+            onChange: option => {
+              const validMachineType = _.find({ cpu: currentCpu, memory: option.value }, validMachineTypes)?.name || value.machineType
+              onChange(prevState => { return { ...prevState, machineType: validMachineType } })
+            },
+            options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
+          })
+        ])
+      ])
+    ])
+  ])
+}
