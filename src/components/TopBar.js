@@ -25,10 +25,11 @@ import { authStore, contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
+export const topBarHeight = 66
 
 const styles = {
   topBar: {
-    flex: 'none', height: 66,
+    flex: 'none', height: topBarHeight,
     display: 'flex', alignItems: 'center',
     borderBottom: `2px solid ${colors.primary(0.55)}`,
     zIndex: 2,

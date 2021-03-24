@@ -9,7 +9,7 @@ import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import TopBar from 'src/components/TopBar'
+import TopBar, { topBarHeight } from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -288,8 +288,8 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         div({ style: Style.breadcrumb.textUnderBreadcrumb }, [selectedName])
       ])
     ]),
-    div({ role: 'main', style: { display: 'flex', flex: 1, position: 'relative' } }, [
-      div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' /* TODO: Make scrollable */ } }, [
+    div({ role: 'main', style: { display: 'flex', flex: 1 } }, [
+      div({ style: { minWidth: 330, maxWidth: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', height: `calc(100vh - ${topBarHeight})`, overflowY: 'scroll' /* TODO: Make scrollable */ } }, [
         div({
           style: {
             fontSize: 16, fontWeight: 600, padding: '2rem',
@@ -329,7 +329,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           loadProjects()
         }
       }),
-      Utils.cond(
+      div({style: {minHeight: `calc(100vh - ${topBarHeight})`, flexGrow: 1 }}, [Utils.cond(
         [selectedName && hasBillingProjects && !_.some({ projectName: selectedName }, billingProjects),
           () => div({ style: { margin: '1rem auto 0 auto' } }, [
             h2(['Error loading selected billing project.']),
@@ -343,7 +343,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         })],
         [isOwner && !selectedName && hasBillingProjects, () => div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Billing Project'])],
         [!hasBillingProjects, () => noBillingMessage(showCreateProjectModal)]
-      ),
+      )]),
       (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
     ])
   ])
