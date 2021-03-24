@@ -35,8 +35,6 @@ const styles = {
   }
 }
 
-
-// TODO: Make conform with new mocks from Jerome
 const ProjectListItem = ({ project: { projectName, role, creationStatus, message }, isActive }) => {
   const projectReady = creationStatus === 'Ready'
   const statusIcon = creationStatus === 'Creating' ?
@@ -277,6 +275,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const hasBillingProjects = !_.isEmpty(billingProjects)
   const breadcrumbs = `Billing > Billing Project`
 
+  const billingProjectListWidth = 330
   return h(FooterWrapper, [
     h(TopBar, { title: 'Billing' }, [
       !!selectedName && div({
@@ -289,7 +288,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
       ])
     ]),
     div({ role: 'main', style: { display: 'flex', flex: 1 } }, [
-      div({ style: { minWidth: 330, maxWidth: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', height: `calc(100vh - ${topBarHeight})`, overflowY: 'scroll' /* TODO: Make scrollable */ } }, [
+      div({ style: { minWidth: billingProjectListWidth, maxWidth: billingProjectListWidth, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', height: `calc(100vh - ${topBarHeight}px)`, position: 'fixed', overflowY: 'scroll' } }, [
         div({
           style: {
             fontSize: 16, fontWeight: 600, padding: '2rem',
@@ -329,7 +328,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           loadProjects()
         }
       }),
-      div({style: {minHeight: `calc(100vh - ${topBarHeight})`, flexGrow: 1 }}, [Utils.cond(
+      div({ style: { marginLeft: billingProjectListWidth, flexGrow: 1 } }, [Utils.cond(
         [selectedName && hasBillingProjects && !_.some({ projectName: selectedName }, billingProjects),
           () => div({ style: { margin: '1rem auto 0 auto' } }, [
             h2(['Error loading selected billing project.']),

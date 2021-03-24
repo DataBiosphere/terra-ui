@@ -25,6 +25,7 @@ import { authStore, contactUsActive } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
+
 export const topBarHeight = 66
 
 const styles = {
