@@ -1,6 +1,5 @@
 import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
-import PropTypes from 'prop-types'
 import { Component, Fragment, useEffect, useState } from 'react'
 import { b, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -11,6 +10,7 @@ import {
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedAutocompleteTextArea, DelayedSearchInput } from 'src/components/input'
+import { MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import PopupTrigger, { InfoBox } from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
@@ -263,45 +263,8 @@ const BucketContentModal = ({ workspace: { workspace: { namespace, bucketName } 
   ])
 }
 
-class TextCollapse extends Component {
-  static propTypes = {
-    defaultHidden: PropTypes.bool,
-    showIcon: PropTypes.bool,
-    children: PropTypes.node
-  }
 
-  static defaultProps = {
-    defaultHidden: false,
-    showIcon: true
-  }
-
-  constructor(props) {
-    super(props)
-    this.state = { isOpened: !props.defaultHidden }
-  }
-
-  render() {
-    const { showIcon, children, ...props } = _.omit('defaultHidden', this.props)
-    const { isOpened } = this.state
-
-    return div(props, [
-      div(
-        {
-          style: styles.description,
-          onClick: () => this.setState({ isOpened: !isOpened })
-        },
-        [
-          showIcon && icon(isOpened ? 'angle-down' : 'angle-right',
-            { style: styles.angle, size: 21 }),
-          div({
-            style: {
-              width: '100%',
-              ...(isOpened ? {} : Style.noWrapEllipsis)
-            }
-          }, [children])
-        ])
     ])
-  }
 }
 
 const isSet = _.endsWith('_set')
@@ -685,13 +648,8 @@ const WorkflowView = _.flow(
             }, [sourceDisplay])
           ]),
           div(`Synopsis: ${synopsis ? synopsis : ''}`),
-          documentation ?
-            h(TextCollapse, {
-              defaultHidden: true,
-              showIcon: true
-            }, [
-              documentation
-            ]) :
+          !!documentation ?
+            h(DocumentationCollapse, [documentation]) :
             div({ style: { fontStyle: 'italic', ...styles.description } }, ['No documentation provided']),
           div({ role: 'radiogroup', 'aria-label': 'Select number of target entities', style: { marginBottom: '1rem' } }, [
             div([
