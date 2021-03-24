@@ -288,7 +288,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
       ])
     ]),
     div({ role: 'main', style: { display: 'flex', flex: 1 } }, [
-      div({ style: { minWidth: billingProjectListWidth, maxWidth: billingProjectListWidth, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', height: `calc(100vh - ${topBarHeight}px)`, position: 'fixed', overflowY: 'scroll' } }, [
+      div({ style: { minWidth: billingProjectListWidth, maxWidth: billingProjectListWidth, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', height: `calc(100vh - ${topBarHeight}px)`, position: 'fixed', overflowY: 'auto' } }, [
         div({
           style: {
             fontSize: 16, fontWeight: 600, padding: '2rem',
