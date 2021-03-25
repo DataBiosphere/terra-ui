@@ -240,7 +240,7 @@ export const NewGalaxyModal = _.flow(
       }, [
         { label: 'Running cloud compute cost', cost: Utils.formatUSD(runningComputeCost), unitLabel: 'per hr' },
         { label: 'Paused cloud compute cost', cost: Utils.formatUSD(pausedComputeCost), unitLabel: 'per hr' },
-        { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost(dataDiskSize)), unitLabel: 'per month' }
+        { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost(dataDiskSize)), unitLabel: 'per hr' }
       ])
     ])
   }
@@ -260,7 +260,7 @@ export const NewGalaxyModal = _.flow(
     return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: styles.headerText }, ['Persistent disk']),
       div({ style: { marginTop: '0.5rem' } }, [
-        'Stores your analysis data '
+        'stores your analysis data. '
         // TODO Add info on PDs for Galaxy (similarly to in NewRuntimeModal.js)
       ]),
       div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
