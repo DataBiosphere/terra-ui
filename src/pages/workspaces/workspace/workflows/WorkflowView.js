@@ -290,48 +290,48 @@ const findPossibleSets = listOfExistingEntities => {
   }, [], listOfExistingEntities)
 }
 
+const restoreOrElse = (key, fallback) => () => StateHistory.get()[key] || fallback
+
 const WorkflowView = _.flow(
   Utils.forwardRefWithName('WorkflowView'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'workflows'),
     title: _.get('workflowName'), activeTab: 'workflows'
   })
-)(({ namespace, name: workspaceName, workspace: outerWs, workspace: { accessLevel, workspace: innerWs, workspace: { bucketName, attributes } }, queryParams: { selectionKey }, workflowNamespace, workflowName }, ref) => {
+)(({
+  namespace, name: workspaceName, workspace: outerWs, workspace: { accessLevel, workspace: innerWs, workspace: { bucketName, attributes } },
+  queryParams: { selectionKey }, workflowNamespace, workflowName
+}, ref) => {
   // State
-  const [activeTab, setActiveTab] = useState('inputs')
-  const [entitySelectionModel, setEntitySelectionModel] = useState({ selectedEntities: {} })
-  const [useCallCache, setUseCallCache] = useState(true)
-  const [deleteIntermediateOutputFiles, setDeleteIntermediateOutputFiles] = useState(false)
-  const [useReferenceDisks, setUseReferenceDisks] = useState(false)
-  const [includeOptionalInputs, setIncludeOptionalInputs] = useState(true)
-  const [filter, setFilter] = useState('')
-  const [errors, setErrors] = useState({ inputs: {}, outputs: {} })
-  const [modifiedConfig, setModifiedConfig] = useState(undefined) // active data, potentially unsaved
-  const [processSingle, setProcessSingle] = useState(undefined)
-  const [selectedEntityType, setSelectedEntityType] = useState(undefined)
-  const [isFreshData, setIsFreshData] = useState(false) // controls spinnerOverlay on initial load
-  const [savedConfig, setSavedConfig] = useState(undefined) // unmodified copy of config for checking for unsaved edits
-  const [entityMetadata, setEntityMetadata] = useState(undefined)
-  const [launching, setLaunching] = useState(false)
-  const [selectedVariable, setSelectedVariable] = useState(undefined) // field of focus for bucket file browser
-  const [updatingConfig, setUpdatingConfig] = useState(false)
-  const [selectedSnapshotEntityMetadata, setSelectedSnapshotEntityMetadata] = useState(undefined)
-  const [currentSnapRedacted, setCurrentSnapRedacted] = useState(undefined)
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
-  const [exporting, setExporting] = useState(false)
+  const [activeTab, setActiveTab] = useState(restoreOrElse('activeTab', 'inputs'))
+  const [busy, setBusy] = useState(true) // controls spinnerOverlay on initial load
   const [copying, setCopying] = useState(false)
+  const [currentSnapRedacted, setCurrentSnapRedacted] = useState(restoreOrElse('currentSnapRedacted'))
+  const [deleteIntermediateOutputFiles, setDeleteIntermediateOutputFiles] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [entitySelectionModel, setEntitySelectionModel] = useState(restoreOrElse('entitySelectionModel', { selectedEntities: {} }))
+  const [errors, setErrors] = useState({ inputs: {}, outputs: {} })
+  const [exporting, setExporting] = useState(false)
+  const [filter, setFilter] = useState(restoreOrElse('filter', ''))
+  const [includeOptionalInputs, setIncludeOptionalInputs] = useState(true)
+  const [launching, setLaunching] = useState(false)
+  const [modifiedConfig, setModifiedConfig] = useState(restoreOrElse('modifiedConfig')) // active data, potentially unsaved
+  const [modifiedInputsOutputs, setModifiedInputsOutputs] = useState(restoreOrElse('modifiedInputsOutputs'))
+  const [processSingle, setProcessSingle] = useState(undefined)
+  const [saved, setSaved] = useState(false)
+  const [savedConfig, setSavedConfig] = useState(restoreOrElse('savedConfig')) // unmodified copy of config for checking for unsaved edits
+  const [savedInputsOutputs, setSavedInputsOutputs] = useState(restoreOrElse('savedInputsOutputs'))
+  const [savedSnapRedacted, setSavedSnapRedacted] = useState(restoreOrElse('savedSnapRedacted'))
+  const [saving, setSaving] = useState(false)
+  const [selectedEntityType, setSelectedEntityType] = useState(restoreOrElse('selectedEntityType'))
+  const [selectedSnapshotEntityMetadata, setSelectedSnapshotEntityMetadata] = useState(undefined)
+  const [selectedVariable, setSelectedVariable] = useState(undefined) // field of focus for bucket file browser
   const [selectingData, setSelectingData] = useState(false)
-  const [synopsis, setSynopsis] = useState(undefined)
-  const [documentation, setDocumentation] = useState(undefined)
-  const [availableSnapshots, setAvailableSnapshots] = useState(undefined)
-  const [versionIds, setVersionIds] = useState([])
-  const [savedSnapRedacted, setSavedSnapRedacted] = useState(undefined)
-  const [wdl, setWdl] = useState(undefined)
-  const [modifiedInputsOutputs, setModifiedInputsOutputs] = useState(undefined)
-  const [workspaceAttributes, setWorkspaceAttributes] = useState(undefined)
-  const [savedInputsOutputs, setSavedInputsOutputs] = useState(undefined)
+  const [useCallCache, setUseCallCache] = useState(true)
+  const [useReferenceDisks, setUseReferenceDisks] = useState(false)
+  const [versionIds, setVersionIds] = useState([]) // TODO only set twice (in one place)
+  const [{ entityMetadata, availableSnapshots }, setDataSources] = useState(restoreOrElse('dataSources', {}))
+  const [{ wdl, synopsis, documentation }, setMethodDetails] = useState(restoreOrElse('methodDetails', {}))
 
   const signal = Utils.useCancellation()
 
@@ -354,63 +354,9 @@ const WorkflowView = _.flow(
     }
   }
 
-  const selectSingle = () => {
-    setProcessSingle(true)
-    setModifiedConfig(_.omit('rootEntityType'))
-  }
-
-  const selectMultiple = () => {
-    setProcessSingle(false)
-    setModifiedConfig(_.set(['rootEntityType'], selectedEntityType))
-  }
-
   const updateSingleOrMultipleRadioState = ({ rootEntityType, dataReferenceName }) => {
     setProcessSingle(!rootEntityType)
     setSelectedEntityType(dataReferenceName || rootEntityType)
-  }
-
-  const render = () => {
-    const workspaceId = { namespace, name: workspaceName }
-
-    return h(Fragment, [
-      savedConfig && h(Fragment, [
-        renderSummary(),
-        Utils.switchCase(activeTab,
-          ['wdl', renderWDL],
-          ['inputs', () => renderIOTable('inputs')],
-          ['outputs', () => renderIOTable('outputs')]
-        ),
-        launching && h(LaunchAnalysisModal, {
-          workspace: outerWs, config: savedConfig, entityMetadata: selectedSnapshotEntityMetadata || entityMetadata,
-          accessLevel, bucketName,
-          processSingle, entitySelectionModel, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
-          onDismiss: () => setLaunching(false),
-          onSuccess: submissionId => {
-            const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
-            // will only match if the current root entity type comes from a snapshot
-            const snapshot = _.find({ name: modifiedConfig.dataReferenceName }, availableSnapshots)
-            Ajax().Metrics.captureEvent(Events.workflowLaunch, {
-              ...extractWorkspaceDetails(innerWs),
-              snapshotId: snapshot?.reference.snapshot,
-              referenceId: snapshot?.referenceId,
-              methodVersion,
-              sourceRepo,
-              methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath
-            })
-            Nav.goToPath('workspace-submission-details', { submissionId, ...workspaceId })
-          }
-        }),
-        !!selectedVariable && h(BucketContentModal, {
-          workspace: outerWs,
-          onDismiss: () => setSelectedVariable(undefined),
-          onSelect: v => {
-            setSelectedVariable(undefined)
-            setModifiedConfig(_.set(['inputs', selectedVariable], v))
-          }
-        })
-      ]),
-      (!isFreshData || updatingConfig) && spinnerOverlay
-    ])
   }
 
   const getValidation = async () => {
@@ -425,104 +371,102 @@ const WorkflowView = _.flow(
     }
   }
 
+
+  // Lifecycle
   Utils.useOnMount(() => {
-    const load = async () => {
-      try {
-        const ws = Ajax(signal).Workspaces.workspace(namespace, workspaceName)
+    const load = _.flow(
+      Utils.withBusyState(setBusy),
+      withErrorReporting('Error loading data')
+    )(async () => {
+      const ws = Ajax(signal).Workspaces.workspace(namespace, workspaceName)
 
-        const [entityMetadata, validationResponse, config] = await Promise.all([
-          ws.entityMetadata(),
-          getValidation(),
-          ws.methodConfig(workflowNamespace, workflowName).get()
-        ])
-        const { methodRepoMethod: { methodNamespace, methodName, sourceRepo, methodPath } } = config
-        const isRedacted = !validationResponse
+      const [entityMetadata, validationResponse, config] = await Promise.all([
+        ws.entityMetadata(),
+        getValidation(),
+        ws.methodConfig(workflowNamespace, workflowName).get()
+      ])
+      const { methodRepoMethod: { methodNamespace, methodName, sourceRepo, methodPath } } = config
+      const isRedacted = !validationResponse
 
-        const inputsOutputs = isRedacted ? {} : await Ajax(signal).Methods.configInputsOutputs(config)
-        const selection = workflowSelectionStore.get()
-        const readSelection = selectionKey && selection.key === selectionKey
+      const inputsOutputs = isRedacted ? {} : await Ajax(signal).Methods.configInputsOutputs(config)
+      const selection = workflowSelectionStore.get()
+      const readSelection = selectionKey && selection.key === selectionKey
 
-        const { resources: snapshots } = await Ajax(signal).Workspaces.workspace(namespace, workspaceName).listSnapshot(1000, 0)
+      const { resources: snapshots } = await Ajax(signal).Workspaces.workspace(namespace, workspaceName).listSnapshot(1000, 0)
 
-        // Dockstore users who target floating tags can change their WDL via Github without explicitly selecting a new version in Terra.
-        // Before letting the user edit the config we retrieved from the DB, drop any keys that are no longer valid. [WA-291]
-        // N.B. this causes `config` and `modifiedConfig` to be unequal, so we (accurately) prompt the user to save before launching
-        // DO NOT filter when a config is redacted, when there's no IO from the WDL we would erase the user's inputs
-        const modifiedConfig = _.flow(
-          readSelection ? _.set('rootEntityType', selection.entityType) : _.identity,
-          !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
-        )(config)
+      // Dockstore users who target floating tags can change their WDL via Github without explicitly selecting a new version in Terra.
+      // Before letting the user edit the config we retrieved from the DB, drop any keys that are no longer valid. [WA-291]
+      // N.B. this causes `config` and `modifiedConfig` to be unequal, so we (accurately) prompt the user to save before launching
+      // DO NOT filter when a config is redacted, when there's no IO from the WDL we would erase the user's inputs
+      const modifiedConfig = _.flow(
+        readSelection ? _.set('rootEntityType', selection.entityType) : _.identity,
+        !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
+      )(config)
 
-        const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ? await Ajax(signal).Workspaces.workspace(namespace, workspaceName).snapshotEntityMetadata(namespace, modifiedConfig.dataReferenceName) : undefined
+      const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ?
+        await Ajax(signal).Workspaces.workspace(namespace, workspaceName).snapshotEntityMetadata(namespace, modifiedConfig.dataReferenceName) :
+        undefined
 
-        ReactDOM.unstable_batchedUpdates(() => { // Force batched updates, since these are all used together
-          setSavedConfig(config)
-          setModifiedConfig(modifiedConfig)
-          setCurrentSnapRedacted(isRedacted)
-          setSavedSnapRedacted(isRedacted)
-          setEntityMetadata(entityMetadata)
-          setAvailableSnapshots(_.sortBy(_.lowerCase, snapshots))
-          setSelectedSnapshotEntityMetadata(selectedSnapshotEntityMetadata)
-          setSavedInputsOutputs(inputsOutputs)
-          setModifiedInputsOutputs(inputsOutputs)
-          setErrors(isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse))
-          setEntitySelectionModel(resetSelectionModel(
-            modifiedConfig.dataReferenceName || modifiedConfig.rootEntityType,
-            readSelection ? selection.entities : {},
-            entityMetadata, !!modifiedConfig.dataReferenceName
-          ))
-          setWorkspaceAttributes(_.flow(
-            _.without(['description']),
-            _.remove(s => s.includes(':'))
-          )(_.keys(attributes)))
-        })
+      ReactDOM.unstable_batchedUpdates(() => { // Force batched updates, since these are all used together
+        setSavedConfig(config)
+        setModifiedConfig(modifiedConfig)
+        setCurrentSnapRedacted(isRedacted)
+        setSavedSnapRedacted(isRedacted)
+        setDataSources({ entityMetadata, availableSnapshots: _.sortBy(_.lowerCase, snapshots) })
+        setSelectedSnapshotEntityMetadata(selectedSnapshotEntityMetadata)
+        setSavedInputsOutputs(inputsOutputs)
+        setModifiedInputsOutputs(inputsOutputs)
+        setErrors(isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse))
+        setEntitySelectionModel(resetSelectionModel(
+          modifiedConfig.dataReferenceName || modifiedConfig.rootEntityType,
+          readSelection ? selection.entities : {},
+          entityMetadata, !!modifiedConfig.dataReferenceName
+        ))
+      })
 
-        if (sourceRepo === 'agora') {
-          const methods = await Ajax(signal).Methods.list({ namespace: methodNamespace, name: methodName })
-          const snapshotIds = _.map('snapshotId', methods)
+      if (sourceRepo === 'agora') {
+        const methods = await Ajax(signal).Methods.list({ namespace: methodNamespace, name: methodName })
+        const snapshotIds = _.map('snapshotId', methods)
 
-          setVersionIds(snapshotIds)
-        } else if (sourceRepo === 'dockstore' || sourceRepo === 'dockstoretools') {
-          const versions = await Ajax(signal).Dockstore.getVersions({ path: methodPath, isTool: sourceRepo === 'dockstoretools' })
-          const versionIds = _.map('name', versions)
+        setVersionIds(snapshotIds)
+      } else if (sourceRepo === 'dockstore' || sourceRepo === 'dockstoretools') {
+        const versions = await Ajax(signal).Dockstore.getVersions({ path: methodPath, isTool: sourceRepo === 'dockstoretools' })
+        const versionIds = _.map('name', versions)
 
-          setVersionIds(versionIds)
-        } else {
-          throw new Error('unknown sourceRepo')
-        }
-
-        updateSingleOrMultipleRadioState(modifiedConfig)
-        fetchInfo(config, isRedacted)
-      } catch (error) {
-        reportError('Error loading data', error)
-      } finally {
-        setIsFreshData(true)
+        setVersionIds(versionIds)
+      } else {
+        throw new Error('unknown sourceRepo')
       }
-    }
+
+      updateSingleOrMultipleRadioState(modifiedConfig)
+      fetchMethodDetails(config, isRedacted)
+    })
 
     load()
   })
 
   useEffect(() => {
     StateHistory.update({
-      savedConfig, modifiedConfig, entityMetadata, savedInputsOutputs, modifiedInputsOutputs, activeTab, wdl,
-      currentSnapRedacted, savedSnapRedacted
+      activeTab, currentSnapRedacted, modifiedConfig, modifiedInputsOutputs, savedConfig, savedInputsOutputs, savedSnapRedacted,
+      dataSources: { entityMetadata, availableSnapshots },
+      methodDetails: { wdl, synopsis, documentation }
     })
-  }, [savedConfig, modifiedConfig, entityMetadata, savedInputsOutputs, modifiedInputsOutputs, activeTab, wdl,
-    currentSnapRedacted, savedSnapRedacted])
+  }, [
+    activeTab, currentSnapRedacted, modifiedConfig, modifiedInputsOutputs, savedConfig, savedInputsOutputs, savedSnapRedacted,
+    entityMetadata, availableSnapshots,
+    wdl, synopsis, documentation
+  ])
 
-  const fetchInfo = withErrorReporting('Error loading WDL', async (savedConfig, currentSnapRedacted) => {
+  const fetchMethodDetails = withErrorReporting('Error loading WDL', async (savedConfig, currentSnapRedacted) => {
     const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = savedConfig
     if (sourceRepo === 'agora') {
       if (!currentSnapRedacted) {
         const { synopsis, documentation, payload } = await Ajax(signal).Methods.method(methodNamespace, methodName, methodVersion).get()
-        setSynopsis(synopsis)
-        setDocumentation(documentation)
-        setWdl(payload)
+        setMethodDetails({ wdl: payload, synopsis, documentation })
       }
     } else if (sourceRepo === 'dockstore' || sourceRepo === 'dockstoretools') {
       const wdl = await Ajax(signal).Dockstore.getWdl({ path: methodPath, version: methodVersion, isTool: sourceRepo === 'dockstoretools' })
-      setWdl(wdl)
+      setMethodDetails({ wdl })
     } else {
       throw new Error('unknown sourceRepo')
     }
@@ -534,28 +478,25 @@ const WorkflowView = _.flow(
     const newSetMessage = (type === processAll || type === processAllAsSet ||
       (type === chooseSetComponents && count > 0) || count > 1) ? `(will create a new set named "${newSetName}")` : ''
     const baseEntityType = isSet(rootEntityType) ? rootEntityType.slice(0, -4) : rootEntityType
-    return Utils.cond(
-      [processSingle || !rootEntityType, () => ''],
-      [type === processAll, () => `all ${entityMetadata[rootEntityType]?.count || 0} ${rootEntityType}s ${newSetMessage}`],
-      [type === processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
-      [type === chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
-      [type === chooseSetComponents, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}s ${newSetMessage}`],
-      [type === processAllAsSet,
-        () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType]?.count || 0} ${baseEntityType}s ${newSetMessage}`],
-      [type === chooseSets, () => !!count ?
-        `${count} selected ${rootEntityType}s ${newSetMessage}` :
-        `No ${rootEntityType}s selected`],
-      [type === processSnapshotTable, () => `process entire snapshot table`]
-    )
-  }
-
-  const canSave = () => {
-    return processSingle || !!modifiedConfig.rootEntityType
+    return processSingle || !rootEntityType ?
+      '' :
+      Utils.switchCase(type,
+        [processAll, () => `all ${entityMetadata[rootEntityType]?.count || 0} ${rootEntityType}s ${newSetMessage}`],
+        [processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
+        [chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
+        [chooseSetComponents, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}s ${newSetMessage}`],
+        [processAllAsSet,
+          () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType]?.count || 0} ${baseEntityType}s ${newSetMessage}`],
+        [chooseSets, () => !!count ?
+          `${count} selected ${rootEntityType}s ${newSetMessage}` :
+          `No ${rootEntityType}s selected`],
+        [processSnapshotTable, () => `process entire snapshot table`]
+      )
   }
 
   const loadNewMethodConfig = _.flow(
     withErrorReporting('Error updating config'),
-    Utils.withBusyState(setUpdatingConfig)
+    Utils.withBusyState(setBusy)
   )(async newSnapshotId => {
     const { methodRepoMethod: { methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
     const config = await Ajax(signal).Methods.template({ methodNamespace, methodName, methodPath, sourceRepo, methodVersion: newSnapshotId })
@@ -563,11 +504,11 @@ const WorkflowView = _.flow(
     setModifiedInputsOutputs(modifiedInputsOutputs)
     setSavedSnapRedacted(currentSnapRedacted)
     setCurrentSnapRedacted(false)
-    setModifiedConfig(_.update('modifiedConfig', _.flow(
+    setModifiedConfig(_.update(['modifiedConfig'], _.flow(
       _.set('methodRepoMethod', config.methodRepoMethod),
       filterConfigIO(modifiedInputsOutputs)
     )))
-    fetchInfo(config)
+    fetchMethodDetails(config)
   })
 
 
@@ -578,17 +519,18 @@ const WorkflowView = _.flow(
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
-      [entitySelectionModel.type === processSnapshotTable && (!rootEntityType || !(modifiedConfig.dataReferenceName)),
+      [type === processSnapshotTable && (!rootEntityType || !(modifiedConfig.dataReferenceName)),
         () => 'A snapshot and table must be selected'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
-      [entitySelectionModel.type !== processSnapshotTable && !processSingle &&
+      [type !== processSnapshotTable && !processSingle &&
       (!entityMetadata[rootEntityType] && !_.includes(rootEntityType, possibleSetTypes)),
       () => `There are no ${selectedEntityType}s in this workspace.`],
       // Default for _set types is `chooseSets` so we need to make sure something is selected.
       // Default for non- _set types is `processAll` and the "Select Data" modal makes it impossible to have nothing selected for these types.
       // Users have expressed dislike of the `processAll` default so this clause will likely need to be expanded along with any change to `resetSelectionModel`.
-      [!processSingle && (entitySelectionModel.type === chooseSets || entitySelectionModel.type === chooseSetComponents) && !_.size(entitySelectionModel.selectedEntities),
-        () => 'Select or create a set']
+      [!processSingle && (type === chooseSets || type === chooseSetComponents) &&
+      !_.size(entitySelectionModel.selectedEntities),
+      () => 'Select or create a set']
     )
 
     const inputsValid = _.isEmpty(errors.inputs)
@@ -668,7 +610,10 @@ const WorkflowView = _.flow(
                 text: 'Run workflow with inputs defined by file paths',
                 name: 'process-workflows',
                 checked: processSingle,
-                onChange: () => selectSingle(),
+                onChange: () => {
+                  setProcessSingle(true)
+                  setModifiedConfig(_.omit('rootEntityType'))
+                },
                 labelStyle: { marginLeft: '0.5rem' }
               })
             ]),
@@ -678,7 +623,10 @@ const WorkflowView = _.flow(
                 text: 'Run workflow(s) with inputs defined by data table',
                 name: 'process-workflows',
                 checked: !processSingle,
-                onChange: () => selectMultiple(),
+                onChange: () => {
+                  setProcessSingle(false)
+                  setModifiedConfig(_.set(['rootEntityType'], selectedEntityType))
+                },
                 labelStyle: { marginLeft: '0.5rem' }
               })
             ]),
@@ -726,7 +674,7 @@ const WorkflowView = _.flow(
                   ]
                 })
               ]),
-              entitySelectionModel.type === processSnapshotTable ? div({ style: { margin: '2rem 0 0 2rem' } }, [
+              type === processSnapshotTable ? div({ style: { margin: '2rem 0 0 2rem' } }, [
                 h(Select, {
                   isDisabled: !!Utils.editWorkspaceError(outerWs),
                   'aria-label': 'Snapshot table selector',
@@ -817,7 +765,7 @@ const WorkflowView = _.flow(
                 span({ style: styles.placeholder }, 'workflow unique ID')
               ])
             ]),
-            !!rootEntityType && (entitySelectionModel.type !== processSnapshotTable) && h(Fragment, [
+            !!rootEntityType && (type !== processSnapshotTable) && h(Fragment, [
               div({ style: { margin: '0.5rem 0', borderBottom: `1px solid ${colors.dark(0.55)}` } }),
               div({ style: styles.outputInfoLabel }, 'References to outputs will be written to'),
               div({ style: { display: 'flex', alignItems: 'center' } }, [
@@ -832,8 +780,8 @@ const WorkflowView = _.flow(
       div({ style: styles.messageContainer }, [
         saving && miniMessage('Saving...'),
         saved && !saving && !modified && miniMessage('Saved!'),
-        modified && h(ButtonPrimary, { disabled: saving || !canSave(), onClick: () => save() }, 'Save'),
-        modified && h(ButtonSecondary, { style: { marginLeft: '1rem' }, disabled: saving, onClick: () => cancel() }, 'Cancel')
+        modified && h(ButtonPrimary, { disabled: saving || !(processSingle || !!modifiedConfig.rootEntityType), onClick: save }, 'Save'),
+        modified && h(ButtonSecondary, { style: { marginLeft: '1rem' }, disabled: saving, onClick: cancel }, 'Cancel')
       ]),
       exporting && h(ExportWorkflowModal, {
         thisWorkspace: innerWs, methodConfig: savedConfig,
@@ -909,6 +857,10 @@ const WorkflowView = _.flow(
     const selectedTableName = modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined
     const selectionMetadata = selectedTableName ? selectedSnapshotEntityMetadata : entityMetadata
     const attributeNames = _.get([modifiedConfig.rootEntityType, 'attributeNames'], selectionMetadata) || []
+    const workspaceAttributes = _.flow(
+      _.without(['description']),
+      _.remove(s => s.includes(':'))
+    )(_.keys(attributes))
     const suggestions = [
       ...(!selectedTableName && !modifiedConfig.dataReferenceName) ? [`this.${modifiedConfig.rootEntityType}_id`] : [],
       ...(modifiedConfig.rootEntityType ? _.map(name => `this.${name}`, attributeNames) : []),
@@ -1014,7 +966,45 @@ const WorkflowView = _.flow(
     updateSingleOrMultipleRadioState(savedConfig)
   }
 
-  return render()
+  return h(Fragment, [
+    savedConfig && h(Fragment, [
+      renderSummary(),
+      Utils.switchCase(activeTab,
+        ['wdl', renderWDL],
+        ['inputs', () => renderIOTable('inputs')],
+        ['outputs', () => renderIOTable('outputs')]
+      ),
+      launching && h(LaunchAnalysisModal, {
+        workspace: outerWs, config: savedConfig, entityMetadata: selectedSnapshotEntityMetadata || entityMetadata,
+        accessLevel, bucketName,
+        processSingle, entitySelectionModel, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
+        onDismiss: () => setLaunching(false),
+        onSuccess: submissionId => {
+          const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
+          // will only match if the current root entity type comes from a snapshot
+          const snapshot = _.find({ name: modifiedConfig.dataReferenceName }, availableSnapshots)
+          Ajax().Metrics.captureEvent(Events.workflowLaunch, {
+            ...extractWorkspaceDetails(innerWs),
+            snapshotId: snapshot?.reference.snapshot,
+            referenceId: snapshot?.referenceId,
+            methodVersion,
+            sourceRepo,
+            methodPath: sourceRepo === 'agora' ? `${methodNamespace}/${methodName}` : methodPath
+          })
+          Nav.goToPath('workspace-submission-details', { submissionId, namespace, name: workspaceName })
+        }
+      }),
+      !!selectedVariable && h(BucketContentModal, {
+        workspace: outerWs,
+        onDismiss: () => setSelectedVariable(undefined),
+        onSelect: v => {
+          setSelectedVariable(undefined)
+          setModifiedConfig(_.set(['inputs', selectedVariable], v))
+        }
+      })
+    ]),
+    busy && spinnerOverlay
+  ])
 })
 
 
