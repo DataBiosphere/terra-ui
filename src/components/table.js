@@ -267,12 +267,18 @@ FlexTable.propTypes = {
  * since it does not provide scrolling. See FlexTable for prop types.
  */
 export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHighlight }) => {
-  return h(Fragment, [
-    div({ style: { height: 48, display: 'flex' } }, [
+  return div({
+    role: 'grid',
+  }, [
+    div({
+      style: { height: 48, display: 'flex' },
+      role: 'row'
+    }, [
       _.map(([i, { size, headerRenderer }]) => {
         return div({
           key: i,
-          style: { ...styles.flexCell(size), ...styles.header(i * 1, columns.length) }
+          style: { ...styles.flexCell(size), ...styles.header(i * 1, columns.length) },
+          role: 'columnheader'
         }, [headerRenderer()])
       }, Utils.toIndexPairs(columns))
     ]),
@@ -281,6 +287,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHigh
         key: rowIndex,
         as: 'div',
         className: 'table-row',
+        role: 'row',
         style: { backgroundColor: 'white', display: 'flex', minHeight: 48 },
         hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
       }, [
@@ -288,6 +295,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHigh
           return div({
             key: i,
             className: 'table-cell',
+            role: 'gridcell',
             style: { ...styles.flexCell(size), ...styles.cell(i * 1, columns.length) }
           }, [cellRenderer({ rowIndex })])
         }, Utils.toIndexPairs(columns))
@@ -335,7 +343,11 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
     ref: scrollSync
   }, [
     ({ onScroll, scrollLeft }) => {
-      return div([
+      return div({
+        role: 'grid',
+        'aria-rowcount': rowCount + 1, // count the header row too
+        'aria-colcount': columns.length
+      }, [
         h(RVGrid, {
           ref: header,
           width: width - scrollbarSize,
@@ -344,6 +356,9 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
           rowHeight: headerHeight,
           rowCount: 1,
           columnCount: columns.length,
+          role: 'rowgroup',
+          containerRole: 'row',
+          'aria-label': '',
           cellRenderer: data => {
             return div({
               key: data.key,
@@ -352,7 +367,10 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
                 ...data.style,
                 ...styles.header(data.columnIndex, columns.length),
                 ...styleHeader(data)
-              }
+              },
+              role: 'columnheader',
+              'aria-colindex': data.columnIndex,
+              'aria-rowindex': 1, // the rowindex property must start at 1
             }, [
               columns[data.columnIndex].headerRenderer(data)
             ])
@@ -369,6 +387,9 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
           rowHeight,
           rowCount,
           columnCount: columns.length,
+          role: 'rowgroup',
+          containerRole: 'presentation',
+          'aria-label': '',
           noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage]),
           onScrollbarPresenceChange: ({ vertical, size }) => {
             setScrollbarSize(vertical ? size : 0)
@@ -377,6 +398,9 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
             return div({
               key: data.key,
               className: 'table-cell',
+              role: 'gridcell',
+              'aria-colindex': data.columnIndex,
+              'aria-rowindex': data.rowIndex + 2, // The header row is 1
               style: {
                 ...data.style,
                 ...styles.cell(data.columnIndex, columns.length),
