@@ -81,7 +81,7 @@ const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
   title,
   initialOpenState: true,
   titleFirst: true,
-  buttonStyle: { padding: '1rem 1rem 1rem 2rem', color: colors.dark() }
+  buttonStyle: { padding: '1rem 1rem 1rem 2rem', color: colors.dark(), fontWeight: 'bold' }
 }, [children])
 
 const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAccounts }) => {
