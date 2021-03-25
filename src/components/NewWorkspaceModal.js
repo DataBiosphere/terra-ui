@@ -56,7 +56,7 @@ const allRegions = [
   { value: 'asia-south1', label: 'asia-south1 (Mumbai)' },
   { value: 'asia-southeast1', label: 'asia-southeast1 (Singapore)' },
   { value: 'asia-southeast2', label: 'asia-southeast2 (Jakarta)' },
-  { value: 'australia-southeast1', label: 'australia-southeast1 (Sydney)' },
+  { value: 'australia-southeast1', label: 'australia-southeast1 (Sydney)' }
 ]
 
 const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
@@ -96,7 +96,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
         name,
         authorizationDomain: _.map(v => ({ membersGroupName: v }), [...getRequiredGroups(), ...groups]),
         attributes: { description },
-        copyFilesWithPrefix: 'notebooks/'        
+        copyFilesWithPrefix: 'notebooks/'
       }
       if (bucketLocation) {
         body.bucketLocation = bucketLocation
@@ -243,7 +243,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
             'Once set, it cannot be changed. ',
             'Any cloned workspace will automatically inherit the bucket location from the original workspace and cannot be changed. ',
             h(Link, {
-              href: 'https://cloud.google.com/storage/docs/locations',  // TODO: Change this to a Terra article
+              href: 'https://cloud.google.com/storage/docs/locations',
               ...Utils.newTabLinkProps
             }, ['Read more about bucket locations'])
           ])
