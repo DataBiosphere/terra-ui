@@ -43,7 +43,7 @@ const pickBrandLogo = (color = false) => Utils.cond(
 export const terraLogoMaker = (logoVariant, style) => img({ alt: 'Terra', role: 'img', src: logoVariant, style })
 
 const brandLogoMaker = (size, color = false) => img({
-  alt: `${getAppName()} logo`, role: 'img',
+  alt: getAppName(), role: 'img',
   src: pickBrandLogo(color),
   style: { height: size, marginRight: '1.5rem' }
 })
