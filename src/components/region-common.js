@@ -52,13 +52,19 @@ export const regionInfo = (location, locationType) => {
         case 'SOUTHAMERICA-EAST1':
           return { flag: '🇧🇷', regionDescription: `${locationType}: ${location} (Sao Paulo)` }
         case 'US-CENTRAL1':
+          return { flag: '🇺🇸', regionDescription: `${locationType}: ${location} (Iowa)` }
         case 'US-EAST1':
+          return { flag: '🇺🇸', regionDescription: `${locationType}: ${location} (South Carolina)` }
         case 'US-EAST4':
+          return { flag: '🇺🇸', regionDescription: `${locationType}: ${location} (Northern Virginia)` }
         case 'US-WEST1':
+          return { flag: '🇺🇸', regionDescription: `${locationType}: ${location} (Oregon)` }
         case 'US-WEST2':
+          return { flag: '🇺🇸', regionDescription: `${locationType}: ${location} (Los Angeles)` }
         case 'US-WEST3':
+          return { flag: '🇺🇸', regionDescription: `${locationType}: ${location} (Salt Lake City)` }
         case 'US-WEST4':
-          return { flag: '🇺🇸', regionDescription: `${locationType}: ${location}` }
+          return { flag: '🇺🇸', regionDescription: `${locationType}: ${location} (Las Vegas)` }
         default:
           return { flag: unknownRegionFlag, regionDescription: `${locationType}: ${location}` }
       }
