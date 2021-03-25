@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Component, createRef, Fragment } from 'react'
+import { Fragment, useLayoutEffect, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -74,93 +74,52 @@ const AclInput = ({ value, onChange, disabled, maxAccessLevel, autoFocus }) => {
   ])
 }
 
-export default Utils.withCancellationSignal(class ShareWorkspaceModal extends Component {
-  constructor(props) {
-    super(props)
-    this.state = {
-      shareSuggestions: [],
-      groups: [],
-      originalAcl: [],
-      searchValue: '',
-      acl: [],
-      loaded: false
-    }
+const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { namespace, name } } }) => {
+  // State
+  const [shareSuggestions, setShareSuggestions] = useState([])
+  const [groups, setGroups] = useState([])
+  const [originalAcl, setOriginalAcl] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [acl, setAcl] = useState([])
+  const [loaded, setLoaded] = useState(false)
+  const [working, setWorking] = useState(false)
+  const [updateError, setUpdateError] = useState(undefined)
+  const [lastAddedEmail, setLastAddedEmail] = useState(undefined)
 
-    this.list = createRef()
-  }
+  const list = useRef()
+  const signal = Utils.useCancellation()
 
-  render() {
-    const { onDismiss } = this.props
-    const { acl, shareSuggestions, groups, loaded, searchValue, working, updateError } = this.state
-    const searchValueValid = !validate({ searchValue }, { searchValue: { email: true } })
 
+  // Helpers
+  const save = Utils.withBusyState(setWorking, async () => {
     const aclEmails = _.map('email', acl)
+    const needsDelete = _.remove(entry => aclEmails.includes(entry.email), originalAcl)
+    const numAdditions = _.filter(({ email }) => !_.some({ email }, originalAcl), acl).length
+    const eventData = { numAdditions, ...extractWorkspaceDetails(workspace) }
 
-    const suggestions = _.flow(
-      _.map('groupEmail'),
-      _.concat(shareSuggestions),
-      list => _.difference(list, aclEmails),
-      _.uniq
-    )(groups)
+    const aclUpdates = [
+      ..._.flow(
+        _.remove({ accessLevel: 'PROJECT_OWNER' }),
+        _.map(_.pick(['email', 'accessLevel', 'canShare', 'canCompute']))
+      )(acl),
+      ..._.map(({ email }) => ({ email, accessLevel: 'NO ACCESS' }), needsDelete)
+    ]
 
-    const remainingSuggestions = _.difference(suggestions, _.map('email', acl))
+    try {
+      await Ajax().Workspaces.workspace(namespace, name).updateAcl(aclUpdates)
+      !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { ...eventData, success: true })
+      onDismiss()
+    } catch (error) {
+      !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { ...eventData, success: false })
+      setUpdateError(await error.text())
+    }
+  })
 
-    return h(Modal, {
-      title: 'Share Workspace',
-      width: 550,
-      okButton: h(ButtonPrimary, { onClick: () => this.save() }, ['Save']),
-      onDismiss
-    }, [
-      h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id }, ['User email']),
-        h(AutocompleteTextInput, {
-          id,
-          openOnFocus: true,
-          placeholderText: _.includes(searchValue, aclEmails) ?
-            'This email has already been added to the list' :
-            'Enter an email address',
-          onPick: value => {
-            !validate.single(value, { email: true, exclusion: aclEmails }) &&
-              this.setState(
-                _.flow(
-                  _.update('acl', Utils.append({ email: value, accessLevel: 'READER' })),
-                  _.set('searchValue', '')
-                ),
-                () => this.list.current.scrollTo({ top: this.list.current.scrollHeight, behavior: 'smooth' })
-              )
-          },
-          placeholder: 'Add people or groups',
-          value: searchValue,
-          onChange: v => this.setState({ searchValue: v }),
-          suggestions: Utils.cond(
-            [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
-            [remainingSuggestions.length, () => remainingSuggestions],
-            () => []
-          ),
-          style: { fontSize: 16 }
-        })
-      ])]),
-      div({ style: { ...Style.elements.sectionHeader, marginTop: '1rem' } }, ['Current Collaborators']),
-      div({ ref: this.list, style: styles.currentCollaboratorsArea }, [
-        h(Fragment, _.map(this.renderCollaborator, Utils.toIndexPairs(acl))),
-        !loaded && centeredSpinner()
-      ]),
-      updateError && div({ style: { marginTop: '1rem' } }, [
-        div(['An error occurred:']),
-        updateError
-      ]),
-      working && spinnerOverlay
-    ])
-  }
-
-  renderCollaborator = ([index, aclItem]) => {
+  const renderCollaborator = ([index, aclItem]) => {
     const { email, accessLevel, pending } = aclItem
     const POAccessLevel = 'PROJECT_OWNER'
     const disabled = accessLevel === POAccessLevel || email === getUser().email
-    const { workspace } = this.props
-    const { acl, originalAcl } = this.state
     const isOld = _.find({ email }, originalAcl)
-    const numAdditions = _.filter(({ email }) => !_.some({ email }, originalAcl), acl).length
 
     return div({
       style: {
@@ -174,73 +133,111 @@ export default Utils.withCancellationSignal(class ShareWorkspaceModal extends Co
         email,
         pending && div({ style: styles.pending }, ['Pending']),
         h(AclInput, {
-          autoFocus: !!numAdditions,
+          autoFocus: email === lastAddedEmail,
           value: aclItem,
-          onChange: v => this.setState(_.set(['acl', index], v)),
+          onChange: v => setAcl(_.set([index], v)),
           disabled,
           maxAccessLevel: workspace.accessLevel
         })
       ]),
       !disabled && h(Link, {
-        onClick: () => this.setState({ acl: _.remove({ email }, acl) })
+        onClick: () => setAcl(_.remove({ email }))
       }, [icon('times', { size: 20, style: { marginRight: '0.5rem' } })])
     ])
   }
 
-  async componentDidMount() {
-    const { workspace: { workspace: { namespace, name } }, onDismiss, signal } = this.props
 
-    try {
-      const [{ acl }, shareSuggestions, groups] = await Promise.all([
-        Ajax(signal).Workspaces.workspace(namespace, name).getAcl(),
-        Ajax(signal).Workspaces.getShareLog(),
-        Ajax(signal).Groups.list()
-      ])
+  // Lifecycle
+  Utils.useOnMount(() => {
+    const load = async () => {
+      try {
+        const [{ acl }, shareSuggestions, groups] = await Promise.all([
+          Ajax(signal).Workspaces.workspace(namespace, name).getAcl(),
+          Ajax(signal).Workspaces.getShareLog(),
+          Ajax(signal).Groups.list()
+        ])
 
-      const fixedAcl = _.flow(
-        _.toPairs,
-        _.map(([email, data]) => ({ email, ...data })),
-        _.sortBy(x => -Utils.workspaceAccessLevels.indexOf(x.accessLevel))
-      )(acl)
+        const fixedAcl = _.flow(
+          _.toPairs,
+          _.map(([email, data]) => ({ email, ...data })),
+          _.sortBy(x => -Utils.workspaceAccessLevels.indexOf(x.accessLevel))
+        )(acl)
 
-      this.setState({
-        acl: fixedAcl,
-        originalAcl: fixedAcl,
-        groups,
-        shareSuggestions,
-        loaded: true
+        setAcl(fixedAcl)
+        setOriginalAcl(fixedAcl)
+        setGroups(groups)
+        setShareSuggestions(shareSuggestions)
+        setLoaded(true)
+      } catch (error) {
+        onDismiss()
+        reportError('Error looking up collaborators', error)
+      }
+    }
+
+    load()
+  })
+
+  useLayoutEffect(() => {
+    !!lastAddedEmail && list.current.scrollTo({ top: list.current.scrollHeight, behavior: 'smooth' })
+  }, [lastAddedEmail])
+
+
+  // Render
+  const searchValueValid = !validate({ searchValue }, { searchValue: { email: true } })
+  const aclEmails = _.map('email', acl)
+
+  const suggestions = _.flow(
+    _.map('groupEmail'),
+    _.concat(shareSuggestions),
+    list => _.difference(list, aclEmails),
+    _.uniq
+  )(groups)
+
+  const remainingSuggestions = _.difference(suggestions, _.map('email', acl))
+
+  return h(Modal, {
+    title: 'Share Workspace',
+    width: 550,
+    okButton: h(ButtonPrimary, { onClick: save }, ['Save']),
+    onDismiss
+  }, [
+    h(IdContainer, [id => h(Fragment, [
+      h(FormLabel, { htmlFor: id }, ['User email']),
+      h(AutocompleteTextInput, {
+        id,
+        openOnFocus: true,
+        placeholderText: _.includes(searchValue, aclEmails) ?
+          'This email has already been added to the list' :
+          'Enter an email address',
+        onPick: value => {
+          if (!validate.single(value, { email: true, exclusion: aclEmails })) {
+            setSearchValue('')
+            setAcl(Utils.append({ email: value, accessLevel: 'READER' }))
+            setLastAddedEmail(value)
+          }
+        },
+        placeholder: 'Add people or groups',
+        value: searchValue,
+        onChange: setSearchValue,
+        suggestions: Utils.cond(
+          [searchValueValid && !_.includes(searchValue, aclEmails), () => [searchValue]],
+          [remainingSuggestions.length, () => remainingSuggestions],
+          () => []
+        ),
+        style: { fontSize: 16 }
       })
-    } catch (error) {
-      onDismiss()
-      reportError('Error looking up collaborators', error)
-    }
-  }
+    ])]),
+    div({ style: { ...Style.elements.sectionHeader, marginTop: '1rem' } }, ['Current Collaborators']),
+    div({ ref: list, style: styles.currentCollaboratorsArea }, [
+      h(Fragment, _.map(renderCollaborator, Utils.toIndexPairs(acl))),
+      !loaded && centeredSpinner()
+    ]),
+    updateError && div({ style: { marginTop: '1rem' } }, [
+      div(['An error occurred:']),
+      updateError
+    ]),
+    working && spinnerOverlay
+  ])
+}
 
-  async save() {
-    const { workspace: { workspace: { namespace, name } }, onDismiss } = this.props
-    const { acl, originalAcl } = this.state
-
-    const aclEmails = _.map('email', acl)
-    const needsDelete = _.remove(entry => aclEmails.includes(entry.email), originalAcl)
-    const numAdditions = _.filter(({ email }) => !_.some({ email }, originalAcl), acl).length
-    const eventData = { numAdditions, ...extractWorkspaceDetails(this.props.workspace) }
-
-    const aclUpdates = [
-      ..._.flow(
-        _.remove({ accessLevel: 'PROJECT_OWNER' }),
-        _.map(_.pick(['email', 'accessLevel', 'canShare', 'canCompute']))
-      )(acl),
-      ..._.map(({ email }) => ({ email, accessLevel: 'NO ACCESS' }), needsDelete)
-    ]
-
-    try {
-      this.setState({ working: true })
-      await Ajax().Workspaces.workspace(namespace, name).updateAcl(aclUpdates)
-      !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { ...eventData, success: true })
-      onDismiss()
-    } catch (error) {
-      !!numAdditions && Ajax().Metrics.captureEvent(Events.workspaceShare, { ...eventData, success: false })
-      this.setState({ updateError: await error.text(), working: false })
-    }
-  }
-})
+export default ShareWorkspaceModal
