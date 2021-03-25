@@ -34,8 +34,9 @@ const CookieWarning = () => {
     signOut()
   }
   return !cookiesAccepted && div({
+    role: 'banner',
     style: {
-      position: 'fixed', height: 100, bottom: 0, width: '100%',
+      flex: 0, height: 100, width: '100%',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       backgroundColor: 'white', borderTop: `6px solid ${colors.primary()}`
     }
