@@ -28,6 +28,7 @@ const defaultDataDiskSize = 500 // GB
 const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
 const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
 
+// Removing low cpu/memory options based on the Galaxy team's suggestions
 const validMachineTypes = _.filter(({ cpu, memory }) => cpu >= 4 && memory >= 52, machineTypes)
 
 export const NewGalaxyModal = _.flow(
