@@ -30,6 +30,35 @@ const constraints = {
   }
 }
 
+const allRegions = [
+  { value: '', label: 'US multi-regional (default)' },
+  { value: 'northamerica-northeast1', label: 'northamerica-northeast1 (Montreal)' },
+  { value: 'southamerica-east1', label: 'southamerica-east1 (Sao Paulo)' },
+  { value: 'us-central1', label: 'us-central1 (Iowa)' },
+  { value: 'us-east1', label: 'us-east1 (South Carolina)' },
+  { value: 'us-east4', label: 'us-east4 (Northern Virginia)' },
+  { value: 'us-west1', label: 'us-west1 (Oregon)' },
+  { value: 'us-west2', label: 'us-west2 (Los Angeles)' },
+  { value: 'us-west3', label: 'us-west3 (Salt Lake City)' },
+  { value: 'us-west4', label: 'us-west4 (Las Vegas)' },
+  { value: 'europe-central2', label: 'europe-central2 (Warsaw)' },
+  { value: 'europe-north1', label: 'europe-north1 (Finland)' },
+  { value: 'europe-west1', label: 'europe-west1 (Belgium)' },
+  { value: 'europe-west2', label: 'europe-west2 (London)' },
+  { value: 'europe-west3', label: 'europe-west3 (Frankfurt)' },
+  { value: 'europe-west4', label: 'europe-west4 (Netherlands)' },
+  { value: 'europe-west6', label: 'europe-west6 (Zurich)' },
+  { value: 'asia-east1', label: 'asia-east1 (Taiwan)' },
+  { value: 'asia-east2', label: 'asia-east2 (Hong Kong)' },
+  { value: 'asia-northeast1', label: 'asia-northeast1 (Tokyo)' },
+  { value: 'asia-northeast2', label: 'asia-northeast2 (Osaka)' },
+  { value: 'asia-northeast3', label: 'asia-northeast3 (Seoul)' },
+  { value: 'asia-south1', label: 'asia-south1 (Mumbai)' },
+  { value: 'asia-southeast1', label: 'asia-southeast1 (Singapore)' },
+  { value: 'asia-southeast2', label: 'asia-southeast2 (Jakarta)' },
+  { value: 'australia-southeast1', label: 'australia-southeast1 (Sydney)' },
+]
+
 const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, title, buttonText
 }) => {
@@ -44,6 +73,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState()
+  const [bucketLocation, setBucketLocation] = useState('')
 
   const signal = Utils.useCancellation()
 
@@ -66,7 +96,10 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
         name,
         authorizationDomain: _.map(v => ({ membersGroupName: v }), [...getRequiredGroups(), ...groups]),
         attributes: { description },
-        copyFilesWithPrefix: 'notebooks/'
+        copyFilesWithPrefix: 'notebooks/'        
+      }
+      if (bucketLocation) {
+        body.bucketLocation = bucketLocation
       }
       onSuccess(await Utils.cond(
         [cloneWorkspace, async () => {
@@ -200,6 +233,26 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           value: groups,
           onChange: data => setGroups(_.map('value', data)),
           options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()
+        })
+      ])]),
+      h(IdContainer, [id => h(Fragment, [
+        h(FormLabel, { htmlFor: id }, [
+          'Bucket location',
+          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+            'A bucket location can only be set when creating a workspace. ',
+            'Once set, it cannot be changed. ',
+            'Any cloned workspace will automatically inherit the bucket location from the original workspace and cannot be changed. ',
+            h(Link, {
+              href: 'https://cloud.google.com/storage/docs/locations',  // TODO: Change this to a Terra article
+              ...Utils.newTabLinkProps
+            }, ['Read more about bucket locations'])
+          ])
+        ]),
+        h(Select, {
+          id,
+          value: bucketLocation,
+          onChange: ({ value }) => setBucketLocation(value),
+          options: allRegions
         })
       ])]),
       customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
