@@ -224,9 +224,9 @@ const FenceLink = ({ provider: { key, name, short } }) => {
           div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
         ]),
         div({ style: styles.identityLine }, [
-          h(FrameworkServiceLink, { linkText: 'Renew', provider: key, redirectUrl }),
+          h(FrameworkServiceLink, { linkText: 'Renew', 'aria-label': `Renew your ${short} link`, provider: key, redirectUrl }),
           span({ style: { margin: '0 .25rem 0' } }, [' | ']),
-          h(UnlinkFenceAccount, { linkText: `Unlink`, provider: { key, name } })
+          h(UnlinkFenceAccount, { linkText: `Unlink`, 'aria-label': `Unlink from ${short}`, provider: { key, name } })
         ])
       ])
     )
