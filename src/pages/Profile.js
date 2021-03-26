@@ -2,7 +2,7 @@ import { addDays, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
-import { div, h, label, span } from 'react-hyperscript-helpers'
+import { div, h, h2, h3, label, span } from 'react-hyperscript-helpers'
 import {
   ButtonPrimary, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay, UnlinkFenceAccount
 } from 'src/components/common'
@@ -164,7 +164,7 @@ const NihLink = ({ nihToken }) => {
 }
 
 
-const FenceLink = ({ provider: { key, name } }) => {
+const FenceLink = ({ provider: { key, name, short } }) => {
   const decodeProvider = state => state ? JSON.parse(atob(state)).provider : ''
 
   const extractToken = (provider, { state, code }) => {
@@ -208,11 +208,11 @@ const FenceLink = ({ provider: { key, name } }) => {
   const expireTime = addDays(30, parseJSON(issuedAt))
 
   return div({ style: { marginBottom: '1rem' } }, [
-    div({ style: { ...styles.form.title, fontWeight: 600 } }, [name]),
+    h3({ style: { ...styles.form.title, fontWeight: 600 } }, [name]),
     Utils.cond(
       [isBusy, () => div([spinner(), 'Loading account status...'])],
       [!username, () => div({ style: styles.identityLine },
-        [h(FrameworkServiceLink, { linkText: 'Log in to link your account', provider: key, redirectUrl })]
+        [h(FrameworkServiceLink, { linkText: `Log in to link your ${short} account`, provider: key, redirectUrl })]
       )],
       () => div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
         div({ style: styles.identityLine }, [
@@ -226,7 +226,7 @@ const FenceLink = ({ provider: { key, name } }) => {
         div({ style: styles.identityLine }, [
           h(FrameworkServiceLink, { linkText: 'Renew', provider: key, redirectUrl }),
           span({ style: { margin: '0 .25rem 0' } }, [' | ']),
-          h(UnlinkFenceAccount, { linkText: 'Unlink', provider: { key, name } })
+          h(UnlinkFenceAccount, { linkText: `Unlink`, provider: { key, name } })
         ])
       ])
     )
@@ -234,7 +234,7 @@ const FenceLink = ({ provider: { key, name } }) => {
 }
 
 
-const sectionTitle = text => div({ style: styles.sectionTitle }, [text])
+const sectionTitle = text => h2({ style: styles.sectionTitle }, [text])
 
 const Profile = ({ queryParams = {} }) => {
   // State
@@ -303,7 +303,7 @@ const Profile = ({ queryParams = {} }) => {
 
   return h(FooterWrapper, [
     saving && spinnerOverlay,
-    h(TopBar),
+    h(TopBar, { title: 'User Profile' }),
     div({ role: 'main', style: { flexGrow: 1 } }, [
       !profileInfo ? centeredSpinner() : h(Fragment, [
         div({ style: { marginLeft: '2rem' } }, [sectionTitle('Profile')]),
