@@ -71,6 +71,7 @@ const LandingPage = () => {
     ]),
     isTerra() && div({
       style: {
+        backgroundColor: '#191a1c',
         backgroundImage: `url(${covidHero})`, backgroundSize: 'cover', borderRadius: 5,
         boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)',
         color: 'white', padding: '2rem 1rem',
