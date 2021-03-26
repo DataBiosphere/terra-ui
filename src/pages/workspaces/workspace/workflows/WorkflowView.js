@@ -328,16 +328,14 @@ const WorkflowView = _.flow(
   const [selectingData, setSelectingData] = useState(false)
   const [useCallCache, setUseCallCache] = useState(true)
   const [useReferenceDisks, setUseReferenceDisks] = useState(false)
-  const [versionIds, setVersionIds] = useState([]) // TODO only set twice (in one place)
+  const [versionIds, setVersionIds] = useState([])
   const [{ entityMetadata, availableSnapshots }, setDataSources] = useState(restoreOrElse('dataSources', {}))
   const [{ wdl, synopsis, documentation }, setMethodDetails] = useState(restoreOrElse('methodDetails', {}))
 
   const signal = Utils.useCancellation()
 
 
-  // Everything else, for now
-  const { newSetName, selectedEntities, type } = entitySelectionModel
-
+  // Helpers
   const resetSelectionModel = (value, selectedEntities = {}, newEntityMetadata = entityMetadata, isSnapshot) => {
     // If the default for non-set types changes from `processAllAsSet` then the calculation of `noLaunchReason` in `renderSummary` needs to be updated accordingly.
     // Currently, `renderSummary` assumes that it is not possible to have nothing selected for non-set types.
@@ -358,21 +356,36 @@ const WorkflowView = _.flow(
     setSelectedEntityType(dataReferenceName || rootEntityType)
   }
 
-  const getValidation = async () => {
-    try {
-      return await Ajax(signal).Workspaces.workspace(namespace, workspaceName).methodConfig(workflowNamespace, workflowName).validate()
-    } catch (e) {
-      if (e.status === 404) {
-        return false
-      } else {
-        throw e
+  const fetchMethodDetails = withErrorReporting('Error loading WDL', async (savedConfig, currentSnapRedacted) => {
+    const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = savedConfig
+    if (sourceRepo === 'agora') {
+      if (!currentSnapRedacted) {
+        const { synopsis, documentation, payload } = await Ajax(signal).Methods.method(methodNamespace, methodName, methodVersion).get()
+        setMethodDetails({ wdl: payload, synopsis, documentation })
       }
+    } else if (sourceRepo === 'dockstore' || sourceRepo === 'dockstoretools') {
+      const wdl = await Ajax(signal).Dockstore.getWdl({ path: methodPath, version: methodVersion, isTool: sourceRepo === 'dockstoretools' })
+      setMethodDetails({ wdl })
+    } else {
+      throw new Error('unknown sourceRepo')
     }
-  }
+  })
 
 
   // Lifecycle
   Utils.useOnMount(() => {
+    const getValidation = async () => {
+      try {
+        return await Ajax(signal).Workspaces.workspace(namespace, workspaceName).methodConfig(workflowNamespace, workflowName).validate()
+      } catch (e) {
+        if (e.status === 404) {
+          return false
+        } else {
+          throw e
+        }
+      }
+    }
+
     const loadMethodVersions = async ({ methodRepoMethod: { methodNamespace, methodName, sourceRepo, methodPath } }) => {
       if (sourceRepo === 'agora') {
         const methods = await Ajax(signal).Methods.list({ namespace: methodNamespace, name: methodName })
@@ -460,21 +473,11 @@ const WorkflowView = _.flow(
     wdl, synopsis, documentation
   ])
 
-  const fetchMethodDetails = withErrorReporting('Error loading WDL', async (savedConfig, currentSnapRedacted) => {
-    const { methodRepoMethod: { sourceRepo, methodNamespace, methodName, methodVersion, methodPath } } = savedConfig
-    if (sourceRepo === 'agora') {
-      if (!currentSnapRedacted) {
-        const { synopsis, documentation, payload } = await Ajax(signal).Methods.method(methodNamespace, methodName, methodVersion).get()
-        setMethodDetails({ wdl: payload, synopsis, documentation })
-      }
-    } else if (sourceRepo === 'dockstore' || sourceRepo === 'dockstoretools') {
-      const wdl = await Ajax(signal).Dockstore.getWdl({ path: methodPath, version: methodVersion, isTool: sourceRepo === 'dockstoretools' })
-      setMethodDetails({ wdl })
-    } else {
-      throw new Error('unknown sourceRepo')
-    }
-  })
 
+  // Render helpers
+  const { newSetName, selectedEntities, type } = entitySelectionModel
+
+  // Summary render helpers
   const describeSelectionModel = () => {
     const { rootEntityType } = modifiedConfig
     const count = _.size(selectedEntities)
@@ -514,6 +517,39 @@ const WorkflowView = _.flow(
     fetchMethodDetails(config)
   })
 
+  const save = _.flow(
+    withErrorReporting('Error saving'),
+    Utils.withBusyState(setSaving)
+  )(async () => {
+    const trimInputOutput = _.flow(
+      _.update('inputs', _.mapValues(_.trim)),
+      _.update('outputs', processSingle ? () => ({}) : _.mapValues(_.trim))
+    )
+
+    const validationResponse = await Ajax().Workspaces.workspace(namespace, workspaceName)
+      .methodConfig(workflowNamespace, workflowName)
+      .save(trimInputOutput(modifiedConfig))
+
+    setSaved(true)
+    setSavedConfig(validationResponse.methodConfiguration)
+    setModifiedConfig(validationResponse.methodConfiguration)
+    setErrors(augmentErrors(validationResponse))
+    setSavedInputsOutputs(modifiedInputsOutputs)
+    setSelectedEntityType(_.get([type === processSnapshotTable ? 'dataReferenceName' : 'rootEntityType'], validationResponse.methodConfiguration))
+
+    setTimeout(() => setSaved(false), 3000)
+  })
+
+  const cancel = () => {
+    setSaved(false)
+    setModifiedConfig(savedConfig)
+    setModifiedInputsOutputs(savedInputsOutputs)
+    setEntitySelectionModel(resetSelectionModel(savedConfig.rootEntityType))
+    setCurrentSnapRedacted(savedSnapRedacted)
+    setActiveTab(activeTab === 'wdl' && savedSnapRedacted ? 'inputs' : activeTab)
+
+    updateSingleOrMultipleRadioState(savedConfig)
+  }
 
   const renderSummary = () => {
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
@@ -816,13 +852,17 @@ const WorkflowView = _.flow(
     ])
   }
 
-  const downloadJson = key => {
-    const prepIO = _.mapValues(v => /^".*"/.test(v) ? v.slice(1, -1) : `\${${v}}`)
-
-    const blob = new Blob([JSON.stringify(prepIO(modifiedConfig[key]))], { type: 'application/json' })
-    FileSaver.saveAs(blob, `${key}.json`)
+  // WDL tab
+  const renderWDL = () => {
+    return div({ style: styles.tabContents }, [
+      wdl ? h(WDLViewer, {
+        wdl, readOnly: true,
+        style: { maxHeight: 500 }
+      }) : centeredSpinner()
+    ])
   }
 
+  // IO table tabs render helpers
   const uploadJson = async (key, file) => {
     try {
       const rawUpdates = JSON.parse(await Utils.readFileAsText(file))
@@ -845,13 +885,11 @@ const WorkflowView = _.flow(
     }
   }
 
-  const renderWDL = () => {
-    return div({ style: styles.tabContents }, [
-      wdl ? h(WDLViewer, {
-        wdl, readOnly: true,
-        style: { maxHeight: 500 }
-      }) : centeredSpinner()
-    ])
+  const downloadJson = key => {
+    const prepIO = _.mapValues(v => /^".*"/.test(v) ? v.slice(1, -1) : `\${${v}}`)
+
+    const blob = new Blob([JSON.stringify(prepIO(modifiedConfig[key]))], { type: 'application/json' })
+    FileSaver.saveAs(blob, `${key}.json`)
   }
 
   const renderIOTable = key => {
@@ -935,40 +973,8 @@ const WorkflowView = _.flow(
     ])])
   }
 
-  const save = _.flow(
-    withErrorReporting('Error saving'),
-    Utils.withBusyState(setSaving)
-  )(async () => {
-    const trimInputOutput = _.flow(
-      _.update('inputs', _.mapValues(_.trim)),
-      _.update('outputs', processSingle ? () => ({}) : _.mapValues(_.trim))
-    )
 
-    const validationResponse = await Ajax().Workspaces.workspace(namespace, workspaceName)
-      .methodConfig(workflowNamespace, workflowName)
-      .save(trimInputOutput(modifiedConfig))
-
-    setSaved(true)
-    setSavedConfig(validationResponse.methodConfiguration)
-    setModifiedConfig(validationResponse.methodConfiguration)
-    setErrors(augmentErrors(validationResponse))
-    setSavedInputsOutputs(modifiedInputsOutputs)
-    setSelectedEntityType(_.get([type === processSnapshotTable ? 'dataReferenceName' : 'rootEntityType'], validationResponse.methodConfiguration))
-
-    setTimeout(() => setSaved(false), 3000)
-  })
-
-  const cancel = () => {
-    setSaved(false)
-    setModifiedConfig(savedConfig)
-    setModifiedInputsOutputs(savedInputsOutputs)
-    setEntitySelectionModel(resetSelectionModel(savedConfig.rootEntityType))
-    setCurrentSnapRedacted(savedSnapRedacted)
-    setActiveTab(activeTab === 'wdl' && savedSnapRedacted ? 'inputs' : activeTab)
-
-    updateSingleOrMultipleRadioState(savedConfig)
-  }
-
+  // Render
   const allRenderNeeds = !!savedConfig && !!modifiedConfig && !!entityMetadata && !!modifiedInputsOutputs
 
   return h(Fragment, [
