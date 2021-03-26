@@ -118,7 +118,7 @@ export const NewGalaxyModal = _.flow(
           ['ERROR', () => deleteButton],
           [Utils.DEFAULT, () => {
             return h(Fragment, [
-              deleteButton(true),
+              deleteButton(),
               pauseButton(true)
             ])
           }]
