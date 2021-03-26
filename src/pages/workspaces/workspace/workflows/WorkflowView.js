@@ -1,7 +1,6 @@
 import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import ReactDOM from 'react-dom'
 import { b, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
@@ -374,56 +373,7 @@ const WorkflowView = _.flow(
 
   // Lifecycle
   Utils.useOnMount(() => {
-    const load = _.flow(
-      Utils.withBusyState(setBusy),
-      withErrorReporting('Error loading data')
-    )(async () => {
-      const ws = Ajax(signal).Workspaces.workspace(namespace, workspaceName)
-
-      const [entityMetadata, validationResponse, config] = await Promise.all([
-        ws.entityMetadata(),
-        getValidation(),
-        ws.methodConfig(workflowNamespace, workflowName).get()
-      ])
-      const { methodRepoMethod: { methodNamespace, methodName, sourceRepo, methodPath } } = config
-      const isRedacted = !validationResponse
-
-      const inputsOutputs = isRedacted ? {} : await Ajax(signal).Methods.configInputsOutputs(config)
-      const selection = workflowSelectionStore.get()
-      const readSelection = selectionKey && selection.key === selectionKey
-
-      const { resources: snapshots } = await Ajax(signal).Workspaces.workspace(namespace, workspaceName).listSnapshot(1000, 0)
-
-      // Dockstore users who target floating tags can change their WDL via Github without explicitly selecting a new version in Terra.
-      // Before letting the user edit the config we retrieved from the DB, drop any keys that are no longer valid. [WA-291]
-      // N.B. this causes `config` and `modifiedConfig` to be unequal, so we (accurately) prompt the user to save before launching
-      // DO NOT filter when a config is redacted, when there's no IO from the WDL we would erase the user's inputs
-      const modifiedConfig = _.flow(
-        readSelection ? _.set('rootEntityType', selection.entityType) : _.identity,
-        !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
-      )(config)
-
-      const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ?
-        await Ajax(signal).Workspaces.workspace(namespace, workspaceName).snapshotEntityMetadata(namespace, modifiedConfig.dataReferenceName) :
-        undefined
-
-      ReactDOM.unstable_batchedUpdates(() => { // Force batched updates, since these are all used together
-        setSavedConfig(config)
-        setModifiedConfig(modifiedConfig)
-        setCurrentSnapRedacted(isRedacted)
-        setSavedSnapRedacted(isRedacted)
-        setDataSources({ entityMetadata, availableSnapshots: _.sortBy(_.lowerCase, snapshots) })
-        setSelectedSnapshotEntityMetadata(selectedSnapshotEntityMetadata)
-        setSavedInputsOutputs(inputsOutputs)
-        setModifiedInputsOutputs(inputsOutputs)
-        setErrors(isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse))
-        setEntitySelectionModel(resetSelectionModel(
-          modifiedConfig.dataReferenceName || modifiedConfig.rootEntityType,
-          readSelection ? selection.entities : {},
-          entityMetadata, !!modifiedConfig.dataReferenceName
-        ))
-      })
-
+    const loadMethodVersions = async ({ methodRepoMethod: { methodNamespace, methodName, sourceRepo, methodPath } }) => {
       if (sourceRepo === 'agora') {
         const methods = await Ajax(signal).Methods.list({ namespace: methodNamespace, name: methodName })
         const snapshotIds = _.map('snapshotId', methods)
@@ -437,9 +387,62 @@ const WorkflowView = _.flow(
       } else {
         throw new Error('unknown sourceRepo')
       }
+    }
+
+    const load = _.flow(
+      Utils.withBusyState(setBusy),
+      withErrorReporting('Error loading data')
+    )(async () => {
+      const ws = Ajax(signal).Workspaces.workspace(namespace, workspaceName)
+
+      const [entityMetadata, validationResponse, config, { resources: snapshots }] = await Promise.all([
+        ws.entityMetadata(),
+        getValidation(),
+        ws.methodConfig(workflowNamespace, workflowName).get(),
+        ws.listSnapshots(1000, 0)
+      ])
+
+      loadMethodVersions(config)
+
+      const isRedacted = !validationResponse
+      fetchMethodDetails(config, isRedacted)
+
+      const inputsOutputs = isRedacted ? {} : await Ajax(signal).Methods.configInputsOutputs(config)
+      const selection = workflowSelectionStore.get()
+      const readSelection = selectionKey && selection.key === selectionKey
+
+      // Dockstore users who target floating tags can change their WDL via Github without explicitly selecting a new version in Terra.
+      // Before letting the user edit the config we retrieved from the DB, drop any keys that are no longer valid. [WA-291]
+      // N.B. this causes `config` and `modifiedConfig` to be unequal, so we (accurately) prompt the user to save before launching
+      // DO NOT filter when a config is redacted, when there's no IO from the WDL we would erase the user's inputs
+      const modifiedConfig = _.flow(
+        readSelection ? _.set('rootEntityType', selection.entityType) : _.identity,
+        !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
+      )(config)
 
       updateSingleOrMultipleRadioState(modifiedConfig)
-      fetchMethodDetails(config, isRedacted)
+
+
+      if (modifiedConfig.dataReferenceName) {
+        const snapshotEntities = await Ajax(signal).Workspaces.workspace(namespace, workspaceName).snapshotEntityMetadata(namespace, modifiedConfig.dataReferenceName)
+        setSelectedSnapshotEntityMetadata(snapshotEntities)
+      }
+
+      // needed for initial render
+      setSavedConfig(config)
+      setModifiedConfig(modifiedConfig)
+      setDataSources({ entityMetadata, availableSnapshots: _.sortBy(_.lowerCase, snapshots) })
+      setModifiedInputsOutputs(inputsOutputs)
+
+      setCurrentSnapRedacted(isRedacted)
+      setSavedSnapRedacted(isRedacted)
+      setSavedInputsOutputs(inputsOutputs)
+      setErrors(isRedacted ? { inputs: {}, outputs: {} } : augmentErrors(validationResponse))
+      setEntitySelectionModel(resetSelectionModel(
+        modifiedConfig.dataReferenceName || modifiedConfig.rootEntityType,
+        readSelection ? selection.entities : {},
+        entityMetadata, !!modifiedConfig.dataReferenceName
+      ))
     })
 
     load()
@@ -504,10 +507,10 @@ const WorkflowView = _.flow(
     setModifiedInputsOutputs(modifiedInputsOutputs)
     setSavedSnapRedacted(currentSnapRedacted)
     setCurrentSnapRedacted(false)
-    setModifiedConfig(_.update(['modifiedConfig'], _.flow(
+    setModifiedConfig(_.flow(
       _.set('methodRepoMethod', config.methodRepoMethod),
       filterConfigIO(modifiedInputsOutputs)
-    )))
+    ))
     fetchMethodDetails(config)
   })
 
@@ -609,7 +612,7 @@ const WorkflowView = _.flow(
                 disabled: !!Utils.editWorkspaceError(outerWs) || currentSnapRedacted,
                 text: 'Run workflow with inputs defined by file paths',
                 name: 'process-workflows',
-                checked: processSingle,
+                checked: processSingle === true, // unchecked when undefined
                 onChange: () => {
                   setProcessSingle(true)
                   setModifiedConfig(_.omit('rootEntityType'))
@@ -622,7 +625,7 @@ const WorkflowView = _.flow(
                 disabled: !!Utils.editWorkspaceError(outerWs) || currentSnapRedacted,
                 text: 'Run workflow(s) with inputs defined by data table',
                 name: 'process-workflows',
-                checked: !processSingle,
+                checked: processSingle === false, // unchecked when undefined
                 onChange: () => {
                   setProcessSingle(false)
                   setModifiedConfig(_.set(['rootEntityType'], selectedEntityType))
@@ -966,8 +969,10 @@ const WorkflowView = _.flow(
     updateSingleOrMultipleRadioState(savedConfig)
   }
 
+  const allRenderNeeds = !!savedConfig && !!modifiedConfig && !!entityMetadata && !!modifiedInputsOutputs
+
   return h(Fragment, [
-    savedConfig && h(Fragment, [
+    allRenderNeeds && h(Fragment, [
       renderSummary(),
       Utils.switchCase(activeTab,
         ['wdl', renderWDL],
