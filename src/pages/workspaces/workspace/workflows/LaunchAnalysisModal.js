@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, p, span, wbr } from 'react-hyperscript-helpers'
 import { ButtonPrimary, CromwellVersionLink } from 'src/components/common'
-import { spinner } from 'src/components/icons'
+import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { regionInfo } from 'src/components/region-common'
@@ -89,6 +89,9 @@ const LaunchAnalysisModal = ({
   const { location, locationType } = bucketLocation
   const { flag, regionDescription } = regionInfo(location, locationType)
 
+  const onlyConstantInputs = _.every(i => _.startsWith('"', i) && _.endsWith('"', i), config.inputs)
+  const warnDuplicateAnalyses = onlyConstantInputs && entityCount > 1
+
   return h(Modal, {
     title: !launching ? 'Confirm launch' : 'Launching Analysis',
     onDismiss,
@@ -115,7 +118,13 @@ const LaunchAnalysisModal = ({
         ])]) : 'Loading...'
     ]),
     div({ style: { margin: '1rem 0' } }, [
-      'This will launch ', b([entityCount]), ` analys${entityCount === 1 ? 'is' : 'es'}`,
+      warnDuplicateAnalyses && icon('warning-standard', { size: 16, style: { color: colors.warning(), marginRight: '0.5rem' } }),
+      warnDuplicateAnalyses && 'Warning! ',
+      'This will launch ',
+      b([entityCount]),
+      warnDuplicateAnalyses && ' duplicate',
+      entityCount === 1 ? ' analysis' : ' analyses',
+      warnDuplicateAnalyses && ' of the same set of constant inputs',
       '.',
       type === processMergedSet && entityCount !== mergeSets(selectedEntities).length && div({
         style: { fontStyle: 'italic', marginTop: '0.5rem' }
