@@ -342,7 +342,7 @@ export default class RuntimeManager extends PureComponent {
             div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
               div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Cloud Environment'),
               div({ style: { fontSize: 10 } }, [
-                span({ style: { textTransform: 'uppercase', fontWeight: 500 } },
+                span({ style: { textTransform: 'capitalize', fontWeight: 500 } },
                   [currentStatus === 'LeoReconfiguring' ? 'Updating' : (currentStatus || 'None')]),
                 !!totalCost && ` (${Utils.formatUSD(totalCost)} / hr)`
               ])

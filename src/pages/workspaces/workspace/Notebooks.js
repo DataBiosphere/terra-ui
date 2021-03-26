@@ -315,7 +315,7 @@ const Notebooks = _.flow(
           div(['Galaxy Interactive']),
           div(['Environment']),
           div({ style: { fontSize: 12, marginTop: 6 } },
-            [_.capitalize(app.status), `: ${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} per hr`]),
+            [_.capitalize(app.status), ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)`]),
           icon('trash', { size: 21 })
         ]) :
         div({ style: { fontSize: 18, lineHeight: '22px', width: 160, color: colors.accent() } }, [

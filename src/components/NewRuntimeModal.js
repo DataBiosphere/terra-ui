@@ -785,7 +785,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                   onlyInteger: true,
                   value: numberOfWorkers,
                   disabled: !this.canUpdateNumberOfWorkers(),
-                  tooltip: !this.canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of workers' : undefined,
+                  tooltip: !this.canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of workers.' : undefined,
                   onChange: v => this.setState({
                     numberOfWorkers: v
                   })
@@ -821,7 +821,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
           id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
             label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
             div({ style: { marginTop: '0.5rem' } }, [
-              'Stores your analysis data ',
+              'stores your analysis data. ',
               h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
             ]),
             h(NumberInput, {

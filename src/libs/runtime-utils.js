@@ -128,7 +128,7 @@ export const getGalaxyDiskCost = dataDiskSize => {
   const defaultNodepoolBootDiskSize = 100 // GB
   const appNodepoolBootDiskSize = 100 // GB
 
-  return persistentDiskCostMonthly({
+  return persistentDiskCost({
     status: 'Running',
     size: dataDiskSize + metadataDiskSize + defaultNodepoolBootDiskSize + appNodepoolBootDiskSize
   })

@@ -28,6 +28,7 @@ const defaultDataDiskSize = 500 // GB
 const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
 const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/kubernetes-engine/quotas
 
+// Removing low cpu/memory options based on the Galaxy team's suggestions
 const validMachineTypes = _.filter(({ cpu, memory }) => cpu >= 4 && memory >= 52, machineTypes)
 
 export const NewGalaxyModal = _.flow(
@@ -81,9 +82,11 @@ export const NewGalaxyModal = _.flow(
     return onSuccess()
   })
 
-  const deleteButton = h(ButtonSecondary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete'])
-
   const renderActionButton = () => {
+    const deleteButton = (isDisabled = false) => h(ButtonSecondary, { disabled: isDisabled, style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete'])
+    const pauseButton = (isDisabled = false) => h(ButtonSecondary, { disabled: isDisabled, style: { marginRight: '1rem' }, onClick: () => { pauseGalaxy() } }, ['Pause'])
+    const resumeButton = (isDisabled = false) => h(ButtonSecondary, { disabled: isDisabled, style: { marginRight: '1rem' }, onClick: resumeGalaxy }, ['Resume'])
+
     return Utils.switchCase(viewMode,
       ['deleteWarn', () => {
         return h(ButtonPrimary, { onClick: deleteGalaxy }, ['Delete'])
@@ -96,23 +99,29 @@ export const NewGalaxyModal = _.flow(
       }],
       ['paused', () => {
         return h(Fragment, [
-          h(ButtonPrimary, { style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete']),
-          h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: resumeGalaxy }, ['Resume'])
+          deleteButton(),
+          resumeButton()
         ])
       }],
       [Utils.DEFAULT, () => !app ?
-        h(ButtonPrimary, { onClick: () => setViewMode('createWarn') }, ['Next']) :
+        h(ButtonPrimary, { disabled: false, onClick: () => setViewMode('createWarn') }, ['Next']) :
         Utils.switchCase(app.status,
           ['RUNNING', () => h(Fragment, [
-            deleteButton,
-            h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: () => { pauseGalaxy() } }, ['Pause']),
-            h(ButtonPrimary, { onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
+            deleteButton(),
+            pauseButton(),
+            h(ButtonPrimary, { disabled: false, onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
           ])],
           ['STOPPED', () => h(Fragment, [
-            deleteButton,
-            h(ButtonPrimary, { style: { marginRight: '1rem' }, onClick: () => { resumeGalaxy() } }, ['Resume'])
+            h(ButtonSecondary, { disabled: true, style: { marginRight: 'auto' }, tooltip: 'Cloud Compute must be resumed first.', onClick: () => setViewMode('deleteWarn') }, ['Delete']),
+            resumeButton()
           ])],
-          ['ERROR', () => deleteButton]
+          ['ERROR', () => deleteButton],
+          [Utils.DEFAULT, () => {
+            return h(Fragment, [
+              deleteButton(true),
+              pauseButton(true)
+            ])
+          }]
         )]
     )
   }
@@ -134,7 +143,7 @@ export const NewGalaxyModal = _.flow(
         onDismiss,
         onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
       }),
-      div({ style: { marginBottom: '1rem' } }, ['Consists of application configuration, cloud compute and persistent disk(s).']),
+      div({ style: { marginBottom: '1rem' } }, ['consists of application configuration, cloud compute and persistent disk(s).']),
       div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
           span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('info-circle', { size: 25, color: colors.accent() })]),
@@ -240,7 +249,7 @@ export const NewGalaxyModal = _.flow(
       }, [
         { label: 'Running cloud compute cost', cost: Utils.formatUSD(runningComputeCost), unitLabel: 'per hr' },
         { label: 'Paused cloud compute cost', cost: Utils.formatUSD(pausedComputeCost), unitLabel: 'per hr' },
-        { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost(dataDiskSize)), unitLabel: 'per month' }
+        { label: 'Persistent disk cost', cost: Utils.formatUSD(getGalaxyDiskCost(dataDiskSize)), unitLabel: 'per hr' }
       ])
     ])
   }
@@ -260,7 +269,7 @@ export const NewGalaxyModal = _.flow(
     return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: styles.headerText }, ['Persistent disk']),
       div({ style: { marginTop: '0.5rem' } }, [
-        'Stores your analysis data '
+        'stores your analysis data. '
         // TODO Add info on PDs for Galaxy (similarly to in NewRuntimeModal.js)
       ]),
       div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
