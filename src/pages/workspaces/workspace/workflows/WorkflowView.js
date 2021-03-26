@@ -610,7 +610,7 @@ const WorkflowView = _.flow(
                 h(Link, { 'aria-label': 'Workflow menu' }, [icon('cardMenuIcon', { size: 22 })])
               ])
             ]),
-            span({ style: { color: colors.dark(), fontSize: 24 } }, name)
+            span({ style: { color: colors.dark(), fontSize: 24 } }, [name])
           ]),
           currentSnapRedacted && div({ style: { color: colors.warning(), fontSize: 16, fontWeight: 500, marginTop: '0.5rem' } }, [
             'You do not have access to this workflow, or this snapshot has been removed. To use this workflow, contact the owner to request access, or select another snapshot.'
@@ -689,7 +689,6 @@ const WorkflowView = _.flow(
                         .snapshotEntityMetadata(namespace, value)
 
                       setModifiedConfig({ ...modifiedConfig, dataReferenceName: value, rootEntityType: undefined })
-
                       setSelectedSnapshotEntityMetadata(selectedSnapshotEntityMetadata)
                       setSelectedEntityType(value)
                       setEntitySelectionModel(resetSelectionModel(value, undefined, undefined, true))
