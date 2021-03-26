@@ -47,7 +47,7 @@ const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, childr
 
   useEffect(() => {
     onChange && onChange(open)
-  }, [open])
+  }, [open, onChange])
 
   const child = Children.only(children)
   const childId = child.props.id || id
