@@ -785,7 +785,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                   onlyInteger: true,
                   value: numberOfWorkers,
                   disabled: !this.canUpdateNumberOfWorkers(),
-                  tooltip: !this.canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of workers' : undefined,
+                  tooltip: !this.canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of workers.' : undefined,
                   onChange: v => this.setState({
                     numberOfWorkers: v
                   })
