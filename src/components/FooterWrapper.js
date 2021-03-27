@@ -8,6 +8,8 @@ import { footerLogo } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 
+export const expandedFooterHeight = 60
+export const shrunkFooterHeight = 20
 
 const styles = {
   item: { marginLeft: '2rem' },
@@ -22,7 +24,7 @@ const styles = {
 const buildTimestamp = new Date(parseInt(process.env.REACT_APP_BUILD_TIMESTAMP, 10))
 
 // If you change the layout here, make sure it's reflected in the pre-rendered version in public/index.html
-const FooterWrapper = ({ children, alwaysShow }) => {
+const FooterWrapper = ({ children, alwaysShow, onExpand = () => {} }) => {
   const [isExpanded, setIsExpanded] = useState(false)
 
   const bdcFooterContent = div({ style: { display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '0.5rem 2rem', fontSize: 10 } }, [
@@ -69,11 +71,14 @@ const FooterWrapper = ({ children, alwaysShow }) => {
       style: styles.footer
     }, [
       !alwaysShow && h(Clickable, {
-        onClick: () => setIsExpanded(!isExpanded),
-        style: { fontSize: 10, padding: '0.25rem 0' }
+        onClick: () => {
+          setIsExpanded(!isExpanded)
+          onExpand()
+        },
+        style: { fontSize: 10, padding: '0.25rem 0', height: shrunkFooterHeight }
       }, [`${isExpanded ? 'Hide' : 'Show'} Legal and Regulatory Information`]),
       (isExpanded || alwaysShow) && div({
-        style: { display: 'flex', alignItems: 'center', height: 60 }
+        style: { display: 'flex', alignItems: 'center', height: expandedFooterHeight }
       }, [
         !isBioDataCatalyst() ? standardFooterContent : bdcFooterContent
       ])

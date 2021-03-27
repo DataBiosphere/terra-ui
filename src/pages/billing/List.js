@@ -4,7 +4,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
-import FooterWrapper from 'src/components/FooterWrapper'
+import FooterWrapper, { expandedFooterHeight, shrunkFooterHeight } from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -13,6 +13,7 @@ import TopBar, { topBarHeight } from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import { isBioDataCatalyst } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
@@ -198,6 +199,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)
+  const [bdcFooterExpanded, setBdcFooterExpanded] = useState(false)
 
   const signal = Utils.useCancellation()
   const interval = useRef()
@@ -276,7 +278,9 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const breadcrumbs = `Billing > Billing Project`
 
   const billingProjectListWidth = 330
-  return h(FooterWrapper, [
+  const totalViewHeightMinusHeaderAndFooter = `calc(100vh - ${topBarHeight + (isBioDataCatalyst() && (bdcFooterExpanded ? shrunkFooterHeight + expandedFooterHeight : shrunkFooterHeight))}px)`
+
+  return h(FooterWrapper, { onExpand: () => setBdcFooterExpanded(!bdcFooterExpanded) }, [
     h(TopBar, { title: 'Billing' }, [
       !!selectedName && div({
         style: {
@@ -288,10 +292,10 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
       ])
     ]),
     div({ role: 'main', style: { display: 'flex', flex: 1 } }, [
-      div({ style: { minWidth: billingProjectListWidth, maxWidth: billingProjectListWidth, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', height: `calc(100vh - ${topBarHeight}px)`, position: 'fixed', overflowY: 'auto' } }, [
+      div({ style: { minWidth: billingProjectListWidth, maxWidth: billingProjectListWidth, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', height: totalViewHeightMinusHeaderAndFooter, overflowY: 'auto' } }, [
         div({
           style: {
-            fontSize: 16, fontWeight: 600, padding: '2rem',
+            fontSize: 16, fontWeight: 600, padding: '2rem 2rem 1rem',
             textTransform: 'uppercase', color: colors.dark()
           }
         }, [
@@ -328,7 +332,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           loadProjects()
         }
       }),
-      div({ style: { marginLeft: billingProjectListWidth, flexGrow: 1 } }, [Utils.cond(
+      div({ style: { flexGrow: 1, height: totalViewHeightMinusHeaderAndFooter, overflowY: 'scroll' } }, [Utils.cond(
         [selectedName && hasBillingProjects && !_.some({ projectName: selectedName }, billingProjects),
           () => div({ style: { margin: '1rem auto 0 auto' } }, [
             h2(['Error loading selected billing project.']),
