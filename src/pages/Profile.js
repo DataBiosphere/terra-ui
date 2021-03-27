@@ -357,11 +357,15 @@ const Profile = ({ queryParams = {} }) => {
 
             sectionTitle('Program Info'),
 
-            div({ style: styles.form.title }, ['Non-Profit Status']),
-            div({ style: { margin: '1rem' } }, [
-              radioButton('nonProfitStatus', 'Profit'),
-              radioButton('nonProfitStatus', 'Non-Profit')
-            ]),
+            h(IdContainer, [id => div({
+              style: styles.form.title, role: 'radiogroup', 'aria-labelledby': id
+            }, [
+              span({ id }, ['Non-Profit Status']),
+              div({ style: { margin: '1rem' } }, [
+                radioButton('nonProfitStatus', 'Profit'),
+                radioButton('nonProfitStatus', 'Non-Profit')
+              ])
+            ])]),
             line([
               textField('pi', 'Principal Investigator/Program Lead')
             ]),
