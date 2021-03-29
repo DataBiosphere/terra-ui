@@ -122,7 +122,7 @@ const LaunchAnalysisModal = ({
       warnDuplicateAnalyses && 'Warning! ',
       'This will launch ',
       b([entityCount]),
-      warnDuplicateAnalyses && ' duplicate',
+      warnDuplicateAnalyses && span({ style: { fontWeight: 'bold', textDecoration: 'underline' } }, [' duplicate']),
       entityCount === 1 ? ' analysis' : ' analyses',
       warnDuplicateAnalyses && ' of the same set of constant inputs',
       '.',
