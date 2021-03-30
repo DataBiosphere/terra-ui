@@ -11,6 +11,8 @@ import { launch } from 'src/libs/analysis'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
+import {warningBoxStyle} from 'src/components/data/data-utils'
+
 import {
   chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet, processSnapshotTable
 } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
@@ -89,8 +91,15 @@ const LaunchAnalysisModal = ({
   const { location, locationType } = bucketLocation
   const { flag, regionDescription } = regionInfo(location, locationType)
 
-  const onlyConstantInputs = _.every(i => _.startsWith('"', i) && _.endsWith('"', i), config.inputs)
+  const onlyConstantInputs = _.every(i => !i || Utils.maybeParseJSON(i) !== undefined, config.inputs)
   const warnDuplicateAnalyses = onlyConstantInputs && entityCount > 1
+
+  const maybeWarningStyle = warnDuplicateAnalyses ? {
+    ...warningBoxStyle,
+    borderLeft: 'none', borderRight: 'none',
+    margin: '0 -1.25rem',
+    fontSize: 14
+  } : {}
 
   return h(Modal, {
     title: !launching ? 'Confirm launch' : 'Launching Analysis',
@@ -117,7 +126,7 @@ const LaunchAnalysisModal = ({
           p(['Note that metadata about this run will be stored in the US.'])
         ])]) : 'Loading...'
     ]),
-    div({ style: { margin: '1rem 0' } }, [
+    div({ style: { margin: '1rem 0', ...maybeWarningStyle } }, [
       warnDuplicateAnalyses && icon('warning-standard', { size: 16, style: { color: colors.warning(), marginRight: '0.5rem' } }),
       warnDuplicateAnalyses && 'Warning! ',
       'This will launch ',
