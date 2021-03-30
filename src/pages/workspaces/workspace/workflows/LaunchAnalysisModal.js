@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, p, span, wbr } from 'react-hyperscript-helpers'
 import { ButtonPrimary, CromwellVersionLink } from 'src/components/common'
+import { warningBoxStyle } from 'src/components/data/data-utils'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -11,8 +12,6 @@ import { launch } from 'src/libs/analysis'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
-import {warningBoxStyle} from 'src/components/data/data-utils'
-
 import {
   chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet, processSnapshotTable
 } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
