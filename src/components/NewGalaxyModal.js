@@ -115,7 +115,7 @@ export const NewGalaxyModal = _.flow(
             h(ButtonSecondary, { disabled: true, style: { marginRight: 'auto' }, tooltip: 'Cloud Compute must be resumed first.', onClick: () => setViewMode('deleteWarn') }, ['Delete']),
             resumeButton()
           ])],
-          ['ERROR', () => deleteButton],
+          ['ERROR', () => deleteButton()],
           [Utils.DEFAULT, () => {
             return h(Fragment, [
               deleteButton(true),
