@@ -138,12 +138,12 @@ export const NewGalaxyModal = _.flow(
   const renderCreateWarning = () => {
     return h(Fragment, [
       h(TitleBar, {
-        title: 'Cloud environment',
+        title: 'Cloud Environment',
         style: { marginBottom: '0.5rem' },
         onDismiss,
         onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
       }),
-      div({ style: { marginBottom: '1rem' } }, ['consists of application configuration, cloud compute and persistent disk(s).']),
+      div({ style: { marginBottom: '1rem' } }, ['Cloud environments consist of application configuration, cloud compute and persistent disk(s).']),
       div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
           span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('info-circle', { size: 25, color: colors.accent() })]),
@@ -209,16 +209,17 @@ export const NewGalaxyModal = _.flow(
 
   const getEnvMessageBasedOnStatus = app => {
     const waitMessage = 'This process will take up to a few minutes.'
+    const nonStatusSpecificMessage = 'A cloud environment consists of application configuration, cloud compute and persistent disk(s).'
 
     return !app ?
-      'consists of application configuration, cloud compute and persistent disk(s).' :
+      nonStatusSpecificMessage :
       Utils.switchCase(app.status,
-        ['STOPPED', () => `is paused.`],
-        ['PRESTOPPING', () => 'is preparing to pause.'],
-        ['STOPPING', () => `is pausing. ${waitMessage}`],
-        ['PRESTARTING', () => 'is preparing to start.'],
-        ['STARTING', () => `is resuming. ${waitMessage}`],
-        ['RUNNING', () => 'consists of application configuration, cloud compute and persistent disk(s).'],
+        ['STOPPED', () => `The cloud compute is paused.`],
+        ['PRESTOPPING', () => 'The cloud compute is preparing to pause.'],
+        ['STOPPING', () => `The cloud compute is pausing. ${waitMessage}`],
+        ['PRESTARTING', () => 'The cloud compute is preparing to resume.'],
+        ['STARTING', () => `The cloud compute is resuming. ${waitMessage}`],
+        ['RUNNING', () => nonStatusSpecificMessage],
         ['ERROR', () => `An error has occurred on your cloud environment.`]
       )
   }
@@ -266,9 +267,9 @@ export const NewGalaxyModal = _.flow(
   const renderPersistentDiskSection = () => {
     const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' }
     return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
-      div({ style: styles.headerText }, ['Persistent disk']),
+      div({ style: styles.headerText }, ['Persistent Disk']),
       div({ style: { marginTop: '0.5rem' } }, [
-        'stores your analysis data. '
+        'Persistent disks store analysis data.'
         // TODO Add info on PDs for Galaxy (similarly to in NewRuntimeModal.js)
       ]),
       div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
@@ -296,7 +297,7 @@ export const NewGalaxyModal = _.flow(
   const renderDefaultCase = () => {
     return h(Fragment, [
       h(TitleBar, {
-        title: 'Cloud environment',
+        title: 'Cloud Environment',
         style: { marginBottom: '0.5rem' },
         onDismiss,
         onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
