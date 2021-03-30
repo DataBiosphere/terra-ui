@@ -93,12 +93,12 @@ const LaunchAnalysisModal = ({
   const onlyConstantInputs = _.every(i => !i || Utils.maybeParseJSON(i) !== undefined, config.inputs)
   const warnDuplicateAnalyses = onlyConstantInputs && entityCount > 1
 
-  const maybeWarningStyle = warnDuplicateAnalyses ? {
+  const fullWidthWarningStyle = {
     ...warningBoxStyle,
     borderLeft: 'none', borderRight: 'none',
     margin: '0 -1.25rem',
     fontSize: 14
-  } : {}
+  }
 
   return h(Modal, {
     title: !launching ? 'Confirm launch' : 'Launching Analysis',
@@ -125,19 +125,21 @@ const LaunchAnalysisModal = ({
           p(['Note that metadata about this run will be stored in the US.'])
         ])]) : 'Loading...'
     ]),
-    div({ style: { margin: '1rem 0', ...maybeWarningStyle } }, [
-      warnDuplicateAnalyses && icon('warning-standard', { size: 16, style: { color: colors.warning(), marginRight: '0.5rem' } }),
-      warnDuplicateAnalyses && 'Warning! ',
+    warnDuplicateAnalyses ? div({ style: { margin: '1rem 0', ...fullWidthWarningStyle } }, [
+      icon('warning-standard', { size: 16, style: { color: colors.warning(), marginRight: '0.5rem' } }),
+      'Warning! This will launch ',
+      b([entityCount]),
+      span({ style: { fontWeight: 'bold', textDecoration: 'underline' } }, [' duplicate']),
+      entityCount === 1 ? ' analysis' : ' analyses',
+      warnDuplicateAnalyses && ' of the same set of constant inputs.'
+    ]) : div({ style: { margin: '1rem 0' } }, [
       'This will launch ',
       b([entityCount]),
-      warnDuplicateAnalyses && span({ style: { fontWeight: 'bold', textDecoration: 'underline' } }, [' duplicate']),
-      entityCount === 1 ? ' analysis' : ' analyses',
-      warnDuplicateAnalyses && ' of the same set of constant inputs',
-      '.',
-      type === processMergedSet && entityCount !== mergeSets(selectedEntities).length && div({
-        style: { fontStyle: 'italic', marginTop: '0.5rem' }
-      }, ['(Duplicate entities are only processed once.)'])
+      entityCount === 1 ? ' analysis.' : ' analyses.'
     ]),
+    type === processMergedSet && entityCount !== mergeSets(selectedEntities).length && div({
+      style: { fontStyle: 'italic', marginTop: '0.5rem' }
+    }, ['(Duplicate entities are only processed once.)']),
     message && div({ style: { display: 'flex' } }, [
       spinner({ style: { marginRight: '0.5rem' } }),
       message
