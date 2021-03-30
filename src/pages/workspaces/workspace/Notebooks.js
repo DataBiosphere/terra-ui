@@ -358,7 +358,7 @@ const Notebooks = _.flow(
               ...Style.elements.card.container, height: 125, marginTop: 15
             },
             disabled: appIsSettingUp(app),
-            tooltip: appIsSettingUp(app) && 'Your Galaxy app is being created',
+            tooltip: appIsSettingUp(app) && 'Galaxy app is being created',
             onClick: () => setOpenGalaxyConfigDrawer(true)
           }, [
             getGalaxyText(app, galaxyDataDisks)

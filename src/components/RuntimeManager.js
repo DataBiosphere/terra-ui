@@ -298,8 +298,8 @@ export default class RuntimeManager extends PureComponent {
           style: { display: 'flex' },
           disabled: appIsSettingUp(app),
           tooltip: appIsSettingUp(app) ?
-            'Your Galaxy application is being created' :
-            'Update cloud environment',
+            'Galaxy app is being created' :
+            'View cloud environment',
           onClick: () => {
             this.setState({ galaxyDrawerOpen: true })
           }
