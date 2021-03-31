@@ -93,13 +93,6 @@ const LaunchAnalysisModal = ({
   const onlyConstantInputs = _.every(i => !i || Utils.maybeParseJSON(i) !== undefined, config.inputs)
   const warnDuplicateAnalyses = onlyConstantInputs && entityCount > 1
 
-  const fullWidthWarningStyle = {
-    ...warningBoxStyle,
-    borderLeft: 'none', borderRight: 'none',
-    margin: '0 -1.25rem',
-    fontSize: 14
-  }
-
   return h(Modal, {
     title: !launching ? 'Confirm launch' : 'Launching Analysis',
     onDismiss,
@@ -125,13 +118,18 @@ const LaunchAnalysisModal = ({
           p(['Note that metadata about this run will be stored in the US.'])
         ])]) : 'Loading...'
     ]),
-    // This will launch N analyses, but all the inputs are constant, so this will likely result in duplicated work." UX might have some ideas here.
-    warnDuplicateAnalyses ? div({ style: { margin: '1rem 0', ...fullWidthWarningStyle } }, [
-      icon('warning-standard', { size: 16, style: { color: colors.warning(), marginRight: '0.5rem' } }),
-      'Warning! This will launch ',
-      b([entityCount]),
-      span({ style: { fontWeight: 'bold', textDecoration: 'underline' } }, [' duplicate']),
-      ' analyses, but all of the inputs are constant. This is likely to result in re-calculation of the same result multiple times.'
+    warnDuplicateAnalyses ? div({
+      style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' }
+    }, [
+      div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
+        icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
+        'Duplicate Analysis Warning'
+      ]),
+      div({ style: { fontWeight: 'normal', marginTop: '0.5rem' } }, [
+        'This will launch ',
+        b([entityCount]),
+        ' analyses, but all of the inputs are constant. This is likely to result in re-calculation of the same result multiple times.'
+      ])
     ]) : div({ style: { margin: '1rem 0' } }, [
       'This will launch ',
       b([entityCount]),
