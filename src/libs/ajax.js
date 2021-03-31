@@ -940,7 +940,8 @@ const Buckets = signal => ({
 
     // Get the next page recursively if there is one
     if (res.nextPageToken) {
-      return _.concat(items, await Buckets(signal).listAll(namespace, bucket, prefix, res.nextPageToken))
+      const next = await Buckets(signal).listAll(namespace, bucket, prefix, res.nextPageToken)
+      return items.concat(next)
     }
     return items
   },

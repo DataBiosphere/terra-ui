@@ -49,10 +49,11 @@ const styles = {
     backgroundColor: colors.accent()
   },
   tableViewPanel: {
-    position: 'relative',
     padding: '1rem',
     width: '100%',
-    height: '100%'
+    height: '100%',
+    display: 'flex',
+    flexFlow: 'column nowrap'
   },
   workspaceTilesContainer: {
     textAlign: 'left',
@@ -420,19 +421,22 @@ const DataUploadPanel = _.flow(
     header.current && header.current.focus()
   }, [])
 
-  return h(Fragment, {}, [
-    h2({ style: styles.heading }, [
+  return div({ style: { display: 'flex', flexFlow: 'column nowrap', height: '100%' } }, [
+    h2({ style: { ...styles.heading, flex: 0 } }, [
       icon('fileAlt', { size: 20, style: { marginRight: '1em' } }),
       span({ ref: header, tabIndex: -1 }, ['Upload Your Data Files'])
     ]),
-    p({ style: styles.instructions }, [
-      'Upload the files to associate with this collection by dragging them into the table below, or clicking the Upload button.'
-    ]),
-    p({ style: styles.instructions }, [
-      ' You may upload as many files as you wish, but each filename must be unique.'
-    ]),
     children,
+    div({ style: { flex: 0 } }, [
+      p({ style: styles.instructions }, [
+        'Upload the files to associate with this collection by dragging them into the table below, or clicking the Upload button.'
+      ]),
+      p({ style: styles.instructions }, [
+        ' You may upload as many files as you wish, but each filename must be unique.'
+      ])
+    ]),
     h(FileBrowserPanel, {
+      style: { flex: 1 },
       workspace, onRequesterPaysError, setNumFiles, basePrefix, collection, allowNewFolders: false
     })
   ])

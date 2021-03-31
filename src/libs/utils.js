@@ -478,3 +478,8 @@ export const sha256 = async message => {
     _.join('')
   )(new Uint8Array(hashBuffer))
 }
+
+// Provide a way to pass leading and trailing options to Lodash debounce
+// See https://github.com/lodash/lodash/issues/2508
+const debounceNotFixed = _.debounce.convert({ fixed: false })
+export const withDebounce = _.curry(({ wait, leading, trailing }, fn) => debounceNotFixed(wait)(fn, { leading, trailing }))
