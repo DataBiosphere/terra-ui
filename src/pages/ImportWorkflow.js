@@ -58,7 +58,7 @@ const DockstoreImporter = ({ path, version, source }) => {
 
   const doImport = Utils.withBusyState(setIsBusy, async workspace => {
     const { name, namespace } = workspace
-    const eventData = { source, ...extractWorkspaceDetails({ workspace }) }
+    const eventData = { source, ...extractWorkspaceDetails(workspace) }
 
     try {
       const rawlsWorkspace = Ajax().Workspaces.workspace(namespace, name)

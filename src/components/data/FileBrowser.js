@@ -134,26 +134,35 @@ export const FileBrowserPanel = _.flow(
       onDropAccepted: setUploadingFiles
     }, [({ openUploader }) => h(Fragment, [
       div({
-        style: { display: 'table', height: '100%' }
+        style: { display: 'flex', flexFlow: 'row nowrap', width: '100%' }
       }, [
-        _.map(({ label, target }) => {
-          return h(Fragment, { key: target }, [
-            makeBucketLink({
-              label, target: getFullPrefix(target),
-              onClick: () => setPrefix(target)
-            }),
-            ' / '
-          ])
+        div({
+          style: { display: 'table', height: '100%', flex: 1 }
         }, [
-          collection && { label: collection, target: '' },
-          ..._.map(n => {
-            return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
-          }, _.range(0, prefixParts.length))
+          _.map(({ label, target }) => {
+            return h(Fragment, { key: target }, [
+              makeBucketLink({
+                label, target: getFullPrefix(target),
+                onClick: () => setPrefix(target)
+              }),
+              ' / '
+            ])
+          }, [
+            collection && { label: collection, target: '' },
+            ..._.map(n => {
+              return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
+            }, _.range(0, prefixParts.length))
+          ]),
+          allowNewFolders && makeBucketLink({
+            label: span([icon('plus'), ' New folder']),
+            onClick: () => setCreating(true)
+          })
         ]),
-        allowNewFolders && makeBucketLink({
-          label: span([icon('plus'), ' New folder']),
-          onClick: () => setCreating(true)
-        })
+        uploadStatus.active && div({
+          style: { flex: 0 }
+        }, [
+          'Uploading...'
+        ])
       ]),
       div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
       (prefixes?.length > 0 || objects?.length > 0) ? div({
