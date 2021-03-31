@@ -278,7 +278,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const breadcrumbs = `Billing > Billing Project`
 
   const billingProjectListWidth = 330
-  const totalViewHeightMinusHeaderAndFooter = `calc(100vh - ${topBarHeight + (isBioDataCatalyst() && (bdcFooterExpanded ? shrunkFooterHeight + expandedFooterHeight : shrunkFooterHeight))}px)`
+  const totalViewHeightMinusHeaderAndFooter = `calc(100vh - ${topBarHeight + (!!isBioDataCatalyst() && (bdcFooterExpanded ? shrunkFooterHeight + expandedFooterHeight : shrunkFooterHeight))}px)`
 
   return h(FooterWrapper, { onExpand: () => setBdcFooterExpanded(!bdcFooterExpanded) }, [
     h(TopBar, { title: 'Billing' }, [
@@ -332,7 +332,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           loadProjects()
         }
       }),
-      div({ style: { flexGrow: 1, height: totalViewHeightMinusHeaderAndFooter, overflowY: 'scroll' } }, [Utils.cond(
+      div({ style: { flexGrow: 1, height: totalViewHeightMinusHeaderAndFooter, overflowY: 'auto' } }, [Utils.cond(
         [selectedName && hasBillingProjects && !_.some({ projectName: selectedName }, billingProjects),
           () => div({ style: { margin: '1rem auto 0 auto' } }, [
             h2(['Error loading selected billing project.']),
