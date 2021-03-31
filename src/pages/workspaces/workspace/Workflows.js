@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useImperativeHandle, useState } from 'react'
 import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
+import { useViewToggle, ViewToggleButtons } from 'src/components/CardsListToggle'
 import {
   ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, makeMenuIcon, MenuButton, methodLink, PageBox, Select, spinnerOverlay
 } from 'src/components/common'
@@ -291,9 +291,8 @@ export const Workflows = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Workflows', activeTab: 'workflows'
-  }),
-  withViewToggle('workflowsTab')
-)(({ namespace, name, listView, setListView, workspace: ws, workspace: { workspace } }, ref) => {
+  })
+)(({ namespace, name, workspace: ws, workspace: { workspace } }, ref) => {
   // State
   const [loading, setLoading] = useState(true)
   const [sortOrder, setSortOrder] = useState(() => StateHistory.get().sortOrder || defaultSort.value)
@@ -304,6 +303,7 @@ export const Workflows = _.flow(
   const [workflowToDelete, setWorkflowToDelete] = useState(undefined)
   const [findingWorkflow, setFindingWorkflow] = useState(false)
 
+  const [listView, setListView] = useViewToggle('workflowsTab')
   const signal = Utils.useCancellation()
 
 
@@ -327,6 +327,8 @@ export const Workflows = _.flow(
   useEffect(() => {
     StateHistory.update({ configs, sortOrder, filter })
   }, [configs, sortOrder, filter])
+
+  useImperativeHandle(ref, () => ({ refresh }))
 
 
   // Render

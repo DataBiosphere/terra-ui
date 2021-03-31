@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useImperativeHandle, useRef, useState } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -147,6 +147,8 @@ const JobHistory = _.flow(
       }
     }
   })
+
+  useImperativeHandle(ref, () => ({ refresh }))
 
 
   // Render
