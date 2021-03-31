@@ -289,8 +289,8 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHigh
  * datasets which may require horizontal scrolling.
  */
 export const GridTable = Utils.forwardRefWithName('GridTable', ({
-  width, height, initialX = 0, initialY = 0,
-  rowCount, columns, styleCell = () => ({}), onScroll: customOnScroll = _.noop, noContentMessage
+  width, height, initialX = 0, initialY = 0, rowHeight = 48, headerHeight = 48, noContentMessage,
+  rowCount, columns, styleCell = () => ({}), styleHeader = () => ({}), onScroll: customOnScroll = _.noop
 }, ref) => {
   const [scrollbarSize, setScrollbarSize] = useState(0)
   const header = useRef()
@@ -326,16 +326,20 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
         h(RVGrid, {
           ref: header,
           width: width - scrollbarSize,
-          height: 48,
+          height: headerHeight,
           columnWidth: ({ index }) => columns[index].width,
-          rowHeight: 48,
+          rowHeight: headerHeight,
           rowCount: 1,
           columnCount: columns.length,
           cellRenderer: data => {
             return div({
               key: data.key,
               className: 'table-cell',
-              style: { ...data.style, ...styles.header(data.columnIndex, columns.length) }
+              style: {
+                ...data.style,
+                ...styles.header(data.columnIndex, columns.length),
+                ...styleHeader(data)
+              }
             }, [
               columns[data.columnIndex].headerRenderer(data)
             ])
@@ -347,9 +351,9 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
         h(RVGrid, {
           ref: body,
           width,
-          height: height - 48,
+          height: height - headerHeight,
           columnWidth: ({ index }) => columns[index].width,
-          rowHeight: 48,
+          rowHeight,
           rowCount,
           columnCount: columns.length,
           noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage]),

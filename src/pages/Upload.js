@@ -436,7 +436,7 @@ const DataUploadPanel = _.flow(
       ])
     ]),
     h(FileBrowserPanel, {
-      style: { flex: 1 },
+      style: { flex: '1 1 auto' },
       workspace, onRequesterPaysError, setNumFiles, basePrefix, collection, allowNewFolders: false
     })
   ])
@@ -608,7 +608,8 @@ const MetadataUploadPanel = _.flow(
       icon('listAlt', { size: 20, style: { marginRight: '1em' } }),
       span({ ref: header, tabIndex: -1 }, ['Upload Your Metadata Files'])
     ]),
-    div({ style: { ...styles.instructions, flex: 0 } }, [
+    children,
+    !isPreviewing && div({ style: { ...styles.instructions, flex: 0 } }, [
       p('Upload a tab-separated file describing your table structures.'),
       ul([
         li('Any columns which reference files should include just the filenames, which will be matched up to the data files in this collection.'),
@@ -625,7 +626,6 @@ const MetadataUploadPanel = _.flow(
         ', a table named "sample" will be created with "sample_id" as its first column. There are no restrictions on other columns.'
       ])
     ]),
-    children,
     !isPreviewing && h(Dropzone, {
       disabled: !!Utils.editWorkspaceError(workspace),
       style: {
@@ -669,21 +669,17 @@ const MetadataUploadPanel = _.flow(
         _.map(e => li({ key: e }, [e]), metadataTable.errors)
       ])
     ]),
-    isPreviewing && div({
-      style: { borderTop: '1px solid', borderColor: colors.dark(0.75), flex: 1 }
-    }, [
-      h(UploadPreviewTable, {
-        workspace, metadataTable,
-        onConfirm: ({ metadata }) => {
-          doUpload(metadata)
-        },
-        onCancel: () => {
-          setMetadataFile(null)
-          setMetadataTable(null)
-        },
-        onRename: renameTable
-      })
-    ]),
+    isPreviewing && h(UploadPreviewTable, {
+      workspace, metadataTable,
+      onConfirm: ({ metadata }) => {
+        doUpload(metadata)
+      },
+      onCancel: () => {
+        setMetadataFile(null)
+        setMetadataTable(null)
+      },
+      onRename: renameTable
+    }),
     (filesLoading || uploading) && topSpinnerOverlay
   ])
 })
@@ -892,7 +888,7 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
                   setTableMetadata(metadata)
                   setCurrentStep('done')
                 }
-              }, [])
+              })
             ])],
             ['done', () => div({
               style: styles.tabPanelHeader

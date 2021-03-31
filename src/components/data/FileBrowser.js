@@ -36,6 +36,7 @@ export const FileBrowserPanel = _.flow(
 
   const [uploadingFiles, setUploadingFiles] = useState([])
   const [uploadStatus, setUploadStatus] = useUploader()
+  const [lastRefresh, setLastRefresh] = useState(0)
 
   const signal = Utils.useCancellation()
   const { signal: uploadSignal, abort: abortUpload } = Utils.useCancelable()
@@ -54,7 +55,6 @@ export const FileBrowserPanel = _.flow(
   }
 
   const load = _.flow(
-    Utils.withDebounce({ wait: 10e3, leading: true, trailing: true }),
     withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error loading bucket data'),
     Utils.withBusyState(setLoading)
@@ -79,13 +79,20 @@ export const FileBrowserPanel = _.flow(
 
   // Lifecycle
   useEffect(() => {
+    // Whenever the prefix changes, reload the table right away
     load(prefix)
-  }, [prefix, uploadStatus]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [prefix, lastRefresh]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    // Count all the files in the bucket any time the uploader completes
     if (!uploadStatus.active) {
+      // If the uploader has completed, count all the files in the bucket
       count()
+    } else {
+      // While the uploader is working, refresh the table no more often than every 5 seconds
+      const now = Date.now()
+      if (lastRefresh < now - 10e3) {
+        setLastRefresh(now)
+      }
     }
   }, [uploadStatus]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -120,16 +127,17 @@ export const FileBrowserPanel = _.flow(
     }
   }, [label])
 
-  return div({
-    style: { ...style, display: 'flex', flexFlow: 'column nowrap', height: '100%' }
-  }, [
+  const numPrefixes = prefixes?.length || 0
+  const numObjects = objects?.length || 0
+
+  return div({ style }, [
     children,
     h(Dropzone, {
       disabled: !!Utils.editWorkspaceError(workspace) || uploadStatus.active,
       style: {
-        flex: 1, display: 'flex', flexFlow: 'column nowrap',
-        backgroundColor: 'white', border: `1px solid ${colors.dark(0.55)}`,
-        position: 'relative', minHeight: '10rem'
+        display: 'flex', flexFlow: 'column nowrap',
+        backgroundColor: 'white', border: `1px dashed ${colors.dark(0.55)}`,
+        position: 'relative', minHeight: '10rem', height: '100%'
       },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       multiple: true,
@@ -140,7 +148,7 @@ export const FileBrowserPanel = _.flow(
         style: {
           flex: 0, display: 'flex', flexFlow: 'row nowrap',
           width: '100%', borderBottom: `1px solid ${colors.dark(0.25)}`,
-          padding: '1em', marginBottom: '1em'
+          padding: '1em'
         }
       }, [
         div({
@@ -172,29 +180,40 @@ export const FileBrowserPanel = _.flow(
         ])
       ]),
       div({
-        style: { flex: '0', textAlign: 'center', fontSize: '1.2em' }
+        style: {
+          flex: '0', textAlign: 'center', fontSize: '1.2em', padding: '1em 1em 0 1em'
+        }
       }, [
         'Drag and drop your files here'
       ]),
-      (prefixes?.length > 0 || objects?.length > 0) && div({
-        style: { fontSize: '1rem', flex: '1 1 auto', padding: '1em' }
+      div({
+        style: { fontSize: '1rem', flex: '1 1 auto', padding: '1em', height: '100%' }
       }, [
         h(AutoSizer, {}, [
           ({ width, height }) => h(GridTable, {
             ref: table,
             width,
             height,
-            rowCount: prefixes.length + objects.length,
+            rowCount: numPrefixes + numObjects,
+            noContentMessage: 'No files have been uploaded yet',
             onScroll: saveScroll,
             initialX,
             initialY,
+            rowHeight: 40,
+            headerHeight: 40,
+            styleCell: () => {
+              return { padding: '0.5em', borderRight: 'none', borderLeft: 'none' }
+            },
+            styleHeader: () => {
+              return { padding: '0.5em', borderRight: 'none', borderLeft: 'none' }
+            },
             columns: [
               {
-                width: 50,
+                width: 30,
                 headerRenderer: () => '',
                 cellRenderer: ({ rowIndex }) => {
-                  if (rowIndex >= prefixes.length) {
-                    const { name } = objects[rowIndex - prefixes.length]
+                  if (rowIndex >= numPrefixes) {
+                    const { name } = objects[rowIndex - numPrefixes]
                     return h(Link, {
                       style: { display: 'flex' },
                       onClick: () => setDeletingName(name),
@@ -212,7 +231,7 @@ export const FileBrowserPanel = _.flow(
                 width: width - 400, // Fill the remaining space
                 headerRenderer: () => h(HeaderCell, ['Name']),
                 cellRenderer: ({ rowIndex }) => {
-                  if (rowIndex < prefixes.length) {
+                  if (rowIndex < numPrefixes) {
                     const p = prefixes[rowIndex]
                     return h(TextCell, [
                       makeBucketLink({
@@ -222,7 +241,7 @@ export const FileBrowserPanel = _.flow(
                       })
                     ])
                   } else {
-                    const { name } = objects[rowIndex - prefixes.length]
+                    const { name } = objects[rowIndex - numPrefixes]
                     return h(TextCell, [
                       makeBucketLink({
                         label: getBareFilename(name),
@@ -237,8 +256,8 @@ export const FileBrowserPanel = _.flow(
                 width: 150,
                 headerRenderer: () => h(HeaderCell, ['Size']),
                 cellRenderer: ({ rowIndex }) => {
-                  if (rowIndex >= prefixes.length) {
-                    const { size } = objects[rowIndex - prefixes.length]
+                  if (rowIndex >= numPrefixes) {
+                    const { size } = objects[rowIndex - numPrefixes]
                     return filesize(size, { round: 0 })
                   }
                 }
@@ -247,8 +266,8 @@ export const FileBrowserPanel = _.flow(
                 width: 200,
                 headerRenderer: () => h(HeaderCell, ['Last modified']),
                 cellRenderer: ({ rowIndex }) => {
-                  if (rowIndex >= prefixes.length) {
-                    const { updated } = objects[rowIndex - prefixes.length]
+                  if (rowIndex >= numPrefixes) {
+                    const { updated } = objects[rowIndex - numPrefixes]
                     return Utils.makePrettyDate(updated)
                   }
                 }

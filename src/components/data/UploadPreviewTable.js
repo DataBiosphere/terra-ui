@@ -1,10 +1,10 @@
-import { icon } from '@fortawesome/fontawesome-svg-core'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { code, div, h, h2, h3, h4, li, p, span, strong, ul } from 'react-hyperscript-helpers'
+import { code, div, h, h3, h4, li, p, span, strong, ul } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, ButtonSecondary, fixedSpinnerOverlay } from 'src/components/common'
 import { renderDataCell, saveScroll } from 'src/components/data/data-utils'
+import { icon } from 'src/components/icons'
 import { NameModal } from 'src/components/NameModal'
 import { GridTable, HeaderCell, Resizable, Sortable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
@@ -98,7 +98,7 @@ const UploadDataTable = props => {
   }, [])
 
   const sortedRows = useMemo(() => {
-    const i = _.findIndex(columns, sort.field)
+    const i = columns ? columns.indexOf(sort.field) : -1
     return i > -1 ? _.orderBy(row => row[i], sort.direction, rows) : rows
   }, [sort, rows, columns])
 
@@ -109,9 +109,6 @@ const UploadDataTable = props => {
     div({
       style: { position: 'relative', flex: '0 0 auto' }
     }, [
-      h2([
-        span({ ref: header, tabIndex: -1 }, ['Preview your data table'])
-      ]),
       div({
         style: { position: 'absolute', top: 0, right: 0, marginTop: '1em' }
       }, [
@@ -131,7 +128,17 @@ const UploadDataTable = props => {
       ]),
       metadata && div([
         metadata.isUpdate ? div([
-          h3(['Updating Table: ', strong(metadata.entityType)]),
+          h3([
+            'Updating Table: ',
+            strong(metadata.entityType),
+            h(ButtonSecondary, {
+              onClick: () => setRenamingTable(true),
+              style: { padding: '0 1em' }
+            }, [
+              icon('edit'),
+              span({ style: { paddingLeft: '1em' } }, 'Rename Table')
+            ])
+          ]),
           p({
             style: { color: colors.danger() }
           }, [
@@ -154,11 +161,6 @@ const UploadDataTable = props => {
           ])
         ]) : div([
           h3(['Creating a new Table: ', strong(metadata.entityType)])
-        ]),
-        h(ButtonPrimary, {
-          onClick: () => setRenamingTable(true)
-        }, [
-          'Rename table'
         ]),
         p(`If this table looks right to you, click the button on the right to ${metadata.isUpdate ?
           'update' :
