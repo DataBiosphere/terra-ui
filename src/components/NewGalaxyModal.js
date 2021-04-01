@@ -162,6 +162,12 @@ export const NewGalaxyModal = _.flow(
             div({ style: { lineHeight: 1.5 } }, [
               div(['You can pause  during the compute, but it will auto-pause when']),
               div(['the instance is idle more than 1 hour if the analysis is done.'])
+            ]),
+            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Environment updates']),
+            div({ style: { lineHeight: 1.5 } }, [
+              div(['If you would like to update your compute or disk configuration']),
+              div(['after an app is created, please delete the app and create a new']),
+              div(['app with the desired configuration.'])
             ])
           ])
         ])
