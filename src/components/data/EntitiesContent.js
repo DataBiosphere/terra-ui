@@ -237,7 +237,7 @@ const EntitiesContent = ({
           `Download a .tsv file containing all the ${entityKey}s in this table`,
         onClick: () => {
           downloadForm.current.submit()
-          Ajax().Metrics.captureEvent(Events.download, { downloadFrom: 'all rows' })
+          Ajax().Metrics.captureEvent(Events.workspaceDataDownload, { downloadFrom: 'all rows' })
         }
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
@@ -320,7 +320,7 @@ const EntitiesContent = ({
             isSet ?
               FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
               FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
-            Ajax().Metrics.captureEvent(Events.download, { downloadFrom: 'table data' })
+            Ajax().Metrics.captureEvent(Events.workspaceDataDownload, { downloadFrom: 'table data' })
           }
         }, ['Download as TSV']),
         !snapshotName && h(MenuButton, {

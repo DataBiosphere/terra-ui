@@ -121,7 +121,7 @@ const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size } }) => 
       div({ style: { display: 'flex', justifyContent: 'center' } }, [
         h(ButtonPrimary, {
           disabled: !url,
-          onClick: () => Ajax().Metrics.captureEvent(Events.download, { downloadFrom: 'bam file' }),
+          onClick: () => Ajax().Metrics.captureEvent(Events.workspaceDataDownload, { downloadFrom: 'bam file' }),
           href: url,
           /*
            NOTE:
