@@ -14,6 +14,7 @@ const eventsList = {
   cloudEnvironmentCreate: 'cloudEnvironment:create',
   cloudEnvironmentDelete: 'cloudEnvironment:delete',
   cloudEnvironmentUpdate: 'cloudEnvironment:update',
+  download: 'data:download',
   notebookLaunch: 'notebook:launch',
   notebookRename: 'notebook:rename',
   notebookCopy: 'notebook:copy',

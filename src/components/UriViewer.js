@@ -12,6 +12,7 @@ import DownloadPrices from 'src/data/download-prices'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import Events from 'src/libs/events'
 import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -120,6 +121,9 @@ const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size } }) => 
       div({ style: { display: 'flex', justifyContent: 'center' } }, [
         h(ButtonPrimary, {
           disabled: !url,
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.download, { downloadFrom: 'bam file' })
+          },
           href: url,
           /*
            NOTE:
