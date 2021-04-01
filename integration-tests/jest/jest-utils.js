@@ -15,7 +15,7 @@ const {
   WORKFLOW_NAME: workflowName = 'echo_to_file'
 } = process.env
 
-const targetEnvParams = _.merge({ ...envs[environment] }, { billingProject, dataRepoUrl, snapshotColumnName, snapshotId, snapshotTableName, testUrl, workflowName })
+const targetEnvParams = _.merge({ ...envs[environment] }, { billingProject, dataRepoUrl, environment, snapshotColumnName, snapshotId, snapshotTableName, testUrl, workflowName })
 
 const registerTest = ({ fn, name, timeout = defaultTimeout }) => {
   return test(name, () => withScreenshot(name)(fn)({ context, page, ...targetEnvParams }), timeout)
