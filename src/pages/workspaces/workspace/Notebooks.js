@@ -311,12 +311,12 @@ const Notebooks = _.flow(
 
     const getGalaxyText = (app, galaxyDataDisks) => {
       const dataDisk = currentDataDisk(app, galaxyDataDisks)
-      return (app && dataDisk) ?
+      return app ?
         div({ style: { fontSize: 18, lineHeight: '22px', width: 160 } }, [
           div(['Galaxy Interactive']),
           div(['Environment']),
           div({ style: { fontSize: 12, marginTop: 6 } },
-            [_.capitalize(app.status), ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)`]),
+            [_.capitalize(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``]),
           icon('trash', { size: 21 })
         ]) :
         div({ style: { fontSize: 18, lineHeight: '22px', width: 160, color: colors.accent() } }, [
