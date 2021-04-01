@@ -28,10 +28,6 @@ module.exports = {
   },
   perf: {
     billingProject: 'saturn-integration-test-perf',
-    dataRepoUrl: 'https://jade-perf.datarepo-perf.broadinstitute.org',
-    snapshotColumnName: '',
-    snapshotId: '',
-    snapshotTableName: '',
     testUrl: 'https://bvdp-saturn-perf.appspot.com',
     workflowName: 'echo_to_file'
   },
