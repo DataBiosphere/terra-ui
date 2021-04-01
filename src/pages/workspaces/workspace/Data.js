@@ -48,7 +48,27 @@ const styles = {
   }
 }
 
-const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, buttonStyle, ...props }) => {
+const DataTypeButton = ({ entityName, entityCount, selected, iconName = 'listAlt', iconSize = 14, buttonStyle, ...props }) => {
+  return h(Clickable, {
+    style: { ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
+    hover: Style.navList.itemHover(selected),
+    tooltip: entityName,
+    tooltipSide: 'top',
+    ...props
+  }, [
+    div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
+      icon(iconName, { size: iconSize })
+    ]),
+    div({ style: { flex: 1, ...Style.noWrapEllipsis }, title: entityName }, [
+      entityName
+    ]),
+    div({ title: entityCount }, [
+      `(${entityCount})`
+    ])
+  ])
+}
+
+const FileButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, buttonStyle, ...props }) => {
   return h(Clickable, {
     style: { ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
     hover: Style.navList.itemHover(selected),
@@ -448,11 +468,13 @@ const WorkspaceData = _.flow(
             return h(DataTypeButton, {
               key: type,
               selected: selectedDataType === type,
+              entityName: type,
+              entityCount: typeDetails.count,
               onClick: () => {
                 setSelectedDataType(type)
                 forceRefresh()
               }
-            }, [`${type} (${typeDetails.count})`])
+            })
           }, sortedEntityPairs)
         ]),
         (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && h(DataTypeSection, {
@@ -500,6 +522,8 @@ const WorkspaceData = _.flow(
                     buttonStyle: { borderBottom: 0, height: 40 },
                     key: `${snapshotName}_${tableName}`,
                     selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
+                    entityName: tableName,
+                    entityCount: count,
                     onClick: () => {
                       setSelectedDataType([snapshotName, tableName])
                       Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {
@@ -553,7 +577,7 @@ const WorkspaceData = _.flow(
           entityTypes: _.keys(entityMetadata)
         }),
         _.map(type => {
-          return h(DataTypeButton, {
+          return h(FileButton, {
             key: type,
             selected: selectedDataType === type,
             onClick: () => {
@@ -576,14 +600,14 @@ const WorkspaceData = _.flow(
           ])
         }, _.keys(referenceData)),
         div({ style: Style.navList.heading }, 'Other Data'),
-        h(DataTypeButton, {
+        h(FileButton, {
           selected: selectedDataType === localVariables,
           onClick: () => {
             setSelectedDataType(localVariables)
             forceRefresh()
           }
         }, ['Workspace Data']),
-        h(DataTypeButton, {
+        h(FileButton, {
           iconName: 'folder', iconSize: 18,
           selected: selectedDataType === bucketObjects,
           onClick: () => {
