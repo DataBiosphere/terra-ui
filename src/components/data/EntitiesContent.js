@@ -28,9 +28,10 @@ import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
-import Events from 'src/libs/events'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
+import { workspaceStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -237,7 +238,10 @@ const EntitiesContent = ({
           `Download a .tsv file containing all the ${entityKey}s in this table`,
         onClick: () => {
           downloadForm.current.submit()
-          Ajax().Metrics.captureEvent(Events.workspaceDataDownload, { downloadFrom: 'all rows' })
+          Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
+            ...extractWorkspaceDetails(workspace.workspace),
+            downloadFrom: 'all rows'
+          })
         }
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
@@ -320,7 +324,10 @@ const EntitiesContent = ({
             isSet ?
               FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
               FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
-            Ajax().Metrics.captureEvent(Events.workspaceDataDownload, { downloadFrom: 'table data' })
+            Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
+              ...extractWorkspaceDetails(workspace.workspace),
+              downloadFrom: 'table data'
+            })
           }
         }, ['Download as TSV']),
         !snapshotName && h(MenuButton, {
