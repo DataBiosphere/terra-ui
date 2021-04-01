@@ -2,7 +2,8 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, p, span, wbr } from 'react-hyperscript-helpers'
 import { ButtonPrimary, CromwellVersionLink } from 'src/components/common'
-import { spinner } from 'src/components/icons'
+import { warningBoxStyle } from 'src/components/data/data-utils'
+import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { regionInfo } from 'src/components/region-common'
@@ -75,6 +76,9 @@ const LaunchAnalysisModal = ({
   const { location, locationType } = bucketLocation
   const { flag, regionDescription } = regionInfo(location, locationType)
 
+  const onlyConstantInputs = _.every(i => !i || Utils.maybeParseJSON(i) !== undefined, config.inputs)
+  const warnDuplicateAnalyses = onlyConstantInputs && entityCount > 1
+
   return h(Modal, {
     title: !launching ? 'Confirm launch' : 'Launching Analysis',
     onDismiss,
@@ -100,13 +104,26 @@ const LaunchAnalysisModal = ({
           p(['Note that metadata about this run will be stored in the US.'])
         ])]) : 'Loading...'
     ]),
-    div({ style: { margin: '1rem 0' } }, [
-      'This will launch ', b([entityCount]), ` analys${entityCount === 1 ? 'is' : 'es'}`,
-      '.',
-      type === chooseSetType && entityCount !== mergeSets(selectedEntities).length && div({
-        style: { fontStyle: 'italic', marginTop: '0.5rem' }
-      }, ['(Duplicate entities are only processed once.)'])
+    warnDuplicateAnalyses ? div({
+      style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' }
+    }, [
+      div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
+        icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
+        'Duplicate Analysis Warning'
+      ]),
+      div({ style: { fontWeight: 'normal', marginTop: '0.5rem' } }, [
+        'This will launch ',
+        b([entityCount]),
+        ' analyses, but all of the inputs are constant. This is likely to result in re-calculation of the same result multiple times.'
+      ])
+    ]) : div({ style: { margin: '1rem 0' } }, [
+      'This will launch ',
+      b([entityCount]),
+      entityCount === 1 ? ' analysis.' : ' analyses.'
     ]),
+    type === chooseSetType && entityCount !== mergeSets(selectedEntities).length && div({
+      style: { fontStyle: 'italic', marginTop: '0.5rem' }
+    }, ['(Duplicate entities are only processed once.)']),
     message && div({ style: { display: 'flex' } }, [
       spinner({ style: { marginRight: '0.5rem' } }),
       message
