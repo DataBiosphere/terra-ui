@@ -48,27 +48,27 @@ const styles = {
   }
 }
 
-const DataTypeButton = ({ entityName, entityCount, selected, iconName = 'listAlt', iconSize = 14, buttonStyle, ...props }) => {
+const DataTypeButton = ({ buttonName, entityCount, selected, iconName = 'listAlt', iconSize = 14, buttonStyle, ...props }) => {
   return h(Clickable, {
     style: { ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
     hover: Style.navList.itemHover(selected),
-    tooltip: entityName,
+    tooltip: buttonName,
     tooltipSide: 'top',
     ...props
   }, [
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
       icon(iconName, { size: iconSize })
     ]),
-    div({ style: { flex: 1, ...Style.noWrapEllipsis }, title: entityName }, [
-      entityName
+    div({ style: { flex: 1, ...Style.noWrapEllipsis }, title: buttonName }, [
+      buttonName
     ]),
-    div({ title: entityCount }, [
+    entityCount === undefined ? '' : div({ title: entityCount }, [
       `(${entityCount})`
     ])
   ])
 }
 
-const FileButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, buttonStyle, ...props }) => {
+const ReferenceDataButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, buttonStyle, ...props }) => {
   return h(Clickable, {
     style: { ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
     hover: Style.navList.itemHover(selected),
@@ -468,7 +468,7 @@ const WorkspaceData = _.flow(
             return h(DataTypeButton, {
               key: type,
               selected: selectedDataType === type,
-              entityName: type,
+              buttonName: type,
               entityCount: typeDetails.count,
               onClick: () => {
                 setSelectedDataType(type)
@@ -522,7 +522,7 @@ const WorkspaceData = _.flow(
                     buttonStyle: { borderBottom: 0, height: 40 },
                     key: `${snapshotName}_${tableName}`,
                     selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
-                    entityName: tableName,
+                    buttonName: tableName,
                     entityCount: count,
                     onClick: () => {
                       setSelectedDataType([snapshotName, tableName])
@@ -577,7 +577,7 @@ const WorkspaceData = _.flow(
           entityTypes: _.keys(entityMetadata)
         }),
         _.map(type => {
-          return h(FileButton, {
+          return h(ReferenceDataButton, {
             key: type,
             selected: selectedDataType === type,
             onClick: () => {
@@ -600,21 +600,23 @@ const WorkspaceData = _.flow(
           ])
         }, _.keys(referenceData)),
         div({ style: Style.navList.heading }, 'Other Data'),
-        h(FileButton, {
+        h(DataTypeButton, {
           selected: selectedDataType === localVariables,
+          buttonName: 'Workspace Data',
           onClick: () => {
             setSelectedDataType(localVariables)
             forceRefresh()
           }
-        }, ['Workspace Data']),
-        h(FileButton, {
+        }),
+        h(DataTypeButton, {
           iconName: 'folder', iconSize: 18,
           selected: selectedDataType === bucketObjects,
+          buttonName: 'Files',
           onClick: () => {
             setSelectedDataType(bucketObjects)
             forceRefresh()
           }
-        }, ['Files'])
+        })
       ]),
       div({ style: styles.tableViewPanel }, [
         Utils.switchCase(getSelectionType(),
