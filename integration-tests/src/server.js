@@ -9,6 +9,7 @@ const { testImportDockstoreWorkflow } = require('../tests/import-dockstore-workf
 const { testRegisterUser } = require('../tests/register-user')
 const { testRunNotebook } = require('../tests/run-notebook')
 const { testRunWorkflow } = require('../tests/run-workflow')
+const { testRunWorkflowOnSnapshot } = require('../tests/run-workflow-on-snapshot')
 const { defaultTimeout } = require('../utils/integration-helpers')
 const { delay, withScreenshot } = require('../utils/integration-utils')
 const envs = require('../utils/terra-envs')
@@ -80,7 +81,8 @@ _.forEach(registerTestEndpoint, [
   testImportDockstoreWorkflow,
   testRegisterUser,
   testRunNotebook,
-  testRunWorkflow
+  testRunWorkflow,
+  testRunWorkflowOnSnapshot
 ])
 console.info('Ready')
 
