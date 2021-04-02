@@ -70,31 +70,46 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id }) => {
   ])
 }
 
-const TooltipTrigger = ({ children, content, ...props }) => {
+const TooltipTrigger = ({ children, content, delay, ...props }) => {
   const [open, setOpen] = useState(false)
+  const openTimeout = useRef()
   const id = Utils.useUniqueId()
   const tooltipId = Utils.useUniqueId()
   const child = Children.only(children)
   const childId = child.props.id || id
+
+  const doOpen = !delay ?
+    setOpen :
+    shouldOpen => {
+      if (shouldOpen) {
+        openTimeout.current = setTimeout(() => setOpen(true), delay)
+      } else {
+        if (openTimeout.current) {
+          clearTimeout(openTimeout.current)
+        }
+        setOpen(false)
+      }
+    }
+
   return h(Fragment, [
     cloneElement(child, {
       id: childId,
       'aria-describedby': open ? tooltipId : undefined,
       onMouseEnter: (...args) => {
         child.props.onMouseEnter && child.props.onMouseEnter(...args)
-        setOpen(true)
+        doOpen(true)
       },
       onMouseLeave: (...args) => {
         child.props.onMouseLeave && child.props.onMouseLeave(...args)
-        setOpen(false)
+        doOpen(false)
       },
       onFocus: (...args) => {
         child.props.onFocus && child.props.onFocus(...args)
-        setOpen(true)
+        doOpen(true)
       },
       onBlur: (...args) => {
         child.props.onBlur && child.props.onBlur(...args)
-        setOpen(false)
+        doOpen(false)
       }
     }),
     open && !!content && h(Tooltip, { target: childId, id: tooltipId, ...props }, [content])

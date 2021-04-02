@@ -48,37 +48,29 @@ const styles = {
   }
 }
 
-const DataTypeButton = ({ buttonName, entityCount, selected, iconName = 'listAlt', iconSize = 14, buttonStyle, ...props }) => {
+const DataTypeButton = ({ buttonName, children, entityCount, selected, iconName = 'listAlt', iconSize = 14, buttonStyle, isReference = false, ...props }) => {
   return h(Clickable, {
     style: { ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
     hover: Style.navList.itemHover(selected),
-    tooltip: buttonName,
-    tooltipSide: 'top',
+    ...(isReference ? {} : {
+      tooltip: buttonName,
+      tooltipSide: 'top',
+      tooltipDelay: 250
+    }),
     ...props
   }, [
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
       icon(iconName, { size: iconSize })
     ]),
-    div({ style: { flex: 1, ...Style.noWrapEllipsis }, title: buttonName }, [
-      buttonName
-    ]),
-    entityCount === undefined ? '' : div({ title: entityCount }, [
-      `(${entityCount})`
-    ])
-  ])
-}
-
-const ReferenceDataButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, buttonStyle, ...props }) => {
-  return h(Clickable, {
-    style: { ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
-    hover: Style.navList.itemHover(selected),
-    ...props
-  }, [
-    div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
-      icon(iconName, { size: iconSize })
-    ]),
-    div({ style: { flex: 1, ...Style.noWrapEllipsis }, title: children }, [
+    isReference ? div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
       children
+    ]) : h(Fragment, [
+      div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
+        buttonName
+      ]),
+      entityCount === undefined ? '' : div({ title: entityCount }, [
+        `(${entityCount})`
+      ])
     ])
   ])
 }
@@ -577,9 +569,10 @@ const WorkspaceData = _.flow(
           entityTypes: _.keys(entityMetadata)
         }),
         _.map(type => {
-          return h(ReferenceDataButton, {
+          return h(DataTypeButton, {
             key: type,
             selected: selectedDataType === type,
+            isReference: true,
             onClick: () => {
               setSelectedDataType(type)
               refreshWorkspace()
