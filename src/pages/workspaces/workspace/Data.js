@@ -48,11 +48,11 @@ const styles = {
   }
 }
 
-const DataTypeButton = ({ selected, buttonName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, isEntity, ...props }) => {
+const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, isEntity, ...props }) => {
   return h(Clickable, {
     style: { ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
     hover: Style.navList.itemHover(selected),
-    ...(isEntity ? { tooltip: buttonName, tooltipDelay: 250 } : {}),
+    ...(isEntity ? { tooltip: entityName, tooltipDelay: 250 } : {}),
     ...props
   }, [
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
@@ -60,7 +60,7 @@ const DataTypeButton = ({ selected, buttonName, children, entityCount, iconName 
     ]),
     isEntity ? h(Fragment, [
       div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
-        buttonName
+        entityName
       ]),
       entityCount === undefined ? '' : div({ title: entityCount }, [
         `(${entityCount})`
@@ -457,7 +457,7 @@ const WorkspaceData = _.flow(
               key: type,
               selected: selectedDataType === type,
               isEntity: true,
-              buttonName: type,
+              entityName: type,
               entityCount: typeDetails.count,
               onClick: () => {
                 setSelectedDataType(type)
@@ -513,7 +513,7 @@ const WorkspaceData = _.flow(
                     key: `${snapshotName}_${tableName}`,
                     selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
                     isEntity: true,
-                    buttonName: tableName,
+                    entityName: tableName,
                     entityCount: count,
                     onClick: () => {
                       setSelectedDataType([snapshotName, tableName])
