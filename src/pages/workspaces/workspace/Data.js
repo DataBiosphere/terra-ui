@@ -48,29 +48,25 @@ const styles = {
   }
 }
 
-const DataTypeButton = ({ buttonName, children, entityCount, selected, iconName = 'listAlt', iconSize = 14, buttonStyle, isReference = false, ...props }) => {
+const DataTypeButton = ({ selected, buttonName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, isEntity, ...props }) => {
   return h(Clickable, {
     style: { ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
     hover: Style.navList.itemHover(selected),
-    ...(isReference ? {} : {
-      tooltip: buttonName,
-      tooltipSide: 'top',
-      tooltipDelay: 250
-    }),
+    ...(isEntity ? { tooltip: buttonName, tooltipDelay: 250 } : {}),
     ...props
   }, [
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
       icon(iconName, { size: iconSize })
     ]),
-    isReference ? div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
-      children
-    ]) : h(Fragment, [
+    isEntity ? h(Fragment, [
       div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
         buttonName
       ]),
       entityCount === undefined ? '' : div({ title: entityCount }, [
         `(${entityCount})`
       ])
+    ]) : div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
+      children
     ])
   ])
 }
@@ -460,6 +456,7 @@ const WorkspaceData = _.flow(
             return h(DataTypeButton, {
               key: type,
               selected: selectedDataType === type,
+              isEntity: true,
               buttonName: type,
               entityCount: typeDetails.count,
               onClick: () => {
@@ -480,6 +477,7 @@ const WorkspaceData = _.flow(
               key: snapshotName,
               titleFirst: true,
               buttonStyle: { height: 50, color: colors.dark(), fontWeight: 600, marginBottom: 0, overflow: 'hidden' },
+              buttonProps: { tooltip: snapshotName, tooltipDelay: 250 },
               style: { fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
               title: snapshotName, noTitleWrap: true,
               afterToggle: h(Link, {
@@ -514,6 +512,7 @@ const WorkspaceData = _.flow(
                     buttonStyle: { borderBottom: 0, height: 40 },
                     key: `${snapshotName}_${tableName}`,
                     selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
+                    isEntity: true,
                     buttonName: tableName,
                     entityCount: count,
                     onClick: () => {
@@ -572,7 +571,7 @@ const WorkspaceData = _.flow(
           return h(DataTypeButton, {
             key: type,
             selected: selectedDataType === type,
-            isReference: true,
+            isEntity: false,
             onClick: () => {
               setSelectedDataType(type)
               refreshWorkspace()
@@ -595,21 +594,21 @@ const WorkspaceData = _.flow(
         div({ style: Style.navList.heading }, 'Other Data'),
         h(DataTypeButton, {
           selected: selectedDataType === localVariables,
-          buttonName: 'Workspace Data',
+          isEntity: false,
           onClick: () => {
             setSelectedDataType(localVariables)
             forceRefresh()
           }
-        }),
+        }, ['Workspace Data']),
         h(DataTypeButton, {
           iconName: 'folder', iconSize: 18,
           selected: selectedDataType === bucketObjects,
-          buttonName: 'Files',
+          isEntity: false,
           onClick: () => {
             setSelectedDataType(bucketObjects)
             forceRefresh()
           }
-        })
+        }, ['Files'])
       ]),
       div({ style: styles.tableViewPanel }, [
         Utils.switchCase(getSelectionType(),
