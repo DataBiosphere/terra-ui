@@ -177,10 +177,10 @@ const UploadDataTable = props => {
             strong(metadata.entityType),
             h(ButtonSecondary, {
               onClick: () => setRenamingTable(true),
-              style: { padding: '0 1em' }
+              style: { padding: '0 2em' }
             }, [
               icon('renameIcon'),
-              span({ style: { paddingLeft: '1em' } }, 'Rename Table')
+              span({ style: { paddingLeft: '1ex' } }, 'Rename Table')
             ])
           ]),
           p({
