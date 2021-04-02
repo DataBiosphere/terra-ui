@@ -156,7 +156,7 @@ export const NewGalaxyModal = _.flow(
           ])
         ]),
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
-          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('clock', { size: 25, color: colors.accent() })]),
+          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('money-check-alt', { size: 25, color: colors.accent() })]),
           div([
             div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
             div({ style: { lineHeight: 1.5 } }, [
@@ -166,7 +166,7 @@ export const NewGalaxyModal = _.flow(
           ])
         ]),
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
-          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('clock', { size: 25, color: colors.accent() })]),
+          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('pause', { size: 25, color: colors.accent() })]),
           div([
             div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Pause and auto-pause']),
             div({ style: { lineHeight: 1.5 } }, [
@@ -176,7 +176,7 @@ export const NewGalaxyModal = _.flow(
           ])
         ]),
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
-          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('clock', { size: 25, color: colors.accent() })]),
+          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('cog', { size: 25, color: colors.accent() })]),
           div([
             div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Environment updates']),
             div({ style: { lineHeight: 1.5 } }, [

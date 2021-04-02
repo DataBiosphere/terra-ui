@@ -5,6 +5,7 @@ import {
   faLongArrowAltUp, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid,
   faTachometerAlt, faTasks, faTerminal, faTrashAlt, faVirus
 } from '@fortawesome/free-solid-svg-icons'
+import { faMoneyCheckAlt } from '@fortawesome/free-solid-svg-icons/faMoneyCheckAlt'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
@@ -82,6 +83,7 @@ const iconDict = {
   'long-arrow-alt-down': fa(faLongArrowAltDown),
   'long-arrow-alt-up': fa(faLongArrowAltUp),
   'minus-circle': fa(faMinusCircle),
+  'money-check-alt': fa(faMoneyCheckAlt),
   pause: fa(faPause),
   play: fa(faPlay),
   plus: fa(faPlus),
