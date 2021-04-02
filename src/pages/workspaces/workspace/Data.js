@@ -58,16 +58,10 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
       icon(iconName, { size: iconSize })
     ]),
-    isEntity ? h(Fragment, [
-      div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
-        entityName
-      ]),
-      entityCount === undefined ? '' : div({ title: entityCount }, [
-        `(${entityCount})`
-      ])
-    ]) : div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
-      children
-    ])
+    div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
+      entityName || children
+    ]),
+    isEntity && div([`(${entityCount})`])
   ])
 }
 
