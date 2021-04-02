@@ -1,11 +1,10 @@
 import { faClipboard, faClock, faClone, faEye, faFileAlt, faFolder, faFolderOpen, faListAlt, faTimesCircle } from '@fortawesome/free-regular-svg-icons'
 import {
-  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faCloud, faCog, faCreditCard, faDownload,
+  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faClock as faClockSolid, faCloud, faCog, faCreditCard, faDownload,
   faEllipsisV, faExclamationCircle, faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown,
-  faLongArrowAltUp, faMinusCircle, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid,
+  faLongArrowAltUp, faMinusCircle, faMoneyCheckAlt, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid,
   faTachometerAlt, faTasks, faTerminal, faTrashAlt, faVirus
 } from '@fortawesome/free-solid-svg-icons'
-import { faMoneyCheckAlt } from '@fortawesome/free-solid-svg-icons/faMoneyCheckAlt'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
@@ -54,6 +53,7 @@ const iconDict = {
   chalkboard: fa(faChalkboard),
   check: fa(faCheck),
   clock: fa(faClock),
+  clockSolid: fa(faClockSolid),
   cloud: fa(faCloud),
   cog: fa(faCog),
   columnGrabber: custom(columnGrabber),

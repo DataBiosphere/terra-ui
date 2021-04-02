@@ -146,7 +146,7 @@ export const NewGalaxyModal = _.flow(
       div({ style: { marginBottom: '1rem' } }, ['Cloud environments consist of application configuration, cloud compute and persistent disk(s).']),
       div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
-          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('clock', { size: 25, color: colors.accent() })]),
+          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('clockSolid', { size: 25, color: colors.accent() })]),
           div([
             div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Set up duration']),
             div({ style: { lineHeight: 1.5 } }, [
