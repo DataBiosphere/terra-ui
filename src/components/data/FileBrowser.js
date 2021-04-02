@@ -11,7 +11,7 @@ import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon } from 'src/components/icons'
 import { NameModal } from 'src/components/NameModal'
 import { UploadProgressModal } from 'src/components/ProgressBar'
-import { GridTable, HeaderCell, TextCell } from 'src/components/table'
+import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -41,7 +41,7 @@ export const FileBrowserPanel = _.flow(
   const signal = Utils.useCancellation()
   const { signal: uploadSignal, abort: abortUpload } = Utils.useCancelable()
 
-  const { initialX, initialY } = StateHistory.get() || {}
+  const { initialY } = StateHistory.get() || {}
   const table = useRef()
 
   // Helpers
@@ -97,8 +97,8 @@ export const FileBrowserPanel = _.flow(
   }, [uploadStatus]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    StateHistory.update({ prefix, initialX, initialY })
-  }, [prefix, initialX, initialY])
+    StateHistory.update({ prefix, initialY })
+  }, [prefix, initialY])
 
   useEffect(() => {
     if (uploadingFiles.length > 0) {
@@ -187,17 +187,16 @@ export const FileBrowserPanel = _.flow(
         'Drag and drop your files here'
       ]),
       div({
-        style: { fontSize: '1rem', flex: '1 1 auto', padding: '1em', height: '100%' }
+        style: { fontSize: '1rem', flex: '1 1 auto', padding: '1em', height: '100%', minHeight: '30em' }
       }, [
         h(AutoSizer, {}, [
-          ({ width, height }) => h(GridTable, {
+          ({ width, height }) => h(FlexTable, {
             ref: table,
             width,
             height,
             rowCount: numPrefixes + numObjects,
             noContentMessage: 'No files have been uploaded yet',
             onScroll: saveScroll,
-            initialX,
             initialY,
             rowHeight: 40,
             headerHeight: 40,
@@ -207,9 +206,10 @@ export const FileBrowserPanel = _.flow(
             styleHeader: () => {
               return { padding: '0.5em', borderRight: 'none', borderLeft: 'none' }
             },
+            hoverHighlight: true,
             columns: [
               {
-                width: 30,
+                size: { min: 30, grow: 0 },
                 headerRenderer: () => '',
                 cellRenderer: ({ rowIndex }) => {
                   if (rowIndex >= numPrefixes) {
@@ -228,7 +228,7 @@ export const FileBrowserPanel = _.flow(
                 }
               },
               {
-                width: width - 400, // Fill the remaining space
+                size: { min: 100, grow: 1 }, // Fill the remaining space
                 headerRenderer: () => h(HeaderCell, ['Name']),
                 cellRenderer: ({ rowIndex }) => {
                   if (rowIndex < numPrefixes) {
@@ -253,7 +253,7 @@ export const FileBrowserPanel = _.flow(
                 }
               },
               {
-                width: 150,
+                size: { min: 150, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['Size']),
                 cellRenderer: ({ rowIndex }) => {
                   if (rowIndex >= numPrefixes) {
@@ -263,7 +263,7 @@ export const FileBrowserPanel = _.flow(
                 }
               },
               {
-                width: 200,
+                size: { min: 200, grow: 0 },
                 headerRenderer: () => h(HeaderCell, ['Last modified']),
                 cellRenderer: ({ rowIndex }) => {
                   if (rowIndex >= numPrefixes) {

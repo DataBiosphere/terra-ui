@@ -1,12 +1,13 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { code, div, h, h3, h4, li, p, span, strong, ul } from 'react-hyperscript-helpers'
+import { code, div, em, h, h3, p, span, strong } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { ButtonPrimary, ButtonSecondary, fixedSpinnerOverlay } from 'src/components/common'
 import { renderDataCell, saveScroll } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
 import { NameModal } from 'src/components/NameModal'
 import { GridTable, HeaderCell, Resizable, Sortable } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -90,17 +91,60 @@ const UploadDataTable = props => {
     StateHistory.update({ sort })
   }, [sort])
 
-
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
   useEffect(() => {
     header.current && header.current.focus()
   }, [])
 
+  const isColumnAdded = columnIndex => {
+    return metadata && metadata.isUpdate &&
+      columnIndex < columns.length &&
+      metadata.columnsAdded.indexOf(columns[columnIndex]) > -1
+  }
+
+  const isColumnUpdated = columnIndex => {
+    return metadata && metadata.isUpdate &&
+      columnIndex < columns.length &&
+      metadata.columnsUpdated.indexOf(columns[columnIndex]) > -1
+  }
+
   const sortedRows = useMemo(() => {
     const i = columns ? columns.indexOf(sort.field) : -1
     return i > -1 ? _.orderBy(row => row[i], sort.direction, rows) : rows
   }, [sort, rows, columns])
+
+  const renderHeader = (columnIndex, name) => {
+    const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(name)
+    const isUpdated = isColumnUpdated(columnIndex)
+    const isAdded = isColumnAdded(columnIndex)
+
+    return span([
+      !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } },
+        columnNamespace),
+      isUpdated && h(TooltipTrigger, {
+        content: 'Values in this column will update existing rows', side: 'top'
+      }, [
+        span({
+          style: { paddingRight: '1ex' }
+        }, [
+          icon('warning-standard')
+        ])
+      ]),
+      isAdded && h(TooltipTrigger, {
+        content: 'Values in this column will be added to existing rows', side: 'top'
+      }, [
+        span({
+          style: { paddingRight: '1ex' }
+        }, [
+          icon('lighter-plus-circle')
+        ])
+      ]),
+      columnName,
+      isAdded && em({ style: { paddingLeft: '1ex', fontWeight: 400 } }, '(new)'),
+      isUpdated && em({ style: { paddingLeft: '1ex', fontWeight: 400 } }, '(updated)')
+    ])
+  }
 
   return div({
     style: { display: 'flex', flexDirection: 'column', height: '100%' }
@@ -135,29 +179,17 @@ const UploadDataTable = props => {
               onClick: () => setRenamingTable(true),
               style: { padding: '0 1em' }
             }, [
-              icon('edit'),
+              icon('renameIcon'),
               span({ style: { paddingLeft: '1em' } }, 'Rename Table')
             ])
           ]),
           p({
             style: { color: colors.danger() }
           }, [
-            icon('exclamation-triangle'),
-            'This workspace already includes a table with this name. If any new rows have the same ',
+            icon('warning-standard'),
+            ' This workspace already includes a table with this name. If any new rows have the same ',
             code(metadata.idName),
             ' as an existing row, the data in that row will be updated with the new values.'
-          ]),
-          metadata.columnsUpdated?.length > 0 && div([
-            h4('Columns whose values may be overwritten:'),
-            ul([
-              ..._.map(u => li([u]), metadata.columnsUpdated)
-            ])
-          ]),
-          metadata.columnsAdded?.length > 0 && div([
-            h4('New columns to be added:'),
-            ul([
-              ..._.map(u => li([u]), metadata.columnsAdded)
-            ])
           ])
         ]) : div([
           h3(['Creating a new Table: ', strong(metadata.entityType)])
@@ -169,7 +201,7 @@ const UploadDataTable = props => {
     ]),
     metadata && h(Fragment, [
       div({
-        style: { flex: '1 1 auto' }
+        style: { flex: '1 1 auto', minHeight: '30em' }
       }, [
         h(AutoSizer, {}, [
           ({ width, height }) => {
@@ -182,18 +214,15 @@ const UploadDataTable = props => {
               columns: [
                 ..._.map(name => {
                   const thisWidth = columnWidths[name] || 300
-                  const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(name)
                   return {
                     width: thisWidth,
-                    headerRenderer: () => h(Resizable, {
+                    headerRenderer: ({ columnIndex }) => h(Resizable, {
                       width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(name, thisWidth + delta))
                     }, [
                       h(Sortable, { sort, field: name, onSort: setSort }, [
                         h(HeaderCell, [
-                          !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } },
-                            columnNamespace)
-                        ]),
-                        [columnName]
+                          renderHeader(columnIndex, name)
+                        ])
                       ])
                     ]),
                     cellRenderer: ({ rowIndex, columnIndex }) => {
@@ -205,6 +234,16 @@ const UploadDataTable = props => {
               ],
               styleCell: ({ rowIndex }) => {
                 return rowIndex % 2 && { backgroundColor: colors.light(0.2) }
+              },
+              styleHeader: ({ columnIndex }) => {
+                // See if this column was updated
+                if (isColumnUpdated(columnIndex)) {
+                  return { backgroundColor: colors.warning(0.2) }
+                }
+                if (isColumnAdded(columnIndex)) {
+                  return { backgroundColor: colors.success(0.2) }
+                }
+                return {}
               }
             })
           }
