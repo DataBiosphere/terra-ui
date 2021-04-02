@@ -239,7 +239,8 @@ const EntitiesContent = ({
           downloadForm.current.submit()
           Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
             ...extractWorkspaceDetails(workspace.workspace),
-            downloadFrom: 'all rows'
+            downloadFrom: 'all rows',
+            fileType: '.tsv'
           })
         }
       }, [
@@ -325,7 +326,8 @@ const EntitiesContent = ({
               FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
             Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
               ...extractWorkspaceDetails(workspace.workspace),
-              downloadFrom: 'table data'
+              downloadFrom: 'table data',
+              fileType: '.tsv'
             })
           }
         }, ['Download as TSV']),
