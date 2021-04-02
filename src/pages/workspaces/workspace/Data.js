@@ -48,7 +48,9 @@ const styles = {
   }
 }
 
-const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, isEntity, ...props }) => {
+const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, ...props }) => {
+  const isEntity = entityName !== undefined
+
   return h(Clickable, {
     style: { ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
     hover: Style.navList.itemHover(selected),
@@ -450,7 +452,6 @@ const WorkspaceData = _.flow(
             return h(DataTypeButton, {
               key: type,
               selected: selectedDataType === type,
-              isEntity: true,
               entityName: type,
               entityCount: typeDetails.count,
               onClick: () => {
@@ -506,7 +507,6 @@ const WorkspaceData = _.flow(
                     buttonStyle: { borderBottom: 0, height: 40 },
                     key: `${snapshotName}_${tableName}`,
                     selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
-                    isEntity: true,
                     entityName: tableName,
                     entityCount: count,
                     onClick: () => {
@@ -565,7 +565,6 @@ const WorkspaceData = _.flow(
           return h(DataTypeButton, {
             key: type,
             selected: selectedDataType === type,
-            isEntity: false,
             onClick: () => {
               setSelectedDataType(type)
               refreshWorkspace()
@@ -588,7 +587,6 @@ const WorkspaceData = _.flow(
         div({ style: Style.navList.heading }, 'Other Data'),
         h(DataTypeButton, {
           selected: selectedDataType === localVariables,
-          isEntity: false,
           onClick: () => {
             setSelectedDataType(localVariables)
             forceRefresh()
@@ -597,7 +595,6 @@ const WorkspaceData = _.flow(
         h(DataTypeButton, {
           iconName: 'folder', iconSize: 18,
           selected: selectedDataType === bucketObjects,
-          isEntity: false,
           onClick: () => {
             setSelectedDataType(bucketObjects)
             forceRefresh()
