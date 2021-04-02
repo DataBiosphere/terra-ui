@@ -90,7 +90,7 @@ export const FileBrowserPanel = _.flow(
     } else {
       // While the uploader is working, refresh the table no more often than every 5 seconds
       const now = Date.now()
-      if (lastRefresh < now - 10e3) {
+      if (lastRefresh < now - 5e3) {
         setLastRefresh(now)
       }
     }
