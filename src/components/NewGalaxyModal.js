@@ -146,23 +146,38 @@ export const NewGalaxyModal = _.flow(
       div({ style: { marginBottom: '1rem' } }, ['Cloud environments consist of application configuration, cloud compute and persistent disk(s).']),
       div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
-          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('info-circle', { size: 25, color: colors.accent() })]),
+          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('clock', { size: 25, color: colors.accent() })]),
           div([
-            span({ style: styles.headerText }, ['Set up duration']),
+            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Set up duration']),
             div({ style: { lineHeight: 1.5 } }, [
               div(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
               div(['You can navigate away, and we will notify you when it\'s ready. '])
-            ]),
+            ])
+          ])
+        ]),
+        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('clock', { size: 25, color: colors.accent() })]),
+          div([
             div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
             div({ style: { lineHeight: 1.5 } }, [
               div(['Please delete the cloud environment when finished; it will']),
               div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running.'])
-            ]),
+            ])
+          ])
+        ]),
+        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('clock', { size: 25, color: colors.accent() })]),
+          div([
             div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Pause and auto-pause']),
             div({ style: { lineHeight: 1.5 } }, [
               div(['You can pause  during the compute, but it will auto-pause when']),
               div(['the instance is idle more than 1 hour if the analysis is done.'])
-            ]),
+            ])
+          ])
+        ]),
+        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('clock', { size: 25, color: colors.accent() })]),
+          div([
             div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Environment updates']),
             div({ style: { lineHeight: 1.5 } }, [
               div(['If you would like to update your compute or disk configuration']),
