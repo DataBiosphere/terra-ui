@@ -295,17 +295,16 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
       div({ style: { minWidth: billingProjectListWidth, maxWidth: billingProjectListWidth, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', height: totalViewHeightMinusHeaderAndFooter, overflowY: 'auto' } }, [
         div({
           style: {
-            fontSize: 16, fontWeight: 600, padding: '2rem 2rem 1rem',
+            fontSize: 16, fontWeight: 600, padding: '2rem 1rem 1rem', display: 'flex', justifyContent: 'space-between',
             textTransform: 'uppercase', color: colors.dark()
           }
         }, [
           'Billing Projects',
-          h(ButtonPrimary, {
+          h(Clickable, {
             'aria-label': 'Create new billing project',
-            onClick: showCreateProjectModal,
-            style: { marginTop: '1rem' }
+            onClick: showCreateProjectModal
           }, [
-            'New Billing Project'
+            icon('plus-circle', { size: 21, style: { color: colors.accent() } })
           ])
         ]),
 
