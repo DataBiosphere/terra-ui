@@ -1,7 +1,6 @@
 module.exports = {
   local: {
     billingProject: 'saturn-integration-test-dev',
-    dataRepoUrl: 'https://jade.datarepo-dev.broadinstitute.org',
     snapshotColumnName: 'name',
     snapshotId: 'f90f5d7f-c507-4e56-abfc-b965a66023fb',
     snapshotTableName: 'tableA',
@@ -10,7 +9,6 @@ module.exports = {
   },
   dev: {
     billingProject: 'saturn-integration-test-dev',
-    dataRepoUrl: 'https://jade.datarepo-dev.broadinstitute.org',
     snapshotColumnName: 'name',
     snapshotId: 'f90f5d7f-c507-4e56-abfc-b965a66023fb',
     snapshotTableName: 'tableA',
@@ -19,7 +17,6 @@ module.exports = {
   },
   alpha: {
     billingProject: 'saturn-integration-test-alpha',
-    dataRepoUrl: 'https://data.alpha.envs-terra.bio',
     snapshotColumnName: 'VCF_File_Name',
     snapshotId: 'd56f4db5-b6c6-4a7e-8be2-ff6aa21c4fa6',
     snapshotTableName: 'vcf_file',
@@ -33,7 +30,6 @@ module.exports = {
   },
   staging: {
     billingProject: 'saturn-integration-test-stage',
-    dataRepoUrl: 'https://data.staging.envs-terra.bio',
     snapshotColumnName: 'VCF_File_Name',
     snapshotId: 'a5624b5c-df41-4a02-8013-d3b6cd51b22a',
     snapshotTableName: 'vcf_file',
