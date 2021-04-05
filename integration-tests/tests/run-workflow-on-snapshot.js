@@ -23,8 +23,8 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   withWorkspace,
   withUserToken,
   withDataRepoCheck
-)(async ({ dataRepoUrl, environment, page, testUrl, snapshotColumnName, snapshotId, snapshotTableName, token, workflowName, workspaceName }) => {
-  if (environment === 'perf') {
+)(async ({ dataRepoUrl, page, testUrl, snapshotColumnName, snapshotId, snapshotTableName, token, workflowName, workspaceName }) => {
+  if (!snapshotId) {
     return
   }
   // IMPORT SNAPSHOT
@@ -59,7 +59,7 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await click(page, clickable({ textContains: 'Outputs' }))
   await (await findElement(page, input({ labelContains: 'echo_strings.echo_to_file.out' }))).click({ clickCount: 3 })
   await fillIn(page, input({ labelContains: 'echo_strings.echo_to_file.out' }), 'workspace.result')
-  await delay(500) // Without this delay, the input field sometimes reverts back to its default value
+  await delay(1000) // Without this delay, the input field sometimes reverts back to its default value
   await click(page, clickable({ text: 'Save' }))
 
   await delay(1000) // The Run Analysis button requires time to become enabled after hitting the save button
