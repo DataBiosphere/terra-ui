@@ -51,13 +51,13 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await select(page, 'Snapshot table selector', snapshotTableName)
 
   await click(page, clickable({ textContains: 'Inputs' }))
-  await (await findElement(page, input({ labelContains: 'echo_strings.echo_to_file.input1' }))).click({ clickCount: 3 })
+  await (await findElement(page, input({ labelContains: 'echo_strings.echo_to_file.input1' }))).click({ clickCount: 3 }) // triple-click to replace the default text
   await fillIn(page, input({ labelContains: 'echo_strings.echo_to_file.input1' }), `this.${snapshotColumnName}`)
-  await delay(100) // Without this delay, the input field sometimes reverts back to its default value
+  await delay(1000) // Without this delay, the input field sometimes reverts back to its default value
   await click(page, clickable({ text: 'Save' }))
 
   await click(page, clickable({ textContains: 'Outputs' }))
-  await (await findElement(page, input({ labelContains: 'echo_strings.echo_to_file.out' }))).click({ clickCount: 3 })
+  await (await findElement(page, input({ labelContains: 'echo_strings.echo_to_file.out' }))).click({ clickCount: 3 }) // triple-click to replace the default text
   await fillIn(page, input({ labelContains: 'echo_strings.echo_to_file.out' }), 'workspace.result')
   await delay(1000) // Without this delay, the input field sometimes reverts back to its default value
   await click(page, clickable({ text: 'Save' }))
@@ -66,7 +66,6 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await click(page, clickable({ textContains: 'Run analysis' }))
 
   await Promise.all([
-    page.waitForNavigation(),
     click(page, clickable({ text: 'Launch' }))
   ])
 
