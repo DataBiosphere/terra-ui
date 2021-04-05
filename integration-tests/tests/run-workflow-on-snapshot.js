@@ -13,7 +13,7 @@ const withDataRepoCheck = test => async options => {
   const { dataRepoUrl } = options
   const res = await fetch(`${dataRepoUrl}/status`)
   if (res.status === 200) {
-    return test(options)
+    return test({ ...options, dataRepoUrl })
   } else {
     console.error('Skipping data repo snapshot test, API appears to be down')
   }
