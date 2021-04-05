@@ -13,7 +13,7 @@ const withDataRepoCheck = test => async options => {
   const { dataRepoUrl } = options
   const res = await fetch(`${dataRepoUrl}/status`)
   if (res.status === 200) {
-    await test(options)
+    return test(options)
   } else {
     console.error('Skipping data repo snapshot test, API appears to be down')
   }
@@ -53,7 +53,7 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await click(page, clickable({ textContains: 'Inputs' }))
   await (await findElement(page, input({ labelContains: 'echo_strings.echo_to_file.input1' }))).click({ clickCount: 3 })
   await fillIn(page, input({ labelContains: 'echo_strings.echo_to_file.input1' }), `this.${snapshotColumnName}`)
-  await delay(500) // Without this delay, the input field sometimes reverts back to its default value
+  await delay(100) // Without this delay, the input field sometimes reverts back to its default value
   await click(page, clickable({ text: 'Save' }))
 
   await click(page, clickable({ textContains: 'Outputs' }))
@@ -82,7 +82,6 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await click(page, navChild('data'))
   await click(page, clickable({ textContains: 'Workspace Data' }))
   await findText(page, 'result: ')
-
 })
 
 const testRunWorkflowOnSnapshot = {

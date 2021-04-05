@@ -30,7 +30,6 @@ const testTimeout = async timeout => {
 }
 
 
-
 const runTest = fn => withPuppeteer(async ({ browser, context, name, page, req, timeout }) => {
   const targetEnvParams = { ...envs[req.query.targetEnv] }
   const testGroup = req.query.testGroup
