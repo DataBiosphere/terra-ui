@@ -34,9 +34,9 @@ module.exports = {
   staging: {
     billingProject: 'saturn-integration-test-stage',
     dataRepoUrl: 'https://data.staging.envs-terra.bio',
-    snapshotColumnName: '',
-    snapshotId: '3e858a77-ea11-4f55-96f4-e6e45b71b7bf',
-    snapshotTableName: '',
+    snapshotColumnName: 'VCF_File_Name',
+    snapshotId: 'a5624b5c-df41-4a02-8013-d3b6cd51b22a',
+    snapshotTableName: 'vcf_file',
     testUrl: 'https://bvdp-saturn-staging.appspot.com',
     workflowName: 'echo_to_file'
   }
