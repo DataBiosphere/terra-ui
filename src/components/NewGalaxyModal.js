@@ -138,30 +138,51 @@ export const NewGalaxyModal = _.flow(
   const renderCreateWarning = () => {
     return h(Fragment, [
       h(TitleBar, {
-        title: 'Cloud environment',
+        title: 'Cloud Environment',
         style: { marginBottom: '0.5rem' },
         onDismiss,
         onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
       }),
-      div({ style: { marginBottom: '1rem' } }, ['consists of application configuration, cloud compute and persistent disk(s).']),
+      div({ style: { marginBottom: '1rem' } }, ['Cloud environments consist of application configuration, cloud compute and persistent disk(s).']),
       div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
-          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('info-circle', { size: 25, color: colors.accent() })]),
+          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('clockSolid', { size: 25, color: colors.accent() })]),
           div([
-            span({ style: styles.headerText }, ['Set up duration']),
+            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Set up duration']),
             div({ style: { lineHeight: 1.5 } }, [
               div(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
               div(['You can navigate away, and we will notify you when it\'s ready. '])
-            ]),
+            ])
+          ])
+        ]),
+        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('money-check-alt', { size: 25, color: colors.accent() })]),
+          div([
             div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
             div({ style: { lineHeight: 1.5 } }, [
               div(['Please delete the cloud environment when finished; it will']),
               div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running.'])
-            ]),
+            ])
+          ])
+        ]),
+        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('pause', { size: 25, color: colors.accent() })]),
+          div([
             div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Pause and auto-pause']),
             div({ style: { lineHeight: 1.5 } }, [
               div(['You can pause  during the compute, but it will auto-pause when']),
               div(['the instance is idle more than 1 hour if the analysis is done.'])
+            ])
+          ])
+        ]),
+        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('cog', { size: 25, color: colors.accent() })]),
+          div([
+            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Environment updates']),
+            div({ style: { lineHeight: 1.5 } }, [
+              div(['If you would like to update your compute or disk configuration']),
+              div(['after an app is created, please delete the app and create a new']),
+              div(['app with the desired configuration.'])
             ])
           ])
         ])
@@ -210,16 +231,17 @@ export const NewGalaxyModal = _.flow(
 
   const getEnvMessageBasedOnStatus = app => {
     const waitMessage = 'This process will take up to a few minutes.'
+    const nonStatusSpecificMessage = 'A cloud environment consists of application configuration, cloud compute and persistent disk(s).'
 
     return !app ?
-      'consists of application configuration, cloud compute and persistent disk(s).' :
+      nonStatusSpecificMessage :
       Utils.switchCase(app.status,
-        ['STOPPED', () => `is paused.`],
-        ['PRESTOPPING', () => 'is preparing to pause.'],
-        ['STOPPING', () => `is pausing. ${waitMessage}`],
-        ['PRESTARTING', () => 'is preparing to start.'],
-        ['STARTING', () => `is resuming. ${waitMessage}`],
-        ['RUNNING', () => 'consists of application configuration, cloud compute and persistent disk(s).'],
+        ['STOPPED', () => `The cloud compute is paused.`],
+        ['PRESTOPPING', () => 'The cloud compute is preparing to pause.'],
+        ['STOPPING', () => `The cloud compute is pausing. ${waitMessage}`],
+        ['PRESTARTING', () => 'The cloud compute is preparing to resume.'],
+        ['STARTING', () => `The cloud compute is resuming. ${waitMessage}`],
+        ['RUNNING', () => nonStatusSpecificMessage],
         ['ERROR', () => `An error has occurred on your cloud environment.`]
       )
   }
@@ -267,9 +289,9 @@ export const NewGalaxyModal = _.flow(
   const renderPersistentDiskSection = () => {
     const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' }
     return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
-      div({ style: styles.headerText }, ['Persistent disk']),
+      div({ style: styles.headerText }, ['Persistent Disk']),
       div({ style: { marginTop: '0.5rem' } }, [
-        'stores your analysis data. '
+        'Persistent disks store analysis data.'
         // TODO Add info on PDs for Galaxy (similarly to in NewRuntimeModal.js)
       ]),
       div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
@@ -297,7 +319,7 @@ export const NewGalaxyModal = _.flow(
   const renderDefaultCase = () => {
     return h(Fragment, [
       h(TitleBar, {
-        title: 'Cloud environment',
+        title: 'Cloud Environment',
         style: { marginBottom: '0.5rem' },
         onDismiss,
         onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined

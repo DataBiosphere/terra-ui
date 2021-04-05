@@ -28,6 +28,7 @@ import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import * as StateHistory from 'src/libs/state-history'
@@ -234,7 +235,14 @@ const EntitiesContent = ({
         tooltip: disabled ?
           'Downloading sets of sets as TSV is not supported at this time' :
           `Download a .tsv file containing all the ${entityKey}s in this table`,
-        onClick: () => downloadForm.current.submit()
+        onClick: () => {
+          downloadForm.current.submit()
+          Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
+            ...extractWorkspaceDetails(workspace.workspace),
+            downloadFrom: 'all rows',
+            fileType: '.tsv'
+          })
+        }
       }, [
         icon('download', { style: { marginRight: '0.5rem' } }),
         'Download all Rows'
@@ -316,6 +324,11 @@ const EntitiesContent = ({
             isSet ?
               FileSaver.saveAs(await tsv, `${entityKey}.zip`) :
               FileSaver.saveAs(new Blob([tsv], { type: 'text/tab-separated-values' }), `${entityKey}.tsv`)
+            Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
+              ...extractWorkspaceDetails(workspace.workspace),
+              downloadFrom: 'table data',
+              fileType: '.tsv'
+            })
           }
         }, ['Download as TSV']),
         !snapshotName && h(MenuButton, {

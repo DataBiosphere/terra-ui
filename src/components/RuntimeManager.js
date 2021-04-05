@@ -298,8 +298,8 @@ export default class RuntimeManager extends PureComponent {
           style: { display: 'flex' },
           disabled: appIsSettingUp(app),
           tooltip: appIsSettingUp(app) ?
-            'Your Galaxy application is being created' :
-            'Update cloud environment',
+            'Galaxy app is being created' :
+            'View cloud environment',
           onClick: () => {
             this.setState({ galaxyDrawerOpen: true })
           }
@@ -307,7 +307,7 @@ export default class RuntimeManager extends PureComponent {
           img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
           div([
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, ['Galaxy']),
-            div({ style: { fontSize: 10, textTransform: 'uppercase' } }, [app.status])
+            div({ style: { fontSize: 10, textTransform: 'capitalize' } }, [_.capitalize(app.status)])
           ])
         ])
       ]),

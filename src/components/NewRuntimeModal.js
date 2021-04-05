@@ -1005,10 +1005,10 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
         return h(Fragment, [
           h(TitleBar, {
             style: { marginBottom: '0.5rem' },
-            title: 'Cloud environment',
+            title: 'Cloud Environment',
             onDismiss
           }),
-          div(['consists of application configuration, cloud compute and persistent disk(s).'])
+          div(['A cloud environment consists of application configuration, cloud compute and persistent disk(s).'])
         ])
       }
       const renderBottomButtons = () => {
