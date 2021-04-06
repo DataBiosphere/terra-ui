@@ -10,10 +10,11 @@ const snapshotName = 'testsnapshot'
 const findWorkflowButton = clickable({ textContains: 'Find a Workflow' })
 
 const withDataRepoCheck = test => async options => {
-  const { dataRepoUrl } = options
-  const res = await fetch(`${dataRepoUrl}/status`)
+  const { testUrl } = options
+  const { dataRepoUrlRoot } = await fetch(`${testUrl}/config.json`).then(res => res.json())
+  const res = await fetch(`${dataRepoUrlRoot}/status`)
   if (res.status === 200) {
-    return test({ ...options, dataRepoUrl })
+    return test({ ...options, dataRepoUrlRoot })
   } else {
     console.error('Skipping data repo snapshot test, API appears to be down')
   }
@@ -23,12 +24,12 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   withWorkspace,
   withUserToken,
   withDataRepoCheck
-)(async ({ dataRepoUrl, page, testUrl, snapshotColumnName, snapshotId, snapshotTableName, token, workflowName, workspaceName }) => {
+)(async ({ dataRepoUrlRoot, page, testUrl, snapshotColumnName, snapshotId, snapshotTableName, token, workflowName, workspaceName }) => {
   if (!snapshotId) {
     return
   }
   // IMPORT SNAPSHOT
-  await page.goto(`${testUrl}/#import-data?url=${dataRepoUrl}&snapshotId=${snapshotId}&snapshotName=${snapshotName}&format=snapshot`)
+  await page.goto(`${testUrl}/#import-data?url=${dataRepoUrlRoot}&snapshotId=${snapshotId}&snapshotName=${snapshotName}&format=snapshot`)
   await signIntoTerra(page, token)
   await dismissNotifications(page)
   await click(page, clickable({ textContains: 'Start with an existing workspace' }))
