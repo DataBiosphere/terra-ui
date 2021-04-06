@@ -43,7 +43,7 @@ export default class DataStepContent extends Component {
 
   isValidSelectionModel() {
     const { newSelectionModel: { newSetName, selectedEntities } } = this.state
-    return _.size(selectedEntities) > 0 && (!this.willCreateSet() || newSetName)
+    return _.size(selectedEntities) > 0 && (newSetName || !this.willCreateSet())
   }
 
   willCreateSet() {
