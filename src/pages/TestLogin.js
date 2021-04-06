@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { div, h, label, h1 } from 'react-hyperscript-helpers'
+import { div, h, h1, label } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer } from 'src/components/common'
 import { TextInput } from 'src/components/input'
 import * as Nav from 'src/libs/nav'
