@@ -1,15 +1,17 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
+import { AutoSizer } from 'react-virtualized'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { Link, topSpinnerOverlay } from 'src/components/common'
+import { saveScroll } from 'src/components/data/data-utils'
 import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon } from 'src/components/icons'
 import { NameModal } from 'src/components/NameModal'
 import { UploadProgressModal } from 'src/components/ProgressBar'
-import { HeaderCell, SimpleTable, TextCell } from 'src/components/table'
+import { FlexTable, HeaderCell, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -23,10 +25,10 @@ import { DeleteObjectModal } from 'src/pages/workspaces/workspace/Data'
 export const FileBrowserPanel = _.flow(
   Utils.withDisplayName('DataUploadPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
-)(({ workspace, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, basePrefix, setNumFiles, collection, allowNewFolders = true, children }) => {
+)(({ workspace, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, basePrefix, setNumFiles, collection, allowNewFolders = true, style, children }) => {
   const [prefix, setPrefix] = useState('')
-  const [prefixes, setPrefixes] = useState(undefined)
-  const [objects, setObjects] = useState(undefined)
+  const [prefixes, setPrefixes] = useState([])
+  const [objects, setObjects] = useState([])
   const [loading, setLoading] = useState(false)
   const [deletingName, setDeletingName] = useState(undefined)
   const [viewingName, setViewingName] = useState(undefined)
@@ -34,9 +36,13 @@ export const FileBrowserPanel = _.flow(
 
   const [uploadingFiles, setUploadingFiles] = useState([])
   const [uploadStatus, setUploadStatus] = useUploader()
+  const [lastRefresh, setLastRefresh] = useState(0)
 
   const signal = Utils.useCancellation()
   const { signal: uploadSignal, abort: abortUpload } = Utils.useCancelable()
+
+  const { initialY } = StateHistory.get() || {}
+  const table = useRef()
 
   // Helpers
   const getFullPrefix = (targetPrefix = prefix) => {
@@ -59,8 +65,8 @@ export const FileBrowserPanel = _.flow(
       _.map(p => p.slice(basePrefix.length)),
       _.uniq,
       _.compact
-    )(prefixes))
-    setObjects(items)
+    )(prefixes || []))
+    setObjects(items || [])
   })
 
   const count = _.flow(
@@ -73,19 +79,26 @@ export const FileBrowserPanel = _.flow(
 
   // Lifecycle
   useEffect(() => {
+    // Whenever the prefix changes, reload the table right away
     load(prefix)
-  }, [prefix, uploadStatus]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [prefix, lastRefresh]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    // Count all the files in the bucket any time the uploader completes
     if (!uploadStatus.active) {
+      // If the uploader has completed, count all the files in the bucket
       count()
+    } else {
+      // While the uploader is working, refresh the table no more often than every 5 seconds
+      const now = Date.now()
+      if (lastRefresh < now - 5e3) {
+        setLastRefresh(now)
+      }
     }
   }, [uploadStatus]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    StateHistory.update({ prefix })
-  }, [prefix])
+    StateHistory.update({ prefix, initialY })
+  }, [prefix, initialY])
 
   useEffect(() => {
     if (uploadingFiles.length > 0) {
@@ -114,19 +127,17 @@ export const FileBrowserPanel = _.flow(
     }
   }, [label])
 
-  return h(Fragment, {}, [
-    uploadStatus.active && h(UploadProgressModal, {
-      status: uploadStatus,
-      abort: () => {
-        abortUpload()
-      }
-    }),
+  const numPrefixes = prefixes?.length || 0
+  const numObjects = objects?.length || 0
+
+  return div({ style }, [
     children,
     h(Dropzone, {
       disabled: !!Utils.editWorkspaceError(workspace) || uploadStatus.active,
       style: {
-        flexGrow: 1, backgroundColor: 'white', border: `1px solid ${colors.dark(0.55)}`,
-        padding: '1rem', position: 'relative', minHeight: '10rem'
+        display: 'flex', flexFlow: 'column nowrap',
+        backgroundColor: 'white', border: `1px dashed ${colors.dark(0.55)}`,
+        position: 'relative', minHeight: '10rem', height: '100%'
       },
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       multiple: true,
@@ -134,7 +145,11 @@ export const FileBrowserPanel = _.flow(
       onDropAccepted: setUploadingFiles
     }, [({ openUploader }) => h(Fragment, [
       div({
-        style: { display: 'flex', flexFlow: 'row nowrap', width: '100%' }
+        style: {
+          flex: 0, display: 'flex', flexFlow: 'row nowrap',
+          width: '100%', borderBottom: `1px solid ${colors.dark(0.25)}`,
+          padding: '1em'
+        }
       }, [
         div({
           style: { display: 'table', height: '100%', flex: 1 }
@@ -164,57 +179,109 @@ export const FileBrowserPanel = _.flow(
           'Uploading...'
         ])
       ]),
-      div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
-      (prefixes?.length > 0 || objects?.length > 0) ? div({
-        style: { fontSize: '1rem' }
-      }, [
-        h(SimpleTable, {
-          columns: [
-            { size: { basis: 24, grow: 0 }, key: 'button' },
-            { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },
-            { header: h(HeaderCell, ['Size']), size: { basis: 200, grow: 0 }, key: 'size' },
-            { header: h(HeaderCell, ['Last modified']), size: { basis: 200, grow: 0 }, key: 'updated' }
-          ],
-          rows: [
-            ..._.map(p => {
-              return {
-                name: h(TextCell, [
-                  makeBucketLink({
-                    label: getBareFilename(p),
-                    target: getFullPrefix(p),
-                    onClick: () => setPrefix(p)
-                  })
-                ])
-              }
-            }, prefixes),
-            ..._.map(({ name, size, updated }) => {
-              return {
-                button: h(Link, {
-                  style: { display: 'flex' },
-                  onClick: () => setDeletingName(name),
-                  tooltip: 'Delete file'
-                }, [
-                  icon('trash', { size: 16, className: 'hover-only' })
-                ]),
-                name: h(TextCell, [
-                  makeBucketLink({
-                    label: getBareFilename(name),
-                    target: name,
-                    onClick: () => setViewingName(name)
-                  })
-                ]),
-                size: filesize(size, { round: 0 }),
-                updated: Utils.makePrettyDate(updated)
-              }
-            }, objects)
-          ]
-        })
-      ]) : div({
+      div({
         style: {
-          color: colors.dark(0.75), width: '100%', margin: '4rem 0', textAlign: 'center',
-          fontSize: '1.5em'
+          flex: '0', textAlign: 'center', fontSize: '1.2em', padding: '1em 1em 0 1em'
         }
-      }, ['Drag and drop your files here']),
+      }, [
+        'Drag and drop your files here'
+      ]),
+      div({
+        style: { fontSize: '1rem', flex: '1 1 auto', padding: '1em', height: '100%', minHeight: '30em' }
+      }, [
+        h(AutoSizer, {}, [
+          ({ width, height }) => h(FlexTable, {
+            ref: table,
+            width,
+            height,
+            rowCount: numPrefixes + numObjects,
+            noContentMessage: 'No files have been uploaded yet',
+            onScroll: saveScroll,
+            initialY,
+            rowHeight: 40,
+            headerHeight: 40,
+            styleCell: () => {
+              return { padding: '0.5em', borderRight: 'none', borderLeft: 'none' }
+            },
+            styleHeader: () => {
+              return { padding: '0.5em', borderRight: 'none', borderLeft: 'none' }
+            },
+            hoverHighlight: true,
+            columns: [
+              {
+                size: { min: 30, grow: 0 },
+                headerRenderer: () => '',
+                cellRenderer: ({ rowIndex }) => {
+                  if (rowIndex >= numPrefixes) {
+                    const { name } = objects[rowIndex - numPrefixes]
+                    return h(Link, {
+                      style: { display: 'flex' },
+                      onClick: () => setDeletingName(name),
+                      tooltip: 'Delete file'
+                    }, [
+                      icon('trash', {
+                        size: 16,
+                        className: 'hover-only'
+                      })
+                    ])
+                  }
+                }
+              },
+              {
+                size: { min: 100, grow: 1 }, // Fill the remaining space
+                headerRenderer: () => h(HeaderCell, ['Name']),
+                cellRenderer: ({ rowIndex }) => {
+                  if (rowIndex < numPrefixes) {
+                    const p = prefixes[rowIndex]
+                    return h(TextCell, [
+                      makeBucketLink({
+                        label: getBareFilename(p),
+                        target: getFullPrefix(p),
+                        onClick: () => setPrefix(p)
+                      })
+                    ])
+                  } else {
+                    const { name } = objects[rowIndex - numPrefixes]
+                    return h(TextCell, [
+                      makeBucketLink({
+                        label: getBareFilename(name),
+                        target: name,
+                        onClick: () => setViewingName(name)
+                      })
+                    ])
+                  }
+                }
+              },
+              {
+                size: { min: 150, grow: 0 },
+                headerRenderer: () => h(HeaderCell, ['Size']),
+                cellRenderer: ({ rowIndex }) => {
+                  if (rowIndex >= numPrefixes) {
+                    const { size } = objects[rowIndex - numPrefixes]
+                    return filesize(size, { round: 0 })
+                  }
+                }
+              },
+              {
+                size: { min: 200, grow: 0 },
+                headerRenderer: () => h(HeaderCell, ['Last modified']),
+                cellRenderer: ({ rowIndex }) => {
+                  if (rowIndex >= numPrefixes) {
+                    const { updated } = objects[rowIndex - numPrefixes]
+                    return Utils.makePrettyDate(updated)
+                  }
+                }
+              }
+            ]
+          })
+        ])
+      ]),
+      uploadStatus.active && h(UploadProgressModal, {
+        status: uploadStatus,
+        abort: () => {
+          abortUpload()
+        }
+      }),
       deletingName && h(DeleteObjectModal, {
         workspace, name: deletingName,
         onDismiss: () => setDeletingName(),
@@ -241,7 +308,7 @@ export const FileBrowserPanel = _.flow(
         iconShape: 'plus',
         onClick: openUploader
       }),
-      (loading) && topSpinnerOverlay
+      loading && topSpinnerOverlay
     ])])
   ])
 })
