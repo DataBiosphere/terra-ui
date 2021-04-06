@@ -67,7 +67,8 @@ const NotificationDisplay = ({ id }) => {
       display: 'flex',
       flexDirection: 'column',
       fontSize: 12
-    }
+    },
+    role: 'alert'
   }, [
     // content and close button
     div({ style: { display: 'flex', padding: '0.75rem 1rem' } }, [

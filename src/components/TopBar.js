@@ -320,6 +320,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
       role: 'banner',
       style: {
         ...styles.topBar,
+        backgroundColor: isTerra() ? colors.primary() : colors.ligth(), // Fallback color for a11y and if background images don't show
         background: isTerra() ?
           `81px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat, ${colors.primary()}` :
           colors.light()
