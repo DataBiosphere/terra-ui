@@ -183,18 +183,24 @@ export const FlexTable = ({
         width: width - scrollbarSize,
         height: headerHeight,
         display: 'flex'
-      }
+      },
+      role: 'grid',
+      'aria-rowcount': rowCount,
+      'aria-colcount': columns.length
     }, [
-      ..._.map(([i, { size, headerRenderer }]) => {
+      div({
+        role: 'row'
+      }, ..._.map(([i, { size, headerRenderer }]) => {
         return div({
           key: i,
+          role: 'columnheader',
           style: {
             ...styles.flexCell(size),
             ...(variant === 'light' ? {} : styles.header(i * 1, columns.length)),
             ...(styleHeader ? styleHeader({ columnIndex: i }) : {})
           }
         }, [headerRenderer()])
-      }, _.toPairs(columns))
+      }, _.toPairs(columns)))
     ]),
     h(RVGrid, {
       ref: body,
@@ -212,6 +218,7 @@ export const FlexTable = ({
           key: data.key,
           as: 'div',
           className: 'table-row',
+          role: 'row',
           style: { ...data.style, backgroundColor: 'white', display: 'flex' },
           hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
         }, [
@@ -219,6 +226,9 @@ export const FlexTable = ({
             return div({
               key: i,
               className: 'table-cell',
+              role: 'gridcell',
+              'aria-rowindex': data.rowIndex,
+              'aria-colindex': i,
               style: {
                 ...styles.flexCell(size),
                 ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length)),
@@ -268,7 +278,7 @@ FlexTable.propTypes = {
  */
 export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHighlight }) => {
   return div({
-    role: 'grid',
+    role: 'grid'
   }, [
     div({
       style: { height: 48, display: 'flex' },
