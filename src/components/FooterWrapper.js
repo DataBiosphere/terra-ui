@@ -9,9 +9,6 @@ import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 
 
-export const expandedFooterHeight = 60
-export const shrunkFooterHeight = 20
-
 const styles = {
   item: { marginLeft: '2rem' },
   footer: {
@@ -27,6 +24,9 @@ const buildTimestamp = new Date(parseInt(process.env.REACT_APP_BUILD_TIMESTAMP, 
 // If you change the layout here, make sure it's reflected in the pre-rendered version in public/index.html
 const FooterWrapper = ({ children, alwaysShow, onExpand = () => {} }) => {
   const [isExpanded, setIsExpanded] = useState(false)
+
+  const expandedFooterHeight = 60
+  const shrunkFooterHeight = 20
 
   const bdcFooterContent = div({ style: { display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '0.5rem 2rem', fontSize: 10 } }, [
     a({ href: 'https://biodatacatalyst.nhlbi.nih.gov/privacy', ...Utils.newTabLinkProps }, 'Privacy Policy'),
@@ -48,10 +48,10 @@ const FooterWrapper = ({ children, alwaysShow, onExpand = () => {} }) => {
     a({ href: Nav.getLink('terms-of-service'), style: styles.item }, 'Terms of Service'),
     div({ style: styles.item }, '|'),
     a({
-        href: 'https://support.terra.bio/hc/en-us/articles/360030793091-Terra-FireCloud-Security-Posture', ...Utils.newTabLinkProps,
-        style: styles.item
-      },
-      ['Security', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })]),
+      href: 'https://support.terra.bio/hc/en-us/articles/360030793091-Terra-FireCloud-Security-Posture', ...Utils.newTabLinkProps,
+      style: styles.item
+    },
+    ['Security', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })]),
     div({ style: styles.item }, '|'),
     a({
       href: 'https://support.terra.bio/hc/en-us', ...Utils.newTabLinkProps,

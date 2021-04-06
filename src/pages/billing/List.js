@@ -4,16 +4,15 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
-import FooterWrapper, { expandedFooterHeight, shrunkFooterHeight } from 'src/components/FooterWrapper'
+import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import TopBar, { topBarHeight } from 'src/components/TopBar'
+import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { isBioDataCatalyst } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
@@ -278,7 +277,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const breadcrumbs = `Billing > Billing Project`
 
   const billingProjectListWidth = 330
-  const totalViewHeightMinusHeaderAndFooter = `calc(100vh - ${topBarHeight + (!!isBioDataCatalyst() && (bdcFooterExpanded ? shrunkFooterHeight + expandedFooterHeight : shrunkFooterHeight))}px)`
 
   return h(FooterWrapper, { onExpand: () => setBdcFooterExpanded(!bdcFooterExpanded) }, [
     h(TopBar, { title: 'Billing' }, [
@@ -292,7 +290,12 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
       ])
     ]),
     div({ role: 'main', style: { display: 'flex', flex: 1 } }, [
-      div({ style: { minWidth: billingProjectListWidth, maxWidth: billingProjectListWidth, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', height: totalViewHeightMinusHeaderAndFooter, overflowY: 'auto' } }, [
+      div({
+        style: {
+          minWidth: billingProjectListWidth, maxWidth: billingProjectListWidth,
+          boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', overflowY: 'auto'
+        }
+      }, [
         div({
           style: {
             fontSize: 16, fontWeight: 600, padding: '2rem 1rem 1rem', display: 'flex', justifyContent: 'space-between',
@@ -331,11 +334,21 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           loadProjects()
         }
       }),
-      div({ style: { flexGrow: 1, height: totalViewHeightMinusHeaderAndFooter, overflowY: 'auto' } }, [Utils.cond(
+      div({
+        style: {
+          overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column'
+        }
+      }, [Utils.cond(
         [selectedName && hasBillingProjects && !_.some({ projectName: selectedName }, billingProjects),
-          () => div({ style: { margin: '1rem auto 0 auto' } }, [
-            h2(['Error loading selected billing project.']),
-            p(['It may not exist, or you may not have access to it.'])
+          () => div({
+            style: {
+              margin: '1rem auto 0 auto'
+            }
+          }, [
+            div([
+              h2(['Error loading selected billing project.']),
+              p(['It may not exist, or you may not have access to it.'])
+            ])
           ])],
         [selectedName && hasBillingProjects, () => h(ProjectDetail, {
           key: selectedName,
