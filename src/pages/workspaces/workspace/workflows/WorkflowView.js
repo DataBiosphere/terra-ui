@@ -550,15 +550,16 @@ const WorkflowView = _.flow(
   describeSelectionModel() {
     const { modifiedConfig: { rootEntityType }, entitySelectionModel: { newSetName, selectedEntities, type } } = this.state
     const count = _.size(selectedEntities)
-    const newSetMessage = type === chooseBaseType || count > 1 ? `(will create a new set named "${newSetName}")` : ''
+    const newSetMessage = t => `(will create a new ${t} named "${newSetName}")`
     const baseEntityType = isSet(rootEntityType) ? rootEntityType.slice(0, -4) : rootEntityType
+    const setType = `${rootEntityType}_set`
     const pluralS = count > 1 ? 's' : ''
     return Utils.cond(
       [this.isSingle() || !rootEntityType, () => ''],
       [!count, () => 'No data selected'],
-      [type === chooseSetType, () => `${rootEntityType}s from ${count} set${pluralS} ${newSetMessage}`],
-      [type === chooseBaseType, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}${pluralS} ${newSetMessage}`],
-      [type === chooseRootType, () => `${count} selected ${rootEntityType}${pluralS} ${newSetMessage}`],
+      [type === chooseSetType, () => `${rootEntityType}s from ${count} ${setType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`],
+      [type === chooseBaseType, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}${pluralS} ${newSetMessage(rootEntityType)}`],
+      [type === chooseRootType, () => `${count} selected ${rootEntityType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`],
       [type === processSnapshotTable, () => `process entire snapshot table`]
     )
   }

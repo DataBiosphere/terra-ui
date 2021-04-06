@@ -131,7 +131,7 @@ export default class DataStepContent extends Component {
               Utils.switchCase(type,
                 [chooseSetType, () => `Select one or more ${setType}s to combine and process`],
                 [chooseRootType, () => `Select ${rootEntityType}s to process`],
-                [chooseBaseType, () => `Select ${baseEntityType}s to create a new set to process`]
+                [chooseBaseType, () => `Select ${baseEntityType}s to create a new ${rootEntityType} to process`]
               )
             ]),
             entityType: Utils.switchCase(type,
@@ -149,7 +149,7 @@ export default class DataStepContent extends Component {
           [id => div({ style: { marginTop: '1rem' } }, [
             h(FormLabel, { htmlFor: id }, [
               Utils.switchCase(type,
-                [chooseSetType, () => `Selected ${setType}s will have their membership combined into a new set named:`],
+                [chooseSetType, () => `Selected ${setType}s will have their membership combined into a new ${setType} named:`],
                 [chooseBaseType, () => `Selected ${baseEntityType}s will be saved as a new ${rootEntityType} named:`],
                 [chooseRootType, () => `Selected ${rootEntityType}s will be saved as a new ${setType} named:`]
               )
