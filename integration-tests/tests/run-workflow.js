@@ -33,7 +33,7 @@ const testRunWorkflowFn = _.flow(
 
   await waitForNoSpinners(page)
   await click(page, clickable({ text: 'Select Data' }))
-  await click(page, input({ labelContains: 'Choose specific rows to process' }))
+  await click(page, input({ labelContains: 'Choose specific test_entitys to process' }))
   await click(page, `//*[@role="checkbox" and contains(@aria-label, "${testEntity.name}")]`)
   await click(page, clickable({ text: 'OK' }))
   await click(page, clickable({ text: 'Run analysis' }))
