@@ -198,7 +198,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)
-  const [bdcFooterExpanded, setBdcFooterExpanded] = useState(false)
 
   const signal = Utils.useCancellation()
   const interval = useRef()
@@ -278,7 +277,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
 
   const billingProjectListWidth = 330
 
-  return h(FooterWrapper, { onExpand: () => setBdcFooterExpanded(!bdcFooterExpanded) }, [
+  return h(FooterWrapper, [
     h(TopBar, { title: 'Billing' }, [
       !!selectedName && div({
         style: {
