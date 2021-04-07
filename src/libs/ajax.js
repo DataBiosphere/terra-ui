@@ -324,7 +324,7 @@ const User = signal => ({
 
   getFenceAuthUrl: async (provider, redirectUri) => {
     const queryParams = {
-      scopes: ['openid', 'google_credentials', 'data', 'user'],
+      scopes: ['openid', 'google_credentials'],
       redirect_uri: redirectUri,
       state: btoa(JSON.stringify({ provider }))
     }
