@@ -166,3 +166,16 @@ export const appIsSettingUp = app => {
 export const collapsedRuntimeStatus = runtime => {
   return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status) // NOTE: preserves null vs undefined
 }
+
+export const convertedAppStatus = appStatus => {
+  switch (appStatus) {
+    case 'STOPPED':
+      return 'PAUSED'
+    case 'STOPPING':
+      return 'PAUSING'
+    case 'STARTING':
+      return 'RESUMING'
+    default:
+      return appStatus
+  }
+}
