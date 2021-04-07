@@ -2,7 +2,7 @@ const _ = require('lodash/fp')
 const fetch = require('node-fetch')
 const pRetry = require('p-retry')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { click, clickable, delay, dismissNotifications, fillInReplace, fillIn, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, findInGrid, navChild } = require('../utils/integration-utils')
+const { click, clickable, delay, dismissNotifications, fillInReplace, findElement, findText, input, select, signIntoTerra, waitForNoSpinners, findInGrid, navChild } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -53,18 +53,18 @@ const testRunWorkflowOnSnapshotFn = _.flow(
 
   await click(page, clickable({ textContains: 'Inputs' }))
   await fillInReplace(page, input({ labelContains: 'echo_strings.echo_to_file.input1' }), `this.${snapshotColumnName}`)
+  await delay(1000) // Without this delay, the input field sometimes reverts back to its default value
   await click(page, clickable({ text: 'Save' }))
 
   await click(page, clickable({ textContains: 'Outputs' }))
   await fillInReplace(page, input({ labelContains: 'echo_strings.echo_to_file.out' }), 'workspace.result')
+  await delay(1000) // Without this delay, the input field sometimes reverts back to its default value
   await click(page, clickable({ text: 'Save' }))
 
   await delay(1000) // The Run Analysis button requires time to become enabled after hitting the save button
   await click(page, clickable({ textContains: 'Run analysis' }))
 
-  await Promise.all([
-    click(page, clickable({ text: 'Launch' }))
-  ])
+  await click(page, clickable({ text: 'Launch' }))
 
   // CHECK WORKFLOW SUCCEEDED AND RESULT IS WRITTEN
   await pRetry(async () => {

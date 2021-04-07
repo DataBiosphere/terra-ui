@@ -64,8 +64,7 @@ const fillIn = async (page, xpath, text) => {
 // Replace pre-existing value
 const fillInReplace = async (page, xpath, text) => {
   await (await findElement(page, xpath)).click({ clickCount: 3 }) // triple-click to replace the default text
-  await fillIn(page, xpath, text)
-  return await delay(1000) // Without this delay, the input field sometimes reverts back to its default value
+  return await fillIn(page, xpath, text)
 }
 
 const select = async (page, labelContains, text) => {
