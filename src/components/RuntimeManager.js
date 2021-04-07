@@ -307,7 +307,7 @@ export default class RuntimeManager extends PureComponent {
           img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
           div([
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, ['Galaxy']),
-            div({ style: { fontSize: 10, textTransform: 'capitalize' } }, [_.capitalize(app.status)])
+            div({ style: { fontSize: 10 } }, [_.capitalize(app.status)])
           ])
         ])
       ]),

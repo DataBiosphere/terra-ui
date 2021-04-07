@@ -83,9 +83,9 @@ export const NewGalaxyModal = _.flow(
   })
 
   const renderActionButton = () => {
-    const deleteButton = (isDisabled = false) => h(ButtonSecondary, { disabled: isDisabled, style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete'])
-    const pauseButton = (isDisabled = false) => h(ButtonSecondary, { disabled: isDisabled, style: { marginRight: '1rem' }, onClick: () => { pauseGalaxy() } }, ['Pause'])
-    const resumeButton = (isDisabled = false) => h(ButtonSecondary, { disabled: isDisabled, style: { marginRight: '1rem' }, onClick: resumeGalaxy }, ['Resume'])
+    const deleteButton = h(ButtonSecondary, { disabled: false, style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete'])
+    const pauseButton = h(ButtonSecondary, { disabled: false, style: { marginRight: '1rem' }, onClick: () => { pauseGalaxy() } }, ['Pause'])
+    const resumeButton = h(ButtonSecondary, { disabled: false, style: { marginRight: '1rem' }, onClick: resumeGalaxy }, ['Resume'])
 
     return Utils.switchCase(viewMode,
       ['deleteWarn', () => {
@@ -99,27 +99,27 @@ export const NewGalaxyModal = _.flow(
       }],
       ['paused', () => {
         return h(Fragment, [
-          deleteButton(),
-          resumeButton()
+          deleteButton,
+          resumeButton
         ])
       }],
       [Utils.DEFAULT, () => !app ?
         h(ButtonPrimary, { disabled: false, onClick: () => setViewMode('createWarn') }, ['Next']) :
         Utils.switchCase(app.status,
           ['RUNNING', () => h(Fragment, [
-            deleteButton(),
-            pauseButton(),
+            deleteButton,
+            pauseButton,
             h(ButtonPrimary, { disabled: false, onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
           ])],
           ['STOPPED', () => h(Fragment, [
             h(ButtonSecondary, { disabled: true, style: { marginRight: 'auto' }, tooltip: 'Cloud Compute must be resumed first.', onClick: () => setViewMode('deleteWarn') }, ['Delete']),
-            resumeButton()
+            resumeButton
           ])],
-          ['ERROR', () => deleteButton()],
+          ['ERROR', () => deleteButton],
           [Utils.DEFAULT, () => {
-            return h(Fragment, [
-              deleteButton(true),
-              pauseButton(true)
+            return h(Fragment, { tooltip: 'Cloud Compute must be resumed first.' }, [
+              h(ButtonSecondary, { disabled: true, style: { marginRight: 'auto' }, tooltip: 'Cloud Compute must be running.', onClick: () => setViewMode('deleteWarn') }, ['Delete']),
+              h(ButtonSecondary, { disabled: true, style: { marginRight: '1rem' }, tooltip: 'Cloud Compute must be running.', onClick: () => { pauseGalaxy() } }, ['Pause'])
             ])
           }]
         )]
@@ -288,7 +288,7 @@ export const NewGalaxyModal = _.flow(
   const renderPersistentDiskSection = () => {
     const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' }
     return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
-      div({ style: styles.headerText }, ['Persistent Disk']),
+      div({ style: styles.headerText }, ['Persistent disk']),
       div({ style: { marginTop: '0.5rem' } }, [
         'Persistent disks store analysis data.'
         // TODO Add info on PDs for Galaxy (similarly to in NewRuntimeModal.js)
