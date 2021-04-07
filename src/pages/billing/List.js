@@ -277,7 +277,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
 
   const billingProjectListWidth = 330
 
-  return h(FooterWrapper, [
+  return h(FooterWrapper, { fixedHeight: true }, [
     h(TopBar, { title: 'Billing' }, [
       !!selectedName && div({
         style: {
@@ -288,7 +288,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         div({ style: Style.breadcrumb.textUnderBreadcrumb }, [selectedName])
       ])
     ]),
-    div({ role: 'main', style: { display: 'flex', flex: 1 } }, [
+    div({ role: 'main', style: { display: 'flex', flex: 1, height: `calc(100% - ${Style.topBarHeight}px)` } }, [
       div({
         style: {
           minWidth: billingProjectListWidth, maxWidth: billingProjectListWidth,
