@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
-import { Component, Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { b, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, spinnerOverlay } from 'src/components/common'
 import ErrorView from 'src/components/ErrorView'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { withWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
+import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
@@ -14,34 +14,48 @@ import { workflowNameValidation } from 'src/libs/workflow-utils'
 import validate from 'validate.js'
 
 
-const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Component {
-  constructor(props) {
-    super(props)
+const ExportWorkflowModal = ({ thisWorkspace, sameWorkspace, methodConfig, onSuccess, onDismiss }) => {
+  // State
+  const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(sameWorkspace ? thisWorkspace.workspaceId : undefined)
+  const [workflowName, setWorkflowName] = useState(`${methodConfig.name}${sameWorkspace ? '_copy' : ''}`)
+  const [error, setError] = useState(undefined)
+  const [exporting, setExporting] = useState(false)
+  const [exported, setExported] = useState(false)
 
-    this.state = {
-      selectedWorkspaceId: props.sameWorkspace ? props.thisWorkspace.workspaceId : undefined,
-      workflowName: `${props.methodConfig.name}${props.sameWorkspace ? '_copy' : ''}`,
-      error: undefined,
-      exported: false
+  const { workspaces } = useWorkspaces()
+
+
+  // Helpers
+  const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)?.workspace
+
+  const doExport = async () => {
+    try {
+      setExporting(true)
+      await Ajax().Workspaces
+        .workspace(thisWorkspace.namespace, thisWorkspace.name)
+        .methodConfig(methodConfig.namespace, methodConfig.name)
+        .copyTo({
+          destConfigNamespace: selectedWorkspace.namespace,
+          destConfigName: workflowName,
+          workspaceName: {
+            namespace: selectedWorkspace.namespace,
+            name: selectedWorkspace.name
+          }
+        })
+      if (sameWorkspace) {
+        onSuccess()
+      } else {
+        setExported(true)
+      }
+    } catch (error) {
+      setError(await error.text())
+      setExporting(false)
     }
   }
 
-  getSelectedWorkspace() {
-    const { workspaces } = this.props
-    const { selectedWorkspaceId } = this.state
-    return _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
-  }
 
-  render() {
-    const { exported } = this.state
-
-    return exported ? this.renderPostExport() : this.renderExportForm()
-  }
-
-  renderExportForm() {
-    const { workspaces, thisWorkspace, sameWorkspace, onDismiss } = this.props
-    const { selectedWorkspaceId, workflowName, exporting, error } = this.state
-
+  // Render helpers
+  const renderExportForm = () => {
     const errors = validate({ selectedWorkspaceId, workflowName }, {
       selectedWorkspaceId: { presence: true },
       workflowName: workflowNameValidation()
@@ -53,7 +67,7 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
       okButton: h(ButtonPrimary, {
         tooltip: Utils.summarizeErrors(errors),
         disabled: !!errors,
-        onClick: () => this.export()
+        onClick: doExport
       }, ['Copy'])
     }, [
       !sameWorkspace && h(IdContainer, [id => h(Fragment, [
@@ -64,7 +78,7 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
             return thisWorkspace.workspaceId !== workspaceId && Utils.canWrite(accessLevel)
           }, workspaces),
           value: selectedWorkspaceId,
-          onChange: v => this.setState({ selectedWorkspaceId: v })
+          onChange: setSelectedWorkspaceId
         })
       ])]),
       h(IdContainer, [id => h(Fragment, [
@@ -73,7 +87,7 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
           error: Utils.summarizeErrors(errors && errors.workflowName),
           inputProps: {
             id, value: workflowName,
-            onChange: v => this.setState({ workflowName: v })
+            onChange: setWorkflowName
           }
         })
       ])]),
@@ -82,11 +96,7 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
     ])
   }
 
-  renderPostExport() {
-    const { onDismiss } = this.props
-    const { workflowName } = this.state
-    const selectedWorkspace = this.getSelectedWorkspace().workspace
-
+  const renderPostExport = () => {
     return h(Modal, {
       title: 'Copy to Workspace',
       onDismiss,
@@ -108,33 +118,9 @@ const ExportWorkflowModal = withWorkspaces(class ExportWorkflowModal extends Com
     ])
   }
 
-  async export() {
-    const { thisWorkspace, sameWorkspace, methodConfig, onSuccess } = this.props
-    const { workflowName } = this.state
-    const selectedWorkspace = this.getSelectedWorkspace().workspace
 
-    try {
-      this.setState({ exporting: true })
-      await Ajax().Workspaces
-        .workspace(thisWorkspace.namespace, thisWorkspace.name)
-        .methodConfig(methodConfig.namespace, methodConfig.name)
-        .copyTo({
-          destConfigNamespace: selectedWorkspace.namespace,
-          destConfigName: workflowName,
-          workspaceName: {
-            namespace: selectedWorkspace.namespace,
-            name: selectedWorkspace.name
-          }
-        })
-      if (sameWorkspace) {
-        onSuccess()
-      } else {
-        this.setState({ exported: true })
-      }
-    } catch (error) {
-      this.setState({ error: await error.text(), exporting: false })
-    }
-  }
-})
+  // Render
+  return exported ? renderPostExport() : renderExportForm()
+}
 
 export default ExportWorkflowModal
