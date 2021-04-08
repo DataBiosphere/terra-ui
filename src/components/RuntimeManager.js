@@ -19,7 +19,16 @@ import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { appIsSettingUp, collapsedRuntimeStatus, currentApp, currentRuntime, persistentDiskCost, runtimeCost, trimRuntimesOldestFirst } from 'src/libs/runtime-utils'
+import {
+  appIsSettingUp,
+  collapsedRuntimeStatus,
+  convertedAppStatus,
+  currentApp,
+  currentRuntime,
+  persistentDiskCost,
+  runtimeCost,
+  trimRuntimesOldestFirst
+} from 'src/libs/runtime-utils'
 import { errorNotifiedRuntimes } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -307,7 +316,7 @@ export default class RuntimeManager extends PureComponent {
           img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
           div([
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, ['Galaxy']),
-            div({ style: { fontSize: 10 } }, [_.capitalize(app.status)])
+            div({ style: { fontSize: 10 } }, [convertedAppStatus(app.status)])
           ])
         ])
       ]),
