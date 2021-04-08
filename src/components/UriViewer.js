@@ -268,7 +268,7 @@ export const UriViewerLink = ({ uri, googleProject }) => {
         e.preventDefault()
         setModalOpen(true)
       }
-    }, [isGs(uri) ? uri.replace('gs://', '') : uri]),
+    }, [isGs(uri) ? _.last(uri.replace(/\/$/, '').split('/')) : uri]),
     modalOpen && h(UriViewer, {
       onDismiss: () => setModalOpen(false),
       uri, googleProject
