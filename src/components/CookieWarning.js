@@ -38,7 +38,7 @@ const CookieWarning = () => {
     style: {
       flex: 0, height: 100, width: '100%',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      backgroundColor: 'white', borderTop: `6px solid ${colors.primary()}`
+      backgroundColor: colors.dark(0.15), borderBottom: `6px solid ${colors.primary()}`
     }
   }, [
     div({ style: { padding: '0.9rem 2rem', height: '100%', display: 'flex', alignItems: 'center' } }, [

@@ -106,7 +106,7 @@ const DropDownSection = ({ titleIcon, title, isOpened, onClick, children }) => {
       icon(isOpened ? 'angle-up' : 'angle-down', { size: 18, style: { flex: 'none' } })
     ]),
     div({
-      style: { flex: 'none' },
+      style: { flex: 'none' }
     }, [h(RCollapse, { isOpened }, [children])])
   ])
 }
