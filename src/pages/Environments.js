@@ -141,7 +141,7 @@ const Environments = () => {
   return h(FooterWrapper, [
     h(TopBar, { title: 'Cloud Environments' }),
     div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
-      h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', marginBottom: '1rem' } }, ['Your cloud environments']),
+      h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '0 0 1rem 0', padding: 0 } }, ['Your cloud environments']),
       runtimes && h(SimpleFlexTable, {
         rowCount: filteredRuntimes.length,
         columns: [
@@ -226,7 +226,7 @@ const Environments = () => {
           }
         ]
       }),
-      h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0' } }, ['Your persistent disks']),
+      h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0', padding: 0 } }, ['Your persistent disks']),
       disks && h(SimpleFlexTable, {
         rowCount: filteredDisks.length,
         columns: [
