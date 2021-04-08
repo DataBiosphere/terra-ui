@@ -28,9 +28,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DataStepContent from 'src/pages/workspaces/workspace/workflows/DataStepContent'
 import DeleteWorkflowModal from 'src/pages/workspaces/workspace/workflows/DeleteWorkflowModal'
-import {
-  chooseRows, chooseSetComponents, chooseSets, processAll, processAllAsSet, processMergedSet, processSnapshotTable
-} from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
+import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 import ExportWorkflowModal from 'src/pages/workspaces/workspace/workflows/ExportWorkflowModal'
 import LaunchAnalysisModal from 'src/pages/workspaces/workspace/workflows/LaunchAnalysisModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -323,15 +321,11 @@ const WorkflowView = _.flow(
 )(class WorkflowView extends Component {
   resetSelectionModel(value, selectedEntities = {}, entityMetadata = this.state.entityMetadata, isSnapshot) {
     const { workflowName } = this.props
-
-    // If the default for non-set types changes from `processAllAsSet` then the calculation of `noLaunchReason` in `renderSummary` needs to be updated accordingly.
-    // Currently, `renderSummary` assumes that it is not possible to have nothing selected for non-set types.
     return {
       type: Utils.cond(
         [isSnapshot, () => processSnapshotTable],
-        [isSet(value), () => _.includes(value, _.keys(entityMetadata)) ? chooseSets : processAllAsSet],
-        [_.isEmpty(selectedEntities), () => processAll],
-        () => chooseRows
+        [_.has(value, entityMetadata), () => chooseRootType],
+        () => chooseBaseType
       ),
       selectedEntities,
       newSetName: Utils.sanitizeEntityName(`${workflowName}_${new Date().toISOString().slice(0, -5)}`)
@@ -387,7 +381,7 @@ const WorkflowView = _.flow(
     // savedConfig: unmodified copy of config for checking for unsaved edits
     // modifiedConfig: active data, potentially unsaved
     const {
-      isFreshData, savedConfig, entityMetadata, launching, activeTab, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
+      isFreshData, savedConfig, launching, activeTab, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
       entitySelectionModel, variableSelected, modifiedConfig, updatingConfig, selectedSnapshotEntityMetadata, availableSnapshots
     } = this.state
     const { namespace, name, workspace } = this.props
@@ -402,7 +396,7 @@ const WorkflowView = _.flow(
           ['outputs', () => this.renderIOTable('outputs')]
         ),
         launching && h(LaunchAnalysisModal, {
-          workspace, config: savedConfig, entityMetadata: selectedSnapshotEntityMetadata || entityMetadata,
+          workspace, config: savedConfig, entityMetadata: selectedSnapshotEntityMetadata,
           accessLevel: workspace.accessLevel, bucketName: workspace.workspace.bucketName,
           processSingle: this.isSingle(), entitySelectionModel, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
           onDismiss: () => this.setState({ launching: false }),
@@ -554,21 +548,18 @@ const WorkflowView = _.flow(
   }
 
   describeSelectionModel() {
-    const { modifiedConfig: { rootEntityType }, entityMetadata, entitySelectionModel: { newSetName, selectedEntities, type } } = this.state
+    const { modifiedConfig: { rootEntityType }, entitySelectionModel: { newSetName, selectedEntities, type } } = this.state
     const count = _.size(selectedEntities)
-    const newSetMessage = (type === processAll || type === processAllAsSet ||
-      (type === chooseSetComponents && count > 0) || count > 1) ? `(will create a new set named "${newSetName}")` : ''
+    const newSetMessage = t => `(will create a new ${t} named "${newSetName}")`
     const baseEntityType = isSet(rootEntityType) ? rootEntityType.slice(0, -4) : rootEntityType
+    const setType = `${rootEntityType}_set`
+    const pluralS = count > 1 ? 's' : ''
     return Utils.cond(
       [this.isSingle() || !rootEntityType, () => ''],
-      [type === processAll, () => `all ${entityMetadata[rootEntityType]?.count || 0} ${rootEntityType}s ${newSetMessage}`],
-      [type === processMergedSet, () => `${rootEntityType}s from ${count} sets ${newSetMessage}`],
-      [type === chooseRows, () => `${count} selected ${rootEntityType}s ${newSetMessage}`],
-      [type === chooseSetComponents, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}s ${newSetMessage}`],
-      [type === processAllAsSet, () => `1 ${rootEntityType} containing all ${entityMetadata[baseEntityType]?.count || 0} ${baseEntityType}s ${newSetMessage}`],
-      [type === chooseSets, () => !!count ?
-        `${count} selected ${rootEntityType}s ${newSetMessage}` :
-        `No ${rootEntityType}s selected`],
+      [!count, () => 'No data selected'],
+      [type === chooseSetType, () => `${rootEntityType}s from ${count} ${setType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`],
+      [type === chooseBaseType, () => `1 ${rootEntityType} containing ${count} ${baseEntityType}${pluralS} ${newSetMessage(rootEntityType)}`],
+      [type === chooseRootType, () => `${count} selected ${rootEntityType}${pluralS} ${count > 1 ? newSetMessage(setType) : ''}`],
       [type === processSnapshotTable, () => `process entire snapshot table`]
     )
   }
@@ -611,11 +602,7 @@ const WorkflowView = _.flow(
       [entitySelectionModel.type === processSnapshotTable && (!rootEntityType || !(modifiedConfig.dataReferenceName)), () => 'A snapshot and table must be selected'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
       [entitySelectionModel.type !== processSnapshotTable && this.isMultiple() && (!entityMetadata[rootEntityType] && !_.includes(rootEntityType, possibleSetTypes)), () => `There are no ${selectedEntityType}s in this workspace.`],
-      // Default for _set types is `chooseSets` so we need to make sure something is selected.
-      // Default for non- _set types is `processAll` and the "Select Data" modal makes it impossible to have nothing selected for these types.
-      // Users have expressed dislike of the `processAll` default so this clause will likely need to be expanded along with any change to `resetSelectionModel`.
-      [this.isMultiple() && (entitySelectionModel.type === chooseSets || entitySelectionModel.type === chooseSetComponents) && !_.size(entitySelectionModel.selectedEntities),
-        () => 'Select or create a set']
+      [entitySelectionModel.type !== processSnapshotTable && this.isMultiple() && !_.size(entitySelectionModel.selectedEntities), () => 'Select data for analysis']
     )
 
     const inputsValid = _.isEmpty(errors.inputs)
