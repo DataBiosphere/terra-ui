@@ -164,7 +164,7 @@ const NihLink = ({ nihToken }) => {
 }
 
 
-const FenceLink = ({ provider: { key, name, expireTime } }) => {
+const FenceLink = ({ provider: { key, name, expiresAfter } }) => {
   const decodeProvider = state => state ? JSON.parse(atob(state)).provider : ''
 
   const extractToken = (provider, { state, code }) => {
@@ -218,7 +218,7 @@ const FenceLink = ({ provider: { key, name, expireTime } }) => {
         ]),
         div({ style: styles.identityLine }, [
           div({ style: { flex: 1 } }, ['Link Expiration:']),
-          div({ style: { flex: 2 } }, [Utils.makeCompleteDate(addDays(expireTime, parseJSON(issuedAt)))])
+          div({ style: { flex: 2 } }, [Utils.makeCompleteDate(addDays(expiresAfter, parseJSON(issuedAt)))])
         ]),
         div({ style: styles.identityLine }, [
           h(FrameworkServiceLink, { linkText: 'Renew', provider: key, redirectUrl }),
