@@ -12,6 +12,7 @@
     "array-move": "^4.0.0",
     "clipboard-polyfill": "^3.0.3",
     "color": "^4.0.1",
+    "csp-html-webpack-plugin": "^5.1.0",
     "date-fns": "^2.24.0",
     "debounce-promise": "^3.1.2",
     "dompurify": "^2.3.3",
