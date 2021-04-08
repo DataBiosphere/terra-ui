@@ -506,7 +506,7 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) =
         flexGrow: 1,
         color: colors.dark(),
         padding: '3rem 5rem',
-        backgroundColor: '#fafbfd',
+        backgroundColor: '#fafbfd', // This not-quite-white fallback color was extracted from the background image
         backgroundImage: `url(${landingPageHero})`,
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
       }
