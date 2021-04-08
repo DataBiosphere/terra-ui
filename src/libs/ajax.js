@@ -1265,6 +1265,10 @@ const Apps = signal => ({
       },
       resume: () => {
         return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
+      },
+      details: async () => {
+        const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
+        return res.json()
       }
     }
   }

@@ -35,6 +35,8 @@ export const rerunFailuresStatus = Utils.atom()
 
 export const errorNotifiedRuntimes = Utils.atom([])
 
+export const errorNotifiedApps = Utils.atom([])
+
 export const knownBucketRequesterPaysStatuses = Utils.atom({})
 
 export const requesterPaysProjectStore = Utils.atom()
