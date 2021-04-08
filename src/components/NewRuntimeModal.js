@@ -39,7 +39,7 @@ const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/3600
 // distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
 
-const validMachineTypes = _.filter(({ memory }) => memory >= 4, machineTypes)
+const validMachineTypes = _.filter(({ memory }) => memory >= 3.75, machineTypes)
 
 const MachineSelector = ({ value, onChange }) => {
   const { cpu: currentCpu, memory: currentMemory } = findMachineType(value)
