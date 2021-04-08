@@ -22,7 +22,7 @@ import { clearNotification, notify } from 'src/libs/notifications'
 import {
   appIsSettingUp, collapsedRuntimeStatus, currentApp, currentRuntime, persistentDiskCost, runtimeCost, trimRuntimesOldestFirst
 } from 'src/libs/runtime-utils'
-import { errorNotifiedRuntimes, errorNotifiedApps } from 'src/libs/state'
+import { errorNotifiedApps, errorNotifiedRuntimes } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
