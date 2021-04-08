@@ -258,12 +258,8 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Billing' }, [
-      !!selectedName && div({
-        style: {
-          color: 'white', paddingLeft: '5rem', minWidth: 0, marginRight: '0.5rem'
-        }
-      }, [
-        div(breadcrumbs),
+      !!selectedName && div({ style: Style.breadcrumb.breadcrumb }, [
+        div({ style: Style.noWrapEllipsis }, breadcrumbs),
         div({ style: Style.breadcrumb.textUnderBreadcrumb }, [selectedName])
       ])
     ]),

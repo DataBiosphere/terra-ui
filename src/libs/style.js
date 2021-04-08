@@ -97,6 +97,7 @@ export const navList = {
 export const breadcrumb = {
   breadcrumb: {
     display: 'flex', flexDirection: 'column',
+    color: isTerra() ? 'white' : colors.accent(),
     paddingLeft: '4rem', minWidth: 0, marginRight: '0.5rem'
   },
   textUnderBreadcrumb: {
