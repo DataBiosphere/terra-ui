@@ -188,7 +188,7 @@ export const WorkspaceList = () => {
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
                   onClick: () => {
                     canAccessWorkspace()
-                    !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpen, { workspaceName: name, workspaceNamespace: namespace })
+                    !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, { workspaceName: name, workspaceNamespace: namespace })
                   },
                   tooltip: !canView &&
                     'You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.',
