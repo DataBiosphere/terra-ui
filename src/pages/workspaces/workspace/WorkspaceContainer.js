@@ -89,7 +89,7 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
   ])
 }
 
-const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace, runtimes, persistentDisks, apps, refreshApps, children }) => {
+const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, children }) => {
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
@@ -116,7 +116,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
       h(RuntimeManager, {
         namespace, name, runtimes, persistentDisks, refreshRuntimes,
         canCompute: !!((workspace && workspace.canCompute) || (runtimes && runtimes.length)),
-        apps, workspace, refreshApps
+        apps, galaxyDataDisks, workspace, refreshApps
       })
     ]),
     showTabBar && h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace }),
@@ -154,6 +154,7 @@ const useCloudEnvironmentPolling = namespace => {
   const timeout = useRef()
   const [runtimes, setRuntimes] = useState()
   const [persistentDisks, setPersistentDisks] = useState()
+  const [galaxyDataDisks, setGalaxyDataDisks] = useState()
 
   const reschedule = ms => {
     clearTimeout(timeout.current)
@@ -168,6 +169,7 @@ const useCloudEnvironmentPolling = namespace => {
       ])
       const galaxyDiskNames = _.map(disk => disk.name, galaxyDisks)
       setRuntimes(newRuntimes)
+      setGalaxyDataDisks(galaxyDisks)
       setPersistentDisks(_.remove(disk => _.includes(disk.name, galaxyDiskNames), newDisks))
 
       const runtime = currentRuntime(newRuntimes)
@@ -183,7 +185,7 @@ const useCloudEnvironmentPolling = namespace => {
     refreshRuntimes()
     return () => clearTimeout(timeout.current)
   })
-  return { runtimes, refreshRuntimes, persistentDisks }
+  return { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks }
 }
 
 const useAppPolling = (namespace, name) => {
@@ -223,7 +225,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const accessNotificationId = useRef()
     const cachedWorkspace = Utils.useStore(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
-    const { runtimes, refreshRuntimes, persistentDisks } = useCloudEnvironmentPolling(namespace)
+    const { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks } = useCloudEnvironmentPolling(namespace)
     const { apps, refreshApps } = useAppPolling(namespace, name)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
       cachedWorkspace :
@@ -281,7 +283,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
-        namespace, name, activeTab, showTabBar, workspace, runtimes, persistentDisks, apps, refreshApps,
+        namespace, name, activeTab, showTabBar, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
@@ -296,7 +298,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         workspace && h(WrappedComponent, {
           ref: child,
           workspace, refreshWorkspace, refreshApps, refreshRuntimes,
-          runtimes, persistentDisks, apps,
+          runtimes, persistentDisks, galaxyDataDisks, apps,
           ...props
         }),
         loadingWorkspace && spinnerOverlay
