@@ -117,7 +117,8 @@ export default class RuntimeManager extends PureComponent {
     canCompute: PropTypes.bool.isRequired,
     refreshRuntimes: PropTypes.func.isRequired,
     workspace: PropTypes.object,
-    apps: PropTypes.array
+    apps: PropTypes.array,
+    galaxyDataDisks: PropTypes.array
   }
 
   constructor(props) {
@@ -223,7 +224,7 @@ export default class RuntimeManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, runtimes, refreshRuntimes, canCompute, persistentDisks, apps, refreshApps, workspace } = this.props
+    const { namespace, name, runtimes, refreshRuntimes, canCompute, persistentDisks, apps, galaxyDataDisks, refreshApps, workspace } = this.props
     const { busy, createModalDrawerOpen, errorModalOpen, galaxyDrawerOpen } = this.state
     if (!runtimes || !apps) {
       return null
@@ -297,8 +298,8 @@ export default class RuntimeManager extends PureComponent {
           style: { display: 'flex' },
           disabled: appIsSettingUp(app),
           tooltip: appIsSettingUp(app) ?
-            'Your Galaxy application is being created' :
-            'Update cloud environment',
+            'Galaxy app is being created' :
+            'View cloud environment',
           onClick: () => {
             this.setState({ galaxyDrawerOpen: true })
           }
@@ -306,7 +307,7 @@ export default class RuntimeManager extends PureComponent {
           img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
           div([
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, ['Galaxy']),
-            div({ style: { fontSize: 10, textTransform: 'uppercase' } }, [app.status])
+            div({ style: { fontSize: 10 } }, [_.capitalize(app.status)])
           ])
         ])
       ]),
@@ -341,7 +342,7 @@ export default class RuntimeManager extends PureComponent {
             div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
               div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Cloud Environment'),
               div({ style: { fontSize: 10 } }, [
-                span({ style: { textTransform: 'uppercase', fontWeight: 500 } },
+                span({ style: { textTransform: 'capitalize', fontWeight: 500 } },
                   [currentStatus === 'LeoReconfiguring' ? 'Updating' : (currentStatus || 'None')]),
                 !!totalCost && ` (${Utils.formatUSD(totalCost)} / hr)`
               ])
@@ -366,6 +367,7 @@ export default class RuntimeManager extends PureComponent {
         h(NewGalaxyModal, {
           workspace,
           apps,
+          galaxyDataDisks,
           isOpen: galaxyDrawerOpen,
           onDismiss: () => this.setState({ galaxyDrawerOpen: false }),
           onSuccess: () => {

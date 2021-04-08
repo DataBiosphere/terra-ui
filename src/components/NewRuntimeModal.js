@@ -785,7 +785,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                   onlyInteger: true,
                   value: numberOfWorkers,
                   disabled: !this.canUpdateNumberOfWorkers(),
-                  tooltip: !this.canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of workers' : undefined,
+                  tooltip: !this.canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of workers.' : undefined,
                   onChange: v => this.setState({
                     numberOfWorkers: v
                   })
@@ -794,7 +794,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             ]),
             h(IdContainer, [
               id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, ['Preemptible']),
+                label({ htmlFor: id, style: styles.label }, ['Preemptibles']),
                 h(NumberInput, {
                   id,
                   min: 0,
@@ -821,8 +821,8 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
           id => h(div, { style: { display: 'flex', flexDirection: 'column' } }, [
             label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
             div({ style: { marginTop: '0.5rem' } }, [
-              'Stores your analysis data. ',
-              h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
+              'Persistent disks store analysis data. ',
+              h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
             ]),
             h(NumberInput, {
               id,
@@ -1005,10 +1005,10 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
         return h(Fragment, [
           h(TitleBar, {
             style: { marginBottom: '0.5rem' },
-            title: 'Cloud environment',
+            title: 'Cloud Environment',
             onDismiss
           }),
-          div(['Cloud environments consist of an application configuration, cloud compute and a persistent disk'])
+          div(['A cloud environment consists of application configuration, cloud compute and persistent disk(s).'])
         ])
       }
       const renderBottomButtons = () => {

@@ -88,24 +88,23 @@ export const runtimeCost = ({ runtimeConfig, status }) => {
   }
 }
 
+export const getGalaxyCost = (app, dataDiskSize) => {
+  return getGalaxyDiskCost(dataDiskSize) + getGalaxyComputeCost(app)
+}
+
 /*
- * - Disk cost is incurred regardless of app status.
  * - Default nodepool VMs always run and incur compute and external IP cost whereas app
  *   nodepool VMs incur compute and external IP cost only when an app is running.
  * - Default nodepool cost is shared across all Kubernetes cluster users. It would
  *   be complicated to calculate that shared cost dynamically. Therefore, we are being
  *   conservative by adding default nodepool cost to all apps on a cluster.
- * - Disk cost is for 250GB of NFS disk, 10GB of postgres disk, and 200GB of boot disks (1 boot disk per nodepool)
  */
-export const getGalaxyCost = app => {
+export const getGalaxyComputeCost = app => {
   const appStatus = app?.status?.toUpperCase()
   const defaultNodepoolComputeCost = machineCost('n1-standard-1')
   const defaultNodepoolIpAddressCost = ephemeralExternalIpAddressCost({ numStandardVms: 1, numPreemptibleVms: 0 })
 
-  // TODO: Retrieve disk sizes from the app instead of hardcoding them
-  const diskCost = persistentDiskCost({ size: 250 + 10 + 100 + 100, status: 'Running' })
-
-  const staticCost = defaultNodepoolComputeCost + defaultNodepoolIpAddressCost + diskCost
+  const staticCost = defaultNodepoolComputeCost + defaultNodepoolIpAddressCost
   const dynamicCost = app.kubernetesRuntimeConfig.numNodes * machineCost(app.kubernetesRuntimeConfig.machineType) + ephemeralExternalIpAddressCost({ numStandardVms: app.kubernetesRuntimeConfig.numNodes, numPreemptibleVms: 0 })
 
   switch (appStatus) {
@@ -117,6 +116,22 @@ export const getGalaxyCost = app => {
     default:
       return staticCost + dynamicCost
   }
+}
+
+/*
+ * - Disk cost is incurred regardless of app status.
+ * - Disk cost is total for data (NFS) disk, metadata (postgres) disk, and boot disks (1 boot disk per nodepool)
+ * - Size of a data disk is user-customizable. The other disks have fixed sizes.
+ */
+export const getGalaxyDiskCost = dataDiskSize => {
+  const metadataDiskSize = 10 // GB
+  const defaultNodepoolBootDiskSize = 100 // GB
+  const appNodepoolBootDiskSize = 100 // GB
+
+  return persistentDiskCost({
+    status: 'Running',
+    size: dataDiskSize + metadataDiskSize + defaultNodepoolBootDiskSize + appNodepoolBootDiskSize
+  })
 }
 
 export const trimRuntimesOldestFirst = _.flow(
@@ -139,6 +154,10 @@ export const machineCost = machineType => {
 }
 
 export const currentApp = _.flow(trimAppsOldestFirst, _.last)
+
+export const currentDataDisk = (app, galaxyDataDisks) => {
+  return _.find({ name: app?.diskName }, galaxyDataDisks)
+}
 
 export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')

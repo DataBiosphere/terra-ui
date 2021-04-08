@@ -21,7 +21,7 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import { versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
-import { appIsSettingUp, currentApp, getGalaxyCost } from 'src/libs/runtime-utils'
+import { appIsSettingUp, currentApp, currentDataDisk, getGalaxyCost } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -213,7 +213,7 @@ const Notebooks = _.flow(
   }),
   withViewToggle('notebooksTab')
 )(({
-  apps, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { bucketName } },
+  apps, galaxyDataDisks, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { bucketName } },
   refreshApps, onRequesterPaysError, listView, setListView
 }) => {
   // State
@@ -273,7 +273,6 @@ const Notebooks = _.flow(
     }
   })
 
-
   // Lifecycle
   Utils.useOnMount(() => {
     const load = async () => {
@@ -310,15 +309,14 @@ const Notebooks = _.flow(
       }))
     )(notebooks)
 
-    const getGalaxyText = () => {
+    const getGalaxyText = (app, galaxyDataDisks) => {
+      const dataDisk = currentDataDisk(app, galaxyDataDisks)
       return app ?
         div({ style: { fontSize: 18, lineHeight: '22px', width: 160 } }, [
           div(['Galaxy Interactive']),
           div(['Environment']),
-          // TODO: Actually use status to calculate cost, and actually use disk rather than hardcoding
-          div({ style: { fontSize: 12, marginTop: 6 } }, [_.capitalize(app.status), `: ${Utils.formatUSD(
-            getGalaxyCost(app)
-          )} per hr`]),
+          div({ style: { fontSize: 12, marginTop: 6 } },
+            [_.capitalize(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``]),
           icon('trash', { size: 21 })
         ]) :
         div({ style: { fontSize: 18, lineHeight: '22px', width: 160, color: colors.accent() } }, [
@@ -360,10 +358,10 @@ const Notebooks = _.flow(
               ...Style.elements.card.container, height: 125, marginTop: 15
             },
             disabled: appIsSettingUp(app),
-            tooltip: appIsSettingUp(app) && 'Your Galaxy app is being created',
+            tooltip: appIsSettingUp(app) && 'Galaxy app is being created',
             onClick: () => setOpenGalaxyConfigDrawer(true)
           }, [
-            getGalaxyText()
+            getGalaxyText(app, galaxyDataDisks)
           ])
         ]),
         h(Clickable, {
@@ -392,7 +390,6 @@ const Notebooks = _.flow(
       )
     ])
   }
-
 
   // Render
   return h(Dropzone, {
@@ -467,6 +464,7 @@ const Notebooks = _.flow(
           isOpen: openGalaxyConfigDrawer,
           workspace,
           apps,
+          galaxyDataDisks,
           onDismiss: () => setOpenGalaxyConfigDrawer(false),
           onSuccess: () => {
             setOpenGalaxyConfigDrawer(false)
