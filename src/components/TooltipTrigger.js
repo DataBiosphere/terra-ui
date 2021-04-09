@@ -33,11 +33,22 @@ const styles = {
   }
 }
 
-const Tooltip = ({ side = 'bottom', type, target: targetId, children, id }) => {
+const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay }) => {
+  const [shouldRender, setShouldRender] = useState(!delay)
+  const renderTimeout = useRef()
   const elementRef = useRef()
   const [target, element, viewport] = useDynamicPosition([{ id: targetId }, { ref: elementRef }, { viewport: true }])
+
+  Utils.useOnMount(() => {
+    if (!!delay) {
+      renderTimeout.current = setTimeout(() => setShouldRender(true), delay)
+      return () => clearTimeout(renderTimeout.current)
+    }
+  })
+
   const gap = type === 'light' ? 5 : 10
   const { side: finalSide, position } = computePopupPosition({ side, target, element, viewport, gap })
+
   const getNotchPosition = () => {
     const left = _.clamp(12, element.width - 12,
       (target.left + target.right) / 2 - position.left
@@ -52,11 +63,13 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id }) => {
       ['right', () => ({ left: 0, top, transform: 'rotate(270deg)' })]
     )
   }
+
   return h(PopupPortal, [
     div({
       id, role: 'tooltip',
       ref: elementRef,
       style: {
+        display: shouldRender ? undefined : 'none',
         transform: `translate(${position.left}px, ${position.top}px)`,
         visibility: !viewport.width ? 'hidden' : undefined,
         ...(type === 'light') ? styles.lightBox : styles.tooltip
@@ -70,26 +83,12 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id }) => {
   ])
 }
 
-const TooltipTrigger = ({ children, content, delay, ...props }) => {
+const TooltipTrigger = ({ children, content, ...props }) => {
   const [open, setOpen] = useState(false)
-  const openTimeout = useRef()
   const id = Utils.useUniqueId()
   const tooltipId = Utils.useUniqueId()
   const child = Children.only(children)
   const childId = child.props.id || id
-
-  const doOpen = !delay ?
-    setOpen :
-    shouldOpen => {
-      if (shouldOpen) {
-        openTimeout.current = setTimeout(() => setOpen(true), delay)
-      } else {
-        if (openTimeout.current) {
-          clearTimeout(openTimeout.current)
-        }
-        setOpen(false)
-      }
-    }
 
   return h(Fragment, [
     cloneElement(child, {
@@ -97,19 +96,19 @@ const TooltipTrigger = ({ children, content, delay, ...props }) => {
       'aria-describedby': open ? tooltipId : undefined,
       onMouseEnter: (...args) => {
         child.props.onMouseEnter && child.props.onMouseEnter(...args)
-        doOpen(true)
+        setOpen(true)
       },
       onMouseLeave: (...args) => {
         child.props.onMouseLeave && child.props.onMouseLeave(...args)
-        doOpen(false)
+        setOpen(false)
       },
       onFocus: (...args) => {
         child.props.onFocus && child.props.onFocus(...args)
-        doOpen(true)
+        setOpen(true)
       },
       onBlur: (...args) => {
         child.props.onBlur && child.props.onBlur(...args)
-        doOpen(false)
+        setOpen(false)
       }
     }),
     open && !!content && h(Tooltip, { target: childId, id: tooltipId, ...props }, [content])
