@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import { cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, monthlyStoragePrice, storagePrice } from 'src/data/machines'
+import * as Utils from 'src/libs/utils'
 
 
 export const DEFAULT_DISK_SIZE = 50
@@ -168,14 +169,10 @@ export const collapsedRuntimeStatus = runtime => {
 }
 
 export const convertedAppStatus = appStatus => {
-  switch (appStatus) {
-    case 'STOPPED':
-      return _.capitalize('PAUSED')
-    case 'STOPPING':
-      return _.capitalize('PAUSING')
-    case 'STARTING':
-      return _.capitalize('RESUMING')
-    default:
-      return _.capitalize(appStatus)
-  }
+  return Utils.switchCase(appStatus,
+    ['STOPPED', () => _.capitalize('PAUSED')],
+    ['STOPPING', () => _.capitalize('PAUSING')],
+    ['STARTING', () => _.capitalize('RESUMING')],
+    [Utils.DEFAULT, () => _.capitalize(appStatus)]
+  )
 }
