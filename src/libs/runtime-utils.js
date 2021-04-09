@@ -169,7 +169,7 @@ export const collapsedRuntimeStatus = runtime => {
 }
 
 export const convertedAppStatus = appStatus => {
-  return Utils.switchCase(appStatus,
+  return Utils.switchCase(_.upperCase(appStatus),
     ['STOPPED', () => _.capitalize('PAUSED')],
     ['STOPPING', () => _.capitalize('PAUSING')],
     ['STARTING', () => _.capitalize('RESUMING')],
