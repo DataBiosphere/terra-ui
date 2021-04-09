@@ -146,8 +146,6 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
 
   getInitialState(runtime, disk) {
     const runtimeConfig = runtime?.runtimeConfig
-    console.log('willy initialstate')
-    console.log(runtime)
     return {
       selectedPersistentDiskSize: disk?.size || DEFAULT_DISK_SIZE,
       sparkMode: runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false,

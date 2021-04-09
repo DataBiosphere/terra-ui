@@ -3,6 +3,7 @@
 // 'regionDescription' is the same as location when locationType is 'multi-region', or a country name when locationType is 'region'.
 // computeZone is generally the 'a' zone for each region, except for those regions where it is not available.
 // The choice to use the 'a' zone is arbitrary, choosing 'b' zone would also work.
+// The region choice for multi-region locations is arbitrary as well.
 export const unknownRegionFlag = '❓'
 export const regionInfo = (location, locationType) => {
   switch (locationType) {
