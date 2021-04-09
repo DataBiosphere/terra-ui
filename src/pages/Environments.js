@@ -193,9 +193,6 @@ const Environments = () => {
             headerRenderer: () => 'Location',
             cellRenderer: ({ rowIndex }) => {
               const { runtimeConfig: { zone, region } } = filteredRuntimes[rowIndex]
-              console.log('willy')
-              console.log(zone)
-              console.log(region)
               return zone ? zone : region
             }
           },
