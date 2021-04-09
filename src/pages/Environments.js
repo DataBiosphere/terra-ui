@@ -189,6 +189,14 @@ const Environments = () => {
             }
           },
           {
+            size: { basis: 120, grow: 0.2 },
+            headerRenderer: () => 'Location',
+            cellRenderer: ({ rowIndex }) => {
+              const { runtimeConfig: { zone } } = filteredRuntimes[rowIndex]
+              return zone
+            }
+          },
+          {
             size: { basis: 250, grow: 0 },
             headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Created']),
             cellRenderer: ({ rowIndex }) => {
@@ -263,6 +271,14 @@ const Environments = () => {
             cellRenderer: ({ rowIndex }) => {
               const disk = filteredDisks[rowIndex]
               return disk.size
+            }
+          },
+          {
+            size: { basis: 120, grow: 0.2 },
+            headerRenderer: () => 'Location',
+            cellRenderer: ({ rowIndex }) => {
+              const disk = filteredDisks[rowIndex]
+              return disk.zone
             }
           },
           {
