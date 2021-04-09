@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
-import { b, br, code, div, fieldset, h, input, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
+import { b, br, code, div, fieldset, h, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
@@ -18,6 +18,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
   currentRuntime, DEFAULT_DISK_SIZE, defaultDataprocMachineType, defaultGceMachineType, findMachineType, getDefaultMachineType,
   persistentDiskCostMonthly,
+  RadioBlock,
   runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -91,26 +92,6 @@ const DiskSelector = ({ value, onChange }) => {
         onChange
       })
     ])
-  ])
-}
-
-const RadioBlock = ({ labelText, children, name, checked, onChange, style = {} }) => {
-  return div({
-    style: {
-      backgroundColor: colors.warning(0.2),
-      borderRadius: 3, border: `1px solid ${checked ? colors.accent() : 'transparent'}`,
-      boxShadow: checked ? Style.standardShadow : undefined,
-      display: 'flex', alignItems: 'baseline', padding: '.75rem',
-      ...style
-    }
-  }, [
-    h(IdContainer, [id => h(Fragment, [
-      input({ type: 'radio', name, checked, onChange, id }),
-      div({ style: { marginLeft: '.75rem' } }, [
-        label({ style: { fontWeight: 600, fontSize: 16 }, htmlFor: id }, [labelText]),
-        children
-      ])
-    ])])
   ])
 }
 
@@ -529,7 +510,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const { deleteDiskSelected, currentPersistentDiskDetails, currentRuntimeDetails } = this.state
     return h(Fragment, [
       h(RadioBlock, {
-        name: 'delete-persistent-disk',
+        name: 'keep-persistent-disk',
         labelText: 'Keep persistent disk, delete application configuration and compute profile',
         checked: !deleteDiskSelected,
         onChange: () => this.setState({ deleteDiskSelected: false })

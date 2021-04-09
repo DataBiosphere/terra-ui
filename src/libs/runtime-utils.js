@@ -1,5 +1,10 @@
 import _ from 'lodash/fp'
+import { Fragment } from 'react'
+import { div, h, input, label } from 'react-hyperscript-helpers'
+import { IdContainer } from 'src/components/common'
 import { cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, monthlyStoragePrice, storagePrice } from 'src/data/machines'
+import colors from 'src/libs/colors'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
@@ -164,7 +169,7 @@ export const machineCost = machineType => {
 
 export const currentApp = _.flow(trimAppsOldestFirst, _.last)
 
-export const currentDataDisk = (app, galaxyDataDisks) => {
+export const currentAttachedDataDisk = (app, galaxyDataDisks) => {
   return _.find({ name: app?.diskName }, galaxyDataDisks)
 }
 
@@ -186,3 +191,24 @@ export const convertedAppStatus = appStatus => {
     [Utils.DEFAULT, () => _.capitalize(appStatus)]
   )
 }
+
+export const RadioBlock = ({ labelText, children, name, checked, onChange, style = {} }) => {
+  return div({
+    style: {
+      backgroundColor: colors.warning(0.2),
+      borderRadius: 3, border: `1px solid ${checked ? colors.accent() : 'transparent'}`,
+      boxShadow: checked ? Style.standardShadow : undefined,
+      display: 'flex', alignItems: 'baseline', padding: '.75rem',
+      ...style
+    }
+  }, [
+    h(IdContainer, [id => h(Fragment, [
+      input({ type: 'radio', name, checked, onChange, id }),
+      div({ style: { marginLeft: '.75rem' } }, [
+        label({ style: { fontWeight: 600, fontSize: 16 }, htmlFor: id }, [labelText]),
+        children
+      ])
+    ])])
+  ])
+}
+
