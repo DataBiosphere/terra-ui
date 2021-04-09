@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import { cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, monthlyStoragePrice, storagePrice } from 'src/data/machines'
+import * as Utils from 'src/libs/utils'
 
 
 export const DEFAULT_DISK_SIZE = 50
@@ -165,4 +166,13 @@ export const appIsSettingUp = app => {
 
 export const collapsedRuntimeStatus = runtime => {
   return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status) // NOTE: preserves null vs undefined
+}
+
+export const convertedAppStatus = appStatus => {
+  return Utils.switchCase(_.upperCase(appStatus),
+    ['STOPPED', () => _.capitalize('PAUSED')],
+    ['STOPPING', () => _.capitalize('PAUSING')],
+    ['STARTING', () => _.capitalize('RESUMING')],
+    [Utils.DEFAULT, () => _.capitalize(appStatus)]
+  )
 }
