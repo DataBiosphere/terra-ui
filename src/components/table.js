@@ -168,7 +168,7 @@ export const tableHeight = ({ actualRows, maxRows, heightPerRow = 48 }) => (_.mi
 export const FlexTable = ({
   initialY = 0, width, height, rowCount, variant, columns = [], hoverHighlight = false,
   onScroll = _.noop, noContentMessage = null, headerHeight = 48, rowHeight = 48,
-  styleCell = () => ({}), styleHeader = () => ({}), ...props
+  styleCell = () => ({}), styleHeader = () => ({}), readonly = true, ...props
 }) => {
   const [scrollbarSize, setScrollbarSize] = useState(0)
   const body = useRef()
@@ -177,31 +177,30 @@ export const FlexTable = ({
     body.current.scrollToPosition({ scrollTop: initialY })
   })
 
-  return div([
+  return div({
+    role: 'grid',
+    'aria-rowcount': rowCount,
+    'aria-colcount': columns.length,
+    'aria-readonly': !!readonly
+  }, [
     div({
       style: {
         width: width - scrollbarSize,
         height: headerHeight,
         display: 'flex'
       },
-      role: 'grid',
-      'aria-rowcount': rowCount,
-      'aria-colcount': columns.length
-    }, [
-      div({
-        role: 'row'
-      }, ..._.map(([i, { size, headerRenderer }]) => {
-        return div({
-          key: i,
-          role: 'columnheader',
-          style: {
-            ...styles.flexCell(size),
-            ...(variant === 'light' ? {} : styles.header(i * 1, columns.length)),
-            ...(styleHeader ? styleHeader({ columnIndex: i }) : {})
-          }
-        }, [headerRenderer()])
-      }, _.toPairs(columns)))
-    ]),
+      role: 'row'
+    }, _.map(([i, { size, headerRenderer }]) => {
+      return div({
+        key: i,
+        role: 'columnheader',
+        style: {
+          ...styles.flexCell(size),
+          ...(variant === 'light' ? {} : styles.header(i * 1, columns.length)),
+          ...(styleHeader ? styleHeader({ columnIndex: i }) : {})
+        }
+      }, [headerRenderer()])
+    }, _.toPairs(columns))),
     h(RVGrid, {
       ref: body,
       width,
@@ -210,6 +209,9 @@ export const FlexTable = ({
       rowHeight,
       rowCount,
       columnCount: 1,
+      // Clear out ARIA properties which have been moved one level up
+      'aria-readonly': null,
+      role: 'presentation',
       onScrollbarPresenceChange: ({ vertical, size }) => {
         setScrollbarSize(vertical ? size : 0)
       },
@@ -491,31 +493,41 @@ export const HeaderCell = props => {
 }
 
 export const Sortable = ({ sort, field, onSort, children }) => {
-  return div({
-    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%' },
-    onClick: () => onSort(Utils.nextSort(sort, field))
+  return h(IdContainer, [id => h(Clickable,{
+    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%' },
+    onClick: () => onSort(Utils.nextSort(sort, field)),
+    'aria-describedby': id
   }, [
     children,
     sort.field === field && div({
       style: { color: colors.accent(), marginLeft: 'auto' }
     }, [
-      icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
-    ])
-  ])
+      icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up', {
+        'aria-hidden': false,
+        'aria-label': `sorted in ${sort.direction ? 'ascending' : 'descending'} order`
+      })
+    ]),
+    div({ id, className: 'sr-only' }, ['Click to sort by this column'])
+  ])])
 }
 
 export const MiniSortable = ({ sort, field, onSort, children }) => {
-  return div({
+  return h(IdContainer, [id => h(Clickable,{
     style: { display: 'flex', alignItems: 'center', cursor: 'pointer', height: '100%' },
-    onClick: () => onSort(Utils.nextSort(sort, field))
+    onClick: () => onSort(Utils.nextSort(sort, field)),
+    'aria-describedby': id
   }, [
     children,
     sort.field === field && div({
       style: { color: colors.accent(), marginLeft: '1rem' }
     }, [
-      icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
-    ])
-  ])
+      icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up', {
+        'aria-hidden': false,
+        'aria-label': `sorted in ${sort.direction ? 'descending' : 'ascending'} order`
+      })
+    ]),
+    div({ id, className: 'sr-only' }, ['Click to sort by this column'])
+  ])])
 }
 
 export const Resizable = ({ onWidthChange, width, minWidth = 100, children }) => {
