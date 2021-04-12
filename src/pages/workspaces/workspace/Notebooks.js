@@ -21,7 +21,7 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import { versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
-import { appIsSettingUp, currentApp, currentDataDisk, getGalaxyCost } from 'src/libs/runtime-utils'
+import { appIsSettingUp, convertedAppStatus, currentApp, currentDataDisk, getGalaxyCost } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -316,7 +316,7 @@ const Notebooks = _.flow(
           div(['Galaxy Interactive']),
           div(['Environment']),
           div({ style: { fontSize: 12, marginTop: 6 } },
-            [_.capitalize(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``]),
+            [convertedAppStatus(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``]),
           icon('trash', { size: 21 })
         ]) :
         div({ style: { fontSize: 18, lineHeight: '22px', width: 160, color: colors.accent() } }, [
