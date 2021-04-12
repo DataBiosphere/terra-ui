@@ -119,7 +119,7 @@ export const AppErrorModal = ({ app, onDismiss }) => {
     Utils.withBusyState(setLoadingAppDetails)
   )(async () => {
     const { errors: appErrors } = await Ajax().Apps.app(app.googleProject, app.appName).details()
-    setError(appErrors[0].errorMessage)
+    setError(appErrors[0]?.errorMessage)
   })
 
   Utils.useOnMount(() => { loadAppError() })
