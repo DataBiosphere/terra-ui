@@ -236,7 +236,7 @@ export default class RuntimeManager extends PureComponent {
           })
         ])
       })
-    } else if (prevApp && prevApp.status !== 'ERROR' && app && app.status === 'ERROR' && !_.includes(app.appName, errorNotifiedApps.get())) {
+    } else if (app && app.status === 'ERROR' && !_.includes(app.appName, errorNotifiedApps.get())) {
       notify('error', 'Error Creating Galaxy App', {
         message: h(AppErrorNotification, { app })
       })
