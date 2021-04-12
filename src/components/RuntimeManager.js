@@ -29,7 +29,7 @@ import {
   runtimeCost,
   trimRuntimesOldestFirst
 } from 'src/libs/runtime-utils'
-import { errorNotifiedRuntimes } from 'src/libs/state'
+import { errorNotifiedApps, errorNotifiedRuntimes } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -117,6 +117,50 @@ const RuntimeErrorNotification = ({ runtime }) => {
   ])
 }
 
+export const AppErrorModal = ({ app, onDismiss }) => {
+  const [error, setError] = useState()
+  const [loadingAppDetails, setLoadingAppDetails] = useState(false)
+
+  const loadAppError = _.flow(
+    withErrorReporting('Error loading app details'),
+    Utils.withBusyState(setLoadingAppDetails)
+  )(async () => {
+    const { errors: appErrors } = await Ajax().Apps.app(app.googleProject, app.appName).details()
+    setError(appErrors[0]?.errorMessage)
+  })
+
+  Utils.useOnMount(() => { loadAppError() })
+
+  return h(Modal, {
+    title: `Galaxy App Creation Failed`,
+    showCancel: false,
+    onDismiss
+  }, [
+    div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word', overflowY: 'auto', maxHeight: 500, background: colors.light() } }, [error]),
+    loadingAppDetails && spinnerOverlay
+  ])
+}
+
+
+const AppErrorNotification = ({ app }) => {
+  const [modalOpen, setModalOpen] = useState(false)
+
+  return h(Fragment, [
+    h(Clickable, {
+      onClick: () => setModalOpen(true),
+      style: {
+        marginTop: '1rem',
+        textDecoration: 'underline',
+        fontWeight: 'bold'
+      }
+    }, ['SEE LOG INFO']),
+    modalOpen && h(AppErrorModal, {
+      app,
+      onDismiss: () => setModalOpen(false)
+    })
+  ])
+}
+
 export default class RuntimeManager extends PureComponent {
   static propTypes = {
     namespace: PropTypes.string.isRequired,
@@ -192,6 +236,11 @@ export default class RuntimeManager extends PureComponent {
           })
         ])
       })
+    } else if (app && app.status === 'ERROR' && !_.includes(app.appName, errorNotifiedApps.get())) {
+      notify('error', 'Error Creating Galaxy App', {
+        message: h(AppErrorNotification, { app })
+      })
+      errorNotifiedApps.update(Utils.append(app.appName))
     }
   }
 
@@ -380,8 +429,10 @@ export default class RuntimeManager extends PureComponent {
           isOpen: galaxyDrawerOpen,
           onDismiss: () => this.setState({ galaxyDrawerOpen: false }),
           onSuccess: () => {
-            this.setState({ galaxyDrawerOpen: false })
-            refreshApps()
+            withErrorReporting('Error loading galaxy environment')(
+              this.setState({ galaxyDrawerOpen: false }),
+              refreshApps()
+            )
           }
         }),
         errorModalOpen && h(RuntimeErrorModal, {
