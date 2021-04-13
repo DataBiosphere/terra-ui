@@ -187,12 +187,12 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       cloudService: newRuntime.cloudService,
       ...(newRuntime.cloudService === cloudServices.GCE ? {
         bootDiskSize: 50,
-        machineType: newRuntime.machineType,
+        machineType: newRuntime.machineType || defaultGceMachineType,
         ...(newRuntime.diskSize ? {
           diskSize: newRuntime.diskSize
         } : {})
       } : {
-        masterMachineType: newRuntime.masterMachineType,
+        masterMachineType: newRuntime.masterMachineType || defaultDataprocMachineType,
         masterDiskSize: newRuntime.masterDiskSize,
         numberOfWorkers: newRuntime.numberOfWorkers,
         ...(newRuntime.numberOfWorkers && {
@@ -264,7 +264,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const runtimeConfig = newRuntime && {
       cloudService: newRuntime.cloudService,
       ...(newRuntime.cloudService === cloudServices.GCE ? {
-        machineType: newRuntime.machineType,
+        machineType: newRuntime.machineType || defaultGceMachineType,
         ...(newRuntime.diskSize ? {
           diskSize: newRuntime.diskSize
         } : {
@@ -277,7 +277,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
           }
         })
       } : {
-        masterMachineType: newRuntime.masterMachineType,
+        masterMachineType: newRuntime.masterMachineType || defaultDataprocMachineType,
         masterDiskSize: newRuntime.masterDiskSize,
         numberOfWorkers: newRuntime.numberOfWorkers,
         ...(newRuntime.numberOfWorkers && {
@@ -338,19 +338,19 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             toolDockerImage: selectedLeoImage === CUSTOM_MODE ? customEnvImage : selectedLeoImage,
             ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
             ...(cloudService === cloudServices.GCE ? {
-              machineType: masterMachineType || getDefaultMachineType(sparkMode),
+              machineType: masterMachineType || defaultGceMachineType,
               ...(this.shouldUsePersistentDisk() ? {
                 persistentDiskAttached: true
               } : {
                 diskSize: masterDiskSize
               })
             } : {
-              machineType: masterMachineType || getDefaultMachineType(sparkMode),
+              machineType: masterMachineType || defaultDataprocMachineType,
               masterDiskSize,
               numberOfWorkers: newNumberOfWorkers,
               ...(newNumberOfWorkers && {
                 numberOfPreemptibleWorkers,
-                workerMachineType: workerMachineType || getDefaultMachineType(sparkMode),
+                workerMachineType: workerMachineType || defaultDataprocMachineType,
                 workerDiskSize
               })
             })
