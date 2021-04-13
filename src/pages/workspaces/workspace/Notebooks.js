@@ -215,7 +215,7 @@ const Notebooks = _.flow(
 )(({
   apps, galaxyDataDisks, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { bucketName } },
   refreshApps, onRequesterPaysError, listView, setListView
-}) => {
+}, ref) => {
   // State
   const [renamingNotebookName, setRenamingNotebookName] = useState(undefined)
   const [copyingNotebookName, setCopyingNotebookName] = useState(undefined)

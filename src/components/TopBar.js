@@ -212,8 +212,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               href: window.Appcues ? undefined : 'https://support.terra.bio/hc/en-us/articles/360042745091',
               onClick: () => {
                 hideNav()
-                // until eslint supports optional chaining, possibly with https://github.com/eslint/eslint/pull/13196:
-                // eslint-disable-next-line no-unused-expressions
                 window.Appcues?.show('-M3lNP6ncNr-42_78TOX')
               },
               ...Utils.newTabLinkProps
@@ -275,7 +273,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
               img({ src: fcIconWhite, alt: '', style: { height: 20, width: 20 } })
             ]), 'Use Classic FireCloud'
           ]),
-          div({ style: { borderTop: `1px solid ${colors.dark(0.55)}` } }, []),
+          div({ style: { borderTop: `1px solid ${colors.dark(0.55)}` } }),
           div({
             style: { flex: 'none', padding: 28, marginTop: 'auto' }
           }, [

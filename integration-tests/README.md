@@ -50,6 +50,7 @@ LYLE_SA_KEY=$(vault read --format=json secret/dsde/terra/envs/common/lyle-user-s
 yarn test
 ```
 Optionally, additional useful options are:
+
 ```sh
 HEADLESS=false \
 ENVIRONMENT=[local|dev|alpha|perf|staging] \
@@ -59,6 +60,7 @@ By default, the tests will run headless against Terra UI running on your local m
 #### Debugging
 
 To open a debug port into the jest tests run the following in the integration-tests folder
+
 ```sh
 TERRA_SA_KEY=$(vault read --format=json secret/dsde/alpha/common/firecloud-account.pem | jq .data) \
 LYLE_SA_KEY=$(vault read --format=json secret/dsde/terra/envs/common/lyle-user-service-account-key | jq .data) \
@@ -66,6 +68,7 @@ node --inspect-brk node_modules/.bin/jest [test name] --runInBand
 ```
 
 To disable headless mode while debugging
+
 ```sh
 HEADLESS=false \
 TERRA_SA_KEY=$(vault read --format=json secret/dsde/alpha/common/firecloud-account.pem | jq .data) \

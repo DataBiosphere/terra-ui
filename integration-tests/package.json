@@ -8,11 +8,11 @@
     "start-dev": "nodemon"
   },
   "devDependencies": {
-    "jest": "^26.5.2",
+    "jest": "^26.6.3",
     "jest-junit": "^12.0.0",
     "jest-puppeteer": "^4.4.0",
     "node-fetch": "^2.6.1",
-    "prompts": "^2.3.2"
+    "prompts": "^2.4.1"
   },
   "jest-junit": {
     "suiteName": "Integration tests",
@@ -20,15 +20,15 @@
     "includeConsoleOutput": true
   },
   "dependencies": {
-    "@google-cloud/firestore": "^4.4.0",
-    "@google-cloud/secret-manager": "^3.1.0",
-    "@google-cloud/storage": "^5.3.0",
+    "@google-cloud/firestore": "^4.9.9",
+    "@google-cloud/secret-manager": "^3.6.0",
+    "@google-cloud/storage": "^5.8.3",
     "express": "^4.17.1",
-    "google-auth-library": "^6.1.1",
-    "googleapis": "^61.0.0",
-    "lodash": "^4.17.20",
-    "nodemon": "^2.0.4",
-    "p-retry": "^4.2.0",
-    "puppeteer": "^5.3.1"
+    "google-auth-library": "^7.0.4",
+    "googleapis": "^71.0.0",
+    "lodash": "^4.17.21",
+    "nodemon": "^2.0.7",
+    "p-retry": "^4.5.0",
+    "puppeteer": "^8.0.0"
   }
 }

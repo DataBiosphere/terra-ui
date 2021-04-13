@@ -1,4 +1,6 @@
 #!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
 FORBIDDEN='private_key|sa_key_var|SA_KEY_JSON'
 
 git diff --cached -U0 | grep -E --color ${FORBIDDEN}

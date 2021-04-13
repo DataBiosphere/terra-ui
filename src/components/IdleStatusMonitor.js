@@ -88,10 +88,10 @@ const InactivityTimer = ({ id, timeout, countdownStart }) => {
       setLastActive(Date.now())
     }
 
-    _.forEach(event => document.addEventListener(event, updateLastActive), targetEvents)
+    _.forEach(event => document.addEventListener(event, updateLastActive, true), targetEvents)
 
     return () => {
-      _.forEach(event => document.removeEventListener(event, updateLastActive), targetEvents)
+      _.forEach(event => document.removeEventListener(event, updateLastActive, true), targetEvents)
     }
   })
 

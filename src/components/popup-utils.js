@@ -14,7 +14,7 @@ export const useDynamicPosition = selectors => {
   const computePosition = () => {
     const newDimensions = _.map(({ ref, id, viewport }) => {
       return Utils.cond(
-        [ref, () => pickValues(ref.current.getBoundingClientRect())],
+        [ref?.current, () => pickValues(ref.current.getBoundingClientRect())],
         [id, () => pickValues(document.getElementById(id).getBoundingClientRect())],
         [viewport, () => ({ width: window.innerWidth, height: window.innerHeight })]
       )
