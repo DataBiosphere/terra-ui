@@ -39,6 +39,7 @@ const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/3600
 // distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
 
+const defaultMachineType = 'n1-standard-4'
 const validMachineTypes = _.filter(({ memory }) => memory >= 3.75, machineTypes)
 
 const MachineSelector = ({ value, onChange }) => {
@@ -146,11 +147,11 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     return {
       selectedPersistentDiskSize: disk?.size || DEFAULT_DISK_SIZE,
       sparkMode: runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false,
-      masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType || 'n1-standard-4',
+      masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType || defaultMachineType,
       masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || DEFAULT_DISK_SIZE,
       numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
       numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
-      workerMachineType: runtimeConfig?.workerMachineType || 'n1-standard-4',
+      workerMachineType: runtimeConfig?.workerMachineType || defaultMachineType,
       workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DISK_SIZE
     }
   }
@@ -383,12 +384,12 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             diskSize: runtimeConfig.diskSize
           })
         } : {
-          masterMachineType: runtimeConfig.masterMachineType || 'n1-standard-4',
+          masterMachineType: runtimeConfig.masterMachineType || defaultMachineType,
           masterDiskSize: runtimeConfig.masterDiskSize || 100,
           numberOfWorkers,
           ...(numberOfWorkers && {
             numberOfPreemptibleWorkers: runtimeConfig.numberOfPreemptibleWorkers || 0,
-            workerMachineType: runtimeConfig.workerMachineType || 'n1-standard-4',
+            workerMachineType: runtimeConfig.workerMachineType || defaultMachineType,
             workerDiskSize: runtimeConfig.workerDiskSize || 100
           })
         })
