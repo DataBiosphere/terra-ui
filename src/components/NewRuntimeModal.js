@@ -15,7 +15,11 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import { currentRuntime, DEFAULT_DISK_SIZE, findMachineType, persistentDiskCostMonthly, runtimeConfigBaseCost, runtimeConfigCost } from 'src/libs/runtime-utils'
+import {
+  currentRuntime, DEFAULT_DISK_SIZE, defaultDataprocMachineType, defaultGceMachineType, findMachineType, getDefaultMachineType,
+  persistentDiskCostMonthly,
+  runtimeConfigBaseCost, runtimeConfigCost
+} from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -38,9 +42,6 @@ const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/3600
 
 // distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
-
-const defaultDataprocMachineType = 'n1-standard-2'
-const defaultGceMachineType = 'n1-standard-1'
 
 const MachineSelector = ({ value, machineTypeOptions, onChange }) => {
   const { cpu: currentCpu, memory: currentMemory } = findMachineType(value)
@@ -337,19 +338,19 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             toolDockerImage: selectedLeoImage === CUSTOM_MODE ? customEnvImage : selectedLeoImage,
             ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
             ...(cloudService === cloudServices.GCE ? {
-              machineType: masterMachineType,
+              machineType: masterMachineType || getDefaultMachineType(sparkMode),
               ...(this.shouldUsePersistentDisk() ? {
                 persistentDiskAttached: true
               } : {
                 diskSize: masterDiskSize
               })
             } : {
-              masterMachineType,
+              machineType: masterMachineType || getDefaultMachineType(sparkMode),
               masterDiskSize,
               numberOfWorkers: newNumberOfWorkers,
               ...(newNumberOfWorkers && {
                 numberOfPreemptibleWorkers,
-                workerMachineType,
+                workerMachineType: workerMachineType || getDefaultMachineType(sparkMode),
                 workerDiskSize
               })
             })
@@ -377,7 +378,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
         toolDockerImage: this.getImageUrl(currentRuntimeDetails),
         ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
         ...(cloudService === cloudServices.GCE ? {
-          machineType: runtimeConfig.machineType,
+          machineType: runtimeConfig.machineType || defaultGceMachineType,
           ...(runtimeConfig.persistentDiskId ? {
             persistentDiskAttached: true
           } : {
@@ -573,7 +574,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
 
     const minRequiredMemory = sparkMode ? 7.5 : 3.75
     const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes)
-    const mainMachineType = _.find({ name: masterMachineType }, validMachineTypes)?.name || (sparkMode ? defaultDataprocMachineType : defaultGceMachineType)
+    const mainMachineType = _.find({ name: masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(sparkMode)
     const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
     const errors = validate(
       { mainMachineType, workerMachineType, customEnvImage },
