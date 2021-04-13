@@ -39,10 +39,10 @@ const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/3600
 // distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
 
-const defaultMachineType = 'n1-standard-4'
-const validMachineTypes = _.filter(({ memory }) => memory >= 3.75, machineTypes)
+const defaultDataprocMachineType = 'n1-standard-2'
+const defaultGceMachineType = 'n1-standard-1'
 
-const MachineSelector = ({ value, onChange }) => {
+const MachineSelector = ({ value, machineTypeOptions, onChange }) => {
   const { cpu: currentCpu, memory: currentMemory } = findMachineType(value)
   return h(Fragment, [
     h(IdContainer, [
@@ -53,8 +53,8 @@ const MachineSelector = ({ value, onChange }) => {
             id,
             isSearchable: false,
             value: currentCpu,
-            onChange: option => onChange(_.find({ cpu: option.value }, validMachineTypes)?.name || value),
-            options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(validMachineTypes)
+            onChange: option => onChange(_.find({ cpu: option.value }, machineTypeOptions)?.name || value),
+            options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(machineTypeOptions)
           })
         ])
       ])
@@ -67,8 +67,8 @@ const MachineSelector = ({ value, onChange }) => {
             id,
             isSearchable: false,
             value: currentMemory,
-            onChange: option => onChange(_.find({ cpu: currentCpu, memory: option.value }, validMachineTypes)?.name || value),
-            options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
+            onChange: option => onChange(_.find({ cpu: currentCpu, memory: option.value }, machineTypeOptions)?.name || value),
+            options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(machineTypeOptions)
           })
         ])
       ])
@@ -147,11 +147,11 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     return {
       selectedPersistentDiskSize: disk?.size || DEFAULT_DISK_SIZE,
       sparkMode: runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false,
-      masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType || defaultMachineType,
+      masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
       masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || DEFAULT_DISK_SIZE,
       numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
       numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
-      workerMachineType: runtimeConfig?.workerMachineType || defaultMachineType,
+      workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
       workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DISK_SIZE
     }
   }
@@ -384,12 +384,12 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             diskSize: runtimeConfig.diskSize
           })
         } : {
-          masterMachineType: runtimeConfig.masterMachineType || defaultMachineType,
+          masterMachineType: runtimeConfig.masterMachineType || defaultDataprocMachineType,
           masterDiskSize: runtimeConfig.masterDiskSize || 100,
           numberOfWorkers,
           ...(numberOfWorkers && {
             numberOfPreemptibleWorkers: runtimeConfig.numberOfPreemptibleWorkers || 0,
-            workerMachineType: runtimeConfig.workerMachineType || defaultMachineType,
+            workerMachineType: runtimeConfig.workerMachineType || defaultDataprocMachineType,
             workerDiskSize: runtimeConfig.workerDiskSize || 100
           })
         })
@@ -571,9 +571,12 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
 
     const isCustomImage = selectedLeoImage === CUSTOM_MODE
 
+    const minRequiredMemory = sparkMode ? 7.5 : 3.75
+    const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes)
+    const mainMachineType = _.find({ name: masterMachineType }, validMachineTypes)?.name || (sparkMode ? defaultDataprocMachineType : defaultGceMachineType)
     const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
     const errors = validate(
-      { masterMachineType, workerMachineType, customEnvImage },
+      { mainMachineType, workerMachineType, customEnvImage },
       {
         masterMachineType: machineTypeConstraints,
         workerMachineType: machineTypeConstraints,
@@ -736,7 +739,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
         div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
-          h(MachineSelector, { value: masterMachineType, onChange: v => this.setState({ masterMachineType: v }) }),
+          h(MachineSelector, { value: mainMachineType, machineTypeOptions: validMachineTypes, onChange: v => this.setState({ masterMachineType: v }) }),
           !isPersistentDisk ?
             h(DiskSelector, { value: masterDiskSize, onChange: v => this.setState({ masterDiskSize: v }) }) :
             div({ style: { gridColumnEnd: 'span 2' } }),
@@ -809,7 +812,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
               ])
             ]),
             div({ style: { gridColumnEnd: 'span 2' } }),
-            h(MachineSelector, { value: workerMachineType, onChange: v => this.setState({ workerMachineType: v }) }),
+            h(MachineSelector, { value: workerMachineType, machineTypeOptions: validMachineTypes, onChange: v => this.setState({ workerMachineType: v }) }),
             h(DiskSelector, { value: workerDiskSize, onChange: v => this.setState({ workerDiskSize: v }) })
           ])
         ])
@@ -1001,7 +1004,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
 
     const renderMainForm = () => {
       const { runtime: oldRuntime, persistentDisk: oldPersistentDisk } = this.getOldEnvironmentConfig()
-      const { cpu, memory } = findMachineType(masterMachineType)
+      const { cpu, memory } = findMachineType(mainMachineType)
       const renderTitleAndTagline = () => {
         return h(Fragment, [
           h(TitleBar, {
