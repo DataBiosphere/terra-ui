@@ -3,7 +3,7 @@ import * as qs from 'qs'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
@@ -298,15 +298,16 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         div({
           style: {
             fontSize: 16, fontWeight: 600, padding: '2rem 1rem 1rem', display: 'flex', justifyContent: 'space-between',
-            textTransform: 'uppercase', color: colors.dark()
+            alignItems: 'center', textTransform: 'uppercase', color: colors.dark()
           }
         }, [
           'Billing Projects',
-          h(Clickable, {
+          h(ButtonOutline, {
             'aria-label': 'Create new billing project',
             onClick: showCreateProjectModal
           }, [
-            icon('plus-circle', { size: 21, style: { color: colors.accent() } })
+            icon('plus', { size: 14, style: { color: colors.accent() } }),
+            div({ style: { marginLeft: '0.5rem' } }, ['Create'])
           ])
         ]),
 
