@@ -2,6 +2,8 @@ import colors, { terraSpecial } from 'src/libs/colors'
 import { isTerra } from 'src/libs/config'
 
 
+export const topBarHeight = 66
+
 export const standardShadow = '0 3px 2px 0 rgba(0,0,0,0.12)'
 export const modalShadow = '0 0 8px 0 rgba(0,0,0,0.12), 0 8px 8px 0 rgba(0,0,0,0.24)'
 
