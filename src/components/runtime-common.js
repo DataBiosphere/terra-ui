@@ -124,7 +124,10 @@ export const SaveFilesHelp = () => {
 }
 
 export const GalaxyWarning = () => {
-  return p([div({ style: { fontWeight: 600 } }, ['Important: Please keep this tab open and logged in to Terra while using Galaxy.']), ' Galaxy will open in a new tab. '])
+  return div({ style: { fontWeight: 600 } },
+    [p('Important: Please keep this tab open and logged in to Terra while using Galaxy.'),
+      p('Galaxy will open in a new tab. ')]
+  )
 }
 
 export const GalaxyLaunchButton = ({ app, onClick, ...props }) => {
