@@ -375,14 +375,14 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
             return div({
               key: data.key,
               className: 'table-cell',
+              role: 'columnheader',
+              'aria-colindex': data.columnIndex,
+              'aria-rowindex': 1, // the rowindex property must start at 1
               style: {
                 ...data.style,
                 ...styles.header(data.columnIndex, columns.length),
                 ...styleHeader(data)
-              },
-              role: 'columnheader',
-              'aria-colindex': data.columnIndex,
-              'aria-rowindex': 1, // the rowindex property must start at 1
+              }
             }, [
               columns[data.columnIndex].headerRenderer(data)
             ])
@@ -493,7 +493,7 @@ export const HeaderCell = props => {
 }
 
 export const Sortable = ({ sort, field, onSort, children }) => {
-  return h(IdContainer, [id => h(Clickable,{
+  return h(IdContainer, [id => h(Clickable, {
     style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%' },
     onClick: () => onSort(Utils.nextSort(sort, field)),
     'aria-describedby': id
@@ -512,7 +512,7 @@ export const Sortable = ({ sort, field, onSort, children }) => {
 }
 
 export const MiniSortable = ({ sort, field, onSort, children }) => {
-  return h(IdContainer, [id => h(Clickable,{
+  return h(IdContainer, [id => h(Clickable, {
     style: { display: 'flex', alignItems: 'center', cursor: 'pointer', height: '100%' },
     onClick: () => onSort(Utils.nextSort(sort, field)),
     'aria-describedby': id
