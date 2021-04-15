@@ -168,7 +168,8 @@ export const tableHeight = ({ actualRows, maxRows, heightPerRow = 48 }) => (_.mi
 export const FlexTable = ({
   initialY = 0, width, height, rowCount, variant, columns = [], hoverHighlight = false,
   onScroll = _.noop, noContentMessage = null, headerHeight = 48, rowHeight = 48,
-  styleCell = () => ({}), styleHeader = () => ({}), readonly = true, ...props
+  styleCell = () => ({}), styleHeader = () => ({}), tableName = 'data table', sort = null,
+  ...props
 }) => {
   const [scrollbarSize, setScrollbarSize] = useState(0)
   const body = useRef()
@@ -178,10 +179,10 @@ export const FlexTable = ({
   })
 
   return div({
-    role: 'grid',
+    role: 'table',
     'aria-rowcount': rowCount,
     'aria-colcount': columns.length,
-    'aria-readonly': !!readonly
+    'aria-label': tableName
   }, [
     div({
       style: {
@@ -190,17 +191,20 @@ export const FlexTable = ({
         display: 'flex'
       },
       role: 'row'
-    }, _.map(([i, { size, headerRenderer }]) => {
+    }, _.map(([i, { size, headerRenderer, field }]) => {
       return div({
         key: i,
         role: 'columnheader',
+        'aria-rowindex': 1,
+        'aria-colindex': i + 1,
+        'aria-sort': !sort || !field ? null : sort.field === field ? sort.direction === 'asc' ? 'ascending' : 'descending' : 'none',
         style: {
           ...styles.flexCell(size),
           ...(variant === 'light' ? {} : styles.header(i * 1, columns.length)),
           ...(styleHeader ? styleHeader({ columnIndex: i }) : {})
         }
-      }, [headerRenderer()])
-    }, _.toPairs(columns))),
+      }, [headerRenderer({ columnIndex: i })])
+    }, Utils.toIndexPairs(columns))),
     h(RVGrid, {
       ref: body,
       width,
@@ -209,9 +213,10 @@ export const FlexTable = ({
       rowHeight,
       rowCount,
       columnCount: 1,
-      // Clear out ARIA properties which have been moved one level up
-      'aria-readonly': null,
-      role: 'presentation',
+      'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
+      'aria-label': `${tableName} content`, // The whole table is a tab stop so it needs a label
+      role: 'rowgroup',
+      containerRole: 'presentation',
       onScrollbarPresenceChange: ({ vertical, size }) => {
         setScrollbarSize(vertical ? size : 0)
       },
@@ -228,16 +233,16 @@ export const FlexTable = ({
             return div({
               key: i,
               className: 'table-cell',
-              role: 'gridcell',
-              'aria-rowindex': data.rowIndex,
-              'aria-colindex': i,
+              role: 'cell',
+              'aria-rowindex': data.rowIndex + 2, // The header row is 1
+              'aria-colindex': i + 1,
               style: {
                 ...styles.flexCell(size),
                 ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length)),
-                ...(styleCell ? styleCell({ ...data, columnIndex: i }) : {})
+                ...(styleCell ? styleCell({ ...data, columnIndex: i, rowIndex: data.rowIndex + 1 }) : {})
               }
-            }, [cellRenderer(data)])
-          }, _.toPairs(columns))
+            }, [cellRenderer({ ...data, columnIndex: i, rowIndex: data.rowIndex })])
+          }, Utils.toIndexPairs(columns))
         ])
       },
       style: { outline: 'none' },
@@ -271,27 +276,31 @@ FlexTable.propTypes = {
   headerHeight: PropTypes.number,
   rowHeight: PropTypes.number,
   styleHeader: PropTypes.func,
-  styleCell: PropTypes.func
+  styleCell: PropTypes.func,
+  tableName: PropTypes.string,
+  sort: PropTypes.shape({ field: PropTypes.string, direction: PropTypes.string })
 }
 
 /**
  * A basic table with a header and flexible column widths. Intended for small amounts of data,
  * since it does not provide scrolling. See FlexTable for prop types.
  */
-export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHighlight }) => {
+export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHighlight, tableName = 'data table', sort = null }) => {
   return div({
-    role: 'grid'
+    role: 'table',
+    'aria-label': tableName
   }, [
     div({
       style: { height: 48, display: 'flex' },
       role: 'row'
     }, [
-      _.map(([i, { size, headerRenderer }]) => {
+      _.map(([i, { size, headerRenderer, field }]) => {
         return div({
           key: i,
           style: { ...styles.flexCell(size), ...styles.header(i * 1, columns.length) },
-          role: 'columnheader'
-        }, [headerRenderer()])
+          role: 'columnheader',
+          'aria-sort': !sort || !field ? null : sort.field === field ? sort.direction === 'asc' ? 'ascending' : 'descending' : 'none'
+        }, [headerRenderer({ columnIndex: i })])
       }, Utils.toIndexPairs(columns))
     ]),
     _.map(rowIndex => {
@@ -307,9 +316,9 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHigh
           return div({
             key: i,
             className: 'table-cell',
-            role: 'gridcell',
+            role: 'cell',
             style: { ...styles.flexCell(size), ...styles.cell(i * 1, columns.length) }
-          }, [cellRenderer({ rowIndex })])
+          }, [cellRenderer({ columnIndex: i, rowIndex })])
         }, Utils.toIndexPairs(columns))
       ])
     }, _.range(0, rowCount)),
@@ -323,7 +332,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHigh
  */
 export const GridTable = Utils.forwardRefWithName('GridTable', ({
   width, height, initialX = 0, initialY = 0, rowHeight = 48, headerHeight = 48, noContentMessage,
-  rowCount, columns, styleCell = () => ({}), styleHeader = () => ({}), onScroll: customOnScroll = _.noop
+  rowCount, columns, styleCell = () => ({}), styleHeader = () => ({}), onScroll: customOnScroll = _.noop, tableName = 'data table'
 }, ref) => {
   const [scrollbarSize, setScrollbarSize] = useState(0)
   const header = useRef()
@@ -358,7 +367,8 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
       return div({
         role: 'grid',
         'aria-rowcount': rowCount + 1, // count the header row too
-        'aria-colcount': columns.length
+        'aria-colcount': columns.length,
+        'aria-label': tableName
       }, [
         h(RVGrid, {
           ref: header,
@@ -370,7 +380,8 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
           columnCount: columns.length,
           role: 'rowgroup',
           containerRole: 'row',
-          'aria-label': '',
+          'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
+          'aria-label': `${tableName} header row`, // The whole table is a tab stop so it needs a label
           cellRenderer: data => {
             return div({
               key: data.key,
@@ -401,7 +412,8 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
           columnCount: columns.length,
           role: 'rowgroup',
           containerRole: 'presentation',
-          'aria-label': '',
+          'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
+          'aria-label': `${tableName} content`, // The whole table is a tab stop so it needs a label
           noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage]),
           onScrollbarPresenceChange: ({ vertical, size }) => {
             setScrollbarSize(vertical ? size : 0)
@@ -447,27 +459,37 @@ GridTable.propTypes = {
   columns: PropTypes.arrayOf(PropTypes.shape({ width: PropTypes.number.isRequired })),
   onScroll: PropTypes.func,
   headerHeight: PropTypes.number,
-  rowHeight: PropTypes.number
+  rowHeight: PropTypes.number,
+  tableName: PropTypes.string,
+  sort: PropTypes.shape({ field: PropTypes.string, direction: PropTypes.string })
 }
 
 export const SimpleTable = ({ columns, rows }) => {
   const cellStyles = { paddingTop: '0.25rem', paddingBottom: '0.25rem' }
-  return h(Fragment, [
+  return h(div, {
+    role: 'table'
+  }, [
     div({ style: { display: 'flex' } }, [
       _.map(({ key, header, size }) => {
-        return div({ key, style: { ...cellStyles, ...styles.flexCell(size) } }, [header])
+        return div({
+          key,
+          role: 'columnheader',
+          style: { ...cellStyles, ...styles.flexCell(size) }
+        }, [header])
       }, columns)
     ]),
     _.map(([i, row]) => {
       return h(Interactive, {
         key: i,
         as: 'div',
+        role: 'row',
         style: { display: 'flex' }, className: 'table-row',
         hover: { backgroundColor: colors.light(0.4) }
       }, [
         _.map(({ key, size }) => {
           return div({
             key,
+            role: 'cell',
             className: 'table-cell',
             style: {
               ...cellStyles, ...styles.flexCell(size),
@@ -476,7 +498,7 @@ export const SimpleTable = ({ columns, rows }) => {
           }, [row[key]])
         }, columns)
       ])
-    }, _.toPairs(rows))
+    }, Utils.toIndexPairs(rows))
   ])
 }
 
@@ -492,10 +514,10 @@ export const HeaderCell = props => {
   return h(TextCell, _.merge({ style: { fontWeight: 500 } }, props))
 }
 
-export const Sortable = ({ sort, field, onSort, children }) => {
+export const Sortable = ({ sort, field, onSort, columnIndex, children }) => {
   return h(IdContainer, [id => h(Clickable, {
     style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%' },
-    onClick: () => onSort(Utils.nextSort(sort, field)),
+    onClick: () => onSort(Utils.nextSort(sort, field, columnIndex)),
     'aria-describedby': id
   }, [
     children,
@@ -504,17 +526,17 @@ export const Sortable = ({ sort, field, onSort, children }) => {
     }, [
       icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up', {
         'aria-hidden': false,
-        'aria-label': `sorted in ${sort.direction ? 'ascending' : 'descending'} order`
+        'aria-label': `sorted in ${sort.direction === 'asc' ? 'ascending' : 'descending'} order`
       })
     ]),
-    div({ id, className: 'sr-only' }, ['Click to sort by this column'])
+    div({ id, style: { display: 'none' } }, ['Click to sort by this column'])
   ])])
 }
 
-export const MiniSortable = ({ sort, field, onSort, children }) => {
+export const MiniSortable = ({ sort, field, onSort, columnIndex, children }) => {
   return h(IdContainer, [id => h(Clickable, {
     style: { display: 'flex', alignItems: 'center', cursor: 'pointer', height: '100%' },
-    onClick: () => onSort(Utils.nextSort(sort, field)),
+    onClick: () => onSort(Utils.nextSort(sort, field, columnIndex)),
     'aria-describedby': id
   }, [
     children,
@@ -526,7 +548,7 @@ export const MiniSortable = ({ sort, field, onSort, children }) => {
         'aria-label': `sorted in ${sort.direction ? 'descending' : 'ascending'} order`
       })
     ]),
-    div({ id, className: 'sr-only' }, ['Click to sort by this column'])
+    div({ id, style: { display: 'none' } }, ['Click to sort by this column'])
   ])])
 }
 
