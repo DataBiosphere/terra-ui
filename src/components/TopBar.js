@@ -28,7 +28,7 @@ import * as Utils from 'src/libs/utils'
 
 const styles = {
   topBar: {
-    flex: 'none', height: 66,
+    flex: 'none', height: Style.topBarHeight,
     display: 'flex', alignItems: 'center',
     borderBottom: `2px solid ${colors.primary(0.55)}`,
     zIndex: 2,
@@ -46,7 +46,7 @@ const styles = {
     container: state => ({
       ...(state === 'entered' ? {} : { opacity: 0, transform: 'translate(-2rem)' }),
       transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
-      paddingTop: 66,
+      paddingTop: Style.topBarHeight,
       width: 290, color: 'white', position: 'absolute', cursor: 'default',
       backgroundColor: colors.dark(0.8), height: '100%',
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
