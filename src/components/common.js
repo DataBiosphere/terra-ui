@@ -119,11 +119,15 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
 }
 
 export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref, getOnClick = _.noop, children }) => {
-  const navTab = currentTab => {
+  const navTab = (i, currentTab) => {
     const selected = currentTab === activeTab
     const href = getHref(currentTab)
 
     return h(Clickable, {
+      role: 'tab',
+      'aria-posinset': i + 1,
+      'aria-setsize': tabNames.length,
+      'aria-selected': selected,
       style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
       hover: selected ? {} : Style.tabBar.hover,
       onClick: href === window.location.hash ? refresh : getOnClick(currentTab),
@@ -133,8 +137,12 @@ export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noo
     ])
   }
 
-  return div({ role: 'navigation', 'aria-label': 'Tab bar', style: Style.tabBar.container }, [
-    ..._.map(name => navTab(name), tabNames),
+  return div({
+    role: 'tablist',
+    'aria-label': 'Tab bar',
+    style: Style.tabBar.container
+  }, [
+    ..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames)),
     div({ style: { flexGrow: 1 } }),
     children
   ])

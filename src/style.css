@@ -127,3 +127,27 @@ a {
   animation: progress-bar-stripes 1s linear infinite;
 }
 
+/* Prism theme overrides to increase contrast for accessibility */
+.token.punctuation {
+  color: #767676 !important; /* #999; */
+}
+
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
+  color: #518400 !important; /* #690; */
+}
+
+.token.function,
+.token.class-name {
+  color: #d3405e !important; /* #DD4A68; */
+}
+
+.token.regex,
+.token.important,
+.token.variable {
+  color: #b56000 !important; /* #e90; */
+}

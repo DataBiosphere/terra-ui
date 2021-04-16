@@ -2,10 +2,10 @@ import * as clipboard from 'clipboard-polyfill/text'
 import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, h2, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ButtonSecondary, Link, Select, TabBar } from 'src/components/common'
+import { ButtonSecondary, IdContainer, Link, Select, TabBar } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
@@ -58,9 +58,11 @@ const WorkflowWrapper = ({ namespace, name, children }) => {
         div({ style: Style.breadcrumb.textUnderBreadcrumb }, [`${namespace}/${name}`])
       ])
     ]),
-    snapshotsList ?
-      children :
-      centeredSpinner()
+    div({ role: 'main', style: { flex: 1, display: 'flex', flexFlow: 'column nowrap' } }, [
+      snapshotsList ?
+        children :
+        centeredSpinner()
+    ])
   ])
 }
 
@@ -96,15 +98,18 @@ const SnapshotWrapper = ({ namespace, name, snapshotId, tabName, children }) => 
       displayNames: { configs: 'configurations' },
       getHref: currentTab => Nav.getLink(`workflow-${currentTab}`, { namespace, name, snapshotId: selectedSnapshot })
     }, [
-      div({ style: { marginRight: '1rem' } }, ['Snapshot:']),
-      div({ style: { width: 100 } }, [
-        h(Select, {
-          value: selectedSnapshot,
-          isSearchable: false,
-          options: _.map('snapshotId', cachedSnapshotsList),
-          onChange: ({ value }) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value })
-        })
-      ])
+      h(IdContainer, [id => h(Fragment, [
+        label({ htmlFor: id, style: { marginRight: '1rem' } }, ['Snapshot:']),
+        div({ style: { width: 100 } }, [
+          h(Select, {
+            id,
+            value: selectedSnapshot,
+            isSearchable: false,
+            options: _.map('snapshotId', cachedSnapshotsList),
+            onChange: ({ value }) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value })
+          })
+        ])
+      ])])
     ]),
     snapshot ?
       children :
@@ -117,31 +122,31 @@ const WorkflowSummary = () => {
   const [importUrlCopied, setImportUrlCopied] = useState()
   const importUrl = `${getConfig().orchestrationUrlRoot}/ga4gh/v1/tools/${namespace}:${name}/versions/${snapshotId}/plain-WDL/descriptor`
 
-  return div({ style: { flex: 1, display: 'flex' } }, [
+  return div({ style: { flex: 1, display: 'flex' }, role: 'tabpanel' }, [
     div({ style: Style.dashboard.leftBox }, [
       synopsis && h(Fragment, [
-        div({ style: Style.dashboard.header }, ['Synopsis']),
+        h2({ style: Style.dashboard.header }, ['Synopsis']),
         div({ style: { fontSize: 16 } }, [synopsis])
       ]),
-      div({ style: Style.dashboard.header }, ['Documentation']),
+      h2({ style: Style.dashboard.header }, ['Documentation']),
       !!documentation ?
         h(MarkdownViewer, { renderers: { link: newWindowLinkRenderer } }, [documentation]) :
         div({ style: { fontStyle: 'italic' } }, ['No documentation provided'])
     ]),
     div({ style: Style.dashboard.rightBox }, [
-      div({ style: Style.dashboard.header }, ['Snapshot information']),
+      h2({ style: Style.dashboard.header }, ['Snapshot information']),
       div({ style: { display: 'flex', flexWrap: 'wrap', margin: -4 } }, [
         h(InfoTile, { title: 'Creation date' }, [new Date(createDate).toLocaleDateString()]),
         h(InfoTile, { title: 'Public' }, [_.startCase(isPublic)])
       ]),
-      div({ style: Style.dashboard.header }, ['Owners']),
+      h2({ style: Style.dashboard.header }, ['Owners']),
       _.map(email => {
         return div({ key: email, style: { overflow: 'hidden', textOverflow: 'ellipsis' } }, [
           h(Link, { href: `mailto:${email}` }, [email])
         ])
       }, managers),
       div({ style: { margin: '1.5rem 0 1rem 0', borderBottom: `1px solid ${colors.dark(0.55)}` } }),
-      div({ style: { fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
+      h2({ style: { fontSize: '1rem', fontWeight: 500, marginBottom: '0.5rem' } }, [
         'Import URL'
       ]),
       div({ style: { display: 'flex' } }, [
@@ -164,7 +169,7 @@ const WorkflowSummary = () => {
 const WorkflowWdl = () => {
   const { name, snapshotId, payload } = Utils.useStore(snapshotStore)
 
-  return div({ style: { margin: '1rem 1.5rem 2rem', display: 'flex', flexDirection: 'column', flex: 1 } }, [
+  return div({ style: { margin: '1rem 1.5rem 2rem', display: 'flex', flexDirection: 'column', flex: 1 }, role: 'tabpanel' }, [
     div({ style: { marginBottom: '1rem', alignSelf: 'flex-end' } }, [
       h(ButtonSecondary, {
         onClick: () => {
@@ -199,7 +204,7 @@ const WorkflowConfigs = () => {
     loadConfigs()
   })
 
-  return div({ style: { flex: 1, padding: '1rem' } }, [
+  return div({ style: { flex: 1, padding: '1rem' }, role: 'tabpanel' }, [
     !allConfigs ?
       centeredSpinner() :
       h(AutoSizer, [
@@ -208,7 +213,9 @@ const WorkflowConfigs = () => {
           rowCount: allConfigs.length,
           columns: [
             {
-              headerRenderer: () => {},
+              headerRenderer: () => span({
+                'aria-label': 'warnings'
+              }),
               cellRenderer: ({ rowIndex }) => {
                 const config = allConfigs[rowIndex]
 
