@@ -10,8 +10,8 @@ import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl, getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import * as Utils from 'src/libs/utils'
 import { isAppDeletable } from 'src/libs/runtime-utils'
+import * as Utils from 'src/libs/utils'
 
 
 const LoadApps = workspaceName => {
@@ -43,11 +43,11 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
   const getAppDeletionMessage = (deletableApps, nonDeletableApps) => {
     return nonDeletableApps.length > 0 ?
       div({ style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' } }, [
-          div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
-            icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
-            'Undeletable Workspace Warning'
-          ]),
-          p({ style: { fontWeight: 'normal' } }, `You cannot delete this workspace because there are ${nonDeletableApps.length} application(s) you must delete first. Only applications in ('ERROR', 'RUNNING') status can be automatically deleted.`)
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
+          icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
+          'Undeletable Workspace Warning'
+        ]),
+        p({ style: { fontWeight: 'normal' } }, `You cannot delete this workspace because there are ${nonDeletableApps.length} application(s) you must delete first. Only applications in ('ERROR', 'RUNNING') status can be automatically deleted.`)
       ]) :
       p({ style: { marginLeft: '1rem', fontWeight: 'bold' } }, `Detected ${deletableApps.length} automatically deletable application(s).`)
   }
@@ -83,7 +83,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
       onClick: () => deleteWorkspace(),
       tooltip: _.toLower(deleteConfirmation) !== 'delete workspace' ?
         isDeleteDisabledWithApps(deletableApps, nonDeletableApps) ? 'You must ensure all apps in this workspace are deletable' : 'You must type the confirmation message' :
-        'Delete workspace'
+        'Delete Workspace'
     }, 'Delete workspace')
   }, [
     div(['Are you sure you want to permanently delete the workspace ',
