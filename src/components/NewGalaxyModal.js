@@ -300,7 +300,7 @@ export const NewGalaxyModal = _.flow(
             div([
               h(NumberInput, {
                 id,
-                min: 10,
+                min: 200,
                 max: 64000,
                 isClearable: false,
                 onlyInteger: true,
