@@ -1,6 +1,6 @@
 import { differenceInSeconds, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, spinnerOverlay, TabBar } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -155,6 +155,11 @@ const useCloudEnvironmentPolling = namespace => {
   const [runtimes, setRuntimes] = useState()
   const [persistentDisks, setPersistentDisks] = useState()
   const [galaxyDataDisks, setGalaxyDataDisks] = useState()
+
+  //clean up timeout on unmount.
+  useEffect(() => {
+    return clearTimeout(timeout.current)
+  })
 
   const reschedule = ms => {
     clearTimeout(timeout.current)
