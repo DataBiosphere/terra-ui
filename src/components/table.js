@@ -261,6 +261,7 @@ FlexTable.propTypes = {
   variant: PropTypes.oneOf(['light']),
   noContentMessage: PropTypes.node,
   columns: PropTypes.arrayOf(PropTypes.shape({
+    field: PropTypes.string,
     headerRenderer: PropTypes.func.isRequired,
     cellRenderer: PropTypes.func.isRequired,
     size: PropTypes.shape({
@@ -278,7 +279,10 @@ FlexTable.propTypes = {
   styleHeader: PropTypes.func,
   styleCell: PropTypes.func,
   tableName: PropTypes.string,
-  sort: PropTypes.shape({ field: PropTypes.string, direction: PropTypes.string })
+  sort: PropTypes.shape({
+    field: PropTypes.string,
+    direction: PropTypes.string
+  })
 }
 
 /**
@@ -332,7 +336,8 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHigh
  */
 export const GridTable = Utils.forwardRefWithName('GridTable', ({
   width, height, initialX = 0, initialY = 0, rowHeight = 48, headerHeight = 48, noContentMessage,
-  rowCount, columns, styleCell = () => ({}), styleHeader = () => ({}), onScroll: customOnScroll = _.noop, tableName = 'data table'
+  rowCount, columns, styleCell = () => ({}), styleHeader = () => ({}), onScroll: customOnScroll = _.noop,
+  tableName = 'data table', sort = null
 }, ref) => {
   const [scrollbarSize, setScrollbarSize] = useState(0)
   const header = useRef()
@@ -365,7 +370,7 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
   }, [
     ({ onScroll, scrollLeft }) => {
       return div({
-        role: 'grid',
+        role: 'table',
         'aria-rowcount': rowCount + 1, // count the header row too
         'aria-colcount': columns.length,
         'aria-label': tableName
@@ -383,12 +388,14 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
           'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
           'aria-label': `${tableName} header row`, // The whole table is a tab stop so it needs a label
           cellRenderer: data => {
+            const field = columns[data.columnIndex].field
             return div({
               key: data.key,
               className: 'table-cell',
               role: 'columnheader',
-              'aria-colindex': data.columnIndex,
-              'aria-rowindex': 1, // the rowindex property must start at 1
+              'aria-colindex': data.columnIndex + 1,
+              'aria-rowindex': 1, // the rowindex property must start at 1,
+              'aria-sort': !sort || !field ? null : sort.field === field ? sort.direction === 'asc' ? 'ascending' : 'descending' : 'none',
               style: {
                 ...data.style,
                 ...styles.header(data.columnIndex, columns.length),
@@ -411,7 +418,7 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
           rowCount,
           columnCount: columns.length,
           role: 'rowgroup',
-          containerRole: 'presentation',
+          containerRole: 'row',
           'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
           'aria-label': `${tableName} content`, // The whole table is a tab stop so it needs a label
           noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage]),
@@ -422,8 +429,8 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
             return div({
               key: data.key,
               className: 'table-cell',
-              role: 'gridcell',
-              'aria-colindex': data.columnIndex,
+              role: 'cell',
+              'aria-colindex': data.columnIndex + 1,
               'aria-rowindex': data.rowIndex + 2, // The header row is 1
               style: {
                 ...data.style,
@@ -456,12 +463,20 @@ GridTable.propTypes = {
   rowCount: PropTypes.number.isRequired,
   styleHeader: PropTypes.func,
   styleCell: PropTypes.func,
-  columns: PropTypes.arrayOf(PropTypes.shape({ width: PropTypes.number.isRequired })),
+  columns: PropTypes.arrayOf(PropTypes.shape({
+    field: PropTypes.string,
+    width: PropTypes.number.isRequired,
+    headerRenderer: PropTypes.func.isRequired,
+    cellRenderer: PropTypes.func.isRequired
+  })),
   onScroll: PropTypes.func,
   headerHeight: PropTypes.number,
   rowHeight: PropTypes.number,
   tableName: PropTypes.string,
-  sort: PropTypes.shape({ field: PropTypes.string, direction: PropTypes.string })
+  sort: PropTypes.shape({
+    field: PropTypes.string,
+    direction: PropTypes.string
+  })
 }
 
 export const SimpleTable = ({ columns, rows }) => {
@@ -524,10 +539,7 @@ export const Sortable = ({ sort, field, onSort, columnIndex, children }) => {
     sort.field === field && div({
       style: { color: colors.accent(), marginLeft: 'auto' }
     }, [
-      icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up', {
-        'aria-hidden': false,
-        'aria-label': `sorted in ${sort.direction === 'asc' ? 'ascending' : 'descending'} order`
-      })
+      icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
     ]),
     div({ id, style: { display: 'none' } }, ['Click to sort by this column'])
   ])])
@@ -543,10 +555,7 @@ export const MiniSortable = ({ sort, field, onSort, columnIndex, children }) => 
     sort.field === field && div({
       style: { color: colors.accent(), marginLeft: '1rem' }
     }, [
-      icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up', {
-        'aria-hidden': false,
-        'aria-label': `sorted in ${sort.direction ? 'descending' : 'ascending'} order`
-      })
+      icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
     ]),
     div({ id, style: { display: 'none' } }, ['Click to sort by this column'])
   ])])
