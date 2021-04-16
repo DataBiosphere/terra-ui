@@ -1047,7 +1047,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                     h(Link, { onClick: () => this.setState({ viewMode: 'packages' }) }, ['What’s installed on this environment?'])
                   ]),
                   li({ style: { marginTop: '1rem' } }, [
-                    'Default compute size of ', span({ style: { fontWeight: 600 } }, [cpu, ' CPUs']), ', ',
+                    'Default compute size of ', span({ style: { fontWeight: 600 } }, [cpu, ' CPU(s)']), ', ',
                     span({ style: { fontWeight: 600 } }, [memory, ' GB memory']), ', and ',
                     oldPersistentDisk ?
                       h(Fragment, ['your existing ', renderDiskText()]) :
