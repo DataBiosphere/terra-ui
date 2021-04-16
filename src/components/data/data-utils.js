@@ -17,6 +17,7 @@ import ReferenceData from 'src/data/reference-data'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { requesterPaysProjectStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -212,6 +213,9 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
       const workspace = Ajax().Workspaces.workspace(namespace, name)
       await (useFireCloudDataModel ? workspace.importEntitiesFile : workspace.importFlexibleEntitiesFile)(file)
       onSuccess()
+      Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
+        workspaceNamespace: namespace, workspaceName: name
+      })
     } catch (error) {
       await reportError('Error uploading entities', error)
       onDismiss()
@@ -339,6 +343,28 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
             [isInvalid, () => 'Invalid format: Data does not start with entity or membership definition.'],
             [showInvalidEntryMethodWarning, () => 'Invalid Data Entry Method: Copy and paste only']
           )
+        ]),
+        div({ style: { borderTop: Style.standardLine, marginTop: '1rem' } }, [
+          div({ style: { marginTop: '1rem', fontWeight: 600 } }, ['TSV file templates']),
+          div({ style: { marginTop: '1rem' } }, [
+            icon('downloadRegular', { style: { size: 14, marginRight: '0.5rem' } }),
+            'Download ',
+            h(Link, {
+              href: 'https://storage.googleapis.com/terra-featured-workspaces/Table_templates/2-template_sample-table.tsv',
+              ...Utils.newTabLinkProps,
+              onClick: () => Ajax().Metrics.captureEvent(Events.workspaceSampleTsvDownload, {
+                workspaceNamespace: namespace, workspaceName: name
+              })
+            }, ['sample_template.tsv '])
+          ]),
+          div({ style: { marginTop: '1rem' } }, [
+            icon('pop-out', { style: { size: 14, marginRight: '0.5rem' } }),
+            'Terra Support: ',
+            h(Link, {
+              href: 'https://support.terra.bio/hc/en-us/articles/360059242671',
+              ...Utils.newTabLinkProps
+            }, [' Importing Data - Using a Template'])
+          ])
         ])
       ]),
       uploading && spinnerOverlay
