@@ -14,30 +14,33 @@ import { isAppDeletable } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 
 
-const LoadApps = workspaceName => {
-  const signal = Utils.useCancellation()
-  const [deletableApps, setDeletableApps] = useState()
-  const [nonDeletableApps, setNonDeletableApps] = useState()
-
-  const load = async () => {
-    const [currentWorkspaceAppList] = await Promise.all([
-      Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: workspaceName })
-    ])
-    const appPartition = _.partition(isAppDeletable, currentWorkspaceAppList)
-    setDeletableApps(appPartition[0])
-    setNonDeletableApps(appPartition[1])
-  }
-
-  Utils.useOnMount(() => {
-    load()
-  })
-
-  return { deletableApps, nonDeletableApps }
-}
-
 const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucketName } }, onDismiss, onSuccess }) => {
   const [deleting, setDeleting] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
+  const [loadingApps, setLoadingApps] = useState(true)
+
+  const LoadApps = workspaceName => {
+    const signal = Utils.useCancellation()
+    const [deletableApps, setDeletableApps] = useState()
+    const [nonDeletableApps, setNonDeletableApps] = useState()
+
+    const load = async () => {
+      const [currentWorkspaceAppList] = await Promise.all([
+        Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: workspaceName })
+      ])
+      const appPartition = _.partition(isAppDeletable, currentWorkspaceAppList)
+      setDeletableApps(appPartition[0])
+      setNonDeletableApps(appPartition[1])
+      setLoadingApps(false)
+    }
+
+    Utils.useOnMount(() => {
+      load()
+    })
+
+    return { deletableApps, nonDeletableApps }
+  }
+
   const { deletableApps, nonDeletableApps } = LoadApps(name)
 
   const getAppDeletionMessage = (deletableApps, nonDeletableApps) => {
@@ -116,7 +119,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
         onChange: setDeleteConfirmation
       })
     ]),
-    deleting && spinnerOverlay
+    (deleting || loadingApps) && spinnerOverlay
   ])
 }
 
