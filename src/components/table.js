@@ -499,10 +499,11 @@ GridTable.propTypes = {
   })
 }
 
-export const SimpleTable = ({ columns, rows }) => {
+export const SimpleTable = ({ columns, rows, tableName = 'data table' }) => {
   const cellStyles = { paddingTop: '0.25rem', paddingBottom: '0.25rem' }
   return h(div, {
-    role: 'table'
+    role: 'table',
+    'aria-label': tableName
   }, [
     div({ style: { display: 'flex' } }, [
       _.map(({ key, header, size }) => {
