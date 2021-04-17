@@ -239,7 +239,7 @@ export const FlexTable = ({
               style: {
                 ...styles.flexCell(size),
                 ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length)),
-                ...(styleCell ? styleCell({ ...data, columnIndex: i, rowIndex: data.rowIndex + 1 }) : {})
+                ...(styleCell ? styleCell({ ...data, columnIndex: i, rowIndex: data.rowIndex }) : {})
               }
             }, [cellRenderer({ ...data, columnIndex: i, rowIndex: data.rowIndex })])
           }, Utils.toIndexPairs(columns))
