@@ -61,6 +61,12 @@ const fillIn = async (page, xpath, text) => {
   return (await page.waitForXPath(xpath)).type(text, { delay: 20 })
 }
 
+// Replace pre-existing value
+const fillInReplace = async (page, xpath, text) => {
+  await (await findElement(page, xpath)).click({ clickCount: 3 }) // triple-click to replace the default text
+  return await fillIn(page, xpath, text)
+}
+
 const select = async (page, labelContains, text) => {
   await click(page, input({ labelContains }))
   return click(page, `//div[starts-with(@id, "react-select-") and contains(normalize-space(.),"${text}")]`)
@@ -164,6 +170,7 @@ module.exports = {
   findElement,
   findText,
   fillIn,
+  fillInReplace,
   input,
   select,
   svgText,

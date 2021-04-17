@@ -19,8 +19,17 @@ import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { appIsSettingUp, collapsedRuntimeStatus, currentApp, currentRuntime, persistentDiskCost, runtimeCost, trimRuntimesOldestFirst } from 'src/libs/runtime-utils'
-import { errorNotifiedRuntimes } from 'src/libs/state'
+import {
+  appIsSettingUp,
+  collapsedRuntimeStatus,
+  convertedAppStatus,
+  currentApp,
+  currentRuntime,
+  persistentDiskCost,
+  runtimeCost,
+  trimRuntimesOldestFirst
+} from 'src/libs/runtime-utils'
+import { errorNotifiedApps, errorNotifiedRuntimes } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -108,6 +117,50 @@ const RuntimeErrorNotification = ({ runtime }) => {
   ])
 }
 
+export const AppErrorModal = ({ app, onDismiss }) => {
+  const [error, setError] = useState()
+  const [loadingAppDetails, setLoadingAppDetails] = useState(false)
+
+  const loadAppError = _.flow(
+    withErrorReporting('Error loading app details'),
+    Utils.withBusyState(setLoadingAppDetails)
+  )(async () => {
+    const { errors: appErrors } = await Ajax().Apps.app(app.googleProject, app.appName).details()
+    setError(appErrors[0]?.errorMessage)
+  })
+
+  Utils.useOnMount(() => { loadAppError() })
+
+  return h(Modal, {
+    title: `Galaxy App Creation Failed`,
+    showCancel: false,
+    onDismiss
+  }, [
+    div({ style: { whiteSpace: 'pre-wrap', overflowWrap: 'break-word', overflowY: 'auto', maxHeight: 500, background: colors.light() } }, [error]),
+    loadingAppDetails && spinnerOverlay
+  ])
+}
+
+
+const AppErrorNotification = ({ app }) => {
+  const [modalOpen, setModalOpen] = useState(false)
+
+  return h(Fragment, [
+    h(Clickable, {
+      onClick: () => setModalOpen(true),
+      style: {
+        marginTop: '1rem',
+        textDecoration: 'underline',
+        fontWeight: 'bold'
+      }
+    }, ['SEE LOG INFO']),
+    modalOpen && h(AppErrorModal, {
+      app,
+      onDismiss: () => setModalOpen(false)
+    })
+  ])
+}
+
 export default class RuntimeManager extends PureComponent {
   static propTypes = {
     namespace: PropTypes.string.isRequired,
@@ -117,7 +170,8 @@ export default class RuntimeManager extends PureComponent {
     canCompute: PropTypes.bool.isRequired,
     refreshRuntimes: PropTypes.func.isRequired,
     workspace: PropTypes.object,
-    apps: PropTypes.array
+    apps: PropTypes.array,
+    galaxyDataDisks: PropTypes.array
   }
 
   constructor(props) {
@@ -182,6 +236,11 @@ export default class RuntimeManager extends PureComponent {
           })
         ])
       })
+    } else if (app && app.status === 'ERROR' && !_.includes(app.appName, errorNotifiedApps.get())) {
+      notify('error', 'Error Creating Galaxy App', {
+        message: h(AppErrorNotification, { app })
+      })
+      errorNotifiedApps.update(Utils.append(app.appName))
     }
   }
 
@@ -223,7 +282,7 @@ export default class RuntimeManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, runtimes, refreshRuntimes, canCompute, persistentDisks, apps, refreshApps, workspace } = this.props
+    const { namespace, name, runtimes, refreshRuntimes, canCompute, persistentDisks, apps, galaxyDataDisks, refreshApps, workspace } = this.props
     const { busy, createModalDrawerOpen, errorModalOpen, galaxyDrawerOpen } = this.state
     if (!runtimes || !apps) {
       return null
@@ -297,8 +356,8 @@ export default class RuntimeManager extends PureComponent {
           style: { display: 'flex' },
           disabled: appIsSettingUp(app),
           tooltip: appIsSettingUp(app) ?
-            'Your Galaxy application is being created' :
-            'Update cloud environment',
+            'Galaxy app is being created' :
+            'View cloud environment',
           onClick: () => {
             this.setState({ galaxyDrawerOpen: true })
           }
@@ -306,7 +365,7 @@ export default class RuntimeManager extends PureComponent {
           img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
           div([
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, ['Galaxy']),
-            div({ style: { fontSize: 10, textTransform: 'uppercase' } }, [app.status])
+            div({ style: { fontSize: 10 } }, [convertedAppStatus(app.status)])
           ])
         ])
       ]),
@@ -341,7 +400,7 @@ export default class RuntimeManager extends PureComponent {
             div({ style: { marginLeft: '0.5rem', paddingRight: '0.5rem', color: colors.dark() } }, [
               div({ style: { fontSize: 12, fontWeight: 'bold' } }, 'Cloud Environment'),
               div({ style: { fontSize: 10 } }, [
-                span({ style: { textTransform: 'uppercase', fontWeight: 500 } },
+                span({ style: { textTransform: 'capitalize', fontWeight: 500 } },
                   [currentStatus === 'LeoReconfiguring' ? 'Updating' : (currentStatus || 'None')]),
                 !!totalCost && ` (${Utils.formatUSD(totalCost)} / hr)`
               ])
@@ -366,11 +425,14 @@ export default class RuntimeManager extends PureComponent {
         h(NewGalaxyModal, {
           workspace,
           apps,
+          galaxyDataDisks,
           isOpen: galaxyDrawerOpen,
           onDismiss: () => this.setState({ galaxyDrawerOpen: false }),
           onSuccess: () => {
-            this.setState({ galaxyDrawerOpen: false })
-            refreshApps()
+            withErrorReporting('Error loading galaxy environment')(
+              this.setState({ galaxyDrawerOpen: false }),
+              refreshApps()
+            )
           }
         }),
         errorModalOpen && h(RuntimeErrorModal, {

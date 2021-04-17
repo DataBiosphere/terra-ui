@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import { Clickable, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -22,8 +22,29 @@ const styles = {
 const buildTimestamp = new Date(parseInt(process.env.REACT_APP_BUILD_TIMESTAMP, 10))
 
 // If you change the layout here, make sure it's reflected in the pre-rendered version in public/index.html
-const FooterWrapper = ({ children, alwaysShow }) => {
+const FooterWrapper = ({ children, alwaysShow, fixedHeight }) => {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [scrollBarHeight, setScrollBarHeight] = useState(window.innerHeight - document.body.offsetHeight)
+
+  useEffect(() => {
+    function handleResize() {
+      const newScrollBarHeight = window.innerHeight - document.body.offsetHeight
+      if (scrollBarHeight !== newScrollBarHeight) {
+        setScrollBarHeight(newScrollBarHeight)
+      }
+    }
+
+    if (fixedHeight) {
+      window.addEventListener('resize', handleResize)
+    }
+    return _ => {
+      window.removeEventListener('resize', handleResize)
+    }
+  })
+
+
+  const expandedFooterHeight = 60
+  const shrunkFooterHeight = 20
 
   const bdcFooterContent = div({ style: { display: 'grid', gridTemplateColumns: 'repeat(4, auto)', gap: '0.5rem 2rem', fontSize: 10 } }, [
     a({ href: 'https://biodatacatalyst.nhlbi.nih.gov/privacy', ...Utils.newTabLinkProps }, 'Privacy Policy'),
@@ -62,18 +83,23 @@ const FooterWrapper = ({ children, alwaysShow }) => {
     ])
   ])
 
-  return div({ style: { display: 'flex', flexDirection: 'column', minHeight: '100%', flexGrow: 1 } }, [
-    children,
-    (isBioDataCatalyst() || alwaysShow) && h(div, {
+  const footerExists = isBioDataCatalyst() || alwaysShow
+  const expandedFooterVisible = isExpanded || alwaysShow
+
+  return div({ style: { display: 'flex', flexDirection: 'column', height: fixedHeight ? `calc(100vh - ${scrollBarHeight}px)` : '100%', flexGrow: 1 } }, [
+    div({ style: { display: 'flex', flexDirection: 'column', flexGrow: 1, height: `calc(100% - ${footerExists ? (!alwaysShow ? shrunkFooterHeight : 0) + (expandedFooterVisible ? expandedFooterHeight : 0) : 0}px)` } }, [children]),
+    footerExists && h(div, {
       role: 'contentinfo',
       style: styles.footer
     }, [
       !alwaysShow && h(Clickable, {
-        onClick: () => setIsExpanded(!isExpanded),
-        style: { fontSize: 10, padding: '0.25rem 0' }
+        onClick: () => {
+          setIsExpanded(!isExpanded)
+        },
+        style: { fontSize: 10, padding: '0.25rem 0', height: shrunkFooterHeight }
       }, [`${isExpanded ? 'Hide' : 'Show'} Legal and Regulatory Information`]),
-      (isExpanded || alwaysShow) && div({
-        style: { display: 'flex', alignItems: 'center', height: 60 }
+      expandedFooterVisible && div({
+        style: { display: 'flex', alignItems: 'center', height: expandedFooterHeight }
       }, [
         !isBioDataCatalyst() ? standardFooterContent : bdcFooterContent
       ])

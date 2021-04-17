@@ -1,7 +1,8 @@
+import filesize from 'filesize'
 import { dd, div, dl, dt, h, p, strong } from 'react-hyperscript-helpers'
+import { ButtonPrimary } from 'src/components/common'
 import Modal from 'src/components/Modal'
 import colors from 'src/libs/colors'
-import { friendlyFileSize } from 'src/libs/uploads'
 
 
 export const ProgressBar = ({ max, now }) => {
@@ -52,8 +53,11 @@ export const UploadProgressModal = ({ status: { totalFiles, totalBytes, uploaded
   return h(Modal, {
     title: 'Upload in Progress...',
     showCancel: false,
-    onDismiss: abort,
-    okButton: 'Abort Upload',
+    onDismiss: () => {},
+    okButton: h(ButtonPrimary, {
+      onClick: abort,
+      danger: true
+    }, ['Abort Upload']),
     danger: true
   }, [
     p({
@@ -73,7 +77,7 @@ export const UploadProgressModal = ({ status: { totalFiles, totalBytes, uploaded
       dt(['Size:']),
       dd({
         style: { margin: '0.4rem 0 1rem 0', fontWeight: 600 }
-      }, [friendlyFileSize(currentFile.size)])
+      }, [filesize(currentFile.size, { round: 1 })])
     ]),
     h(ProgressBar, {
       max: totalBytes,
@@ -81,9 +85,9 @@ export const UploadProgressModal = ({ status: { totalFiles, totalBytes, uploaded
     }),
     p({}, [
       'Transferred ',
-      strong([friendlyFileSize(uploadedBytes)]),
+      strong([filesize(uploadedBytes, { round: 1 })]),
       ' of ',
-      strong([friendlyFileSize(totalBytes)]),
+      strong([filesize(totalBytes, { round: 1 })]),
       ' ',
       strong(['(', (uploadedBytes / totalBytes * 100).toFixed(0), '%)'])
     ])

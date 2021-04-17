@@ -21,6 +21,7 @@ import { SnapshotInfo } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { pfbImportJobStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -122,7 +123,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
     ])
   ])
 }
-const SnapshotContent = ({ workspace, snapshotDetails, entityKey, loadMetadata, onUpdate, firstRender, snapshotKey: [snapshotName, tableName] }) => {
+const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, onDelete, firstRender, snapshotKey: [snapshotName, tableName] }) => {
   return Utils.cond(
     [!snapshotDetails?.[snapshotName], () => spinnerOverlay],
     [!!tableName, () => h(EntitiesContent, {
@@ -133,7 +134,7 @@ const SnapshotContent = ({ workspace, snapshotDetails, entityKey, loadMetadata, 
       loadMetadata,
       firstRender
     })],
-    () => h(SnapshotInfo, { workspace, resource: snapshotDetails[snapshotName].resource, snapshotName, onUpdate })
+    () => h(SnapshotInfo, { workspace, resource: snapshotDetails[snapshotName].resource, snapshotName, onUpdate, onDelete })
   )
 }
 
@@ -226,18 +227,23 @@ const BucketContent = _.flow(
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
     onDropAccepted: uploadFiles
   }, [({ openUploader }) => h(Fragment, [
-    div([
-      _.map(({ label, target }) => {
-        return h(Fragment, { key: target }, [
-          makeBucketLink({ label, target, onClick: () => load(target) }),
-          ' / '
+    div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+      div([
+        _.map(({ label, target }) => {
+          return h(Fragment, { key: target }, [
+            makeBucketLink({ label, target, onClick: () => load(target) }),
+            ' / '
+          ])
+        }, [
+          { label: 'Files', target: '' },
+          ..._.map(n => {
+            return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
+          }, _.range(0, prefixParts.length))
         ])
-      }, [
-        { label: 'Files', target: '' },
-        ..._.map(n => {
-          return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
-        }, _.range(0, prefixParts.length))
-      ])
+      ]),
+      h(Link, { href: `https://seqr.broadinstitute.org/workspace/${namespace}/${workspace.workspace.name}` },
+        ['Analyze in Seqr ', icon('pop-out', { size: 14 })]
+      )
     ]),
     div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
     h(SimpleTable, {
@@ -454,7 +460,7 @@ const WorkspaceData = _.flow(
           error: snapshotMetadataError,
           retryFunction: loadSnapshotMetadata
         }, [
-          _.map(([snapshotName, { entityMetadata: snapshotTables, error: snapshotTablesError }]) => {
+          _.map(([snapshotName, { resource: { referenceId, reference: { snapshot } }, entityMetadata: snapshotTables, error: snapshotTablesError }]) => {
             const snapshotTablePairs = toSortedPairs(snapshotTables)
             return h(Collapse, {
               key: snapshotName,
@@ -496,6 +502,12 @@ const WorkspaceData = _.flow(
                     selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
                     onClick: () => {
                       setSelectedDataType([snapshotName, tableName])
+                      Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {
+                        ...extractWorkspaceDetails(workspace.workspace),
+                        referenceId,
+                        snapshotId: snapshot,
+                        entityType: tableName
+                      })
                       forceRefresh()
                     }
                   }, [`${tableName} (${count})`])
@@ -607,6 +619,11 @@ const WorkspaceData = _.flow(
             onUpdate: async newSnapshotName => {
               await loadSnapshotMetadata()
               setSelectedDataType([newSnapshotName])
+              forceRefresh()
+            },
+            onDelete: async () => {
+              await loadSnapshotMetadata()
+              setSelectedDataType()
               forceRefresh()
             },
             firstRender

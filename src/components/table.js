@@ -167,7 +167,8 @@ export const tableHeight = ({ actualRows, maxRows, heightPerRow = 48 }) => (_.mi
  */
 export const FlexTable = ({
   initialY = 0, width, height, rowCount, variant, columns = [], hoverHighlight = false,
-  onScroll = _.noop, noContentMessage = null, ...props
+  onScroll = _.noop, noContentMessage = null, headerHeight = 48, rowHeight = 48,
+  styleCell = () => ({}), styleHeader = () => ({}), ...props
 }) => {
   const [scrollbarSize, setScrollbarSize] = useState(0)
   const body = useRef()
@@ -180,23 +181,27 @@ export const FlexTable = ({
     div({
       style: {
         width: width - scrollbarSize,
-        height: 48,
+        height: headerHeight,
         display: 'flex'
       }
     }, [
       ..._.map(([i, { size, headerRenderer }]) => {
         return div({
           key: i,
-          style: { ...styles.flexCell(size), ...(variant === 'light' ? {} : styles.header(i * 1, columns.length)) }
+          style: {
+            ...styles.flexCell(size),
+            ...(variant === 'light' ? {} : styles.header(i * 1, columns.length)),
+            ...(styleHeader ? styleHeader({ columnIndex: i }) : {})
+          }
         }, [headerRenderer()])
       }, _.toPairs(columns))
     ]),
     h(RVGrid, {
       ref: body,
       width,
-      height: height - 48,
+      height: height - headerHeight,
       columnWidth: width - scrollbarSize,
-      rowHeight: 48,
+      rowHeight,
       rowCount,
       columnCount: 1,
       onScrollbarPresenceChange: ({ vertical, size }) => {
@@ -214,7 +219,11 @@ export const FlexTable = ({
             return div({
               key: i,
               className: 'table-cell',
-              style: { ...styles.flexCell(size), ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length)) }
+              style: {
+                ...styles.flexCell(size),
+                ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length)),
+                ...(styleCell ? styleCell({ ...data, columnIndex: i }) : {})
+              }
             }, [cellRenderer(data)])
           }, _.toPairs(columns))
         ])
@@ -246,7 +255,11 @@ FlexTable.propTypes = {
     })
   })),
   hoverHighlight: PropTypes.bool,
-  onScroll: PropTypes.func
+  onScroll: PropTypes.func,
+  headerHeight: PropTypes.number,
+  rowHeight: PropTypes.number,
+  styleHeader: PropTypes.func,
+  styleCell: PropTypes.func
 }
 
 /**
@@ -289,8 +302,8 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHigh
  * datasets which may require horizontal scrolling.
  */
 export const GridTable = Utils.forwardRefWithName('GridTable', ({
-  width, height, initialX = 0, initialY = 0,
-  rowCount, columns, styleCell = () => ({}), onScroll: customOnScroll = _.noop, noContentMessage
+  width, height, initialX = 0, initialY = 0, rowHeight = 48, headerHeight = 48, noContentMessage,
+  rowCount, columns, styleCell = () => ({}), styleHeader = () => ({}), onScroll: customOnScroll = _.noop
 }, ref) => {
   const [scrollbarSize, setScrollbarSize] = useState(0)
   const header = useRef()
@@ -326,16 +339,20 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
         h(RVGrid, {
           ref: header,
           width: width - scrollbarSize,
-          height: 48,
+          height: headerHeight,
           columnWidth: ({ index }) => columns[index].width,
-          rowHeight: 48,
+          rowHeight: headerHeight,
           rowCount: 1,
           columnCount: columns.length,
           cellRenderer: data => {
             return div({
               key: data.key,
               className: 'table-cell',
-              style: { ...data.style, ...styles.header(data.columnIndex, columns.length) }
+              style: {
+                ...data.style,
+                ...styles.header(data.columnIndex, columns.length),
+                ...styleHeader(data)
+              }
             }, [
               columns[data.columnIndex].headerRenderer(data)
             ])
@@ -347,9 +364,9 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
         h(RVGrid, {
           ref: body,
           width,
-          height: height - 48,
+          height: height - headerHeight,
           columnWidth: ({ index }) => columns[index].width,
-          rowHeight: 48,
+          rowHeight,
           rowCount,
           columnCount: columns.length,
           noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage]),
@@ -389,9 +406,12 @@ GridTable.propTypes = {
   initialX: PropTypes.number,
   initialY: PropTypes.number,
   rowCount: PropTypes.number.isRequired,
+  styleHeader: PropTypes.func,
   styleCell: PropTypes.func,
   columns: PropTypes.arrayOf(PropTypes.shape({ width: PropTypes.number.isRequired })),
-  onScroll: PropTypes.func
+  onScroll: PropTypes.func,
+  headerHeight: PropTypes.number,
+  rowHeight: PropTypes.number
 }
 
 export const SimpleTable = ({ columns, rows, ...props }) => {

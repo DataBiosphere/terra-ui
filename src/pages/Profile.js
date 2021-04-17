@@ -164,7 +164,7 @@ const NihLink = ({ nihToken }) => {
 }
 
 
-const FenceLink = ({ provider: { key, name } }) => {
+const FenceLink = ({ provider: { key, name, expiresAfter } }) => {
   const decodeProvider = state => state ? JSON.parse(atob(state)).provider : ''
 
   const extractToken = (provider, { state, code }) => {
@@ -204,13 +204,10 @@ const FenceLink = ({ provider: { key, name } }) => {
   /*
    * Render
    */
-  const isBusy = isLinking
-  const expireTime = addDays(30, parseJSON(issuedAt))
-
   return div({ style: { marginBottom: '1rem' } }, [
     div({ style: { ...styles.form.title, fontWeight: 600 } }, [name]),
     Utils.cond(
-      [isBusy, () => div([spinner(), 'Loading account status...'])],
+      [isLinking, () => div([spinner(), 'Loading account status...'])],
       [!username, () => div({ style: styles.identityLine },
         [h(FrameworkServiceLink, { linkText: 'Log in to link your account', provider: key, redirectUrl })]
       )],
@@ -221,7 +218,7 @@ const FenceLink = ({ provider: { key, name } }) => {
         ]),
         div({ style: styles.identityLine }, [
           div({ style: { flex: 1 } }, ['Link Expiration:']),
-          div({ style: { flex: 2 } }, [Utils.makeCompleteDate(expireTime)])
+          div({ style: { flex: 2 } }, [Utils.makeCompleteDate(addDays(expiresAfter, parseJSON(issuedAt)))])
         ]),
         div({ style: styles.identityLine }, [
           h(FrameworkServiceLink, { linkText: 'Renew', provider: key, redirectUrl }),

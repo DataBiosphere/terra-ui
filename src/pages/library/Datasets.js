@@ -140,7 +140,7 @@ const thousandGenomesLowCoverage = () => h(Participant, {
 ])
 
 const amppd = () => h(Participant, {
-  logo: { src: amppdLogo, alt: 'AMP-PD logo' },
+  logo: { src: amppdLogo, alt: 'AMP-PD logo', height: '100%' },
   title: `AMP Parkinson's Disease`,
   shortDescription: `The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National
   Institutes of Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit organizations to
