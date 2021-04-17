@@ -6,7 +6,7 @@ import Draggable from 'react-draggable'
 import { button, div, h, label, option, select } from 'react-hyperscript-helpers'
 import Pagination from 'react-paginating'
 import { SortableContainer, SortableElement, SortableHandle } from 'react-sortable-hoc'
-import { AutoSizer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
+import { AutoSizer, defaultCellRangeRenderer, Grid as RVGrid, List, ScrollSync as RVScrollSync } from 'react-virtualized'
 import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
@@ -418,7 +418,7 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
           rowCount,
           columnCount: columns.length,
           role: 'rowgroup',
-          containerRole: 'row',
+          containerRole: 'presentation',
           'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
           'aria-label': `${tableName} content`, // The whole table is a tab stop so it needs a label
           noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage]),
@@ -426,21 +426,41 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
             setScrollbarSize(vertical ? size : 0)
           },
           cellRenderer: data => {
-            return div({
-              key: data.key,
-              className: 'table-cell',
-              role: 'cell',
-              'aria-colindex': data.columnIndex + 1,
-              'aria-rowindex': data.rowIndex + 2, // The header row is 1
-              style: {
-                ...data.style,
-                ...styles.cell(data.columnIndex, columns.length),
-                backgroundColor: 'white',
-                ...styleCell(data)
-              }
-            }, [
-              columns[data.columnIndex].cellRenderer(data)
-            ])
+            return {
+              // Cells will be grouped by row by the cellRangeRenderer
+              rowIndex: data.rowIndex,
+              cell: div({
+                key: data.key,
+                className: 'table-cell',
+                role: 'cell',
+                'aria-colindex': data.columnIndex + 1,
+                'aria-rowindex': data.rowIndex + 2, // The header row is 1
+                style: {
+                  ...data.style,
+                  ...styles.cell(data.columnIndex, columns.length),
+                  backgroundColor: 'white',
+                  ...styleCell(data)
+                }
+              }, [
+                columns[data.columnIndex].cellRenderer(data)
+              ])
+            }
+          },
+          cellRangeRenderer: data => {
+            // The default renderer returns a flat array of all of the cells to render in the DOM
+            const cells = defaultCellRangeRenderer(data)
+
+            // Group the cells into rows to support a11y
+            return _.flow(
+              _.groupBy('rowIndex'),
+              Utils.toIndexPairs,
+              _.map(([i, cells]) => {
+                return div({
+                  key: `row-${i}`,
+                  role: 'row'
+                }, _.map('cell', cells))
+              })
+            )(cells)
           },
           style: { outline: 'none' },
           scrollLeft,
