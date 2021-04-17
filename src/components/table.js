@@ -414,20 +414,12 @@ GridTable.propTypes = {
   rowHeight: PropTypes.number
 }
 
-export const SimpleTable = ({ columns, rows, ...props }) => {
+export const SimpleTable = ({ columns, rows }) => {
   const cellStyles = { paddingTop: '0.25rem', paddingBottom: '0.25rem' }
   return h(Fragment, [
-    div({
-      style: { display: 'flex' },
-      role: 'grid',
-      ...props
-    }, [
+    div({ style: { display: 'flex' } }, [
       _.map(({ key, header, size }) => {
-        return div({
-          key,
-          style: { ...cellStyles, ...styles.flexCell(size) },
-          role: 'columnheader'
-        }, [header])
+        return div({ key, style: { ...cellStyles, ...styles.flexCell(size) } }, [header])
       }, columns)
     ]),
     _.map(([i, row]) => {
@@ -435,14 +427,12 @@ export const SimpleTable = ({ columns, rows, ...props }) => {
         key: i,
         as: 'div',
         style: { display: 'flex' }, className: 'table-row',
-        hover: { backgroundColor: colors.light(0.4) },
-        role: 'row'
+        hover: { backgroundColor: colors.light(0.4) }
       }, [
         _.map(({ key, size }) => {
           return div({
             key,
             className: 'table-cell',
-            role: 'gridcell',
             style: {
               ...cellStyles, ...styles.flexCell(size),
               borderTop: `1px solid ${colors.dark(0.2)}`
