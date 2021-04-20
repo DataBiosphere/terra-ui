@@ -340,7 +340,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
             ...(cloudService === cloudServices.GCE ? {
               machineType: masterMachineType || defaultGceMachineType,
-              bootDiskSize: oldRuntime?.bootDiskSize,
+              bootDiskSize: existingRuntime?.bootDiskSize,
               ...(this.shouldUsePersistentDisk() ? {
                 persistentDiskAttached: true
               } : {
