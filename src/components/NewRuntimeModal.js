@@ -355,7 +355,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             } : {
               region: computeRegion,
               machineType: masterMachineType || defaultDataprocMachineType,
-                            masterDiskSize,
+              masterDiskSize,
               numberOfWorkers: desiredNumberOfWorkers,
               ...(desiredNumberOfWorkers && {
                 numberOfPreemptibleWorkers,
