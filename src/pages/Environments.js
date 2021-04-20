@@ -193,7 +193,7 @@ const Environments = () => {
             headerRenderer: () => 'Location',
             cellRenderer: ({ rowIndex }) => {
               const { runtimeConfig: { zone, region } } = filteredRuntimes[rowIndex]
-              return zone ? zone : region
+              return zone || region
             }
           },
           {
