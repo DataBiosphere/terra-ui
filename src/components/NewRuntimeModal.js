@@ -263,7 +263,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const shouldDeleteRuntime = existingRuntime && !this.canUpdateRuntime()
     const shouldCreateRuntime = !this.canUpdateRuntime() && desiredRuntime
     const { name, bucketName, googleProject } = this.getWorkspaceObj()
-    const { computeZone, clusterRegion } = regionInfo(bucketLocation, bucketLocationType)
+    const { computeZone, computeRegion } = regionInfo(bucketLocation, bucketLocationType)
 
     const runtimeConfig = desiredRuntime && {
       cloudService: desiredRuntime.cloudService,
@@ -282,7 +282,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
           }
         })
       } : {
-        region: clusterRegion,
+        region: computeRegion,
         masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
         masterDiskSize: desiredRuntime.masterDiskSize,
         numberOfWorkers: desiredRuntime.numberOfWorkers,
@@ -336,7 +336,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = this.getExistingEnvironmentConfig()
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
     const desiredNumberOfWorkers = sparkMode === 'cluster' ? numberOfWorkers : 0
-    const { computeZone, clusterRegion } = regionInfo(bucketLocation, bucketLocationType)
+    const { computeZone, computeRegion } = regionInfo(bucketLocation, bucketLocationType)
     return {
       runtime: Utils.cond(
         [(viewMode !== 'deleteEnvironmentOptions'), () => {
@@ -353,7 +353,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                 diskSize: masterDiskSize
               })
             } : {
-              region: clusterRegion,
+              region: computeRegion,
               machineType: masterMachineType || defaultDataprocMachineType,
                             masterDiskSize,
               numberOfWorkers: desiredNumberOfWorkers,
@@ -381,7 +381,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const runtimeConfig = currentRuntimeDetails?.runtimeConfig
     const cloudService = runtimeConfig?.cloudService
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
-    const { computeZone, clusterRegion } = regionInfo(bucketLocation, bucketLocationType)
+    const { computeZone, computeRegion } = regionInfo(bucketLocation, bucketLocationType)
     return {
       runtime: currentRuntimeDetails ? {
         cloudService,
@@ -396,7 +396,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             diskSize: runtimeConfig.diskSize
           })
         } : {
-          region: clusterRegion,
+          region: computeRegion,
           masterMachineType: runtimeConfig.masterMachineType || defaultDataprocMachineType,
           masterDiskSize: runtimeConfig.masterDiskSize || 100,
           numberOfWorkers,
