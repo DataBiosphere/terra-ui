@@ -19,7 +19,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
   currentRuntime, DEFAULT_DISK_SIZE, defaultDataprocMachineType, defaultGceMachineType, findMachineType, getDefaultMachineType,
   persistentDiskCostMonthly,
-  runtimeConfigBaseCost, runtimeConfigCost
+  runtimeConfigBaseCost, runtimeConfigCost, DEFAULT_LOCATION, DEFAULT_LOCATION_TYPE
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -510,8 +510,8 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       selectedLeoImage: foundImage ? imageUrl : CUSTOM_MODE,
       customEnvImage: !foundImage ? imageUrl : '',
       jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri || '',
-      bucketLocation: location,
-      bucketLocationType: locationType,
+      bucketLocation: location || DEFAULT_LOCATION,
+      bucketLocationType: locationType || DEFAULT_LOCATION_TYPE,
       ...this.getInitialState(currentRuntimeDetails, currentPersistentDiskDetails)
     })
   })
