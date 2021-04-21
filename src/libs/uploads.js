@@ -107,20 +107,3 @@ export const uploadFiles = async ({ namespace, bucketName, prefix, files, status
   }
   setStatus({ action: 'finish' })
 }
-
-export const friendlyFileSize = bytes => {
-  const bins = [
-    { pow: 5, fixed: 3, text: 'PB' },
-    { pow: 4, fixed: 3, text: 'TB' },
-    { pow: 3, fixed: 2, text: 'GB' },
-    { pow: 2, fixed: 1, text: 'MB' },
-    { pow: 1, fixed: 0, text: 'KB' }
-  ]
-  for (const bin of bins) {
-    const pow = Math.pow(1024, bin.pow)
-    if (bytes > pow) {
-      return `${(bytes / pow).toFixed(bin.fixed)} ${bin.text}`
-    }
-  }
-  return `${bytes} bytes`
-}

@@ -24,6 +24,7 @@ const eventsList = {
   workflowRerun: 'workflow:rerun',
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
+  workspaceDataDownload: 'workspace:data:download',
   workspaceDataImport: 'workspace:data:import',
   workspaceOpenFromList: 'workspace:open-from-list',
   workspaceShare: 'workspace:share',

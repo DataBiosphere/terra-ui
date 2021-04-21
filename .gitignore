@@ -24,9 +24,9 @@ yarn-error.log*
 # Additions beyond the default react-create-app .gitignore file.
 #
 
-/.idea/
+.idea/
 saturn-ui.iml
 
-/.vscode/
+.vscode/
 
 /integration-tests/failures

@@ -25,7 +25,7 @@ import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
 
-const warningBoxStyle = {
+export const warningBoxStyle = {
   backgroundColor: colors.warning(0.15),
   padding: '1rem 1.25rem',
   color: colors.dark(), fontWeight: 'bold', fontSize: 12

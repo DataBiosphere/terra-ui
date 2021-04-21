@@ -12,6 +12,7 @@ import DownloadPrices from 'src/data/download-prices'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { knownBucketRequesterPaysStatuses, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -120,6 +121,13 @@ const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size } }) => 
       div({ style: { display: 'flex', justifyContent: 'center' } }, [
         h(ButtonPrimary, {
           disabled: !url,
+          onClick: () => {
+            Ajax().Metrics.captureEvent(Events.workspaceDataDownload, {
+              ...extractWorkspaceDetails(workspaceStore.get().workspace),
+              fileType: _.head((/\.\w+$/).exec(uri)),
+              downloadFrom: 'file direct'
+            })
+          },
           href: url,
           /*
            NOTE:
@@ -260,7 +268,7 @@ export const UriViewerLink = ({ uri, googleProject }) => {
         e.preventDefault()
         setModalOpen(true)
       }
-    }, [isGs(uri) ? _.last(uri.split('/')) : uri]),
+    }, [isGs(uri) ? _.last(uri.split(/\/\b/)) : uri]),
     modalOpen && h(UriViewer, {
       onDismiss: () => setModalOpen(false),
       uri, googleProject

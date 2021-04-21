@@ -324,7 +324,7 @@ const User = signal => ({
 
   getFenceAuthUrl: async (provider, redirectUri) => {
     const queryParams = {
-      scopes: ['openid', 'google_credentials'],
+      scopes: ['openid', 'google_credentials', 'data', 'user'],
       redirect_uri: redirectUri,
       state: btoa(JSON.stringify({ provider }))
     }
@@ -658,9 +658,6 @@ const Workspaces = signal => ({
       },
 
       listSnapshot: async (limit, offset) => {
-        if (getConfig().hideSnapshots) {
-          return { resources: [] }
-        }
         const res = await fetchRawls(`${root}/snapshots?offset=${offset}&limit=${limit}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
@@ -939,8 +936,9 @@ const Buckets = signal => ({
     const items = body.items || []
 
     // Get the next page recursively if there is one
-    if (res.nextPageToken) {
-      return _.concat(items, await Buckets(signal).listAll(namespace, bucket, prefix, res.nextPageToken))
+    if (body.nextPageToken) {
+      const next = await Buckets(signal).listAll(namespace, bucket, prefix, body.nextPageToken)
+      return _.concat(items, next)
     }
     return items
   },
@@ -1241,11 +1239,13 @@ const Apps = signal => ({
         return fetchLeo(`${root}${qs.stringify({ deleteDisk: true }, { addQueryPrefix: true })}`,
           _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
       },
-      create: ({ diskName, appType, namespace, bucketName, workspaceName }) => {
+      create: ({ kubernetesRuntimeConfig, diskName, diskSize, appType, namespace, bucketName, workspaceName }) => {
         const body = {
           labels: { saturnWorkspaceName: workspaceName },
+          kubernetesRuntimeConfig,
           diskConfig: {
             name: diskName,
+            size: diskSize,
             labels: {
               saturnApplication: 'galaxy',
               saturnWorkspaceName: workspaceName
@@ -1265,6 +1265,10 @@ const Apps = signal => ({
       },
       resume: () => {
         return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
+      },
+      details: async () => {
+        const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
+        return res.json()
       }
     }
   }
