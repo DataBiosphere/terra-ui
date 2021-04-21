@@ -341,7 +341,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             ...(cloudService === cloudServices.GCE ? {
               machineType: masterMachineType || defaultGceMachineType,
               // bootDiskSize can be null if it's an really old runtime
-              bootDiskSize: existingRuntime?.bootDiskSize || 0,
+              bootDiskSize: existingRuntime?.bootDiskSize || 50,
               ...(this.shouldUsePersistentDisk() ? {
                 persistentDiskAttached: true
               } : {
