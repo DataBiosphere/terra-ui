@@ -6,7 +6,6 @@ See also: [Bueller](Bueller.md) - service for invoking tests
 
 1. Start by making sure you're running the correct versions of Node and Yarn, as described in the [root README](../README.md).
 2. Run `yarn install` in this directory.
-3. To set up an environment (e.g., dev, alpha, prod. Not your local environment), run `node scripts/initializeEnvironment.js`.
 
 ### Running the tests
 
@@ -74,3 +73,6 @@ node --inspect-brk node_modules/.bin/jest [test name] --runInBand
 ```
 
 Using your IDE you can connect to the debug port and set breakpoints. More info [here](https://jestjs.io/docs/en/troubleshooting).
+
+### Creating a new environment (e.g., dev, alpha, etc)
+To set up an environment, run `node scripts/initializeEnvironment.js`.
