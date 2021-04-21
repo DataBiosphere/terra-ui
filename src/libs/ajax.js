@@ -324,7 +324,7 @@ const User = signal => ({
 
   getFenceAuthUrl: async (provider, redirectUri) => {
     const queryParams = {
-      scopes: ['openid', 'google_credentials'],
+      scopes: ['openid', 'google_credentials', 'data', 'user'],
       redirect_uri: redirectUri,
       state: btoa(JSON.stringify({ provider }))
     }
@@ -1239,11 +1239,13 @@ const Apps = signal => ({
         return fetchLeo(`${root}${qs.stringify({ deleteDisk: true }, { addQueryPrefix: true })}`,
           _.mergeAll([authOpts(), { signal, method: 'DELETE' }, appIdentifier]))
       },
-      create: ({ diskName, appType, namespace, bucketName, workspaceName }) => {
+      create: ({ kubernetesRuntimeConfig, diskName, diskSize, appType, namespace, bucketName, workspaceName }) => {
         const body = {
           labels: { saturnWorkspaceName: workspaceName },
+          kubernetesRuntimeConfig,
           diskConfig: {
             name: diskName,
+            size: diskSize,
             labels: {
               saturnApplication: 'galaxy',
               saturnWorkspaceName: workspaceName
@@ -1263,6 +1265,10 @@ const Apps = signal => ({
       },
       resume: () => {
         return fetchLeo(`${root}/start`, _.mergeAll([authOpts(), { signal, method: 'POST' }, appIdentifier]))
+      },
+      details: async () => {
+        const res = await fetchLeo(root, _.mergeAll([authOpts(), { signal }, appIdentifier]))
+        return res.json()
       }
     }
   }
