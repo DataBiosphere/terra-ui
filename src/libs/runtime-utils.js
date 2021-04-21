@@ -7,6 +7,10 @@ export const DEFAULT_DISK_SIZE = 50
 
 export const usableStatuses = ['Updating', 'Running']
 
+export const defaultDataprocMachineType = 'n1-standard-2'
+export const defaultGceMachineType = 'n1-standard-1'
+export const getDefaultMachineType = isDataproc => isDataproc ? defaultDataprocMachineType : defaultGceMachineType
+
 export const normalizeRuntimeConfig = ({
   cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers,
   numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, bootDiskSize
@@ -15,12 +19,12 @@ export const normalizeRuntimeConfig = ({
 
   return {
     cloudService: cloudService || cloudServices.GCE,
-    masterMachineType: masterMachineType || machineType || 'n1-standard-4',
-    masterDiskSize: masterDiskSize || diskSize || 50,
+    masterMachineType: masterMachineType || machineType || getDefaultMachineType(isDataproc),
+    masterDiskSize: masterDiskSize || diskSize || DEFAULT_DISK_SIZE,
     numberOfWorkers: (isDataproc && numberOfWorkers) || 0,
     numberOfPreemptibleWorkers: (isDataproc && numberOfWorkers && numberOfPreemptibleWorkers) || 0,
-    workerMachineType: (isDataproc && numberOfWorkers && workerMachineType) || 'n1-standard-4',
-    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || 50,
+    workerMachineType: (isDataproc && numberOfWorkers && workerMachineType) || defaultDataprocMachineType,
+    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || DEFAULT_DISK_SIZE,
     bootDiskSize: bootDiskSize || 0
   }
 }
