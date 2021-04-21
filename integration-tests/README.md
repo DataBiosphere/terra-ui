@@ -6,7 +6,7 @@ See also: [Bueller](Bueller.md) - service for invoking tests
 
 1. Start by making sure you're running the correct versions of Node and Yarn, as described in the [root README](../README.md).
 2. Run `yarn install` in this directory.
-3. To set up an environment, run `node scripts/initializeEnvironment.js`.
+3. To set up an environment (e.g., dev, alpha, prod. Not your local environment), run `node scripts/initializeEnvironment.js`.
 
 ### Running the tests
 
