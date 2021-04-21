@@ -70,16 +70,16 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
     }
   }
 
-  const isDeleteDisabledWithApps = (deletableApps, nonDeletableApps) => hasApps(deletableApps, nonDeletableApps) && nonDeletableApps.length !== 0
+  const isDeleteDisabledFromApps = (deletableApps, nonDeletableApps) => hasApps(deletableApps, nonDeletableApps) && nonDeletableApps.length !== 0
 
   return h(Modal, {
     title: 'Delete workspace',
     onDismiss,
     okButton: h(ButtonPrimary, {
-      disabled: _.toLower(deleteConfirmation) !== 'delete workspace' || isDeleteDisabledWithApps(deletableApps, nonDeletableApps),
+      disabled: _.toLower(deleteConfirmation) !== 'delete workspace' || isDeleteDisabledFromApps(deletableApps, nonDeletableApps),
       onClick: () => deleteWorkspace(),
       tooltip: _.toLower(deleteConfirmation) !== 'delete workspace' ?
-        isDeleteDisabledWithApps(deletableApps, nonDeletableApps) ? 'You must ensure all apps in this workspace are deletable' : 'You must type the confirmation message' :
+        isDeleteDisabledFromApps(deletableApps, nonDeletableApps) ? 'You must ensure all apps in this workspace are deletable' : 'You must type the confirmation message' :
         'Delete Workspace'
     }, 'Delete workspace')
   }, [
@@ -98,13 +98,13 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
       p('Deleting it will also delete any associated applications:'),
       getAppDeletionMessage(deletableApps, nonDeletableApps)
     ]),
-    !isDeleteDisabledWithApps(deletableApps, nonDeletableApps) && div({
+    !isDeleteDisabledFromApps(deletableApps, nonDeletableApps) && div({
       style: {
         fontWeight: 500,
         marginTop: '1rem'
       }
     }, 'This cannot be undone.'),
-    !isDeleteDisabledWithApps(deletableApps, nonDeletableApps) && div({ style: { marginTop: '1rem' } }, [
+    !isDeleteDisabledFromApps(deletableApps, nonDeletableApps) && div({ style: { marginTop: '1rem' } }, [
       label({ htmlFor: 'delete-workspace-confirmation' }, ['Please type \'Delete Workspace\' to continue:']),
       h(TextInput, {
         id: 'delete-workspace-confirmation',
