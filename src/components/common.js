@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
-import { b, div, h, img, input, label, span } from 'react-hyperscript-helpers'
+import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
@@ -506,11 +506,12 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) =
         flexGrow: 1,
         color: colors.dark(),
         padding: '3rem 5rem',
+        backgroundColor: '#fafbfd', // This not-quite-white fallback color was extracted from the background image
         backgroundImage: `url(${landingPageHero})`,
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
       }
     }, [
-      div({ style: { fontSize: 54 } }, `Welcome to ${getAppName()}`),
+      h1({ style: { fontSize: 54 } }, `Welcome to ${getAppName()}`),
       div({ style: { margin: '1rem 0', width: 575, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
         `${getAppName(true)} is a ${Utils.cond(
           [isTerra(), () => 'cloud-native platform'],
