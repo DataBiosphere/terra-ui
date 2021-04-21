@@ -161,6 +161,9 @@ const styles = {
 // Note: We always need 1 extra row's worth of height for the table header row:
 export const tableHeight = ({ actualRows, maxRows, heightPerRow = 48 }) => (_.min([actualRows, maxRows]) + 1) * heightPerRow
 
+const ariaSort = (sort, field) => !sort || !field ? null :
+  sort.field !== field ? 'none' : sort.direction === 'asc' ? 'ascending' : 'descending'
+
 /**
  * A virtual table with a fixed header and flexible column widths. Intended to take up the full
  * available container width, without horizontal scrolling.
@@ -180,7 +183,7 @@ export const FlexTable = ({
 
   return div({
     role: 'table',
-    'aria-rowcount': rowCount,
+    'aria-rowcount': rowCount + 1, // count the header row too
     'aria-colcount': columns.length,
     'aria-label': tableName
   }, [
@@ -197,7 +200,7 @@ export const FlexTable = ({
         role: 'columnheader',
         'aria-rowindex': 1,
         'aria-colindex': i + 1,
-        'aria-sort': !sort || !field ? null : sort.field === field ? sort.direction === 'asc' ? 'ascending' : 'descending' : 'none',
+        'aria-sort': ariaSort(sort, field),
         style: {
           ...styles.flexCell(size),
           ...(variant === 'light' ? {} : styles.header(i * 1, columns.length)),
@@ -303,7 +306,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHigh
           key: i,
           style: { ...styles.flexCell(size), ...styles.header(i * 1, columns.length) },
           role: 'columnheader',
-          'aria-sort': !sort || !field ? null : sort.field === field ? sort.direction === 'asc' ? 'ascending' : 'descending' : 'none'
+          'aria-sort': ariaSort(sort, field)
         }, [headerRenderer({ columnIndex: i })])
       }, Utils.toIndexPairs(columns))
     ]),
@@ -395,7 +398,7 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
               role: 'columnheader',
               'aria-colindex': data.columnIndex + 1,
               'aria-rowindex': 1, // the rowindex property must start at 1,
-              'aria-sort': !sort || !field ? null : sort.field === field ? sort.direction === 'asc' ? 'ascending' : 'descending' : 'none',
+              'aria-sort': ariaSort(sort, field),
               style: {
                 ...data.style,
                 ...styles.header(data.columnIndex, columns.length),
