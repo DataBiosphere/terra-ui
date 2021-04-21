@@ -18,30 +18,24 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
   const [deleting, setDeleting] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [loadingApps, setLoadingApps] = useState(true)
+  const [deletableApps, setDeletableApps] = useState()
+  const [nonDeletableApps, setNonDeletableApps] = useState()
 
-  const LoadApps = workspaceName => {
-    const signal = Utils.useCancellation()
-    const [deletableApps, setDeletableApps] = useState()
-    const [nonDeletableApps, setNonDeletableApps] = useState()
+  const signal = Utils.useCancellation()
 
-    const load = async () => {
-      const [currentWorkspaceAppList] = await Promise.all([
-        Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: workspaceName })
-      ])
-      const appPartition = _.partition(isAppDeletable, currentWorkspaceAppList)
-      setDeletableApps(appPartition[0])
-      setNonDeletableApps(appPartition[1])
-      setLoadingApps(false)
-    }
-
-    Utils.useOnMount(() => {
-      load()
-    })
-
-    return { deletableApps, nonDeletableApps }
+  const loadApps = async workspaceName => {
+    const [currentWorkspaceAppList] = await Promise.all([
+      Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: workspaceName })
+    ])
+    const appPartition = _.partition(isAppDeletable, currentWorkspaceAppList)
+    setDeletableApps(appPartition[0])
+    setNonDeletableApps(appPartition[1])
+    setLoadingApps(false)
   }
 
-  const { deletableApps, nonDeletableApps } = LoadApps(name)
+  Utils.useOnMount(() => {
+    loadApps()
+  })
 
   const getAppDeletionMessage = (deletableApps, nonDeletableApps) => {
     return nonDeletableApps.length > 0 ?
