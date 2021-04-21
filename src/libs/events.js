@@ -55,7 +55,7 @@ export const PageViewReporter = () => {
       `${eventsList.pageView}:${name}`,
       isWorkspace ? extractWorkspaceDetails(params) : undefined
     )
-  }, [name]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [name, params])
 
   return null
 }
