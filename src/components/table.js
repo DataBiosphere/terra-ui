@@ -161,8 +161,31 @@ const styles = {
 // Note: We always need 1 extra row's worth of height for the table header row:
 export const tableHeight = ({ actualRows, maxRows, heightPerRow = 48 }) => (_.min([actualRows, maxRows]) + 1) * heightPerRow
 
-const ariaSort = (sort, field) => !sort || !field ? null :
-  sort.field !== field ? 'none' : sort.direction === 'asc' ? 'ascending' : 'descending'
+/**
+ * Return the sorting direction for a column identified by its field name, and using the same
+ * state object as the {@link Sortable} renderer. The output will be suitable for use in an
+ * `aria-sort` attribute https://www.digitala11y.com/aria-sort-properties/
+ *
+ * @param sort A state object containing the current sort order
+ * @param sort.field An identifier for the field name currently being sorted.
+ * @param sort.direction 'asc' or 'desc'
+ * @param field The identifier of the field to check
+ * @return 'ascending' or 'descending' if currently sorting by the given field,
+ *  'none' if the given field is sortable but the table is currently sorted by a different field,
+ *  null if the table or column is not sortable.
+ */
+const ariaSort = (sort, field) => {
+  if (sort && field) {
+    // If we're currently sorting by this column, return the sort direction
+    if (sort.field === field) {
+      return sort.direction === 'asc' ? 'ascending' : 'descending'
+    }
+    // Otherwise this column is sortable but we're currently sorting by a different column
+    return 'none'
+  }
+  // Otherwise this column is not sortable
+  return null
+}
 
 /**
  * A virtual table with a fixed header and flexible column widths. Intended to take up the full
@@ -198,8 +221,9 @@ export const FlexTable = ({
       return div({
         key: i,
         role: 'columnheader',
-        'aria-rowindex': 1,
-        'aria-colindex': i + 1,
+        // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
+        'aria-rowindex': 1, // The header row is 1
+        'aria-colindex': i + 1, // The first column is 1
         'aria-sort': ariaSort(sort, field),
         style: {
           ...styles.flexCell(size),
@@ -216,10 +240,10 @@ export const FlexTable = ({
       rowHeight,
       rowCount,
       columnCount: 1,
-      'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
+      'aria-readonly': null, // Clear out ARIA properties which should be at the table level, not here
       'aria-label': `${tableName} content`, // The whole table is a tab stop so it needs a label
       role: 'rowgroup',
-      containerRole: 'presentation',
+      containerRole: 'presentation', // Clear out unnecessary ARIA roles
       onScrollbarPresenceChange: ({ vertical, size }) => {
         setScrollbarSize(vertical ? size : 0)
       },
@@ -237,8 +261,9 @@ export const FlexTable = ({
               key: i,
               className: 'table-cell',
               role: 'cell',
-              'aria-rowindex': data.rowIndex + 2, // The header row is 1
-              'aria-colindex': i + 1,
+              // ARIA row and column indexes start with 1 https://www.digitala11y.com/aria-colindexproperties/
+              'aria-rowindex': data.rowIndex + 2, // The header row is 1, so the first body row is 2
+              'aria-colindex': i + 1, // The first column is 1
               style: {
                 ...styles.flexCell(size),
                 ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length)),
@@ -396,8 +421,9 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
               key: data.key,
               className: 'table-cell',
               role: 'columnheader',
-              'aria-colindex': data.columnIndex + 1,
-              'aria-rowindex': 1, // the rowindex property must start at 1,
+              // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
+              'aria-rowindex': 1, // The header row is 1
+              'aria-colindex': data.columnIndex + 1, // The first column is 1
               'aria-sort': ariaSort(sort, field),
               style: {
                 ...data.style,
@@ -436,8 +462,9 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
                 key: data.key,
                 className: 'table-cell',
                 role: 'cell',
-                'aria-colindex': data.columnIndex + 1,
-                'aria-rowindex': data.rowIndex + 2, // The header row is 1
+                // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
+                'aria-rowindex': data.rowIndex + 2, // The header row is 1, so the first body row is 2
+                'aria-colindex': data.columnIndex + 1, // The first column is 1
                 style: {
                   ...data.style,
                   ...styles.cell(data.columnIndex, columns.length),
