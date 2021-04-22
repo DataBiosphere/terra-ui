@@ -209,16 +209,6 @@ const WorkspaceDashboard = _.flow(
         [
           isEditing, () => h(Fragment, [
             h(MarkdownEditor, {
-              options: {
-                autofocus: true,
-                placeholder: 'Enter a description',
-                renderingConfig: {
-                  singleLineBreaks: false,
-                  markedOptions: { sanitize: true, sanitizer: _.escape }
-                },
-                status: false
-              },
-              className: 'simplemde-container',
               value: editDescription,
               onChange: setEditDescription
             }),
