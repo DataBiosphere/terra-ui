@@ -169,7 +169,7 @@ export const tableHeight = ({ actualRows, maxRows, heightPerRow = 48 }) => (_.mi
  * @param sort A state object containing the current sort order
  * @param sort.field An identifier for the field name currently being sorted.
  * @param sort.direction 'asc' or 'desc'
- * @param field The identifier of the field to check
+ * @param field The identifier of the field to check.
  * @return 'ascending' or 'descending' if currently sorting by the given field,
  *  'none' if the given field is sortable but the table is currently sorted by a different field,
  *  null if the table or column is not sortable.
