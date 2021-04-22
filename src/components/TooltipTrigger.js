@@ -33,11 +33,22 @@ const styles = {
   }
 }
 
-const Tooltip = ({ side = 'bottom', type, target: targetId, children, id }) => {
+const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay }) => {
+  const [shouldRender, setShouldRender] = useState(!delay)
+  const renderTimeout = useRef()
   const elementRef = useRef()
   const [target, element, viewport] = useDynamicPosition([{ id: targetId }, { ref: elementRef }, { viewport: true }])
+
+  Utils.useOnMount(() => {
+    if (!!delay) {
+      renderTimeout.current = setTimeout(() => setShouldRender(true), delay)
+      return () => clearTimeout(renderTimeout.current)
+    }
+  })
+
   const gap = type === 'light' ? 5 : 10
   const { side: finalSide, position } = computePopupPosition({ side, target, element, viewport, gap })
+
   const getNotchPosition = () => {
     const left = _.clamp(12, element.width - 12,
       (target.left + target.right) / 2 - position.left
@@ -52,11 +63,13 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id }) => {
       ['right', () => ({ left: 0, top, transform: 'rotate(270deg)' })]
     )
   }
+
   return h(PopupPortal, [
     div({
       id, role: 'tooltip',
       ref: elementRef,
       style: {
+        display: shouldRender ? undefined : 'none',
         transform: `translate(${position.left}px, ${position.top}px)`,
         visibility: !viewport.width ? 'hidden' : undefined,
         ...(type === 'light') ? styles.lightBox : styles.tooltip
@@ -76,6 +89,7 @@ const TooltipTrigger = ({ children, content, ...props }) => {
   const tooltipId = Utils.useUniqueId()
   const child = Children.only(children)
   const childId = child.props.id || id
+
   return h(Fragment, [
     cloneElement(child, {
       id: childId,

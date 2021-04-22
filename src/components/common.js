@@ -52,7 +52,7 @@ const styles = {
   }
 }
 
-export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, onClick, children, ...props }) => {
+export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, onClick, children, ...props }) => {
   const child = h(Interactive, {
     'aria-disabled': !!disabled,
     as, disabled,
@@ -63,7 +63,7 @@ export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip
   }, [children])
 
   if (tooltip) {
-    return h(TooltipTrigger, { content: tooltip, side: tooltipSide }, [child])
+    return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay }, [child])
   } else {
     return child
   }
