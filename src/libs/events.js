@@ -25,7 +25,9 @@ const eventsList = {
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
   workspaceDataDownload: 'workspace:data:download',
+  workspaceDataUpload: 'workspace:data:upload',
   workspaceDataImport: 'workspace:data:import',
+  workspaceSampleTsvDownload: 'workspace:sample-tsv:download',
   workspaceShare: 'workspace:share',
   workspaceSnapshotDelete: 'workspace:snapshot:delete',
   workspaceSnapshotContentsView: 'workspace:snapshot:contents:view'
