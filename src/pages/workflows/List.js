@@ -37,6 +37,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
   }
 
   const tabName = tab || 'mine'
+  const tabs = { mine: 'My Workflows', public: 'Public Workflows', featured: 'Featured Workflows' }
 
   Utils.useOnMount(() => {
     const isMine = ({ public: isPublic, managers }) => !isPublic || _.includes(getUser().email, managers)
@@ -77,8 +78,8 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
     ]),
     h(TabBar, {
       activeTab: tabName,
-      tabNames: ['mine', 'public', 'featured'],
-      displayNames: { mine: 'my workflows', public: 'public workflows', featured: 'featured workflows' },
+      tabNames: Object.keys(tabs),
+      displayNames: tabs,
       getHref: currentTab => `${Nav.getLink('workflows')}${getUpdatedQuery({ newTab: currentTab })}`,
       getOnClick: currentTab => e => {
         e.preventDefault()
@@ -89,10 +90,12 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
       div({ style: { flex: 1 } }, [
         workflows && h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
-            width, height,
+            width, height, sort,
+            tableName: tabs[tabName],
             rowCount: sortedWorkflows.length,
             columns: [
               {
+                field: 'name',
                 headerRenderer: () => h(Sortable, { sort, field: 'name', onSort: setSort }, [h(HeaderCell, ['Workflow'])]),
                 cellRenderer: ({ rowIndex }) => {
                   const { namespace, name } = sortedWorkflows[rowIndex]
@@ -105,6 +108,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
                 size: { basis: 300 }
               },
               {
+                field: 'synopsis',
                 headerRenderer: () => h(Sortable, { sort, field: 'synopsis', onSort: setSort }, [h(HeaderCell, ['Synopsis'])]),
                 cellRenderer: ({ rowIndex }) => {
                   const { synopsis } = sortedWorkflows[rowIndex]
@@ -114,6 +118,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
                 size: { basis: 475 }
               },
               {
+                field: 'managers',
                 headerRenderer: () => h(Sortable, { sort, field: 'managers', onSort: setSort }, [h(HeaderCell, ['Owners'])]),
                 cellRenderer: ({ rowIndex }) => {
                   const { managers } = sortedWorkflows[rowIndex]
@@ -123,6 +128,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
                 size: { basis: 225 }
               },
               {
+                field: 'numSnapshots',
                 headerRenderer: () => h(Sortable, { sort, field: 'numSnapshots', onSort: setSort }, [h(HeaderCell, ['Snapshots'])]),
                 cellRenderer: ({ rowIndex }) => {
                   const { numSnapshots } = sortedWorkflows[rowIndex]
@@ -132,6 +138,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
                 size: { basis: 108, grow: 0, shrink: 0 }
               },
               {
+                field: 'numConfigurations',
                 headerRenderer: () => h(Sortable, { sort, field: 'numConfigurations', onSort: setSort }, [h(HeaderCell, ['Configurations'])]),
                 cellRenderer: ({ rowIndex }) => {
                   const { numConfigurations } = sortedWorkflows[rowIndex]
