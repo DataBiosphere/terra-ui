@@ -56,7 +56,7 @@
   "scripts": {
     "preinstall": "node .hooks/check-engine-light.js",
     "analyze": "yarn build; source-map-explorer 'build/static/js/*.js' --gzip",
-    "optimize-image-svgs": "svgo --config .svgo.config.js -f src/images -r",
+    "optimize-image-svgs": "svgo --enable=inlineStyles,prefixIds --config '{ \"plugins\": [ { \"inlineStyles\": { \"onlyMatchedOnce\": false } }] }' --pretty -f src/images -r -p 1 --multipass",
     "setenv": "echo REACT_APP_VERSION=$(git rev-parse HEAD) REACT_APP_BUILD_TIMESTAMP=$(date -u \"+%s000\") EXTEND_ESLINT=true",
     "start": "env $(yarn -s setenv) react-app-rewired start",
     "build": "env $(yarn -s setenv) react-app-rewired build",
@@ -78,7 +78,7 @@
     "react-hot-loader": "^4.13.0",
     "react-test-renderer": "17.0.1",
     "source-map-explorer": "^2.5.2",
-    "svgo": "^2.3.0"
+    "svgo": "^1.3.2"
   },
   "browserslist": [
     ">0.2%",
