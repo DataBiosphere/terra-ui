@@ -16,8 +16,8 @@ const {
 
 const targetEnvParams = _.merge({ ...envs[environment] }, { billingProject, snapshotColumnName, snapshotId, snapshotTableName, testUrl, workflowName })
 
-const registerTest = ({ fn, name, timeout = defaultTimeout }) => {
-  jest.retryTimes(1)
+const registerTest = ({ fn, name, timeout = defaultTimeout }, retryCount = 0) => {
+  jest.retryTimes(retryCount)
   return test(name, () => withScreenshot(name)(fn)({ context, page, ...targetEnvParams }), timeout)
 }
 

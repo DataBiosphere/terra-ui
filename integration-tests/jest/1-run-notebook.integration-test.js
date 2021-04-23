@@ -2,4 +2,4 @@ const { registerTest } = require('./jest-utils')
 const { testRunNotebook } = require('../tests/run-notebook')
 
 
-registerTest(testRunNotebook)
+registerTest(testRunNotebook, 1)
