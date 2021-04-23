@@ -5,10 +5,6 @@ import { div, h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
 
 
-const markdownToHtml = (text, renderers = {}) => marked(_.replace(/</g, '\\<', text), {
-  renderer: Object.assign(new marked.Renderer(), renderers)
-})
-
 /**
  * WARNING: Be very careful when using custom renderers because they may override marked's built-in
  * content sanitization.
@@ -19,7 +15,9 @@ const markdownToHtml = (text, renderers = {}) => marked(_.replace(/</g, '\\<', t
  * @constructor
  */
 export const MarkdownViewer = ({ children, renderers, ...props }) => {
-  const content = markdownToHtml(children, renderers)
+  const content = marked(children, {
+    renderer: Object.assign(new marked.Renderer(), renderers)
+  })
   return div({
     className: 'markdown-body', ...props,
     dangerouslySetInnerHTML: { __html: content }
@@ -41,7 +39,6 @@ export const MarkdownEditor = props => {
         singleLineBreaks: false
       },
       previewClass: ['editor-preview', 'markdown-body'],
-      previewRender: markdownToHtml,
       status: false
     }
   }, props))])
