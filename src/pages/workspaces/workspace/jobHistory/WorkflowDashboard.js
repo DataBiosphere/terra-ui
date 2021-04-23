@@ -20,7 +20,6 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import CallTable from 'src/pages/workspaces/workspace/jobHistory/CallTable'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
-import { newTabLinkProps } from 'src/libs/utils'
 
 
 const styles = {
@@ -143,7 +142,7 @@ const WorkflowDashboard = _.flow(
             'This workflow\'s details have been archived and are no longer instantly available in the UI. Please refer to our ',
             h(Link, {
               href: 'about:blank', // TODO: Need a support article to link to!
-              ...newTabLinkProps
+              ...Utils.newTabLinkProps
             }, [icon('pop-out', { size: 18 }), ' Workflow Details Archived']),
             ' support article for more details.'
           ])
