@@ -14,7 +14,7 @@ import { centeredSpinner } from 'src/components/icons'
  * @returns div containing rendered markdown
  * @constructor
  */
-export const MarkdownViewer = ({ children, renderers, ...props }) => {
+export const MarkdownViewer = ({ children, renderers = {}, ...props }) => {
   const content = marked(children, {
     renderer: Object.assign(new marked.Renderer(), renderers)
   })
