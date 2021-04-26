@@ -7,7 +7,7 @@
 /* This adds some low-level css resets based on the browserslist in package.json, see https://create-react-app.dev/docs/adding-css-reset */
 @import-normalize;
 
-.hover-style:hover {
+.hover-style:hover, .hover-style:focus {
   --hover-backgroundColor: var(--app-hover-backgroundColor);
   --hover-border: var(--app-hover-border);
   --hover-color: var(--app-hover-color);
@@ -78,7 +78,7 @@ a {
   overflow-y: scroll;
 }
 
-.table-row:not(:hover) .hover-only, .table-cell:not(:hover) .cell-hover-only {
+.table-row:not(:hover, :focus-within) .hover-only, .table-cell:not(:hover, :focus-within) .cell-hover-only {
   display: none !important;
 }
 

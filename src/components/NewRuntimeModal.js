@@ -184,12 +184,14 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
    */
   getPendingRuntimeConfig() {
     const { runtime: desiredRuntime } = this.getDesiredEnvironmentConfig()
+
     return {
       cloudService: desiredRuntime.cloudService,
       ...(desiredRuntime.cloudService === cloudServices.GCE ? {
         bootDiskSize: 50,
         zone: desiredRuntime.zone,
         machineType: desiredRuntime.machineType || defaultGceMachineType,
+        bootDiskSize: desiredRuntime.bootDiskSize,
         ...(desiredRuntime.diskSize ? {
           diskSize: desiredRuntime.diskSize
         } : {})
@@ -347,6 +349,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             ...(cloudService === cloudServices.GCE ? {
               zone: computeZone,
               machineType: masterMachineType || defaultGceMachineType,
+              bootDiskSize: existingRuntime?.bootDiskSize,
               ...(this.shouldUsePersistentDisk() ? {
                 persistentDiskAttached: true
               } : {
@@ -390,6 +393,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
         ...(cloudService === cloudServices.GCE ? {
           zone: computeZone,
           machineType: runtimeConfig.machineType || defaultGceMachineType,
+          bootDiskSize: runtimeConfig.bootDiskSize,
           ...(runtimeConfig.persistentDiskId ? {
             persistentDiskAttached: true
           } : {

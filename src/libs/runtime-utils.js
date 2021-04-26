@@ -4,6 +4,7 @@ import * as Utils from 'src/libs/utils'
 
 
 export const DEFAULT_DISK_SIZE = 50
+export const DEFAULT_BOOT_DISK_SIZE = 50
 
 export const DEFAULT_LOCATION = 'US'
 export const DEFAULT_LOCATION_TYPE = 'multi-region'
@@ -28,7 +29,10 @@ export const normalizeRuntimeConfig = ({
     numberOfPreemptibleWorkers: (isDataproc && numberOfWorkers && numberOfPreemptibleWorkers) || 0,
     workerMachineType: (isDataproc && numberOfWorkers && workerMachineType) || defaultDataprocMachineType,
     workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || DEFAULT_DISK_SIZE,
-    bootDiskSize: bootDiskSize || 0
+    // One caveact with using DEFAULT_BOOT_DISK_SIZE here is this over-estimates old GCE runtimes without PD by 1 cent
+    // because those runtimes do not have a separate boot disk. But those old GCE runtimes are more than 1 year old if they exist.
+    // Hence, we're okay with this caveat.
+    bootDiskSize: bootDiskSize || DEFAULT_BOOT_DISK_SIZE
   }
 }
 
