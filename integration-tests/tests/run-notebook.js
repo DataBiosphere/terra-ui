@@ -24,7 +24,7 @@ const testRunNotebookFn = _.flow(
   await select(page, 'Language', 'Python 2')
   await click(page, clickable({ text: 'Create Notebook' }))
   await click(page, clickable({ textContains: notebookName }))
-  await click(page, clickable({ text: 'Edit' }))
+  // await click(page, clickable({ text: 'Edit' }))
   // There are two separate activities in the UI that could interfere with beginning to interact
   // with the modal for creating a cloud environment:
   //   1. AJAX calls to load cloud environment details and available docker images
@@ -38,16 +38,16 @@ const testRunNotebookFn = _.flow(
   // 500ms delay in the test is not enough to guarantee that the UI elements have finished moving.
   // Therefore, we start with a 1000ms delay, then make sure there are no spinners just in case the
   // AJAX calls are unexpectedly slow.
-  await delay(1000)
-  waitForNoSpinners(page)
-  await click(page, clickable({ text: 'Create' }))
-  await findElement(page, clickable({ textContains: 'Creating' }))
-  await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60 * 1000 })
+  // await delay(1000)
+  // waitForNoSpinners(page)
+  // await click(page, clickable({ text: 'Create' }))
+  // await findElement(page, clickable({ textContains: 'Creating' }))
+  // await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60 * 1000 })
 
-  const frame = await findIframe(page)
-  await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
-  await click(frame, clickable({ text: 'Run' }))
-  await findText(frame, '123456789099886419754209')
+  // const frame = await findIframe(page)
+  // await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
+  // await click(frame, clickable({ text: 'Run' }))
+  // await findText(frame, '123456789099886419754209')
 })
 const testRunNotebook = {
   name: 'run-notebook',
