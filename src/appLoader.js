@@ -1,5 +1,6 @@
 import 'src/style.css'
 
+import DOMPurify from 'dompurify'
 import _ from 'lodash/fp'
 import ReactDOM from 'react-dom'
 import { h } from 'react-hyperscript-helpers'
@@ -14,6 +15,7 @@ const appRoot = document.getElementById('root')
 RModal.defaultStyles = { overlay: {}, content: {} }
 RModal.setAppElement(appRoot)
 window.SATURN_VERSION = process.env.REACT_APP_VERSION
+DOMPurify.setConfig({ ADD_ATTR: ['rel', 'target'] })
 
 window._ = _
 
