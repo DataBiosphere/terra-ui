@@ -209,6 +209,7 @@ const WorkspaceDashboard = _.flow(
         [
           isEditing, () => h(Fragment, [
             h(MarkdownEditor, {
+              options: { placeholder: 'Enter a description' },
               value: editDescription,
               onChange: setEditDescription
             }),

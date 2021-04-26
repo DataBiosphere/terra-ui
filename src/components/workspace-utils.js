@@ -149,6 +149,7 @@ export const SnapshotInfo = ({
         ]),
         editingDescription ? h(Fragment, [
           h(MarkdownEditor, {
+            options: { placeholder: 'Enter a description' },
             value: newDescription,
             onChange: setNewDescription
           }),

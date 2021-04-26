@@ -1,9 +1,14 @@
+import DOMPurify from 'dompurify'
 import _ from 'lodash/fp'
 import marked from 'marked'
 import { lazy, Suspense } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { centeredSpinner } from 'src/components/icons'
 
+
+const renderAndSanitizeMarkdown = (text, renderers = {}) => DOMPurify.sanitize(marked(text, {
+  renderer: Object.assign(new marked.Renderer(), renderers)
+}))
 
 /**
  * WARNING: Be very careful when using custom renderers because they may override marked's built-in
@@ -14,10 +19,8 @@ import { centeredSpinner } from 'src/components/icons'
  * @returns div containing rendered markdown
  * @constructor
  */
-export const MarkdownViewer = ({ children, renderers = {}, ...props }) => {
-  const content = marked(children, {
-    renderer: Object.assign(new marked.Renderer(), renderers)
-  })
+export const MarkdownViewer = ({ children, renderers, ...props }) => {
+  const content = renderAndSanitizeMarkdown(children, renderers)
   return div({
     className: 'markdown-body', ...props,
     dangerouslySetInnerHTML: { __html: content }
@@ -34,11 +37,11 @@ export const MarkdownEditor = props => {
   return h(Suspense, { fallback: centeredSpinner() }, [h(SimpleMDE, _.merge({
     options: {
       autofocus: true,
-      placeholder: 'Enter a description',
       renderingConfig: {
         singleLineBreaks: false
       },
       previewClass: ['editor-preview', 'markdown-body'],
+      previewRender: renderAndSanitizeMarkdown,
       status: false
     }
   }, props))])
