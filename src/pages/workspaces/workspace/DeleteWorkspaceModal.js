@@ -18,8 +18,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
   const [deleting, setDeleting] = useState(false)
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [loadingApps, setLoadingApps] = useState(true)
-  const [deletableApps, setDeletableApps] = useState()
-  const [nonDeletableApps, setNonDeletableApps] = useState()
+  const [apps, setApps] = useState()
 
   const signal = Utils.useCancellation()
 
@@ -27,32 +26,38 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
     const [currentWorkspaceAppList] = await Promise.all([
       Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: workspaceName })
     ])
-    const appPartition = _.partition(isAppDeletable, currentWorkspaceAppList)
-    setDeletableApps(appPartition[0])
-    setNonDeletableApps(appPartition[1])
+    setApps(currentWorkspaceAppList)
     setLoadingApps(false)
   }
 
   Utils.useOnMount(() => {
-    loadApps()
+    loadApps(name)
   })
 
-  const getAppDeletionMessage = (deletableApps, nonDeletableApps) => {
-    return nonDeletableApps.length > 0 ?
+  const getDeletableApps = () => _.filter(isAppDeletable, apps)
+
+  const getNonDeletableApps = () => _.filter(app => !isAppDeletable(app), apps)
+
+  const getAppDeletionMessage = () => {
+    const deletableApps = getDeletableApps()
+    const nonDeletableApps = getNonDeletableApps()
+    return !_.isEmpty(nonDeletableApps) ?
       div({ style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' } }, [
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
           icon('warning-standard', { size: 19, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
           'Undeletable Workspace Warning'
         ]),
-        p({ style: { fontWeight: 'normal' } }, `You cannot delete this workspace because there are ${nonDeletableApps.length} application(s) you must delete first. Only applications in ('ERROR', 'RUNNING') status can be automatically deleted.`)
+        p({ style: { fontWeight: 'normal' } }, [`You cannot delete this workspace because there are ${nonDeletableApps.length} application(s) you must delete first. Only applications in ('ERROR', 'RUNNING') status can be automatically deleted.`])
       ]) :
-      p({ style: { marginLeft: '1rem', fontWeight: 'bold' } }, `Detected ${deletableApps.length} automatically deletable application(s).`)
+      p({ style: { marginLeft: '1rem', fontWeight: 'bold' } }, [`Detected ${deletableApps.length} automatically deletable application(s).`])
   }
 
-  const hasApps = (deletableApps, nonDeletableApps) => {
+  const hasApps = () => {
+    const deletableApps = getDeletableApps()
+    const nonDeletableApps = getNonDeletableApps()
     return deletableApps !== undefined && nonDeletableApps !== undefined &&
-      (deletableApps.length > 0 ||
-      nonDeletableApps.length > 0)
+     (!_.isEmpty(deletableApps) ||
+      !_.isEmpty(nonDeletableApps))
   }
 
   const deleteWorkspace = async () => {
@@ -60,7 +65,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
       setDeleting(true)
       await Ajax().Workspaces.workspace(namespace, name).delete()
       await Promise.all(
-        _.map(async app => await Ajax().Apps.app(app.googleProject, app.appName).delete(), deletableApps)
+        _.map(async app => await Ajax().Apps.app(app.googleProject, app.appName).delete(), getDeletableApps())
       )
       onDismiss()
       onSuccess()
@@ -70,16 +75,16 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
     }
   }
 
-  const isDeleteDisabledFromApps = (deletableApps, nonDeletableApps) => hasApps(deletableApps, nonDeletableApps) && nonDeletableApps.length !== 0
+  const isDeleteDisabledFromApps = () => hasApps() && !_.isEmpty(getNonDeletableApps())
 
   return h(Modal, {
     title: 'Delete workspace',
     onDismiss,
     okButton: h(ButtonPrimary, {
-      disabled: _.toLower(deleteConfirmation) !== 'delete workspace' || isDeleteDisabledFromApps(deletableApps, nonDeletableApps),
+      disabled: _.toLower(deleteConfirmation) !== 'delete workspace' || isDeleteDisabledFromApps(),
       onClick: () => deleteWorkspace(),
       tooltip: _.toLower(deleteConfirmation) !== 'delete workspace' ?
-        isDeleteDisabledFromApps(deletableApps, nonDeletableApps) ? 'You must ensure all apps in this workspace are deletable' : 'You must type the confirmation message' :
+        isDeleteDisabledFromApps() ? 'You must ensure all apps in this workspace are deletable' : 'You must type the confirmation message' :
         'Delete Workspace'
     }, 'Delete workspace')
   }, [
@@ -94,17 +99,17 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
       }, ['Google Cloud Bucket']),
       ' and all its data.'
     ]),
-    hasApps(deletableApps, nonDeletableApps) && div({ style: { marginTop: '1rem' } }, [
-      p('Deleting it will also delete any associated applications:'),
-      getAppDeletionMessage(deletableApps, nonDeletableApps)
+    hasApps() && div({ style: { marginTop: '1rem' } }, [
+      p(['Deleting it will also delete any associated applications:']),
+      getAppDeletionMessage()
     ]),
-    !isDeleteDisabledFromApps(deletableApps, nonDeletableApps) && div({
+    !isDeleteDisabledFromApps() && div({
       style: {
         fontWeight: 500,
         marginTop: '1rem'
       }
     }, 'This cannot be undone.'),
-    !isDeleteDisabledFromApps(deletableApps, nonDeletableApps) && div({ style: { marginTop: '1rem' } }, [
+    !isDeleteDisabledFromApps() && div({ style: { marginTop: '1rem' } }, [
       label({ htmlFor: 'delete-workspace-confirmation' }, ['Please type \'Delete Workspace\' to continue:']),
       h(TextInput, {
         id: 'delete-workspace-confirmation',
