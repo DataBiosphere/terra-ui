@@ -7,6 +7,7 @@ import { cookiesAcceptedKey } from 'src/components/CookieWarning'
 import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
@@ -185,9 +186,55 @@ authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldSt
 
 authStore.subscribe(async (state, oldState) => {
   if (!oldState.acceptedTos && state.acceptedTos) {
-    window.Appcues && window.Appcues.identify(state.user.id, {
-      dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime()
-    })
+    if (window.Appcues) {
+      window.Appcues.identify(state.user.id, {
+        dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime()
+      })
+      window.Appcues.on('all', async (eventName, event) => {
+        // Only record "public-facing events" (and related properties) as documented by Appcues: https://docs.appcues.com/article/301-client-side-events-reference
+        const publicEvents = [
+          'flow_started',
+          'flow_completed',
+          'flow_skipped',
+          'flow_aborted',
+          'step_started',
+          'step_completed',
+          'step_skipped',
+          'step_aborted',
+          'step_interacted',
+          'form_submitted',
+          'form_field_submitted'
+        ]
+        if (_.includes(eventName, publicEvents)) {
+          console.log('Appcues', eventName, JSON.stringify(event), event)
+          const eventProps = {
+            'appcues.flowId': event.flowId,
+            'appcues.flowName': event.flowName,
+            'appcues.flowType': event.flowType,
+            'appcues.flowVersion': event.flowVersion,
+            'appcues.id': event.id,
+            'appcues.interaction.category': event.interaction?.category,
+            'appcues.interaction.destination': event.interaction?.destination,
+            'appcues.interaction.element': event.interaction?.element,
+            'appcues.interaction.fields': event.interaction?.fields ? JSON.stringify(event.interaction.fields) : undefined,
+            'appcues.interaction.formId': event.interaction?.formId,
+            'appcues.interaction.text': event.interaction?.text, // not documented by Appcues, but observed and useful
+            'appcues.interactionType': event.interactionType,
+            'appcues.localeId': event.localeId,
+            'appcues.localeName': event.localeName,
+            'appcues.name': event.name,
+            'appcues.sessionId': event.sessionId,
+            'appcues.stepChildId': event.stepChildId,
+            'appcues.stepChildNumber': event.stepChildNumber,
+            'appcues.stepId': event.stepId,
+            'appcues.stepNumber': event.stepNumber,
+            'appcues.stepType': event.stepType,
+            'appcues.timestamp': event.timestamp
+          }
+          await Ajax().Metrics.captureEvent(Events.appcuesEvent, eventProps)
+        }
+      })
+    }
   }
 })
 

@@ -5,6 +5,7 @@ import { useRoute } from 'src/libs/nav'
 
 const eventsList = {
   aboutPersistentDiskView: 'about:persistentDisk:view',
+  appcuesEvent: 'appcues:event',
   applicationLaunch: 'application:launch',
   applicationCreate: 'application:create',
   applicationDelete: 'application:delete',
