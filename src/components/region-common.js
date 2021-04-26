@@ -27,16 +27,13 @@ export const regionInfo = (location, locationType) => {
   }
 }
 export const allRegions = [
+  // In this list, us-east*, us-west*, and asia-northeast2 has purposefully been removed.
+  // This is to avoid creating within-country silos of life sciences community data.
+  // So for US and Japan, we are restricting to one region.
   { value: '', label: 'US multi-regional (default)' },
   { value: 'northamerica-northeast1', label: 'northamerica-northeast1 (Montreal)' },
   { value: 'southamerica-east1', label: 'southamerica-east1 (Sao Paulo)' },
   { value: 'us-central1', label: 'us-central1 (Iowa)' },
-  { value: 'us-east1', label: 'us-east1 (South Carolina)' },
-  { value: 'us-east4', label: 'us-east4 (Northern Virginia)' },
-  { value: 'us-west1', label: 'us-west1 (Oregon)' },
-  { value: 'us-west2', label: 'us-west2 (Los Angeles)' },
-  { value: 'us-west3', label: 'us-west3 (Salt Lake City)' },
-  { value: 'us-west4', label: 'us-west4 (Las Vegas)' },
   { value: 'europe-central2', label: 'europe-central2 (Warsaw)' },
   { value: 'europe-north1', label: 'europe-north1 (Finland)' },
   { value: 'europe-west1', label: 'europe-west1 (Belgium)' },
@@ -47,7 +44,6 @@ export const allRegions = [
   { value: 'asia-east1', label: 'asia-east1 (Taiwan)' },
   { value: 'asia-east2', label: 'asia-east2 (Hong Kong)' },
   { value: 'asia-northeast1', label: 'asia-northeast1 (Tokyo)' },
-  { value: 'asia-northeast2', label: 'asia-northeast2 (Osaka)' },
   { value: 'asia-northeast3', label: 'asia-northeast3 (Seoul)' },
   { value: 'asia-south1', label: 'asia-south1 (Mumbai)' },
   { value: 'asia-southeast1', label: 'asia-southeast1 (Singapore)' },
