@@ -25,7 +25,10 @@ const eventsList = {
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
   workspaceDataDownload: 'workspace:data:download',
+  workspaceDataUpload: 'workspace:data:upload',
   workspaceDataImport: 'workspace:data:import',
+  workspaceOpenFromList: 'workspace:open-from-list',
+  workspaceSampleTsvDownload: 'workspace:sample-tsv:download',
   workspaceShare: 'workspace:share',
   workspaceSnapshotDelete: 'workspace:snapshot:delete',
   workspaceSnapshotContentsView: 'workspace:snapshot:contents:view'
@@ -46,11 +49,16 @@ export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
 }
 
 export const PageViewReporter = () => {
-  const { name } = useRoute()
+  const { name, params } = useRoute()
 
   useEffect(() => {
-    Ajax().Metrics.captureEvent(`${eventsList.pageView}:${name}`)
-  }, [name])
+    const isWorkspace = /^#workspaces\/.+\/.+/.test(window.location.hash)
+
+    Ajax().Metrics.captureEvent(
+      `${eventsList.pageView}:${name}`,
+      isWorkspace ? extractWorkspaceDetails(params) : undefined
+    )
+  }, [name, params])
 
   return null
 }

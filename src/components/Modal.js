@@ -53,7 +53,7 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
       nodeToFocus.focus()
     },
     style: { overlay: styles.overlay, content: { ...styles.modal, width } },
-    aria: { labelledby: titleId },
+    aria: { labelledby: titleId, modal: true },
     ...props
   }, [
     title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [

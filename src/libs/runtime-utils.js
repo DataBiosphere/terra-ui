@@ -4,8 +4,13 @@ import * as Utils from 'src/libs/utils'
 
 
 export const DEFAULT_DISK_SIZE = 50
+export const DEFAULT_BOOT_DISK_SIZE = 50
 
 export const usableStatuses = ['Updating', 'Running']
+
+export const defaultDataprocMachineType = 'n1-standard-2'
+export const defaultGceMachineType = 'n1-standard-1'
+export const getDefaultMachineType = isDataproc => isDataproc ? defaultDataprocMachineType : defaultGceMachineType
 
 export const normalizeRuntimeConfig = ({
   cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers,
@@ -15,13 +20,16 @@ export const normalizeRuntimeConfig = ({
 
   return {
     cloudService: cloudService || cloudServices.GCE,
-    masterMachineType: masterMachineType || machineType || 'n1-standard-4',
-    masterDiskSize: masterDiskSize || diskSize || 50,
+    masterMachineType: masterMachineType || machineType || getDefaultMachineType(isDataproc),
+    masterDiskSize: masterDiskSize || diskSize || DEFAULT_DISK_SIZE,
     numberOfWorkers: (isDataproc && numberOfWorkers) || 0,
     numberOfPreemptibleWorkers: (isDataproc && numberOfWorkers && numberOfPreemptibleWorkers) || 0,
-    workerMachineType: (isDataproc && numberOfWorkers && workerMachineType) || 'n1-standard-4',
-    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || 50,
-    bootDiskSize: bootDiskSize || 0
+    workerMachineType: (isDataproc && numberOfWorkers && workerMachineType) || defaultDataprocMachineType,
+    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || DEFAULT_DISK_SIZE,
+    // One caveact with using DEFAULT_BOOT_DISK_SIZE here is this over-estimates old GCE runtimes without PD by 1 cent
+    // because those runtimes do not have a separate boot disk. But those old GCE runtimes are more than 1 year old if they exist.
+    // Hence, we're okay with this caveat.
+    bootDiskSize: bootDiskSize || DEFAULT_BOOT_DISK_SIZE
   }
 }
 

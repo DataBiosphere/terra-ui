@@ -9,7 +9,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -95,7 +95,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
     const aclEmails = _.map('email', acl)
     const needsDelete = _.remove(entry => aclEmails.includes(entry.email), originalAcl)
     const numAdditions = _.filter(({ email }) => !_.some({ email }, originalAcl), acl).length
-    const eventData = { numAdditions, ...extractWorkspaceDetails(workspace) }
+    const eventData = { numAdditions, workspaceName: name, workspaceNamespace: namespace }
 
     const aclUpdates = [
       ..._.flow(
