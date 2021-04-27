@@ -1233,7 +1233,7 @@ const Apps = signal => ({
     return res.json()
   },
   listWithoutProject: async labels => {
-    const res = await fetchLeo(`api/google/v1/apps?${qs.stringify({ ...labels })}`,
+    const res = await fetchLeo(`api/google/v1/apps?${qs.stringify(labels)}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },

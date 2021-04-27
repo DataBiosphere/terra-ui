@@ -22,25 +22,20 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
 
   const signal = Utils.useCancellation()
 
-  const loadApps = async workspaceName => {
-    const [currentWorkspaceAppList] = await Promise.all([
-      Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: workspaceName })
-    ])
-    setApps(currentWorkspaceAppList)
-    setLoadingApps(false)
-  }
-
   Utils.useOnMount(() => {
+    const loadApps = async workspaceName => {
+      const [currentWorkspaceAppList] = await Promise.all([
+        Ajax(signal).Apps.listWithoutProject({ creator: getUser().email, saturnWorkspaceName: workspaceName })
+      ])
+      setApps(currentWorkspaceAppList)
+      setLoadingApps(false)
+    }
     loadApps(name)
   })
 
-  const getDeletableApps = () => _.filter(isAppDeletable, apps)
-
-  const getNonDeletableApps = () => _.filter(app => !isAppDeletable(app), apps)
+  const [deletableApps, nonDeletableApps] = _.partition(isAppDeletable, apps)
 
   const getAppDeletionMessage = () => {
-    const deletableApps = getDeletableApps()
-    const nonDeletableApps = getNonDeletableApps()
     return !_.isEmpty(nonDeletableApps) ?
       div({ style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' } }, [
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
@@ -53,8 +48,6 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
   }
 
   const hasApps = () => {
-    const deletableApps = getDeletableApps()
-    const nonDeletableApps = getNonDeletableApps()
     return deletableApps !== undefined && nonDeletableApps !== undefined &&
      (!_.isEmpty(deletableApps) ||
       !_.isEmpty(nonDeletableApps))
@@ -65,7 +58,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
       setDeleting(true)
       await Ajax().Workspaces.workspace(namespace, name).delete()
       await Promise.all(
-        _.map(async app => await Ajax().Apps.app(app.googleProject, app.appName).delete(), getDeletableApps())
+        _.map(async app => await Ajax().Apps.app(app.googleProject, app.appName).delete(), deletableApps)
       )
       onDismiss()
       onSuccess()
@@ -75,17 +68,18 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
     }
   }
 
-  const isDeleteDisabledFromApps = () => hasApps() && !_.isEmpty(getNonDeletableApps())
+  const isDeleteDisabledFromApps = hasApps() && !_.isEmpty(nonDeletableApps)
 
   return h(Modal, {
     title: 'Delete workspace',
     onDismiss,
     okButton: h(ButtonPrimary, {
-      disabled: _.toLower(deleteConfirmation) !== 'delete workspace' || isDeleteDisabledFromApps(),
+      disabled: _.toLower(deleteConfirmation) !== 'delete workspace' || isDeleteDisabledFromApps,
       onClick: () => deleteWorkspace(),
-      tooltip: _.toLower(deleteConfirmation) !== 'delete workspace' ?
-        isDeleteDisabledFromApps() ? 'You must ensure all apps in this workspace are deletable' : 'You must type the confirmation message' :
-        'Delete Workspace'
+      tooltip: Utils.cond(
+        [_.toLower(deleteConfirmation) !== 'delete workspace', () => 'You must type the confirmation message'],
+        [isDeleteDisabledFromApps, () => 'You must ensure all apps in this workspace are deletable'],
+        () => 'Delete Workspace')
     }, 'Delete workspace')
   }, [
     div(['Are you sure you want to permanently delete the workspace ',
@@ -103,13 +97,13 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
       p(['Deleting it will also delete any associated applications:']),
       getAppDeletionMessage()
     ]),
-    !isDeleteDisabledFromApps() && div({
+    !isDeleteDisabledFromApps && div({
       style: {
         fontWeight: 500,
         marginTop: '1rem'
       }
     }, 'This cannot be undone.'),
-    !isDeleteDisabledFromApps() && div({ style: { marginTop: '1rem' } }, [
+    !isDeleteDisabledFromApps && div({ style: { marginTop: '1rem' } }, [
       label({ htmlFor: 'delete-workspace-confirmation' }, ['Please type \'Delete Workspace\' to continue:']),
       h(TextInput, {
         id: 'delete-workspace-confirmation',
