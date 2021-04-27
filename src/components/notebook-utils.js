@@ -125,7 +125,7 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, namespace, b
     h(IdContainer, [id => h(Fragment, [
       h(FormLabel, { htmlFor: id, required: true }, ['Name']),
       notebookNameInput({
-        error: Utils.summarizeErrors(nameTouched && errors && errors.notebookName),
+        error: Utils.summarizeErrors(nameTouched && errors?.notebookName),
         inputProps: {
           id, value: notebookName,
           onChange: v => {
@@ -222,7 +222,7 @@ export const NotebookDuplicator = ({ destroyOld = false, fromLauncher = false, p
       h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id, required: true }, ['New Name']),
         notebookNameInput({
-          error: Utils.summarizeErrors(nameTouched && errors && errors.newName),
+          error: Utils.summarizeErrors(nameTouched && errors?.newName),
           inputProps: {
             id, value: newName,
             onChange: v => {

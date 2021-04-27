@@ -100,13 +100,13 @@ const UploadDataTable = props => {
   })
 
   const isColumnAdded = columnIndex => {
-    return metadata && metadata.isUpdate &&
+    return metadata?.isUpdate &&
       columnIndex < columns.length &&
       metadata.columnsAdded.indexOf(columns[columnIndex]) > -1
   }
 
   const isColumnUpdated = columnIndex => {
-    return metadata && metadata.isUpdate &&
+    return metadata?.isUpdate &&
       columnIndex < columns.length &&
       metadata.columnsUpdated.indexOf(columns[columnIndex]) > -1
   }

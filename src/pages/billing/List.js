@@ -94,9 +94,9 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
     onDismiss,
     shouldCloseOnOverlayClick: false,
     title: 'Create Billing Project',
-    showCancel: !(billingAccounts && billingAccounts.length === 0),
+    showCancel: !(billingAccounts?.length === 0),
     showButtons: !!billingAccounts,
-    okButton: billingAccounts && billingAccounts.length !== 0 ?
+    okButton: billingAccounts?.length !== 0 ?
       h(ButtonPrimary, {
         disabled: errors || !chosenBillingAccount || !chosenBillingAccount.firecloudHasAccess,
         onClick: () => submit()
@@ -105,14 +105,14 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
         onClick: () => onDismiss()
       }, ['Ok'])
   }, [
-    billingAccounts && billingAccounts.length === 0 && h(Fragment, [
+    billingAccounts?.length === 0 && h(Fragment, [
       `You don't have access to any billing accounts.  `,
       h(Link, {
         href: `https://support.terra.bio/hc/en-us/articles/360026182251`,
         ...Utils.newTabLinkProps
       }, ['Learn how to create a billing account.', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })])
     ]),
-    billingAccounts && billingAccounts.length !== 0 && h(Fragment, [
+    billingAccounts?.length !== 0 && h(Fragment, [
       h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id, required: true }, ['Enter name']),
         h(ValidatedInput, {
@@ -125,7 +125,7 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
               setBillingProjectNameTouched(true)
             }
           },
-          error: billingProjectNameTouched && Utils.summarizeErrors(errors && errors.billingProjectName)
+          error: billingProjectNameTouched && Utils.summarizeErrors(errors?.billingProjectName)
         })
       ])]),
       !(billingProjectNameTouched && errors) && formHint('Name must be unique and cannot be changed.'),

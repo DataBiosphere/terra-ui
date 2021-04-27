@@ -767,7 +767,7 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
 
   const stepIsEnabled = step => {
     const s = _.find({ step }, steps)
-    return s && s.test()
+    return s?.test()
   }
 
   // Make sure we have a valid step once the workspaces have finished loading

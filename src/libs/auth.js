@@ -313,7 +313,7 @@ authStore.subscribe((state, oldState) => {
 })
 
 workspaceStore.subscribe((newState, oldState) => {
-  const getWorkspaceId = ws => ws && ws.workspace.workspaceId
+  const getWorkspaceId = ws => ws?.workspace.workspaceId
   if (getWorkspaceId(newState) !== getWorkspaceId(oldState)) {
     requesterPaysProjectStore.reset()
   }

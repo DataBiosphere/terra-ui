@@ -69,7 +69,7 @@ const NewGroupModal = ({ onSuccess, onDismiss, existingGroups }) => {
             setGroupNameTouched(true)
           }
         },
-        error: groupNameTouched && Utils.summarizeErrors(errors && errors.groupName)
+        error: groupNameTouched && Utils.summarizeErrors(errors?.groupName)
       })
     ])]),
     !(groupNameTouched && errors) && formHint('Only letters, numbers, underscores, and dashes allowed'),

@@ -51,7 +51,7 @@ export const listenStatic = (storage, key, fn) => {
 export const getDynamic = (storage, key) => {
   const storageKey = `dynamic-storage/${key}`
   const data = maybeParseJSON(storage.getItem(storageKey))
-  return data && data.value
+  return data?.value
 }
 
 export const setDynamic = (storage, key, value) => {
@@ -68,7 +68,7 @@ export const listenDynamic = (storage, key, fn) => {
   window.addEventListener('storage', e => {
     if (e.storageArea === storage && e.key === storageKey) {
       const data = maybeParseJSON(e.newValue)
-      fn(data && data.value)
+      fn(data?.value)
     }
   })
 }
