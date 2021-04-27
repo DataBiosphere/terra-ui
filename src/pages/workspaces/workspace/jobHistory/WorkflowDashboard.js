@@ -130,22 +130,20 @@ const WorkflowDashboard = _.flow(
         centeredSpinner()
       ])
     ], [
-      metadataArchiveStatus === 'ArchivedAndDeleted',
+      metadataArchiveStatus === 'ArchivedAndDeleted' || true,
       () => h(Fragment, [
         div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, [`Workflow metadata fetched in ${fetchTime}ms`]),
-        div({ style: { display: 'flex', flexDirection: 'column' } }, [
-          div({ style: { lineHeight: '24px', marginTop: '0.5rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
-            icon('info-circle', { size: 18, style: { color: colors.accent(), marginRight: '0.5rem' } }),
-            div({ style: Style.elements.sectionHeader, paddingRight: '0.5rem' }, ' Workflow Details Archived')
-          ]),
-          div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
-            'This workflow\'s details have been archived and are no longer instantly available in the UI. Please refer to our ',
-            h(Link, {
-              href: 'about:blank', // TODO: Need a support article to link to!
-              ...Utils.newTabLinkProps
-            }, [icon('pop-out', { size: 18 }), ' Workflow Details Archived']),
-            ' support article for more details.'
-          ])
+        div({ style: { lineHeight: '24px', marginTop: '0.5rem', display: 'flex', flexDirection: 'row', alignItems: 'center' } }, [
+          icon('info-circle', { size: 18, style: { color: colors.accent(), marginRight: '0.5rem' } }),
+          div({ style: Style.elements.sectionHeader }, ' Workflow Details Archived')
+        ]),
+        div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
+          'This workflow\'s details have been archived and are no longer instantly available in the UI. Please refer to our ',
+          h(Link, {
+            href: 'about:blank', // TODO: Need a support article to link to!
+            ...Utils.newTabLinkProps
+          }, [icon('pop-out', { size: 18 }), ' Workflow Details Archived']),
+          ' support article for more details.'
         ])
       ])
     ],
