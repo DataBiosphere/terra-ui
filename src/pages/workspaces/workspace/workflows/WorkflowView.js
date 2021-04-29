@@ -107,6 +107,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
 
   return h(SimpleFlexTable, {
     rowCount: sortedData.length,
+    tableName: `workflow ${which}`,
     noContentMessage: `No matching ${which}.`,
     sort,
     columns: [
@@ -238,6 +239,7 @@ const BucketContentModal = ({ workspace: { workspace: { namespace, bucketName } 
     ]),
     div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.light(0.4)}` } }),
     h(SimpleTable, {
+      tableName: 'file browser',
       columns: [
         { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' }
       ],

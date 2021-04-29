@@ -109,6 +109,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
           width, height, rowCount: selectedData.length,
           onScroll: y => saveScroll(0, y),
           initialY,
+          tableName: 'reference data',
           noContentMessage: 'No matching data',
           columns: [
             {
@@ -251,6 +252,7 @@ const BucketContent = _.flow(
     ]),
     div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
     h(SimpleTable, {
+      tableName: 'file browser',
       columns: [
         { size: { basis: 24, grow: 0 }, key: 'button' },
         { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },

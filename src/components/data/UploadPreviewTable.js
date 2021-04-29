@@ -209,6 +209,7 @@ const UploadDataTable = props => {
               ref: table,
               width, height,
               rowCount: sortedRows.length,
+              tableName: `metadata preview table`,
               noContentMessage: `No ${entityType}s to display.`,
               onScroll: saveScroll, initialX, initialY, sort,
               columns: [
