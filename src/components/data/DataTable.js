@@ -194,6 +194,7 @@ const DataTable = props => {
               ref: table,
               width, height,
               rowCount: entities.length,
+              tableName: `${entityType} data table, page ${pageNumber} of ${Math.ceil(totalRowCount / itemsPerPage)}`,
               noContentMessage: `No ${entityType}s to display.`,
               onScroll,
               initialX,

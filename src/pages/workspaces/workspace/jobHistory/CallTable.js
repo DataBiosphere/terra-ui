@@ -22,6 +22,7 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
         height: tableHeight({ actualRows: callObjects.length, maxRows: 10.5 }), // The half-row here hints at there being extra rows if scrolled
         width,
         rowCount: callObjects.length,
+        tableName: 'call table',
         noContentMessage: 'No matching calls',
         columns: [
           {

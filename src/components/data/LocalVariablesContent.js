@@ -138,6 +138,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
         onScroll: y => saveScroll(0, y),
         initialY,
         hoverHighlight: true,
+        tableName: 'workspace data local variables table',
         noContentMessage: _.isEmpty(initialAttributes) ? 'No Workspace Data defined' : 'No matching data',
         columns: [{
           size: { basis: 400, grow: 0 },
