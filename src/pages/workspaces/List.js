@@ -173,8 +173,10 @@ export const WorkspaceList = () => {
       ),
       variant: 'light',
       rowHeight: 70,
+      sort,
       columns: [
         {
+          field: 'name',
           headerRenderer: makeHeaderRenderer('name'),
           cellRenderer: ({ rowIndex }) => {
             const { accessLevel, workspace: { workspaceId, namespace, name, attributes: { description } } } = sortedWorkspaces[rowIndex]
@@ -204,6 +206,7 @@ export const WorkspaceList = () => {
           },
           size: { basis: 400, grow: 2, shrink: 0 }
         }, {
+          field: 'lastModified',
           headerRenderer: makeHeaderRenderer('lastModified'),
           cellRenderer: ({ rowIndex }) => {
             const { workspace: { lastModified } } = sortedWorkspaces[rowIndex]
@@ -216,6 +219,7 @@ export const WorkspaceList = () => {
           },
           size: { basis: 100, grow: 1, shrink: 0 }
         }, {
+          field: 'createdBy',
           headerRenderer: makeHeaderRenderer('createdBy'),
           cellRenderer: ({ rowIndex }) => {
             const { workspace: { createdBy } } = sortedWorkspaces[rowIndex]
@@ -226,6 +230,7 @@ export const WorkspaceList = () => {
           },
           size: { basis: 200, grow: 1, shrink: 0 }
         }, {
+          field: 'accessLevel',
           headerRenderer: makeHeaderRenderer('accessLevel'),
           cellRenderer: ({ rowIndex }) => {
             const { accessLevel } = sortedWorkspaces[rowIndex]
