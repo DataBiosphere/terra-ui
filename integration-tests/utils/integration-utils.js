@@ -28,7 +28,7 @@ const findIframe = async page => {
 }
 
 const findInGrid = (page, textContains, options) => {
-  return page.waitForXPath(`//*[@role="grid"][contains(normalize-space(.),"${textContains}")]`, options)
+  return page.waitForXPath(`//*[@role="table"][contains(normalize-space(.),"${textContains}")]`, options)
 }
 
 const clickable = ({ text, textContains }) => {
@@ -106,11 +106,11 @@ const svgText = ({ textContains }) => {
 }
 
 const navChild = text => {
-  return `//*[@role="navigation"]/*[contains(normalize-space(.),"${text}")]`
+  return `//*[@role="tablist"]/*[contains(normalize-space(.),"${text}")]`
 }
 
 const elementInDataTableRow = (entityName, text) => {
-  return `//*[@role="grid"]//*[contains(.,"${entityName}")]/following-sibling::*[contains(.,"${text}")]`
+  return `//*[@role="table"]//*[contains(.,"${entityName}")]/following-sibling::*[contains(.,"${text}")]`
 }
 
 const findInDataTableRow = (page, entityName, text) => {

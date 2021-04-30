@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
-import { b, div, h, img, input, label, span } from 'react-hyperscript-helpers'
+import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
@@ -52,7 +52,7 @@ const styles = {
   }
 }
 
-export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, onClick, children, ...props }) => {
+export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, onClick, children, ...props }) => {
   const child = h(Interactive, {
     'aria-disabled': !!disabled,
     as, disabled,
@@ -63,7 +63,7 @@ export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip
   }, [children])
 
   if (tooltip) {
-    return h(TooltipTrigger, { content: tooltip, side: tooltipSide }, [child])
+    return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay }, [child])
   } else {
     return child
   }
@@ -119,11 +119,15 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
 }
 
 export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref, getOnClick = _.noop, children }) => {
-  const navTab = currentTab => {
+  const navTab = (i, currentTab) => {
     const selected = currentTab === activeTab
     const href = getHref(currentTab)
 
     return h(Clickable, {
+      role: 'tab',
+      'aria-posinset': i + 1,
+      'aria-setsize': tabNames.length,
+      'aria-selected': selected,
       style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
       hover: selected ? {} : Style.tabBar.hover,
       onClick: href === window.location.hash ? refresh : getOnClick(currentTab),
@@ -133,8 +137,12 @@ export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noo
     ])
   }
 
-  return div({ role: 'navigation', 'aria-label': 'Tab bar', style: Style.tabBar.container }, [
-    ..._.map(name => navTab(name), tabNames),
+  return div({
+    role: 'tablist',
+    'aria-label': 'Tab bar',
+    style: Style.tabBar.container
+  }, [
+    ..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames)),
     div({ style: { flexGrow: 1 } }),
     children
   ])
@@ -507,11 +515,12 @@ export const HeroWrapper = ({ showMenu = true, bigSubhead = false, children }) =
         flexGrow: 1,
         color: colors.dark(),
         padding: '3rem 5rem',
+        backgroundColor: '#fafbfd', // This not-quite-white fallback color was extracted from the background image
         backgroundImage: `url(${landingPageHero})`,
         backgroundRepeat: 'no-repeat', backgroundSize: '750px', backgroundPosition: 'right 0 top 0'
       }
     }, [
-      div({ style: { fontSize: 54 } }, `Welcome to ${getAppName()}`),
+      h1({ style: { fontSize: 54 } }, `Welcome to ${getAppName()}`),
       div({ style: { margin: '1rem 0', width: 575, ...(bigSubhead ? { fontSize: 20, lineHeight: '28px' } : { fontSize: 16, lineHeight: 1.5 }) } }, [
         `${getAppName(true)} is a ${Utils.cond(
           [isTerra(), () => 'cloud-native platform'],

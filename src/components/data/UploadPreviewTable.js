@@ -210,11 +210,12 @@ const UploadDataTable = props => {
               width, height,
               rowCount: sortedRows.length,
               noContentMessage: `No ${entityType}s to display.`,
-              onScroll: saveScroll, initialX, initialY,
+              onScroll: saveScroll, initialX, initialY, sort,
               columns: [
                 ..._.map(name => {
                   const thisWidth = columnWidths[name] || 300
                   return {
+                    field: name,
                     width: thisWidth,
                     headerRenderer: ({ columnIndex }) => h(Resizable, {
                       width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(name, thisWidth + delta))

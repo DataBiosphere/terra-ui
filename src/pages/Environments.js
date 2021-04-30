@@ -143,9 +143,12 @@ const Environments = () => {
     div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
       h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '0 0 1rem 0', padding: 0 } }, ['Your cloud environments']),
       runtimes && h(SimpleFlexTable, {
+        sort,
+        tableName: 'cloud environments',
         rowCount: filteredRuntimes.length,
         columns: [
           {
+            field: 'project',
             headerRenderer: () => h(Sortable, { sort, field: 'project', onSort: setSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
               const runtime = filteredRuntimes[rowIndex]
@@ -175,6 +178,7 @@ const Environments = () => {
           },
           {
             size: { basis: 150, grow: 0 },
+            field: 'status',
             headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
             cellRenderer: ({ rowIndex }) => {
               const runtime = filteredRuntimes[rowIndex]
@@ -198,6 +202,7 @@ const Environments = () => {
           },
           {
             size: { basis: 250, grow: 0 },
+            field: 'created',
             headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Created']),
             cellRenderer: ({ rowIndex }) => {
               return makeCompleteDate(filteredRuntimes[rowIndex].auditInfo.createdDate)
@@ -205,6 +210,7 @@ const Environments = () => {
           },
           {
             size: { basis: 250, grow: 0 },
+            field: 'accessed',
             headerRenderer: () => h(Sortable, { sort, field: 'accessed', onSort: setSort }, ['Last accessed']),
             cellRenderer: ({ rowIndex }) => {
               return makeCompleteDate(filteredRuntimes[rowIndex].auditInfo.dateAccessed)
@@ -212,6 +218,7 @@ const Environments = () => {
           },
           {
             size: { basis: 240, grow: 0 },
+            field: 'cost',
             headerRenderer: () => {
               return h(Sortable, { sort, field: 'cost', onSort: setSort }, [`Cost / hr (${formatUSD(totalCost)} total)`])
             },
@@ -236,9 +243,12 @@ const Environments = () => {
       }),
       h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0', padding: 0 } }, ['Your persistent disks']),
       disks && h(SimpleFlexTable, {
+        sort: diskSort,
+        tableName: 'persistent disks',
         rowCount: filteredDisks.length,
         columns: [
           {
+            field: 'project',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'project', onSort: setDiskSort }, ['Billing project']),
             cellRenderer: ({ rowIndex }) => {
               const disk = filteredDisks[rowIndex]
@@ -267,6 +277,7 @@ const Environments = () => {
           },
           {
             size: { basis: 120, grow: 0 },
+            field: 'size',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'size', onSort: setDiskSort }, ['Size (GB)']),
             cellRenderer: ({ rowIndex }) => {
               const disk = filteredDisks[rowIndex]
@@ -283,6 +294,7 @@ const Environments = () => {
           },
           {
             size: { basis: 130, grow: 0 },
+            field: 'status',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'status', onSort: setDiskSort }, ['Status']),
             cellRenderer: ({ rowIndex }) => {
               const disk = filteredDisks[rowIndex]
@@ -291,6 +303,7 @@ const Environments = () => {
           },
           {
             size: { basis: 240, grow: 0 },
+            field: 'created',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'created', onSort: setDiskSort }, ['Created']),
             cellRenderer: ({ rowIndex }) => {
               return makeCompleteDate(filteredDisks[rowIndex].auditInfo.createdDate)
@@ -298,6 +311,7 @@ const Environments = () => {
           },
           {
             size: { basis: 240, grow: 0 },
+            field: 'accessed',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
             cellRenderer: ({ rowIndex }) => {
               return makeCompleteDate(filteredDisks[rowIndex].auditInfo.dateAccessed)
@@ -305,6 +319,7 @@ const Environments = () => {
           },
           {
             size: { basis: 250, grow: 0 },
+            field: 'cost',
             headerRenderer: () => {
               return h(Sortable, { sort: diskSort, field: 'cost', onSort: setDiskSort }, [`Cost / month (${formatUSD(totalDiskCost)} total)`])
             },

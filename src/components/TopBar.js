@@ -55,6 +55,10 @@ const styles = {
     }),
     icon: {
       marginRight: 12, flex: 'none'
+    },
+    navSection: {
+      flex: 'none', height: 70, padding: '0 28px', fontWeight: 600,
+      borderTop: `1px solid ${colors.dark(0.55)}`, color: 'white'
     }
   }
 }
@@ -67,29 +71,43 @@ const NavItem = ({ children, ...props }) => {
 }
 
 const NavSection = ({ children, ...props }) => {
-  return h(NavItem, _.merge({
-    style: {
-      flex: 'none', height: 70, padding: '0 28px', fontWeight: 600,
-      borderTop: `1px solid ${colors.dark(0.55)}`, color: 'white'
-    }
-  }, props), [children])
+  return div({
+    role: 'listitem'
+  }, [
+    h(NavItem, _.merge({
+      style: styles.nav.navSection
+    }, props), [children])
+  ])
 }
 
 const DropDownSubItem = ({ children, ...props }) => {
-  return h(NavItem, _.merge({
-    style: { padding: '0 3rem', height: 40, fontWeight: 500 }
-  }, props), [children])
+  return div({
+    role: 'listitem'
+  }, [
+    h(NavItem, _.merge({
+      style: { padding: '0 3rem', height: 40, fontWeight: 500 }
+    }, props), [children])
+  ])
 }
 
 const DropDownSection = ({ titleIcon, title, isOpened, onClick, children }) => {
-  return h(Fragment, [
-    h(NavSection, { onClick }, [
+  return div({
+    role: 'group'
+  }, [
+    h(NavItem, {
+      onClick,
+      'aria-expanded': isOpened,
+      'aria-haspopup': 'menu',
+      style: styles.nav.navSection
+    }, [
       titleIcon && icon(titleIcon, { size: 24, style: styles.nav.icon }),
       title,
       div({ style: { flexGrow: 1 } }),
       icon(isOpened ? 'angle-up' : 'angle-down', { size: 18, style: { flex: 'none' } })
     ]),
-    div({ style: { flex: 'none' } }, [h(RCollapse, { isOpened }, [children])])
+    div({
+      style: { flex: 'none' }
+    }, [h(RCollapse, { isOpened }, [children])])
   ])
 }
 
@@ -132,7 +150,10 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
         style: styles.nav.container(transitionState),
         onClick: e => e.stopPropagation()
       }, [
-        div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
+        div({
+          role: 'list',
+          style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }
+        }, [
           isSignedIn ?
             h(DropDownSection, {
               title: h(Fragment, [
@@ -162,7 +183,10 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                 onClick: signOut
               }, ['Sign Out'])
             ]) :
-            div({ style: { flex: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 95 } }, [
+            div({
+              style: { flex: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 95 },
+              role: 'listitem'
+            }, [
               isDatastage() || isBioDataCatalyst() ?
                 h(Clickable, {
                   href: Nav.getLink('workspaces'),
@@ -172,9 +196,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                     width: 250, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center'
                   }
                 }, ['SIGN IN']) :
-                div([
-                  h(SignInButton)
-                ])
+                h(SignInButton)
             ]),
           h(NavSection, {
             href: Nav.getLink('workspaces'),
@@ -328,11 +350,13 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
     }, [
       showMenu ?
         h(Clickable, {
-          'aria-label': 'Toggle main menu',
           style: { alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: '0 1rem', margin: '2px 1rem 0 2px' },
-          onClick: () => navShown ? hideNav() : showNav()
+          onClick: () => navShown ? hideNav() : showNav(),
+          'aria-expanded': navShown
         }, [
           icon('bars', {
+            'aria-label': 'Toggle main menu',
+            'aria-hidden': false,
             size: 36,
             style: {
               color: isTerra() ? 'white' : colors.accent(), flex: 'none',
