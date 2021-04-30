@@ -90,7 +90,7 @@ export const captureAppcuesEvent = (eventName, event) => {
       'appcues.interaction.category': event.interaction?.category,
       'appcues.interaction.destination': event.interaction?.destination,
       'appcues.interaction.element': event.interaction?.element,
-      'appcues.interaction.fields': event.interaction?.fields && JSON.stringify(event.interaction.fields),
+      'appcues.interaction.fields': JSON.stringify(event.interaction?.fields),
       'appcues.interaction.formId': event.interaction?.formId,
       'appcues.interaction.text': event.interaction?.text, // not documented by Appcues, but observed and useful
       'appcues.interactionType': event.interactionType,
