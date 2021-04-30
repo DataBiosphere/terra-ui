@@ -132,7 +132,7 @@ const WorkflowDashboard = _.flow(
         div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
           'This workflow\'s details have been archived. Please refer to the ',
           h(Link, {
-            href: 'about:blank', // TODO: Need a support article to link to!
+            href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
             ...Utils.newTabLinkProps
           }, [icon('pop-out', { size: 18 }), ' Workflow Details Archived']),
           ' support article for details on how to access the archive.'
