@@ -21,6 +21,7 @@ import { LocationProvider, Router, TitleManager } from 'src/libs/nav'
 
 const Main = () => {
   return h(LocationProvider, [
+    h(CookieWarning),
     h(ReactNotification),
     h(ImportStatus),
     h(ServiceAlerts),
@@ -35,8 +36,7 @@ const Main = () => {
     h(PageViewReporter),
     h(SupportRequest),
     h(NpsSurvey),
-    h(ConfigOverridesWarning),
-    h(CookieWarning)
+    h(ConfigOverridesWarning)
   ])
 }
 
