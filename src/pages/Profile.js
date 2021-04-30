@@ -355,9 +355,9 @@ const Profile = ({ queryParams = {} }) => {
             sectionTitle('Program Info'),
 
             h(IdContainer, [id => div({
-              style: styles.form.title, role: 'radiogroup', 'aria-labelledby': id
+              role: 'radiogroup', 'aria-labelledby': id
             }, [
-              span({ id }, ['Non-Profit Status']),
+              span({ id, style: styles.form.title }, ['Non-Profit Status']),
               div({ style: { margin: '1rem' } }, [
                 radioButton('nonProfitStatus', 'Profit'),
                 radioButton('nonProfitStatus', 'Non-Profit')
