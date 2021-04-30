@@ -81,7 +81,7 @@ export const captureAppcuesEvent = (eventName, event) => {
     'form_field_submitted'
   ]
   if (_.includes(eventName, publicEvents)) {
-    const eventProps = {
+    const eventProps = { // Building the props manually to make sure we're resilient to any changes in Appcues
       'appcues.flowId': event.flowId,
       'appcues.flowName': event.flowName,
       'appcues.flowType': event.flowType,
