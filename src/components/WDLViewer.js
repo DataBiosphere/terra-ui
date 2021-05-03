@@ -75,6 +75,7 @@ const WDLViewer = ({ wdl, ...props }) => {
 
   return pre(_.merge(
     {
+      tabIndex: 0,
       className: 'line-numbers',
       style: { border: Style.standardLine, backgroundColor: 'white' }
     },
