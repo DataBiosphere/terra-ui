@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
-import { a, div, h, img, span } from 'react-hyperscript-helpers'
+import { a, div, h, h1, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
 import {
   Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay
@@ -342,6 +342,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
       role: 'banner',
       style: {
         ...styles.topBar,
+        backgroundColor: isTerra() ? colors.primary() : colors.light(), // Fallback color for a11y and if background images don't show
         background: isTerra() ?
           `81px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat, ${colors.primary()}` :
           colors.light()
@@ -373,7 +374,9 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
           div({
             style: title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 }
           }, [versionTag('Beta')]),
-          title
+          title && h1({
+            style: { fontSize: '1em', fontWeight: 500, padding: 0, margin: 0 }
+          }, [title])
         ])
       ]),
       children,
