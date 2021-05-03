@@ -1,4 +1,4 @@
-import { Children, cloneElement, Fragment, useImperativeHandle, useRef, useState } from 'react'
+import { Children, cloneElement, Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import onClickOutside from 'react-onclickoutside'
 import { Clickable, FocusTrapper } from 'src/components/common'
@@ -38,12 +38,17 @@ export const Popup = onClickOutside(function({ side = 'right', target: targetId,
   ])
 })
 
-const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, children, closeOnClick, ...props }, ref) => {
+const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, children, closeOnClick, onChange, ...props }, ref) => {
   const [open, setOpen] = useState(false)
   const id = Utils.useUniqueId()
   useImperativeHandle(ref, () => ({
     close: () => setOpen(false)
   }))
+
+  useEffect(() => {
+    onChange && onChange(open)
+  }, [open, onChange])
+
   const child = Children.only(children)
   const childId = child.props.id || id
   return h(Fragment, [
@@ -67,11 +72,17 @@ const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, childr
 
 export default PopupTrigger
 
-export const InfoBox = ({ size, children, style, side }) => h(PopupTrigger, {
-  side,
-  content: div({ style: { padding: '0.5rem', width: 300 } }, [children])
-}, [
-  h(Clickable, { as: 'span', 'aria-label': 'More info' }, [
-    icon('info-circle', { size, style: { cursor: 'pointer', color: colors.accent(), ...style } })
+export const InfoBox = ({ size, children, style, side }) => {
+  const [open, setOpen] = useState(false)
+  return h(PopupTrigger, {
+    side,
+    onChange: setOpen,
+    content: div({ style: { padding: '0.5rem', width: 300 } }, [children])
+  }, [
+    h(Clickable, {
+      as: 'span', 'aria-label': 'More info', 'aria-expanded': open, 'aria-haspopup': true
+    }, [
+      icon('info-circle', { size, style: { cursor: 'pointer', color: colors.accent(), ...style } })
+    ])
   ])
-])
+}

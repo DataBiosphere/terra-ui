@@ -384,7 +384,7 @@ export const ShibbolethLink = ({ children, ...props }) => {
   ])
 }
 
-export const FrameworkServiceLink = ({ linkText, provider, redirectUrl }) => {
+export const FrameworkServiceLink = ({ linkText, provider, redirectUrl, ...props }) => {
   const [href, setHref] = useState()
 
   Utils.useOnMount(() => {
@@ -399,7 +399,8 @@ export const FrameworkServiceLink = ({ linkText, provider, redirectUrl }) => {
     h(Link, {
       href,
       style: { display: 'inline-flex', alignItems: 'center' },
-      ...Utils.newTabLinkProps
+      ...Utils.newTabLinkProps,
+      ...props
     }, [
       linkText,
       icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })

@@ -2,7 +2,7 @@ import { addDays, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
-import { div, h, label, span } from 'react-hyperscript-helpers'
+import { div, h, h2, h3, label, span } from 'react-hyperscript-helpers'
 import {
   ButtonPrimary, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay, UnlinkFenceAccount
 } from 'src/components/common'
@@ -164,7 +164,7 @@ const NihLink = ({ nihToken }) => {
 }
 
 
-const FenceLink = ({ provider: { key, name, expiresAfter } }) => {
+const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
   const decodeProvider = state => state ? JSON.parse(atob(state)).provider : ''
 
   const extractToken = (provider, { state, code }) => {
@@ -205,11 +205,11 @@ const FenceLink = ({ provider: { key, name, expiresAfter } }) => {
    * Render
    */
   return div({ style: { marginBottom: '1rem' } }, [
-    div({ style: { ...styles.form.title, fontWeight: 600 } }, [name]),
+    h3({ style: { ...styles.form.title, fontWeight: 600 } }, [name]),
     Utils.cond(
       [isLinking, () => div([spinner(), 'Loading account status...'])],
       [!username, () => div({ style: styles.identityLine },
-        [h(FrameworkServiceLink, { linkText: 'Log in to link your account', provider: key, redirectUrl })]
+        [h(FrameworkServiceLink, { linkText: `Log in to link your ${short} account`, provider: key, redirectUrl })]
       )],
       () => div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
         div({ style: styles.identityLine }, [
@@ -221,9 +221,9 @@ const FenceLink = ({ provider: { key, name, expiresAfter } }) => {
           div({ style: { flex: 2 } }, [Utils.makeCompleteDate(addDays(expiresAfter, parseJSON(issuedAt)))])
         ]),
         div({ style: styles.identityLine }, [
-          h(FrameworkServiceLink, { linkText: 'Renew', provider: key, redirectUrl }),
+          h(FrameworkServiceLink, { linkText: 'Renew', 'aria-label': `Renew your ${short} link`, provider: key, redirectUrl }),
           span({ style: { margin: '0 .25rem 0' } }, [' | ']),
-          h(UnlinkFenceAccount, { linkText: 'Unlink', provider: { key, name } })
+          h(UnlinkFenceAccount, { linkText: `Unlink`, 'aria-label': `Unlink from ${short}`, provider: { key, name } })
         ])
       ])
     )
@@ -231,7 +231,7 @@ const FenceLink = ({ provider: { key, name, expiresAfter } }) => {
 }
 
 
-const sectionTitle = text => div({ style: styles.sectionTitle }, [text])
+const sectionTitle = text => h2({ style: styles.sectionTitle }, [text])
 
 const Profile = ({ queryParams = {} }) => {
   // State
@@ -300,7 +300,7 @@ const Profile = ({ queryParams = {} }) => {
 
   return h(FooterWrapper, [
     saving && spinnerOverlay,
-    h(TopBar),
+    h(TopBar, { title: 'User Profile' }),
     div({ role: 'main', style: { flexGrow: 1 } }, [
       !profileInfo ? centeredSpinner() : h(Fragment, [
         div({ style: { marginLeft: '2rem' } }, [sectionTitle('Profile')]),
@@ -354,11 +354,15 @@ const Profile = ({ queryParams = {} }) => {
 
             sectionTitle('Program Info'),
 
-            div({ style: styles.form.title }, ['Non-Profit Status']),
-            div({ style: { margin: '1rem' } }, [
-              radioButton('nonProfitStatus', 'Profit'),
-              radioButton('nonProfitStatus', 'Non-Profit')
-            ]),
+            h(IdContainer, [id => div({
+              role: 'radiogroup', 'aria-labelledby': id
+            }, [
+              span({ id, style: styles.form.title }, ['Non-Profit Status']),
+              div({ style: { margin: '1rem' } }, [
+                radioButton('nonProfitStatus', 'Profit'),
+                radioButton('nonProfitStatus', 'Non-Profit')
+              ])
+            ])]),
             line([
               textField('pi', 'Principal Investigator/Program Lead')
             ]),
