@@ -7,6 +7,7 @@ import { cookiesAcceptedKey } from 'src/components/CookieWarning'
 import { Ajax, fetchOk } from 'src/libs/ajax'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
+import { captureAppcuesEvent } from 'src/libs/events'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
@@ -185,9 +186,12 @@ authStore.subscribe(withErrorReporting('Error checking TOS', async (state, oldSt
 
 authStore.subscribe(async (state, oldState) => {
   if (!oldState.acceptedTos && state.acceptedTos) {
-    window.Appcues && window.Appcues.identify(state.user.id, {
-      dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime()
-    })
+    if (window.Appcues) {
+      window.Appcues.identify(state.user.id, {
+        dateJoined: parseJSON((await Ajax().User.firstTimestamp()).timestamp).getTime()
+      })
+      window.Appcues.on('all', captureAppcuesEvent)
+    }
   }
 })
 
