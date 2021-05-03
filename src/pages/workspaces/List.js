@@ -156,6 +156,16 @@ export const WorkspaceList = () => {
     filteredWorkspaces[tab]
   )
 
+  const tabs = _.map(key => ({
+    key,
+    title: span({ style: { padding: '0 1rem' } }, [
+      _.upperCase(key), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`
+    ]),
+    tableName: _.lowerCase(key)
+  }), ['myWorkspaces', 'newAndInteresting', 'featured', 'public'])
+
+  const currentTab = _.find({ key: tab }, tabs)
+
   const makeHeaderRenderer = name => () => h(MiniSortable, { sort, field: name, onSort: setSort }, [
     div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
   ])
@@ -164,6 +174,7 @@ export const WorkspaceList = () => {
     ({ width, height }) => h(FlexTable, {
       width, height,
       rowCount: sortedWorkspaces.length,
+      tableName: currentTab?.tableName || 'workspaces',
       noContentRenderer: () => Utils.cond(
         [loadingWorkspaces, () => null],
         [_.isEmpty(initialFiltered.myWorkspaces) && tab === 'myWorkspaces', () => NoWorkspacesMessage({
@@ -367,12 +378,7 @@ export const WorkspaceList = () => {
             setTab(newTab)
           }
         },
-        tabs: _.map(key => ({
-          key,
-          title: span({ style: { padding: '0 1rem' } }, [
-            _.upperCase(key), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`
-          ])
-        }), ['myWorkspaces', 'newAndInteresting', 'featured', 'public'])
+        tabs
       }),
       renderedWorkspaces,
       creatingNewWorkspace && h(NewWorkspaceModal, {

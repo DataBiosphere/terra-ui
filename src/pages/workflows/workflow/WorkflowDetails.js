@@ -210,6 +210,7 @@ const WorkflowConfigs = () => {
       h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           width, height,
+          tableName: 'workflow configuration',
           rowCount: allConfigs.length,
           columns: [
             {

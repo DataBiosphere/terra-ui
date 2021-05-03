@@ -185,6 +185,7 @@ const SubmissionDetails = _.flow(
         h(AutoSizer, [({ width, height }) => h(FlexTable, {
           width, height, sort,
           rowCount: filteredWorkflows.length,
+          tableName: 'submission details',
           noContentMessage: 'No matching workflows',
           columns: [
             {
