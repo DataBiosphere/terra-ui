@@ -102,7 +102,7 @@ const WorkflowDashboard = _.flow(
   /*
    * Page render
    */
-  const { calls, end, failures, start, status, workflowLog, workflowName, submittedFiles: { workflow: wdl } = {} } = workflow || {}
+  const { metadataArchiveStatus, calls, end, failures, start, status, workflowLog, workflowName, submittedFiles: { workflow: wdl } = {} } = workflow || {}
 
   const restructureFailures = failuresArray => {
     const filtered = _.filter(({ message }) => !_.isEmpty(message) && !message.startsWith('Will not start job'), failuresArray)
@@ -122,12 +122,23 @@ const WorkflowDashboard = _.flow(
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId),
-    workflow === undefined ?
-      h(Fragment, [
+    Utils.cond(
+      [workflow === undefined, () => h(Fragment, [
         div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, [`Fetching workflow metadata...`]),
         centeredSpinner()
-      ]) :
-      h(Fragment, [
+      ])],
+      [metadataArchiveStatus === 'ArchivedAndDeleted', () => h(Fragment, [
+        div({ style: { lineHeight: '24px', marginTop: '0.5rem', ...Style.elements.sectionHeader } }, ' Workflow Details Archived'),
+        div({ style: { lineHeight: '24px', marginTop: '0.5rem' } }, [
+          'This workflow\'s details have been archived. Please refer to the ',
+          h(Link, {
+            href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
+            ...Utils.newTabLinkProps
+          }, [icon('pop-out', { size: 18 }), ' Workflow Details Archived']),
+          ' support article for details on how to access the archive.'
+        ])
+      ])],
+      () => h(Fragment, [
         div({ style: { fontStyle: 'italic', marginBottom: '1rem' } }, [`Workflow metadata fetched in ${fetchTime}ms`]),
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
           makeSection('Workflow Status', [
@@ -206,13 +217,12 @@ const WorkflowDashboard = _.flow(
             )
           ]
         ),
-        wdl && h(Collapse,
-          {
-            title: div({ style: Style.elements.sectionHeader }, ['Submitted workflow script'])
-          }, [h(WDLViewer, { wdl })]
-        ),
+        wdl && h(Collapse, {
+          title: div({ style: Style.elements.sectionHeader }, ['Submitted workflow script'])
+        }, [h(WDLViewer, { wdl })]),
         showLog && h(UriViewer, { googleProject: namespace, uri: workflowLog, onDismiss: () => setShowLog(false) })
       ])
+    )
   ])
 })
 
