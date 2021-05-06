@@ -562,9 +562,8 @@ const WorkflowView = _.flow(
     const { signal, workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
       modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
-      availableSnapshots, selectedSnapshotEntityMetadata,
-      selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
-      currentSnapRedacted, savedSnapRedacted, wdl
+      availableSnapshots, selectedSnapshotEntityMetadata, selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache,
+      deleteIntermediateOutputFiles, useReferenceDisks, currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
     const entityTypes = _.keys(entityMetadata)
@@ -572,14 +571,20 @@ const WorkflowView = _.flow(
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
-      [entitySelectionModel.type === processSnapshotTable && (!rootEntityType || !(modifiedConfig.dataReferenceName)),
-        () => 'A snapshot and table must be selected'],
+      [
+        entitySelectionModel.type === processSnapshotTable && (!rootEntityType || !(modifiedConfig.dataReferenceName)),
+        () => 'A snapshot and table must be selected'
+      ],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
-      [entitySelectionModel.type !== processSnapshotTable && this.isMultiple() &&
-      (!entityMetadata[rootEntityType] && !_.includes(rootEntityType, possibleSetTypes)),
-      () => `There are no ${selectedEntityType}s in this workspace.`],
-      [entitySelectionModel.type !== processSnapshotTable && this.isMultiple() && !_.size(entitySelectionModel.selectedEntities),
-        () => 'Select data for analysis']
+      [
+        entitySelectionModel.type !== processSnapshotTable && this.isMultiple() &&
+        (!entityMetadata[rootEntityType] && !_.includes(rootEntityType, possibleSetTypes)),
+        () => `There are no ${selectedEntityType}s in this workspace.`
+      ],
+      [
+        entitySelectionModel.type !== processSnapshotTable && this.isMultiple() && !_.size(entitySelectionModel.selectedEntities),
+        () => 'Select data for analysis'
+      ]
     )
 
     const inputsValid = _.isEmpty(errors.inputs)
@@ -711,8 +716,10 @@ const WorkflowView = _.flow(
                   options: [
                     {
                       label: 'TABLES',
-                      options: _.map(entityType => ({ value: entityType, source: 'table' }),
-                        _.sortBy(_.lowerCase, [...entityTypes, ...possibleSetTypes]))
+                      options: _.map(
+                        entityType => ({ value: entityType, source: 'table' }),
+                        _.sortBy(_.lowerCase, [...entityTypes, ...possibleSetTypes])
+                      )
                     },
                     {
                       label: 'SNAPSHOTS',
