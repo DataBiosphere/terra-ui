@@ -1,6 +1,5 @@
 import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
-import PropTypes from 'prop-types'
 import { Component, Fragment, useEffect, useState } from 'react'
 import { b, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
@@ -11,6 +10,7 @@ import {
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedAutocompleteTextArea, DelayedSearchInput } from 'src/components/input'
+import { MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import PopupTrigger, { InfoBox } from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
@@ -65,15 +65,6 @@ const styles = {
     fontWeight: !optional && 500,
     fontStyle: optional && 'italic'
   }),
-  description: {
-    display: 'flex',
-    marginBottom: '0.5rem',
-    marginTop: '0.5rem'
-  },
-  angle: {
-    marginRight: '0.5rem',
-    color: colors.accent()
-  },
   outputInfoLabel: {
     color: colors.dark()
   },
@@ -266,45 +257,18 @@ const BucketContentModal = ({ workspace: { workspace: { namespace, bucketName } 
   ])
 }
 
-class TextCollapse extends Component {
-  static propTypes = {
-    defaultHidden: PropTypes.bool,
-    showIcon: PropTypes.bool,
-    children: PropTypes.node
-  }
+const DocumentationCollapse = ({ children }) => {
+  const [isOpened, setIsOpened] = useState(false)
 
-  static defaultProps = {
-    defaultHidden: false,
-    showIcon: true
-  }
-
-  constructor(props) {
-    super(props)
-    this.state = { isOpened: !props.defaultHidden }
-  }
-
-  render() {
-    const { showIcon, children, ...props } = _.omit('defaultHidden', this.props)
-    const { isOpened } = this.state
-
-    return div(props, [
-      div(
-        {
-          style: styles.description,
-          onClick: () => this.setState({ isOpened: !isOpened })
-        },
-        [
-          showIcon && icon(isOpened ? 'angle-down' : 'angle-right',
-            { style: styles.angle, size: 21 }),
-          div({
-            style: {
-              width: '100%',
-              ...(isOpened ? {} : Style.noWrapEllipsis)
-            }
-          }, [children])
-        ])
-    ])
-  }
+  return div({
+    style: { display: 'flex', margin: '0.5rem 0' },
+    onClick: () => setIsOpened(!isOpened)
+  }, [
+    icon(isOpened ? 'angle-down' : 'angle-right', { style: { marginRight: '0.5rem', color: colors.accent() }, size: 21 }),
+    isOpened ?
+      h(MarkdownViewer, { style: { marginBottom: '1rem' } }, [children]) :
+      div({ style: { width: '100%', ...Style.noWrapEllipsis } }, [children])
+  ])
 }
 
 const isSet = _.endsWith('_set')
@@ -469,7 +433,7 @@ const WorkflowView = _.flow(
       const selection = workflowSelectionStore.get()
       const readSelection = selectionKey && selection.key === selectionKey
 
-      const { resources: snapshots } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshot(1000, 0)
+      const { resources: snapshots } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshots(1000, 0)
 
       // Dockstore users who target floating tags can change their WDL via Github without explicitly selecting a new version in Terra.
       // Before letting the user edit the config we retrieved from the DB, drop any keys that are no longer valid. [WA-291]
@@ -480,7 +444,9 @@ const WorkflowView = _.flow(
         !isRedacted ? filterConfigIO(inputsOutputs) : _.identity
       )(config)
 
-      const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ? await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, modifiedConfig.dataReferenceName) : undefined
+      const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ?
+        await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, modifiedConfig.dataReferenceName) :
+        undefined
 
       this.setState({
         savedConfig: config, modifiedConfig,
@@ -595,8 +561,10 @@ const WorkflowView = _.flow(
   renderSummary() {
     const { signal, workspace: ws, workspace: { workspace }, namespace, name: workspaceName } = this.props
     const {
-      modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation, availableSnapshots, selectedSnapshotEntityMetadata,
-      selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, deleteIntermediateOutputFiles, useReferenceDisks, currentSnapRedacted, savedSnapRedacted, wdl
+      modifiedConfig, savedConfig, saving, saved, exporting, copying, deleting, selectingData, activeTab, errors, synopsis, documentation,
+      availableSnapshots, selectedSnapshotEntityMetadata,
+      selectedEntityType, entityMetadata, entitySelectionModel, versionIds = [], useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
+      currentSnapRedacted, savedSnapRedacted, wdl
     } = this.state
     const { name, methodRepoMethod: { methodPath, methodVersion, methodNamespace, methodName, sourceRepo }, rootEntityType } = modifiedConfig
     const entityTypes = _.keys(entityMetadata)
@@ -604,10 +572,14 @@ const WorkflowView = _.flow(
     const modified = !_.isEqual(modifiedConfig, savedConfig)
     const noLaunchReason = Utils.cond(
       [saving || modified, () => 'Save or cancel to Launch Analysis'],
-      [entitySelectionModel.type === processSnapshotTable && (!rootEntityType || !(modifiedConfig.dataReferenceName)), () => 'A snapshot and table must be selected'],
+      [entitySelectionModel.type === processSnapshotTable && (!rootEntityType || !(modifiedConfig.dataReferenceName)),
+        () => 'A snapshot and table must be selected'],
       [!_.isEmpty(errors.inputs) || !_.isEmpty(errors.outputs), () => 'At least one required attribute is missing or invalid'],
-      [entitySelectionModel.type !== processSnapshotTable && this.isMultiple() && (!entityMetadata[rootEntityType] && !_.includes(rootEntityType, possibleSetTypes)), () => `There are no ${selectedEntityType}s in this workspace.`],
-      [entitySelectionModel.type !== processSnapshotTable && this.isMultiple() && !_.size(entitySelectionModel.selectedEntities), () => 'Select data for analysis']
+      [entitySelectionModel.type !== processSnapshotTable && this.isMultiple() &&
+      (!entityMetadata[rootEntityType] && !_.includes(rootEntityType, possibleSetTypes)),
+      () => `There are no ${selectedEntityType}s in this workspace.`],
+      [entitySelectionModel.type !== processSnapshotTable && this.isMultiple() && !_.size(entitySelectionModel.selectedEntities),
+        () => 'Select data for analysis']
     )
 
     const inputsValid = _.isEmpty(errors.inputs)
@@ -677,13 +649,8 @@ const WorkflowView = _.flow(
             }, [sourceDisplay])
           ]),
           div(`Synopsis: ${synopsis ? synopsis : ''}`),
-          documentation ?
-            h(TextCollapse, {
-              defaultHidden: true,
-              showIcon: true
-            }, [
-              documentation
-            ]) :
+          !!documentation ?
+            h(DocumentationCollapse, [documentation]) :
             div({ style: { fontStyle: 'italic', ...styles.description } }, ['No documentation provided']),
           div({ role: 'radiogroup', 'aria-label': 'Select number of target entities', style: { marginBottom: '1rem' } }, [
             div([
@@ -720,7 +687,10 @@ const WorkflowView = _.flow(
                   value: selectedEntityType,
                   onChange: async ({ value, source }) => {
                     if (source === 'snapshot') {
-                      const selectedSnapshotEntityMetadata = await Ajax(signal).Workspaces.workspace(namespace, workspaceName).snapshotEntityMetadata(namespace, value)
+                      const selectedSnapshotEntityMetadata = await Ajax(signal)
+                        .Workspaces
+                        .workspace(namespace, workspaceName)
+                        .snapshotEntityMetadata(namespace, value)
 
                       this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value))
                       this.setState(_.unset(['modifiedConfig', 'rootEntityType']))
@@ -741,7 +711,8 @@ const WorkflowView = _.flow(
                   options: [
                     {
                       label: 'TABLES',
-                      options: _.map(entityType => ({ value: entityType, source: 'table' }), _.sortBy(_.lowerCase, [...entityTypes, ...possibleSetTypes]))
+                      options: _.map(entityType => ({ value: entityType, source: 'table' }),
+                        _.sortBy(_.lowerCase, [...entityTypes, ...possibleSetTypes]))
                     },
                     {
                       label: 'SNAPSHOTS',
@@ -928,7 +899,10 @@ const WorkflowView = _.flow(
 
   renderIOTable(key) {
     const { workspace } = this.props
-    const { modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, filter, selectedSnapshotEntityMetadata } = this.state
+    const {
+      modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, filter,
+      selectedSnapshotEntityMetadata
+    } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
 
     const selectedTableName = modifiedConfig.dataReferenceName ? modifiedConfig.rootEntityType : undefined
@@ -1031,7 +1005,10 @@ const WorkflowView = _.flow(
         errors: augmentErrors(validationResponse),
         savedInputsOutputs: modifiedInputsOutputs,
         ...(type === processSnapshotTable ?
-          { selectedEntityType: validationResponse.methodConfiguration.dataReferenceName, selectedTableName: validationResponse.methodConfiguration.rootEntityType } :
+          {
+            selectedEntityType: validationResponse.methodConfiguration.dataReferenceName,
+            selectedTableName: validationResponse.methodConfiguration.rootEntityType
+          } :
           { selectedEntityType: validationResponse.methodConfiguration.rootEntityType, selectedTableName: undefined }
         )
       }, () => setTimeout(() => this.setState({ saved: false }), 3000))

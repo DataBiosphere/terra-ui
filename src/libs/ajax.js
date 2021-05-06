@@ -657,7 +657,7 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      listSnapshot: async (limit, offset) => {
+      listSnapshots: async (limit, offset) => {
         const res = await fetchRawls(`${root}/snapshots?offset=${offset}&limit=${limit}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
