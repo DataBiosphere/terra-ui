@@ -77,8 +77,8 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
       disabled: _.toLower(deleteConfirmation) !== 'delete workspace' || isDeleteDisabledFromApps,
       onClick: () => deleteWorkspace(),
       tooltip: Utils.cond(
-        [_.toLower(deleteConfirmation) !== 'delete workspace', () => 'You must type the confirmation message'],
         [isDeleteDisabledFromApps, () => 'You must ensure all apps in this workspace are deletable'],
+        [_.toLower(deleteConfirmation) !== 'delete workspace', () => 'You must type the confirmation message'],
         () => 'Delete Workspace')
     }, 'Delete workspace')
   }, [
