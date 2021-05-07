@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import FocusLock from 'react-focus-lock'
 import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
@@ -10,6 +10,7 @@ import RSwitch from 'react-switch'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
+import { withArrowKeyNavigation } from 'src/components/keyboard-nav'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
@@ -52,10 +53,10 @@ const styles = {
   }
 }
 
-export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, onClick, children, ...props }) => {
+export const Clickable = Utils.forwardRefWithName('Clickable', ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, onClick, children, ...props }, ref) => {
   const child = h(Interactive, {
     'aria-disabled': !!disabled,
-    as, disabled,
+    as, disabled, ref,
     onClick: (...args) => onClick && !disabled && onClick(...args),
     href: !disabled ? href : undefined,
     tabIndex: disabled ? '-1' : '0',
@@ -67,10 +68,11 @@ export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip
   } else {
     return child
   }
-}
+})
 
-export const Link = ({ disabled, variant, children, ...props }) => {
+export const Link = Utils.forwardRefWithName('Link', ({ disabled, variant, children, ...props }, ref) => {
   return h(Clickable, _.merge({
+    ref,
     style: {
       color: disabled ? colors.dark(0.7) : colors.accent(variant === 'light' ? 0.3 : 1),
       cursor: disabled ? 'not-allowed' : 'pointer',
@@ -79,7 +81,7 @@ export const Link = ({ disabled, variant, children, ...props }) => {
     hover: disabled ? undefined : { color: colors.accent(variant === 'light' ? 0.1 : 0.8) },
     disabled
   }, props), [children])
-}
+})
 
 export const ButtonPrimary = ({ disabled, danger = false, children, ...props }) => {
   return h(Clickable, _.merge({
@@ -118,14 +120,14 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
   }, props), [children])
 }
 
-export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref, getOnClick = _.noop, children }) => {
+export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref, getOnClick = _.noop, label = 'Tab bar', children }) => {
   const navTab = (i, currentTab) => {
     const selected = currentTab === activeTab
     const href = getHref(currentTab)
 
     return h(Clickable, {
       role: 'tab',
-      'aria-posinset': i + 1,
+      'aria-posinset': i + 1, // The first tab is 1
       'aria-setsize': tabNames.length,
       'aria-selected': selected,
       style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
@@ -139,7 +141,7 @@ export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noo
 
   return div({
     role: 'tablist',
-    'aria-label': 'Tab bar',
+    'aria-label': label,
     style: Style.tabBar.container
   }, [
     ..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames)),
@@ -148,17 +150,46 @@ export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noo
   ])
 }
 
-export const SimpleTabBar = ({ value, onChange, tabs }) => {
-  return div({ style: styles.tabBar.container }, [
-    _.map(({ key, title, width }) => {
+export const SimpleTabBar = ({ value, onChange, tabs, label, children, ...props }) => {
+  const tabIds = _.map(Utils.useUniqueId, _.range(0, tabs.length))
+  const panelRef = useRef()
+
+  // Determine the index of the selected tab, or choose the first one
+  const selectedId = Math.max(0, _.findIndex(({ key }) => key === value, tabs))
+
+  return h(Fragment, [
+    div({
+      role: 'tablist',
+      'aria-label': label,
+      'aria-setsize': tabs.length,
+      style: styles.tabBar.container
+    }, withArrowKeyNavigation(_.map(([i, { key, title, width }]) => {
       const selected = value === key
-      return h(Clickable, {
+      return ({ forwardedRef, onKeyDown }) => h(Clickable, {
         key,
+        ref: forwardedRef,
+        id: tabIds[i],
+        role: 'tab',
+        'aria-posinset': i + 1, // The first tab is 1
+        'aria-selected': selected,
         style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}), width },
         hover: selected ? {} : styles.tabBar.hover,
-        onClick: () => onChange(key)
+        onKeyDown,
+        onClick: () => {
+          // If any children were provided, move the focus to the tabpanel as soon as a tab is selected.
+          // This most efficiently lets keyboard users interact with the tabs and find the content they care about.
+          children && panelRef.current.focus()
+          onChange && onChange(key)
+        }
       }, [title])
-    }, tabs)
+    }, Utils.toIndexPairs(tabs)))),
+    children && div({
+      role: 'tabpanel',
+      ref: panelRef,
+      tabIndex: -1,
+      'aria-labelledby': tabIds[selectedId],
+      ...props
+    }, [children])
   ])
 }
 
@@ -260,43 +291,80 @@ export const comingSoon = span({
   }
 }, ['coming soon'])
 
-const commonSelectProps = {
-  theme: base => _.merge(base, {
-    colors: {
-      primary: colors.accent(),
-      neutral20: colors.dark(0.55),
-      neutral30: colors.dark(0.55)
+const commonSelectProps = (menuId, isOpen) => {
+  return {
+    theme: base => _.merge(base, {
+      colors: {
+        primary: colors.accent(),
+        neutral20: colors.dark(0.55),
+        neutral30: colors.dark(0.55)
+      },
+      spacing: { controlHeight: 36 }
+    }),
+    styles: {
+      control: (base, { isDisabled }) => _.merge(base, {
+        backgroundColor: isDisabled ? colors.dark(0.25) : 'white',
+        boxShadow: 'none'
+      }),
+      singleValue: base => ({ ...base, color: colors.dark() }),
+      option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
+        fontWeight: isSelected ? 600 : undefined,
+        backgroundColor: isFocused ? colors.dark(0.15) : 'white',
+        color: isDisabled ? undefined : colors.dark(),
+        ':active': { backgroundColor: colors.accent(isSelected ? 0.55 : 0.4) }
+      }),
+      clearIndicator: base => ({ ...base, paddingRight: 0 }),
+      indicatorSeparator: () => ({ display: 'none' }),
+      dropdownIndicator: (base, { selectProps: { isClearable } }) => _.merge(base, { paddingLeft: isClearable ? 0 : undefined }),
+      multiValueLabel: base => ({ ...base, maxWidth: '100%' }),
+      multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } }),
+      placeholder: base => ({ ...base, color: colors.dark(0.8) })
     },
-    spacing: { controlHeight: 36 }
-  }),
-  styles: {
-    control: (base, { isDisabled }) => _.merge(base, {
-      backgroundColor: isDisabled ? colors.dark(0.25) : 'white',
-      boxShadow: 'none'
-    }),
-    singleValue: base => ({ ...base, color: colors.dark() }),
-    option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
-      fontWeight: isSelected ? 600 : undefined,
-      backgroundColor: isFocused ? colors.dark(0.15) : 'white',
-      color: isDisabled ? undefined : colors.dark(),
-      ':active': { backgroundColor: colors.accent(isSelected ? 0.55 : 0.4) }
-    }),
-    clearIndicator: base => ({ ...base, paddingRight: 0 }),
-    indicatorSeparator: () => ({ display: 'none' }),
-    dropdownIndicator: (base, { selectProps: { isClearable } }) => _.merge(base, { paddingLeft: isClearable ? 0 : undefined }),
-    multiValueLabel: base => ({ ...base, maxWidth: '100%' }),
-    multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } }),
-    placeholder: base => ({ ...base, color: colors.dark(0.8) })
-  },
-  components: {
-    Option: ({ children, ...props }) => {
-      return h(RSelectComponents.Option, props, [
-        div({ style: { display: 'flex', alignItems: 'center', minHeight: 25 } }, [
-          div({ style: { flex: 1, minWidth: 0, overflowWrap: 'break-word' } }, [children]),
-          props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
+    components: {
+      Option: ({ children, ...props }) => {
+        return h(RSelectComponents.Option, {
+          ...props,
+          role: 'option'
+        }, [
+          div({ style: { display: 'flex', alignItems: 'center', minHeight: 25 } }, [
+            div({ style: { flex: 1, minWidth: 0, overflowWrap: 'break-word' } }, [children]),
+            props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
+          ])
         ])
-      ])
-    }
+      },
+      SelectContainer: props => {
+        return RSelectComponents.SelectContainer({
+          ...props,
+          innerProps: {
+            ...props.innerProps,
+            role: 'combobox',
+            'aria-haspopup': 'listbox',
+            'aria-expanded': isOpen,
+            'aria-multiselectable': props.selectProps.isMulti
+          }
+        })
+      },
+      Input: props => {
+        return RSelectComponents.Input({
+          ...props,
+          role: 'textbox',
+          'aria-multiline': false,
+          'aria-controls': isOpen ? menuId : undefined
+        })
+      },
+      Menu: props => {
+        return RSelectComponents.Menu({
+          ...props,
+          innerProps: {
+            ...props.innerProps,
+            id: menuId,
+            role: 'listbox'
+          }
+        })
+      }
+    },
+    'aria-live': 'polite',
+    isSearchable: true // If this is false then the DummyInput is used instead, but it can't be made accessible the way the other components can
   }
 }
 const formatGroupLabel = group => (
@@ -310,16 +378,21 @@ const formatGroupLabel = group => (
     }
   }, [group.label]))
 
-const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) => {
+const BaseSelect = ({ value, newOptions, id = Utils.useUniqueId(), findValue, maxHeight, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
+  const [isOpen, setOpen] = useState(false)
+  const menuId = Utils.useUniqueId()
 
   return h(RSelect, _.merge({
     inputId: id,
-    ...commonSelectProps,
+    menuId,
+    ...commonSelectProps(menuId, isOpen),
     getOptionLabel: ({ value, label }) => label || value.toString(),
     value: newValue || null, // need null instead of undefined to clear the select
     options: newOptions,
-    formatGroupLabel
+    formatGroupLabel,
+    onMenuOpen: () => setOpen(true),
+    onMenuClose: () => setOpen(false)
   }, props))
 }
 
@@ -348,7 +421,14 @@ export const GroupedSelect = ({ value, options, id, ...props }) => {
 }
 
 export const AsyncCreatableSelect = props => {
-  return h(RAsyncCreatableSelect, _.merge(commonSelectProps, props))
+  const [isOpen, setOpen] = useState(false)
+  const menuId = Utils.useUniqueId()
+  return h(RAsyncCreatableSelect, {
+    ...commonSelectProps(menuId, isOpen),
+    onMenuOpen: () => setOpen(true),
+    onMenuClose: () => setOpen(false),
+    ...props
+  })
 }
 
 export const PageBox = ({ children, style = {}, ...props }) => {

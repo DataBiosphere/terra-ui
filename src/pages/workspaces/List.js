@@ -1,7 +1,7 @@
 import { isAfter, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link, makeMenuIcon, MenuButton, Select, SimpleTabBar, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
@@ -58,23 +58,28 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
   const canRead = workspace && Utils.canRead(workspace.accessLevel)
   const canShare = workspace && workspace.canShare
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-  return h(Fragment, [
+  return div({
+    role: 'menu'
+  }, [
     h(MenuButton, {
       disabled: !canRead,
       tooltip: workspace && !canRead && 'You do not have access to the workspace Authorization Domain',
       tooltipSide: 'left',
+      role: 'menuitem',
       onClick: () => onClone()
     }, [makeMenuIcon('copy'), 'Clone']),
     h(MenuButton, {
       disabled: !canShare,
       tooltip: workspace && !canShare && 'You have not been granted permission to share this workspace',
       tooltipSide: 'left',
+      role: 'menuitem',
       onClick: () => onShare()
     }, [makeMenuIcon('share'), 'Share']),
     h(MenuButton, {
       disabled: !isOwner,
       tooltip: workspace && !isOwner && 'You must be an owner of this workspace or the underlying billing project',
       tooltipSide: 'left',
+      role: 'menuitem',
       onClick: () => onDelete()
     }, [makeMenuIcon('trash'), 'Delete'])
   ])
@@ -197,8 +202,9 @@ export const WorkspaceList = () => {
             return div({ style: styles.tableCellContainer }, [
               div({ style: styles.tableCellContent }, [
                 h(Link, {
-                  style: { color: canView ? undefined : colors.dark(0.7), fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
+                  style: { color: canView ? undefined : colors.dark(0.8), fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
+                  'aria-haspopup': canView ? undefined : 'dialog',
                   onClick: () => {
                     canAccessWorkspace()
                     !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, { workspaceName: name, workspaceNamespace: namespace })
@@ -252,7 +258,7 @@ export const WorkspaceList = () => {
           },
           size: { basis: 120, grow: 1, shrink: 0 }
         }, {
-          headerRenderer: () => null,
+          headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
           cellRenderer: ({ rowIndex }) => {
             const { accessLevel, workspace: { workspaceId, namespace, name }, ...workspace } = sortedWorkspaces[rowIndex]
             const onClone = () => setCloningWorkspaceId(workspaceId)
@@ -262,14 +268,17 @@ export const WorkspaceList = () => {
             const lastRunStatus = workspaceSubmissionStatus(workspace)
 
 
-            return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
+            return canView ? div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
                 h(PopupTrigger, {
                   side: 'left',
                   closeOnClick: true,
                   content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
                 }, [
-                  h(Link, { 'aria-label': `Menu for Workspace: ${name}`, disabled: !canView }, [icon('cardMenuIcon', { size: 20 })])
+                  h(Link, {
+                    'aria-label': `Menu for Workspace: ${name}`,
+                    'aria-haspopup': 'menu'
+                  }, [icon('cardMenuIcon', { size: 20 })])
                 ])
               ]),
               div({ style: styles.tableCellContent }, [
@@ -284,7 +293,7 @@ export const WorkspaceList = () => {
                   )
                 ])
               ])
-            ])
+            ]) : ''
           },
           size: { basis: 30, grow: 0, shrink: 0 }
         }
@@ -307,7 +316,8 @@ export const WorkspaceList = () => {
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
         h(Link, {
-          'aria-label': 'Create new workspace', onClick: () => setCreatingNewWorkspace(true),
+          'aria-label': 'Create new workspace',
+          onClick: () => setCreatingNewWorkspace(true),
           style: { marginLeft: '0.5rem' },
           tooltip: 'Create a new workspace'
         },
@@ -370,6 +380,7 @@ export const WorkspaceList = () => {
         ])
       ]),
       h(SimpleTabBar, {
+        label: 'workspace collections',
         value: tab,
         onChange: newTab => {
           if (newTab === tab) {
@@ -378,9 +389,14 @@ export const WorkspaceList = () => {
             setTab(newTab)
           }
         },
-        tabs
-      }),
-      renderedWorkspaces,
+        tabs: _.map(key => ({
+          key,
+          title: span({ style: { padding: '0 1rem' } }, [
+            _.upperCase(key), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`
+          ])
+        }), ['myWorkspaces', 'newAndInteresting', 'featured', 'public']),
+        style: { flex: '1 1 auto', display: 'flex' }
+      }, [renderedWorkspaces]),
       creatingNewWorkspace && h(NewWorkspaceModal, {
         onDismiss: () => setCreatingNewWorkspace(false),
         onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })

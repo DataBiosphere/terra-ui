@@ -85,15 +85,15 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay 
 
 const TooltipTrigger = ({ children, content, ...props }) => {
   const [open, setOpen] = useState(false)
-  const id = Utils.useUniqueId()
   const tooltipId = Utils.useUniqueId()
   const child = Children.only(children)
-  const childId = child.props.id || id
+  const childId = child.props.id || Utils.useUniqueId()
+  const descriptionId = Utils.useUniqueId()
 
   return h(Fragment, [
     cloneElement(child, {
       id: childId,
-      'aria-describedby': open ? tooltipId : undefined,
+      'aria-describedby': descriptionId,
       onMouseEnter: (...args) => {
         child.props.onMouseEnter && child.props.onMouseEnter(...args)
         setOpen(true)
@@ -111,7 +111,8 @@ const TooltipTrigger = ({ children, content, ...props }) => {
         setOpen(false)
       }
     }),
-    open && !!content && h(Tooltip, { target: childId, id: tooltipId, ...props }, [content])
+    open && !!content && h(Tooltip, { target: childId, id: tooltipId, ...props }, [content]),
+    !!content && div({ id: descriptionId, style: { display: 'none' } }, [content])
   ])
 }
 
