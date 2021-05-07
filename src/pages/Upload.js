@@ -635,7 +635,7 @@ const MetadataUploadPanel = _.flow(
       activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
       multiple: false,
       maxFiles: 1,
-      accept: '.tsv',
+      accept: '.tsv, .txt',
       onDropAccepted: ([file]) => {
         setMetadataFile(file)
       },
@@ -652,7 +652,7 @@ const MetadataUploadPanel = _.flow(
             color: colors.dark(0.75), width: '100%', margin: '2rem 0', textAlign: 'center',
             fontSize: '1.5em'
           }
-        }, ['Drag and drop your metadata .tsv file here']),
+        }, ['Drag and drop your metadata .tsv or .txt file here']),
         !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
           label: 'UPLOAD',
           iconShape: 'plus',
