@@ -26,7 +26,7 @@
     "express": "^4.17.1",
     "google-auth-library": "^6.1.1",
     "googleapis": "^61.0.0",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "nodemon": "^2.0.4",
     "p-retry": "^4.2.0",
     "puppeteer": "^5.3.1"
