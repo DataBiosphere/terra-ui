@@ -116,7 +116,6 @@ const InactivityTimer = ({ id, timeout, countdownStart, doSignOut }) => {
     if (timedOut || logoutRequested) {
       doSignOut()
     }
-
   }, [doSignOut, logoutRequested, timedOut])
 
   return showCountdown && h(CountdownModal, { onCancel: () => setLogoutRequested(true), countdown })
