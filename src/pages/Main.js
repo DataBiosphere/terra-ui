@@ -14,6 +14,7 @@ import ImportStatus from 'src/components/ImportStatus'
 import NpsSurvey from 'src/components/NpsSurvey'
 import { AuthenticatedCookieSetter } from 'src/components/runtime-common'
 import ServiceAlerts from 'src/components/ServiceAlerts'
+import SkipNavLink from 'src/components/SkipNavLink'
 import SupportRequest from 'src/components/SupportRequest'
 import { PageViewReporter } from 'src/libs/events'
 import { LocationProvider, Router, TitleManager } from 'src/libs/nav'
@@ -21,6 +22,7 @@ import { LocationProvider, Router, TitleManager } from 'src/libs/nav'
 
 const Main = () => {
   return h(LocationProvider, [
+    h(SkipNavLink),
     h(CookieWarning),
     h(ReactNotification),
     h(ImportStatus),
