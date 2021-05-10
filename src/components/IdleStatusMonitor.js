@@ -91,7 +91,6 @@ const CountdownModal = ({ onCancel, countdown }) => {
 
 const InactivityTimer = ({ id, timeout, countdownStart, doSignOut }) => {
   const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore) || {}
-  const [logoutRequested, setLogoutRequested] = useState(false)
   const [currentTime, setDelay] = Utils.useCurrentTime()
   const { timedOut, showCountdown, countdown } = getIdleData({ currentTime, lastRecordedActivity, timeout, countdownStart })
 
@@ -113,12 +112,10 @@ const InactivityTimer = ({ id, timeout, countdownStart, doSignOut }) => {
   })
 
   useEffect(() => {
-    if (timedOut || logoutRequested) {
-      doSignOut()
-    }
-  }, [doSignOut, logoutRequested, timedOut])
+    if (timedOut) { doSignOut() }
+  }, [doSignOut, timedOut])
 
-  return showCountdown && h(CountdownModal, { onCancel: () => setLogoutRequested(true), countdown })
+  return showCountdown && h(CountdownModal, { onCancel: doSignOut, countdown })
 }
 
 export default IdleStatusMonitor
