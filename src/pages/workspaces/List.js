@@ -391,11 +391,8 @@ export const WorkspaceList = () => {
         },
         tabs: _.map(key => ({
           key,
-          title: span({ style: { padding: '0 1rem' } }, [
-            _.upperCase(key), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`
-          ])
-        }), ['myWorkspaces', 'newAndInteresting', 'featured', 'public']),
-        style: { flex: '1 1 auto', display: 'flex' }
+          title: `${_.upperCase(key)} (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`
+        }), ['myWorkspaces', 'newAndInteresting', 'featured', 'public'])
       }, [renderedWorkspaces]),
       creatingNewWorkspace && h(NewWorkspaceModal, {
         onDismiss: () => setCreatingNewWorkspace(false),

@@ -1,5 +1,6 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
+import PropTypes from 'prop-types'
 import * as qs from 'qs'
 import { Fragment, useRef, useState } from 'react'
 import FocusLock from 'react-focus-lock'
@@ -42,7 +43,7 @@ const styles = {
       borderBottom: `1px solid ${terraSpecial()}`, flex: ''
     },
     tab: {
-      flex: 'none', outlineOffset: -4,
+      flex: 'none', padding: '0 1em', height: '100%',
       alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center',
       borderBottomWidth: 8, borderBottomStyle: 'solid', borderBottomColor: 'transparent'
     },
@@ -120,19 +121,43 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
   }, props), [children])
 }
 
-export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref, getOnClick = _.noop, label = 'Tab bar', children }) => {
+/**
+ * Creates the primary tab bar for workspaces and workflows.
+ * Semantically, this is actually a menu of links rather than true tabs.
+ *
+ * @param activeTab The key of the active tab
+ * @param tabNames An array of keys for each tab
+ * @param displayNames An optional array of display names for each tab (otherwise the keys will be displayed)
+ * @param refresh If provided, a function to refresh the current tab
+ * @param getHref A function to get the href for a given tab
+ * @param getOnClick An optional click handler function, given the current tab
+ * @param label The ARIA label for the menu, which is required for accessibility
+ * @param tabProps Optionally, properties to add to each tab
+ * @param id Optionally, an ID to apply to the wrapper `nav` element so it can be easily found in the
+ *  integration tests. This defaults to 'tab-navigation', but you should change if it this ID would appear
+ *  more than once on a page
+ * @param children Children, which will be appended to teh end of the tab bar
+ * @param props Any additional properties to add to the container menu element
+ */
+export const TabBar = ({
+  activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref,
+  getOnClick = _.noop, label, tabProps = {}, id = 'tab-navigation', children, ...props
+}) => {
   const navTab = (i, currentTab) => {
     const selected = currentTab === activeTab
     const href = getHref(currentTab)
 
-    return h(Clickable, {
-      role: 'tab',
-      'aria-posinset': i + 1, // The first tab is 1
+    return ({ forwardedRef, onKeyDown }) => h(Clickable, {
+      key: currentTab,
+      role: 'menuitem',
       'aria-setsize': tabNames.length,
-      'aria-selected': selected,
+      'aria-posinset': i + 1, // The first tab is 1
+      'aria-current': selected ? 'location' : undefined,
       style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
       hover: selected ? {} : Style.tabBar.hover,
       onClick: href === window.location.hash ? refresh : getOnClick(currentTab),
+      onKeyDown,
+      ref: forwardedRef,
       href
     }, [
       div({ style: { marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined } }, displayNames[currentTab] || currentTab)
@@ -140,17 +165,52 @@ export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noo
   }
 
   return div({
-    role: 'tablist',
-    'aria-label': label,
-    style: Style.tabBar.container
+    role: 'nav',
+    id
   }, [
-    ..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames)),
-    div({ style: { flexGrow: 1 } }),
-    children
+    div({
+      role: 'menubar',
+      'aria-label': label,
+      style: Style.tabBar.container,
+      ...props
+    }, [
+      withArrowKeyNavigation(_.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames))),
+      div({ style: { flexGrow: 1 } }),
+      children
+    ])
   ])
 }
+TabBar.propTypes = {
+  activeTab: PropTypes.string.isRequired,
+  tabNames: PropTypes.arrayOf(PropTypes.string).isRequired,
+  displayNames: PropTypes.arrayOf(PropTypes.string),
+  label: PropTypes.string.isRequired,
+  refresh: PropTypes.func,
+  getHref: PropTypes.func,
+  getOnClick: PropTypes.func,
+  tabProps: PropTypes.object,
+  id: PropTypes.string
+}
 
-export const SimpleTabBar = ({ value, onChange, tabs, label, children, ...props }) => {
+/**
+ * Creates a small tab bar, visually smaller than the one created by TabBar.
+ * This is semantically a tablist in that these components are generally used as filters for a table
+ * rather than as lists of links. If children are provided, they will be considered to be part of the
+ * tab panel. In this case, focus will be moved to the tab panel when the user clicks on a tab.
+ *
+ * @param value The key of the active tab
+ * @param onChange A function to be called when the user clicks a tab
+ * @param tabs An array of objects defining each tab
+ * @param tabs[].key The key of the tab
+ * @param tabs[].title The display name of the tab
+ * @param tabs[].width Optionally the width at which to render the tab
+ * @param label The ARIA label for the menu, which is required for accessibility
+ * @param tabProps Optionally, properties to add to each tab
+ * @param panelProps Optionally, properties to add to the tabpanel element
+ * @param children Children, which will be appended to teh end of the tab bar
+ * @param props Any additional properties to add to the container menu element
+ */
+export const SimpleTabBar = ({ value, onChange, tabs, label, tabProps = {}, panelProps = {}, children, ...props }) => {
   const tabIds = _.map(Utils.useUniqueId, _.range(0, tabs.length))
   const panelRef = useRef()
 
@@ -161,8 +221,8 @@ export const SimpleTabBar = ({ value, onChange, tabs, label, children, ...props 
     div({
       role: 'tablist',
       'aria-label': label,
-      'aria-setsize': tabs.length,
-      style: styles.tabBar.container
+      style: { ...styles.tabBar.container, flex: 0 },
+      ...props
     }, withArrowKeyNavigation(_.map(([i, { key, title, width }]) => {
       const selected = value === key
       return ({ forwardedRef, onKeyDown }) => h(Clickable, {
@@ -171,6 +231,7 @@ export const SimpleTabBar = ({ value, onChange, tabs, label, children, ...props 
         id: tabIds[i],
         role: 'tab',
         'aria-posinset': i + 1, // The first tab is 1
+        'aria-setsize': tabs.length,
         'aria-selected': selected,
         style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}), width },
         hover: selected ? {} : styles.tabBar.hover,
@@ -180,7 +241,8 @@ export const SimpleTabBar = ({ value, onChange, tabs, label, children, ...props 
           // This most efficiently lets keyboard users interact with the tabs and find the content they care about.
           children && panelRef.current.focus()
           onChange && onChange(key)
-        }
+        },
+        ...tabProps
       }, [title])
     }, Utils.toIndexPairs(tabs)))),
     children && div({
@@ -188,9 +250,22 @@ export const SimpleTabBar = ({ value, onChange, tabs, label, children, ...props 
       ref: panelRef,
       tabIndex: -1,
       'aria-labelledby': tabIds[selectedId],
-      ...props
+      style: { flex: '1 1 auto', display: 'flex', flexFlow: 'column nowrap' },
+      ...panelProps
     }, [children])
   ])
+}
+SimpleTabBar.propTypes = {
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  tabs: PropTypes.arrayOf(PropTypes.shape({
+    key: PropTypes.string.isRequired,
+    title: PropTypes.node.isRequired,
+    width: PropTypes.number
+  })).isRequired,
+  label: PropTypes.string.isRequired,
+  tabProps: PropTypes.object,
+  panelProps: PropTypes.object
 }
 
 export const makeMenuIcon = (iconName, props) => {
@@ -339,8 +414,7 @@ const commonSelectProps = (menuId, isOpen) => {
             ...props.innerProps,
             role: 'combobox',
             'aria-haspopup': 'listbox',
-            'aria-expanded': isOpen,
-            'aria-multiselectable': props.selectProps.isMulti
+            'aria-expanded': isOpen
           }
         })
       },
@@ -358,7 +432,8 @@ const commonSelectProps = (menuId, isOpen) => {
           innerProps: {
             ...props.innerProps,
             id: menuId,
-            role: 'listbox'
+            role: 'listbox',
+            'aria-multiselectable': props.selectProps.isMulti
           }
         })
       }

@@ -193,7 +193,7 @@ const ariaSort = (sort, field) => {
  */
 export const FlexTable = ({
   initialY = 0, width, height, rowCount, variant, columns = [], hoverHighlight = false,
-  onScroll = _.noop, noContentMessage = null, headerHeight = 48, rowHeight = 48,
+  onScroll = _.noop, noContentMessage, noContentRenderer = _.noop, headerHeight = 48, rowHeight = 48,
   styleCell = () => ({}), styleHeader = () => ({}), tableName, sort = null,
   ...props
 }) => {
@@ -208,7 +208,8 @@ export const FlexTable = ({
     role: 'table',
     'aria-rowcount': rowCount + 1, // count the header row too
     'aria-colcount': columns.length,
-    'aria-label': tableName
+    'aria-label': tableName,
+    className: 'flex-table'
   }, [
     div({
       style: {
@@ -275,7 +276,23 @@ export const FlexTable = ({
       },
       style: { outline: 'none' },
       onScroll: ({ scrollTop }) => onScroll(scrollTop),
-      noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage]),
+      noContentRenderer: () => {
+        if (noContentRenderer && !noContentMessage) {
+          noContentMessage = noContentRenderer()
+        }
+        noContentMessage = noContentMessage || 'Nothing to display'
+        return div({
+          role: 'row',
+          className: 'table-row',
+          style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' }
+        }, [
+          div({
+            role: 'cell',
+            className: 'table-cell',
+            'aria-colspan': columns.length
+          }, [noContentMessage])
+        ])
+      },
       ...props
     })
   ])
@@ -288,6 +305,7 @@ FlexTable.propTypes = {
   rowCount: PropTypes.number.isRequired,
   variant: PropTypes.oneOf(['light']),
   noContentMessage: PropTypes.node,
+  noContentRenderer: PropTypes.func,
   columns: PropTypes.arrayOf(PropTypes.shape({
     field: PropTypes.string,
     headerRenderer: PropTypes.func.isRequired,
@@ -317,10 +335,11 @@ FlexTable.propTypes = {
  * A basic table with a header and flexible column widths. Intended for small amounts of data,
  * since it does not provide scrolling. See FlexTable for prop types.
  */
-export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHighlight, tableName, sort = null }) => {
+export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContentRenderer, hoverHighlight, tableName, sort = null }) => {
   return div({
     role: 'table',
-    'aria-label': tableName
+    'aria-label': tableName,
+    className: 'simple-flex-table'
   }, [
     div({
       style: { height: 48, display: 'flex' },
@@ -363,7 +382,8 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, hoverHigh
  * datasets which may require horizontal scrolling.
  */
 export const GridTable = Utils.forwardRefWithName('GridTable', ({
-  width, height, initialX = 0, initialY = 0, rowHeight = 48, headerHeight = 48, noContentMessage,
+  width, height, initialX = 0, initialY = 0, rowHeight = 48, headerHeight = 48,
+  noContentMessage, noContentRenderer = _.noop,
   rowCount, columns, styleCell = () => ({}), styleHeader = () => ({}), onScroll: customOnScroll = _.noop,
   tableName, sort = null
 }, ref) => {
@@ -401,7 +421,8 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
         role: 'table',
         'aria-rowcount': rowCount + 1, // count the header row too
         'aria-colcount': columns.length,
-        'aria-label': tableName
+        'aria-label': tableName,
+        className: 'grid-table'
       }, [
         h(RVGrid, {
           ref: header,
@@ -450,7 +471,22 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
           containerRole: 'presentation',
           'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
           'aria-label': `${tableName} content`, // The whole table is a tab stop so it needs a label
-          noContentRenderer: () => div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage]),
+          noContentRenderer: () => {
+            if (noContentRenderer && !noContentMessage) {
+              noContentMessage = noContentRenderer()
+            }
+            return div({
+              role: 'row',
+              className: 'table-row',
+              style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' }
+            }, [
+              div({
+                role: 'cell',
+                className: 'table-cell',
+                'aria-colspan': columns.length
+              }, [noContentMessage])
+            ])
+          },
           onScrollbarPresenceChange: ({ vertical, size }) => {
             setScrollbarSize(vertical ? size : 0)
           },
