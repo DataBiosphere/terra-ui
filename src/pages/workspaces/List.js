@@ -181,7 +181,7 @@ export const WorkspaceList = () => {
       rowCount: sortedWorkspaces.length,
       tableName: currentTab?.tableName || 'workspaces',
       noContentRenderer: () => Utils.cond(
-        [loadingWorkspaces, () => null],
+        [loadingWorkspaces, () => 'Loading...'],
         [_.isEmpty(initialFiltered.myWorkspaces) && tab === 'myWorkspaces', () => NoWorkspacesMessage({
           onClick: () => setCreatingNewWorkspace(true)
         })],

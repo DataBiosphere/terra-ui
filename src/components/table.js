@@ -277,10 +277,7 @@ export const FlexTable = ({
       style: { outline: 'none' },
       onScroll: ({ scrollTop }) => onScroll(scrollTop),
       noContentRenderer: () => {
-        if (noContentRenderer && !noContentMessage) {
-          noContentMessage = noContentRenderer()
-        }
-        noContentMessage = noContentMessage || 'Nothing to display'
+        noContentMessage = noContentMessage || noContentRenderer() || 'Nothing to display'
         return div({
           role: 'row',
           className: 'table-row',
@@ -335,7 +332,11 @@ FlexTable.propTypes = {
  * A basic table with a header and flexible column widths. Intended for small amounts of data,
  * since it does not provide scrolling. See FlexTable for prop types.
  */
-export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContentRenderer, hoverHighlight, tableName, sort = null }) => {
+export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContentRenderer = _.noop, hoverHighlight, tableName, sort = null }) => {
+  if (!rowCount && !noContentMessage) {
+    noContentMessage = noContentRenderer() || 'Nothing to display'
+  }
+
   return div({
     role: 'table',
     'aria-label': tableName,
@@ -373,7 +374,16 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
         }, Utils.toIndexPairs(columns))
       ])
     }, _.range(0, rowCount)),
-    !rowCount && div({ style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' } }, [noContentMessage])
+    !rowCount && div({
+      role: 'row',
+      className: 'table-row'
+    }, [
+      div({
+        role: 'cell',
+        className: 'table-cell',
+        'aria-colspan': columns.length
+      }, [noContentMessage])
+    ])
   ])
 }
 
@@ -472,9 +482,7 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
           'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
           'aria-label': `${tableName} content`, // The whole table is a tab stop so it needs a label
           noContentRenderer: () => {
-            if (noContentRenderer && !noContentMessage) {
-              noContentMessage = noContentRenderer()
-            }
+            noContentMessage = noContentMessage || noContentRenderer() || 'Nothing to display'
             return div({
               role: 'row',
               className: 'table-row',
@@ -549,6 +557,8 @@ GridTable.propTypes = {
   rowCount: PropTypes.number.isRequired,
   styleHeader: PropTypes.func,
   styleCell: PropTypes.func,
+  noContentMessage: PropTypes.node,
+  noContentRenderer: PropTypes.func,
   columns: PropTypes.arrayOf(PropTypes.shape({
     field: PropTypes.string,
     width: PropTypes.number.isRequired,
