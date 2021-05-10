@@ -1,10 +1,12 @@
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { useEffect, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import ButtonBar from 'src/components/ButtonBar'
 import Modal from 'src/components/Modal'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
+import * as Nav from 'src/libs/nav'
 import { authStore, lastActiveTimeStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -19,7 +21,7 @@ const displayRemainingTime = remainingSeconds => {
 const setLastActive = lastActive => lastActiveTimeStore.update(_.set(getUser().id, lastActive))
 const getIdleData = ({ currentTime, lastRecordedActivity, timeout, countdownStart }) => {
   const lastActiveTime = Utils.cond(
-    [lastRecordedActivity === 'expired' || !lastRecordedActivity, () => currentTime],
+    [!lastRecordedActivity, () => currentTime],
     () => parseInt(lastRecordedActivity, 10)
   )
   const timeoutTime = lastActiveTime + timeout
@@ -35,21 +37,37 @@ const IdleStatusMonitor = ({
   timeout = Utils.durationToMillis({ minutes: 15 }),
   countdownStart = Utils.durationToMillis({ minutes: 3 })
 }) => {
+  // State
+  const [signOutRequired, setSignOutRequired] = useState(false)
+
   const { isSignedIn, isTimeoutEnabled, user: { id } } = Utils.useStore(authStore)
-  const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore) || {}
-  const { timedOut } = getIdleData({ currentTime: Date.now(), lastRecordedActivity, timeout, countdownStart })
+  const { query } = Nav.useRoute()
 
-  useEffect(() => { timedOut && !isSignedIn && setLastActive('expired') }, [isSignedIn, timedOut])
 
+  // Helpers
+  const doSignOut = () => {
+    setLastActive()
+    Nav.history.replace({ search: qs.stringify(_.set(['sessionExpired'], true, qs.parse(query))) })
+    window.gapi.auth2.getAuthInstance().disconnect()
+    setSignOutRequired(true)
+  }
+
+  const reloadSoon = () => setTimeout(() => {
+    window.location.reload()
+  }, 1000)
+
+
+  // Render
   return Utils.cond(
-    [isSignedIn && isTimeoutEnabled, () => h(InactivityTimer, { id, timeout, countdownStart })],
-    [lastRecordedActivity === 'expired' && !isSignedIn, () => h(Modal, {
+    [isSignedIn && isTimeoutEnabled, () => h(InactivityTimer, { id, timeout, countdownStart, doSignOut })],
+    [signOutRequired, () => iframe({ onLoad: reloadSoon, style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })],
+    [query?.sessionExpired && !isSignedIn, () => h(Modal, {
       title: 'Session Expired',
       showCancel: false,
-      onDismiss: () => setLastActive(),
-      onOk: () => setLastActive()
+      onDismiss: () => Nav.history.replace({ search: qs.stringify(_.unset(['sessionExpired'], qs.parse(query))) })
     }, ['Your session has expired to maintain security and protect clinical data'])],
-    () => null)
+    () => null
+  )
 }
 
 const CountdownModal = ({ onCancel, countdown }) => {
@@ -57,8 +75,7 @@ const CountdownModal = ({ onCancel, countdown }) => {
     title: 'Your session is about to expire!',
     onDismiss: () => null,
     showButtons: false
-  },
-  [
+  }, [
     'To maintain security and protect clinical data, you will be logged out in',
     div({ style: { whiteSpace: 'pre', textAlign: 'center', color: colors.accent(1), fontSize: '4rem' } },
       [displayRemainingTime(countdown / 1000)]),
@@ -72,9 +89,9 @@ const CountdownModal = ({ onCancel, countdown }) => {
   ])
 }
 
-const InactivityTimer = ({ id, timeout, countdownStart }) => {
+const InactivityTimer = ({ id, timeout, countdownStart, doSignOut }) => {
   const { [id]: lastRecordedActivity } = Utils.useStore(lastActiveTimeStore) || {}
-  const [logoutRequested, setLogoutRequested] = useState()
+  const [logoutRequested, setLogoutRequested] = useState(false)
   const [currentTime, setDelay] = Utils.useCurrentTime()
   const { timedOut, showCountdown, countdown } = getIdleData({ currentTime, lastRecordedActivity, timeout, countdownStart })
 
@@ -84,7 +101,7 @@ const InactivityTimer = ({ id, timeout, countdownStart }) => {
     const targetEvents = ['click', 'keydown']
     const updateLastActive = () => setLastActive(Date.now())
 
-    if (!lastRecordedActivity || lastRecordedActivity === 'expired') {
+    if (!lastRecordedActivity) {
       setLastActive(Date.now())
     }
 
@@ -95,15 +112,14 @@ const InactivityTimer = ({ id, timeout, countdownStart }) => {
     }
   })
 
-  useEffect(() => { logoutRequested && setLastActive() }, [logoutRequested])
-
-  return Utils.cond([
-    timedOut || logoutRequested, () => {
-      return iframe({ style: { display: 'none' }, src: 'https://www.google.com/accounts/Logout' })
+  useEffect(() => {
+    if (timedOut || logoutRequested) {
+      doSignOut()
     }
-  ],
-  [showCountdown, () => h(CountdownModal, { onCancel: () => setLogoutRequested(true), countdown })],
-  null)
+
+  }, [doSignOut, logoutRequested, timedOut])
+
+  return showCountdown && h(CountdownModal, { onCancel: () => setLogoutRequested(true), countdown })
 }
 
 export default IdleStatusMonitor
