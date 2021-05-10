@@ -195,6 +195,7 @@ export const FileBrowserPanel = _.flow(
             width,
             height,
             rowCount: numPrefixes + numObjects,
+            tableName: 'file browser',
             noContentMessage: 'No files have been uploaded yet',
             onScroll: saveScroll,
             initialY,

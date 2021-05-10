@@ -48,18 +48,22 @@ const styles = {
   }
 }
 
-const DataTypeButton = ({ selected, children, iconName = 'listAlt', iconSize = 14, buttonStyle, ...props }) => {
+const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, ...props }) => {
+  const isEntity = entityName !== undefined
+
   return h(Clickable, {
     style: { ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
     hover: Style.navList.itemHover(selected),
+    ...(isEntity ? { tooltip: entityName, tooltipDelay: 250 } : {}),
     ...props
   }, [
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
       icon(iconName, { size: iconSize })
     ]),
-    div({ style: { flex: 1, ...Style.noWrapEllipsis }, title: children }, [
-      children
-    ])
+    div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
+      entityName || children
+    ]),
+    isEntity && div([`(${entityCount})`])
   ])
 }
 
@@ -105,6 +109,7 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
           width, height, rowCount: selectedData.length,
           onScroll: y => saveScroll(0, y),
           initialY,
+          tableName: 'reference data',
           noContentMessage: 'No matching data',
           columns: [
             {
@@ -247,6 +252,7 @@ const BucketContent = _.flow(
     ]),
     div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
     h(SimpleTable, {
+      tableName: 'file browser',
       columns: [
         { size: { basis: 24, grow: 0 }, key: 'button' },
         { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },
@@ -448,11 +454,13 @@ const WorkspaceData = _.flow(
             return h(DataTypeButton, {
               key: type,
               selected: selectedDataType === type,
+              entityName: type,
+              entityCount: typeDetails.count,
               onClick: () => {
                 setSelectedDataType(type)
                 forceRefresh()
               }
-            }, [`${type} (${typeDetails.count})`])
+            })
           }, sortedEntityPairs)
         ]),
         (!_.isEmpty(sortedSnapshotPairs) || snapshotMetadataError) && h(DataTypeSection, {
@@ -466,6 +474,7 @@ const WorkspaceData = _.flow(
               key: snapshotName,
               titleFirst: true,
               buttonStyle: { height: 50, color: colors.dark(), fontWeight: 600, marginBottom: 0, overflow: 'hidden' },
+              buttonProps: { tooltip: snapshotName, tooltipDelay: 250 },
               style: { fontSize: 14, paddingLeft: '1.5rem', borderBottom: `1px solid ${colors.dark(0.2)}` },
               title: snapshotName, noTitleWrap: true,
               afterToggle: h(Link, {
@@ -500,6 +509,8 @@ const WorkspaceData = _.flow(
                     buttonStyle: { borderBottom: 0, height: 40 },
                     key: `${snapshotName}_${tableName}`,
                     selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
+                    entityName: tableName,
+                    entityCount: count,
                     onClick: () => {
                       setSelectedDataType([snapshotName, tableName])
                       Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {

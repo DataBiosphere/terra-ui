@@ -107,10 +107,13 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
 
   return h(SimpleFlexTable, {
     rowCount: sortedData.length,
+    tableName: `workflow ${which}`,
     noContentMessage: `No matching ${which}.`,
+    sort,
     columns: [
       {
         size: { basis: 350, grow: 0 },
+        field: 'taskVariable',
         headerRenderer: () => h(Sortable, { sort, field: 'taskVariable', onSort: setSort }, [h(HeaderCell, ['Task name'])]),
         cellRenderer: ({ rowIndex }) => {
           const io = sortedData[rowIndex]
@@ -121,6 +124,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
       },
       {
         size: { basis: 360, grow: 0 },
+        field: 'workflowVariable',
         headerRenderer: () => h(Sortable, { sort, field: 'workflowVariable', onSort: setSort }, ['Variable']),
         cellRenderer: ({ rowIndex }) => {
           const io = sortedData[rowIndex]
@@ -235,6 +239,7 @@ const BucketContentModal = ({ workspace: { workspace: { namespace, bucketName } 
     ]),
     div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.light(0.4)}` } }),
     h(SimpleTable, {
+      tableName: 'file browser',
       columns: [
         { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' }
       ],

@@ -65,8 +65,11 @@ Requests related to the funtionality or usability of the UI can be submitted as 
     ```sh
     yarn test
     ```
-6. Code style:
-    * Not in IntelliJ: use an eslint plugin.
+6. Code style and linting:
+    * On command line within the repo's root dir: `yarn eslint <path> [--fix]`
+      * To lint the main app files, use `src` as the path.
+      * The `--fix` argument will tell eslint to fix as many violations as possible. It will report any that it can't fix itself.
+    * In an IDE other than IntelliJ (VS Code, etc): install the eslint plugin from your package manager, and there should be a command to fix issues at any time.
     * In IntelliJ: 
         * When you open the project, right-click [.eslintrc.js](.eslintrc.js), click `Apply Eslint Code Style Rules`, and select `Automatic ESLint Configuration`; then go to `Preferences -> Editor -> Code Style -> Javascript`, click the gear next to `Scheme` -> `Import Scheme` -> `Intellij IDEA code style XML`, then select [js-style.xml](js-style.xml).
         * In order to correctly format a file at any time, run the IntelliJ `Reformat Code` action, and then right-click in a window and click `Fix ESLint Problems`. You could also create a macro to do this for you.

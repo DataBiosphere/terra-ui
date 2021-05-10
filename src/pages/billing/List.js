@@ -2,7 +2,8 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import Collapse from 'src/components/Collapse'
+import { ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
@@ -22,21 +23,32 @@ import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
 
 
-const ProjectTab = ({ project: { projectName, role, creationStatus, message }, isActive }) => {
+const ownerRole = 'Owner'
+
+const styles = {
+  projectListItem: selected => {
+    return {
+      ...Style.navList.item(selected),
+      ...(selected ? { backgroundColor: colors.dark(0.1) } : {}),
+      paddingLeft: '3rem'
+    }
+  }
+}
+
+const ProjectListItem = ({ project: { projectName, role, creationStatus, message }, isActive }) => {
   const projectReady = creationStatus === 'Ready'
   const statusIcon = creationStatus === 'Creating' ?
     spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
     h(InfoBox, {
       style: { color: colors.danger(), margin: '0 1rem 0 0.5rem' }, side: 'right'
     }, [div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [message || 'Error during project creation.'])])
-
-  return _.includes('Owner', role) && projectReady ?
-    h(Clickable, {
-      style: { ...Style.navList.item(isActive), color: colors.accent() },
-      href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
-      hover: Style.navList.itemHover(isActive)
-    }, [projectName, !projectReady && statusIcon]) :
-    div({ style: { ...Style.navList.item(false), color: colors.dark() } }, [projectName, !projectReady && statusIcon])
+  const selectableProject = h(Clickable, {
+    style: { ...styles.projectListItem(isActive), color: colors.accent() },
+    href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
+    hover: Style.navList.itemHover(isActive)
+  }, [projectName, !projectReady && statusIcon])
+  const unselectableProject = div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [projectName, !projectReady && statusIcon])
+  return div([_.includes(ownerRole, role) && projectReady ? selectableProject : unselectableProject])
 }
 
 const billingProjectNameValidator = existing => ({
@@ -64,6 +76,13 @@ const noBillingMessage = onClick => div({ style: { fontSize: 20, margin: '2rem' 
     }, [`What is a billing project?`])
   ])
 ])
+
+const BillingProjectSubheader = ({ title, children }) => h(Collapse, {
+  title,
+  initialOpenState: true,
+  titleFirst: true,
+  buttonStyle: { padding: '1rem 1rem 1rem 2rem', color: colors.dark(), fontWeight: 'bold' }
+}, [children])
 
 const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAccounts }) => {
   const [billingProjectName, setBillingProjectName] = useState('')
@@ -216,7 +235,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   })
 
   const checkOwner = () => {
-    !isOwner && _.map(project => _.includes('Owner', project.role) ? setIsOwner(true) : null, billingProjects)
+    !isOwner && _.map(project => _.includes(ownerRole, project.role) ? setIsOwner(true) : null, billingProjects)
   }
 
   const showCreateProjectModal = async () => {
@@ -256,32 +275,51 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const hasBillingProjects = !_.isEmpty(billingProjects)
   const breadcrumbs = `Billing > Billing Project`
 
-  return h(FooterWrapper, [
+  const billingProjectListWidth = 330
+
+  return h(FooterWrapper, { fixedHeight: true }, [
     h(TopBar, { title: 'Billing' }, [
-      !!selectedName && div({
-        style: {
-          color: 'white', paddingLeft: '5rem', minWidth: 0, marginRight: '0.5rem'
-        }
-      }, [
-        div(breadcrumbs),
+      !!selectedName && div({ style: Style.breadcrumb.breadcrumb }, [
+        div({ style: Style.noWrapEllipsis }, breadcrumbs),
         div({ style: Style.breadcrumb.textUnderBreadcrumb }, [selectedName])
       ])
     ]),
-    div({ role: 'main', style: { display: 'flex', flex: 1, position: 'relative' } }, [
-      div({ style: { width: 330, boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)' } }, [
-        div({ style: Style.navList.heading }, [
+    div({ role: 'main', style: { display: 'flex', flex: 1, height: `calc(100% - ${Style.topBarHeight}px)` } }, [
+      div({
+        style: {
+          minWidth: billingProjectListWidth, maxWidth: billingProjectListWidth,
+          boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)', overflowY: 'auto'
+        }
+      }, [
+        div({
+          style: {
+            fontSize: 16, fontWeight: 600, padding: '2rem 1rem 1rem', display: 'flex', justifyContent: 'space-between',
+            alignItems: 'center', textTransform: 'uppercase', color: colors.dark()
+          }
+        }, [
           'Billing Projects',
-          h(Clickable, {
+          h(ButtonOutline, {
             'aria-label': 'Create new billing project',
             onClick: showCreateProjectModal
           }, [
-            icon('plus-circle', { size: 21, style: { color: colors.accent() } })
+            icon('plus', { size: 14, style: { color: colors.accent() } }),
+            div({ style: { marginLeft: '0.5rem' } }, ['Create'])
           ])
         ]),
-        _.map(project => h(ProjectTab, {
-          project, key: project.projectName,
-          isActive: !!selectedName && project.projectName === selectedName
-        }), billingProjects)
+
+        h(BillingProjectSubheader, { title: 'Owned by You' }, [
+          _.map(project => h(ProjectListItem, {
+            project, key: project.projectName,
+            isActive: !!selectedName && project.projectName === selectedName
+          }), _.filter(project => _.includes(ownerRole, project.role), billingProjects))
+        ]),
+
+        h(BillingProjectSubheader, { title: 'Shared with You' }, [
+          _.map(project => h(ProjectListItem, {
+            project, key: project.projectName,
+            isActive: !!selectedName && project.projectName === selectedName
+          }), _.filter(project => !_.includes(ownerRole, project.role), billingProjects))
+        ])
       ]),
       creatingBillingProject && h(NewBillingProjectModal, {
         billingAccounts,
@@ -292,11 +330,21 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           loadProjects()
         }
       }),
-      Utils.cond(
+      div({
+        style: {
+          overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column'
+        }
+      }, [Utils.cond(
         [selectedName && hasBillingProjects && !_.some({ projectName: selectedName }, billingProjects),
-          () => div({ style: { margin: '1rem auto 0 auto' } }, [
-            h2(['Error loading selected billing project.']),
-            p(['It may not exist, or you may not have access to it.'])
+          () => div({
+            style: {
+              margin: '1rem auto 0 auto'
+            }
+          }, [
+            div([
+              h2(['Error loading selected billing project.']),
+              p(['It may not exist, or you may not have access to it.'])
+            ])
           ])],
         [selectedName && hasBillingProjects, () => h(ProjectDetail, {
           key: selectedName,
@@ -306,7 +354,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         })],
         [isOwner && !selectedName && hasBillingProjects, () => div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Billing Project'])],
         [!hasBillingProjects, () => noBillingMessage(showCreateProjectModal)]
-      ),
+      )]),
       (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
     ])
   ])

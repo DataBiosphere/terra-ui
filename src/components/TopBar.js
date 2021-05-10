@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
-import { a, div, h, img, span } from 'react-hyperscript-helpers'
+import { a, div, h, h1, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
 import {
   Clickable, CromwellVersionLink, FocusTrapper, IdContainer, LabeledCheckbox, Link, spinnerOverlay
@@ -28,7 +28,7 @@ import * as Utils from 'src/libs/utils'
 
 const styles = {
   topBar: {
-    flex: 'none', height: 66,
+    flex: 'none', height: Style.topBarHeight,
     display: 'flex', alignItems: 'center',
     borderBottom: `2px solid ${colors.primary(0.55)}`,
     zIndex: 2,
@@ -46,7 +46,7 @@ const styles = {
     container: state => ({
       ...(state === 'entered' ? {} : { opacity: 0, transform: 'translate(-2rem)' }),
       transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
-      paddingTop: 66,
+      paddingTop: Style.topBarHeight,
       width: 290, color: 'white', position: 'absolute', cursor: 'default',
       backgroundColor: colors.dark(0.8), height: '100%',
       boxShadow: '3px 0 13px 0 rgba(0,0,0,0.3)',
@@ -55,6 +55,10 @@ const styles = {
     }),
     icon: {
       marginRight: 12, flex: 'none'
+    },
+    navSection: {
+      flex: 'none', height: 70, padding: '0 28px', fontWeight: 600,
+      borderTop: `1px solid ${colors.dark(0.55)}`, color: 'white'
     }
   }
 }
@@ -67,29 +71,43 @@ const NavItem = ({ children, ...props }) => {
 }
 
 const NavSection = ({ children, ...props }) => {
-  return h(NavItem, _.merge({
-    style: {
-      flex: 'none', height: 70, padding: '0 28px', fontWeight: 600,
-      borderTop: `1px solid ${colors.dark(0.55)}`, color: 'white'
-    }
-  }, props), [children])
+  return div({
+    role: 'listitem'
+  }, [
+    h(NavItem, _.merge({
+      style: styles.nav.navSection
+    }, props), [children])
+  ])
 }
 
 const DropDownSubItem = ({ children, ...props }) => {
-  return h(NavItem, _.merge({
-    style: { padding: '0 3rem', height: 40, fontWeight: 500 }
-  }, props), [children])
+  return div({
+    role: 'listitem'
+  }, [
+    h(NavItem, _.merge({
+      style: { padding: '0 3rem', height: 40, fontWeight: 500 }
+    }, props), [children])
+  ])
 }
 
 const DropDownSection = ({ titleIcon, title, isOpened, onClick, children }) => {
-  return h(Fragment, [
-    h(NavSection, { onClick }, [
+  return div({
+    role: 'group'
+  }, [
+    h(NavItem, {
+      onClick,
+      'aria-expanded': isOpened,
+      'aria-haspopup': 'menu',
+      style: styles.nav.navSection
+    }, [
       titleIcon && icon(titleIcon, { size: 24, style: styles.nav.icon }),
       title,
       div({ style: { flexGrow: 1 } }),
       icon(isOpened ? 'angle-up' : 'angle-down', { size: 18, style: { flex: 'none' } })
     ]),
-    div({ style: { flex: 'none' } }, [h(RCollapse, { isOpened }, [children])])
+    div({
+      style: { flex: 'none' }
+    }, [h(RCollapse, { isOpened }, [children])])
   ])
 }
 
@@ -132,7 +150,10 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
         style: styles.nav.container(transitionState),
         onClick: e => e.stopPropagation()
       }, [
-        div({ style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 } }, [
+        div({
+          role: 'list',
+          style: { display: 'flex', flexDirection: 'column', overflowY: 'auto', flex: 1 }
+        }, [
           isSignedIn ?
             h(DropDownSection, {
               title: h(Fragment, [
@@ -162,7 +183,10 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                 onClick: signOut
               }, ['Sign Out'])
             ]) :
-            div({ style: { flex: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 95 } }, [
+            div({
+              style: { flex: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center', height: 95 },
+              role: 'listitem'
+            }, [
               isDatastage() || isBioDataCatalyst() ?
                 h(Clickable, {
                   href: Nav.getLink('workspaces'),
@@ -172,9 +196,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
                     width: 250, height: 56, display: 'flex', alignItems: 'center', justifyContent: 'center'
                   }
                 }, ['SIGN IN']) :
-                div([
-                  h(SignInButton)
-                ])
+                h(SignInButton)
             ]),
           h(NavSection, {
             href: Nav.getLink('workspaces'),
@@ -318,6 +340,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
       role: 'banner',
       style: {
         ...styles.topBar,
+        backgroundColor: isTerra() ? colors.primary() : colors.light(), // Fallback color for a11y and if background images don't show
         background: isTerra() ?
           `81px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat, ${colors.primary()}` :
           colors.light()
@@ -325,11 +348,13 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
     }, [
       showMenu ?
         h(Clickable, {
-          'aria-label': 'Toggle main menu',
           style: { alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: '0 1rem', margin: '2px 1rem 0 2px' },
-          onClick: () => navShown ? hideNav() : showNav()
+          onClick: () => navShown ? hideNav() : showNav(),
+          'aria-expanded': navShown
         }, [
           icon('bars', {
+            'aria-label': 'Toggle main menu',
+            'aria-hidden': false,
             size: 36,
             style: {
               color: isTerra() ? 'white' : colors.accent(), flex: 'none',
@@ -347,7 +372,9 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
           div({
             style: title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 }
           }, [versionTag('Beta')]),
-          title
+          title && h1({
+            style: { fontSize: '1em', fontWeight: 500, padding: 0, margin: 0 }
+          }, [title])
         ])
       ]),
       children,

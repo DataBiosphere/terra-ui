@@ -43,7 +43,7 @@ const makeCard = (link, title, body) => h(Clickable, {
   style: { ...Style.elements.card.container, height: 245, width: 225, marginRight: '1rem', justifyContent: undefined },
   hover: { boxShadow: '0 3px 7px 0 rgba(0,0,0,0.5), 0 5px 3px 0 rgba(0,0,0,0.2)' }
 }, [
-  div({ style: { color: colors.accent(), fontSize: 18, fontWeight: 500, lineHeight: '22px', marginBottom: '0.5rem' } }, title),
+  h2({ style: { color: colors.accent(), fontSize: 18, fontWeight: 500, lineHeight: '22px', marginBottom: '0.5rem' } }, title),
   div({ style: { lineHeight: '22px' } }, body),
   div({ style: { flexGrow: 1 } }),
   makeRightArrowWithBackgroundIcon()
@@ -71,6 +71,7 @@ const LandingPage = () => {
     ]),
     isTerra() && div({
       style: {
+        backgroundColor: '#191a1c', // This fallback color was extracted from the left edge of the background image
         backgroundImage: `url(${covidHero})`, backgroundSize: 'cover', borderRadius: 5,
         boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)',
         color: 'white', padding: '2rem 1rem',

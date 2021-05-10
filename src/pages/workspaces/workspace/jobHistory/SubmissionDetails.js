@@ -183,12 +183,14 @@ const SubmissionDetails = _.flow(
       ]),
       div({ style: { flex: 1 } }, [
         h(AutoSizer, [({ width, height }) => h(FlexTable, {
-          width, height,
+          width, height, sort,
           rowCount: filteredWorkflows.length,
+          tableName: 'submission details',
           noContentMessage: 'No matching workflows',
           columns: [
             {
               size: { basis: 225 },
+              field: 'workflowEntity',
               headerRenderer: () => h(Sortable, { sort, field: 'workflowEntity', onSort: setSort }, ['Data Entity']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowEntity: { entityName, entityType } = {} } = filteredWorkflows[rowIndex]
@@ -198,12 +200,14 @@ const SubmissionDetails = _.flow(
               }
             }, {
               size: { basis: 225, grow: 0 },
+              field: 'statusLastChangedDate',
               headerRenderer: () => h(Sortable, { sort, field: 'statusLastChangedDate', onSort: setSort }, ['Last Changed']),
               cellRenderer: ({ rowIndex }) => {
                 return h(TextCell, [Utils.makeCompleteDate(filteredWorkflows[rowIndex].statusLastChangedDate)])
               }
             }, {
               size: { basis: 150, grow: 0 },
+              field: 'status',
               headerRenderer: () => h(Sortable, { sort, field: 'status', onSort: setSort }, ['Status']),
               cellRenderer: ({ rowIndex }) => {
                 const { status } = filteredWorkflows[rowIndex]
@@ -211,6 +215,7 @@ const SubmissionDetails = _.flow(
               }
             }, {
               size: { basis: 125, grow: 0 },
+              field: 'cost',
               headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, ['Run Cost']),
               cellRenderer: ({ rowIndex }) => {
                 // handle undefined workflow cost as $0
@@ -218,6 +223,7 @@ const SubmissionDetails = _.flow(
               }
             }, {
               size: _.some(({ messages }) => !_.isEmpty(messages), filteredWorkflows) ? { basis: 200 } : { basis: 100, grow: 0 },
+              field: 'messages',
               headerRenderer: () => h(Sortable, { sort, field: 'messages', onSort: setSort }, ['Messages']),
               cellRenderer: ({ rowIndex }) => {
                 const messages = _.join('\n', filteredWorkflows[rowIndex].messages)
@@ -227,6 +233,7 @@ const SubmissionDetails = _.flow(
               }
             }, {
               size: { basis: 150 },
+              field: 'workflowId',
               headerRenderer: () => h(Sortable, { sort, field: 'workflowId', onSort: setSort }, ['Workflow ID']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId } = filteredWorkflows[rowIndex]

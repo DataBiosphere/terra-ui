@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { useEffect } from 'react'
 import { Ajax } from 'src/libs/ajax'
 import { useRoute } from 'src/libs/nav'
@@ -5,6 +6,7 @@ import { useRoute } from 'src/libs/nav'
 
 const eventsList = {
   aboutPersistentDiskView: 'about:persistentDisk:view',
+  appcuesEvent: 'appcues:event',
   applicationLaunch: 'application:launch',
   applicationCreate: 'application:create',
   applicationDelete: 'application:delete',
@@ -25,7 +27,10 @@ const eventsList = {
   workspaceClone: 'workspace:clone',
   workspaceCreate: 'workspace:create',
   workspaceDataDownload: 'workspace:data:download',
+  workspaceDataUpload: 'workspace:data:upload',
   workspaceDataImport: 'workspace:data:import',
+  workspaceOpenFromList: 'workspace:open-from-list',
+  workspaceSampleTsvDownload: 'workspace:sample-tsv:download',
   workspaceShare: 'workspace:share',
   workspaceSnapshotDelete: 'workspace:snapshot:delete',
   workspaceSnapshotContentsView: 'workspace:snapshot:contents:view'
@@ -46,13 +51,62 @@ export const extractCrossWorkspaceDetails = (fromWorkspace, toWorkspace) => {
 }
 
 export const PageViewReporter = () => {
-  const { name } = useRoute()
+  const { name, params } = useRoute()
 
   useEffect(() => {
-    Ajax().Metrics.captureEvent(`${eventsList.pageView}:${name}`)
-  }, [name])
+    const isWorkspace = /^#workspaces\/.+\/.+/.test(window.location.hash)
+
+    Ajax().Metrics.captureEvent(
+      `${eventsList.pageView}:${name}`,
+      isWorkspace ? extractWorkspaceDetails(params) : undefined
+    )
+  }, [name, params])
 
   return null
+}
+
+export const captureAppcuesEvent = (eventName, event) => {
+  // Only record "public-facing events" (and related properties) as documented by Appcues: https://docs.appcues.com/article/301-client-side-events-reference
+  const publicEvents = [
+    'flow_started',
+    'flow_completed',
+    'flow_skipped',
+    'flow_aborted',
+    'step_started',
+    'step_completed',
+    'step_skipped',
+    'step_aborted',
+    'step_interacted',
+    'form_submitted',
+    'form_field_submitted'
+  ]
+  if (_.includes(eventName, publicEvents)) {
+    const eventProps = { // Building the props manually to make sure we're resilient to any changes in Appcues
+      'appcues.flowId': event.flowId,
+      'appcues.flowName': event.flowName,
+      'appcues.flowType': event.flowType,
+      'appcues.flowVersion': event.flowVersion,
+      'appcues.id': event.id,
+      'appcues.interaction.category': event.interaction?.category,
+      'appcues.interaction.destination': event.interaction?.destination,
+      'appcues.interaction.element': event.interaction?.element,
+      'appcues.interaction.fields': JSON.stringify(event.interaction?.fields),
+      'appcues.interaction.formId': event.interaction?.formId,
+      'appcues.interaction.text': event.interaction?.text, // not documented by Appcues, but observed and useful
+      'appcues.interactionType': event.interactionType,
+      'appcues.localeId': event.localeId,
+      'appcues.localeName': event.localeName,
+      'appcues.name': event.name,
+      'appcues.sessionId': event.sessionId,
+      'appcues.stepChildId': event.stepChildId,
+      'appcues.stepChildNumber': event.stepChildNumber,
+      'appcues.stepId': event.stepId,
+      'appcues.stepNumber': event.stepNumber,
+      'appcues.stepType': event.stepType,
+      'appcues.timestamp': event.timestamp
+    }
+    return Ajax().Metrics.captureEvent(eventsList.appcuesEvent, eventProps)
+  }
 }
 
 export default eventsList

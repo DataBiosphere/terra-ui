@@ -194,10 +194,12 @@ const DataTable = props => {
               ref: table,
               width, height,
               rowCount: entities.length,
+              tableName: `${entityType} data table, page ${pageNumber} of ${Math.ceil(totalRowCount / itemsPerPage)}`,
               noContentMessage: `No ${entityType}s to display.`,
               onScroll,
               initialX,
               initialY,
+              sort,
               columns: [
                 {
                   width: 70,
@@ -206,7 +208,8 @@ const DataTable = props => {
                       h(Checkbox, {
                         checked: pageSelected(),
                         disabled: !entities.length,
-                        onChange: () => pageSelected() ? deselectPage() : selectPage()
+                        onChange: () => pageSelected() ? deselectPage() : selectPage(),
+                        'aria-label': 'Select all'
                       }),
                       h(PopupTrigger, {
                         closeOnClick: true,
@@ -233,6 +236,7 @@ const DataTable = props => {
                   }
                 },
                 {
+                  field: 'name',
                   width: nameWidth,
                   headerRenderer: () => h(Resizable, {
                     width: nameWidth, onWidthChange: delta => {
@@ -259,6 +263,7 @@ const DataTable = props => {
                   const thisWidth = columnWidths[name] || 300
                   const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(name)
                   return {
+                    field: name,
                     width: thisWidth,
                     headerRenderer: () => h(Resizable, {
                       width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(name, thisWidth + delta))

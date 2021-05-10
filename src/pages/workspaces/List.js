@@ -17,6 +17,7 @@ import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/comp
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -155,6 +156,16 @@ export const WorkspaceList = () => {
     filteredWorkspaces[tab]
   )
 
+  const tabs = _.map(key => ({
+    key,
+    title: span({ style: { padding: '0 1rem' } }, [
+      _.upperCase(key), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`
+    ]),
+    tableName: _.lowerCase(key)
+  }), ['myWorkspaces', 'newAndInteresting', 'featured', 'public'])
+
+  const currentTab = _.find({ key: tab }, tabs)
+
   const makeHeaderRenderer = name => () => h(MiniSortable, { sort, field: name, onSort: setSort }, [
     div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
   ])
@@ -163,6 +174,7 @@ export const WorkspaceList = () => {
     ({ width, height }) => h(FlexTable, {
       width, height,
       rowCount: sortedWorkspaces.length,
+      tableName: currentTab?.tableName || 'workspaces',
       noContentRenderer: () => Utils.cond(
         [loadingWorkspaces, () => null],
         [_.isEmpty(initialFiltered.myWorkspaces) && tab === 'myWorkspaces', () => NoWorkspacesMessage({
@@ -172,19 +184,25 @@ export const WorkspaceList = () => {
       ),
       variant: 'light',
       rowHeight: 70,
+      sort,
       columns: [
         {
+          field: 'name',
           headerRenderer: makeHeaderRenderer('name'),
           cellRenderer: ({ rowIndex }) => {
             const { accessLevel, workspace: { workspaceId, namespace, name, attributes: { description } } } = sortedWorkspaces[rowIndex]
             const canView = Utils.canRead(accessLevel)
+            const canAccessWorkspace = () => !canView ? setRequestingAccessWorkspaceId(workspaceId) : undefined
 
             return div({ style: styles.tableCellContainer }, [
               div({ style: styles.tableCellContent }, [
                 h(Link, {
                   style: { color: canView ? undefined : colors.dark(0.7), fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
-                  onClick: !canView ? () => setRequestingAccessWorkspaceId(workspaceId) : undefined,
+                  onClick: () => {
+                    canAccessWorkspace()
+                    !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, { workspaceName: name, workspaceNamespace: namespace })
+                  },
                   tooltip: !canView &&
                     'You cannot access this workspace because it is protected by an Authorization Domain. Click to learn about gaining access.',
                   tooltipSide: 'right'
@@ -199,6 +217,7 @@ export const WorkspaceList = () => {
           },
           size: { basis: 400, grow: 2, shrink: 0 }
         }, {
+          field: 'lastModified',
           headerRenderer: makeHeaderRenderer('lastModified'),
           cellRenderer: ({ rowIndex }) => {
             const { workspace: { lastModified } } = sortedWorkspaces[rowIndex]
@@ -211,6 +230,7 @@ export const WorkspaceList = () => {
           },
           size: { basis: 100, grow: 1, shrink: 0 }
         }, {
+          field: 'createdBy',
           headerRenderer: makeHeaderRenderer('createdBy'),
           cellRenderer: ({ rowIndex }) => {
             const { workspace: { createdBy } } = sortedWorkspaces[rowIndex]
@@ -221,6 +241,7 @@ export const WorkspaceList = () => {
           },
           size: { basis: 200, grow: 1, shrink: 0 }
         }, {
+          field: 'accessLevel',
           headerRenderer: makeHeaderRenderer('accessLevel'),
           cellRenderer: ({ rowIndex }) => {
             const { accessLevel } = sortedWorkspaces[rowIndex]
@@ -357,12 +378,7 @@ export const WorkspaceList = () => {
             setTab(newTab)
           }
         },
-        tabs: _.map(key => ({
-          key,
-          title: span({ style: { padding: '0 1rem' } }, [
-            _.upperCase(key), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`
-          ])
-        }), ['myWorkspaces', 'newAndInteresting', 'featured', 'public'])
+        tabs
       }),
       renderedWorkspaces,
       creatingNewWorkspace && h(NewWorkspaceModal, {
