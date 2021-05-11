@@ -1,15 +1,16 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ClipboardButton, Link, Select } from 'src/components/common'
+import { Clickable, ClipboardButton, Link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
   collapseStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon,
   submissionDetailsBreadcrumbSubtitle, submittedIcon, successIcon
 } from 'src/components/job-common'
+import { InfoBox } from 'src/components/PopupTrigger'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
@@ -110,6 +111,35 @@ const SubmissionDetails = _.flow(
   )(workflows)
 
   const { succeeded, failed, running, submitted } = _.groupBy(wf => collapseStatus(wf.status), workflows)
+
+  const archiveLimitYears = 6
+  const archiveLimitString = `${archiveLimitYears} year${archiveLimitYears > 1 ? 's' : ''}`
+
+  const archived = lastChangedDate => {
+    const dateYearsAgo = new Date(new Date().setFullYear(new Date().getFullYear() - archiveLimitYears))
+    return lastChangedDate && Date.parse(lastChangedDate) < dateYearsAgo
+  }
+
+  const archivedInfoIcon = ({ name, iconOverride }) => {
+    return h(InfoBox, {
+      style: { color: colors.light(), margin: '0.5rem' },
+      tooltip: `${name} (unavailable)`,
+      iconOverride
+    }, [
+      div({ style: Style.elements.sectionHeader }, 'Workflow Details Archived'),
+      div({ style: { paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [`This workflow ran more than ${archiveLimitString} ago and its details have been archived. ${name} is no longer available.`]),
+      div([
+        'Please refer to the ',
+        h(Link, {
+          href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
+          ...Utils.newTabLinkProps
+        }, [icon('pop-out', { size: 18 }), ' Workflow Details Archived']),
+        ' support article for details on how to access the archive.'
+      ])
+    ])
+  }
+
+
   /*
    * Page render
    */
@@ -248,23 +278,28 @@ const SubmissionDetails = _.flow(
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
                 return workflowId && h(Fragment, [
-                  h(Link, {
-                    ...Utils.newTabLinkProps,
-                    href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-                    style: { padding: '.6rem', display: 'flex' },
-                    tooltip: 'Job Manager',
-                    'aria-label': 'Job Manager'
-                  }, [icon('tasks', { size: 18 })]),
-                  h(Link, {
-                    href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
-                    style: { padding: '.6rem', display: 'flex' },
-                    tooltip: 'Workflow Dashboard [alpha]',
-                    'aria-label': 'Workflow Dashboard [alpha]'
-                  }, [icon('tachometer', { size: 18 })]),
+                  archived(filteredWorkflows[rowIndex].statusLastChangedDate) ? [
+                    archivedInfoIcon({ name: 'Job Manager', iconOverride: 'tasks' }),
+                    archivedInfoIcon({ name: 'Workflow Dashboard', iconOverride: 'tachometer' })
+                  ] : [
+                    h(Link, {
+                      ...Utils.newTabLinkProps,
+                      href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
+                      style: { margin: '0.5rem', display: 'flex' },
+                      tooltip: 'Job Manager',
+                      'aria-label': 'Job Manager'
+                    }, [icon('tasks', { size: 18 })]),
+                    h(Link, {
+                      href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
+                      style: { margin: '0.5rem', display: 'flex' },
+                      tooltip: 'Workflow Dashboard [alpha]',
+                      'aria-label': 'Workflow Dashboard [alpha]'
+                    }, [icon('tachometer', { size: 18 })])
+                  ],
                   inputName && h(Link, {
                     ...Utils.newTabLinkProps,
                     href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`),
-                    style: { padding: '.6rem', display: 'flex' },
+                    style: { margin: '0.5rem', display: 'flex' },
                     tooltip: 'Execution directory',
                     'aria-label': 'Execution directory'
                   }, [icon('folder-open', { size: 18 })])
