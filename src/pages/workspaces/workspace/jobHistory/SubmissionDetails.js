@@ -127,14 +127,14 @@ const SubmissionDetails = _.flow(
       iconOverride
     }, [
       div({ style: Style.elements.sectionHeader }, 'Workflow Details Archived'),
-      div({ style: { paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [`This workflow ran more than ${archiveLimitString} ago and its details have been archived. ${name} is no longer available.`]),
+      div({ style: { paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [`This workflow's details have been archived (> ${archiveLimitString} old).`]),
       div([
         'Please refer to the ',
         h(Link, {
           href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
           ...Utils.newTabLinkProps
         }, [icon('pop-out', { size: 18 }), ' Workflow Details Archived']),
-        ' support article for details on how to access the archive.'
+        ' support article for more details.'
       ])
     ])
   }
