@@ -293,7 +293,7 @@ const WorkspaceDashboard = _.flow(
             }, [icon('times', { size: 14 })])
           ])
         }, tagsList),
-        tagsList?.length === 0 && i(['No tags yet'])
+        !!tagsList && _.isEmpty(tagsList) && i(['No tags yet'])
       ]),
       !_.isEmpty(authorizationDomain) && h(Fragment, [
         div({ style: Style.dashboard.header }, ['Authorization Domain']),

@@ -108,14 +108,16 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
   })
 
   const errors = validate({ billingProjectName }, { billingProjectName: billingProjectNameValidator(existing) })
+  const billingLoadedAndEmpty = billingAccounts && _.isEmpty(billingAccounts)
+  const billingPresent = !_.isEmpty(billingAccounts)
 
   return h(Modal, {
     onDismiss,
     shouldCloseOnOverlayClick: false,
     title: 'Create Billing Project',
-    showCancel: !(billingAccounts?.length === 0),
+    showCancel: !billingLoadedAndEmpty,
     showButtons: !!billingAccounts,
-    okButton: billingAccounts?.length !== 0 ?
+    okButton: billingPresent ?
       h(ButtonPrimary, {
         disabled: errors || !chosenBillingAccount || !chosenBillingAccount.firecloudHasAccess,
         onClick: () => submit()
@@ -124,14 +126,14 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
         onClick: () => onDismiss()
       }, ['Ok'])
   }, [
-    billingAccounts?.length === 0 && h(Fragment, [
+    billingLoadedAndEmpty && h(Fragment, [
       `You don't have access to any billing accounts.  `,
       h(Link, {
         href: `https://support.terra.bio/hc/en-us/articles/360026182251`,
         ...Utils.newTabLinkProps
       }, ['Learn how to create a billing account.', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })])
     ]),
-    billingAccounts?.length !== 0 && h(Fragment, [
+    billingPresent && h(Fragment, [
       h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id, required: true }, ['Enter name']),
         h(ValidatedInput, {
