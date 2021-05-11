@@ -1,3 +1,4 @@
+import { differenceInDays } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
@@ -21,6 +22,7 @@ import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import { InfoBox } from 'src/components/PopupTrigger'
 
 
 const SubmissionDetails = _.flow(
@@ -110,6 +112,11 @@ const SubmissionDetails = _.flow(
   )(workflows)
 
   const { succeeded, failed, running, submitted } = _.groupBy(wf => collapseStatus(wf.status), workflows)
+
+  const archiveLimitYears = 1
+  const archiveLimitString = `${archiveLimitYears} year${archiveLimitYears > 1 ? 's' : ''}`
+  const calculateIsArchived = statusLastChangedDate => differenceInDays(Date.parse(statusLastChangedDate), Date.now()) > (archiveLimitYears * 365.24)
+
   /*
    * Page render
    */
@@ -246,21 +253,36 @@ const SubmissionDetails = _.flow(
               size: { basis: 150, grow: 0 },
               headerRenderer: () => 'Links',
               cellRenderer: ({ rowIndex }) => {
-                const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
+                const { workflowId, statusLastChangedDate, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
+                const isArchived = calculateIsArchived(statusLastChangedDate)
                 return workflowId && h(Fragment, [
                   h(Link, {
                     ...Utils.newTabLinkProps,
                     href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
                     style: { padding: '.6rem', display: 'flex' },
                     tooltip: 'Job Manager',
+                    disabled: isArchived,
                     'aria-label': 'Job Manager'
                   }, [icon('tasks', { size: 18 })]),
                   h(Link, {
                     href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
                     style: { padding: '.6rem', display: 'flex' },
                     tooltip: 'Workflow Dashboard [alpha]',
+                    disabled: isArchived,
                     'aria-label': 'Workflow Dashboard [alpha]'
                   }, [icon('tachometer', { size: 18 })]),
+                  isArchived && h(InfoBox, [
+                    div({ style: Style.elements.sectionHeader }, 'Workflow Details Archived'),
+                    div({ style: { paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [`This workflow's details have been archived (> ${archiveLimitString} old).`]),
+                    div([
+                      'Please refer to the ',
+                      h(Link, {
+                        href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
+                        ...Utils.newTabLinkProps
+                      }, [icon('pop-out', { size: 18 }), ' Workflow Details Archived']),
+                      ' support article for more details.'
+                    ])
+                  ]),
                   inputName && h(Link, {
                     ...Utils.newTabLinkProps,
                     href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`),
