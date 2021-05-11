@@ -1,3 +1,4 @@
+import { differenceInDays } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
@@ -116,26 +117,22 @@ const SubmissionDetails = _.flow(
   // 'cromwell.conf.ctmpl' file:
   const archiveLimitYears = 6
   const archiveLimitString = `${archiveLimitYears} year${archiveLimitYears > 1 ? 's' : ''}`
-
-  const archived = lastChangedDate => {
-    const dateYearsAgo = new Date(new Date().setFullYear(new Date().getFullYear() - archiveLimitYears))
-    return lastChangedDate && Date.parse(lastChangedDate) < dateYearsAgo
-  }
+  const isArchived = statusLastChangedDate => differenceInDays(Date.parse(statusLastChangedDate), Date.now()) > (archiveLimitYears * 365.24)
 
   const archivedInfoIcon = ({ name, iconOverride }) => {
     return h(InfoBox, {
       style: { color: colors.secondary(), margin: '0.5rem' },
-      tooltip: `${name} (unavailable)`,
+      tooltip: `${name} unavailable. Click to learn more.`,
       iconOverride
     }, [
       div({ style: Style.elements.sectionHeader }, 'Workflow Details Archived'),
-      div({ style: { paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [`This workflow's details have been archived (> ${archiveLimitString} old).`]),
+      div({ style: { padding: '0.5rem 0' } }, [`This workflow's details have been archived (> ${archiveLimitString} old).`]),
       div([
         'Please refer to the ',
         h(Link, {
           href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
           ...Utils.newTabLinkProps
-        }, [icon('pop-out', { size: 18 }), ' Workflow Details Archived']),
+        }, ['Workflow Details Archived ', icon('pop-out', { size: 18 })]),
         ' support article for more details.'
       ])
     ])
@@ -280,7 +277,7 @@ const SubmissionDetails = _.flow(
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
                 return workflowId && h(Fragment, [
-                  archived(filteredWorkflows[rowIndex].statusLastChangedDate) ? [
+                  isArchived(filteredWorkflows[rowIndex].statusLastChangedDate) ? [
                     archivedInfoIcon({ name: 'Job Manager', iconOverride: 'tasks' }),
                     archivedInfoIcon({ name: 'Workflow Dashboard', iconOverride: 'tachometer' })
                   ] : [

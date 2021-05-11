@@ -76,7 +76,6 @@ export const InfoBox = ({ size, children, style, side, tooltip, iconOverride }) 
   const [open, setOpen] = useState(false)
   return h(PopupTrigger, {
     side,
-    width: '100px',
     onChange: setOpen,
     content: div({ style: { padding: '0.5rem', width: 300 } }, [children])
   }, [
