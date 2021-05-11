@@ -112,6 +112,8 @@ const SubmissionDetails = _.flow(
 
   const { succeeded, failed, running, submitted } = _.groupBy(wf => collapseStatus(wf.status), workflows)
 
+  // Note: This 'archiveLimitYears' value should reflect the current 'archive-delay' value configured for PROD in firecloud-develop's
+  // 'cromwell.conf.ctmpl' file:
   const archiveLimitYears = 6
   const archiveLimitString = `${archiveLimitYears} year${archiveLimitYears > 1 ? 's' : ''}`
 
