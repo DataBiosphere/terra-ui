@@ -22,7 +22,7 @@
     "iframe-resizer": "^4.2.11",
     "igv": "2.3.5",
     "jszip": "^3.5.0",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "marked": "^0.7.0",
     "outdated-browser-rework": "^2.10.0",
     "path-to-regexp": "^5.0.0",
