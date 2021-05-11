@@ -122,7 +122,7 @@ const SubmissionDetails = _.flow(
 
   const archivedInfoIcon = ({ name, iconOverride }) => {
     return h(InfoBox, {
-      style: { color: colors.light(), margin: '0.5rem' },
+      style: { color: colors.secondary(), margin: '0.5rem' },
       tooltip: `${name} (unavailable)`,
       iconOverride
     }, [
