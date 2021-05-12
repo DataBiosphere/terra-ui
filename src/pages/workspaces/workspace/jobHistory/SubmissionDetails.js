@@ -113,20 +113,20 @@ const SubmissionDetails = _.flow(
 
   const { succeeded, failed, running, submitted } = _.groupBy(wf => collapseStatus(wf.status), workflows)
 
-  // Note: This 'archiveLimitYears' value should reflect the current 'archive-delay' value configured for PROD in firecloud-develop's
+  // Note: This 'deleteLimitYears' value should reflect the current 'deletion-delay' value configured for PROD in firecloud-develop's
   // 'cromwell.conf.ctmpl' file:
-  const archiveLimitYears = 6
-  const archiveLimitString = `${archiveLimitYears} year${archiveLimitYears > 1 ? 's' : ''}`
-  const isArchived = statusLastChangedDate => differenceInDays(Date.parse(statusLastChangedDate), Date.now()) > (archiveLimitYears * 365.24)
+  const deletionDelayYears = 6
+  const deletionDelayString = `${deletionDelayYears} year${deletionDelayYears > 1 ? 's' : ''}`
+  const isDeleted = statusLastChangedDate => differenceInDays(Date.parse(statusLastChangedDate), Date.now()) > (deletionDelayYears * 365.24)
 
-  const archivedInfoIcon = ({ name, iconOverride }) => {
+  const deletedInfoIcon = ({ name, iconOverride }) => {
     return h(InfoBox, {
       style: { color: colors.secondary(), margin: '0.5rem' },
       tooltip: `${name} unavailable. Click to learn more.`,
       iconOverride
     }, [
       div({ style: Style.elements.sectionHeader }, 'Workflow Details Archived'),
-      div({ style: { padding: '0.5rem 0' } }, [`This workflow's details have been archived (> ${archiveLimitString} old).`]),
+      div({ style: { padding: '0.5rem 0' } }, [`This workflow's details have been archived (> ${deletionDelayString} old).`]),
       div([
         'Please refer to the ',
         h(Link, {
@@ -277,9 +277,9 @@ const SubmissionDetails = _.flow(
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
                 return workflowId && h(Fragment, [
-                  isArchived(filteredWorkflows[rowIndex].statusLastChangedDate) ? [
-                    archivedInfoIcon({ name: 'Job Manager', iconOverride: 'tasks' }),
-                    archivedInfoIcon({ name: 'Workflow Dashboard', iconOverride: 'tachometer' })
+                  isDeleted(filteredWorkflows[rowIndex].statusLastChangedDate) ? [
+                    deletedInfoIcon({ name: 'Job Manager', iconOverride: 'tasks' }),
+                    deletedInfoIcon({ name: 'Workflow Dashboard', iconOverride: 'tachometer' })
                   ] : [
                     h(Link, {
                       ...Utils.newTabLinkProps,
