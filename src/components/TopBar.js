@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useRef, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, div, h, h1, img, span } from 'react-hyperscript-helpers'
 import { Transition } from 'react-transition-group'
@@ -10,6 +10,7 @@ import { icon, profilePic } from 'src/components/icons'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import SignInButton from 'src/components/SignInButton'
+import { SkipNavLink, SkipNavTarget } from 'src/components/SkipNavLink'
 import fcIconWhite from 'src/images/brands/firecloud/FireCloud-icon-white.svg'
 import headerLeftHexes from 'src/images/header-left-hexes.svg'
 import headerRightHexes from 'src/images/header-right-hexes.svg'
@@ -330,8 +331,10 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
       ])
     ])
   }
+  const mainRef = useRef()
 
   return h(Fragment, [
+    h(SkipNavLink, { ref: mainRef }),
     h(Transition, {
       in: navShown,
       timeout: { exit: 200 },
@@ -384,7 +387,8 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
         onDismiss: () => setOpenFirecloudModal(false),
         authState
       })
-    ])
+    ]),
+    h(SkipNavTarget, { ref: mainRef })
   ])
 }
 

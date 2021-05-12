@@ -1,37 +1,45 @@
-import { h } from 'react-hyperscript-helpers'
-import { Clickable } from 'src/components/common'
+import { div, h } from 'react-hyperscript-helpers'
+import { Link } from 'src/components/common'
 import colors from 'src/libs/colors'
+import { forwardRefWithName } from 'src/libs/utils'
 
 
-const SkipNavLink = () => {
-  return h(Clickable, {
-    as: 'a',
-    href: '#',
-    style: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      opacity: 0,
-      background: colors.accent(1.5),
-      color: colors.light(),
-      padding: '1em',
-      border: '1px solid white',
-      zIndex: 9999
-    },
-    hover: {
-      opacity: 1,
-      boxShadow: 'rgba(0, 0, 0, 0.5) 0px 0px 4px 0px'
-    },
-    onClick: event => {
-      event.preventDefault()
+export const SkipNavLink = forwardRefWithName('SkipNavLink', (props, ref) => {
+  return div({
+    role: 'nav'
+  }, [
+    h(Link, {
+      as: 'a',
+      href: '#',
+      className: 'reveal-on-focus',
+      style: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        background: 'white',
+        color: colors.accent(),
+        border: '1px solid black',
+        borderColor: colors.accent(),
+        padding: '1em',
+        boxShadow: 'rgba(0, 0, 0, 0.5) 0px 0px 4px 0px',
+        zIndex: 9998
+      },
+      onClick: event => {
+        event.preventDefault()
+        event.stopPropagation()
+        ref.current && ref.current.focus()
+      },
+      ...props
+    }, 'Skip to main content')
+  ])
+})
 
-      const main = document.querySelector('[role="main"]')
-      if (main && main.tabIndex === undefined) {
-        main.tabIndex = -1;
-      }
-      main && main.focus()
-    }
-  }, 'Skip navigation')
-}
-
-export default SkipNavLink
+export const SkipNavTarget = forwardRefWithName('SkipNavTarget', (props, ref) => {
+  return div({
+    ref,
+    className: 'skip-navigation-content',
+    tabIndex: -1,
+    'aria-label': 'main content',
+    ...props
+  })
+})

@@ -11,7 +11,7 @@ import RSwitch from 'react-switch'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
-import { withArrowKeyNavigation } from 'src/components/keyboard-nav'
+import { withHorizontalNavigation } from 'src/components/keyboard-nav'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
@@ -174,7 +174,7 @@ export const TabBar = ({
       style: Style.tabBar.container,
       ...props
     }, [
-      withArrowKeyNavigation(_.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames))),
+      withHorizontalNavigation(_.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames))),
       div({ style: { flexGrow: 1 } }),
       children
     ])
@@ -223,7 +223,7 @@ export const SimpleTabBar = ({ value, onChange, tabs, label, tabProps = {}, pane
       'aria-label': label,
       style: { ...styles.tabBar.container, flex: 0 },
       ...props
-    }, withArrowKeyNavigation(_.map(([i, { key, title, width }]) => {
+    }, withHorizontalNavigation(_.map(([i, { key, title, width }]) => {
       const selected = value === key
       return ({ forwardedRef, onKeyDown }) => h(Clickable, {
         key,
@@ -272,8 +272,9 @@ export const makeMenuIcon = (iconName, props) => {
   return icon(iconName, _.merge({ size: 15, style: { marginRight: '.5rem' } }, props))
 }
 
-export const MenuButton = ({ disabled, children, ...props }) => {
+export const MenuButton = Utils.forwardRefWithName('MenuButton', ({ disabled, children, ...props }, ref) => {
   return h(Clickable, _.merge({
+    ref,
     disabled,
     style: {
       display: 'flex', alignItems: 'center',
@@ -284,7 +285,7 @@ export const MenuButton = ({ disabled, children, ...props }) => {
     },
     hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.accent() } : undefined
   }, props), [children])
-}
+})
 
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
   return h(Interactive, _.merge({
