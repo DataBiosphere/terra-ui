@@ -132,8 +132,8 @@ const SubmissionDetails = _.flow(
         h(Link, {
           href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
           ...Utils.newTabLinkProps
-        }, ['Workflow Details Archived ', icon('pop-out', { size: 18 })]),
-        ' support article for more details.'
+        }, ['Workflow Details Archived support article ', icon('pop-out', { size: 18 })]),
+        ' for more details.'
       ])
     ])
   }
