@@ -176,6 +176,8 @@ export const collapsedRuntimeStatus = runtime => {
   return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status) // NOTE: preserves null vs undefined
 }
 
+export const isAppDeletable = app => _.includes(app?.status, ['RUNNING', 'ERROR'])
+
 export const convertedAppStatus = appStatus => {
   return Utils.switchCase(_.upperCase(appStatus),
     ['STOPPED', () => _.capitalize('PAUSED')],

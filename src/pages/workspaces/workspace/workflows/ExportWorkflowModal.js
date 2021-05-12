@@ -84,7 +84,7 @@ const ExportWorkflowModal = ({ thisWorkspace, sameWorkspace, methodConfig, onSuc
       h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id, required: true }, ['Name']),
         h(ValidatedInput, {
-          error: Utils.summarizeErrors(errors && errors.workflowName),
+          error: Utils.summarizeErrors(errors?.workflowName),
           inputProps: {
             id, value: workflowName,
             onChange: setWorkflowName

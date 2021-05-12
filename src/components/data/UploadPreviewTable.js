@@ -41,12 +41,14 @@ const UploadDataTable = props => {
   const signal = Utils.useCancellation()
 
   useEffect(() => {
-    _.flow( // eslint-disable-line lodash-fp/no-unused-result
+    const loadMetadata = _.flow(
       withErrorReporting('Error loading entity data'),
       Utils.withBusyState(setMetadataLoading)
     )(async () => {
       setEntityMetadata(await Ajax(signal).Workspaces.workspace(namespace, name).entityMetadata())
-    })()
+    })
+
+    loadMetadata()
   }, [refreshKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Convert from a metadata table to an entity
@@ -84,7 +86,7 @@ const UploadDataTable = props => {
   }, [metadataTable, entityMetadata]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    table.current?.recomputeColumnSizes() // eslint-disable-line no-unused-expressions
+    table.current?.recomputeColumnSizes()
   }, [columnWidths])
 
   useEffect(() => {
@@ -93,18 +95,18 @@ const UploadDataTable = props => {
 
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
-  useEffect(() => {
-    header.current && header.current.focus()
-  }, [])
+  Utils.useOnMount(() => {
+    header.current?.focus()
+  })
 
   const isColumnAdded = columnIndex => {
-    return metadata && metadata.isUpdate &&
+    return metadata?.isUpdate &&
       columnIndex < columns.length &&
       metadata.columnsAdded.indexOf(columns[columnIndex]) > -1
   }
 
   const isColumnUpdated = columnIndex => {
-    return metadata && metadata.isUpdate &&
+    return metadata?.isUpdate &&
       columnIndex < columns.length &&
       metadata.columnsUpdated.indexOf(columns[columnIndex]) > -1
   }

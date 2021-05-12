@@ -26,7 +26,7 @@ window.SATURN_VERSION = process.env.REACT_APP_VERSION
  * security issue) and there's no alternative solution available, we may need to find another
  * library.
  */
-marked.setOptions({ sanitize: true, sanitizer: _.escape })
+marked.setOptions({ sanitize: true, sanitizer: _.escape, silent: true })
 
 window._ = _
 

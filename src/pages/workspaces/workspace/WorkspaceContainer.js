@@ -34,7 +34,7 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
   const [cloningWorkspace, setCloningWorkspace] = useState(false)
   const [sharingWorkspace, setSharingWorkspace] = useState(false)
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-  const canShare = workspace && workspace.canShare
+  const canShare = workspace?.canShare
 
   const tabs = [
     { name: 'dashboard', link: 'workspace-dashboard' },
@@ -115,7 +115,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
       ]),
       h(RuntimeManager, {
         namespace, name, runtimes, persistentDisks, refreshRuntimes,
-        canCompute: !!((workspace && workspace.canCompute) || (runtimes && runtimes.length)),
+        canCompute: !!(workspace?.canCompute || runtimes?.length),
         apps, galaxyDataDisks, workspace, refreshApps
       })
     ]),

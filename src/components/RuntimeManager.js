@@ -226,7 +226,7 @@ export default class RuntimeManager extends PureComponent {
     } else if (runtime.status === 'Running' && prevRuntime.status === 'Updating') {
       notify('success', 'Number of workers has updated successfully.')
     }
-    if (prevApp && prevApp.status !== 'RUNNING' && app && app.status === 'RUNNING') {
+    if (prevApp && prevApp.status !== 'RUNNING' && app?.status === 'RUNNING') {
       const galaxyId = notify('info', 'Your cloud environment for Galaxy is ready.', {
         message: h(Fragment, [
           h(GalaxyWarning),
@@ -236,7 +236,7 @@ export default class RuntimeManager extends PureComponent {
           })
         ])
       })
-    } else if (app && app.status === 'ERROR' && !_.includes(app.appName, errorNotifiedApps.get())) {
+    } else if (app?.status === 'ERROR' && !_.includes(app.appName, errorNotifiedApps.get())) {
       notify('error', 'Error Creating Galaxy App', {
         message: h(AppErrorNotification, { app })
       })

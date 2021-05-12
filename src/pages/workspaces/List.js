@@ -56,7 +56,7 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
   })
 
   const canRead = workspace && Utils.canRead(workspace.accessLevel)
-  const canShare = workspace && workspace.canShare
+  const canShare = workspace?.canShare
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   return h(Fragment, [
     h(MenuButton, {

@@ -131,7 +131,7 @@ const DataStepContent = ({
               onChange: setNewSetName
             },
             width: 500,
-            error: Utils.summarizeErrors(errors && errors.newSetName)
+            error: Utils.summarizeErrors(errors?.newSetName)
           })
         ])
       ])
