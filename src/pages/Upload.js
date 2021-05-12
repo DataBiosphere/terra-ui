@@ -157,9 +157,9 @@ const WorkspaceSelectorPanel = ({
 
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
-  useEffect(() => {
-    header.current && header.current.focus()
-  }, [])
+  Utils.useOnMount(() => {
+    header.current?.focus()
+  })
 
   const filteredWorkspaces = useMemo(() => _.filter(ws => {
     const { workspace: { namespace, name, attributes } } = ws
@@ -326,9 +326,9 @@ const CollectionSelectorPanel = _.flow(
 
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
-  useEffect(() => {
-    header.current && header.current.focus()
-  }, [])
+  Utils.useOnMount(() => {
+    header.current?.focus()
+  })
 
   const signal = Utils.useCancellation()
 
@@ -350,9 +350,9 @@ const CollectionSelectorPanel = _.flow(
   })
 
   // Lifecycle
-  useEffect(() => {
+  Utils.useOnMount(() => {
     load()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  })
 
   // Render
 
@@ -417,9 +417,9 @@ const DataUploadPanel = _.flow(
 
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
-  useEffect(() => {
-    header.current && header.current.focus()
-  }, [])
+  Utils.useOnMount(() => {
+    header.current?.focus()
+  })
 
   return div({ style: { display: 'flex', flexFlow: 'column nowrap', height: '100%' } }, [
     h2({ style: { ...styles.heading, flex: 0 } }, [
@@ -466,15 +466,15 @@ const MetadataUploadPanel = _.flow(
 
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
-  useEffect(() => {
-    header.current && header.current.focus()
-  }, [])
+  Utils.useOnMount(() => {
+    header.current?.focus()
+  })
 
   const signal = Utils.useCancellation()
 
   // Get every filename in the bucket, so we can do substitutions
   useEffect(() => {
-    _.flow( // eslint-disable-line lodash-fp/no-unused-result
+    const loadFiles = _.flow(
       withRequesterPaysHandler(onRequesterPaysError),
       withErrorReporting('Error loading bucket data'),
       Utils.withBusyState(setFilesLoading)
@@ -488,7 +488,9 @@ const MetadataUploadPanel = _.flow(
         _.map(item => [_.last(item.name.split('/')), `gs://${bucketName}/${item.name}`]),
         _.fromPairs
       )(items))
-    })()
+    })
+
+    loadFiles()
   }, [collection]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const parseMetadata = async file => {
@@ -687,9 +689,9 @@ const MetadataUploadPanel = _.flow(
 const DonePanel = ({ workspace, workspace: { workspace: { namespace, name } }, tableName, collection, setCurrentStep }) => {
   // Move the focus to the header the first time this panel is rendered
   const header = useRef()
-  useEffect(() => {
-    header.current && header.current.focus()
-  }, [])
+  Utils.useOnMount(() => {
+    header.current?.focus()
+  })
 
   return div([
     h2({ style: styles.heading }, [
@@ -765,7 +767,7 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
 
   const stepIsEnabled = step => {
     const s = _.find({ step }, steps)
-    return s && s.test()
+    return s?.test()
   }
 
   // Make sure we have a valid step once the workspaces have finished loading
@@ -793,7 +795,7 @@ const UploadData = _.flow( // eslint-disable-line lodash-fp/no-single-compositio
 
   // Render
   return h(FooterWrapper, [
-    h(TopBar, { title: 'Data Uploader', href: Nav.getLink('upload') }, []),
+    h(TopBar, { title: 'Data Uploader', href: Nav.getLink('upload') }),
     div({ role: 'main', style: { padding: '1.5rem', flex: '1 1 auto', fontSize: '1.2em' } }, [
       filteredWorkspaces.length === 0 && !loadingWorkspaces ?
         h(NoWorkspacesMessage, { onClick: () => setCreatingNewWorkspace(true) }) :

@@ -157,10 +157,10 @@ const DataTable = props => {
   }, [columnWidths, columnState]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    table.current?.recomputeColumnSizes() // eslint-disable-line no-unused-expressions
+    table.current?.recomputeColumnSizes()
   }, [columnWidths, columnState])
   useEffect(() => {
-    table.current?.scrollToTop() // eslint-disable-line no-unused-expressions
+    table.current?.scrollToTop()
   }, [pageNumber, itemsPerPage])
 
 

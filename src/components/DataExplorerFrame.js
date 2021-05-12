@@ -11,6 +11,8 @@ const DataExplorerFrame = ({ dataset }) => {
   const { origin } = _.find({ name: dataset }, datasets)
 
   useEffect(() => {
+    const instance = elem.current
+
     iframeResizer({
       onMessage: ({ message: { importDataQueryStr, deQueryStr } }) => {
         if (importDataQueryStr) {
@@ -25,9 +27,9 @@ const DataExplorerFrame = ({ dataset }) => {
           window.history.replaceState({}, `Data Explorer - ${dataset}`, `#${Nav.history.location.pathname.slice(1)}?${deQueryStr}`)
         }
       }
-    }, elem.current)
+    }, instance)
 
-    return elem.current.iFrameResizer.removeListeners
+    return instance.iFrameResizer.removeListeners
   }, [dataset])
 
   return iframe({

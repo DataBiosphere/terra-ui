@@ -1,5 +1,3 @@
-const { execSync } = require('child_process')
-
 const usingYarn = process.env.npm_config_yarn_path
 const nodeVersion = process.version
 const nodeCorrect = nodeVersion.startsWith('v12.')
@@ -18,4 +16,3 @@ if (!usingYarn || !nodeCorrect) {
 
   process.exit(1)
 }
-

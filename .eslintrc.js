@@ -1,3 +1,4 @@
+/* eslint-disable quote-props */
 module.exports = {
   'plugins': ['lodash-fp', 'react', 'react-hooks', 'simple-import-sort', 'import'],
   'extends': 'react-app',
@@ -11,7 +12,7 @@ module.exports = {
     'array-bracket-spacing': 'warn',
     'block-spacing': 'warn',
     'brace-style': ['warn', '1tbs', { 'allowSingleLine': true }],
-    'camelcase': ['warn', {'properties': 'never'}],
+    'camelcase': ['warn', { 'properties': 'never' }],
     'comma-dangle': 'warn',
     'comma-spacing': 'warn',
     'comma-style': 'warn',
@@ -87,7 +88,7 @@ module.exports = {
     'react-hooks/rules-of-hooks': 'warn',
     'react-hooks/exhaustive-deps': 'warn',
 
-    'simple-import-sort/sort': 'warn',
+    'simple-import-sort/imports': 'warn',
 
     'import/newline-after-import': ['warn', { 'count': 2 }],
     'import/no-anonymous-default-export': ['warn', { 'allowObject': true }]

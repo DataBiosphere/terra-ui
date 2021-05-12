@@ -150,7 +150,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
               setNameModified(true)
             }
           },
-          error: Utils.summarizeErrors(nameModified && errors && errors.name)
+          error: Utils.summarizeErrors(nameModified && errors?.name)
         })
       ])]),
       h(IdContainer, [id => h(Fragment, [

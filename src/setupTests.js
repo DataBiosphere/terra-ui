@@ -1,9 +1,5 @@
-import { configure, ReactWrapper } from 'enzyme'
-import Adapter from 'enzyme-adapter-react-16'
 import * as Utils from 'src/libs/utils'
 
-
-configure({ adapter: new Adapter() })
 
 jest.mock('src/libs/ajax')
 jest.mock('src/libs/auth')
@@ -20,6 +16,7 @@ window.sessionStorage = {}
 // Mock dates due to time zone issues
 jest.spyOn(Utils, 'makePrettyDate').mockImplementation(() => '***MOCKED DATE***')
 
+/* Disabled until there's a version of Enzyme that works with the current React version
 ReactWrapper.prototype.testId = function(id) {
   const wrapper = this.find(`[data-test-id='${id}']`)
   const length = wrapper.length
@@ -36,3 +33,4 @@ ReactWrapper.prototype.findIcon = function(shape) {
 ReactWrapper.prototype.click = function() {
   return this.simulate('click')
 }
+*/

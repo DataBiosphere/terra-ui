@@ -81,7 +81,7 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
 
   console.info(`added user to: ${billingProject}`)
 
-  const userList = await page.evaluate((billingProject) => {
+  const userList = await page.evaluate(billingProject => {
     return window.Ajax().Billing.project(billingProject).listUsers()
   }, billingProject)
 

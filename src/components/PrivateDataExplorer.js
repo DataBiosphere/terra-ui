@@ -126,8 +126,8 @@ const PrivateDataExplorer = ({ dataset }) => {
   return h(Fragment, [
     Utils.cond(
       [groups === undefined || completedDeOauth === undefined, () => centeredSpinner],
-      [groups && groups.includes(authDomain) && completedDeOauth === false, () => { window.open(origin, '_self') }],
-      [groups && groups.includes(authDomain), () => h(DataExplorerFrame, { dataset })],
+      [groups?.includes(authDomain) && completedDeOauth === false, () => { window.open(origin, '_self') }],
+      [groups?.includes(authDomain), () => h(DataExplorerFrame, { dataset })],
       () => notInAuthDomainError
     )
   ])
