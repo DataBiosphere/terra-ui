@@ -52,6 +52,7 @@ commands:
                 name: Deploy << parameters.env >>
                 command: gcloud app deploy --project=bvdp-saturn-<< parameters.env >> --promote --quiet
   integration-tests:
+    working_directory: /mnt/ramdisk
     parameters:
       local:
         type: boolean
@@ -113,6 +114,7 @@ commands:
 jobs:
   build:
     executor: node
+    working_directory: /mnt/ramdisk
     steps:
       - checkout
       - restore_cache:
