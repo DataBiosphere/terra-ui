@@ -55,6 +55,8 @@ const iconDict = {
   clock: fa(faClock),
   clockSolid: fa(faClockSolid),
   cloud: fa(faCloud),
+  // TODO: obtain from font-awesome Pro
+  //cloudBolt: fa(faCloudBolt),
   cog: fa(faCog),
   columnGrabber: custom(columnGrabber),
   copy: fa(faClone),
