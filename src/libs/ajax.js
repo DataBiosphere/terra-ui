@@ -919,6 +919,15 @@ const Buckets = signal => ({
     return _.filter(({ name }) => name.endsWith('.ipynb'), items)
   },
 
+  listRmd: async (namespace, name) => {
+    const res = await fetchBuckets(
+      `storage/v1/b/${name}/o?prefix=notebooks/`,
+      _.merge(authOpts(await saToken(namespace)), { signal })
+    )
+    const { items } = await res.json()
+    return _.filter(({ name }) => name.endsWith('.rmd'), items)
+  },
+
   list: async (namespace, bucket, prefix) => {
     const res = await fetchBuckets(
       `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter: '/' })}`,

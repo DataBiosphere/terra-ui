@@ -29,6 +29,7 @@ import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/SubmissionDetails'
 import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard'
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
+import * as Analysis from 'src/pages/workspaces/workspace/Analysis'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
 import * as Workflows from 'src/pages/workspaces/workspace/Workflows'
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView'
@@ -45,6 +46,7 @@ const routes = _.flatten([
   Dashboard.navPaths,
   Data.navPaths,
   Notebooks.navPaths,
+  Analysis.navPaths,
   JobHistory.navPaths,
   SubmissionDetails.navPaths,
   WorkflowDashboard.navPaths,
@@ -65,7 +67,7 @@ const routes = _.flatten([
   WorkflowsList.navPaths,
   WorkflowDetails.navPaths,
   Upload.navPaths,
-  NotFound.navPaths // must be last
+  NotFound.navPaths // must be last,
 ])
 
 const handlers = _.map(({ path, encode = encodeURIComponent, ...data }) => {

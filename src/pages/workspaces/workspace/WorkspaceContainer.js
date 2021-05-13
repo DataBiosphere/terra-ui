@@ -12,7 +12,7 @@ import TopBar from 'src/components/TopBar'
 import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { isTerra } from 'src/libs/config'
+import { isTerra, isAnalysisTabVisible } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
@@ -40,9 +40,13 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
     { name: 'dashboard', link: 'workspace-dashboard' },
     { name: 'data', link: 'workspace-data' },
     { name: 'notebooks', link: 'workspace-notebooks' },
+    // the spread operator results in no array entry if the config value is false
+    // we want this feature gated until it is ready for release
+    ...(isAnalysisTabVisible() ? [{ name: 'analysis', link: 'workspace-analysis' }] : []),
     { name: 'workflows', link: 'workspace-workflows' },
     { name: 'job history', link: 'workspace-job-history' }
   ]
+
   return h(Fragment, [
     h(TabBar, {
       activeTab, refresh,

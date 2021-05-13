@@ -108,6 +108,7 @@ const ToolDrawer = _.flow(
       drawerContent: h(WorkflowSelector, { workspace, selectedEntities })
     })
   ], [
+    //TODO: where is this
     'Notebook', () => ({
       drawerContent: h(NotebookCreator, {
         bucketName, namespace,
