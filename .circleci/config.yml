@@ -14,6 +14,7 @@ executors:
     docker:
       - image: circleci/node:12-browsers
   gcloud:
+    working_directory: /mnt/ramdisk
     docker:
       - image: google/cloud-sdk:alpine
 
