@@ -311,9 +311,9 @@ export const NewGalaxyModal = _.flow(
         return div({ marginTop: '0.75rem' }, [
           div({ style: { ...gridStyle, marginTop: '0.5rem' } }, [
             div({ style: styles.label }, ['Size (GB): ']), h(TooltipTrigger,
-          { content: ['Persistent disk of size ', currentDataDisk.size, ' GB already exists and will be attached upon Galaxy creation'] }, [
-              div({ marginTop: '0.5rem', width: '5rem' }, [currentDataDisk.size])
-            ])
+              { content: ['Persistent disk of size ', currentDataDisk.size, ' GB already exists and will be attached upon Galaxy creation'] }, [
+                div({ marginTop: '0.5rem', width: '5rem' }, [currentDataDisk.size])
+              ])
           ])
         ])
       }],

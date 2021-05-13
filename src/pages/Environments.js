@@ -17,8 +17,7 @@ import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { currentApp, currentRuntime, getGalaxyComputeCost, getGalaxyCost, persistentDiskCostMonthly, runtimeCost } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
-import { cond, formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
-import * as Utils from 'src/libs/utils'
+import { cond, formatUSD, makeCompleteDate, switchCase, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
 
 const DeleteRuntimeModal = ({ runtime: { googleProject, runtimeName, runtimeConfig: { persistentDiskId } }, onDismiss, onSuccess }) => {
@@ -71,11 +70,11 @@ const DeleteDiskModal = ({ disk: { googleProject, name }, isGalaxyDisk, onDismis
     p([
       'Deleting the persistent disk will ', span({ style: { fontWeight: 600 } }, ['delete all files on it.'])
     ]),
-    Utils.switchCase(isGalaxyDisk,
+    switchCase(isGalaxyDisk,
       [false, () => {
-      return h(SaveFilesHelp)
+        return h(SaveFilesHelp)
       }]
-      ),
+    ),
     busy && spinnerOverlay
   ])
 }
@@ -498,7 +497,7 @@ const Environments = ({ namespace }) => {
               const { id, status, name } = filteredDisks[rowIndex]
               const error = cond(
                 [status === 'Creating', () => 'Cannot delete this disk because it is still being created'],
-                [_.some({ runtimeConfig: { persistentDiskId: id } }, runtimes) || _.some({ diskName:  name}, apps), () => 'Cannot delete this disk because it is attached. You must delete the cloud environment first.']
+                [_.some({ runtimeConfig: { persistentDiskId: id } }, runtimes) || _.some({ diskName: name }, apps), () => 'Cannot delete this disk because it is attached. You must delete the cloud environment first.']
               )
               return status !== 'Deleting' && h(Link, {
                 'aria-label': 'Delete persistent disk',
