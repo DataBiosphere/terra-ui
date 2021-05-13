@@ -5,10 +5,12 @@ orbs:
 
 executors:
   node:
+    working_directory: /mnt/ramdisk
     docker:
       - image: node:12
         user: node
   puppeteer:
+    working_directory: /mnt/ramdisk
     docker:
       - image: circleci/node:12-browsers
   gcloud:
@@ -113,7 +115,6 @@ commands:
 jobs:
   build:
     executor: node
-    working_directory: /mnt/ramdisk
     steps:
       - checkout
       - restore_cache:
@@ -171,21 +172,18 @@ jobs:
           channel: "C7H40L71D" # dsde-qa-notify
   integration-tests-branch-against-dev:
     executor: puppeteer
-    working_directory: /mnt/ramdisk
     steps:
       - integration-tests:
           local: true
           env: local
   integration-tests-alpha:
     executor: puppeteer
-    working_directory: /mnt/ramdisk
     steps:
       - integration-tests:
           env: alpha
       - notify-qa
   integration-tests-staging:
     executor: puppeteer
-    working_directory: /mnt/ramdisk
     steps:
       - integration-tests:
           env: staging
