@@ -1,3 +1,4 @@
+import { differenceInDays, parseISO } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
@@ -10,6 +11,7 @@ import {
   collapseStatus, failedIcon, makeSection, makeStatusLine, runningIcon, statusIcon,
   submissionDetailsBreadcrumbSubtitle, submittedIcon, successIcon
 } from 'src/components/job-common'
+import { InfoBox } from 'src/components/PopupTrigger'
 import { FlexTable, Sortable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
@@ -110,6 +112,33 @@ const SubmissionDetails = _.flow(
   )(workflows)
 
   const { succeeded, failed, running, submitted } = _.groupBy(wf => collapseStatus(wf.status), workflows)
+
+  // Note: This 'deleteLimitYears' value should reflect the current 'deletion-delay' value configured for PROD in firecloud-develop's
+  // 'cromwell.conf.ctmpl' file:
+  const deletionDelayYears = 6
+  const deletionDelayString = `${deletionDelayYears} year${deletionDelayYears > 1 ? 's' : ''}`
+  const isDeleted = statusLastChangedDate => differenceInDays(parseISO(statusLastChangedDate), Date.now()) > (deletionDelayYears * 365)
+
+  const deletedInfoIcon = ({ name, iconOverride }) => {
+    return h(InfoBox, {
+      style: { color: colors.secondary(), margin: '0.5rem' },
+      tooltip: `${name} unavailable. Click to learn more.`,
+      iconOverride
+    }, [
+      div({ style: Style.elements.sectionHeader }, 'Workflow Details Archived'),
+      div({ style: { padding: '0.5rem 0' } }, [`This workflow's details have been archived (> ${deletionDelayString} old).`]),
+      div([
+        'Please refer to the ',
+        h(Link, {
+          href: 'https://support.terra.bio/hc/en-us/articles/360060601631',
+          ...Utils.newTabLinkProps
+        }, ['Workflow Details Archived support article ', icon('pop-out', { size: 18 })]),
+        ' for more details.'
+      ])
+    ])
+  }
+
+
   /*
    * Page render
    */
@@ -248,23 +277,28 @@ const SubmissionDetails = _.flow(
               cellRenderer: ({ rowIndex }) => {
                 const { workflowId, inputResolutions: [{ inputName } = {}] } = filteredWorkflows[rowIndex]
                 return workflowId && h(Fragment, [
-                  h(Link, {
-                    ...Utils.newTabLinkProps,
-                    href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-                    style: { padding: '.6rem', display: 'flex' },
-                    tooltip: 'Job Manager',
-                    'aria-label': 'Job Manager'
-                  }, [icon('tasks', { size: 18 })]),
-                  h(Link, {
-                    href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
-                    style: { padding: '.6rem', display: 'flex' },
-                    tooltip: 'Workflow Dashboard [alpha]',
-                    'aria-label': 'Workflow Dashboard [alpha]'
-                  }, [icon('tachometer', { size: 18 })]),
+                  isDeleted(filteredWorkflows[rowIndex].statusLastChangedDate) ? [
+                    deletedInfoIcon({ name: 'Job Manager', iconOverride: 'tasks' }),
+                    deletedInfoIcon({ name: 'Workflow Dashboard', iconOverride: 'tachometer' })
+                  ] : [
+                    h(Link, {
+                      ...Utils.newTabLinkProps,
+                      href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
+                      style: { margin: '0.5rem', display: 'flex' },
+                      tooltip: 'Job Manager',
+                      'aria-label': 'Job Manager'
+                    }, [icon('tasks', { size: 18 })]),
+                    h(Link, {
+                      href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
+                      style: { margin: '0.5rem', display: 'flex' },
+                      tooltip: 'Workflow Dashboard [alpha]',
+                      'aria-label': 'Workflow Dashboard [alpha]'
+                    }, [icon('tachometer', { size: 18 })])
+                  ],
                   inputName && h(Link, {
                     ...Utils.newTabLinkProps,
                     href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`),
-                    style: { padding: '.6rem', display: 'flex' },
+                    style: { margin: '0.5rem', display: 'flex' },
                     tooltip: 'Execution directory',
                     'aria-label': 'Execution directory'
                   }, [icon('folder-open', { size: 18 })])

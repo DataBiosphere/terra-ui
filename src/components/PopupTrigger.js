@@ -72,7 +72,7 @@ const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, childr
 
 export default PopupTrigger
 
-export const InfoBox = ({ size, children, style, side }) => {
+export const InfoBox = ({ size, children, style, side, tooltip, iconOverride }) => {
   const [open, setOpen] = useState(false)
   return h(PopupTrigger, {
     side,
@@ -80,9 +80,10 @@ export const InfoBox = ({ size, children, style, side }) => {
     content: div({ style: { padding: '0.5rem', width: 300 } }, [children])
   }, [
     h(Clickable, {
+      tooltip,
       as: 'span', 'aria-label': 'More info', 'aria-expanded': open, 'aria-haspopup': true
     }, [
-      icon('info-circle', { size, style: { cursor: 'pointer', color: colors.accent(), ...style } })
+      icon(iconOverride || 'info-circle', { size, style: { cursor: 'pointer', color: colors.accent(), ...style } })
     ])
   ])
 }
