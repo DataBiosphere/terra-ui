@@ -1,4 +1,4 @@
-import { differenceInDays } from 'date-fns/fp'
+import { differenceInDays, parseISO } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
@@ -117,7 +117,7 @@ const SubmissionDetails = _.flow(
   // 'cromwell.conf.ctmpl' file:
   const deletionDelayYears = 6
   const deletionDelayString = `${deletionDelayYears} year${deletionDelayYears > 1 ? 's' : ''}`
-  const isDeleted = statusLastChangedDate => differenceInDays(Date.parse(statusLastChangedDate), Date.now()) > (deletionDelayYears * 365)
+  const isDeleted = statusLastChangedDate => differenceInDays(parseISO(statusLastChangedDate), Date.now()) > (deletionDelayYears * 365)
 
   const deletedInfoIcon = ({ name, iconOverride }) => {
     return h(InfoBox, {
