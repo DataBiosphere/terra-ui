@@ -103,7 +103,7 @@ const ExportNotebookModal = ({ fromLauncher, onDismiss, printName, workspace }) 
         h(IdContainer, [id => h(Fragment, [
           h(FormLabel, { htmlFor: id, required: true }, ['Name']),
           notebookNameInput({
-            error: Utils.summarizeErrors(errors && errors.newName),
+            error: Utils.summarizeErrors(errors?.newName),
             inputProps: {
               id,
               value: newName,

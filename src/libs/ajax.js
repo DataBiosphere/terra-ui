@@ -657,7 +657,7 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      listSnapshot: async (limit, offset) => {
+      listSnapshots: async (limit, offset) => {
         const res = await fetchRawls(`${root}/snapshots?offset=${offset}&limit=${limit}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
@@ -1229,6 +1229,11 @@ const Runtimes = signal => ({
 const Apps = signal => ({
   list: async (project, labels = {}) => {
     const res = await fetchLeo(`api/google/v1/apps/${project}?${qs.stringify({ ...labels })}`,
+      _.mergeAll([authOpts(), appIdentifier, { signal }]))
+    return res.json()
+  },
+  listWithoutProject: async labels => {
+    const res = await fetchLeo(`api/google/v1/apps?${qs.stringify(labels)}`,
       _.mergeAll([authOpts(), appIdentifier, { signal }]))
     return res.json()
   },

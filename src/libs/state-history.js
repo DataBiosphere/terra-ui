@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid'
 
 const getKey = () => {
   const state = window.history.state
-  if (state && state.key) {
+  if (state?.key) {
     return state.key
   } else {
     const key = uuid()

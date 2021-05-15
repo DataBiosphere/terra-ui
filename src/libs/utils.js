@@ -317,7 +317,7 @@ export const withBusyState = _.curry((setBusy, fn) => async (...args) => {
  * exactly the right thing to do. This function makes the intention clear and avoids the lint error.
  */
 export const useOnMount = fn => {
-  useEffect(fn, [])
+  useEffect(fn, []) // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 export const usePrevious = value => {
@@ -401,9 +401,10 @@ export const useCancelable = () => {
 
 export const useCancellation = () => {
   const controller = useRef()
-  useEffect(() => {
-    return () => controller.current.abort()
-  }, [])
+  useOnMount(() => {
+    const instance = controller.current
+    return () => instance.abort()
+  })
   if (!controller.current) {
     controller.current = new window.AbortController()
   }

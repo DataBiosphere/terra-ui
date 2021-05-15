@@ -300,7 +300,7 @@ export const NewGalaxyModal = _.flow(
             div([
               h(NumberInput, {
                 id,
-                min: 250, // Galaxy doesn't come up with a smaller data disk
+                min: 100, // Leo rejects Galaxy data disks <100G
                 max: 64000,
                 isClearable: false,
                 onlyInteger: true,

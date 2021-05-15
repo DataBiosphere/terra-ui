@@ -52,7 +52,7 @@ const InfoTile = ({ title, children }) => {
 const displayAttributeValue = v => {
   return Utils.cond(
     [_.isArray(v), () => v.join(', ')],
-    [v && v.items, () => v.items.join(', ')],
+    [v?.items, () => v.items.join(', ')],
     [v === true, () => 'Yes'],
     [v === false, () => 'No'],
     () => v
@@ -209,16 +209,7 @@ const WorkspaceDashboard = _.flow(
         [
           isEditing, () => h(Fragment, [
             h(MarkdownEditor, {
-              options: {
-                autofocus: true,
-                placeholder: 'Enter a description',
-                renderingConfig: {
-                  singleLineBreaks: false,
-                  markedOptions: { sanitize: true, sanitizer: _.escape }
-                },
-                status: false
-              },
-              className: 'simplemde-container',
+              options: { placeholder: 'Enter a description' },
               value: editDescription,
               onChange: setEditDescription
             }),
@@ -302,7 +293,7 @@ const WorkspaceDashboard = _.flow(
             }, [icon('times', { size: 14 })])
           ])
         }, tagsList),
-        !!tagsList && tagsList.length === 0 && i(['No tags yet'])
+        !!tagsList && _.isEmpty(tagsList) && i(['No tags yet'])
       ]),
       !_.isEmpty(authorizationDomain) && h(Fragment, [
         div({ style: Style.dashboard.header }, ['Authorization Domain']),

@@ -3,12 +3,12 @@ const { JWT } = require('google-auth-library')
 const { getSecrets, userEmail } = require('../utils/integration-config')
 
 
-const makeAuthClient = _.memoize((subject, { client_email, private_key }) => {
+const makeAuthClient = _.memoize((subject, { client_email: email, private_key: key }) => {
   return new JWT({
-    email: client_email,
+    email,
     scopes: ['profile', 'email', 'openid'],
     subject,
-    key: private_key
+    key
   })
 })
 

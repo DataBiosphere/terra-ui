@@ -38,7 +38,7 @@ const LaunchAnalysisModal = ({
 
   const doLaunch = async () => {
     try {
-      const baseEntityType = rootEntityType && rootEntityType.slice(0, -4)
+      const baseEntityType = rootEntityType?.slice(0, -4)
       const { selectedEntityType, selectedEntityNames } = Utils.cond(
         [processSingle, () => ({})],
         [type === chooseRootType, () => ({ selectedEntityType: rootEntityType, selectedEntityNames: _.keys(selectedEntities) })],

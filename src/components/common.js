@@ -707,7 +707,7 @@ export const ClipboardButton = ({ text, onClick, ...props }) => {
       withErrorReporting('Error copying to clipboard'),
       Utils.withBusyState(setCopied)
     )(async e => {
-      onClick?.(e) // eslint-disable-line no-unused-expressions
+      onClick?.(e)
       await clipboard.writeText(text)
       await Utils.delay(1500)
     })

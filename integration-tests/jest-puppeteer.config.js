@@ -1,3 +1,4 @@
+/* eslint-disable prefer-template */
 const printWarning = message => {
   if (process.env.warningPrinted) {
     return
