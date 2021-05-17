@@ -1,3 +1,5 @@
+// noinspection RegExpUnnecessaryNonCapturingGroup
+
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
@@ -5,7 +7,7 @@ import { div, h, img, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, ClipboardButton, Link } from 'src/components/common'
-import { getUserProjectForWorkspace, parseGsUri } from 'src/components/data/data-utils'
+import { getDownloadCommand, getUserProjectForWorkspace, parseGsUri } from 'src/components/data/data-utils'
 import { spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import DownloadPrices from 'src/data/download-prices'
@@ -54,6 +56,8 @@ const isFilePreviewable = ({ size, ...metadata }) => {
 
 const isGs = uri => _.startsWith('gs://', uri)
 
+const isDrs = uri => _.startsWith('dos://', uri) || _.startsWith('drs://', uri)
+
 const getMaxDownloadCostNA = bytes => {
   const nanos = DownloadPrices.pricingInfo[0].pricingExpression.tieredRates[1].unitPrice.nanos
   const downloadPrice = bytes * nanos / DownloadPrices.pricingInfo[0].pricingExpression.baseUnitConversionFactor / 10e8
@@ -99,17 +103,33 @@ const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProje
   ])
 }
 
-const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size } }) => {
+const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, accessUrl }) => {
   const signal = Utils.useCancellation()
   const [url, setUrl] = useState()
   const getUrl = async () => {
-    try {
-      const { url } = await Ajax(signal).Martha.getSignedUrl({ bucket, object: name, dataObjectUri: isGs(uri) ? undefined : uri })
-      const workspace = workspaceStore.get()
-      const userProject = await getUserProjectForWorkspace(workspace)
-      setUrl(knownBucketRequesterPaysStatuses.get()[bucket] ? Utils.mergeQueryParams({ userProject }, url) : url)
-    } catch (error) {
-      setUrl(null)
+    if (accessUrl && accessUrl.url) {
+      /*
+      NOTE: Not supporting downloading using `accessUrl.headers`:
+      - https://ga4gh.github.io/data-repository-service-schemas/preview/release/drs-1.1.0/docs/#_accessurl
+
+      If we want to support supplying `accessUrl.headers` here we'll probably need a bigger solution.
+      As of 2021-05-17 a google search turned up this c. 2018 result that mentioned something called `ServiceWorker`
+      - https://stackoverflow.com/questions/51721904/make-browser-submit-additional-http-header-if-click-on-hyperlink#answer-51784608
+       */
+      setUrl(_.isEmpty(accessUrl.headers) ? accessUrl.url : null)
+    } else {
+      try {
+        const { url } = await Ajax(signal).Martha.getSignedUrl({
+          bucket,
+          object: name,
+          dataObjectUri: isDrs(uri) && uri
+        })
+        const workspace = workspaceStore.get()
+        const userProject = await getUserProjectForWorkspace(workspace)
+        setUrl(knownBucketRequesterPaysStatuses.get()[bucket] ? Utils.mergeQueryParams({ userProject }, url) : url)
+      } catch (error) {
+        setUrl(null)
+      }
     }
   }
   Utils.useOnMount(() => {
@@ -168,12 +188,12 @@ const UriViewer = _.flow(
         // https://github.com/broadinstitute/martha#martha-v3
         // https://cloud.google.com/storage/docs/json_api/v1/objects#resource-representations
         // The time formats returned are in ISO 8601 vs. RFC 3339 but should be ok for parsing by `new Date()`
-        const { bucket, name, size, timeCreated, timeUpdated: updated, fileName } =
+        const { bucket, name, size, timeCreated, timeUpdated: updated, fileName, accessUrl } =
           await Ajax(signal).Martha.getDataObjectMetadata(
             uri,
-            ['bucket', 'name', 'size', 'timeCreated', 'timeUpdated', 'fileName']
+            ['bucket', 'name', 'size', 'timeCreated', 'timeUpdated', 'fileName', 'accessUrl']
           )
-        const metadata = { bucket, name, fileName, size, timeCreated, updated }
+        const metadata = { bucket, name, fileName, size, timeCreated, updated, accessUrl }
         setMetadata(metadata)
       }
     } catch (e) {
@@ -184,9 +204,9 @@ const UriViewer = _.flow(
     loadMetadata()
   })
 
-  const { size, timeCreated, updated, bucket, name, fileName } = metadata || {}
+  const { size, timeCreated, updated, bucket, name, fileName, accessUrl } = metadata || {}
   const gsUri = `gs://${bucket}/${name}`
-  const gsutilCommand = `gsutil cp ${gsUri} ${fileName || '.'}`
+  const downloadCommand = getDownloadCommand(fileName, gsUri, accessUrl)
   return h(Modal, {
     onDismiss,
     title: 'File Details',
@@ -212,24 +232,24 @@ const UriViewer = _.flow(
         ]),
         h(PreviewContent, { uri, metadata, googleProject }),
         els.cell([els.label('File size'), els.data(filesize(size))]),
-        els.cell([
+        !accessUrl && gsUri && els.cell([
           h(Link, {
             ...Utils.newTabLinkProps,
             href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1])
           }, ['View this file in the Google Cloud Storage Browser'])
         ]),
-        h(DownloadButton, { uri, metadata }),
+        h(DownloadButton, { uri, metadata, accessUrl }),
         els.cell([
           els.label('Terminal download command'),
           els.data([
             div({ style: { display: 'flex' } }, [
               input({
                 readOnly: true,
-                value: gsutilCommand,
+                value: downloadCommand,
                 style: { flexGrow: 1, fontWeight: 400, fontFamily: 'Menlo, monospace' }
               }),
               h(ClipboardButton, {
-                text: gsutilCommand,
+                text: downloadCommand,
                 style: { margin: '0 1rem' }
               })
             ])
