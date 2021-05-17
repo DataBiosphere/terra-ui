@@ -7,7 +7,7 @@ const { testFindWorkflow } = require('../tests/find-workflow')
 const { testImportCohortData } = require('../tests/import-cohort-data')
 const { testImportDockstoreWorkflow } = require('../tests/import-dockstore-workflow')
 const { testRegisterUser } = require('../tests/register-user')
-const { testRunNotebook } = require('../tests/run-notebook')
+const { testRunNotebook, testRunNotebookWithV1Workspace } = require('../tests/run-notebook')
 const { testRunWorkflow } = require('../tests/run-workflow')
 const { testRunWorkflowOnSnapshot } = require('../tests/run-workflow-on-snapshot')
 const { defaultTimeout } = require('../utils/integration-helpers')
@@ -80,6 +80,7 @@ _.forEach(registerTestEndpoint, [
   testImportDockstoreWorkflow,
   testRegisterUser,
   testRunNotebook,
+  testRunNotebookWithV1Workspace,
   testRunWorkflow,
   testRunWorkflowOnSnapshot
 ])

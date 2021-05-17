@@ -5,7 +5,8 @@ module.exports = {
     snapshotId: 'f90f5d7f-c507-4e56-abfc-b965a66023fb',
     snapshotTableName: 'tableA',
     testUrl: 'http://localhost:3000',
-    workflowName: 'echo_to_file'
+    workflowName: 'echo_to_file',
+    v1WorkspaceName: 'saturn-integration-test-v1-workspace-dev'
   },
   dev: {
     billingProject: 'saturn-integration-test-dev',
@@ -13,7 +14,8 @@ module.exports = {
     snapshotId: 'f90f5d7f-c507-4e56-abfc-b965a66023fb',
     snapshotTableName: 'tableA',
     testUrl: 'https://bvdp-saturn-dev.appspot.com',
-    workflowName: 'echo_to_file'
+    workflowName: 'echo_to_file',
+    v1WorkspaceName: 'saturn-integration-test-v1-workspace-dev'
   },
   alpha: {
     billingProject: 'saturn-integration-test-alpha',

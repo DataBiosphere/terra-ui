@@ -1,5 +1,5 @@
 const _ = require('lodash/fp')
-const { withRegisteredUser, withBilling, withWorkspace } = require('../utils/integration-helpers')
+const { withRegisteredUser, withBilling, withWorkspace, withV1Workspace } = require('../utils/integration-helpers')
 const { click, clickable, delay, signIntoTerra, findElement, waitForNoSpinners, select, fillIn, input, findIframe, findText, dismissNotifications } = require('../utils/integration-utils')
 
 
@@ -10,6 +10,18 @@ const testRunNotebookFn = _.flow(
   withBilling,
   withRegisteredUser
 )(async ({ workspaceName, page, testUrl, token }) => {
+  await testRunNotebookHelper(workspaceName, page, testUrl, token)
+})
+
+const testRunNotebookWithV1WorkspaceFn = _.flow(
+  withV1Workspace,
+  withBilling,
+  withRegisteredUser
+)( async ({ v1WorkspaceName, page, testUrl, token }) => {
+  await testRunNotebookHelper(v1WorkspaceName, page, testUrl, token)
+})
+
+const testRunNotebookHelper = async (workspaceName, page, testUrl, token) => {
   await page.goto(testUrl)
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(page, token)
@@ -48,11 +60,18 @@ const testRunNotebookFn = _.flow(
   await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
   await click(frame, clickable({ text: 'Run' }))
   await findText(frame, '123456789099886419754209')
-})
+}
+
 const testRunNotebook = {
   name: 'run-notebook',
   fn: testRunNotebookFn,
   timeout: 20 * 60 * 1000
 }
 
-module.exports = { testRunNotebook }
+const testRunNotebookWithV1Workspace = {
+  name: 'run-notebook-v1-workspace',
+  fn: testRunNotebookWithV1WorkspaceFn,
+  timeout: 20 * 60 * 1000
+}
+
+module.exports = { testRunNotebook, testRunNotebookWithV1Workspace }

@@ -74,6 +74,21 @@ const withUser = test => async args => {
   }
 }
 
+const addUserToV1Workspace = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, v1WorkspaceName, email }) => {
+  await page.evaluate((email, billingProject, v1WorkspaceName) => {
+    return window.Ajax().Workspaces.workspace(billingProject, v1WorkspaceName).updateAcl([{ email, accessLevel: 'WRITER', canCompute: true }])
+  }, email, billingProject, v1WorkspaceName)
+  console.info(`added user to: ${v1WorkspaceName}`)
+
+  const userList = await page.evaluate((billingProject, v1WorkspaceName) => {
+    return window.Ajax().Workspaces.workspace(billingProject, v1WorkspaceName).getAcl()
+  }, billingProject, v1WorkspaceName)
+
+  const workspaceUser = _.find({ email }, userList)
+
+  console.info(`test user was added to the workspace with the role: ${!!workspaceUser && workspaceUser.role}`)
+})
+
 const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
   await page.evaluate((email, billingProject) => {
     return window.Ajax().Billing.project(billingProject).addUser(['User'], email)
@@ -88,6 +103,14 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
   const billingUser = _.find({ email }, userList)
 
   console.info(`test user was added to the billing project with the role: ${!!billingUser && billingUser.role}`)
+})
+
+const removeUserFromV1Workspace = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, v1WorkspaceName, email }) => {
+  await page.evaluate((email, billingProject, v1WorkspaceName) => {
+    return window.Ajax().Workspaces.workspace(billingProject, v1WorkspaceName).updateAcl([{ email, accessLevel: 'NO ACCESS' }])
+  }, email, billingProject, v1WorkspaceName)
+
+  console.info(`removed user from: ${v1WorkspaceName}`)
 })
 
 const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
@@ -106,6 +129,16 @@ const withBilling = test => async options => {
   } finally {
     await deleteRuntimes(options)
     await removeUserFromBilling(options)
+  }
+}
+
+const withV1Workspace = test => async options => {
+  await addUserToV1Workspace(options)
+
+  try {
+    await test({ ...options })
+  } finally {
+    await removeUserFromV1Workspace(options)
   }
 }
 
@@ -156,6 +189,7 @@ module.exports = {
   createEntityInWorkspace,
   defaultTimeout,
   withWorkspace,
+  withV1Workspace,
   withBilling,
   withUser,
   withRegisteredUser
