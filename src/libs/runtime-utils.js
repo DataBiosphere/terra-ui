@@ -169,12 +169,27 @@ export const machineCost = machineType => {
 
 export const currentApp = _.flow(trimAppsOldestFirst, _.last)
 
+export const currentAppIncludingDeleting = _.flow(_.sortBy('auditInfo.createdDate'), _.last)
+
 export const currentAttachedDataDisk = (app, galaxyDataDisks) => {
   return _.find({ name: app?.diskName }, galaxyDataDisks)
 }
 
 export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
+}
+
+export const currentPersistentDiskIncludingUnattached = (apps, galaxyDataDisks) => {
+  const currentGalaxyApp = currentAppIncludingDeleting(apps)
+  const currentDataDiskName = currentGalaxyApp?.diskName
+  const attachedDataDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
+  const currentDatDisk = currentDataDiskName ?
+    _.find({ name: currentDataDiskName }, galaxyDataDisks) :
+    _.last(_.sortBy('auditInfo.createdDate', _.filter(({ name, status }) => status !== 'Deleting' && !_.includes(name, attachedDataDiskNames), galaxyDataDisks)))
+  const isCurrentDiskDetaching = currentGalaxyApp && (currentGalaxyApp.status === 'DELETING' || currentGalaxyApp.status === 'PREDELETING')
+  const res = [currentDatDisk, isCurrentDiskDetaching]
+  console.dir(res)
+  return res
 }
 
 export const collapsedRuntimeStatus = runtime => {

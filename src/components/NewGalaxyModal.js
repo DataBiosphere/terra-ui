@@ -14,7 +14,8 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
-  currentApp, currentAttachedDataDisk, findMachineType, getGalaxyComputeCost, getGalaxyDiskCost, RadioBlock
+  currentApp, currentAttachedDataDisk, currentPersistentDiskIncludingUnattached, findMachineType, getGalaxyComputeCost,
+  getGalaxyDiskCost, RadioBlock
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -50,16 +51,7 @@ export const NewGalaxyModal = _.flow(
   const [loading, setLoading] = useState(false)
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false)
 
-  const getCurrentPersistentDiskName = (apps, galaxyDataDisks) => {
-    const currentGalaxyApp = currentApp(apps)
-    const currentDataDiskName = currentGalaxyApp?.diskName
-    const attachedDataDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
-    return currentDataDiskName ?
-      _.find({ currentDataDiskName }, galaxyDataDisks) :
-      _.last(_.sortBy('auditInfo.createdDate', _.filter(({ name, status }) => status !== 'Deleting' && !_.includes(name, attachedDataDiskNames), galaxyDataDisks)))
-  }
-
-  const currentDataDisk = getCurrentPersistentDiskName(apps, galaxyDataDisks)
+  const currentDataDisk = currentPersistentDiskIncludingUnattached(apps, galaxyDataDisks)[0]
 
   const createGalaxy = _.flow(
     Utils.withBusyState(setLoading),

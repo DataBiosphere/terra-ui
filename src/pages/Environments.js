@@ -127,9 +127,6 @@ const Environments = ({ namespace }) => {
   const getDeleteAppId = useGetter(deleteAppId)
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' })
-  // TODO: Can we not use a state variable for appSort, and use a local variable instead?
-  // eslint-disable-next-line
-  const [appSort, setAppSort] = useState({ field: 'project', direction: 'asc' })
 
   const refreshData = withBusyState(setLoading, async () => {
     const creator = getUser().email
@@ -189,7 +186,7 @@ const Environments = ({ namespace }) => {
     created: 'auditInfo.createdDate',
     accessed: 'auditInfo.dateAccessed',
     cost: getGalaxyCost
-  }[appSort.field]], [appSort.direction], apps)
+  }[sort.field]], [sort.direction], apps)
 
   const filteredCloudEnvironments = _.concat(filteredRuntimes, filteredApps)
 
@@ -325,11 +322,6 @@ const Environments = ({ namespace }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
               console.log(JSON.stringify(cloudEnvironment))
               // TODO: update return logic once we support more app types (will need a backend change to return appType in list apps endpoint as well)
-              // return Utils.cond(
-              //   [cloudEnvironment.appName, () => 'Galaxy'],
-              //   [cloudEnvironment.runtimeConfig.cloudService === 'DATAPROC', () => 'Dataproc'],
-              //   [cloudEnvironment.runtimeConfig.cloudService === 'GCE', () => cloudEnvironment.runtimeConfig.cloudService]
-              // )
               return cloudEnvironment.appName ? 'Galaxy' : (cloudEnvironment.runtimeConfig.cloudService === 'DATAPROC' ? 'Dataproc' : cloudEnvironment.runtimeConfig.cloudService)
             }
           },
