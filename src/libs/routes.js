@@ -22,6 +22,7 @@ import * as Upload from 'src/pages/Upload'
 import * as WorkflowsList from 'src/pages/workflows/List'
 import * as WorkflowDetails from 'src/pages/workflows/workflow/WorkflowDetails'
 import * as WorkspaceList from 'src/pages/workspaces/List'
+import * as Analysis from 'src/pages/workspaces/workspace/Analyses'
 import * as AppLauncher from 'src/pages/workspaces/workspace/applications/AppLauncher'
 import * as Dashboard from 'src/pages/workspaces/workspace/Dashboard'
 import * as Data from 'src/pages/workspaces/workspace/Data'
@@ -29,7 +30,7 @@ import * as JobHistory from 'src/pages/workspaces/workspace/JobHistory'
 import * as SubmissionDetails from 'src/pages/workspaces/workspace/jobHistory/SubmissionDetails'
 import * as WorkflowDashboard from 'src/pages/workspaces/workspace/jobHistory/WorkflowDashboard'
 import * as Notebooks from 'src/pages/workspaces/workspace/Notebooks'
-import * as Analysis from 'src/pages/workspaces/workspace/Analysis'
+import * as AnalysisLauncher from 'src/pages/workspaces/workspace/notebooks/AnalysisLauncher'
 import * as NotebookLauncher from 'src/pages/workspaces/workspace/notebooks/NotebookLauncher'
 import * as Workflows from 'src/pages/workspaces/workspace/Workflows'
 import * as WorkflowView from 'src/pages/workspaces/workspace/workflows/WorkflowView'
@@ -52,6 +53,7 @@ const routes = _.flatten([
   WorkflowDashboard.navPaths,
   Workflows.navPaths,
   NotebookLauncher.navPaths,
+  AnalysisLauncher.navPaths,
   Profile.navPaths,
   Groups.navPaths,
   Group.navPaths,
@@ -67,7 +69,7 @@ const routes = _.flatten([
   WorkflowsList.navPaths,
   WorkflowDetails.navPaths,
   Upload.navPaths,
-  NotFound.navPaths // must be last,
+  NotFound.navPaths // must be last
 ])
 
 const handlers = _.map(({ path, encode = encodeURIComponent, ...data }) => {

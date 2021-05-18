@@ -108,7 +108,7 @@ const ToolDrawer = _.flow(
       drawerContent: h(WorkflowSelector, { workspace, selectedEntities })
     })
   ], [
-    //TODO: where is this
+    //TODO: Does this need to change with analysis tab migration? Need PO input
     'Notebook', () => ({
       drawerContent: h(NotebookCreator, {
         bucketName, namespace,
