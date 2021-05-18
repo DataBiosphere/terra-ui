@@ -18,7 +18,6 @@ import {
   getGalaxyDiskCost, RadioBlock
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
-import { newTabLinkProps } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 
 // TODO Factor out common pieces with NewRuntimeModal.styles into runtime-utils
