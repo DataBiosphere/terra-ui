@@ -18,6 +18,7 @@ import {
   getGalaxyDiskCost, RadioBlock
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
+import { newTabLinkProps } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 
 // TODO Factor out common pieces with NewRuntimeModal.styles into runtime-utils
@@ -289,8 +290,11 @@ export const NewGalaxyModal = _.flow(
     return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: styles.headerText }, ['Persistent disk']),
       div({ style: { marginTop: '0.5rem' } }, [
-        'Persistent disks store analysis data.'
-        // TODO Add info on PDs for Galaxy (similarly to in NewRuntimeModal.js)
+        'Persistent disks store analysis data. ',
+        h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
+          'Learn more about about persistent disks',
+          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+        ])
       ]),
       renderPersistentDiskSizeSection()
     ])
