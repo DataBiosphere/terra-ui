@@ -66,7 +66,8 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay 
 
   return h(PopupPortal, [
     div({
-      id, role: 'tooltip',
+      id,
+      role: 'tooltip',
       ref: elementRef,
       style: {
         display: shouldRender ? undefined : 'none',
@@ -86,9 +87,11 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay 
 const TooltipTrigger = ({ children, content, ...props }) => {
   const [open, setOpen] = useState(false)
   const tooltipId = Utils.useUniqueId()
-  const child = Children.only(children)
-  const childId = child.props.id || Utils.useUniqueId()
   const descriptionId = Utils.useUniqueId()
+  let childId = Utils.useUniqueId()
+
+  const child = Children.only(children)
+  childId = child.props.id || childId
 
   return h(Fragment, [
     cloneElement(child, {

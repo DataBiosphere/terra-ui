@@ -454,13 +454,15 @@ const formatGroupLabel = group => (
     }
   }, [group.label]))
 
-const BaseSelect = ({ value, newOptions, id = Utils.useUniqueId(), findValue, maxHeight, ...props }) => {
+const BaseSelect = ({ value, newOptions, id = null, findValue, maxHeight, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
   const [isOpen, setOpen] = useState(false)
   const menuId = Utils.useUniqueId()
+  const myId = Utils.useUniqueId()
+  const inputId = id || myId
 
   return h(RSelect, _.merge({
-    inputId: id,
+    inputId,
     menuId,
     ...commonSelectProps(menuId, isOpen),
     getOptionLabel: ({ value, label }) => label || value.toString(),
@@ -476,6 +478,7 @@ const BaseSelect = ({ value, newOptions, id = Utils.useUniqueId(), findValue, ma
  * @param {Object} props - see {@link https://react-select.com/props#select-props}
  * @param props.value - a member of options
  * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
+ * @param props.id - The HTML ID to give the form element
  */
 export const Select = ({ value, options, id, ...props }) => {
   const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
@@ -488,6 +491,7 @@ export const Select = ({ value, options, id, ...props }) => {
  * @param {Object} props - see {@link https://react-select.com/props#select-props}
  * @param props.value - a member of an inner options object
  * @param {Array} props.options - an object with toplevel pairs of label:options where label is a group label and options is an array of objects containing value:label pairs
+ * @param props.id - The HTML ID to give the form element
  */
 export const GroupedSelect = ({ value, options, id, ...props }) => {
   const flattenedOptions = _.flatMap('options', options)
