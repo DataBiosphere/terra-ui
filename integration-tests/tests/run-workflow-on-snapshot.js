@@ -37,9 +37,10 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await click(page, clickable({ text: 'Import' }))
 
   // ADD WORKFLOW
-  await click(page, navChild('workflows'))
-  await findElement(page, findWorkflowButton)
   await waitForNoSpinners(page)
+  await click(page, navChild('workflows'))
+  await waitForNoSpinners(page)
+  await findElement(page, findWorkflowButton)
   await click(page, findWorkflowButton)
   await click(page, clickable({ textContains: workflowName }))
   await waitForNoSpinners(page)
