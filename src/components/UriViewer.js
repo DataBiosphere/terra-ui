@@ -1,5 +1,3 @@
-// noinspection RegExpUnnecessaryNonCapturingGroup
-
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
@@ -107,7 +105,7 @@ const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, acces
   const signal = Utils.useCancellation()
   const [url, setUrl] = useState()
   const getUrl = async () => {
-    if (accessUrl && accessUrl.url) {
+    if (accessUrl?.url) {
       /*
       NOTE: Not supporting downloading using `accessUrl.headers`:
       - https://ga4gh.github.io/data-repository-service-schemas/preview/release/drs-1.1.0/docs/#_accessurl
@@ -122,7 +120,7 @@ const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, acces
         const { url } = await Ajax(signal).Martha.getSignedUrl({
           bucket,
           object: name,
-          dataObjectUri: isDrs(uri) && uri
+          dataObjectUri: isDrs(uri) ? uri : null
         })
         const workspace = workspaceStore.get()
         const userProject = await getUserProjectForWorkspace(workspace)
@@ -206,7 +204,7 @@ const UriViewer = _.flow(
 
   const { size, timeCreated, updated, bucket, name, fileName, accessUrl } = metadata || {}
   const gsUri = `gs://${bucket}/${name}`
-  const downloadCommand = getDownloadCommand(fileName, gsUri, accessUrl)
+  const downloadCommand = getDownloadCommand(_.pickBy(_.identity, ({ fileName, gsUri, accessUrl })))
   return h(Modal, {
     onDismiss,
     title: 'File Details',
