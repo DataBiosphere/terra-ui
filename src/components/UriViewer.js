@@ -204,7 +204,7 @@ const UriViewer = _.flow(
 
   const { size, timeCreated, updated, bucket, name, fileName, accessUrl } = metadata || {}
   const gsUri = `gs://${bucket}/${name}`
-  const downloadCommand = getDownloadCommand(_.pickBy(_.identity, ({ fileName, gsUri, accessUrl })))
+  const downloadCommand = getDownloadCommand(fileName, gsUri, accessUrl)
   return h(Modal, {
     onDismiss,
     title: 'File Details',

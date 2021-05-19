@@ -36,28 +36,15 @@ const errorTextStyle = { color: colors.danger(), fontWeight: 'bold', fontSize: 1
 
 export const parseGsUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 
-export const getDownloadCommand = (
-  {
-    fileName,
-    gsUri,
-    accessUrl: {
-      url: httpUrl = null,
-      headers: httpHeaders = null
-    } = {}
-  }
-) => {
+export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
+  const { url: httpUrl, headers: httpHeaders } = accessUrl || {}
   if (httpUrl) {
     const headers = _.flow(
       _.toPairs,
-      _.reduce(
-        (headers, [header, value]) => {
-          return `${headers}--header='${header}: ${value}' `
-        },
-        ''
-      )
+      _.reduce((acc, [header, value]) => `${acc}-H '${header}: ${value}' `, '')
     )(httpHeaders)
-    const output = fileName ? `-O '${fileName}' ` : ''
-    return `wget ${headers}${output}'${httpUrl}'`
+    const output = fileName ? `-o '${fileName}' ` : '-O '
+    return `curl ${headers}${output}'${httpUrl}'`
   }
   if (gsUri) {
     return `gsutil cp ${gsUri} ${fileName || '.'}`
