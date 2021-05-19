@@ -153,16 +153,17 @@ export const TabBar = ({
       'aria-setsize': tabNames.length,
       'aria-posinset': i + 1, // The first tab is 1
       'aria-current': selected ? 'location' : undefined,
-      style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) }
+      style: { display: 'flex', minWidth: 140, flexGrow: 0, alignSelf: 'stretch', alignItems: 'center', textAlign: 'center' }
     }, [
       h(Clickable, {
+        style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
         hover: selected ? {} : Style.tabBar.hover,
         onClick: href === window.location.hash ? refresh : getOnClick(currentTab),
         onKeyDown,
         ref: forwardedRef,
         href
       }, [
-        div({ style: { marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined } }, displayNames[currentTab] || currentTab)
+        div({ style: { flex: '1 1 100%', marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined } }, displayNames[currentTab] || currentTab)
       ])
     ])
   }
