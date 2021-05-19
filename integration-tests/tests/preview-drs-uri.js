@@ -23,6 +23,7 @@ const testPreviewDrsUriFn = _.flow(
   await createEntityInWorkspace(page, billingProject, workspaceName, testEntity)
 
   await click(page, clickable({ textContains: 'View Workspaces' }))
+  await waitForNoSpinners(page)
   await fillIn(page, input({ placeholder: 'SEARCH WORKSPACES' }), workspaceName)
   await click(page, clickable({ textContains: workspaceName }))
 
