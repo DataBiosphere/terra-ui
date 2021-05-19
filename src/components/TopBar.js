@@ -331,7 +331,9 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
   }
   const mainRef = useRef()
 
-  return h(Fragment, [
+  return div({
+    role: 'banner'
+  }, [
     h(SkipNavLink, { ref: mainRef }),
     h(Transition, {
       in: navShown,
@@ -340,7 +342,6 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
       unmountOnExit: true
     }, [transitionState => buildNav(transitionState)]),
     div({
-      role: 'banner',
       style: {
         ...styles.topBar,
         backgroundColor: isTerra() ? colors.primary() : colors.light(), // Fallback color for a11y and if background images don't show
