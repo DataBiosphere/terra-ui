@@ -171,6 +171,7 @@ export const TabBar = ({
     div({
       role: 'menu',
       'aria-label': label,
+      'aria-orientation': 'horizontal',
       style: Style.tabBar.container,
       ...props
     }, [
