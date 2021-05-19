@@ -147,20 +147,23 @@ export const TabBar = ({
     const selected = currentTab === activeTab
     const href = getHref(currentTab)
 
-    return ({ forwardedRef, onKeyDown }) => h(Clickable, {
+    return ({ forwardedRef, onKeyDown }) => span({
       key: currentTab,
       role: 'menuitem',
       'aria-setsize': tabNames.length,
       'aria-posinset': i + 1, // The first tab is 1
       'aria-current': selected ? 'location' : undefined,
-      style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
-      hover: selected ? {} : Style.tabBar.hover,
-      onClick: href === window.location.hash ? refresh : getOnClick(currentTab),
-      onKeyDown,
-      ref: forwardedRef,
-      href
+      style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) }
     }, [
-      div({ style: { marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined } }, displayNames[currentTab] || currentTab)
+      h(Clickable, {
+        hover: selected ? {} : Style.tabBar.hover,
+        onClick: href === window.location.hash ? refresh : getOnClick(currentTab),
+        onKeyDown,
+        ref: forwardedRef,
+        href
+      }, [
+        div({ style: { marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined } }, displayNames[currentTab] || currentTab)
+      ])
     ])
   }
 
