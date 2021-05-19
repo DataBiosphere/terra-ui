@@ -22,9 +22,10 @@ const testRunWorkflowFn = _.flow(
   await fillIn(page, input({ placeholder: 'SEARCH WORKSPACES' }), workspaceName)
   await click(page, clickable({ textContains: workspaceName }))
 
-  await click(page, navChild('workflows'))
-  await findElement(page, findWorkflowButton)
   await waitForNoSpinners(page)
+  await click(page, navChild('workflows'))
+  await waitForNoSpinners(page)
+  await findElement(page, findWorkflowButton)
   await click(page, findWorkflowButton)
   await click(page, clickable({ textContains: workflowName }))
   await waitForNoSpinners(page)
