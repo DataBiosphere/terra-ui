@@ -6,7 +6,7 @@ import { forwardRefWithName } from 'src/libs/utils'
 
 export const SkipNavLink = forwardRefWithName('SkipNavLink', (props, ref) => {
   return div({
-    role: 'nav'
+    role: 'navigation'
   }, [
     h(Link, {
       as: 'a',

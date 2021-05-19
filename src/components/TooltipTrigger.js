@@ -86,12 +86,12 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay 
 
 const TooltipTrigger = ({ children, content, ...props }) => {
   const [open, setOpen] = useState(false)
+  const id = Utils.useUniqueId()
   const tooltipId = Utils.useUniqueId()
   const descriptionId = Utils.useUniqueId()
-  let childId = Utils.useUniqueId()
 
   const child = Children.only(children)
-  childId = child.props.id || childId
+  const childId = child.props.id || id
 
   return h(Fragment, [
     cloneElement(child, {
