@@ -17,11 +17,11 @@ const testRunNotebookWithV1WorkspaceFn = _.flow(
   withV1Workspace,
   withBilling,
   withRegisteredUser
-)( async ({ billingProject, v1WorkspaceName, page, testUrl, token }) => {
-  await testRunNotebookHelper(billingProject, v1WorkspaceName, page, testUrl, token)
+)(async ({ billingProject, v1WorkspaceName, page, testUrl, token }) => {
+  await testRunNotebookHelper(billingProject, v1WorkspaceName, page, testUrl, token, false)
 })
 
-const testRunNotebookHelper = async (billingProject, workspaceName, page, testUrl, token) => {
+const testRunNotebookHelper = async (billingProject, workspaceName, page, testUrl, token, newEntity = true) => {
   await page.goto(testUrl)
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(page, token)
@@ -63,13 +63,15 @@ const testRunNotebookHelper = async (billingProject, workspaceName, page, testUr
     await click(frame, clickable({ text: 'Run' }))
     await findText(frame, '123456789099886419754209')
   } finally {
-    await delay(1000)
-    const workspaceResponse = await page.evaluate((namespace, name) => {
-      return window.Ajax().Workspaces.workspace(namespace, name).details()
-    }, billingProject, workspaceName)
-    await page.evaluate((billingProject, bucketName, notebookName) => {
-      return window.Ajax().Buckets.notebook(billingProject, bucketName, notebookName).delete()
-    }, billingProject, workspaceResponse.workspace.bucketName, notebookName)
+    if (!newEntity) {
+      await delay(1000)
+      const workspaceResponse = await page.evaluate((namespace, name) => {
+        return window.Ajax().Workspaces.workspace(namespace, name).details()
+      }, billingProject, workspaceName)
+      await page.evaluate((billingProject, bucketName, notebookName) => {
+        return window.Ajax().Buckets.notebook(billingProject, bucketName, notebookName).delete()
+      }, billingProject, workspaceResponse.workspace.bucketName, notebookName)
+    }
   }
 }
 

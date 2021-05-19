@@ -78,7 +78,7 @@ const addUserToV1Workspace = _.flow(withSignedInPage, withUserToken)(async ({ pa
   await page.evaluate((email, billingProject, v1WorkspaceName) => {
     return window.Ajax().Workspaces.workspace(billingProject, v1WorkspaceName).updateAcl([{ email, accessLevel: 'WRITER', canCompute: true }])
   }, email, billingProject, v1WorkspaceName)
-  console.info(`added user to: ${v1WorkspaceName}`)
+  console.info(`added user ${email} to: ${v1WorkspaceName}`)
 
   const userList = await page.evaluate((billingProject, v1WorkspaceName) => {
     return window.Ajax().Workspaces.workspace(billingProject, v1WorkspaceName).getAcl()
@@ -86,7 +86,7 @@ const addUserToV1Workspace = _.flow(withSignedInPage, withUserToken)(async ({ pa
 
   const workspaceUser = userList.acl[email]
 
-  console.info(`test user was added to the workspace with the role: ${!!workspaceUser && workspaceUser.accessLevel}`)
+  console.info(`test user ${email} was added to the workspace with the role: ${!!workspaceUser && workspaceUser.accessLevel}`)
 })
 
 const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
@@ -94,7 +94,7 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
     return window.Ajax().Billing.project(billingProject).addUser(['User'], email)
   }, email, billingProject)
 
-  console.info(`added user to: ${billingProject}`)
+  console.info(`added user ${email} to: ${billingProject}`)
 
   const userList = await page.evaluate(billingProject => {
     return window.Ajax().Billing.project(billingProject).listUsers()
@@ -102,7 +102,7 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
 
   const billingUser = _.find({ email }, userList)
 
-  console.info(`test user was added to the billing project with the role: ${!!billingUser && billingUser.role}`)
+  console.info(`test user ${email} was added to the billing project with the role: ${!!billingUser && billingUser.role}`)
 })
 
 const removeUserFromV1Workspace = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, v1WorkspaceName, email }) => {
@@ -110,7 +110,7 @@ const removeUserFromV1Workspace = _.flow(withSignedInPage, withUserToken)(async 
     return window.Ajax().Workspaces.workspace(billingProject, v1WorkspaceName).updateAcl([{ email, accessLevel: 'NO ACCESS' }])
   }, email, billingProject, v1WorkspaceName)
 
-  console.info(`removed user from: ${v1WorkspaceName}`)
+  console.info(`removed user ${email} from: ${v1WorkspaceName}`)
 })
 
 const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
@@ -118,7 +118,7 @@ const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ p
     return window.Ajax().Billing.project(billingProject).removeUser(['User'], email)
   }, email, billingProject)
 
-  console.info(`removed user from: ${billingProject}`)
+  console.info(`removed user ${email} from: ${billingProject}`)
 })
 
 const withBilling = test => async options => {

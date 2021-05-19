@@ -71,13 +71,15 @@ const testRunWorkflowHelper = async (billingProject, page, testUrl, token, workf
     await click(page, clickable({ textContains: 'test_entity' }))
     await findInDataTableRow(page, testEntity.name, testEntity.attributes.input)
   } finally {
-    const methodConfigs = await page.evaluate((namespace, name) => {
-      return window.Ajax().Workspaces.workspace(namespace, name).listMethodConfigs()
-    }, billingProject, workspaceName)
-    const methodConfigToDelete = _.find({ methodRepoMethod: { methodName: workflowName } }, methodConfigs)
-    await page.evaluate((workspaceNamespace, workspaceName, methodNamespace, methodName) => {
-      return window.Ajax().Workspaces.workspace(workspaceNamespace, workspaceName).methodConfig(methodNamespace, methodName).delete()
-    }, billingProject, workspaceName, methodConfigToDelete.namespace, methodConfigToDelete.name)
+    if (!newEntity) {
+      const methodConfigs = await page.evaluate((namespace, name) => {
+        return window.Ajax().Workspaces.workspace(namespace, name).listMethodConfigs()
+      }, billingProject, workspaceName)
+      const methodConfigToDelete = _.find({ methodRepoMethod: { methodName: workflowName } }, methodConfigs)
+      await page.evaluate((workspaceNamespace, workspaceName, methodNamespace, methodName) => {
+        return window.Ajax().Workspaces.workspace(workspaceNamespace, workspaceName).methodConfig(methodNamespace, methodName).delete()
+      }, billingProject, workspaceName, methodConfigToDelete.namespace, methodConfigToDelete.name)
+    }
   }
 }
 
