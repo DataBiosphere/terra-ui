@@ -37,6 +37,7 @@ export const SkipNavLink = forwardRefWithName('SkipNavLink', (props, ref) => {
 export const SkipNavTarget = forwardRefWithName('SkipNavTarget', (props, ref) => {
   return div({
     ref,
+    role: 'navigation',
     className: 'skip-navigation-content',
     tabIndex: -1,
     'aria-label': 'main content',
