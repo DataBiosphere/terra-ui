@@ -16,7 +16,7 @@ export const withArrowKeyNavigation = ({ onKeyDown, children }) => {
 
   // Pass a ref into each child, using an alternative property name
   return _.map(([i, child]) => {
-    return h(child, { forwardedRef: refs[i], onKeyDown: onKeyDown(i, focusOn) })
+    return h(child, { key: i, forwardedRef: refs[i], onKeyDown: onKeyDown(i, focusOn) })
   }, toIndexPairs(children))
 }
 

@@ -77,6 +77,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
       })
     ]),
     h(TabBar, {
+      label: 'navigate workflows',
       activeTab: tabName,
       tabNames: Object.keys(tabs),
       displayNames: tabs,

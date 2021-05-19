@@ -380,7 +380,7 @@ export const WorkspaceList = () => {
         ])
       ]),
       h(SimpleTabBar, {
-        label: 'workspace collections',
+        label: 'choose a workspace collection',
         value: tab,
         onChange: newTab => {
           if (newTab === tab) {

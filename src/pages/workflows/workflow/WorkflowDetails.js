@@ -93,6 +93,7 @@ const SnapshotWrapper = ({ namespace, name, snapshotId, tabName, children }) => 
 
   return h(Fragment, [
     h(TabBar, {
+      label: 'navigate this workflow',
       activeTab: tabName,
       tabNames: ['dashboard', 'wdl', 'configs'],
       displayNames: { configs: 'configurations' },
