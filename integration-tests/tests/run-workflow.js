@@ -1,5 +1,3 @@
-
-
 const _ = require('lodash/fp')
 const pRetry = require('p-retry')
 const { withRegisteredUser, withWorkspace, withV1Workspace, createEntityInWorkspace } = require('../utils/integration-helpers')
@@ -10,25 +8,11 @@ const { withUserToken } = require('../utils/terra-sa-utils')
 const testEntity = { name: 'test_entity_1', entityType: 'test_entity', attributes: { input: 'foo' } }
 const findWorkflowButton = clickable({ textContains: 'Find a Workflow' })
 
-const testRunWorkflowFn = _.flow(
-  withWorkspace,
-  withUserToken
-)(async ({ billingProject, page, testUrl, token, workflowName, workspaceName }) => {
-  await testRunWorkflowHelper(billingProject, page, testUrl, token, workflowName, workspaceName)
-})
-
-const testRunWorkflowWithV1WorkspaceFn = _.flow(
-  withV1Workspace,
-  withRegisteredUser
-)(async ({ billingProject, page, testUrl, token, workflowName, v1WorkspaceName }) => {
-  await testRunWorkflowHelper(billingProject, page, testUrl, token, workflowName, v1WorkspaceName, false)
-})
-
-const testRunWorkflowHelper = async (billingProject, page, testUrl, token, workflowName, workspaceName, newEntity = true) => {
+const testRunWorkflowHelper = async (billingProject, page, testUrl, token, workflowName, workspaceName, isWorkspaceSingleUse = true) => {
   await page.goto(testUrl)
   await signIntoTerra(page, token)
   await dismissNotifications(page)
-  if (newEntity) {
+  if (isWorkspaceSingleUse) {
     await createEntityInWorkspace(page, billingProject, workspaceName, testEntity)
   }
 
@@ -71,7 +55,7 @@ const testRunWorkflowHelper = async (billingProject, page, testUrl, token, workf
     await click(page, clickable({ textContains: 'test_entity' }))
     await findInDataTableRow(page, testEntity.name, testEntity.attributes.input)
   } finally {
-    if (!newEntity) {
+    if (!isWorkspaceSingleUse) {
       const methodConfigs = await page.evaluate((namespace, name) => {
         return window.Ajax().Workspaces.workspace(namespace, name).listMethodConfigs()
       }, billingProject, workspaceName)
@@ -82,6 +66,21 @@ const testRunWorkflowHelper = async (billingProject, page, testUrl, token, workf
     }
   }
 }
+
+const testRunWorkflowFn = _.flow(
+  withWorkspace,
+  withUserToken
+)(async ({ billingProject, page, testUrl, token, workflowName, workspaceName }) => {
+  await testRunWorkflowHelper(billingProject, page, testUrl, token, workflowName, workspaceName)
+})
+
+const testRunWorkflowWithV1WorkspaceFn = _.flow(
+  withV1Workspace,
+  withRegisteredUser
+)(async ({ billingProject, page, testUrl, token, workflowName, v1WorkspaceName }) => {
+  await testRunWorkflowHelper(billingProject, page, testUrl, token, workflowName, v1WorkspaceName, false)
+})
+
 
 const testRunWorkflow = {
   name: 'run-workflow',

@@ -5,23 +5,7 @@ const { click, clickable, delay, signIntoTerra, findElement, waitForNoSpinners, 
 
 const notebookName = 'TestNotebook'
 
-const testRunNotebookFn = _.flow(
-  withWorkspace,
-  withBilling,
-  withRegisteredUser
-)(async ({ billingProject, workspaceName, page, testUrl, token }) => {
-  await testRunNotebookHelper(billingProject, workspaceName, page, testUrl, token)
-})
-
-const testRunNotebookWithV1WorkspaceFn = _.flow(
-  withV1Workspace,
-  withBilling,
-  withRegisteredUser
-)(async ({ billingProject, v1WorkspaceName, page, testUrl, token }) => {
-  await testRunNotebookHelper(billingProject, v1WorkspaceName, page, testUrl, token, false)
-})
-
-const testRunNotebookHelper = async (billingProject, workspaceName, page, testUrl, token, newEntity = true) => {
+const testRunNotebookHelper = async (billingProject, workspaceName, page, testUrl, token, isWorkspaceSingleUse = true) => {
   await page.goto(testUrl)
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(page, token)
@@ -63,7 +47,7 @@ const testRunNotebookHelper = async (billingProject, workspaceName, page, testUr
     await click(frame, clickable({ text: 'Run' }))
     await findText(frame, '123456789099886419754209')
   } finally {
-    if (!newEntity) {
+    if (!isWorkspaceSingleUse) {
       await delay(1000)
       const workspaceResponse = await page.evaluate((namespace, name) => {
         return window.Ajax().Workspaces.workspace(namespace, name).details()
@@ -74,6 +58,22 @@ const testRunNotebookHelper = async (billingProject, workspaceName, page, testUr
     }
   }
 }
+
+const testRunNotebookFn = _.flow(
+  withWorkspace,
+  withBilling,
+  withRegisteredUser
+)(async ({ billingProject, workspaceName, page, testUrl, token }) => {
+  await testRunNotebookHelper(billingProject, workspaceName, page, testUrl, token)
+})
+
+const testRunNotebookWithV1WorkspaceFn = _.flow(
+  withV1Workspace,
+  withBilling,
+  withRegisteredUser
+)(async ({ billingProject, v1WorkspaceName, page, testUrl, token }) => {
+  await testRunNotebookHelper(billingProject, v1WorkspaceName, page, testUrl, token, false)
+})
 
 const testRunNotebook = {
   name: 'run-notebook',
