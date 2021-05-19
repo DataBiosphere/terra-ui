@@ -106,7 +106,7 @@ const svgText = ({ textContains }) => {
 }
 
 const navChild = text => {
-  return `//*[@id="tab-navigation"]/*[contains(normalize-space(.),"${text}")]`
+  return `//*[@id="tab-navigation"]//*[contains(normalize-space(.),"${text}")]`
 }
 
 const elementInDataTableRow = (entityName, text) => {

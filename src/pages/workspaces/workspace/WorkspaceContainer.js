@@ -46,7 +46,7 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
   ]
   return h(Fragment, [
     h(TabBar, {
-      label: 'navigate this workspace',
+      label: 'workspace menu',
       activeTab, refresh,
       tabNames: _.map('name', tabs),
       getHref: currentTab => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name })

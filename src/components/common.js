@@ -165,11 +165,11 @@ export const TabBar = ({
   }
 
   return div({
-    role: 'nav',
+    role: 'navigation',
     id
   }, [
     div({
-      role: 'menubar',
+      role: 'menu',
       'aria-label': label,
       style: Style.tabBar.container,
       ...props
