@@ -1,6 +1,6 @@
 const _ = require('lodash/fp')
 
-const { signIntoTerra } = require('./integration-utils')
+const { delay, signIntoTerra } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -84,9 +84,9 @@ const addUserToV1Workspace = _.flow(withSignedInPage, withUserToken)(async ({ pa
     return window.Ajax().Workspaces.workspace(billingProject, v1WorkspaceName).getAcl()
   }, billingProject, v1WorkspaceName)
 
-  const workspaceUser = _.find({ email }, userList)
+  const workspaceUser = userList.acl[email]
 
-  console.info(`test user was added to the workspace with the role: ${!!workspaceUser && workspaceUser.role}`)
+  console.info(`test user was added to the workspace with the role: ${!!workspaceUser && workspaceUser.accessLevel}`)
 })
 
 const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
@@ -134,7 +134,8 @@ const withBilling = test => async options => {
 
 const withV1Workspace = test => async options => {
   await addUserToV1Workspace(options)
-
+  // Wait for a few seconds for the permissioning to propagate
+  await delay(5000)
   try {
     await test({ ...options })
   } finally {

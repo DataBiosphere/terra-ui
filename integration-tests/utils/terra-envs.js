@@ -23,12 +23,14 @@ module.exports = {
     snapshotId: 'd56f4db5-b6c6-4a7e-8be2-ff6aa21c4fa6',
     snapshotTableName: 'vcf_file',
     testUrl: 'https://bvdp-saturn-alpha.appspot.com',
-    workflowName: 'echo_to_file'
+    workflowName: 'echo_to_file',
+    v1WorkspaceName: 'saturn-integration-test-v1-workspace-alpha'
   },
   perf: {
     billingProject: 'saturn-integration-test-perf',
     testUrl: 'https://bvdp-saturn-perf.appspot.com',
-    workflowName: 'echo_to_file'
+    workflowName: 'echo_to_file',
+    v1WorkspaceName: 'saturn-integration-test-v1-workspace-perf'
   },
   staging: {
     billingProject: 'saturn-integration-test-stage',
@@ -36,6 +38,7 @@ module.exports = {
     snapshotId: 'a5624b5c-df41-4a02-8013-d3b6cd51b22a',
     snapshotTableName: 'vcf_file',
     testUrl: 'https://bvdp-saturn-staging.appspot.com',
-    workflowName: 'echo_to_file'
+    workflowName: 'echo_to_file',
+    v1WorkspaceName: 'saturn-integration-test-v1-workspace-staging'
   }
 }

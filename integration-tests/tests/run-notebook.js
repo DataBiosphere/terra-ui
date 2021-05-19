@@ -9,19 +9,19 @@ const testRunNotebookFn = _.flow(
   withWorkspace,
   withBilling,
   withRegisteredUser
-)(async ({ workspaceName, page, testUrl, token }) => {
-  await testRunNotebookHelper(workspaceName, page, testUrl, token)
+)(async ({ billingProject, workspaceName, page, testUrl, token }) => {
+  await testRunNotebookHelper(billingProject, workspaceName, page, testUrl, token)
 })
 
 const testRunNotebookWithV1WorkspaceFn = _.flow(
   withV1Workspace,
   withBilling,
   withRegisteredUser
-)( async ({ v1WorkspaceName, page, testUrl, token }) => {
-  await testRunNotebookHelper(v1WorkspaceName, page, testUrl, token)
+)( async ({ billingProject, v1WorkspaceName, page, testUrl, token }) => {
+  await testRunNotebookHelper(billingProject, v1WorkspaceName, page, testUrl, token)
 })
 
-const testRunNotebookHelper = async (workspaceName, page, testUrl, token) => {
+const testRunNotebookHelper = async (billingProject, workspaceName, page, testUrl, token) => {
   await page.goto(testUrl)
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await signIntoTerra(page, token)
@@ -29,37 +29,48 @@ const testRunNotebookHelper = async (workspaceName, page, testUrl, token) => {
   await findElement(page, clickable({ textContains: workspaceName }))
   await waitForNoSpinners(page)
   await click(page, clickable({ textContains: workspaceName }))
-  await delay(5000)
+  await delay(10000)
   await click(page, clickable({ text: 'notebooks' }))
   await click(page, clickable({ textContains: 'Create a' }))
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
   await select(page, 'Language', 'Python 2')
   await click(page, clickable({ text: 'Create Notebook' }))
   await click(page, clickable({ textContains: notebookName }))
-  await click(page, clickable({ text: 'Edit' }))
-  // There are two separate activities in the UI that could interfere with beginning to interact
-  // with the modal for creating a cloud environment:
-  //   1. AJAX calls to load cloud environment details and available docker images
-  //      - renders a spinner overlay on top of UI elements
-  //   2. The drawer slide-in animation
-  //      - causes UI elements to move before puppeteer clicks on them
-  // Experimentation has shown that there's enough of a gap between clicking 'Edit' and the AJAX
-  // spinner being rendered that simply waiting for no spinners does not work; the test recognizes
-  // that there aren't any spinners before the spinner has a chance to render. Additionally, even
-  // though the slide-in animation is supposedly only 200ms, experimentation has shown that even a
-  // 500ms delay in the test is not enough to guarantee that the UI elements have finished moving.
-  // Therefore, we start with a 1000ms delay, then make sure there are no spinners just in case the
-  // AJAX calls are unexpectedly slow.
-  await delay(1000)
-  waitForNoSpinners(page)
-  await click(page, clickable({ text: 'Create' }))
-  await findElement(page, clickable({ textContains: 'Creating' }))
-  await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60 * 1000 })
+  // If we get this far we need to be sure to clean up the notebook in case the workspace is going to be re-used
+  try {
+    await click(page, clickable({ text: 'Edit' }))
+    // There are two separate activities in the UI that could interfere with beginning to interact
+    // with the modal for creating a cloud environment:
+    //   1. AJAX calls to load cloud environment details and available docker images
+    //      - renders a spinner overlay on top of UI elements
+    //   2. The drawer slide-in animation
+    //      - causes UI elements to move before puppeteer clicks on them
+    // Experimentation has shown that there's enough of a gap between clicking 'Edit' and the AJAX
+    // spinner being rendered that simply waiting for no spinners does not work; the test recognizes
+    // that there aren't any spinners before the spinner has a chance to render. Additionally, even
+    // though the slide-in animation is supposedly only 200ms, experimentation has shown that even a
+    // 500ms delay in the test is not enough to guarantee that the UI elements have finished moving.
+    // Therefore, we start with a 1000ms delay, then make sure there are no spinners just in case the
+    // AJAX calls are unexpectedly slow.
+    await delay(1000)
+    waitForNoSpinners(page)
+    await click(page, clickable({ text: 'Create' }))
+    await findElement(page, clickable({ textContains: 'Creating' }))
+    await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60 * 1000 })
 
-  const frame = await findIframe(page)
-  await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
-  await click(frame, clickable({ text: 'Run' }))
-  await findText(frame, '123456789099886419754209')
+    const frame = await findIframe(page)
+    await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
+    await click(frame, clickable({ text: 'Run' }))
+    await findText(frame, '123456789099886419754209')
+  } finally {
+    await delay(1000)
+    const workspaceResponse = await page.evaluate((namespace, name) => {
+      return window.Ajax().Workspaces.workspace(namespace, name).details()
+    }, billingProject, workspaceName)
+    await page.evaluate((billingProject, bucketName, notebookName) => {
+      return window.Ajax().Buckets.notebook(billingProject, bucketName, notebookName).delete()
+    }, billingProject, workspaceResponse.workspace.bucketName, notebookName)
+  }
 }
 
 const testRunNotebook = {
