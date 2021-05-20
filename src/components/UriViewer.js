@@ -230,7 +230,7 @@ const UriViewer = _.flow(
         ]),
         h(PreviewContent, { uri, metadata, googleProject }),
         els.cell([els.label('File size'), els.data(filesize(size))]),
-        !accessUrl && gsUri && els.cell([
+        !accessUrl && !!gsUri && els.cell([
           h(Link, {
             ...Utils.newTabLinkProps,
             href: bucketBrowserUrl(gsUri.match(/gs:\/\/(.+)\//)[1])
