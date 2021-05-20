@@ -217,82 +217,81 @@ export const comingSoon = span({
   }
 }, ['coming soon'])
 
-const commonSelectProps = (menuId, isOpen) => {
-  return {
-    theme: base => _.merge(base, {
-      colors: {
-        primary: colors.accent(),
-        neutral20: colors.dark(0.55),
-        neutral30: colors.dark(0.55)
-      },
-      spacing: { controlHeight: 36 }
+const commonSelectProps = (menuId, isOpen) => ({
+  theme: base => _.merge(base, {
+    colors: {
+      primary: colors.accent(),
+      neutral20: colors.dark(0.55),
+      neutral30: colors.dark(0.55)
+    },
+    spacing: { controlHeight: 36 }
+  }),
+  styles: {
+    control: (base, { isDisabled }) => _.merge(base, {
+      backgroundColor: isDisabled ? colors.dark(0.25) : 'white',
+      boxShadow: 'none'
     }),
-    styles: {
-      control: (base, { isDisabled }) => _.merge(base, {
-        backgroundColor: isDisabled ? colors.dark(0.25) : 'white',
-        boxShadow: 'none'
-      }),
-      singleValue: base => ({ ...base, color: colors.dark() }),
-      option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
-        fontWeight: isSelected ? 600 : undefined,
-        backgroundColor: isFocused ? colors.dark(0.15) : 'white',
-        color: isDisabled ? undefined : colors.dark(),
-        ':active': { backgroundColor: colors.accent(isSelected ? 0.55 : 0.4) }
-      }),
-      clearIndicator: base => ({ ...base, paddingRight: 0 }),
-      indicatorSeparator: () => ({ display: 'none' }),
-      dropdownIndicator: (base, { selectProps: { isClearable } }) => _.merge(base, { paddingLeft: isClearable ? 0 : undefined }),
-      multiValueLabel: base => ({ ...base, maxWidth: '100%' }),
-      multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } }),
-      placeholder: base => ({ ...base, color: colors.dark(0.8) })
-    },
-    components: {
-      Option: ({ children, ...props }) => {
-        return h(RSelectComponents.Option, {
-          ...props,
-          role: 'option'
-        }, [
-          div({ style: { display: 'flex', alignItems: 'center', minHeight: 25 } }, [
-            div({ style: { flex: 1, minWidth: 0, overflowWrap: 'break-word' } }, [children]),
-            props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
-          ])
+    singleValue: base => ({ ...base, color: colors.dark() }),
+    option: (base, { isSelected, isFocused, isDisabled }) => _.merge(base, {
+      fontWeight: isSelected ? 600 : undefined,
+      backgroundColor: isFocused ? colors.dark(0.15) : 'white',
+      color: isDisabled ? undefined : colors.dark(),
+      ':active': { backgroundColor: colors.accent(isSelected ? 0.55 : 0.4) }
+    }),
+    clearIndicator: base => ({ ...base, paddingRight: 0 }),
+    indicatorSeparator: () => ({ display: 'none' }),
+    dropdownIndicator: (base, { selectProps: { isClearable } }) => _.merge(base, { paddingLeft: isClearable ? 0 : undefined }),
+    multiValueLabel: base => ({ ...base, maxWidth: '100%' }),
+    multiValueRemove: base => _.merge(base, { ':hover': { backgroundColor: 'unset' } }),
+    placeholder: base => ({ ...base, color: colors.dark(0.8) })
+  },
+  components: {
+    Option: ({ children, ...props }) => {
+      return h(RSelectComponents.Option, {
+        ...props,
+        role: 'option'
+      }, [
+        div({ style: { display: 'flex', alignItems: 'center', minHeight: 25 } }, [
+          div({ style: { flex: 1, minWidth: 0, overflowWrap: 'break-word' } }, [children]),
+          props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
         ])
-      },
-      SelectContainer: props => {
-        return RSelectComponents.SelectContainer({
-          ...props,
-          innerProps: {
-            ...props.innerProps,
-            role: 'combobox',
-            'aria-haspopup': 'listbox',
-            'aria-expanded': isOpen
-          }
-        })
-      },
-      Input: props => {
-        return RSelectComponents.Input({
-          ...props,
-          role: 'textbox',
-          'aria-multiline': false,
-          'aria-controls': isOpen ? menuId : undefined
-        })
-      },
-      Menu: props => {
-        return RSelectComponents.Menu({
-          ...props,
-          innerProps: {
-            ...props.innerProps,
-            id: menuId,
-            role: 'listbox',
-            'aria-multiselectable': props.selectProps.isMulti
-          }
-        })
-      }
+      ])
     },
-    'aria-live': 'polite',
-    isSearchable: true // If this is false then the DummyInput is used instead, but it can't be made accessible the way the other components can
-  }
-}
+    SelectContainer: props => {
+      return RSelectComponents.SelectContainer({
+        ...props,
+        innerProps: {
+          ...props.innerProps,
+          role: 'combobox',
+          'aria-haspopup': 'listbox',
+          'aria-expanded': isOpen
+        }
+      })
+    },
+    Input: props => {
+      return RSelectComponents.Input({
+        ...props,
+        role: 'textbox',
+        'aria-multiline': false,
+        'aria-controls': isOpen ? menuId : undefined
+      })
+    },
+    Menu: props => {
+      return RSelectComponents.Menu({
+        ...props,
+        innerProps: {
+          ...props.innerProps,
+          id: menuId,
+          role: 'listbox',
+          'aria-multiselectable': props.selectProps.isMulti
+        }
+      })
+    }
+  },
+  'aria-live': 'polite',
+  isSearchable: true // If this is false then the DummyInput is used instead, but it can't be made accessible the way the other components can
+})
+
 const formatGroupLabel = group => (
   div({
     style: {
