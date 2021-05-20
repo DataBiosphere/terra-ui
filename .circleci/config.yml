@@ -95,7 +95,8 @@ commands:
           no_output_timeout: 16m
           command: |
             mkdir -p ${SCREENSHOT_DIR}
-            yarn test --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
+            TESTS_TO_RUN=$(circleci tests glob "jest/**.integration-test.js" | circleci tests split --split-by=timings)
+            yarn test $TESTS_TO_RUN --ci --maxWorkers=2 --reporters=default --reporters=jest-junit
       - store_test_results:
           path: /tmp/test-results
       - store_artifacts:
@@ -173,18 +174,21 @@ jobs:
           channel: "C7H40L71D" # dsde-qa-notify
   integration-tests-branch-against-dev:
     executor: puppeteer
+    parallelism: 4
     steps:
       - integration-tests:
           local: true
           env: local
   integration-tests-alpha:
     executor: puppeteer
+    parallelism: 4
     steps:
       - integration-tests:
           env: alpha
       - notify-qa
   integration-tests-staging:
     executor: puppeteer
+    parallelism: 4
     steps:
       - integration-tests:
           env: staging
