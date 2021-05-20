@@ -120,7 +120,7 @@ const DownloadButton = ({ uri, metadata: { bucket, name, fileName, size }, acces
         const { url } = await Ajax(signal).Martha.getSignedUrl({
           bucket,
           object: name,
-          dataObjectUri: isDrs(uri) ? uri : null
+          dataObjectUri: isDrs(uri) ? uri : undefined
         })
         const workspace = workspaceStore.get()
         const userProject = await getUserProjectForWorkspace(workspace)
