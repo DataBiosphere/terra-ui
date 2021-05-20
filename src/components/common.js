@@ -555,5 +555,7 @@ export const ClipboardButton = ({ text, onClick, ...props }) => {
       await clipboard.writeText(text)
       await Utils.delay(1500)
     })
-  }, [icon(copied ? 'check' : 'copy-to-clipboard')])
+  }, [icon(copied ? 'check' : 'copy-to-clipboard', {
+    'aria-label': copied ? 'copy to clipboard' : 'copied to clipboard'
+  })])
 }
