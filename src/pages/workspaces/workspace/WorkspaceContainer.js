@@ -2,13 +2,13 @@ import { differenceInSeconds, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, spinnerOverlay, TabBar } from 'src/components/common'
+import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
-import { withVerticalNavigation } from 'src/components/keyboard-nav'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import RuntimeManager from 'src/components/RuntimeManager'
+import { TabBar } from 'src/components/TabBar'
 import TopBar from 'src/components/TopBar'
 import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
@@ -53,30 +53,26 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
     }, [
       h(PopupTrigger, {
         closeOnClick: true,
-        content: h(Fragment, withVerticalNavigation([
-          ({ forwardedRef, onKeyDown }) => h(MenuButton, {
-            ref: forwardedRef, onKeyDown,
+        content: h(Fragment, [
+          h(MenuButton, {
             onClick: () => setCloningWorkspace(true)
           }, [makeMenuIcon('copy'), 'Clone']),
-          ({ forwardedRef, onKeyDown }) => h(MenuButton, {
-            ref: forwardedRef, onKeyDown,
+          h(MenuButton, {
             disabled: !canShare,
             tooltip: !canShare && 'You have not been granted permission to share this workspace',
             tooltipSide: 'left',
             onClick: () => setSharingWorkspace(true)
           }, [makeMenuIcon('share'), 'Share']),
-          ({ forwardedRef, onKeyDown }) => h(MenuButton, {
-            ref: forwardedRef, onKeyDown,
+          h(MenuButton, {
             disabled: true
           }, [makeMenuIcon('export'), 'Publish', comingSoon]),
-          ({ forwardedRef, onKeyDown }) => h(MenuButton, {
-            ref: forwardedRef, onKeyDown,
+          h(MenuButton, {
             disabled: !isOwner,
             tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
             tooltipSide: 'left',
             onClick: () => setDeletingWorkspace(true)
           }, [makeMenuIcon('trash'), 'Delete Workspace'])
-        ])),
+        ]),
         side: 'bottom'
       }, [
         h(Clickable, { 'aria-label': 'Workspace menu', ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])

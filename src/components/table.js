@@ -187,6 +187,10 @@ const ariaSort = (sort, field) => {
   return null
 }
 
+const noContent = ({ noContentMessage, noContentRenderer = _.noop, defaultMessage = 'Nothing to display' }) => {
+  return noContentMessage || noContentRenderer() || defaultMessage
+}
+
 /**
  * A virtual table with a fixed header and flexible column widths. Intended to take up the full
  * available container width, without horizontal scrolling.
@@ -277,7 +281,6 @@ export const FlexTable = ({
       style: { outline: 'none' },
       onScroll: ({ scrollTop }) => onScroll(scrollTop),
       noContentRenderer: () => {
-        noContentMessage = noContentMessage || noContentRenderer() || 'Nothing to display'
         return div({
           role: 'row',
           className: 'table-row',
@@ -287,7 +290,9 @@ export const FlexTable = ({
             role: 'cell',
             className: 'table-cell',
             'aria-colspan': columns.length
-          }, [noContentMessage])
+          }, [
+            noContent({ noContentMessage, noContentRenderer })
+          ])
         ])
       },
       ...props
@@ -333,10 +338,6 @@ FlexTable.propTypes = {
  * since it does not provide scrolling. See FlexTable for prop types.
  */
 export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContentRenderer = _.noop, hoverHighlight, tableName, sort = null }) => {
-  if (!rowCount && !noContentMessage) {
-    noContentMessage = noContentRenderer() || 'Nothing to display'
-  }
-
   return div({
     role: 'table',
     'aria-label': tableName,
@@ -382,7 +383,9 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
         role: 'cell',
         className: 'table-cell',
         'aria-colspan': columns.length
-      }, [noContentMessage])
+      }, [
+        noContent({ noContentMessage, noContentRenderer })
+      ])
     ])
   ])
 }
@@ -482,7 +485,6 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
           'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
           'aria-label': `${tableName} content`, // The whole table is a tab stop so it needs a label
           noContentRenderer: () => {
-            noContentMessage = noContentMessage || noContentRenderer() || 'Nothing to display'
             return div({
               role: 'row',
               className: 'table-row',
@@ -492,7 +494,9 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
                 role: 'cell',
                 className: 'table-cell',
                 'aria-colspan': columns.length
-              }, [noContentMessage])
+              }, [
+                noContent({ noContentMessage, noContentRenderer })
+              ])
             ])
           },
           onScrollbarPresenceChange: ({ vertical, size }) => {

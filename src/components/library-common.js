@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { h } from 'react-hyperscript-helpers'
-import { TabBar } from 'src/components/common'
+import { TabBar } from 'src/components/TabBar'
 import TopBar from 'src/components/TopBar'
 import * as Nav from 'src/libs/nav'
 

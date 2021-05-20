@@ -1,10 +1,10 @@
 import { div, h } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import colors from 'src/libs/colors'
-import { forwardRefWithName } from 'src/libs/utils'
+import * as Utils from 'src/libs/utils'
 
 
-export const SkipNavLink = forwardRefWithName('SkipNavLink', (props, ref) => {
+export const SkipNavLink = Utils.forwardRefWithName('SkipNavLink', (props, ref) => {
   return h(Link, {
     as: 'a',
     href: '#',
@@ -24,13 +24,13 @@ export const SkipNavLink = forwardRefWithName('SkipNavLink', (props, ref) => {
     onClick: event => {
       event.preventDefault()
       event.stopPropagation()
-      ref.current && ref.current.focus()
+      ref.current?.focus()
     },
     ...props
   }, 'Skip to main content')
 })
 
-export const SkipNavTarget = forwardRefWithName('SkipNavTarget', (props, ref) => {
+export const SkipNavTarget = Utils.forwardRefWithName('SkipNavTarget', (props, ref) => {
   return div({
     ref,
     role: 'note',

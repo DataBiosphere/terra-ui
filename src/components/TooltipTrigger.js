@@ -66,8 +66,7 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay 
 
   return h(PopupPortal, [
     div({
-      id,
-      role: 'tooltip',
+      id, role: 'tooltip',
       ref: elementRef,
       style: {
         display: shouldRender ? undefined : 'none',

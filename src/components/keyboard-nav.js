@@ -1,23 +1,22 @@
-import * as _ from 'lodash/fp'
+import _ from 'lodash/fp'
 import { useRef } from 'react'
-import { h } from 'react-hyperscript-helpers'
-import { toIndexPairs } from 'src/libs/utils'
+import * as Utils from 'src/libs/utils'
 
 
 export const withArrowKeyNavigation = ({ onKeyDown, children }) => {
   const count = children.length
-  const refs = _.map(() => useRef(), _.range(0, count))
+  const refs = _.map(useRef, _.range(0, count))
 
   const focusOn = index => {
     // Wrap around the ends and ensure the number is positive
     const i = index % count + (index < 0 ? count : 0)
-    refs[i].current && refs[i].current.focus()
+    refs[i].current?.focus()
   }
 
   // Pass a ref into each child, using an alternative property name
   return _.map(([i, child]) => {
-    return h(child, { key: i, forwardedRef: refs[i], onKeyDown: onKeyDown(i, focusOn) })
-  }, toIndexPairs(children))
+    return child({ forwardedRef: refs[i], onKeyDown: onKeyDown(i, focusOn) })
+  }, Utils.toIndexPairs(children))
 }
 
 /**

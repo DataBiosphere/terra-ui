@@ -4,12 +4,13 @@ import * as qs from 'qs'
 import { useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Link, makeMenuIcon, MenuButton, Select, SimpleTabBar, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import { Link, makeMenuIcon, MenuButton, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
+import { SimpleTabBar } from 'src/components/TabBar'
 import { FlexTable, MiniSortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
@@ -58,9 +59,7 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
   const canRead = workspace && Utils.canRead(workspace.accessLevel)
   const canShare = workspace?.canShare
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-  return div({
-    role: 'menu'
-  }, [
+  return div({ role: 'menu' }, [
     h(MenuButton, {
       disabled: !canRead,
       tooltip: workspace && !canRead && 'You do not have access to the workspace Authorization Domain',
@@ -261,14 +260,15 @@ export const WorkspaceList = () => {
           headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
           cellRenderer: ({ rowIndex }) => {
             const { accessLevel, workspace: { workspaceId, namespace, name }, ...workspace } = sortedWorkspaces[rowIndex]
+            if (!Utils.canRead(accessLevel)) {
+              return
+            }
             const onClone = () => setCloningWorkspaceId(workspaceId)
             const onDelete = () => setDeletingWorkspaceId(workspaceId)
             const onShare = () => setSharingWorkspaceId(workspaceId)
-            const canView = Utils.canRead(accessLevel)
             const lastRunStatus = workspaceSubmissionStatus(workspace)
 
-
-            return canView ? div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
+            return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
                 h(PopupTrigger, {
                   side: 'left',
@@ -293,7 +293,7 @@ export const WorkspaceList = () => {
                   )
                 ])
               ])
-            ]) : ''
+            ])
           },
           size: { basis: 30, grow: 0, shrink: 0 }
         }
