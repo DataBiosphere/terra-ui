@@ -148,8 +148,8 @@ export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noo
   ])
 }
 
-export const SimpleTabBar = ({ value, onChange, tabs }) => {
-  return div({ style: styles.tabBar.container }, [
+export const SimpleTabBar = ({ style = {}, value, onChange, tabs }) => {
+  return div({ style: { ...styles.tabBar.container, ...style } }, [
     _.map(({ key, title, width }) => {
       const selected = value === key
       return h(Clickable, {

@@ -23,7 +23,7 @@ import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
 
 
-const ownerRole = 'Owner'
+export const ownerRole = 'Owner'
 
 const styles = {
   projectListItem: selected => {
@@ -43,7 +43,7 @@ const ProjectListItem = ({ project: { projectName, role, creationStatus, message
       style: { color: colors.danger(), margin: '0 1rem 0 0.5rem' }, side: 'right'
     }, [div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [message || 'Error during project creation.'])])
   const selectableProject = h(Clickable, {
-    style: { ...styles.projectListItem(isActive), color: colors.accent() },
+    style: { ...styles.projectListItem(isActive), color: isActive ? colors.dark() : colors.accent() },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
     hover: Style.navList.itemHover(isActive)
   }, [projectName, !projectReady && statusIcon])

@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Link, Select, SimpleTabBar, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
@@ -10,12 +10,25 @@ import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
+import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { ownerRole } from 'src/pages/billing/List'
 
+
+const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace }) => div({
+  style: Style.cardList.longCard
+}, [
+  div({ style: { flex: 1 } }, [workspace.name]),
+  div({ style: { flex: '0 0 350px' } }, [workspace.createdBy]),
+  div({ style: { flex: 'none' } }, [workspace.lastModified])
+]))
 
 const ProjectDetail = ({ project, project: { projectName, creationStatus }, billingAccounts, authorizeAndLoadAccounts }) => {
   // State
+  const { query } = Nav.useRoute()
+
   const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || null)
   const [addingUser, setAddingUser] = useState(false)
   const [editingUser, setEditingUser] = useState(false)
@@ -27,9 +40,40 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   const [billingAccountName, setBillingAccountName] = useState(null)
   const [showBillingModal, setShowBillingModal] = useState(false)
   const [selectedBilling, setSelectedBilling] = useState()
+  const [workspaces, setWorkspaces] = useState(() => StateHistory.get().projectUsers || null)
+  const [tab, setTab] = useState(query.tab || 'users')
 
   const signal = Utils.useCancellation()
 
+  const tabToTable = {
+    workspaces: div({ style: { flexGrow: 1 } }, [
+      _.map(workspace => h(WorkspaceCard, { workspace }), workspaces)
+    ]),
+    users: h(Fragment, [
+      h(NewUserCard, {
+        onClick: () => setAddingUser(true)
+      }),
+      div({ style: { flexGrow: 1 } },
+        _.map(member => {
+          return h(MemberCard, {
+            adminLabel: ownerRole,
+            userLabel: 'User',
+            member, adminCanEdit,
+            onEdit: () => setEditingUser(member),
+            onDelete: () => setDeletingUser(member)
+          })
+        }, projectUsers)
+      )
+    ])
+  }
+
+  const tabs = _.map(key => ({
+    key,
+    title: span({ style: { padding: '0 1rem' } }, [
+      _.capitalize(key)
+    ]),
+    tableName: _.lowerCase(key)
+  }), _.keys(tabToTable))
 
   // Helpers
   const updateBillingAccount = _.flow(
@@ -58,7 +102,9 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
     setDeletingUser(false)
     setUpdating(false)
     setEditingUser(false)
-
+    const rawWorkspaces = await Ajax(signal).Workspaces.list()
+    console.log(rawWorkspaces)
+    setWorkspaces(_.map(workspaceResponse => workspaceResponse.workspace, _.filter(workspaceResponse => workspaceResponse.workspace.namespace === projectName, rawWorkspaces)))
     const rawProjectUsers = await Ajax(signal).Billing.project(project.projectName).listUsers()
     const projectUsers = _.flow(
       _.groupBy('email'),
@@ -81,23 +127,26 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
 
 
   // Render
-  const adminCanEdit = _.filter(({ roles }) => _.includes('Owner', roles), projectUsers).length > 1
+  const adminCanEdit = _.filter(({ roles }) => _.includes(ownerRole, roles), projectUsers).length > 1
   const { displayName = null } = _.find({ accountName: billingAccountName }, billingAccounts) || {}
 
   return h(Fragment, [
-    div({ style: { padding: '1.5rem 3rem', flexGrow: 1 } }, [
-      div({ style: { color: colors.dark(), fontSize: 16, fontWeight: 600, display: 'flex', alignItems: 'center' } }, [
+    div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
+      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '3rem' } }, [
         projectName,
         span({ style: { fontWeight: 500, fontSize: 14, margin: '0 1.5rem 0 3rem' } }, creationStatus),
         Utils.cond(
           [creationStatus === 'Ready', () => icon('check', { style: { color: colors.success() } })],
           [creationStatus === 'Creating', () => spinner({ size: 16 })],
           () => icon('error-standard', { style: { color: colors.danger() } })
-        ),
-        !!displayName && span({ style: { flexShrink: 0, fontWeight: 500, fontSize: 14, margin: '0 0.75rem 0 auto' } }, 'Billing Account:'),
-        !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14 } }, displayName),
-        h(ButtonPrimary, {
-          style: { marginLeft: 'auto' },
+        )
+      ]),
+      div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '3rem' } }, [
+        !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
+        !!displayName && span({ style: { flexShrink: 0 } }, displayName),
+        h(Link, {
+          'aria-label': 'Change Billing Account',
+          style: { marginLeft: '0.5rem' },
           onClick: async () => {
             if (Auth.hasBillingScope()) {
               setShowBillingModal(true)
@@ -107,7 +156,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
               setShowBillingModal(Auth.hasBillingScope())
             }
           }
-        }, 'Change Account'),
+        }, [icon('edit', { size: 12 })]),
         showBillingModal && h(Modal, {
           title: 'Change Billing Account',
           onDismiss: () => setShowBillingModal(false),
@@ -131,30 +180,31 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
           ])])
         ])
       ]),
+      h(SimpleTabBar, {
+        style: { marginTop: '1rem', textTransform: 'none', padding: '0 1rem' },
+        value: tab,
+        onChange: newTab => {
+          if (newTab === tab) {
+            refresh()
+          } else {
+            setTab(newTab)
+          }
+        },
+        tabs
+      }),
       div({
         style: {
-          marginTop: '1rem',
-          display: 'flex'
+          display: 'flex',
+          padding: '1rem 1rem 0',
+          backgroundColor: colors.light(),
+          flexGrow: 1
         }
       }, [
-        h(NewUserCard, {
-          onClick: () => setAddingUser(true)
-        }),
-        div({ style: { flexGrow: 1 } },
-          _.map(member => {
-            return h(MemberCard, {
-              adminLabel: 'Owner',
-              userLabel: 'User',
-              member, adminCanEdit,
-              onEdit: () => setEditingUser(member),
-              onDelete: () => setDeletingUser(member)
-            })
-          }, projectUsers)
-        )
+        tabToTable[tab]
       ])
     ]),
     addingUser && h(NewUserModal, {
-      adminLabel: 'Owner',
+      adminLabel: ownerRole,
       userLabel: 'User',
       title: 'Add user to Billing Project',
       footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
@@ -163,7 +213,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
       onSuccess: refresh
     }),
     editingUser && h(EditUserModal, {
-      adminLabel: 'Owner',
+      adminLabel: ownerRole,
       userLabel: 'User',
       user: editingUser,
       saveFunction: Ajax().Billing.project(projectName).changeUserRoles,
