@@ -69,7 +69,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
 
   const tabs = _.map(key => ({
     key,
-    title: span({ style: { padding: '0 1rem' } }, [
+    title: span({ style: { padding: '0 0.5rem' } }, [
       _.capitalize(key)
     ]),
     tableName: _.lowerCase(key)
@@ -132,7 +132,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
 
   return h(Fragment, [
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '3rem' } }, [
+      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [
         projectName,
         span({ style: { fontWeight: 500, fontSize: 14, margin: '0 1.5rem 0 3rem' } }, creationStatus),
         Utils.cond(
@@ -141,7 +141,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
           () => icon('error-standard', { style: { color: colors.danger() } })
         )
       ]),
-      div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '3rem' } }, [
+      div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
         !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
         !!displayName && span({ style: { flexShrink: 0 } }, displayName),
         h(Link, {
@@ -181,7 +181,8 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         ])
       ]),
       h(SimpleTabBar, {
-        style: { marginTop: '1rem', textTransform: 'none', padding: '0 1rem' },
+        style: { marginTop: '2rem', textTransform: 'none', padding: '0 1rem', fontSize: 12, height: '1.5rem' },
+        tabStyle: { borderBottomWidth: 4 },
         value: tab,
         onChange: newTab => {
           if (newTab === tab) {
