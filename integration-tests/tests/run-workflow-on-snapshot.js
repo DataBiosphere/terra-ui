@@ -50,7 +50,7 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   // note that this automatically brings in the highest numbered config, which isn't what happens when going through the method repo in FC
   await waitForNoSpinners(page)
   await select(page, 'Entity type selector', snapshotName)
-  await select(page, 'Snapshot table selector', snapshotTableName)
+  await select(page, 'Snapshot', snapshotTableName)
 
   await click(page, clickable({ textContains: 'Inputs' }))
   await fillInReplace(page, input({ labelContains: 'echo_strings.echo_to_file.input1' }), `this.${snapshotColumnName}`)
