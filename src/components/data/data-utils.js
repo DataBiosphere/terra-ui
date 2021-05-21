@@ -36,6 +36,23 @@ const errorTextStyle = { color: colors.danger(), fontWeight: 'bold', fontSize: 1
 
 export const parseGsUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 
+export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
+  const { url: httpUrl, headers: httpHeaders } = accessUrl || {}
+
+  if (httpUrl) {
+    const headers = _.flow(
+      _.toPairs,
+      _.reduce((acc, [header, value]) => `${acc}-H '${header}: ${value}' `, '')
+    )(httpHeaders)
+    const output = fileName ? `-o '${fileName}' ` : '-O '
+    return `curl ${headers}${output}'${httpUrl}'`
+  }
+
+  if (gsUri) {
+    return `gsutil cp ${gsUri} ${fileName || '.'}`
+  }
+}
+
 export const getUserProjectForWorkspace = async workspace => (workspace && await canUseWorkspaceProject(workspace)) ?
   workspace.workspace.namespace :
   requesterPaysProjectStore.get()
