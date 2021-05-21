@@ -88,6 +88,9 @@ const testRunWorkflow = {
   timeout: 15 * 60 * 1000
 }
 
+// We need this test for ensuring that we don't break the use of workflows in V1 workspaces.
+// V1 workspaces will potentially exist in production until we run the PPW migration
+// in production
 const testRunWorkflowWithV1Workspace = {
   name: 'run-workflow-v1-workspace',
   fn: testRunWorkflowWithV1WorkspaceFn,

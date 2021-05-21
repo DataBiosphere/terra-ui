@@ -81,6 +81,9 @@ const testRunNotebook = {
   timeout: 20 * 60 * 1000
 }
 
+// We need this test for ensuring that we don't break the use of notebooks in V1 workspaces.
+// V1 workspaces will potentially exist in production until we run the PPW migration
+// in production
 const testRunNotebookWithV1Workspace = {
   name: 'run-notebook-v1-workspace',
   fn: testRunNotebookWithV1WorkspaceFn,
