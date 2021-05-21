@@ -43,8 +43,15 @@ const collapsedStatuses = _.flow(
   _.reduce(_.mergeWith(_.add), {})
 )
 
-const statusCell = workflowStatuses => {
-  const { succeeded, failed, running, submitted } = collapsedStatuses(workflowStatuses)
+const statusCell = (workflowStatuses, status) => {
+  const statuses = collapsedStatuses(workflowStatuses)
+  const { succeeded, failed, running, submitted } = statuses
+
+  const summary = _.flow(
+    _.toPairs,
+    _.map(([status, count]) => `${count} ${status}`),
+    _.join(', ')
+  )(statuses)
 
   return h(TooltipTrigger, {
     side: 'bottom',
@@ -66,11 +73,21 @@ const statusCell = workflowStatuses => {
       ])
     ])
   }, [
-    div([
-      succeeded && successIcon({ marginRight: '0.5rem' }),
-      failed && failedIcon({ marginRight: '0.5rem' }),
-      running && runningIcon({ marginRight: '0.5rem' }),
-      submitted && submittedIcon({ marginRight: '0.5rem' })
+    div({ style: { display: 'flex', alignItems: 'center' } }, [
+      span({
+        tabIndex: 0,
+        role: 'status',
+        'aria-live': 'none', // role="status" is polite by default, but in our case the status won't be changing
+        'aria-label': summary
+      }, [
+        succeeded && successIcon(),
+        failed && failedIcon(),
+        running && runningIcon(),
+        submitted && submittedIcon()
+      ]),
+      _.keys(collapsedStatuses(workflowStatuses)).length === 1 && span({
+        style: { marginLeft: '0.5em' }
+      }, [status])
     ])
   ])
 }
@@ -186,17 +203,26 @@ const JobHistory = _.flow(
 
                 return h(Clickable, {
                   hover: {
-                    backgroundColor: Utils.cond([!!failed, () => colors.danger(0.2)], [!!running || !!submitted, () => colors.accent(0.2)],
-                      () => colors.success(0.2))
+                    backgroundColor: Utils.cond(
+                      [!!failed, () => colors.danger(0.3)],
+                      [!!running || !!submitted, () => colors.accent(0.3)],
+                      () => colors.success(0.3))
                   },
                   style: {
                     flex: 1, alignSelf: 'stretch', display: 'flex', flexDirection: 'column', justifyContent: 'center',
                     margin: '0 -1rem', padding: '0 1rem', minWidth: 0,
                     fontWeight: 600,
-                    backgroundColor: Utils.cond([!!failed, () => colors.danger(0.1)], [!!running || !!submitted, () => colors.accent(0.1)],
-                      () => colors.success(0.1))
+                    backgroundColor: Utils.cond(
+                      [!!failed, () => colors.danger(0.2)],
+                      [!!running || !!submitted, () => colors.accent(0.2)],
+                      () => colors.success(0.2))
                   },
-                  href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId })
+                  tooltip: Utils.cond(
+                    [!!failed, () => 'This job failed'],
+                    [!!running || !!submitted, () => 'This job is running...'],
+                    () => 'This job succeeded'
+                  ),
+                  href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId }),
                 }, [
                   div({ style: Style.noWrapEllipsis }, [
                     methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
@@ -233,7 +259,7 @@ const JobHistory = _.flow(
               cellRenderer: ({ rowIndex }) => {
                 const { workflowStatuses, status } = filteredSubmissions[rowIndex]
                 return h(Fragment, [
-                  statusCell(workflowStatuses), _.keys(collapsedStatuses(workflowStatuses)).length === 1 && status
+                  statusCell(workflowStatuses, status)
                 ])
               }
             },

@@ -25,7 +25,7 @@ export const elements = {
       boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)'
     }
   },
-  sectionHeader: { color: colors.dark(), fontSize: 16, fontWeight: 600 },
+  sectionHeader: { color: colors.dark(), fontSize: 16, fontWeight: 600, margin: '0.25em 0' },
   pageContentContainer: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column' }
 }
 
@@ -104,7 +104,10 @@ export const breadcrumb = {
   },
   textUnderBreadcrumb: {
     color: isTerra() ? 'white' : colors.accent(),
-    fontSize: '1.25rem', ...noWrapEllipsis
+    fontSize: '1.25rem', ...noWrapEllipsis,
+    fontWeight: 500,
+    padding: 0,
+    margin: 0
   }
 }
 

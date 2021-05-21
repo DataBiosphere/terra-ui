@@ -151,22 +151,22 @@ const WorkflowDashboard = _.flow(
             ])
           ]),
           makeSection('Links', [
-            div({ style: { display: 'flex', flexFlow: 'row wrap', marginTop: '0.5rem' } }, [
+            div({ style: { display: 'flex', flexFlow: 'row wrap', marginTop: '0.5rem', lineHeight: '2rem' } }, [
               h(Link, {
                 ...Utils.newTabLinkProps,
                 href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-                style: { display: 'flex' },
+                style: { display: 'flex', marginRight: '2em', alignItems: 'center' },
                 tooltip: 'Job Manager'
               }, [icon('tasks', { size: 18 }), ' Job Manager']),
               h(Link, {
                 ...Utils.newTabLinkProps,
                 href: bucketBrowserUrl(`${bucketName}/${submissionId}/${workflowName}/${workflowId}`),
-                style: { display: 'flex', marginLeft: '1rem' },
+                style: { display: 'flex', marginRight: '2em', alignItems: 'center' },
                 tooltip: 'Execution directory'
               }, [icon('folder-open', { size: 18 }), ' Execution Directory']),
               h(Link, {
                 onClick: () => setShowLog(true),
-                style: { display: 'flex', marginLeft: '1rem' }
+                style: { display: 'flex', marginRight: '2em', alignItems: 'center' }
               }, [icon('fileAlt', { size: 18 }), ' View execution log'])
             ])
           ])

@@ -83,7 +83,7 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay 
   ])
 }
 
-const TooltipTrigger = ({ children, content, ...props }) => {
+const TooltipTrigger = ({ children, content, useTooltipAsLabel = false, ...props }) => {
   const [open, setOpen] = useState(false)
   const id = Utils.useUniqueId()
   const tooltipId = Utils.useUniqueId()
@@ -95,7 +95,8 @@ const TooltipTrigger = ({ children, content, ...props }) => {
   return h(Fragment, [
     cloneElement(child, {
       id: childId,
-      'aria-describedby': !!content ? descriptionId : undefined,
+      'aria-labelledby': !!content && useTooltipAsLabel ? descriptionId : undefined,
+      'aria-describedby': !!content && !useTooltipAsLabel ? descriptionId : undefined,
       onMouseEnter: (...args) => {
         child.props.onMouseEnter && child.props.onMouseEnter(...args)
         setOpen(true)

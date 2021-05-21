@@ -52,7 +52,7 @@ const styles = {
   }
 }
 
-export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, onClick, children, ...props }) => {
+export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, useTooltipAsLabel, onClick, children, ...props }) => {
   const child = h(Interactive, {
     'aria-disabled': !!disabled,
     as, disabled,
@@ -63,7 +63,7 @@ export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip
   }, [children])
 
   if (tooltip) {
-    return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay }, [child])
+    return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay, useTooltipAsLabel }, [child])
   } else {
     return child
   }
@@ -546,7 +546,8 @@ export const ClipboardButton = ({ text, onClick, ...props }) => {
   const [copied, setCopied] = useState(false)
   return h(Link, {
     ...props,
-    tooltip: 'Copy to clipboard',
+    tooltip: copied ? 'Copied to clipboard' : 'Copy to clipboard',
+    useTooltipAsLabel: true,
     onClick: _.flow(
       withErrorReporting('Error copying to clipboard'),
       Utils.withBusyState(setCopied)
@@ -555,7 +556,5 @@ export const ClipboardButton = ({ text, onClick, ...props }) => {
       await clipboard.writeText(text)
       await Utils.delay(1500)
     })
-  }, [icon(copied ? 'check' : 'copy-to-clipboard', {
-    'aria-label': copied ? 'copy to clipboard' : 'copied to clipboard'
-  })])
+  }, [icon(copied ? 'check' : 'copy-to-clipboard')])
 }
