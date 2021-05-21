@@ -51,6 +51,8 @@ export const TabBar = ({
   activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref,
   getOnClick = _.noop, label, tabProps = {}, id = 'tab-navigation', children, ...props
 }) => {
+  Utils.useConsoleAssert(!!label, 'You must provide an accessible label for this tab bar')
+
   const navTab = (i, currentTab) => {
     const selected = currentTab === activeTab
     const href = getHref(currentTab)
@@ -124,6 +126,8 @@ TabBar.propTypes = {
  * @param props Any additional properties to add to the container menu element
  */
 export const SimpleTabBar = ({ value, onChange, tabs, label, tabProps = {}, panelProps = {}, children, ...props }) => {
+  Utils.useConsoleAssert(!!label, 'You must provide an accessible label for this tab bar')
+
   const tabIds = _.map(Utils.useUniqueId, _.range(0, tabs.length))
   const panelRef = useRef()
 
