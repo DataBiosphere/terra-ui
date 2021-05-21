@@ -23,7 +23,10 @@ import ProjectDetail from 'src/pages/billing/Project'
 import validate from 'validate.js'
 
 
-export const ownerRole = 'Owner'
+export const billingRoles = {
+  owner: 'Owner',
+  user: 'User'
+}
 
 const styles = {
   projectListItem: selected => {
@@ -48,7 +51,7 @@ const ProjectListItem = ({ project: { projectName, role, creationStatus, message
     hover: Style.navList.itemHover(isActive)
   }, [projectName, !projectReady && statusIcon])
   const unselectableProject = div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [projectName, !projectReady && statusIcon])
-  return div([_.includes(ownerRole, role) && projectReady ? selectableProject : unselectableProject])
+  return div([_.includes(billingRoles.owner, role) && projectReady ? selectableProject : unselectableProject])
 }
 
 const billingProjectNameValidator = existing => ({
@@ -237,7 +240,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   })
 
   const checkOwner = () => {
-    !isOwner && _.map(project => _.includes(ownerRole, project.role) ? setIsOwner(true) : null, billingProjects)
+    !isOwner && _.map(project => _.includes(billingRoles.owner, project.role) ? setIsOwner(true) : null, billingProjects)
   }
 
   const showCreateProjectModal = async () => {
@@ -313,14 +316,14 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           _.map(project => h(ProjectListItem, {
             project, key: project.projectName,
             isActive: !!selectedName && project.projectName === selectedName
-          }), _.filter(project => _.includes(ownerRole, project.role), billingProjects))
+          }), _.filter(project => _.includes(billingRoles.owner, project.role), billingProjects))
         ]),
 
         h(BillingProjectSubheader, { title: 'Shared with You' }, [
           _.map(project => h(ProjectListItem, {
             project, key: project.projectName,
             isActive: !!selectedName && project.projectName === selectedName
-          }), _.filter(project => !_.includes(ownerRole, project.role), billingProjects))
+          }), _.filter(project => !_.includes(billingRoles.owner, project.role), billingProjects))
         ])
       ]),
       creatingBillingProject && h(NewBillingProjectModal, {

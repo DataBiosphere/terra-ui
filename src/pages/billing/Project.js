@@ -14,7 +14,7 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { ownerRole } from 'src/pages/billing/List'
+import { billingRoles } from 'src/pages/billing/List'
 
 
 const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace }) => div({
@@ -41,7 +41,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   const [showBillingModal, setShowBillingModal] = useState(false)
   const [selectedBilling, setSelectedBilling] = useState()
   const [workspaces, setWorkspaces] = useState(() => StateHistory.get().projectUsers || null)
-  const [tab, setTab] = useState(query.tab || 'users')
+  const [tab, setTab] = useState(query.tab || 'workspaces')
 
   const signal = Utils.useCancellation()
 
@@ -56,8 +56,8 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
       div({ style: { flexGrow: 1 } },
         _.map(member => {
           return h(MemberCard, {
-            adminLabel: ownerRole,
-            userLabel: 'User',
+            adminLabel: billingRoles.owner,
+            userLabel: billingRoles.user,
             member, adminCanEdit,
             onEdit: () => setEditingUser(member),
             onDelete: () => setDeletingUser(member)
@@ -127,8 +127,8 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
 
 
   // Render
-  const adminCanEdit = _.filter(({ roles }) => _.includes(ownerRole, roles), projectUsers).length > 1
-  const { displayName = null } = _.find({ accountName: billingAccountName }, billingAccounts) || {}
+  const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
+  const { displayName = null } = _.find({ accountName: billingAccountName }, billingAccounts) || { displayName: 'No Access' }
 
   return h(Fragment, [
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
@@ -205,8 +205,8 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
       ])
     ]),
     addingUser && h(NewUserModal, {
-      adminLabel: ownerRole,
-      userLabel: 'User',
+      adminLabel: billingRoles.owner,
+      userLabel: billingRoles.user,
       title: 'Add user to Billing Project',
       footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
       addFunction: Ajax().Billing.project(projectName).addUser,
@@ -214,8 +214,8 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
       onSuccess: refresh
     }),
     editingUser && h(EditUserModal, {
-      adminLabel: ownerRole,
-      userLabel: 'User',
+      adminLabel: billingRoles.owner,
+      userLabel: billingRoles.user,
       user: editingUser,
       saveFunction: Ajax().Billing.project(projectName).changeUserRoles,
       onDismiss: () => setEditingUser(false),
