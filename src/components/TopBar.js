@@ -331,7 +331,10 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
   }
   const mainRef = useRef()
 
-  return div({ role: 'banner' }, [
+  return div({
+    role: 'banner',
+    style: { flex: 'none', display: 'flex', flexFlow: 'column nowrap' }
+  }, [
     h(SkipNavLink, { ref: mainRef }),
     h(Transition, {
       in: navShown,
