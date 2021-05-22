@@ -222,7 +222,7 @@ const JobHistory = _.flow(
                     [!!running || !!submitted, () => 'This job is running...'],
                     () => 'This job succeeded'
                   ),
-                  href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId }),
+                  href: Nav.getLink('workspace-submission-details', { namespace, name, submissionId })
                 }, [
                   div({ style: Style.noWrapEllipsis }, [
                     methodConfigurationNamespace !== namespace && span({ style: styles.deemphasized }, [
