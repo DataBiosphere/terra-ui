@@ -217,14 +217,23 @@ const BucketContent = _.flow(
 
   // Render
   const prefixParts = _.dropRight(1, prefix.split('/'))
-  const makeBucketLink = ({ label, target, onClick }) => h(Link, {
+  const makeBucketLink = ({ label, target, onClick, ...props }) => h(Link, {
+    as: 'a',
     style: { textDecoration: 'underline' },
     href: target,
     onClick: e => {
       e.preventDefault()
       onClick()
-    }
+    },
+    ...props
   }, [label])
+
+  const prefixBreadcrumbs = [
+    { label: 'Files', target: '' },
+    ..._.map(n => {
+      return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
+    }, _.range(0, prefixParts.length))
+  ]
 
   return h(Dropzone, {
     disabled: !!Utils.editWorkspaceError(workspace),
@@ -233,18 +242,21 @@ const BucketContent = _.flow(
     onDropAccepted: uploadFiles
   }, [({ openUploader }) => h(Fragment, [
     div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-      div([
-        _.map(({ label, target }) => {
-          return h(Fragment, { key: target }, [
-            makeBucketLink({ label, target, onClick: () => load(target) }),
-            ' / '
-          ])
-        }, [
-          { label: 'Files', target: '' },
-          ..._.map(n => {
-            return { label: prefixParts[n], target: _.map(s => `${s}/`, _.take(n + 1, prefixParts)).join('') }
-          }, _.range(0, prefixParts.length))
-        ])
+      div({ role: 'navigation' }, [
+        _.flow(
+          Utils.toIndexPairs,
+          _.map(([i, { label, target }]) => {
+            return h(Fragment, { key: target }, [
+              makeBucketLink({
+                label,
+                target: `gs://${bucketName}/${target}`,
+                onClick: () => load(target),
+                'aria-current': i === prefixBreadcrumbs.length - 1 ? 'location' : undefined
+              }),
+              ' / '
+            ])
+          })
+        )(prefixBreadcrumbs)
       ]),
       h(Link, { href: `https://seqr.broadinstitute.org/workspace/${namespace}/${workspace.workspace.name}` },
         ['Analyze in Seqr ', icon('pop-out', { size: 14 })]
@@ -262,11 +274,15 @@ const BucketContent = _.flow(
       rows: [
         ..._.map(p => {
           return {
+            button: div({ style: { display: 'flex' } }, [
+              icon('folder', { size: 16, 'aria-label': 'folder' })
+            ]),
             name: h(TextCell, [
               makeBucketLink({
                 label: p.slice(prefix.length),
                 target: `gs://${bucketName}/${p}`,
-                onClick: () => load(p)
+                onClick: () => load(p),
+                'aria-label': p.slice(prefix.length, -1) + ' (folder)'
               })
             ])
           }
@@ -283,7 +299,9 @@ const BucketContent = _.flow(
               makeBucketLink({
                 label: name.slice(prefix.length),
                 target: `gs://${bucketName}/${name}`,
-                onClick: () => setViewingName(name)
+                onClick: () => setViewingName(name),
+                'aria-haspopup': 'dialog',
+                'aria-label': name.slice(prefix.length) + ' (file)'
               })
             ]),
             size: filesize(size, { round: 0 }),
