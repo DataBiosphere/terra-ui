@@ -327,6 +327,10 @@ const Notebooks = _.flow(
         ])
     }
 
+    const isCurrentDiskDetaching = (app, galaxyDataDisks) => {
+      return _.last(currentPersistentDiskIncludingUnattached(apps, galaxyDataDisks))
+    }
+
     return div({
       style: { display: 'flex', marginRight: listView ? undefined : '-2.5rem', alignItems: 'flex-start' }
     }, [
@@ -357,7 +361,7 @@ const Notebooks = _.flow(
             style: {
               ...Style.elements.card.container, height: 125, marginTop: 15
             },
-            disabled: appIsSettingUp(app) || _.last(currentPersistentDiskIncludingUnattached(apps, galaxyDataDisks)),
+            disabled: appIsSettingUp(app) || isCurrentDiskDetaching(apps, galaxyDataDisks),
             tooltip: (appIsSettingUp(app) && 'Galaxy app is being created') || (_.last(currentPersistentDiskIncludingUnattached(apps, galaxyDataDisks)) && 'Your persistent disk is still attached to your previous app; you can create a new app once your previous app finishes deleting, which will take a few minutes.'),
             onClick: () => setOpenGalaxyConfigDrawer(true)
           }, [
