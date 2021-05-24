@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Link, Select, SimpleTabBar, spinnerOverlay } from 'src/components/common'
@@ -74,6 +75,17 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
     ]),
     tableName: _.lowerCase(key)
   }), _.keys(tabToTable))
+
+  useEffect(() => {
+    // Note: setting undefined so that falsy values don't show up at all
+    const newSearch = qs.stringify({
+      ...query, tab: tab === tabs[0].key ? undefined : tab
+    }, { addQueryPrefix: true })
+
+    if (newSearch !== Nav.history.location.search) {
+      Nav.history.replace({ search: newSearch })
+    }
+  })
 
   // Helpers
   const updateBillingAccount = _.flow(
