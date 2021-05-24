@@ -386,7 +386,7 @@ const EntitiesContent = ({
           loadMetadata()
         },
         namespace, name,
-        selectedEntities: selectedKeys, selectedDataType: entityKey, runningSubmissionsCount
+        selectedEntities: selectedEntities, selectedDataType: entityKey, runningSubmissionsCount
       }),
       copyingEntities && h(ExportDataModal, {
         onDismiss: () => setCopyingEntities(false),
