@@ -337,7 +337,7 @@ const DataTable = props => {
       onDismiss: () => setRenamingEntity(undefined)
     }),
     !!updatingEntity && h(EntityEditor, {
-      entityType: _.flow(_.filter(entity => entity.name == updatingEntity['entityName']), _.first, _.get('entityType'))(entities),
+      entityType: _.flow(_.filter(entity => entity.name === updatingEntity['entityName']), _.first, _.get('entityType'))(entities),
       ...updatingEntity,
       entityTypes: _.keys(entityMetadata),
       workspaceId,
