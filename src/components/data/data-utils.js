@@ -2,13 +2,14 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, fieldset, h, img, legend, span } from 'react-hyperscript-helpers'
 import {
-  ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, SimpleTabBar, spinnerOverlay,
+  ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay,
   Switch
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { NumberInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { SimpleTabBar } from 'src/components/TabBar'
 import { TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { UriViewerLink } from 'src/components/UriViewer'

@@ -106,7 +106,7 @@ const svgText = ({ textContains }) => {
 }
 
 const navChild = text => {
-  return `//*[@role="tablist"]/*[contains(normalize-space(.),"${text}")]`
+  return `//*[@role="navigation"]//a[contains(normalize-space(.),"${text}")]`
 }
 
 const elementInDataTableRow = (entityName, text) => {

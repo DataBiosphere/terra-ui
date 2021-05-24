@@ -23,7 +23,6 @@ import { getAppName, returnParam } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { authStore } from 'src/libs/state'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
@@ -41,7 +40,7 @@ const styles = {
       borderBottom: `1px solid ${terraSpecial()}`, flex: ''
     },
     tab: {
-      flex: 'none', outlineOffset: -4,
+      flex: 'none', padding: '0 1em', height: '100%',
       alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center',
       borderBottomWidth: 8, borderBottomStyle: 'solid', borderBottomColor: 'transparent'
     },
@@ -52,10 +51,10 @@ const styles = {
   }
 }
 
-export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, onClick, children, ...props }) => {
+export const Clickable = Utils.forwardRefWithName('Clickable', ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, onClick, children, ...props }, ref) => {
   const child = h(Interactive, {
     'aria-disabled': !!disabled,
-    as, disabled,
+    as, disabled, ref,
     onClick: (...args) => onClick && !disabled && onClick(...args),
     href: !disabled ? href : undefined,
     tabIndex: disabled ? '-1' : '0',
@@ -67,10 +66,11 @@ export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip
   } else {
     return child
   }
-}
+})
 
-export const Link = ({ disabled, variant, children, ...props }) => {
+export const Link = Utils.forwardRefWithName('Link', ({ disabled, variant, children, ...props }, ref) => {
   return h(Clickable, _.merge({
+    ref,
     style: {
       color: disabled ? colors.dark(0.7) : colors.accent(variant === 'light' ? 0.3 : 1),
       cursor: disabled ? 'not-allowed' : 'pointer',
@@ -79,7 +79,7 @@ export const Link = ({ disabled, variant, children, ...props }) => {
     hover: disabled ? undefined : { color: colors.accent(variant === 'light' ? 0.1 : 0.8) },
     disabled
   }, props), [children])
-}
+})
 
 export const ButtonPrimary = ({ disabled, danger = false, children, ...props }) => {
   return h(Clickable, _.merge({
@@ -118,56 +118,13 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
   }, props), [children])
 }
 
-export const TabBar = ({ activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref, getOnClick = _.noop, children }) => {
-  const navTab = (i, currentTab) => {
-    const selected = currentTab === activeTab
-    const href = getHref(currentTab)
-
-    return h(Clickable, {
-      role: 'tab',
-      'aria-posinset': i + 1,
-      'aria-setsize': tabNames.length,
-      'aria-selected': selected,
-      style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
-      hover: selected ? {} : Style.tabBar.hover,
-      onClick: href === window.location.hash ? refresh : getOnClick(currentTab),
-      href
-    }, [
-      div({ style: { marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined } }, displayNames[currentTab] || currentTab)
-    ])
-  }
-
-  return div({
-    role: 'tablist',
-    'aria-label': 'Tab bar',
-    style: Style.tabBar.container
-  }, [
-    ..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames)),
-    div({ style: { flexGrow: 1 } }),
-    children
-  ])
-}
-
-export const SimpleTabBar = ({ value, onChange, tabs }) => {
-  return div({ style: styles.tabBar.container }, [
-    _.map(({ key, title, width }) => {
-      const selected = value === key
-      return h(Clickable, {
-        key,
-        style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}), width },
-        hover: selected ? {} : styles.tabBar.hover,
-        onClick: () => onChange(key)
-      }, [title])
-    }, tabs)
-  ])
-}
-
 export const makeMenuIcon = (iconName, props) => {
   return icon(iconName, _.merge({ size: 15, style: { marginRight: '.5rem' } }, props))
 }
 
-export const MenuButton = ({ disabled, children, ...props }) => {
+export const MenuButton = Utils.forwardRefWithName('MenuButton', ({ disabled, children, ...props }, ref) => {
   return h(Clickable, _.merge({
+    ref,
     disabled,
     style: {
       display: 'flex', alignItems: 'center',
@@ -178,7 +135,7 @@ export const MenuButton = ({ disabled, children, ...props }) => {
     },
     hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.accent() } : undefined
   }, props), [children])
-}
+})
 
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
   return h(Interactive, _.merge({
@@ -260,7 +217,7 @@ export const comingSoon = span({
   }
 }, ['coming soon'])
 
-const commonSelectProps = {
+const commonSelectProps = (menuId, isOpen) => ({
   theme: base => _.merge(base, {
     colors: {
       primary: colors.accent(),
@@ -290,15 +247,51 @@ const commonSelectProps = {
   },
   components: {
     Option: ({ children, ...props }) => {
-      return h(RSelectComponents.Option, props, [
+      return h(RSelectComponents.Option, {
+        ...props,
+        role: 'option'
+      }, [
         div({ style: { display: 'flex', alignItems: 'center', minHeight: 25 } }, [
           div({ style: { flex: 1, minWidth: 0, overflowWrap: 'break-word' } }, [children]),
           props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
         ])
       ])
+    },
+    SelectContainer: props => {
+      return RSelectComponents.SelectContainer({
+        ...props,
+        innerProps: {
+          ...props.innerProps,
+          role: 'combobox',
+          'aria-haspopup': 'listbox',
+          'aria-expanded': isOpen
+        }
+      })
+    },
+    Input: props => {
+      return RSelectComponents.Input({
+        ...props,
+        role: 'textbox',
+        'aria-multiline': false,
+        'aria-controls': isOpen ? menuId : undefined
+      })
+    },
+    Menu: props => {
+      return RSelectComponents.Menu({
+        ...props,
+        innerProps: {
+          ...props.innerProps,
+          id: menuId,
+          role: 'listbox',
+          'aria-multiselectable': props.selectProps.isMulti
+        }
+      })
     }
-  }
-}
+  },
+  'aria-live': 'polite',
+  isSearchable: true // If this is false then the DummyInput is used instead, but it can't be made accessible the way the other components can
+})
+
 const formatGroupLabel = group => (
   div({
     style: {
@@ -310,16 +303,23 @@ const formatGroupLabel = group => (
     }
   }, [group.label]))
 
-const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) => {
+const BaseSelect = ({ value, newOptions, id = null, findValue, maxHeight, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
+  const [isOpen, setOpen] = useState(false)
+  const menuId = Utils.useUniqueId()
+  const myId = Utils.useUniqueId()
+  const inputId = id || myId
 
   return h(RSelect, _.merge({
-    inputId: id,
-    ...commonSelectProps,
+    inputId,
+    menuId,
+    ...commonSelectProps(menuId, isOpen),
     getOptionLabel: ({ value, label }) => label || value.toString(),
     value: newValue || null, // need null instead of undefined to clear the select
     options: newOptions,
-    formatGroupLabel
+    formatGroupLabel,
+    onMenuOpen: () => setOpen(true),
+    onMenuClose: () => setOpen(false)
   }, props))
 }
 
@@ -327,6 +327,7 @@ const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) =
  * @param {Object} props - see {@link https://react-select.com/props#select-props}
  * @param props.value - a member of options
  * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
+ * @param props.id - The HTML ID to give the form element
  */
 export const Select = ({ value, options, id, ...props }) => {
   const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
@@ -339,6 +340,7 @@ export const Select = ({ value, options, id, ...props }) => {
  * @param {Object} props - see {@link https://react-select.com/props#select-props}
  * @param props.value - a member of an inner options object
  * @param {Array} props.options - an object with toplevel pairs of label:options where label is a group label and options is an array of objects containing value:label pairs
+ * @param props.id - The HTML ID to give the form element
  */
 export const GroupedSelect = ({ value, options, id, ...props }) => {
   const flattenedOptions = _.flatMap('options', options)
@@ -348,7 +350,14 @@ export const GroupedSelect = ({ value, options, id, ...props }) => {
 }
 
 export const AsyncCreatableSelect = props => {
-  return h(RAsyncCreatableSelect, _.merge(commonSelectProps, props))
+  const [isOpen, setOpen] = useState(false)
+  const menuId = Utils.useUniqueId()
+  return h(RAsyncCreatableSelect, {
+    ...commonSelectProps(menuId, isOpen),
+    onMenuOpen: () => setOpen(true),
+    onMenuClose: () => setOpen(false),
+    ...props
+  })
 }
 
 export const PageBox = ({ children, style = {}, ...props }) => {
