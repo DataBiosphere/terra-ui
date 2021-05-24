@@ -152,8 +152,13 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
   const [additionalDeletions, setAdditionalDeletions] = useState([])
   const [deleting, setDeleting] = useState(false)
 
+  const selectedKeys = _.keys(selectedEntities)
+
   const doDelete = async () => {
-    const entitiesToDelete = _.concat(_.map(entityName => ({ entityName, entityType: selectedDataType }), selectedEntities), additionalDeletions)
+    const entitiesToDelete = _.flow(
+      _.map(({ name: entityName, entityType }) => ({ entityName, entityType })),
+      entities => _.concat(entities, additionalDeletions)
+    )(selectedEntities)
 
     setDeleting(true)
 
@@ -181,7 +186,7 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
     margin: '0 -1.25rem'
   }
 
-  const total = selectedEntities.length + additionalDeletions.length
+  const total = selectedKeys.length + additionalDeletions.length
   return h(Modal, {
     onDismiss,
     title: 'Confirm Delete',
@@ -205,7 +210,7 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
         padding: '0.6rem 1.25rem', margin: '0 -1.25rem'
       }
     }, moreToDelete ? `${entity.entityName} (${entity.entityType})` : entity),
-    Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedEntities)),
+    Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedKeys)),
     div({
       style: { ...fullWidthWarning, textAlign: 'right' }
     }, [`${total} data ${total > 1 ? 'entries' : 'entry'} to be deleted.`]),

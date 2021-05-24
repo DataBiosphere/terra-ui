@@ -327,7 +327,8 @@ const DataTable = props => {
       onDismiss: () => setViewData(undefined)
     }, [div({ style: { maxHeight: '80vh', overflowY: 'auto' } }, [displayData(viewData)])]),
     renamingEntity !== undefined && h(EntityRenamer, {
-      entityType, entityName: renamingEntity,
+      entityType: _.find(entity => entity.name === renamingEntity, entities).entityType,
+      entityName: renamingEntity,
       workspaceId,
       onSuccess: () => {
         setRenamingEntity(undefined)
@@ -336,7 +337,8 @@ const DataTable = props => {
       onDismiss: () => setRenamingEntity(undefined)
     }),
     !!updatingEntity && h(EntityEditor, {
-      entityType, ...updatingEntity,
+      entityType: _.find(entity => entity.name === updatingEntity.entityName, entities).entityType,
+      ...updatingEntity,
       entityTypes: _.keys(entityMetadata),
       workspaceId,
       onSuccess: () => {
