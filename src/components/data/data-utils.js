@@ -155,7 +155,10 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
   const selectedKeys = _.keys(selectedEntities)
 
   const doDelete = async () => {
-    const entitiesToDelete = _.concat(_.map(entity => ({ entityName: entity.name, entityType: entity.entityType }), selectedEntities), additionalDeletions)
+    const entitiesToDelete = _.flow(
+      _.map(({ name: entityName, entityType }) => ({ entityName, entityType })),
+      entities => _.concat(entities, additionalDeletions)
+    )(selectedEntities)
 
     setDeleting(true)
 
