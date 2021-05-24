@@ -118,11 +118,7 @@ const WorkflowDashboard = _.flow(
     }), simplifiedFailures)
   }
 
-  const getFirstStart = callName => {
-    const earliestCall = _.minBy('start', calls[callName])
-    return earliestCall ? earliestCall.start : new Date()
-  }
-  const callNames = _.sortBy(getFirstStart, _.keys(calls))
+  const callNames = _.sortBy(callName => _.min(_.map('start', calls[callName])), _.keys(calls))
 
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     workflowDetailsBreadcrumbSubtitle(namespace, name, submissionId, workflowId),
