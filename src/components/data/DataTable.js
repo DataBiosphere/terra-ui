@@ -327,7 +327,7 @@ const DataTable = props => {
       onDismiss: () => setViewData(undefined)
     }, [div({ style: { maxHeight: '80vh', overflowY: 'auto' } }, [displayData(viewData)])]),
     renamingEntity !== undefined && h(EntityRenamer, {
-      entityType: _.flow(_.filter(entity => entity.name == renamingEntity), _.first, _.get('entityType'))(entities),
+      entityType: _.flow(_.filter(entity => entity.name === renamingEntity), _.first, _.get('entityType'))(entities),
       entityName: renamingEntity,
       workspaceId,
       onSuccess: () => {
