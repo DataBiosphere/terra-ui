@@ -41,15 +41,12 @@ const styles = {
  * @param getOnClick An optional click handler function, given the current tab
  * @param label The ARIA label for the menu, which is required for accessibility
  * @param tabProps Optionally, properties to add to each tab
- * @param id Optionally, an ID to apply to the wrapper `nav` element so it can be easily found in the
- *  integration tests. This defaults to 'tab-navigation', but you should change if it this ID would appear
- *  more than once on a page
  * @param children Children, which will be appended to teh end of the tab bar
  * @param props Any additional properties to add to the container menu element
  */
 export const TabBar = ({
   activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref,
-  getOnClick = _.noop, label, tabProps = {}, id = 'tab-navigation', children, ...props
+  getOnClick = _.noop, label, tabProps = {}, children, ...props
 }) => {
   Utils.useConsoleAssert(!!label, 'You must provide an accessible label for this tab bar')
 
@@ -78,10 +75,7 @@ export const TabBar = ({
     ])
   }
 
-  return div({
-    role: 'navigation',
-    id
-  }, [
+  return div({ role: 'navigation' }, [
     div({
       role: 'menu',
       'aria-label': label,

@@ -9,7 +9,7 @@ import { ButtonSecondary, IdContainer, Link, Select } from 'src/components/commo
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
-import { TabBar } from 'src/components/TabBar'
+import { TabBar } from 'src/components/tabBars'
 import { FlexTable, HeaderCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
