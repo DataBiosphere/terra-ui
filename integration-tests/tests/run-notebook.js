@@ -18,10 +18,10 @@ const testRunNotebookHelper = async (billingProject, workspaceName, page, testUr
   await click(page, clickable({ textContains: 'Create a' }))
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
   await select(page, 'Language', 'Python 2')
-  await click(page, clickable({ text: 'Create Notebook' }))
-  await click(page, clickable({ textContains: notebookName }))
   // If we get this far we need to be sure to clean up the notebook in case the workspace is going to be re-used
   try {
+    await click(page, clickable({ text: 'Create Notebook' }))
+    await click(page, clickable({ textContains: notebookName }))
     await click(page, clickable({ text: 'Edit' }))
     // There are two separate activities in the UI that could interfere with beginning to interact
     // with the modal for creating a cloud environment:
