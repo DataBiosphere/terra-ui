@@ -249,7 +249,10 @@ const commonSelectProps = (menuId, isOpen) => ({
     Option: ({ children, ...props }) => {
       return h(RSelectComponents.Option, {
         ...props,
-        role: 'option'
+        innerProps: _.merge(props.innerProps, {
+          role: 'option',
+          'aria-selected': props.isSelected
+        })
       }, [
         div({ style: { display: 'flex', alignItems: 'center', minHeight: 25 } }, [
           div({ style: { flex: 1, minWidth: 0, overflowWrap: 'break-word' } }, [children]),
@@ -260,12 +263,11 @@ const commonSelectProps = (menuId, isOpen) => ({
     SelectContainer: props => {
       return RSelectComponents.SelectContainer({
         ...props,
-        innerProps: {
-          ...props.innerProps,
+        innerProps: _.merge(props.innerProps, {
           role: 'combobox',
           'aria-haspopup': 'listbox',
           'aria-expanded': isOpen
-        }
+        })
       })
     },
     Input: props => {
@@ -279,12 +281,11 @@ const commonSelectProps = (menuId, isOpen) => ({
     Menu: props => {
       return RSelectComponents.Menu({
         ...props,
-        innerProps: {
-          ...props.innerProps,
+        innerProps: _.merge(props.innerProps, {
           id: menuId,
           role: 'listbox',
           'aria-multiselectable': props.selectProps.isMulti
-        }
+        })
       })
     }
   },

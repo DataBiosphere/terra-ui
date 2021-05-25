@@ -69,7 +69,7 @@ const fillInReplace = async (page, xpath, text) => {
 
 const select = async (page, labelContains, text) => {
   await click(page, input({ labelContains }))
-  return click(page, `//div[starts-with(@id, "react-select-") and contains(normalize-space(.),"${text}")]`)
+  return click(page, `//*[@role="listbox"]//*[@role="option" and contains(normalize-space(.),"${text}")]`)
 }
 
 const waitForNoSpinners = page => {
