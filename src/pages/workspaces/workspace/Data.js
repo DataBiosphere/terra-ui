@@ -1,7 +1,7 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useImperativeHandle, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, h3 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
@@ -54,7 +54,11 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
   return h(Clickable, {
     style: { ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
     hover: Style.navList.itemHover(selected),
-    ...(isEntity ? { tooltip: entityName, tooltipDelay: 250 } : {}),
+    ...(isEntity ? {
+      tooltip: `${entityName} (${entityCount} row${entityCount === 1 ? '' : 's'})`,
+      tooltipDelay: 250, useTooltipAsLabel: true
+    } : {}),
+    'aria-selected': selected,
     ...props
   }, [
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
@@ -331,8 +335,10 @@ const BucketContent = _.flow(
   ])])
 })
 
-const DataTypeSection = ({ title, titleExtras, error, retryFunction, children }) => h(Fragment, [
-  div({ style: Style.navList.heading }, [
+const DataTypeSection = ({ title, titleExtras, error, retryFunction, children }) => div({
+  role: 'group'
+}, [
+  h3({ style: Style.navList.heading }, [
     title,
     error ? h(Link, {
       onClick: retryFunction,
@@ -459,10 +465,11 @@ const WorkspaceData = _.flow(
         h(DataTypeSection, {
           title: 'Tables',
           titleExtras: h(Link, {
-            'aria-label': 'Upload .tsv',
             disabled: !!Utils.editWorkspaceError(workspace),
             tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
-            onClick: () => setUploadingFile(true)
+            useTooltipAsLabel: true,
+            onClick: () => setUploadingFile(true),
+            'aria-haspopup': 'dialog'
           }, [icon('plus-circle', { size: 21 })]),
           error: entityMetadataError,
           retryFunction: loadEntityMetadata
@@ -545,15 +552,37 @@ const WorkspaceData = _.flow(
             )])
           }, sortedSnapshotPairs)
         ]),
-        div({ style: Style.navList.heading }, [
-          div(['Reference Data']),
-          h(Link, {
-            'aria-label': 'Add reference data',
+        h(DataTypeSection, {
+          title: 'Reference Data',
+          titleExtras: h(Link, {
             disabled: !!Utils.editWorkspaceError(workspace),
             tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
-            onClick: () => setImportingReference(true)
+            useTooltipAsLabel: true,
+            onClick: () => setImportingReference(true),
+            'aria-haspopup': 'dialog'
           }, [icon('plus-circle', { size: 21 })])
-        ]),
+        }, _.map(type => h(DataTypeButton, {
+          key: type,
+          selected: selectedDataType === type,
+          onClick: () => {
+            setSelectedDataType(type)
+            refreshWorkspace()
+          }
+        }, [
+          div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+            type,
+            h(Link, {
+              disabled: !!Utils.editWorkspaceError(workspace),
+              tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
+              useTooltipAsLabel: true,
+              onClick: e => {
+                e.stopPropagation()
+                setDeletingReference(type)
+              }
+            }, [icon('minus-circle', { size: 16 })])
+          ])
+        ]), _.keys(referenceData)
+        )),
         importingReference && h(ReferenceDataImporter, {
           onDismiss: () => setImportingReference(false),
           onSuccess: () => {
@@ -581,29 +610,6 @@ const WorkspaceData = _.flow(
           namespace, name,
           entityTypes: _.keys(entityMetadata)
         }),
-        _.map(type => {
-          return h(DataTypeButton, {
-            key: type,
-            selected: selectedDataType === type,
-            onClick: () => {
-              setSelectedDataType(type)
-              refreshWorkspace()
-            }
-          }, [
-            div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-              type,
-              h(Link, {
-                'aria-label': `Delete ${type}`,
-                disabled: !!Utils.editWorkspaceError(workspace),
-                tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
-                onClick: e => {
-                  e.stopPropagation()
-                  setDeletingReference(type)
-                }
-              }, [icon('minus-circle', { size: 16 })])
-            ])
-          ])
-        }, _.keys(referenceData)),
         div({ style: Style.navList.heading }, 'Other Data'),
         h(DataTypeButton, {
           selected: selectedDataType === localVariables,

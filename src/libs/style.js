@@ -82,7 +82,7 @@ export const cardList = {
 export const navList = {
   heading: {
     color: colors.dark(), backgroundColor: colors.light(0.4), fontSize: 16, padding: '1rem 1.5rem',
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: 0,
     fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.dark(0.2)}`
   },
   item: selected => ({
