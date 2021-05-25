@@ -28,9 +28,9 @@ const testRunWorkflowHelper = async (billingProject, page, testUrl, token, workf
   await click(page, clickable({ textContains: workflowName }))
   await waitForNoSpinners(page)
   // note that this automatically brings in the highest numbered config, which isn't what happens when going through the method repo in FC
-  await click(page, clickable({ text: 'Add to Workspace' }))
-  // If we get this far, we need to ensure that we cleanup in case this workspace is going to be reused, thus the try, finally.
   try {
+    await click(page, clickable({ text: 'Add to Workspace' }))
+    // If we get this far, we need to ensure that we cleanup in case this workspace is going to be reused, thus the try, finally.
     await waitForNoSpinners(page)
     await click(page, clickable({ text: 'Select Data' }))
     await click(page, input({ labelContains: 'Choose specific test_entitys to process' }))
