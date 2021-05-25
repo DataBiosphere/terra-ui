@@ -30,6 +30,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace }) => div
 const ProjectDetail = ({ project, project: { projectName, creationStatus }, billingAccounts, authorizeAndLoadAccounts }) => {
   // State
   const { query } = Nav.useRoute()
+  // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
   const { workspaces, refresh: refreshWorkspaces } = useWorkspaces()
 
   const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || null)
