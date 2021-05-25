@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import { Fragment, useRef } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
-import { withHorizontalNavigation } from 'src/components/keyboard-nav'
+import { HorizontalNavigation } from 'src/components/keyboard-nav'
 import { terraSpecial } from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -54,7 +54,7 @@ export const TabBar = ({
     const selected = currentTab === activeTab
     const href = getHref(currentTab)
 
-    return ({ forwardedRef, onKeyDown }) => span({
+    return span({
       key: currentTab,
       role: 'menuitem',
       'aria-setsize': tabNames.length,
@@ -66,8 +66,6 @@ export const TabBar = ({
         style: { ...Style.tabBar.tab, ...(selected ? Style.tabBar.active : {}) },
         hover: selected ? {} : Style.tabBar.hover,
         onClick: href === window.location.hash ? refresh : getOnClick(currentTab),
-        onKeyDown,
-        ref: forwardedRef,
         href
       }, [
         div({ style: { flex: '1 1 100%', marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined } }, displayNames[currentTab] || currentTab)
@@ -76,14 +74,14 @@ export const TabBar = ({
   }
 
   return div({ role: 'navigation' }, [
-    div({
+    h(HorizontalNavigation, {
       role: 'menu',
       'aria-label': label,
       'aria-orientation': 'horizontal',
       style: Style.tabBar.container,
       ...props
     }, [
-      withHorizontalNavigation(_.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames))),
+      ..._.map(([i, name]) => navTab(i, name), Utils.toIndexPairs(tabNames)),
       div({ style: { flexGrow: 1 } }),
       children
     ])
@@ -134,11 +132,10 @@ export const SimpleTabBar = ({ value, onChange, tabs, label, tabProps = {}, pane
       'aria-label': label,
       style: { ...styles.tabBar.container, flex: 0 },
       ...props
-    }, withHorizontalNavigation(_.map(([i, { key, title, width }]) => {
+    }, h(HorizontalNavigation, _.map(([i, { key, title, width }]) => {
       const selected = value === key
-      return ({ forwardedRef, onKeyDown }) => h(Clickable, {
+      return h(Clickable, {
         key,
-        ref: forwardedRef,
         id: tabIds[i],
         role: 'tab',
         'aria-posinset': i + 1, // The first tab is 1
@@ -146,11 +143,10 @@ export const SimpleTabBar = ({ value, onChange, tabs, label, tabProps = {}, pane
         'aria-selected': selected,
         style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}), width },
         hover: selected ? {} : styles.tabBar.hover,
-        onKeyDown,
         onClick: () => {
           // If any children were provided, move the focus to the tabpanel as soon as a tab is selected.
           // This most efficiently lets keyboard users interact with the tabs and find the content they care about.
-          children && panelRef.current.focus()
+          children && panelRef.current?.focus()
           onChange && onChange(key)
         },
         ...tabProps
