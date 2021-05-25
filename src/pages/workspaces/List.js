@@ -58,23 +58,26 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
   const canRead = workspace && Utils.canRead(workspace.accessLevel)
   const canShare = workspace?.canShare
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-  return h(Fragment, [
+  return div({ role: 'menu' }, [
     h(MenuButton, {
       disabled: !canRead,
       tooltip: workspace && !canRead && 'You do not have access to the workspace Authorization Domain',
       tooltipSide: 'left',
+      role: 'menuitem',
       onClick: () => onClone()
     }, [makeMenuIcon('copy'), 'Clone']),
     h(MenuButton, {
       disabled: !canShare,
       tooltip: workspace && !canShare && 'You have not been granted permission to share this workspace',
       tooltipSide: 'left',
+      role: 'menuitem',
       onClick: () => onShare()
     }, [makeMenuIcon('share'), 'Share']),
     h(MenuButton, {
       disabled: !isOwner,
       tooltip: workspace && !isOwner && 'You must be an owner of this workspace or the underlying billing project',
       tooltipSide: 'left',
+      role: 'menuitem',
       onClick: () => onDelete()
     }, [makeMenuIcon('trash'), 'Delete'])
   ])
@@ -197,8 +200,9 @@ export const WorkspaceList = () => {
             return div({ style: styles.tableCellContainer }, [
               div({ style: styles.tableCellContent }, [
                 h(Link, {
-                  style: { color: canView ? undefined : colors.dark(0.7), fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
+                  style: { color: canView ? undefined : colors.dark(0.8), fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
+                  'aria-haspopup': canView ? undefined : 'dialog',
                   onClick: () => {
                     canAccessWorkspace()
                     !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, { workspaceName: name, workspaceNamespace: namespace })
@@ -252,15 +256,16 @@ export const WorkspaceList = () => {
           },
           size: { basis: 120, grow: 1, shrink: 0 }
         }, {
-          headerRenderer: () => null,
+          headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
           cellRenderer: ({ rowIndex }) => {
             const { accessLevel, workspace: { workspaceId, namespace, name }, ...workspace } = sortedWorkspaces[rowIndex]
+            if (!Utils.canRead(accessLevel)) {
+              return
+            }
             const onClone = () => setCloningWorkspaceId(workspaceId)
             const onDelete = () => setDeletingWorkspaceId(workspaceId)
             const onShare = () => setSharingWorkspaceId(workspaceId)
-            const canView = Utils.canRead(accessLevel)
             const lastRunStatus = workspaceSubmissionStatus(workspace)
-
 
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
@@ -269,7 +274,10 @@ export const WorkspaceList = () => {
                   closeOnClick: true,
                   content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
                 }, [
-                  h(Link, { 'aria-label': `Menu for Workspace: ${name}`, disabled: !canView }, [icon('cardMenuIcon', { size: 20 })])
+                  h(Link, {
+                    'aria-label': `Menu for Workspace: ${name}`,
+                    'aria-haspopup': 'menu'
+                  }, [icon('cardMenuIcon', { size: 20 })])
                 ])
               ]),
               div({ style: styles.tableCellContent }, [
@@ -307,9 +315,10 @@ export const WorkspaceList = () => {
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
         h(Link, {
-          'aria-label': 'Create new workspace', onClick: () => setCreatingNewWorkspace(true),
+          onClick: () => setCreatingNewWorkspace(true),
           style: { marginLeft: '0.5rem' },
-          tooltip: 'Create a new workspace'
+          tooltip: 'Create a new workspace',
+          useTooltipAsLabel: true
         },
         [icon('lighter-plus-circle', { size: 24 })])
       ]),
