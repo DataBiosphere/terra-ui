@@ -6,6 +6,7 @@ import { ButtonPrimary, IdContainer, Link, Select, SimpleTabBar, spinnerOverlay 
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -29,6 +30,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace }) => div
 const ProjectDetail = ({ project, project: { projectName, creationStatus }, billingAccounts, authorizeAndLoadAccounts }) => {
   // State
   const { query } = Nav.useRoute()
+  const { workspaces, refresh: refreshWorkspaces } = useWorkspaces()
 
   const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || null)
   const [addingUser, setAddingUser] = useState(false)
@@ -41,29 +43,29 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   const [billingAccountName, setBillingAccountName] = useState(null)
   const [showBillingModal, setShowBillingModal] = useState(false)
   const [selectedBilling, setSelectedBilling] = useState()
-  const [workspaces, setWorkspaces] = useState(() => StateHistory.get().projectUsers || null)
   const [tab, setTab] = useState(query.tab || 'workspaces')
 
   const signal = Utils.useCancellation()
 
   const tabToTable = {
     workspaces: div({ style: { flexGrow: 1 } }, [
-      _.map(workspace => h(WorkspaceCard, { workspace }), workspaces)
+      _.map(([i, workspace]) => h(WorkspaceCard, { workspace, key: i }), Utils.toIndexPairs(_.map(response => response.workspace, _.filter(response => response.workspace.namespace === projectName, workspaces))))
     ]),
     users: h(Fragment, [
       h(NewUserCard, {
         onClick: () => setAddingUser(true)
       }),
       div({ style: { flexGrow: 1 } },
-        _.map(member => {
+        _.map(([i, member]) => {
           return h(MemberCard, {
+            key: i,
             adminLabel: billingRoles.owner,
             userLabel: billingRoles.user,
             member, adminCanEdit,
             onEdit: () => setEditingUser(member),
             onDelete: () => setDeletingUser(member)
           })
-        }, projectUsers)
+        }, Utils.toIndexPairs(projectUsers))
       )
     ])
   }
@@ -114,9 +116,9 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
     setDeletingUser(false)
     setUpdating(false)
     setEditingUser(false)
-    const rawWorkspaces = await Ajax(signal).Workspaces.list()
-    console.log(rawWorkspaces)
-    setWorkspaces(_.map(workspaceResponse => workspaceResponse.workspace, _.filter(workspaceResponse => workspaceResponse.workspace.namespace === projectName, rawWorkspaces)))
+    // const rawWorkspaces = await Ajax(signal).Workspaces.list()
+    // setWorkspaces(_.map(response => response.workspace, _.filter(response => response.workspace.namespace === projectName, rawWorkspaces)))
+    refreshWorkspaces()
     const rawProjectUsers = await Ajax(signal).Billing.project(project.projectName).listUsers()
     const projectUsers = _.flow(
       _.groupBy('email'),
