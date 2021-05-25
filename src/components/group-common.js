@@ -54,7 +54,7 @@ export const MemberCard = Utils.memoWithName('MemberCard', ({ member: { email, r
   return div({
     style: Style.cardList.longCard
   }, [
-    div({ style: { flex: '1' } }, [email]),
+    div({ style: { flex: '1', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' } }, [email]),
     div({ style: { flex: '0 0 150px', textTransform: 'capitalize' } }, [_.includes(adminLabel, roles) ? adminLabel : userLabel]),
     div({ style: { flex: 'none' } }, [
       h(TooltipTrigger, { content: tooltip }, [

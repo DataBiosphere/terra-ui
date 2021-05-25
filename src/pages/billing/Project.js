@@ -18,13 +18,19 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
 
+const workspaceLastModifiedWidth = 200
+const styles = {
+  workspaceCardField: {
+    flex: 1, width: `calc(50% - ${workspaceLastModifiedWidth / 2}px)`, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden'
+  }
+}
 
 const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace }) => div({
   style: Style.cardList.longCard
 }, [
-  div({ style: { flex: 1 } }, [workspace.name]),
-  div({ style: { flex: '0 0 350px' } }, [workspace.createdBy]),
-  div({ style: { flex: 'none' } }, [workspace.lastModified])
+  div({ style: styles.workspaceCardField }, [workspace.name]),
+  div({ style: styles.workspaceCardField }, [workspace.createdBy]),
+  div({ style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [workspace.lastModified])
 ]))
 
 const ProjectDetail = ({ project, project: { projectName, creationStatus }, billingAccounts, authorizeAndLoadAccounts }) => {
@@ -49,7 +55,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   const signal = Utils.useCancellation()
 
   const tabToTable = {
-    workspaces: div({ style: { flexGrow: 1 } }, [
+    workspaces: div({ style: { flexGrow: 1, width: '100%' } }, [
       _.map(([i, workspace]) => h(WorkspaceCard, { workspace, key: i }), Utils.toIndexPairs(_.map(response => response.workspace, _.filter(response => response.workspace.namespace === projectName, workspaces))))
     ]),
     users: h(Fragment, [
