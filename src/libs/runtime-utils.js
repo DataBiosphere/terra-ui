@@ -193,6 +193,23 @@ export const currentPersistentDiskIncludingUnattached = (apps, galaxyDataDisks) 
   return [currentDataDisk, isCurrentDiskDetaching]
 }
 
+export const currentPersistentDisk = (apps, galaxyDataDisks) => {
+  // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
+  const currentGalaxyApp = currentAppIncludingDeleting(apps)
+  const currentDataDiskName = currentGalaxyApp?.diskName
+  const attachedDataDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
+  // if the disk is attached to an app (or being detached from a deleting app), return that disk. otherwise,
+  // return the newest galaxy disk that the user has unattached to an app
+  return currentDataDiskName ?
+    _.find({ name: currentDataDiskName }, galaxyDataDisks) :
+    _.last(_.sortBy('auditInfo.createdDate', _.filter(({ name, status }) => status !== 'Deleting' && !_.includes(name, attachedDataDiskNames), galaxyDataDisks)))
+}
+
+export const isCurrentGalaxyDiskDetaching = apps => {
+  const currentGalaxyApp = currentAppIncludingDeleting(apps)
+  return currentGalaxyApp && (currentGalaxyApp.status === 'DELETING' || currentGalaxyApp.status === 'PREDELETING')
+}
+
 export const collapsedRuntimeStatus = runtime => {
   return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status) // NOTE: preserves null vs undefined
 }

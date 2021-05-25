@@ -14,7 +14,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
-  currentApp, currentAttachedDataDisk, currentPersistentDiskIncludingUnattached, findMachineType, getGalaxyComputeCost,
+  currentApp, currentAttachedDataDisk, currentPersistentDisk, findMachineType, getGalaxyComputeCost,
   getGalaxyDiskCost, RadioBlock
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -51,7 +51,7 @@ export const NewGalaxyModal = _.flow(
   const [loading, setLoading] = useState(false)
   const [deleteDiskSelected, setDeleteDiskSelected] = useState(false)
 
-  const currentDataDisk = currentPersistentDiskIncludingUnattached(apps, galaxyDataDisks)[0]
+  const currentDataDisk = currentPersistentDisk(apps, galaxyDataDisks)
 
   const createGalaxy = _.flow(
     Utils.withBusyState(setLoading),
