@@ -159,7 +159,7 @@ export const WorkspaceList = () => {
 
   const tabs = _.map(key => ({
     key,
-    title: span({ style: { padding: '0 1rem' } }, [
+    title: span([
       _.upperCase(key), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`
     ]),
     tableName: _.lowerCase(key)

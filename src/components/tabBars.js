@@ -18,7 +18,7 @@ const styles = {
       borderBottom: `1px solid ${terraSpecial()}`, flex: ''
     },
     tab: {
-      flex: 'none', padding: '0 1em', height: '100%',
+      flex: 'none', padding: '0 1em', marginBottom: '8px', height: '100%',
       alignSelf: 'stretch', display: 'flex', justifyContent: 'center', alignItems: 'center',
       borderBottomWidth: 8, borderBottomStyle: 'solid', borderBottomColor: 'transparent'
     },
@@ -127,12 +127,12 @@ export const SimpleTabBar = ({ value, onChange, tabs, label, tabProps = {}, pane
   const selectedId = Math.max(0, _.findIndex(({ key }) => key === value, tabs))
 
   return h(Fragment, [
-    div({
+    h(HorizontalNavigation, {
       role: 'tablist',
       'aria-label': label,
       style: { ...styles.tabBar.container, flex: 0 },
       ...props
-    }, h(HorizontalNavigation, _.map(([i, { key, title, width }]) => {
+    }, _.map(([i, { key, title, width }]) => {
       const selected = value === key
       return h(Clickable, {
         key,
@@ -151,7 +151,7 @@ export const SimpleTabBar = ({ value, onChange, tabs, label, tabProps = {}, pane
         },
         ...tabProps
       }, [title])
-    }, Utils.toIndexPairs(tabs)))),
+    }, Utils.toIndexPairs(tabs))),
     children && div({
       role: 'tabpanel',
       ref: panelRef,
