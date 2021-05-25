@@ -40,8 +40,9 @@ const clickable = ({ text, textContains }) => {
   }
 }
 
-const click = async (page, xpath, options) => {
-  return (await page.waitForXPath(xpath, options)).click()
+const click = async (page, xpath, options, direct = false) => {
+  const element = await findElement(page, xpath, options)
+  return direct ? element.evaluate(e => e.click()) : element.click()
 }
 
 const findText = (page, textContains, options) => {
@@ -68,8 +69,8 @@ const fillInReplace = async (page, xpath, text) => {
 }
 
 const select = async (page, labelContains, text) => {
-  await click(page, input({ labelContains }))
-  return click(page, `//*[@role="listbox"]//*[@role="option" and contains(normalize-space(.),"${text}")]`)
+  await click(page, input({ labelContains }), null, true)
+  return click(page, `//*[@role="option" and contains(normalize-space(.),"${text}")]`, null, true)
 }
 
 const waitForNoSpinners = page => {
