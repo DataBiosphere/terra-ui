@@ -32,7 +32,7 @@ const findInGrid = (page, textContains, options) => {
 }
 
 const clickable = ({ text, textContains }) => {
-  const base = '(//a | //*[@role="button"] | //button)'
+  const base = '(//a | //button | //*[@role="button"] | //*[@role="link"])'
   if (text) {
     return `${base}[normalize-space(.)="${text}" or @aria-label="${text}"]`
   } else if (textContains) {
