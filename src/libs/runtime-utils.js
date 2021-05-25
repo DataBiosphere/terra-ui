@@ -179,20 +179,6 @@ export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
 
-export const currentPersistentDiskIncludingUnattached = (apps, galaxyDataDisks) => {
-  // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
-  const currentGalaxyApp = currentAppIncludingDeleting(apps)
-  const currentDataDiskName = currentGalaxyApp?.diskName
-  const attachedDataDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
-  // if the disk is attached to an app (or being detached from a deleting app), return that disk. otherwise,
-  // return the newest galaxy disk that the user has unattached to an app
-  const currentDataDisk = currentDataDiskName ?
-    _.find({ name: currentDataDiskName }, galaxyDataDisks) :
-    _.last(_.sortBy('auditInfo.createdDate', _.filter(({ name, status }) => status !== 'Deleting' && !_.includes(name, attachedDataDiskNames), galaxyDataDisks)))
-  const isCurrentDiskDetaching = currentGalaxyApp && (currentGalaxyApp.status === 'DELETING' || currentGalaxyApp.status === 'PREDELETING')
-  return [currentDataDisk, isCurrentDiskDetaching]
-}
-
 export const currentPersistentDisk = (apps, galaxyDataDisks) => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
   const currentGalaxyApp = currentAppIncludingDeleting(apps)
