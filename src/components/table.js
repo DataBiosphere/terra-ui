@@ -187,8 +187,8 @@ const ariaSort = (sort, field) => {
   return null
 }
 
-const noContent = ({ noContentMessage, noContentRenderer = _.noop, defaultMessage = 'Nothing to display' }) => {
-  return noContentMessage || noContentRenderer() || defaultMessage
+const noContent = ({ noContentMessage, noContentRenderer = _.noop }) => {
+  return noContentMessage || noContentRenderer() || 'Nothing to display'
 }
 
 /**
