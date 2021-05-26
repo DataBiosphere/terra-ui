@@ -535,7 +535,7 @@ export const SimpleTable = ({ columns, rows, tableName }) => {
     role: 'table',
     'aria-label': tableName
   }, [
-    div({ style: { display: 'flex' } }, [
+    div({ role: 'row', style: { display: 'flex' } }, [
       _.map(({ key, header, size }) => {
         return div({
           key,

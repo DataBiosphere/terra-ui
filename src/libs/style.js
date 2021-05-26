@@ -85,11 +85,14 @@ export const navList = {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: 0,
     fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.dark(0.2)}`
   },
-  item: selected => ({
-    display: 'flex', alignItems: 'center', padding: '0 1.5rem', height: 50, fontWeight: selected ? 700 : 500,
-    backgroundColor: 'white',
+  itemContainer: selected => ({
+    display: 'flex', alignItems: 'center', width: '100%', height: 50,
+    padding: '0 1.5rem', backgroundColor: 'white',
     borderBottom: `1px solid ${colors.dark(0.2)}`,
     boxShadow: selected ? `inset -10px 0px ${terraSpecial()}` : undefined
+  }),
+  item: selected => ({
+    display: 'flex', alignItems: 'center', height: 50, fontWeight: selected ? 700 : 500
   }),
   itemHover: selected => selected ? {} : {
     boxShadow: `inset -6px 0px ${terraSpecial(0.5)}`

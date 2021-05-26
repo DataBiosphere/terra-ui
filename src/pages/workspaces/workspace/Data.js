@@ -14,6 +14,7 @@ import Dropzone from 'src/components/Dropzone'
 import FloatingActionButton from 'src/components/FloatingActionButton'
 import { icon, spinner } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
+import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import UriViewer from 'src/components/UriViewer'
@@ -48,26 +49,33 @@ const styles = {
   }
 }
 
-const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, ...props }) => {
+const DataTypeButton = ({ selected, entityName, children, entityCount, iconName = 'listAlt', iconSize = 14, buttonStyle, after, ...props }) => {
   const isEntity = entityName !== undefined
 
-  return h(Clickable, {
-    style: { ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
+  return h(Interactive, {
+    style: { ...Style.navList.itemContainer(selected) },
     hover: Style.navList.itemHover(selected),
-    ...(isEntity ? {
-      tooltip: `${entityName} (${entityCount} row${entityCount === 1 ? '' : 's'})`,
-      tooltipDelay: 250, useTooltipAsLabel: true
-    } : {}),
-    'aria-selected': selected,
-    ...props
+    as: 'div'
   }, [
-    div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
-      icon(iconName, { size: iconSize })
+    h(Clickable, {
+      style: { flex: '1 1 auto', ...Style.navList.item(selected), color: colors.accent(1.2), ...buttonStyle },
+      ...(isEntity ? {
+        tooltip: entityName ? `${entityName} (${entityCount} row${entityCount === 1 ? '' : 's'})` : undefined,
+        tooltipDelay: 250,
+        useTooltipAsLabel: true
+      } : {}),
+      'aria-current': selected,
+      ...props
+    }, [
+      div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
+        icon(iconName, { size: iconSize })
+      ]),
+      div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
+        entityName || children
+      ]),
+      isEntity && div([`(${entityCount})`])
     ]),
-    div({ style: { flex: 1, ...Style.noWrapEllipsis } }, [
-      entityName || children
-    ]),
-    isEntity && div([`(${entityCount})`])
+    after
   ])
 }
 
@@ -270,7 +278,7 @@ const BucketContent = _.flow(
     h(SimpleTable, {
       tableName: 'file browser',
       columns: [
-        { size: { basis: 24, grow: 0 }, key: 'button' },
+        { header: div({ className: 'sr-only' }, ['Actions']), size: { basis: 24, grow: 0 }, key: 'button' },
         { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },
         { header: h(HeaderCell, ['Size']), size: { basis: 200, grow: 0 }, key: 'size' },
         { header: h(HeaderCell, ['Last modified']), size: { basis: 200, grow: 0 }, key: 'updated' }
@@ -286,7 +294,7 @@ const BucketContent = _.flow(
                 label: p.slice(prefix.length),
                 target: `gs://${bucketName}/${p}`,
                 onClick: () => load(p),
-                'aria-label': p.slice(prefix.length, -1) + ' (folder)'
+                'aria-label': `${p.slice(prefix.length, -1)} (folder)`
               })
             ])
           }
@@ -305,7 +313,7 @@ const BucketContent = _.flow(
                 target: `gs://${bucketName}/${name}`,
                 onClick: () => setViewingName(name),
                 'aria-haspopup': 'dialog',
-                'aria-label': name.slice(prefix.length) + ' (file)'
+                'aria-label': `${name.slice(prefix.length)} (file)`
               })
             ]),
             size: filesize(size, { round: 0 }),
@@ -505,6 +513,7 @@ const WorkspaceData = _.flow(
               afterToggle: h(Link, {
                 style: { marginRight: '0.5rem' },
                 tooltip: 'Snapshot Info',
+                useTooltipAsLabel: true,
                 onClick: () => {
                   setSelectedDataType([snapshotName])
                   forceRefresh()
@@ -567,21 +576,17 @@ const WorkspaceData = _.flow(
           onClick: () => {
             setSelectedDataType(type)
             refreshWorkspace()
-          }
-        }, [
-          div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-            type,
-            h(Link, {
-              disabled: !!Utils.editWorkspaceError(workspace),
-              tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
-              useTooltipAsLabel: true,
-              onClick: e => {
-                e.stopPropagation()
-                setDeletingReference(type)
-              }
-            }, [icon('minus-circle', { size: 16 })])
-          ])
-        ]), _.keys(referenceData)
+          },
+          after: h(Link, {
+            disabled: !!Utils.editWorkspaceError(workspace),
+            tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
+            useTooltipAsLabel: true,
+            onClick: e => {
+              e.stopPropagation()
+              setDeletingReference(type)
+            }
+          }, [icon('minus-circle', { size: 16 })])
+        }, [type]), _.keys(referenceData)
         )),
         importingReference && h(ReferenceDataImporter, {
           onDismiss: () => setImportingReference(false),
