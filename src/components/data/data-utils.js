@@ -36,6 +36,23 @@ const errorTextStyle = { color: colors.danger(), fontWeight: 'bold', fontSize: 1
 
 export const parseGsUri = uri => _.drop(1, /gs:[/][/]([^/]+)[/](.+)/.exec(uri))
 
+export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
+  const { url: httpUrl, headers: httpHeaders } = accessUrl || {}
+
+  if (httpUrl) {
+    const headers = _.flow(
+      _.toPairs,
+      _.reduce((acc, [header, value]) => `${acc}-H '${header}: ${value}' `, '')
+    )(httpHeaders)
+    const output = fileName ? `-o '${fileName}' ` : '-O '
+    return `curl ${headers}${output}'${httpUrl}'`
+  }
+
+  if (gsUri) {
+    return `gsutil cp ${gsUri} ${fileName || '.'}`
+  }
+}
+
 export const getUserProjectForWorkspace = async workspace => (workspace && await canUseWorkspaceProject(workspace)) ?
   workspace.workspace.namespace :
   requesterPaysProjectStore.get()
@@ -135,8 +152,13 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
   const [additionalDeletions, setAdditionalDeletions] = useState([])
   const [deleting, setDeleting] = useState(false)
 
+  const selectedKeys = _.keys(selectedEntities)
+
   const doDelete = async () => {
-    const entitiesToDelete = _.concat(_.map(entityName => ({ entityName, entityType: selectedDataType }), selectedEntities), additionalDeletions)
+    const entitiesToDelete = _.flow(
+      _.map(({ name: entityName, entityType }) => ({ entityName, entityType })),
+      entities => _.concat(entities, additionalDeletions)
+    )(selectedEntities)
 
     setDeleting(true)
 
@@ -164,7 +186,7 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
     margin: '0 -1.25rem'
   }
 
-  const total = selectedEntities.length + additionalDeletions.length
+  const total = selectedKeys.length + additionalDeletions.length
   return h(Modal, {
     onDismiss,
     title: 'Confirm Delete',
@@ -188,7 +210,7 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
         padding: '0.6rem 1.25rem', margin: '0 -1.25rem'
       }
     }, moreToDelete ? `${entity.entityName} (${entity.entityType})` : entity),
-    Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedEntities)),
+    Utils.toIndexPairs(moreToDelete ? additionalDeletions : selectedKeys)),
     div({
       style: { ...fullWidthWarning, textAlign: 'right' }
     }, [`${total} data ${total > 1 ? 'entries' : 'entry'} to be deleted.`]),

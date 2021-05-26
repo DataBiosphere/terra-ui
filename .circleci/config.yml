@@ -181,14 +181,12 @@ jobs:
           env: local
   integration-tests-alpha:
     executor: puppeteer
-    parallelism: 4
     steps:
       - integration-tests:
           env: alpha
       - notify-qa
   integration-tests-staging:
     executor: puppeteer
-    parallelism: 4
     steps:
       - integration-tests:
           env: staging
