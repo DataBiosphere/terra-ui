@@ -350,7 +350,7 @@ const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) =
     getOptionLabel: ({ value, label }) => label || value.toString(),
     value: newValue || null, // need null instead of undefined to clear the select
     options: newOptions,
-    formatGroupLabel,
+    formatGroupLabel
   }, props))
 }
 
