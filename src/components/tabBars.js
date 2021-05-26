@@ -68,7 +68,9 @@ export const TabBar = ({
         onClick: href === window.location.hash ? refresh : getOnClick(currentTab),
         href
       }, [
-        div({ style: { flex: '1 1 100%', marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined } }, displayNames[currentTab] || currentTab)
+        div({
+          style: { flex: '1 1 100%', marginBottom: selected ? -(Style.tabBar.active.borderBottomWidth) : undefined }
+        }, displayNames[currentTab] || currentTab)
       ])
     ])
   }
@@ -114,10 +116,14 @@ TabBar.propTypes = {
  * @param label The ARIA label for the menu, which is required for accessibility
  * @param tabProps Optionally, properties to add to each tab
  * @param panelProps Optionally, properties to add to the tabpanel element
+ * @param style Optionally, additional styles to add to the tab container
+ * @param tabStyle Optionally, additional styles to add to each tab
  * @param children Children, which will be appended to teh end of the tab bar
  * @param props Any additional properties to add to the container menu element
  */
-export const SimpleTabBar = ({ value, onChange, tabs, label, tabProps = {}, panelProps = {}, children, ...props }) => {
+export const SimpleTabBar = ({
+  value, onChange, tabs, label, tabProps = {}, panelProps = {}, style = {}, tabStyle = {}, children, ...props
+}) => {
   Utils.useConsoleAssert(!!label, 'You must provide an accessible label for this tab bar')
 
   const tabIds = _.map(Utils.useUniqueId, _.range(0, tabs.length))
@@ -130,7 +136,7 @@ export const SimpleTabBar = ({ value, onChange, tabs, label, tabProps = {}, pane
     h(HorizontalNavigation, {
       role: 'tablist',
       'aria-label': label,
-      style: { ...styles.tabBar.container, flex: 0 },
+      style: { ...styles.tabBar.container, flex: 0, ...style },
       ...props
     }, _.map(([i, { key, title, width }]) => {
       const selected = value === key
@@ -141,7 +147,7 @@ export const SimpleTabBar = ({ value, onChange, tabs, label, tabProps = {}, pane
         'aria-posinset': i + 1, // The first tab is 1
         'aria-setsize': tabs.length,
         'aria-selected': selected,
-        style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}), width },
+        style: { ...styles.tabBar.tab, ...(selected ? styles.tabBar.active : {}), width, ...tabStyle },
         hover: selected ? {} : styles.tabBar.hover,
         onClick: () => {
           // If any children were provided, move the focus to the tabpanel as soon as a tab is selected.
@@ -172,5 +178,7 @@ SimpleTabBar.propTypes = {
   })).isRequired,
   label: PropTypes.string.isRequired,
   tabProps: PropTypes.object,
-  panelProps: PropTypes.object
+  panelProps: PropTypes.object,
+  style: PropTypes.object,
+  tabStyle: PropTypes.object
 }
