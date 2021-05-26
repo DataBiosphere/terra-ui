@@ -7,8 +7,8 @@ const { testFindWorkflow } = require('../tests/find-workflow')
 const { testImportCohortData } = require('../tests/import-cohort-data')
 const { testImportDockstoreWorkflow } = require('../tests/import-dockstore-workflow')
 const { testRegisterUser } = require('../tests/register-user')
-const { testRunNotebook } = require('../tests/run-notebook')
-const { testRunWorkflow } = require('../tests/run-workflow')
+const { testRunNotebook, testRunNotebookWithV1Workspace } = require('../tests/run-notebook')
+const { testRunWorkflow, testRunWorkflowWithV1Workspace } = require('../tests/run-workflow')
 const { testRunWorkflowOnSnapshot } = require('../tests/run-workflow-on-snapshot')
 const { defaultTimeout } = require('../utils/integration-helpers')
 const { delay, withScreenshot } = require('../utils/integration-utils')
@@ -80,7 +80,9 @@ _.forEach(registerTestEndpoint, [
   testImportDockstoreWorkflow,
   testRegisterUser,
   testRunNotebook,
+  testRunNotebookWithV1Workspace,
   testRunWorkflow,
+  testRunWorkflowWithV1Workspace,
   testRunWorkflowOnSnapshot
 ])
 console.info('Ready')
