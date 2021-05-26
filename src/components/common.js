@@ -260,7 +260,7 @@ export const comingSoon = span({
   }
 }, ['coming soon'])
 
-const commonSelectProps = (menuId, isOpen) => ({
+const commonSelectProps = {
   theme: base => _.merge(base, {
     colors: {
       primary: colors.accent(),
@@ -289,51 +289,42 @@ const commonSelectProps = (menuId, isOpen) => ({
     placeholder: base => ({ ...base, color: colors.dark(0.8) })
   },
   components: {
-    Option: ({ children, ...props }) => {
-      return h(RSelectComponents.Option, {
-        ...props,
-        innerProps: _.merge(props.innerProps, {
-          role: 'option',
-          'aria-selected': props.isSelected
-        })
-      }, [
-        div({ style: { display: 'flex', alignItems: 'center', minHeight: 25 } }, [
-          div({ style: { flex: 1, minWidth: 0, overflowWrap: 'break-word' } }, [children]),
-          props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
-        ])
+    Option: ({ children, selectProps, ...props }) => h(RSelectComponents.Option, _.merge(props, {
+      selectProps,
+      innerProps: {
+        role: 'option',
+        'aria-selected': props.isSelected
+      }
+    }), [
+      div({ style: { display: 'flex', alignItems: 'center', minHeight: 25 } }, [
+        div({ style: { flex: 1, minWidth: 0, overflowWrap: 'break-word' } }, [children]),
+        props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
       ])
-    },
-    SelectContainer: props => {
-      return RSelectComponents.SelectContainer({
-        ...props,
-        innerProps: _.merge(props.innerProps, {
-          role: 'combobox',
-          'aria-haspopup': 'listbox',
-          'aria-expanded': isOpen
-        })
-      })
-    },
-    Input: props => {
-      return RSelectComponents.Input({
-        ...props,
-        role: 'textbox',
-        'aria-multiline': false,
-        'aria-controls': isOpen ? menuId : undefined
-      })
-    },
-    Menu: props => {
-      return RSelectComponents.Menu({
-        ...props,
-        innerProps: _.merge(props.innerProps, {
-          id: menuId,
-          role: 'listbox',
-          'aria-multiselectable': props.selectProps.isMulti
-        })
-      })
-    }
-  },
-  'aria-live': 'polite'
-})
+    ]),
+    SelectContainer: ({ children, selectProps, ...props }) => h(RSelectComponents.SelectContainer, _.merge(props, {
+      selectProps,
+      innerProps: {
+        role: 'combobox',
+        'aria-haspopup': 'listbox',
+        'aria-expanded': selectProps.menuIsOpen
+      }
+    }), [children]),
+    Input: ({ children, selectProps, ...props }) => h(RSelectComponents.Input, _.merge(props, {
+      selectProps,
+      role: 'textbox',
+      'aria-multiline': false,
+      'aria-controls': selectProps.menuIsOpen ? selectProps.menuId : undefined
+    }), [children]),
+    Menu: ({ children, selectProps, ...props }) => h(RSelectComponents.Menu, _.merge(props, {
+      selectProps,
+      innerProps: {
+        id: selectProps.menuId,
+        role: 'listbox',
+        'aria-multiselectable': selectProps.isMulti
+      }
+    }), [children])
+  }
+}
 
 const formatGroupLabel = group => (
   div({
@@ -348,7 +339,6 @@ const formatGroupLabel = group => (
 
 const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
-  const [isOpen, setOpen] = useState(false)
   const menuId = Utils.useUniqueId()
   const myId = Utils.useUniqueId()
   const inputId = id || myId
@@ -356,13 +346,11 @@ const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) =
   return h(RSelect, _.merge({
     inputId,
     menuId,
-    ...commonSelectProps(menuId, isOpen),
+    ...commonSelectProps,
     getOptionLabel: ({ value, label }) => label || value.toString(),
     value: newValue || null, // need null instead of undefined to clear the select
     options: newOptions,
     formatGroupLabel,
-    onMenuOpen: () => setOpen(true),
-    onMenuClose: () => setOpen(false)
   }, props))
 }
 
@@ -393,12 +381,10 @@ export const GroupedSelect = ({ value, options, id, ...props }) => {
 }
 
 export const AsyncCreatableSelect = props => {
-  const [isOpen, setOpen] = useState(false)
   const menuId = Utils.useUniqueId()
   return h(RAsyncCreatableSelect, {
-    ...commonSelectProps(menuId, isOpen),
-    onMenuOpen: () => setOpen(true),
-    onMenuClose: () => setOpen(false),
+    menuId,
+    ...commonSelectProps,
     ...props
   })
 }
