@@ -1,6 +1,6 @@
 const _ = require('lodash/fp')
 
-const { delay, signIntoTerra } = require('./integration-utils')
+const { signIntoTerra } = require('./integration-utils')
 const { fetchLyle } = require('./lyle-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
@@ -74,27 +74,12 @@ const withUser = test => async args => {
   }
 }
 
-const addUserToV1Workspace = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, v1WorkspaceName, email }) => {
-  await page.evaluate((email, billingProject, v1WorkspaceName) => {
-    return window.Ajax().Workspaces.workspace(billingProject, v1WorkspaceName).updateAcl([{ email, accessLevel: 'WRITER', canCompute: true }])
-  }, email, billingProject, v1WorkspaceName)
-  console.info(`added user ${email} to: ${v1WorkspaceName}`)
-
-  const userList = await page.evaluate((billingProject, v1WorkspaceName) => {
-    return window.Ajax().Workspaces.workspace(billingProject, v1WorkspaceName).getAcl()
-  }, billingProject, v1WorkspaceName)
-
-  const workspaceUser = userList.acl[email]
-
-  console.info(`test user ${email} was added to the workspace with the role: ${!!workspaceUser && workspaceUser.accessLevel}`)
-})
-
 const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
   await page.evaluate((email, billingProject) => {
     return window.Ajax().Billing.project(billingProject).addUser(['User'], email)
   }, email, billingProject)
 
-  console.info(`added user ${email} to: ${billingProject}`)
+  console.info(`added user to: ${billingProject}`)
 
   const userList = await page.evaluate(billingProject => {
     return window.Ajax().Billing.project(billingProject).listUsers()
@@ -102,15 +87,7 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
 
   const billingUser = _.find({ email }, userList)
 
-  console.info(`test user ${email} was added to the billing project with the role: ${!!billingUser && billingUser.role}`)
-})
-
-const removeUserFromV1Workspace = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, v1WorkspaceName, email }) => {
-  await page.evaluate((email, billingProject, v1WorkspaceName) => {
-    return window.Ajax().Workspaces.workspace(billingProject, v1WorkspaceName).updateAcl([{ email, accessLevel: 'NO ACCESS' }])
-  }, email, billingProject, v1WorkspaceName)
-
-  console.info(`removed user ${email} from: ${v1WorkspaceName}`)
+  console.info(`test user was added to the billing project with the role: ${!!billingUser && billingUser.role}`)
 })
 
 const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
@@ -118,7 +95,7 @@ const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ p
     return window.Ajax().Billing.project(billingProject).removeUser(['User'], email)
   }, email, billingProject)
 
-  console.info(`removed user ${email} from: ${billingProject}`)
+  console.info(`removed user from: ${billingProject}`)
 })
 
 const withBilling = test => async options => {
@@ -129,17 +106,6 @@ const withBilling = test => async options => {
   } finally {
     await deleteRuntimes(options)
     await removeUserFromBilling(options)
-  }
-}
-
-const withV1Workspace = test => async options => {
-  await addUserToV1Workspace(options)
-  // Wait for a few seconds for the permissioning to propagate
-  await delay(5000)
-  try {
-    await test({ ...options })
-  } finally {
-    await removeUserFromV1Workspace(options)
   }
 }
 
@@ -190,7 +156,6 @@ module.exports = {
   createEntityInWorkspace,
   defaultTimeout,
   withWorkspace,
-  withV1Workspace,
   withBilling,
   withUser,
   withRegisteredUser
