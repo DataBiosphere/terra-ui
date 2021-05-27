@@ -344,9 +344,10 @@ const Environments = ({ namespace }) => {
             headerRenderer: () => 'Location',
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
+              const zone = cloudEnvironment?.runtimeConfig?.zone
+              const region = cloudEnvironment?.runtimeConfig?.region
               // This logic works under the assumption that all Galaxy apps get created in zone 'us-central1-a'
-              const zone = cloudEnvironment.runtimeConfig ? cloudEnvironment.runtimeConfig.zone : 'us-central1-a'
-              const region = cloudEnvironment.runtimeConfig ? cloudEnvironment.runtimeConfig.region : 'us-central1-a'
+              // if zone or region are not present then cloudEnvironment is a Galaxy app so return 'us-central1-a'
               return zone || region || 'us-central1-a'
             }
           },
