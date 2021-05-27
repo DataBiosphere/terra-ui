@@ -187,9 +187,19 @@ const ariaSort = (sort, field) => {
   return null
 }
 
-const noContent = ({ noContentMessage, noContentRenderer = _.noop }) => {
-  return noContentMessage || noContentRenderer() || 'Nothing to display'
-}
+const NoContentRow = ({ noContentMessage, noContentRenderer = _.noop, numColumns }) => div({
+  role: 'row',
+  className: 'table-row',
+  style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' }
+}, [
+  div({
+    role: 'cell',
+    className: 'table-cell',
+    'aria-colspan': numColumns
+  }, [
+    noContentMessage || noContentRenderer() || 'Nothing to display'
+  ])
+])
 
 /**
  * A virtual table with a fixed header and flexible column widths. Intended to take up the full
@@ -280,21 +290,7 @@ export const FlexTable = ({
       },
       style: { outline: 'none' },
       onScroll: ({ scrollTop }) => onScroll(scrollTop),
-      noContentRenderer: () => {
-        return div({
-          role: 'row',
-          className: 'table-row',
-          style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' }
-        }, [
-          div({
-            role: 'cell',
-            className: 'table-cell',
-            'aria-colspan': columns.length
-          }, [
-            noContent({ noContentMessage, noContentRenderer })
-          ])
-        ])
-      },
+      noContentRenderer: () => h(NoContentRow, { noContentMessage, noContentRenderer, numColumns: columns.length }),
       ...props
     })
   ])
@@ -375,18 +371,7 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
         }, Utils.toIndexPairs(columns))
       ])
     }, _.range(0, rowCount)),
-    !rowCount && div({
-      role: 'row',
-      className: 'table-row'
-    }, [
-      div({
-        role: 'cell',
-        className: 'table-cell',
-        'aria-colspan': columns.length
-      }, [
-        noContent({ noContentMessage, noContentRenderer })
-      ])
-    ])
+    !rowCount && h(NoContentRow, { noContentMessage, noContentRenderer, numColumns: columns.length })
   ])
 }
 
@@ -484,21 +469,6 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
           containerRole: 'presentation',
           'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
           'aria-label': `${tableName} content`, // The whole table is a tab stop so it needs a label
-          noContentRenderer: () => {
-            return div({
-              role: 'row',
-              className: 'table-row',
-              style: { marginTop: '1rem', textAlign: 'center', fontStyle: 'italic' }
-            }, [
-              div({
-                role: 'cell',
-                className: 'table-cell',
-                'aria-colspan': columns.length
-              }, [
-                noContent({ noContentMessage, noContentRenderer })
-              ])
-            ])
-          },
           onScrollbarPresenceChange: ({ vertical, size }) => {
             setScrollbarSize(vertical ? size : 0)
           },
@@ -546,7 +516,8 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
             onScroll(details)
             const { scrollLeft, scrollTop } = details
             customOnScroll(scrollLeft, scrollTop)
-          }
+          },
+          noContentRenderer: () => h(NoContentRow, { noContentMessage, noContentRenderer, numColumns: columns.length })
         })
       ])
     }
