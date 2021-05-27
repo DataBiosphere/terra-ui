@@ -193,7 +193,7 @@ export const currentPersistentDisk = (apps, galaxyDataDisks) => {
 
 export const isCurrentGalaxyDiskDetaching = apps => {
   const currentGalaxyApp = currentAppIncludingDeleting(apps)
-  return currentGalaxyApp && (currentGalaxyApp.status === 'DELETING' || currentGalaxyApp.status === 'PREDELETING')
+  return currentGalaxyApp && _.includes(currentGalaxyApp.status, ['DELETING', 'PREDELETING'])
 }
 
 export const collapsedRuntimeStatus = runtime => {

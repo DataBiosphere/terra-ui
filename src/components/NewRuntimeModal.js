@@ -1094,7 +1094,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
           p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
           p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
           h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360047318551', ...Utils.newTabLinkProps }, [
-            'Learn more about about persistent disks in the Terra Support site',
+            'Learn more about persistent disks',
             icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
           ])
         ])

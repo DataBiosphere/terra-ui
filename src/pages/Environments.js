@@ -122,9 +122,7 @@ const Environments = ({ namespace }) => {
   const [deleteDiskId, setDeleteDiskId] = useState()
   const getDeleteDiskId = useGetter(deleteDiskId)
   const [errorAppId, setErrorAppId] = useState()
-  const getErrorAppId = useGetter(errorAppId)
   const [deleteAppId, setDeleteAppId] = useState()
-  const getDeleteAppId = useGetter(deleteAppId)
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' })
 
@@ -150,10 +148,10 @@ const Environments = ({ namespace }) => {
     if (!_.some({ id: getDeleteDiskId() }, newDisks)) {
       setDeleteDiskId(undefined)
     }
-    if (!_.some({ appName: getErrorAppId() }, newApps)) {
+    if (!_.some({ appName: errorAppId }, newApps)) {
       setErrorAppId(undefined)
     }
-    if (!_.some({ appName: getDeleteAppId() }, newApps)) {
+    if (!_.some({ appName: deleteAppId }, newApps)) {
       setDeleteAppId(undefined)
     }
   })

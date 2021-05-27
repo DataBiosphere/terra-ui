@@ -49,7 +49,7 @@ export const NewGalaxyModal = _.flow(
   const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(app?.kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig)
   const [viewMode, setViewMode] = useState(undefined)
   const [loading, setLoading] = useState(false)
-  const [deleteDiskSelected, setDeleteDiskSelected] = useState(false)
+  const [shouldDeleteDisk, setShouldDeleteDisk] = useState(false)
 
   const currentDataDisk = currentPersistentDisk(apps, galaxyDataDisks)
 
@@ -69,7 +69,7 @@ export const NewGalaxyModal = _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error deleting galaxy instance')
   )(async () => {
-    await Ajax().Apps.app(app.googleProject, app.appName).delete(attachedDataDisk ? deleteDiskSelected : false)
+    await Ajax().Apps.app(app.googleProject, app.appName).delete(attachedDataDisk ? shouldDeleteDisk : false)
     Ajax().Metrics.captureEvent(Events.applicationDelete, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
     return onSuccess()
   })
@@ -291,7 +291,7 @@ export const NewGalaxyModal = _.flow(
       div({ style: { marginTop: '0.5rem' } }, [
         'Persistent disks store analysis data. ',
         h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
-          'Learn more about about persistent disks',
+          'Learn more about persistent disks',
           icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ])
       ]),
@@ -344,7 +344,7 @@ export const NewGalaxyModal = _.flow(
         onDismiss,
         onPrevious: () => {
           setViewMode(undefined)
-          setDeleteDiskSelected(false)
+          setShouldDeleteDisk(false)
         }
       }),
       div({ style: { lineHeight: '1.5rem' } }, [
@@ -352,8 +352,8 @@ export const NewGalaxyModal = _.flow(
           h(RadioBlock, {
             name: 'keep-persistent-disk',
             labelText: 'Keep persistent disk, delete application configuration and compute profile',
-            checked: !deleteDiskSelected,
-            onChange: () => setDeleteDiskSelected(false),
+            checked: !shouldDeleteDisk,
+            onChange: () => setShouldDeleteDisk(false),
             style: { marginTop: '1rem' }
           }, [
             p([
@@ -368,8 +368,8 @@ export const NewGalaxyModal = _.flow(
           h(RadioBlock, {
             name: 'delete-persistent-disk',
             labelText: 'Delete everything, including persistent disk',
-            checked: deleteDiskSelected,
-            onChange: () => setDeleteDiskSelected(true),
+            checked: shouldDeleteDisk,
+            onChange: () => setShouldDeleteDisk(true),
             style: { marginTop: '1rem' }
           }, [
             p([
