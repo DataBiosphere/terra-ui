@@ -21,7 +21,7 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import { versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
-import { appIsSettingUp, convertedAppStatus, currentApp, currentDataDisk, getGalaxyCost } from 'src/libs/runtime-utils'
+import { appIsSettingUp, convertedAppStatus, currentApp, currentAttachedDataDisk, getGalaxyCost, isCurrentGalaxyDiskDetaching } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -310,7 +310,7 @@ const Notebooks = _.flow(
     )(notebooks)
 
     const getGalaxyText = (app, galaxyDataDisks) => {
-      const dataDisk = currentDataDisk(app, galaxyDataDisks)
+      const dataDisk = currentAttachedDataDisk(app, galaxyDataDisks)
       return app ?
         div({ style: { fontSize: 18, lineHeight: '22px', width: 160 } }, [
           div(['Galaxy Interactive']),
@@ -357,8 +357,8 @@ const Notebooks = _.flow(
             style: {
               ...Style.elements.card.container, height: 125, marginTop: 15
             },
-            disabled: appIsSettingUp(app),
-            tooltip: appIsSettingUp(app) && 'Galaxy app is being created',
+            disabled: appIsSettingUp(app) || isCurrentGalaxyDiskDetaching(apps),
+            tooltip: (appIsSettingUp(app) && 'Galaxy app is being created') || (isCurrentGalaxyDiskDetaching(apps) && 'Your persistent disk is still attached to your previous app; you can create a new app once your previous app finishes deleting, which will take a few minutes.'),
             onClick: () => setOpenGalaxyConfigDrawer(true)
           }, [
             getGalaxyText(app, galaxyDataDisks)
