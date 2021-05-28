@@ -151,3 +151,10 @@ a {
 .token.variable {
   color: #b56000 !important; /* #e90; */
 }
+
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
+  color: #687888 !important; /* slategray */
+}

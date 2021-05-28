@@ -149,7 +149,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
           return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
             div({ style: { flex: 1, display: 'flex', position: 'relative', minWidth: 0 } }, [
               !readOnly ? h(IdContainer, [labelId => h(Fragment, [
-                h(HiddenLabel, { id: labelId },[`${ioTask(io)} Attribute`]),
+                h(HiddenLabel, { id: labelId }, [`${ioTask(io)} Attribute`]),
                 h(DelayedAutocompleteTextArea, {
                   autosize: true,
                   spellCheck: false,
