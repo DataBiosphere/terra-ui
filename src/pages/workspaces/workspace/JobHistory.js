@@ -76,8 +76,7 @@ const statusCell = (workflowStatuses, status) => {
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       span({
         tabIndex: 0,
-        role: 'status',
-        'aria-live': 'none', // role="status" is polite by default, but in our case the status won't be changing
+        role: 'note',
         'aria-label': summary
       }, [
         succeeded && successIcon(),

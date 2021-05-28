@@ -1,9 +1,9 @@
 import Downshift from 'downshift'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
-import { div, h, input, textarea } from 'react-hyperscript-helpers'
+import { div, h, input, label, textarea } from 'react-hyperscript-helpers'
 import TextAreaAutosize from 'react-textarea-autosize'
-import { ButtonPrimary } from 'src/components/common'
+import { ButtonPrimary, IdContainer } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -223,9 +223,10 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
 }
 
 const withAutocomplete = WrappedComponent => ({
-  instructions, value, onChange, onPick, suggestions: rawSuggestions, style, id,
+  instructions, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId,
   renderSuggestion = _.identity, openOnFocus = true, placeholderText, ...props
 }) => {
+  Utils.useConsoleAssert(id || labelId, 'In order to be accessible, AutoComplete needs a label')
   const suggestions = _.filter(Utils.textMatch(value), rawSuggestions)
 
   return h(Downshift, {
@@ -236,7 +237,8 @@ const withAutocomplete = WrappedComponent => ({
         onChange(newValue)
       }
     },
-    inputId: id
+    inputId: id,
+    labelId
   }, [
     ({ getInputProps, getMenuProps, getItemProps, isOpen, openMenu, toggleMenu, highlightedIndex }) => {
       return div({
@@ -286,7 +288,7 @@ const withAutocomplete = WrappedComponent => ({
 export const AutocompleteTextInput = withAutocomplete(TextInput)
 
 export const TextArea = ({ onChange, autosize = false, nativeOnChange = false, ...props }) => {
-  Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, TextArea needs a label')
+  Utils.useConsoleAssert(props.id || props['aria-label'] || props['aria-labelledby'], 'In order to be accessible, TextArea needs a label')
 
   return h(autosize ? TextAreaAutosize : 'textarea', _.merge({
     className: 'focus-style',

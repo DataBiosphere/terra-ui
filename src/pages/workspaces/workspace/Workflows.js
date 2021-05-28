@@ -397,7 +397,8 @@ export const Workflows = _.flow(
         disabled: !!Utils.editWorkspaceError(ws),
         tooltip: Utils.editWorkspaceError(ws),
         style: { ...styles.card, ...styles.shortCard, color: colors.accent(), fontSize: 18, lineHeight: '22px' },
-        onClick: () => setFindingWorkflow(true)
+        onClick: () => setFindingWorkflow(true),
+        'aria-haspopup': 'dialog'
       }, [
         'Find a Workflow',
         icon('plus-circle', { size: 32 })
