@@ -57,7 +57,10 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
 
   const tabToTable = {
     workspaces: div({ style: { flexGrow: 1, width: '100%' } }, [
-      _.map(workspace => h(WorkspaceCard, { workspace, key: workspace.workspaceId }), _.map('workspace', _.filter(response => response.workspace.namespace === projectName, workspaces)))
+      _.flow(
+        _.filter(response => response.workspace.namespace === projectName),
+        _.map(({ workspace }) => h(WorkspaceCard, { workspace, key: workspace.workspaceId }))
+      )(workspaces)
     ]),
     users: h(Fragment, [
       h(NewUserCard, {
