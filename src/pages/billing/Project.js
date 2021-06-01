@@ -57,23 +57,23 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
 
   const tabToTable = {
     workspaces: div({ style: { flexGrow: 1, width: '100%' } }, [
-      _.map(([i, workspace]) => h(WorkspaceCard, { workspace, key: i }), Utils.toIndexPairs(_.map(response => response.workspace, _.filter(response => response.workspace.namespace === projectName, workspaces))))
+      _.map(workspace => h(WorkspaceCard, { workspace, key: workspace.workspaceId }), _.map('workspace', _.filter(response => response.workspace.namespace === projectName, workspaces)))
     ]),
     users: h(Fragment, [
       h(NewUserCard, {
         onClick: () => setAddingUser(true)
       }),
       div({ style: { flexGrow: 1 } },
-        _.map(([i, member]) => {
+        _.map(member => {
           return h(MemberCard, {
-            key: i,
+            key: member.email,
             adminLabel: billingRoles.owner,
             userLabel: billingRoles.user,
             member, adminCanEdit,
             onEdit: () => setEditingUser(member),
             onDelete: () => setDeletingUser(member)
           })
-        }, Utils.toIndexPairs(projectUsers))
+        }, projectUsers)
       )
     ])
   }
