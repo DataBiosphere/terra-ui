@@ -7,6 +7,7 @@ import { AdminNotifierCheckbox, DeleteUserModal, EditUserModal, MemberCard, NewU
 import { DelayedSearchInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
+import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -80,7 +81,7 @@ const GroupDetails = ({ groupName }) => {
         value: filter
       })
     ]),
-    h(PageBox, { role: 'main', style: { flexGrow: 1 } }, [
+    h(PageBox, { role: 'main', style: { flexGrow: 1, backgroundColor: colors.light(), margin: 0, padding: '3rem 3rem 1.5rem' } }, [
       div({ style: Style.cardList.toolbarContainer }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
           `Group Management: ${groupName}`
@@ -96,11 +97,11 @@ const GroupDetails = ({ groupName }) => {
           return refresh()
         })
       }),
-      div({ style: Style.cardList.cardContainer }, [
+      div({ style: { marginTop: '1rem' } }, [
         h(NewUserCard, {
           onClick: () => setCreatingNewUser(true)
         }),
-        div({ style: { flexGrow: 1 } },
+        div({ style: { flexGrow: 1, marginTop: '1rem' } },
           _.map(member => {
             return h(MemberCard, {
               adminLabel: 'admin',

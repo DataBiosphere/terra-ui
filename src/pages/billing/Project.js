@@ -6,6 +6,7 @@ import { ButtonPrimary, IdContainer, Link, Select, SimpleTabBar, spinnerOverlay 
 import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { MiniSortable } from 'src/components/table'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
@@ -25,6 +26,7 @@ const styles = {
     flex: 1, width: `calc(50% - ${workspaceLastModifiedWidth / 2}px)`, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden'
   }
 }
+
 
 const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace }) => div({
   style: Style.cardList.longCard
@@ -53,7 +55,15 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   const [selectedBilling, setSelectedBilling] = useState()
   const [tab, setTab] = useState(query.tab || 'workspaces')
 
+  const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
+
+  const makeHeaderRenderer = name => h(MiniSortable, { sort, field: name, onSort: setSort }, [
+    div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
+  ])
+
   const signal = Utils.useCancellation()
+
+  const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
   const tabToTable = {
     workspaces: div({ style: { flexGrow: 1, width: '100%' } }, [
@@ -65,8 +75,21 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
     users: h(Fragment, [
       h(NewUserCard, {
         onClick: () => setAddingUser(true)
-      }),
-      div({ style: { flexGrow: 1 } },
+      }, [
+        icon('plus-circle', { size: 14 }),
+        div({ style: { marginLeft: '0.5rem' } }, ['Add User'])
+      ]),
+      div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' } }, [
+        div({ style: { flex: 1 } }, [
+          makeHeaderRenderer('email')
+        ]),
+        div({ style: { flex: 1 } }, [
+          makeHeaderRenderer('roles')
+        ]),
+        // Width is the same as the menu icon.
+        div({ style: { width: 20 } })
+      ]),
+      div(
         _.map(member => {
           return h(MemberCard, {
             key: member.email,
@@ -76,7 +99,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
             onEdit: () => setEditingUser(member),
             onDelete: () => setDeletingUser(member)
           })
-        }, projectUsers)
+        }, _.orderBy([sort.field], [sort.direction], projectUsers))
       )
     ])
   }
@@ -152,7 +175,6 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
 
 
   // Render
-  const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
   const { displayName = null } = _.find({ accountName: billingAccountName }, billingAccounts) || { displayName: 'No Access' }
 
   return h(Fragment, [
@@ -220,7 +242,6 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
       }),
       div({
         style: {
-          display: 'flex',
           padding: '1rem 1rem 0',
           backgroundColor: colors.light(),
           flexGrow: 1

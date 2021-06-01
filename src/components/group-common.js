@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, label } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { InfoBox } from 'src/components/PopupTrigger'
+import PopupTrigger, { InfoBox } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -38,37 +38,48 @@ export const AdminNotifierCheckbox = ({ checked, onChange }) => {
 }
 
 export const NewUserCard = ({ onClick }) => {
-  return h(Clickable, {
-    style: Style.cardList.shortCreateCard,
+  return h(ButtonPrimary, {
+    style: { textTransform: 'none' },
     onClick
   }, [
-    div(['Add a User']),
-    icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
+    icon('plus', { size: 14 }),
+    div({ style: { marginLeft: '0.5rem' } }, ['Add User'])
+  ])
+}
+
+const UserMenuContent = ({ onEdit, onDelete }) => {
+  return h(Fragment, [
+    h(MenuButton, {
+      onClick: () => onEdit()
+    }, [makeMenuIcon('edit'), 'Edit Role']),
+    h(MenuButton, {
+      onClick: () => onDelete()
+    }, [makeMenuIcon('trash'), 'Remove User'])
   ])
 }
 
 export const MemberCard = Utils.memoWithName('MemberCard', ({ member: { email, roles }, adminCanEdit, onEdit, onDelete, adminLabel, userLabel }) => {
   const canEdit = adminCanEdit || !_.includes(adminLabel, roles)
   const tooltip = !canEdit && `This user is the only ${adminLabel}`
+  const menuSize = 20
 
   return div({
-    style: Style.cardList.longCard
+    style: { ...Style.cardList.longCard, boxShadow: 'none' }
   }, [
     div({ style: { flex: '1', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' } }, [email]),
-    div({ style: { flex: '0 0 150px', textTransform: 'capitalize' } }, [_.includes(adminLabel, roles) ? adminLabel : userLabel]),
+    div({ style: { flex: '1', textTransform: 'capitalize' } }, [_.includes(adminLabel, roles) ? adminLabel : userLabel]),
     div({ style: { flex: 'none' } }, [
-      h(TooltipTrigger, { content: tooltip }, [
-        h(Link, {
-          disabled: !canEdit,
-          onClick: canEdit ? onEdit : undefined
-        }, ['Edit Role'])
-      ]),
-      ' | ',
-      h(TooltipTrigger, { content: tooltip }, [
-        h(Link, {
-          disabled: !canEdit,
-          onClick: canEdit ? onDelete : undefined
-        }, ['Remove'])
+      h(TooltipTrigger, { content: tooltip, style: { height: menuSize, width: menuSize } }, [
+        // This div exists because popup trigger overrides the tooltip trigger if it is a direct descendant, which would make there be no tooltip
+        div([
+          h(PopupTrigger, {
+            side: 'left',
+            closeOnClick: true,
+            content: h(UserMenuContent, { onEdit, onDelete })
+          }, [
+            h(Link, { 'aria-label': `Menu for User: ${email}`, disabled: !canEdit }, [icon('cardMenuIcon', { size: menuSize })])
+          ])
+        ])
       ])
     ])
   ])

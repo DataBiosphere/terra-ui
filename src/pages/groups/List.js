@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, IdContainer, Link, PageBox, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { AdminNotifierCheckbox } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
@@ -97,7 +97,7 @@ const DeleteGroupModal = ({ groupName, onDismiss, onSubmit }) => {
 const GroupCard = Utils.memoWithName('GroupCard', ({ group: { groupName, groupEmail, role }, onDelete }) => {
   const isAdmin = !!_.includes('admin', role)
 
-  return div({ style: Style.cardList.longCard }, [
+  return div({ style: { ...Style.cardList.longCard, boxShadow: 'none' } }, [
     a({
       href: isAdmin ? Nav.getLink('group', { groupName }) : undefined,
       style: {
@@ -121,17 +121,16 @@ const GroupCard = Utils.memoWithName('GroupCard', ({ group: { groupName, groupEm
 })
 
 const NewGroupCard = ({ onClick }) => {
-  return h(Clickable, {
-    style: Style.cardList.shortCreateCard,
+  return h(ButtonPrimary, {
+    style: { textTransform: 'none' },
     onClick
   }, [
-    div(['Create a']),
-    div(['New Group']),
-    icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
+    icon('plus', { size: 14 }),
+    div({ style: { marginLeft: '0.5rem' } }, ['Create a New Group'])
   ])
 }
 
-const noGroupsMessage = div({ style: { fontSize: 20, margin: '0 1rem' } }, [
+const noGroupsMessage = div({ style: { fontSize: 20, margin: '1rem 1rem 0' } }, [
   div([
     'Create a group to share your workspaces with others.'
   ]),
@@ -196,23 +195,23 @@ const GroupList = () => {
         value: filter
       })
     ]),
-    h(PageBox, { role: 'main', style: { flexGrow: 1 } }, [
+    h(PageBox, { role: 'main', style: { flexGrow: 1, backgroundColor: colors.light(), margin: 0, padding: '3rem 3rem 1.5rem' } }, [
       div({ style: Style.cardList.toolbarContainer }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
           'Group Management'
         ])
       ]),
-      div({ style: Style.cardList.cardContainer }, [
+      div({ style: { marginTop: '1rem' } }, [
         h(NewGroupCard, {
           onClick: () => setCreatingNewGroup(true)
         }),
         Utils.cond(
           [groups && _.isEmpty(groups), () => noGroupsMessage],
           [!_.isEmpty(groups) && _.isEmpty(filteredGroups), () => {
-            return div({ style: { fontStyle: 'italic' } }, ['No matching groups'])
+            return div({ style: { fontStyle: 'italic', marginTop: '1rem' } }, ['No matching groups'])
           }],
           () => {
-            return div({ style: { flexGrow: 1 } }, [
+            return div({ style: { flexGrow: 1, marginTop: '1rem' } }, [
               _.map(group => {
                 return h(GroupCard, {
                   group, key: `${group.groupName}`,
