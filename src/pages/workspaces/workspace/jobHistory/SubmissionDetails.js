@@ -115,7 +115,7 @@ const SubmissionDetails = _.flow(
 
   // Note: This 'deleteLimitYears' value should reflect the current 'deletion-delay' value configured for PROD in firecloud-develop's
   // 'cromwell.conf.ctmpl' file:
-  const deletionDelayYears = 6
+  const deletionDelayYears = 3
   const deletionDelayString = `${deletionDelayYears} year${deletionDelayYears > 1 ? 's' : ''}`
   const isDeleted = statusLastChangedDate => differenceInDays(parseISO(statusLastChangedDate), Date.now()) > (deletionDelayYears * 365)
 
