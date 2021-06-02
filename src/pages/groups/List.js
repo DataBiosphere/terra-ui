@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, Link, PageBox, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Link, PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { AdminNotifierCheckbox } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
@@ -218,7 +218,7 @@ const GroupList = () => {
         value: filter
       })
     ]),
-    h(PageBox, { role: 'main', style: { flexGrow: 1, backgroundColor: colors.light(), margin: 0, padding: '3rem 3rem 1.5rem' } }, [
+    h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
       div({ style: Style.cardList.toolbarContainer }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
           'Group Management'

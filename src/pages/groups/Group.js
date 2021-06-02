@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { PageBox, spinnerOverlay } from 'src/components/common'
+import { PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import {
   AdminNotifierCheckbox, DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal
@@ -84,7 +84,7 @@ const GroupDetails = ({ groupName }) => {
         value: filter
       })
     ]),
-    h(PageBox, { role: 'main', style: { flexGrow: 1, backgroundColor: colors.light(), margin: 0, padding: '3rem 3rem 1.5rem' } }, [
+    h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
       div({ style: Style.cardList.toolbarContainer }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
           `Group Management: ${groupName}`
