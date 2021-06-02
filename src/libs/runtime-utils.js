@@ -1,5 +1,10 @@
 import _ from 'lodash/fp'
+import { Fragment } from 'react'
+import { div, h, input, label } from 'react-hyperscript-helpers'
+import { IdContainer } from 'src/components/common'
 import { cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, monthlyStoragePrice, storagePrice } from 'src/data/machines'
+import colors from 'src/libs/colors'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
@@ -164,12 +169,31 @@ export const machineCost = machineType => {
 
 export const currentApp = _.flow(trimAppsOldestFirst, _.last)
 
-export const currentDataDisk = (app, galaxyDataDisks) => {
+export const currentAppIncludingDeleting = _.flow(_.sortBy('auditInfo.createdDate'), _.last)
+
+export const currentAttachedDataDisk = (app, galaxyDataDisks) => {
   return _.find({ name: app?.diskName }, galaxyDataDisks)
 }
 
 export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
+}
+
+export const currentPersistentDisk = (apps, galaxyDataDisks) => {
+  // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
+  const currentGalaxyApp = currentAppIncludingDeleting(apps)
+  const currentDataDiskName = currentGalaxyApp?.diskName
+  const attachedDataDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
+  // if the disk is attached to an app (or being detached from a deleting app), return that disk. otherwise,
+  // return the newest galaxy disk that the user has unattached to an app
+  return currentDataDiskName ?
+    _.find({ name: currentDataDiskName }, galaxyDataDisks) :
+    _.last(_.sortBy('auditInfo.createdDate', _.filter(({ name, status }) => status !== 'Deleting' && !_.includes(name, attachedDataDiskNames), galaxyDataDisks)))
+}
+
+export const isCurrentGalaxyDiskDetaching = apps => {
+  const currentGalaxyApp = currentAppIncludingDeleting(apps)
+  return currentGalaxyApp && _.includes(currentGalaxyApp.status, ['DELETING', 'PREDELETING'])
 }
 
 export const collapsedRuntimeStatus = runtime => {
@@ -186,3 +210,24 @@ export const convertedAppStatus = appStatus => {
     [Utils.DEFAULT, () => _.capitalize(appStatus)]
   )
 }
+
+export const RadioBlock = ({ labelText, children, name, checked, onChange, style = {} }) => {
+  return div({
+    style: {
+      backgroundColor: colors.warning(0.2),
+      borderRadius: 3, border: `1px solid ${checked ? colors.accent() : 'transparent'}`,
+      boxShadow: checked ? Style.standardShadow : undefined,
+      display: 'flex', alignItems: 'baseline', padding: '.75rem',
+      ...style
+    }
+  }, [
+    h(IdContainer, [id => h(Fragment, [
+      input({ type: 'radio', name, checked, onChange, id }),
+      div({ style: { marginLeft: '.75rem' } }, [
+        label({ style: { fontWeight: 600, fontSize: 16 }, htmlFor: id }, [labelText]),
+        children
+      ])
+    ])])
+  ])
+}
+
