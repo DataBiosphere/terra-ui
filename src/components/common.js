@@ -64,7 +64,7 @@ export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip
 
   // If there's only one child which is an icon, and no aria-label, and the user hasn't explicitly set useTooltipAsLabel to false,
   // then use the tooltip as the label rather than the description.
-  // TooltipTrigger does this same check, but since we'll be passing it an Interactive child, we need to do the check here as well.
+  // TooltipTrigger does this same check, but since we'll be passing it an Interactive child, we need to do the check here instead.
   const useLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, props }) : useTooltipAsLabel
 
   Utils.useConsoleAssert(tooltip || !useLabel, 'In order to be accessible, Clickable or the icon contained within it needs an accessible label or tooltip')
@@ -554,7 +554,6 @@ export const ClipboardButton = ({ text, onClick, ...props }) => {
   return h(Link, {
     ...props,
     tooltip: copied ? 'Copied to clipboard' : 'Copy to clipboard',
-    useTooltipAsLabel: true,
     onClick: _.flow(
       withErrorReporting('Error copying to clipboard'),
       Utils.withBusyState(setCopied)
