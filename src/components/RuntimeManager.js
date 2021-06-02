@@ -379,7 +379,7 @@ export default class RuntimeManager extends PureComponent {
           href: applicationLaunchLink,
           onClick: window.location.hash === applicationLaunchLink && currentStatus === 'Stopped' ? () => this.startRuntime() : undefined,
           tooltip: canCompute ? `Open ${applicationName}` : noCompute,
-          useTooltipAsLabel: true,
+          'aria-label': `Open ${applicationName}`,
           disabled: !canCompute,
           style: { marginRight: '2rem', ...styles.verticalCenter },
           ...(isRStudioImage ? {} : Utils.newTabLinkProps)
