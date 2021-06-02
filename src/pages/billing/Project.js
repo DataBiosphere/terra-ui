@@ -170,7 +170,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
         !!displayName && span({ style: { flexShrink: 0 } }, displayName),
         h(Link, {
-          'aria-label': 'Change Billing Account',
+          tooltip: 'Change Billing Account',
           style: { marginLeft: '0.5rem' },
           onClick: async () => {
             if (Auth.hasBillingScope()) {

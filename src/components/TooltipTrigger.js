@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { Children, cloneElement, Fragment, useRef, useState } from 'react'
 import { div, h, path, svg } from 'react-hyperscript-helpers'
+import { containsUnlabelledIcon } from 'src/components/icons'
 import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
@@ -83,7 +84,7 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay 
   ])
 }
 
-const TooltipTrigger = ({ children, content, useTooltipAsLabel = false, ...props }) => {
+const TooltipTrigger = ({ children, content, useTooltipAsLabel, ...props }) => {
   const [open, setOpen] = useState(false)
   const id = Utils.useUniqueId()
   const tooltipId = Utils.useUniqueId()
@@ -92,11 +93,15 @@ const TooltipTrigger = ({ children, content, useTooltipAsLabel = false, ...props
   const child = Children.only(children)
   const childId = child.props.id || id
 
+  // If there's only one child which is an icon, and no aria-label, and the user hasn't explicitly set useTooltipAsLabel to false,
+  // then use the tooltip as the label rather than the description.
+  const useLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, props }) : useTooltipAsLabel
+
   return h(Fragment, [
     cloneElement(child, {
       id: childId,
-      'aria-labelledby': !!content && useTooltipAsLabel ? descriptionId : undefined,
-      'aria-describedby': !!content && !useTooltipAsLabel ? descriptionId : undefined,
+      'aria-labelledby': !!content && useLabel ? descriptionId : undefined,
+      'aria-describedby': !!content && !useLabel ? descriptionId : undefined,
       onMouseEnter: (...args) => {
         child.props.onMouseEnter && child.props.onMouseEnter(...args)
         setOpen(true)

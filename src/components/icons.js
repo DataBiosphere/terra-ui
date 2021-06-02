@@ -1,9 +1,33 @@
 import _ from 'lodash/fp'
+import { Children } from 'react'
 import { div, img } from 'react-hyperscript-helpers'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import iconDict from 'src/libs/icon-dict'
 
+
+/**
+ * Returns true if an element with the given set of children and properties contains a single icon
+ * which does not already have a label. This can be used, for example, to determine whether a tooltip
+ * should be used as a aria-label.
+ *
+ * @param children
+ * @param props
+ * @returns {boolean}
+ */
+export const containsUnlabelledIcon = ({ children, ...props }) => {
+  if (!('aria-label' in props) && Children.count(children) === 1 && typeof children !== 'string') {
+    try {
+      const onlyChild = Children.only(children)
+
+      // Is there a better way to test for this other than duck-typing?
+      if ('data-icon' in onlyChild.props && 'icon' in onlyChild.props && onlyChild.props['aria-hidden'] === true) {
+        return true
+      }
+    } catch (e) { /* do nothing */ }
+  }
+  return false
+}
 
 /**
  * Creates an icon: FA or custom.
@@ -15,9 +39,8 @@ import iconDict from 'src/libs/icon-dict'
  */
 export const icon = (shape, { size = 16, ...props } = {}) => {
   // Unless we have a label, we need to hide the icon from screen readers
-  if (!('aria-hidden' in props)) {
-    props['aria-hidden'] = !props['aria-label']
-  }
+  props['aria-hidden'] = !props['aria-label'] && !props['aria-labelledby']
+
   return _.invokeArgs(shape, [{ size, 'data-icon': shape, ...props }], iconDict)
 }
 

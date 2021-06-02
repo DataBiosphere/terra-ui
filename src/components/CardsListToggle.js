@@ -25,12 +25,12 @@ export const ViewToggleButtons = ({ listView, setListView }) => {
     h(Clickable, {
       style: { marginLeft: 'auto', ...viewToggleStyles.toolbarButton(!listView) },
       onClick: () => setListView(false),
-      'aria-label': 'Card view'
+      tooltip: 'Card view'
     }, [icon('view-cards', { size: 24, style: { margin: '.3rem' } })]),
     h(Clickable, {
       style: { marginLeft: '1rem', ...viewToggleStyles.toolbarButton(listView) },
       onClick: () => setListView(true),
-      'aria-label': 'List view'
+      tooltip: 'List view'
     }, [icon('view-list', { size: 24, style: { margin: '.3rem' } })])
   ])
 }

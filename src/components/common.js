@@ -1,14 +1,14 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Children, Fragment, useState } from 'react'
+import { Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
 import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner, icon } from 'src/components/icons'
+import { centeredSpinner, containsUnlabelledIcon, icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -62,21 +62,14 @@ export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip
     ...props
   }, [children])
 
+  // If there's only one child which is an icon, and no aria-label, and the user hasn't explicitly set useTooltipAsLabel to false,
+  // then use the tooltip as the label rather than the description.
+  // TooltipTrigger does this same check, but since we'll be passing it an Interactive child, we need to do the check here as well.
+  const useLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, props }) : useTooltipAsLabel
+
+  Utils.useConsoleAssert(tooltip || !useLabel, 'In order to be accessible, Clickable or the icon contained within it needs an accessible label or tooltip')
+
   if (tooltip) {
-    let useLabel = useTooltipAsLabel
-
-    // If there's a tooltip, and only one child which is an icon, and no aria-label, and the user hasn't
-    // explicitly set useTooltipAsLabel to false, then use the tooltip as the label rather than the description
-    if (!('aria-label' in props) && useLabel !== false && Children.count(children) === 1 && typeof children !== 'string') {
-      try {
-        const onlyChild = Children.only(children)
-
-        // Is there a better way to test for this other than duck-typing?
-        if ('data-icon' in onlyChild.props && 'icon' in onlyChild.props && !('aria-label' in onlyChild.props)) {
-          useLabel = true
-        }
-      } catch (e) { /* do nothing */ }
-    }
     return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay, useTooltipAsLabel: useLabel }, [child])
   } else {
     return child
