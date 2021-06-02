@@ -3,10 +3,9 @@ import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Link, Select, SimpleTabBar, spinnerOverlay } from 'src/components/common'
-import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
+import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { MiniSortable } from 'src/components/table'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
@@ -29,7 +28,7 @@ const styles = {
 
 
 const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace }) => div({
-  style: Style.cardList.longCard
+  style: Style.cardList.longCardShadowless
 }, [
   div({ style: styles.workspaceCardField }, [workspace.name]),
   div({ style: styles.workspaceCardField }, [workspace.createdBy]),
@@ -57,9 +56,6 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
 
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
 
-  const makeHeaderRenderer = name => h(MiniSortable, { sort, field: name, onSort: setSort }, [
-    div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
-  ])
 
   const signal = Utils.useCancellation()
 
@@ -79,16 +75,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         icon('plus-circle', { size: 14 }),
         div({ style: { marginLeft: '0.5rem' } }, ['Add User'])
       ]),
-      div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' } }, [
-        div({ style: { flex: 1 } }, [
-          makeHeaderRenderer('email')
-        ]),
-        div({ style: { flex: 1 } }, [
-          makeHeaderRenderer('roles')
-        ]),
-        // Width is the same as the menu icon.
-        div({ style: { width: 20 } })
-      ]),
+      h(MemberCardHeaders, { sort, onSort: setSort }),
       div(
         _.map(member => {
           return h(MemberCard, {

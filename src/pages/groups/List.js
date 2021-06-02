@@ -7,6 +7,7 @@ import { AdminNotifierCheckbox } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { MiniSortable } from 'src/components/table'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -94,10 +95,26 @@ const DeleteGroupModal = ({ groupName, onDismiss, onSubmit }) => {
   ])
 }
 
+const GroupCardHeaders = Utils.memoWithName('GroupCardHeaders', ({ sort, onSort }) => {
+  const makeHeaderRenderer = name => h(MiniSortable, { sort, field: name, onSort }, [
+    div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
+  ])
+  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' } }, [
+    div({ style: { width: '30%', marginRight: '1rem' } }, [
+      makeHeaderRenderer('groupName')
+    ]),
+    div({ style: { flexGrow: 1 } }, [
+      makeHeaderRenderer('groupEmail')
+    ]),
+    // Width is the same as the menu icon.
+    div({ style: { width: 100 } })
+  ])
+})
+
 const GroupCard = Utils.memoWithName('GroupCard', ({ group: { groupName, groupEmail, role }, onDelete }) => {
   const isAdmin = !!_.includes('admin', role)
 
-  return div({ style: { ...Style.cardList.longCard, boxShadow: 'none' } }, [
+  return div({ style: Style.cardList.longCardShadowless }, [
     a({
       href: isAdmin ? Nav.getLink('group', { groupName }) : undefined,
       style: {
@@ -150,6 +167,7 @@ const GroupList = () => {
   const [deletingGroup, setDeletingGroup] = useState(false)
   const [updating, setUpdating] = useState(false)
   const [isDataLoaded, setIsDataLoaded] = useState(false)
+  const [sort, setSort] = useState({ field: 'groupName', direction: 'asc' })
 
   const signal = Utils.useCancellation()
 
@@ -211,13 +229,16 @@ const GroupList = () => {
             return div({ style: { fontStyle: 'italic', marginTop: '1rem' } }, ['No matching groups'])
           }],
           () => {
-            return div({ style: { flexGrow: 1, marginTop: '1rem' } }, [
-              _.map(group => {
-                return h(GroupCard, {
-                  group, key: `${group.groupName}`,
-                  onDelete: () => setDeletingGroup(group)
-                })
-              }, filteredGroups)
+            return h(Fragment, [
+              h(GroupCardHeaders, { sort, onSort: setSort }),
+              div({ style: { flexGrow: 1, marginTop: '1rem' } }, [
+                _.map(group => {
+                  return h(GroupCard, {
+                    group, key: `${group.groupName}`,
+                    onDelete: () => setDeletingGroup(group)
+                  })
+                }, _.orderBy([sort.field], [sort.direction], filteredGroups))
+              ])
             ])
           }
         ),

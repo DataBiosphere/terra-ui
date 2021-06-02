@@ -6,6 +6,7 @@ import { icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger, { InfoBox } from 'src/components/PopupTrigger'
+import { MiniSortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -58,16 +59,33 @@ const UserMenuContent = ({ onEdit, onDelete }) => {
   ])
 }
 
+export const MemberCardHeaders = Utils.memoWithName('MemberCardHeaders', ({ sort, onSort }) => {
+  const makeHeaderRenderer = name => h(MiniSortable, { sort, field: name, onSort }, [
+    div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
+  ])
+
+  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' } }, [
+    div({ style: { flex: 1 } }, [
+      makeHeaderRenderer('email')
+    ]),
+    div({ style: { flex: 1 } }, [
+      makeHeaderRenderer('roles')
+    ]),
+    // Width is the same as the menu icon.
+    div({ style: { width: 20 } })
+  ])
+})
+
 export const MemberCard = Utils.memoWithName('MemberCard', ({ member: { email, roles }, adminCanEdit, onEdit, onDelete, adminLabel, userLabel }) => {
   const canEdit = adminCanEdit || !_.includes(adminLabel, roles)
   const tooltip = !canEdit && `This user is the only ${adminLabel}`
   const menuSize = 20
 
   return div({
-    style: { ...Style.cardList.longCard, boxShadow: 'none' }
+    style: Style.cardList.longCardShadowless
   }, [
-    div({ style: { flex: '1', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' } }, [email]),
-    div({ style: { flex: '1', textTransform: 'capitalize' } }, [_.includes(adminLabel, roles) ? adminLabel : userLabel]),
+    div({ style: { flex: '1', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', height: '1rem' } }, [email]),
+    div({ style: { flex: '1', textTransform: 'capitalize', height: '1rem' } }, [_.includes(adminLabel, roles) ? adminLabel : userLabel]),
     div({ style: { flex: 'none' } }, [
       h(TooltipTrigger, { content: tooltip, style: { height: menuSize, width: menuSize } }, [
         // This div exists because popup trigger overrides the tooltip trigger if it is a direct descendant, which would make there be no tooltip
