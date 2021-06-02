@@ -56,7 +56,6 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
 
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
 
-
   const signal = Utils.useCancellation()
 
   const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
