@@ -68,9 +68,13 @@ export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput,
   }
 })
 
-export const tools = { rstudio: { label: 'RStudio', ext: 'Rmd' }, jupyter: { label: 'Jupyter', ext: 'ipynb' } }
+export const tools = {
+  RStudio: { label: 'RStudio', ext: 'Rmd', imageIds: ['terra-jupyter-bioconductor', 'RStudio', 'terra-jupyter-bioconductor_legacy'], defaultImageId: 'terra-jupyter-bioconductor' },
+  Jupyter: { label: 'Jupyter', ext: 'ipynb', imageIds: ['terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk' },
+  galaxy: { label: 'galaxy' }
+}
 
-const toolToExtensionMap = { [tools.rstudio.label]: tools.rstudio.ext, [tools.jupyter.label]: tools.jupyter.ext }
+const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }
 
 export const getTool = fileName => _.invert(toolToExtensionMap)[getExtension(fileName)]
 

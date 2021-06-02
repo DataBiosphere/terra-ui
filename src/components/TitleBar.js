@@ -4,14 +4,14 @@ import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 
 
-const TitleBar = ({ id, onPrevious, title, onDismiss, titleExtras, style = {} }) => {
+const TitleBar = ({ id, onPrevious, title, onDismiss, titleExtras, style = {}, titleStyles = {}, hideCloseButton = false }) => {
   return div({
     id,
     style: {
       display: 'flex', alignItems: 'flex-start', flex: 'none', ...style
     }
   }, [
-    div({ style: { fontSize: 18, fontWeight: 600 } }, [title]),
+    div({ style: { fontSize: 18, fontWeight: 600, ...titleStyles } }, [title]),
     titleExtras,
     div({ style: { marginLeft: 'auto', display: 'flex', alignItems: 'center' } }, [
       onPrevious && h(Link, {
@@ -23,7 +23,7 @@ const TitleBar = ({ id, onPrevious, title, onDismiss, titleExtras, style = {} })
         'aria-label': 'Close',
         style: { marginLeft: '2rem' },
         onClick: onDismiss
-      }, [icon('times', { size: '25' })])
+      }, [icon('times', { size: '25', style: hideCloseButton ? { display: 'none' } : {} })])
     ])
   ])
 }
