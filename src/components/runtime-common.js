@@ -123,6 +123,21 @@ export const SaveFilesHelp = () => {
   ])
 }
 
+export const SaveFilesHelpGalaxy = () => {
+  return h(Fragment, [
+    p([
+      'Deleting your Cloud Environment will stop your ',
+      'running Galaxy application and your application costs. You can create a new Cloud Environment ',
+      'for Galaxy later, which will take 8-10 minutes.'
+    ]),
+    p(['If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
+      h(Link, {
+        href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+        ...Utils.newTabLinkProps
+      }, ['move them to the workspace bucket.'])])
+  ])
+}
+
 export const GalaxyWarning = () => {
   return h(Fragment, [
     p({ style: { fontWeight: 600 } }, 'Important: Please keep this tab open and logged in to Terra while using Galaxy.'),

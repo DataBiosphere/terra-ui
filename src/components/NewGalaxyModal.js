@@ -1,27 +1,33 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, label, span } from 'react-hyperscript-helpers'
+import { div, h, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, IdContainer, Link, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { NumberInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
-import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/runtime-common'
+import { GalaxyLaunchButton, GalaxyWarning, SaveFilesHelpGalaxy } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import { currentApp, currentDataDisk, findMachineType, getGalaxyComputeCost, getGalaxyDiskCost } from 'src/libs/runtime-utils'
+import {
+  currentApp, currentAttachedDataDisk, currentPersistentDisk, findMachineType, getGalaxyComputeCost,
+  getGalaxyDiskCost, RadioBlock
+} from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 // TODO Factor out common pieces with NewRuntimeModal.styles into runtime-utils
 const styles = {
   label: { fontWeight: 600, whiteSpace: 'pre' },
+  value: { fontWeight: 400, whiteSpace: 'pre' },
   whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' },
   drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
-  headerText: { fontSize: 16, fontWeight: 600 }
+  headerText: { fontSize: 16, fontWeight: 600 },
+  warningView: { backgroundColor: colors.warning(0.1) }
 }
 
 const defaultDataDiskSize = 500 // GB
@@ -37,19 +43,23 @@ export const NewGalaxyModal = _.flow(
 )(({ onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
   // Assumption: If there is an app defined, there must be a data disk corresponding to it.
   const app = currentApp(apps)
-  const dataDisk = currentDataDisk(app, galaxyDataDisks)
+  const attachedDataDisk = currentAttachedDataDisk(app, galaxyDataDisks)
 
-  const [dataDiskSize, setDataDiskSize] = useState(dataDisk?.size || defaultDataDiskSize)
+  const [dataDiskSize, setDataDiskSize] = useState(attachedDataDisk?.size || defaultDataDiskSize)
   const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(app?.kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig)
   const [viewMode, setViewMode] = useState(undefined)
   const [loading, setLoading] = useState(false)
+  const [shouldDeleteDisk, setShouldDeleteDisk] = useState(false)
+
+  const currentDataDisk = currentPersistentDisk(apps, galaxyDataDisks)
 
   const createGalaxy = _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error creating app')
   )(async () => {
-    await Ajax().Apps.app(namespace, Utils.generateKubernetesClusterName()).create({
-      kubernetesRuntimeConfig, diskName: Utils.generatePersistentDiskName(), diskSize: dataDiskSize, appType: 'GALAXY', namespace, bucketName, workspaceName
+    await Ajax().Apps.app(namespace, Utils.generateGalaxyAppName()).create({
+      kubernetesRuntimeConfig, diskName: currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDiskSize,
+      appType: 'GALAXY', namespace, bucketName, workspaceName
     })
     Ajax().Metrics.captureEvent(Events.applicationCreate, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
     return onSuccess()
@@ -59,7 +69,7 @@ export const NewGalaxyModal = _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error deleting galaxy instance')
   )(async () => {
-    await Ajax().Apps.app(app.googleProject, app.appName).delete()
+    await Ajax().Apps.app(app.googleProject, app.appName).delete(attachedDataDisk ? shouldDeleteDisk : false)
     Ajax().Metrics.captureEvent(Events.applicationDelete, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
     return onSuccess()
   })
@@ -83,7 +93,8 @@ export const NewGalaxyModal = _.flow(
   })
 
   const renderActionButton = () => {
-    const deleteButton = h(ButtonSecondary, { disabled: false, style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') }, ['Delete'])
+    const deleteButton = h(ButtonSecondary, { disabled: false, style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') },
+      ['Delete Environment Options'])
     const pauseButton = h(ButtonSecondary, { disabled: false, style: { marginRight: '1rem' }, onClick: () => { pauseGalaxy() } }, ['Pause'])
     const resumeButton = h(ButtonSecondary, { disabled: false, style: { marginRight: '1rem' }, onClick: resumeGalaxy }, ['Resume'])
 
@@ -112,14 +123,21 @@ export const NewGalaxyModal = _.flow(
             h(ButtonPrimary, { disabled: false, onClick: () => setViewMode('launchWarn') }, ['Launch Galaxy'])
           ])],
           ['STOPPED', () => h(Fragment, [
-            h(ButtonSecondary, { disabled: true, style: { marginRight: 'auto' }, tooltip: 'Cloud Compute must be resumed first.', onClick: () => setViewMode('deleteWarn') }, ['Delete']),
+            h(ButtonSecondary, {
+              disabled: true, style: { marginRight: 'auto' }, tooltip: 'Cloud Compute must be resumed first.',
+              onClick: () => setViewMode('deleteWarn')
+            }, ['Delete']),
             resumeButton
           ])],
           ['ERROR', () => deleteButton],
           [Utils.DEFAULT, () => {
             return h(Fragment, { tooltip: 'Cloud Compute must be resumed first.' }, [
-              h(ButtonSecondary, { disabled: true, style: { marginRight: 'auto' }, tooltip: 'Cloud Compute must be running.', onClick: () => setViewMode('deleteWarn') }, ['Delete']),
-              h(ButtonSecondary, { disabled: true, style: { marginRight: '1rem' }, tooltip: 'Cloud Compute must be running.', onClick: () => { pauseGalaxy() } }, ['Pause'])
+              h(ButtonSecondary, {
+                disabled: true, style: { marginRight: 'auto' }, tooltip: 'Cloud Compute must be running.', onClick: () => setViewMode('deleteWarn')
+              }, ['Delete']),
+              h(ButtonSecondary,
+                { disabled: true, style: { marginRight: '1rem' }, tooltip: 'Cloud Compute must be running.', onClick: () => { pauseGalaxy() } },
+                ['Pause'])
             ])
           }]
         )]
@@ -129,14 +147,14 @@ export const NewGalaxyModal = _.flow(
   const renderMessaging = () => {
     return Utils.switchCase(viewMode,
       ['createWarn', renderCreateWarning],
-      ['deleteWarn', renderDeleteWarning],
+      ['deleteWarn', renderDeleteDiskChoices],
       ['launchWarn', renderLaunchWarning],
       [Utils.DEFAULT, renderDefaultCase]
     )
   }
 
   const renderCreateWarning = () => {
-    return h(Fragment, [
+    return div({ style: styles.drawerContent }, [
       h(TitleBar, {
         title: 'Cloud Environment',
         style: { marginBottom: '0.5rem' },
@@ -186,36 +204,15 @@ export const NewGalaxyModal = _.flow(
             ])
           ])
         ])
-      ])
-    ])
-  }
-
-  const renderDeleteWarning = () => {
-    return h(Fragment, [
-      h(TitleBar, {
-        title: 'Delete Cloud Environment for Galaxy',
-        style: { marginBottom: '0.5rem' },
-        onDismiss,
-        onPrevious: !!viewMode ? () => setViewMode(undefined) : undefined
-      }),
-      div({ style: { lineHeight: '22px' } }, [
-        div({ style: { marginTop: '0.5rem' } }, [
-          'Deleting your Cloud Environment will also ',
-          span({ style: { fontWeight: 600 } }, ['delete any files on the associated hard disk']),
-          ' (e.g. results files). Double check that your workflow results were written to ',
-          'the data tab in the workspace before clicking “Delete”'
-        ]),
-        div({ style: { marginTop: '1rem' } }, [
-          'Deleting your Cloud Environment will stop your ',
-          'running Galaxy application and your application costs. You can create a new Cloud Environment ',
-          'for Galaxy later, which will take 8-10 minutes.'
-        ])
+      ]),
+      div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [
+        renderActionButton()
       ])
     ])
   }
 
   const renderLaunchWarning = () => {
-    return h(Fragment, [
+    return div({ style: styles.drawerContent }, [
       h(TitleBar, {
         title: h(WarningTitle, ['Launch Galaxy']),
         style: { marginBottom: '0.5rem' },
@@ -224,6 +221,9 @@ export const NewGalaxyModal = _.flow(
       }),
       div({ style: { lineHeight: '22px' } }, [
         h(GalaxyWarning)
+      ]),
+      div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [
+        renderActionButton()
       ])
     ])
   }
@@ -286,37 +286,110 @@ export const NewGalaxyModal = _.flow(
   }
 
   const renderPersistentDiskSection = () => {
-    const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' }
     return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
       div({ style: styles.headerText }, ['Persistent disk']),
       div({ style: { marginTop: '0.5rem' } }, [
-        'Persistent disks store analysis data.'
-        // TODO Add info on PDs for Galaxy (similarly to in NewRuntimeModal.js)
+        'Persistent disks store analysis data. ',
+        h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
+          'Learn more about persistent disks',
+          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+        ])
       ]),
-      div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
-        h(IdContainer, [
-          id => h(Fragment, [
-            label({ htmlFor: id, style: styles.label }, ['Size (GB)']),
-            div([
-              h(NumberInput, {
-                id,
-                min: 100, // Leo rejects Galaxy data disks <100G
-                max: 64000,
-                isClearable: false,
-                onlyInteger: true,
-                value: dataDiskSize,
-                style: { marginTop: '0.5rem', width: '5rem' },
-                onChange: v => setDataDiskSize(v)
-              })
+      renderPersistentDiskSizeSection()
+    ])
+  }
+
+  const renderPersistentDiskSizeSection = () => {
+    const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '1rem', alignItems: 'center' }
+    return Utils.cond(
+      [currentDataDisk, () => {
+        return div({ marginTop: '0.75rem' }, [
+          div({ style: { ...gridStyle, marginTop: '0.5rem' } }, [
+            div({ style: styles.label }, ['Size (GB): ']), h(TooltipTrigger,
+              { content: ['Persistent disk of size ', currentDataDisk.size, ' GB already exists and will be attached upon Galaxy creation'] }, [
+                div({ marginTop: '0.5rem', width: '5rem' }, [currentDataDisk.size])
+              ])
+          ])
+        ])
+      }],
+      () => {
+        return div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: styles.label }, ['Size (GB)']),
+              div([
+                h(NumberInput, {
+                  id,
+                  min: 250, // Galaxy doesn't come up with a smaller data disk
+                  max: 64000,
+                  isClearable: false,
+                  onlyInteger: true,
+                  value: dataDiskSize,
+                  style: { marginTop: '0.5rem', width: '5rem' },
+                  onChange: v => setDataDiskSize(v)
+                })
+              ])
             ])
           ])
         ])
+      }
+    )
+  }
+
+  const renderDeleteDiskChoices = () => {
+    return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
+      h(TitleBar, {
+        style: styles.titleBar,
+        title: h(WarningTitle, ['Delete environment options']),
+        onDismiss,
+        onPrevious: () => {
+          setViewMode(undefined)
+          setShouldDeleteDisk(false)
+        }
+      }),
+      div({ style: { lineHeight: '1.5rem' } }, [
+        h(Fragment, [
+          h(RadioBlock, {
+            name: 'keep-persistent-disk',
+            labelText: 'Keep persistent disk, delete application configuration and compute profile',
+            checked: !shouldDeleteDisk,
+            onChange: () => setShouldDeleteDisk(false),
+            style: { marginTop: '1rem' }
+          }, [
+            p([
+              'Deletes your application configuration and cloud compute profile, but detaches your persistent disk and saves it for later. ',
+              'The disk will be automatically reattached the next time you create a Galaxy application.'
+            ]),
+            p({ style: { marginBottom: 0 } }, [
+              'You will continue to incur persistent disk cost at ',
+              span({ style: { fontWeight: 600 } }, [Utils.formatUSD(getGalaxyDiskCost(dataDiskSize)), ' per hour.'])
+            ])
+          ]),
+          h(RadioBlock, {
+            name: 'delete-persistent-disk',
+            labelText: 'Delete everything, including persistent disk',
+            checked: shouldDeleteDisk,
+            onChange: () => setShouldDeleteDisk(true),
+            style: { marginTop: '1rem' }
+          }, [
+            p([
+              'Deletes your persistent disk, which will also ', span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
+            ]),
+            p({ style: { marginBottom: 0 } }, [
+              'Also deletes your application configuration and cloud compute profile.'
+            ])
+          ]),
+          h(SaveFilesHelpGalaxy)
+        ])
+      ]),
+      div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [
+        renderActionButton()
       ])
     ])
   }
 
   const renderDefaultCase = () => {
-    return h(Fragment, [
+    return div({ style: styles.drawerContent }, [
       h(TitleBar, {
         title: 'Cloud Environment',
         style: { marginBottom: '0.5rem' },
@@ -340,15 +413,15 @@ export const NewGalaxyModal = _.flow(
         ])
       ]),
       renderCloudComputeProfileSection(),
-      renderPersistentDiskSection()
+      renderPersistentDiskSection(),
+      div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [
+        renderActionButton()
+      ])
     ])
   }
 
-  return div({ style: styles.drawerContent }, [
+  return h(Fragment, [
     renderMessaging(),
-    div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [
-      renderActionButton()
-    ]),
     loading && spinnerOverlay
   ])
 })
