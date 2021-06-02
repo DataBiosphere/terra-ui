@@ -59,6 +59,8 @@ const UserMenuContent = ({ onEdit, onDelete }) => {
   ])
 }
 
+const menuCardSize = 20
+
 export const MemberCardHeaders = Utils.memoWithName('MemberCardHeaders', ({ sort, onSort }) => {
   const makeHeaderRenderer = name => h(MiniSortable, { sort, field: name, onSort }, [
     div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
@@ -72,14 +74,13 @@ export const MemberCardHeaders = Utils.memoWithName('MemberCardHeaders', ({ sort
       makeHeaderRenderer('roles')
     ]),
     // Width is the same as the menu icon.
-    div({ style: { width: 20 } })
+    div({ style: { width: menuCardSize } })
   ])
 })
 
 export const MemberCard = Utils.memoWithName('MemberCard', ({ member: { email, roles }, adminCanEdit, onEdit, onDelete, adminLabel, userLabel }) => {
   const canEdit = adminCanEdit || !_.includes(adminLabel, roles)
   const tooltip = !canEdit && `This user is the only ${adminLabel}`
-  const menuSize = 20
 
   return div({
     style: Style.cardList.longCardShadowless
@@ -87,7 +88,7 @@ export const MemberCard = Utils.memoWithName('MemberCard', ({ member: { email, r
     div({ style: { flex: '1', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', height: '1rem' } }, [email]),
     div({ style: { flex: '1', textTransform: 'capitalize', height: '1rem' } }, [_.includes(adminLabel, roles) ? adminLabel : userLabel]),
     div({ style: { flex: 'none' } }, [
-      h(TooltipTrigger, { content: tooltip, style: { height: menuSize, width: menuSize } }, [
+      h(TooltipTrigger, { content: tooltip, style: { height: menuCardSize, width: menuCardSize } }, [
         // This div exists because popup trigger overrides the tooltip trigger if it is a direct descendant, which would make there be no tooltip
         div([
           h(PopupTrigger, {
@@ -95,7 +96,7 @@ export const MemberCard = Utils.memoWithName('MemberCard', ({ member: { email, r
             closeOnClick: true,
             content: h(UserMenuContent, { onEdit, onDelete })
           }, [
-            h(Link, { 'aria-label': `Menu for User: ${email}`, disabled: !canEdit }, [icon('cardMenuIcon', { size: menuSize })])
+            h(Link, { 'aria-label': `Menu for User: ${email}`, disabled: !canEdit }, [icon('cardMenuIcon', { size: menuCardSize })])
           ])
         ])
       ])

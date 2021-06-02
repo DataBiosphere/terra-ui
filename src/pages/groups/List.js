@@ -95,6 +95,8 @@ const DeleteGroupModal = ({ groupName, onDismiss, onSubmit }) => {
   ])
 }
 
+const roleSectionWidth = 100
+
 const GroupCardHeaders = Utils.memoWithName('GroupCardHeaders', ({ sort, onSort }) => {
   const makeHeaderRenderer = name => h(MiniSortable, { sort, field: name, onSort }, [
     div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
@@ -107,7 +109,10 @@ const GroupCardHeaders = Utils.memoWithName('GroupCardHeaders', ({ sort, onSort 
       makeHeaderRenderer('groupEmail')
     ]),
     // Width is the same as the menu icon.
-    div({ style: { width: 100 } })
+    div({ style: { width: roleSectionWidth } }, [
+      // This behaves strangely due to the fact that role is an array. If you have multiple roles it can do strange things.
+      makeHeaderRenderer('role')
+    ])
   ])
 })
 
@@ -124,7 +129,7 @@ const GroupCard = Utils.memoWithName('GroupCard', ({ group: { groupName, groupEm
       }
     }, [groupName]),
     div({ style: { flexGrow: 1 } }, [groupEmail]),
-    div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
+    div({ style: { width: roleSectionWidth, display: 'flex', alignItems: 'center' } }, [
       div({ style: { flexGrow: 1 } }, [isAdmin ? 'Admin' : 'Member']),
       isAdmin && h(Link, {
         'aria-label': `Delete group ${groupName}`,
