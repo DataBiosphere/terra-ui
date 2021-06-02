@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useState } from 'react'
+import { Children, Fragment, useState } from 'react'
 import FocusLock from 'react-focus-lock'
 import { b, div, h, h1, img, input, label, span } from 'react-hyperscript-helpers'
 import RSelect, { components as RSelectComponents } from 'react-select'
@@ -52,7 +52,7 @@ const styles = {
   }
 }
 
-export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, onClick, children, ...props }) => {
+export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, useTooltipAsLabel, onClick, children, ...props }) => {
   const child = h(Interactive, {
     'aria-disabled': !!disabled,
     as, disabled,
@@ -63,7 +63,21 @@ export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip
   }, [children])
 
   if (tooltip) {
-    return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay }, [child])
+    let useLabel = useTooltipAsLabel
+
+    // If there's a tooltip, and only one child which is an icon, and no aria-label, and the user hasn't
+    // explicitly set useTooltipAsLabel to false, then use the tooltip as the label rather than the description
+    if (!('aria-label' in props) && useLabel !== false && Children.count(children) === 1 && typeof children !== 'string') {
+      try {
+        const onlyChild = Children.only(children)
+
+        // Is there a better way to test for this other than duck-typing?
+        if ('data-icon' in onlyChild.props && 'icon' in onlyChild.props && !('aria-label' in onlyChild.props)) {
+          useLabel = true
+        }
+      } catch (e) { /* do nothing */ }
+    }
+    return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay, useTooltipAsLabel: useLabel }, [child])
   } else {
     return child
   }
@@ -546,7 +560,8 @@ export const ClipboardButton = ({ text, onClick, ...props }) => {
   const [copied, setCopied] = useState(false)
   return h(Link, {
     ...props,
-    tooltip: 'Copy to clipboard',
+    tooltip: copied ? 'Copied to clipboard' : 'Copy to clipboard',
+    useTooltipAsLabel: true,
     onClick: _.flow(
       withErrorReporting('Error copying to clipboard'),
       Utils.withBusyState(setCopied)

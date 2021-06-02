@@ -298,7 +298,7 @@ export default class RuntimeManager extends PureComponent {
             onClick: () => this.startRuntime(),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'Start cloud environment' : noCompute,
-            'aria-label': 'Start cloud environment'
+            useTooltipAsLabel: true
           })
         case 'Running':
           return h(RuntimeIcon, {
@@ -306,7 +306,7 @@ export default class RuntimeManager extends PureComponent {
             onClick: () => this.stopRuntime(),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'Stop cloud environment' : noCompute,
-            'aria-label': 'Stop cloud environment'
+            useTooltipAsLabel: true
           })
         case 'Starting':
         case 'Stopping':
@@ -317,7 +317,7 @@ export default class RuntimeManager extends PureComponent {
             shape: 'sync',
             disabled: true,
             tooltip: 'Cloud environment update in progress',
-            'aria-label': 'Cloud environment update in progress'
+            useTooltipAsLabel: true
           })
         case 'Error':
           return h(RuntimeIcon, {
@@ -326,7 +326,7 @@ export default class RuntimeManager extends PureComponent {
             onClick: () => this.setState({ errorModalOpen: true }),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'View error' : noCompute,
-            'aria-label': 'View error'
+            useTooltipAsLabel: true
           })
         default:
           return h(RuntimeIcon, {
@@ -334,7 +334,7 @@ export default class RuntimeManager extends PureComponent {
             onClick: () => this.setState({ createModalDrawerOpen: true }),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'Create cloud environment' : noCompute,
-            'aria-label': 'Create cloud environment'
+            useTooltipAsLabel: true
           })
       }
     }
@@ -379,7 +379,7 @@ export default class RuntimeManager extends PureComponent {
           href: applicationLaunchLink,
           onClick: window.location.hash === applicationLaunchLink && currentStatus === 'Stopped' ? () => this.startRuntime() : undefined,
           tooltip: canCompute ? `Open ${applicationName}` : noCompute,
-          'aria-label': `Open ${applicationName}`,
+          useTooltipAsLabel: true,
           disabled: !canCompute,
           style: { marginRight: '2rem', ...styles.verticalCenter },
           ...(isRStudioImage ? {} : Utils.newTabLinkProps)
