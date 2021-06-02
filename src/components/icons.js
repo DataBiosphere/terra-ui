@@ -12,7 +12,10 @@ import iconDict from 'src/libs/icon-dict'
  * @param {number} [props.size] The size of the icon
  */
 export const icon = (shape, { size = 16, ...props } = {}) => {
-  props['aria-hidden'] = !props['aria-label']
+  // Unless we have a label, we need to hide the icon from screen readers
+  if (!('aria-hidden' in props)) {
+    props['aria-hidden'] = !props['aria-label']
+  }
   return _.invokeArgs(shape, [{ size, 'data-icon': shape, ...props }], iconDict)
 }
 

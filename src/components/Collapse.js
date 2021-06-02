@@ -24,7 +24,7 @@ const Collapse = ({ title, buttonStyle, buttonProps = {}, initialOpenState, chil
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       h(Link, {
         'aria-expanded': isOpened,
-        'aria-controls': id,
+        'aria-controls': isOpened ? id : undefined,
         style: { display: 'flex', flex: 1, alignItems: 'center', marginBottom: '0.5rem', ...buttonStyle },
         onClick: () => setIsOpened(!isOpened),
         ...buttonProps
