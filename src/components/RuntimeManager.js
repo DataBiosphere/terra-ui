@@ -298,7 +298,7 @@ export default class RuntimeManager extends PureComponent {
             onClick: () => this.startRuntime(),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'Start cloud environment' : noCompute,
-            useTooltipAsLabel: true
+            'aria-label': 'Start cloud environment'
           })
         case 'Running':
           return h(RuntimeIcon, {
@@ -306,7 +306,7 @@ export default class RuntimeManager extends PureComponent {
             onClick: () => this.stopRuntime(),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'Stop cloud environment' : noCompute,
-            useTooltipAsLabel: true
+            'aria-label': 'Stop cloud environment'
           })
         case 'Starting':
         case 'Stopping':
@@ -317,7 +317,7 @@ export default class RuntimeManager extends PureComponent {
             shape: 'sync',
             disabled: true,
             tooltip: 'Cloud environment update in progress',
-            useTooltipAsLabel: true
+            'aria-label': 'Cloud environment update in progress'
           })
         case 'Error':
           return h(RuntimeIcon, {
@@ -326,7 +326,7 @@ export default class RuntimeManager extends PureComponent {
             onClick: () => this.setState({ errorModalOpen: true }),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'View error' : noCompute,
-            useTooltipAsLabel: true
+            'aria-label': 'View error'
           })
         default:
           return h(RuntimeIcon, {
@@ -334,7 +334,7 @@ export default class RuntimeManager extends PureComponent {
             onClick: () => this.setState({ createModalDrawerOpen: true }),
             disabled: busy || !canCompute,
             tooltip: canCompute ? 'Create cloud environment' : noCompute,
-            useTooltipAsLabel: true
+            'aria-label': 'Create cloud environment'
           })
       }
     }
