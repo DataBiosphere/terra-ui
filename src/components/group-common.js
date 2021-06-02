@@ -51,10 +51,10 @@ export const NewUserCard = ({ onClick }) => {
 const UserMenuContent = ({ onEdit, onDelete }) => {
   return h(Fragment, [
     h(MenuButton, {
-      onClick: () => onEdit()
+      onClick: onEdit
     }, [makeMenuIcon('edit'), 'Edit Role']),
     h(MenuButton, {
-      onClick: () => onDelete()
+      onClick: onDelete
     }, [makeMenuIcon('trash'), 'Remove User'])
   ])
 }
@@ -181,7 +181,7 @@ export const NewUserModal = ({
       title,
       okButton: h(ButtonPrimary, {
         tooltip: Utils.summarizeErrors(errors),
-        onClick: () => addUser(),
+        onClick: addUser,
         disabled: errors
       }, ['Add User'])
     }, [
@@ -243,7 +243,7 @@ export const EditUserModal = ({ adminLabel, userLabel, user: { email, roles }, o
     onDismiss,
     title: 'Edit Roles',
     okButton: h(ButtonPrimary, {
-      onClick: () => submit()
+      onClick: submit
     }, ['Change Role'])
   }, [
     div({ style: { marginBottom: '0.25rem' } }, [

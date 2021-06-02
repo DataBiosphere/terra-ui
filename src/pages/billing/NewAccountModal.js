@@ -323,7 +323,7 @@ const NewAccountModal = ({ onDismiss }) => {
     div({ style: { margin: '0 -1.25rem', borderTop: `1px solid ${colors.dark(0.25)}` } }),
     div({ style: { minHeight: 400, overflow: 'auto' } }, [pages[page].render()]),
     div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
-      h(ButtonSecondary, { onClick: () => onDismiss() }, ['Cancel']),
+      h(ButtonSecondary, { onClick: onDismiss }, ['Cancel']),
       div({ style: { flexGrow: 1 } }),
       (!onFirstPage || !!account.paymentType) && h(Fragment, [
         h(ButtonSecondary, { onClick: () => setPage(page - 1), disabled: onFirstPage }, ['Back']),

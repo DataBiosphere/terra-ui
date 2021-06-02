@@ -75,17 +75,16 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         div({ style: { marginLeft: '0.5rem' } }, ['Add User'])
       ]),
       h(MemberCardHeaders, { sort, onSort: setSort }),
-      div(
-        _.map(member => {
-          return h(MemberCard, {
-            key: member.email,
-            adminLabel: billingRoles.owner,
-            userLabel: billingRoles.user,
-            member, adminCanEdit,
-            onEdit: () => setEditingUser(member),
-            onDelete: () => setDeletingUser(member)
-          })
-        }, _.orderBy([sort.field], [sort.direction], projectUsers))
+      div(_.map(member => {
+        return h(MemberCard, {
+          key: member.email,
+          adminLabel: billingRoles.owner,
+          userLabel: billingRoles.user,
+          member, adminCanEdit,
+          onEdit: () => setEditingUser(member),
+          onDelete: () => setDeletingUser(member)
+        })
+      }, _.orderBy([sort.field], [sort.direction], projectUsers))
       )
     ])
   }

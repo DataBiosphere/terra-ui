@@ -55,7 +55,7 @@ const NewGroupModal = ({ onSuccess, onDismiss, existingGroups }) => {
     title: 'Create New Group',
     okButton: h(ButtonPrimary, {
       disabled: errors,
-      onClick: () => submit()
+      onClick: submit
     }, ['Create Group'])
   }, [
     h(IdContainer, [id => h(Fragment, [
