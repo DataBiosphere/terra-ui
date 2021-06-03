@@ -243,7 +243,7 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
           ]),
           side: 'bottom'
         }, [
-          h(HeaderButton, {}, [icon('ellipsis-v')])
+          h(HeaderButton, {}, [icon('ellipsis-v', { 'aria-label': 'notebook menu' })])
         ])
       ])],
       [_.includes(runtimeStatus, usableStatuses), () => {

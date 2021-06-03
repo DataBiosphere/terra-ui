@@ -59,7 +59,8 @@ const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, childr
       id: childId,
       'aria-haspopup': true,
       'aria-expanded': open,
-      'aria-controls': menuId,
+      'aria-controls': open ? menuId : undefined,
+      'aria-owns': open ? menuId : undefined,
       className: `${child.props.className || ''} ${childId}`,
       onClick: (...args) => {
         child.props.onClick && child.props.onClick(...args)
