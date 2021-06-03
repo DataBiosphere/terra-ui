@@ -86,7 +86,7 @@ export const navList = {
     fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.dark(0.2)}`
   },
   itemContainer: selected => ({
-    display: 'flex', alignItems: 'center', width: '100%', height: 50,
+    display: 'flex', alignItems: 'center', flex: 'none', width: '100%', height: 50,
     padding: '0 1.5rem', backgroundColor: 'white',
     borderBottom: `1px solid ${colors.dark(0.2)}`,
     boxShadow: selected ? `inset -10px 0px ${terraSpecial()}` : undefined
