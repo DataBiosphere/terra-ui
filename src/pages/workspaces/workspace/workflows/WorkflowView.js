@@ -165,7 +165,6 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                 style: { position: 'absolute', right: '0.5rem', top: 0, bottom: 0, display: 'flex', alignItems: 'center' },
                 onClick: () => onBrowse(name),
                 tooltip: 'Browse bucket files',
-                useTooltipAsLabel: true,
                 'aria-haspopup': 'dialog'
               }, [icon('folder-open', { size: 20 })])
 
@@ -178,8 +177,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                 [formattedValue === undefined, () => 'Cannot format this value'],
                 [formattedValue === value, () => 'Already formatted'],
                 () => 'Reformat'
-              ),
-              useTooltipAsLabel: true
+              )
             }, ['{…}']),
             error && h(TooltipTrigger, { content: error }, [
               icon('error-standard', {

@@ -315,10 +315,9 @@ export const WorkspaceList = () => {
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
         h(Link, {
-          onClick: () => setCreatingNewWorkspace(true),
+          'aria-label': 'Create new workspace', onClick: () => setCreatingNewWorkspace(true),
           style: { marginLeft: '0.5rem' },
-          tooltip: 'Create a new workspace',
-          useTooltipAsLabel: true
+          tooltip: 'Create a new workspace'
         },
         [icon('lighter-plus-circle', { size: 24 })])
       ]),

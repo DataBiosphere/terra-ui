@@ -473,9 +473,9 @@ const WorkspaceData = _.flow(
         h(DataTypeSection, {
           title: 'Tables',
           titleExtras: h(Link, {
+            'aria-label': 'Upload .tsv',
             disabled: !!Utils.editWorkspaceError(workspace),
             tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
-            useTooltipAsLabel: true,
             onClick: () => setUploadingFile(true),
             'aria-haspopup': 'dialog'
           }, [icon('plus-circle', { size: 21 })]),
@@ -513,7 +513,6 @@ const WorkspaceData = _.flow(
               afterToggle: h(Link, {
                 style: { marginRight: '0.5rem' },
                 tooltip: 'Snapshot Info',
-                useTooltipAsLabel: true,
                 onClick: () => {
                   setSelectedDataType([snapshotName])
                   forceRefresh()
@@ -564,9 +563,9 @@ const WorkspaceData = _.flow(
         h(DataTypeSection, {
           title: 'Reference Data',
           titleExtras: h(Link, {
+            'aria-label': 'Add reference data',
             disabled: !!Utils.editWorkspaceError(workspace),
             tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
-            useTooltipAsLabel: true,
             onClick: () => setImportingReference(true),
             'aria-haspopup': 'dialog'
           }, [icon('plus-circle', { size: 21 })])
@@ -578,9 +577,9 @@ const WorkspaceData = _.flow(
             refreshWorkspace()
           },
           after: h(Link, {
+            'aria-label': `Delete ${type}`,
             disabled: !!Utils.editWorkspaceError(workspace),
             tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
-            useTooltipAsLabel: true,
             onClick: e => {
               e.stopPropagation()
               setDeletingReference(type)

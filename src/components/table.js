@@ -690,7 +690,6 @@ export const ColumnSelector = ({ onSave, columnSettings }) => {
     h(Clickable, {
       style: styles.columnSelector,
       tooltip: 'Select columns',
-      useTooltipAsLabel: true,
       'aria-haspopup': 'dialog',
       'aria-expanded': open,
       onClick: () => {
