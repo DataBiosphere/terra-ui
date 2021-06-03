@@ -9,7 +9,6 @@ import {
 import { DelayedSearchInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
-import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'

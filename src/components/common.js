@@ -24,7 +24,6 @@ import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
-import { switchCase } from 'src/libs/utils'
 import * as Utils from 'src/libs/utils'
 
 
