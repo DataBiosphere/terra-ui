@@ -355,7 +355,7 @@ export const PageBoxVariants = {
   LIGHT: 'light'
 }
 
-export const PageBox = ({ children, variant = undefined, style = {}, ...props }) => {
+export const PageBox = ({ children, variant, style = {}, ...props }) => {
   return div(_.merge({
     style: {
       margin: '1.5rem', padding: '1.5rem 1.5rem 0', minHeight: 125, flex: 'none', zIndex: 0,
