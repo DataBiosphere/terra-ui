@@ -1,7 +1,7 @@
 import { isAfter, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Link, makeMenuIcon, MenuButton, Select, SimpleTabBar, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
@@ -58,26 +58,23 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
   const canRead = workspace && Utils.canRead(workspace.accessLevel)
   const canShare = workspace?.canShare
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-  return div({ role: 'menu' }, [
+  return h(Fragment, [
     h(MenuButton, {
       disabled: !canRead,
       tooltip: workspace && !canRead && 'You do not have access to the workspace Authorization Domain',
       tooltipSide: 'left',
-      role: 'menuitem',
       onClick: () => onClone()
     }, [makeMenuIcon('copy'), 'Clone']),
     h(MenuButton, {
       disabled: !canShare,
       tooltip: workspace && !canShare && 'You have not been granted permission to share this workspace',
       tooltipSide: 'left',
-      role: 'menuitem',
       onClick: () => onShare()
     }, [makeMenuIcon('share'), 'Share']),
     h(MenuButton, {
       disabled: !isOwner,
       tooltip: workspace && !isOwner && 'You must be an owner of this workspace or the underlying billing project',
       tooltipSide: 'left',
-      role: 'menuitem',
       onClick: () => onDelete()
     }, [makeMenuIcon('trash'), 'Delete'])
   ])
