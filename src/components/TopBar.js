@@ -349,7 +349,7 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
       showMenu ?
         h(Clickable, {
           style: { alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: '0 1rem', margin: '2px 1rem 0 2px' },
-          onClick: () => navShown ? hideNav() : showNav(),
+          onClick: navShown ? hideNav : showNav,
           'aria-expanded': navShown
         }, [
           icon('bars', {

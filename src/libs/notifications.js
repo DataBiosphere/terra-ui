@@ -126,7 +126,7 @@ const NotificationDisplay = ({ id }) => {
       showCancel: false,
       showX: true,
       onDismiss: () => setModal(false),
-      okButton: h(ButtonPrimary, { onClick: () => refreshPage() }, 'Refresh Page')
+      okButton: h(ButtonPrimary, { onClick: refreshPage }, 'Refresh Page')
     }, [
       h(ErrorView, { error: detail })
     ])

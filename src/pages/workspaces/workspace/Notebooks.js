@@ -107,10 +107,10 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
         disabled: !canWrite,
         tooltip: !canWrite && noWrite,
         tooltipSide: 'left',
-        onClick: () => onCopy()
+        onClick: onCopy
       }, [makeMenuIcon('copy'), 'Make a copy']),
       h(MenuButton, {
-        onClick: () => onExport()
+        onClick: onExport
       }, [makeMenuIcon('export'), 'Copy to another workspace']),
       h(MenuButton, {
         onClick: async () => {
@@ -126,13 +126,13 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
         disabled: !canWrite,
         tooltip: !canWrite && noWrite,
         tooltipSide: 'left',
-        onClick: () => onRename()
+        onClick: onRename
       }, [makeMenuIcon('renameIcon'), 'Rename']),
       h(MenuButton, {
         disabled: !canWrite,
         tooltip: !canWrite && noWrite,
         tooltipSide: 'left',
-        onClick: () => onDelete()
+        onClick: onDelete
       }, [makeMenuIcon('trash'), 'Delete'])
     ])
   }, [
