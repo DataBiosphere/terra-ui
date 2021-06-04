@@ -6,13 +6,13 @@ import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
-import { Clickable, IdContainer, Link, makeMenuIcon, MenuButton, PageBox, Select, spinnerOverlay } from 'src/components/common'
+import { Clickable, IdContainer, Link, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { NewGalaxyModal } from 'src/components/NewGalaxyModal'
 import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
-import PopupTrigger from 'src/components/PopupTrigger'
+import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -21,7 +21,9 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import { versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
-import { appIsSettingUp, convertedAppStatus, currentApp, currentAttachedDataDisk, getGalaxyCost, isCurrentGalaxyDiskDetaching } from 'src/libs/runtime-utils'
+import {
+  appIsSettingUp, convertedAppStatus, currentApp, currentAttachedDataDisk, getGalaxyCost, isCurrentGalaxyDiskDetaching
+} from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -83,7 +85,7 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
   const notebookEditLink = `${notebookLink}/?${qs.stringify({ mode: 'edit' })}`
   const notebookPlaygroundLink = `${notebookLink}/?${qs.stringify({ mode: 'playground' })}`
 
-  const notebookMenu = h(PopupTrigger, {
+  const notebookMenu = h(MenuTrigger, {
     side: 'right',
     closeOnClick: true,
     content: h(Fragment, [

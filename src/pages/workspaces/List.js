@@ -4,12 +4,12 @@ import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Link, makeMenuIcon, MenuButton, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import { Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import PopupTrigger from 'src/components/PopupTrigger'
+import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable, MiniSortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -265,7 +265,7 @@ export const WorkspaceList = () => {
 
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
-                h(PopupTrigger, {
+                h(MenuTrigger, {
                   side: 'left',
                   closeOnClick: true,
                   content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })

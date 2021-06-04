@@ -1,8 +1,10 @@
+import _ from 'lodash/fp'
 import { Children, cloneElement, Fragment, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import onClickOutside from 'react-onclickoutside'
 import { Clickable, FocusTrapper } from 'src/components/common'
 import { icon } from 'src/components/icons'
+import { VerticalNavigation } from 'src/components/keyboard-nav'
 import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
@@ -20,12 +22,15 @@ const styles = {
 
 // This is written as a "function" function rather than an arrow function because react-onclickoutside wants it to have a prototype
 // eslint-disable-next-line prefer-arrow-callback
-export const Popup = onClickOutside(function({ side = 'right', target: targetId, onClick, children }) {
+export const Popup = onClickOutside(function({ id, side = 'right', target: targetId, onClick, children, popupProps = {} }) {
+  Utils.useConsoleAssert('aria-label' in popupProps || 'aria-labelledby' in popupProps, 'In order to be accessible, Popup needs a label')
+
   const elementRef = useRef()
   const [target, element, viewport] = useDynamicPosition([{ id: targetId }, { ref: elementRef }, { viewport: true }])
   const { position } = computePopupPosition({ side, target, element, viewport, gap: 10 })
   return h(PopupPortal, [
     div({
+      id,
       onClick,
       ref: elementRef,
       style: {
@@ -33,14 +38,16 @@ export const Popup = onClickOutside(function({ side = 'right', target: targetId,
         visibility: !viewport.width ? 'hidden' : undefined,
         ...styles.popup
       },
-      role: 'dialog'
+      role: 'dialog',
+      ...popupProps
     }, [children])
   ])
 })
 
-const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, children, closeOnClick, onChange, ...props }, ref) => {
+const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, children, closeOnClick, onChange, role = 'dialog', ...props }, ref) => {
   const [open, setOpen] = useState(false)
   const id = Utils.useUniqueId()
+  const menuId = Utils.useUniqueId()
   useImperativeHandle(ref, () => ({
     close: () => setOpen(false)
   }))
@@ -51,6 +58,8 @@ const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, childr
 
   const child = Children.only(children)
   const childId = child.props.id || id
+  const labelledby = child.props['aria-labelledby'] || childId
+
   return h(Fragment, [
     cloneElement(child, {
       id: childId,
@@ -58,14 +67,23 @@ const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, childr
       onClick: (...args) => {
         child.props.onClick && child.props.onClick(...args)
         setOpen(!open)
-      }
+      },
+      'aria-haspopup': role, // 'dialog', 'listbox', 'menu' are valid values
+      'aria-expanded': open,
+      'aria-controls': open ? menuId : undefined,
+      'aria-owns': open ? menuId : undefined
     }),
     open && h(Popup, {
+      id: menuId,
       target: childId,
       handleClickOutside: () => setOpen(false),
       outsideClickIgnoreClass: childId,
       onClick: closeOnClick ? () => setOpen(false) : undefined,
-      ...props
+      popupProps: {
+        role,
+        'aria-labelledby': labelledby,
+        ...props
+      }
     }, [h(FocusTrapper, { onBreakout: () => setOpen(false) }, [content])])
   ])
 })
@@ -86,4 +104,33 @@ export const InfoBox = ({ size, children, style, side, tooltip, iconOverride }) 
       icon(iconOverride || 'info-circle', { size, style: { cursor: 'pointer', color: colors.accent(), ...style } })
     ])
   ])
+}
+
+export const makeMenuIcon = (iconName, props) => {
+  return icon(iconName, _.merge({ size: 15, style: { marginRight: '.5rem' } }, props))
+}
+
+export const MenuButton = Utils.forwardRefWithName('MenuButton', ({ disabled, children, ...props }, ref) => {
+  return div({ role: 'menuitem' }, [
+    h(Clickable, _.merge({
+      ref,
+      disabled,
+      style: {
+        display: 'flex', alignItems: 'center',
+        fontSize: 12, minWidth: 125, height: '2.25rem',
+        color: disabled ? colors.dark(0.7) : undefined,
+        padding: '0.875rem',
+        cursor: disabled ? 'not-allowed' : 'pointer'
+      },
+      hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.accent() } : undefined
+    }, props), [children])
+  ])
+})
+
+export const MenuTrigger = ({ children, content, ...props }) => {
+  return h(PopupTrigger, {
+    content: h(VerticalNavigation, [content]),
+    role: 'menu',
+    ...props
+  }, [children])
 }

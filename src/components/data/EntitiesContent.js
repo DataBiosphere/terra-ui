@@ -6,7 +6,7 @@ import * as qs from 'qs'
 import { Fragment, useRef, useState } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { ButtonPrimary, Link, MenuButton } from 'src/components/common'
+import { ButtonPrimary, Link } from 'src/components/common'
 import { EntityDeleter, ModalToolButton, saveScroll } from 'src/components/data/data-utils'
 import DataTable from 'src/components/data/DataTable'
 import ExportDataModal from 'src/components/data/ExportDataModal'
@@ -15,7 +15,7 @@ import IGVBrowser from 'src/components/IGVBrowser'
 import IGVFileSelector from 'src/components/IGVFileSelector'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/components/notebook-utils'
-import PopupTrigger from 'src/components/PopupTrigger'
+import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import WorkflowSelector from 'src/components/WorkflowSelector'
 import datasets from 'src/data/datasets'
@@ -310,7 +310,7 @@ const EntitiesContent = ({
     const noEdit = Utils.editWorkspaceError(workspace)
     const disabled = entityKey.endsWith('_set_set')
 
-    return !_.isEmpty(selectedEntities) && h(PopupTrigger, {
+    return !_.isEmpty(selectedEntities) && h(MenuTrigger, {
       side: 'bottom',
       closeOnClick: true,
       content: h(Fragment, [
