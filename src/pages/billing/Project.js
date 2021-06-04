@@ -26,7 +26,6 @@ const styles = {
   }
 }
 
-
 const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace }) => div({
   style: Style.cardList.longCardShadowless
 }, [
