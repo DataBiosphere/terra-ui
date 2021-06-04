@@ -31,6 +31,7 @@ export const billingRoles = {
 const styles = {
   projectListItem: selected => {
     return {
+      ...Style.navList.itemContainer(selected),
       ...Style.navList.item(selected),
       ...(selected ? { backgroundColor: colors.dark(0.1) } : {}),
       paddingLeft: '3rem'
