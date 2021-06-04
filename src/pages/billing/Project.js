@@ -52,7 +52,6 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   const [showBillingModal, setShowBillingModal] = useState(false)
   const [selectedBilling, setSelectedBilling] = useState()
   const [tab, setTab] = useState(query.tab || 'workspaces')
-
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
 
   const signal = Utils.useCancellation()
