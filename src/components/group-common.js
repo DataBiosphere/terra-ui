@@ -90,17 +90,13 @@ export const MemberCard = Utils.memoWithName('MemberCard', ({ member: { email, r
     div({ style: { flex: '1', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', height: '1rem' } }, [email]),
     div({ style: { flex: '1', textTransform: 'capitalize', height: '1rem' } }, [_.includes(adminLabel, roles) ? adminLabel : userLabel]),
     div({ style: { flex: 'none' } }, [
-      h(TooltipTrigger, { content: tooltip, style: { height: menuCardSize, width: menuCardSize } }, [
-        // This div exists because popup trigger overrides the tooltip trigger if it is a direct descendant, which would make there be no tooltip
-        div([
-          h(PopupTrigger, {
-            side: 'left',
-            closeOnClick: true,
-            content: h(UserMenuContent, { onEdit, onDelete })
-          }, [
-            h(Link, { 'aria-label': `Menu for User: ${email}`, disabled: !canEdit }, [icon('cardMenuIcon', { size: menuCardSize })])
-          ])
-        ])
+      h(PopupTrigger, {
+        side: 'left',
+        style: { height: menuCardSize, width: menuCardSize },
+        closeOnClick: true,
+        content: h(UserMenuContent, { onEdit, onDelete })
+      }, [
+        h(Link, { 'aria-label': `Menu for User: ${email}`, disabled: !canEdit, tooltip, tooltipSide: 'left' }, [icon('cardMenuIcon', { size: menuCardSize })])
       ])
     ])
   ])
