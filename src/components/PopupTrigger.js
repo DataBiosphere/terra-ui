@@ -20,13 +20,12 @@ const styles = {
 
 // This is written as a "function" function rather than an arrow function because react-onclickoutside wants it to have a prototype
 // eslint-disable-next-line prefer-arrow-callback
-export const Popup = onClickOutside(function({ id, side = 'right', target: targetId, onClick, children, ...props }) {
+export const Popup = onClickOutside(function({ side = 'right', target: targetId, onClick, children }) {
   const elementRef = useRef()
   const [target, element, viewport] = useDynamicPosition([{ id: targetId }, { ref: elementRef }, { viewport: true }])
   const { position } = computePopupPosition({ side, target, element, viewport, gap: 10 })
   return h(PopupPortal, [
     div({
-      id,
       onClick,
       ref: elementRef,
       style: {
@@ -34,8 +33,7 @@ export const Popup = onClickOutside(function({ id, side = 'right', target: targe
         visibility: !viewport.width ? 'hidden' : undefined,
         ...styles.popup
       },
-      role: 'dialog',
-      ...props
+      role: 'dialog'
     }, [children])
   ])
 })
@@ -43,7 +41,6 @@ export const Popup = onClickOutside(function({ id, side = 'right', target: targe
 const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, children, closeOnClick, onChange, ...props }, ref) => {
   const [open, setOpen] = useState(false)
   const id = Utils.useUniqueId()
-  const menuId = Utils.useUniqueId()
   useImperativeHandle(ref, () => ({
     close: () => setOpen(false)
   }))
@@ -57,10 +54,6 @@ const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, childr
   return h(Fragment, [
     cloneElement(child, {
       id: childId,
-      'aria-haspopup': true,
-      'aria-expanded': open,
-      'aria-controls': open ? menuId : undefined,
-      'aria-owns': open ? menuId : undefined,
       className: `${child.props.className || ''} ${childId}`,
       onClick: (...args) => {
         child.props.onClick && child.props.onClick(...args)
@@ -68,7 +61,6 @@ const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, childr
       }
     }),
     open && h(Popup, {
-      id: menuId,
       target: childId,
       handleClickOutside: () => setOpen(false),
       outsideClickIgnoreClass: childId,
