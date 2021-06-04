@@ -39,6 +39,7 @@ export const Popup = onClickOutside(function({ id, side = 'right', target: targe
         ...styles.popup
       },
       role: 'dialog',
+      'aria-modal': true,
       ...popupProps
     }, [children])
   ])
@@ -131,6 +132,7 @@ export const MenuTrigger = ({ children, content, ...props }) => {
   return h(PopupTrigger, {
     content: h(VerticalNavigation, [content]),
     role: 'menu',
+    'aria-orientation': 'vertical',
     ...props
   }, [children])
 }
