@@ -108,10 +108,13 @@ const GroupCardHeaders = Utils.memoWithName('GroupCardHeaders', ({ sort, onSort 
     div({ style: { flexGrow: 1 } }, [
       makeHeaderRenderer('groupEmail')
     ]),
-    // Width is the same as the menu icon.
-    div({ style: { width: roleSectionWidth } }, [
+    div({ style: { width: '20%' } }, [
       // This behaves strangely due to the fact that role is an array. If you have multiple roles it can do strange things.
       makeHeaderRenderer('role')
+    ]),
+    // Width is the same as the menu icon.
+    div({ style: { width: roleSectionWidth } }, [
+      div({ className: 'sr-only' }, ['Actions'])
     ])
   ])
 })
@@ -129,8 +132,8 @@ const GroupCard = Utils.memoWithName('GroupCard', ({ group: { groupName, groupEm
       }
     }, [groupName]),
     div({ style: { flexGrow: 1 } }, [groupEmail]),
+    div({ style: { width: '20%' } }, [isAdmin ? 'Admin' : 'Member']),
     div({ style: { width: roleSectionWidth, display: 'flex', alignItems: 'center' } }, [
-      div({ style: { flexGrow: 1 } }, [isAdmin ? 'Admin' : 'Member']),
       isAdmin && h(Link, {
         'aria-label': `Delete group ${groupName}`,
         onClick: onDelete,

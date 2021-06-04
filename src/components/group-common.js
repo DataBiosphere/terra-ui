@@ -74,7 +74,9 @@ export const MemberCardHeaders = Utils.memoWithName('MemberCardHeaders', ({ sort
       makeHeaderRenderer('roles')
     ]),
     // Width is the same as the menu icon.
-    div({ style: { width: menuCardSize } })
+    div({ style: { width: menuCardSize } }, [
+      div({ className: 'sr-only' }, ['Actions'])
+    ])
   ])
 })
 
