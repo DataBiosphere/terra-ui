@@ -360,7 +360,7 @@ export const PageBox = ({ children, variant, style = {}, ...props }) => {
     style: {
       margin: '1.5rem', padding: '1.5rem 1.5rem 0', minHeight: 125, flex: 'none', zIndex: 0,
       ...Utils.switchCase(variant,
-        [PageBoxVariants.LIGHT, () => { return { backgroundColor: colors.light(), margin: 0, padding: '3rem 3rem 1.5rem' } }],
+        [PageBoxVariants.LIGHT, () => ({ backgroundColor: colors.light(), margin: 0, padding: '3rem 3rem 1.5rem' })],
         [Utils.DEFAULT, () => {}]), ...style
     }
   }, props), [children])
