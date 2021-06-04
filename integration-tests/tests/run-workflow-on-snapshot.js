@@ -52,12 +52,12 @@ const testRunWorkflowOnSnapshotFn = _.flow(
   await select(page, 'Snapshot table selector', snapshotTableName)
 
   await click(page, clickable({ textContains: 'Inputs' }))
-  await fillInReplace(page, input({ labelContains: 'echo_strings.echo_to_file.input1' }), `this.${snapshotColumnName}`)
+  await fillInReplace(page, input({ labelContains: 'echo_to_file input1 attribute' }), `this.${snapshotColumnName}`)
   await delay(1000) // Without this delay, the input field sometimes reverts back to its default value
   await click(page, clickable({ text: 'Save' }))
 
   await click(page, clickable({ textContains: 'Outputs' }))
-  await fillInReplace(page, input({ labelContains: 'echo_strings.echo_to_file.out' }), 'workspace.result')
+  await fillInReplace(page, input({ labelContains: 'echo_to_file out attribute' }), 'workspace.result')
   await delay(1000) // Without this delay, the input field sometimes reverts back to its default value
   await click(page, clickable({ text: 'Save' }))
 

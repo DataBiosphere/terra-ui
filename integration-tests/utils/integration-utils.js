@@ -51,7 +51,7 @@ const findText = (page, textContains, options) => {
 const input = ({ labelContains, placeholder }) => {
   const base = '(//input | //textarea)'
   if (labelContains) {
-    return `${base}[contains(@aria-label,"${labelContains}") or @id=//label[contains(normalize-space(.),"${labelContains}")]/@for]`
+    return `${base}[contains(@aria-label,"${labelContains}") or @id=//label[contains(normalize-space(.),"${labelContains}")]/@for or @aria-labelledby=//*[contains(normalize-space(.),"${labelContains}")]/@id`
   } else if (placeholder) {
     return `${base}[@placeholder="${placeholder}"]`
   }
