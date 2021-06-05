@@ -688,6 +688,7 @@ export const ColumnSelector = ({ onSave, columnSettings }) => {
 
   return h(Fragment, [
     h(Clickable, {
+      'aria-label': 'Select columns',
       style: styles.columnSelector,
       tooltip: 'Select columns',
       'aria-haspopup': 'dialog',
