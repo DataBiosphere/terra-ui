@@ -47,7 +47,7 @@ export const Popup = onClickOutside(function({ id, side = 'right', target: targe
   ])
 })
 
-const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, side, closeOnClick, onChange, role = 'dialog', children, ...props }, ref) => {
+const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, side, closeOnClick, onChange, popupProps: { role = 'dialog', ...popupProps }, children, ...props }, ref) => {
   const [open, setOpen] = useState(false)
   const id = Utils.useUniqueId()
   const menuId = Utils.useUniqueId()
@@ -86,8 +86,9 @@ const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, side, 
       popupProps: {
         role,
         'aria-labelledby': labelledby,
-        ...props
-      }
+        ...popupProps
+      },
+      ...props
     }, [h(FocusTrapper, { onBreakout: () => setOpen(false) }, [content])])
   ])
 })
@@ -131,11 +132,14 @@ export const MenuButton = Utils.forwardRefWithName('MenuButton', ({ disabled, ch
   ])
 })
 
-export const MenuTrigger = ({ children, content, ...props }) => {
+export const MenuTrigger = ({ children, content, popupProps = {}, ...props }) => {
   return h(PopupTrigger, {
     content: h(VerticalNavigation, [content]),
-    role: 'menu',
-    'aria-orientation': 'vertical',
+    popupProps: {
+      role: 'menu',
+      'aria-orientation': 'vertical',
+      ...popupProps
+    },
     ...props
   }, [children])
 }
