@@ -23,6 +23,8 @@ const styles = {
 // This is written as a "function" function rather than an arrow function because react-onclickoutside wants it to have a prototype
 // eslint-disable-next-line prefer-arrow-callback
 export const Popup = onClickOutside(function({ id, side = 'right', target: targetId, onClick, children, popupProps = {} }) {
+  // We're passing popupProps here rather than just props, because ...props also includes lots of internal onClickOutside properties which
+  // aren't valid to be dropped on a DOM element.
   Utils.useConsoleAssert('aria-label' in popupProps || 'aria-labelledby' in popupProps, 'In order to be accessible, Popup needs a label')
 
   const elementRef = useRef()
@@ -45,7 +47,7 @@ export const Popup = onClickOutside(function({ id, side = 'right', target: targe
   ])
 })
 
-const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, children, closeOnClick, onChange, role = 'dialog', ...props }, ref) => {
+const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, side, closeOnClick, onChange, role = 'dialog', children, ...props }, ref) => {
   const [open, setOpen] = useState(false)
   const id = Utils.useUniqueId()
   const menuId = Utils.useUniqueId()
@@ -80,6 +82,7 @@ const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, childr
       handleClickOutside: () => setOpen(false),
       outsideClickIgnoreClass: childId,
       onClick: closeOnClick ? () => setOpen(false) : undefined,
+      side,
       popupProps: {
         role,
         'aria-labelledby': labelledby,
