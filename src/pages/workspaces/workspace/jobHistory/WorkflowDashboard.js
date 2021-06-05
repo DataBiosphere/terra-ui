@@ -155,18 +155,18 @@ const WorkflowDashboard = _.flow(
               h(Link, {
                 ...Utils.newTabLinkProps,
                 href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
-                style: { display: 'flex', marginRight: '2em', alignItems: 'center' },
+                style: { display: 'flex', alignItems: 'center' },
                 tooltip: 'Job Manager'
               }, [icon('tasks', { size: 18 }), ' Job Manager']),
               h(Link, {
                 ...Utils.newTabLinkProps,
                 href: bucketBrowserUrl(`${bucketName}/${submissionId}/${workflowName}/${workflowId}`),
-                style: { display: 'flex', marginRight: '2em', alignItems: 'center' },
+                style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' },
                 tooltip: 'Execution directory'
               }, [icon('folder-open', { size: 18 }), ' Execution Directory']),
               h(Link, {
                 onClick: () => setShowLog(true),
-                style: { display: 'flex', marginRight: '2em', alignItems: 'center' }
+                style: { display: 'flex', marginLeft: '1rem', alignItems: 'center' }
               }, [icon('fileAlt', { size: 18 }), ' View execution log'])
             ])
           ])

@@ -170,7 +170,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
               editIndex === rowIndex ?
                 h(Fragment, [
                   h(Select, {
-                    'aria-label': 'what type of value is this?',
+                    'aria-label': 'data type',
                     styles: { container: base => ({ ...base, marginLeft: '1rem', width: 150 }) },
                     isSearchable: false,
                     isClearable: false,

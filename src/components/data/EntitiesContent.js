@@ -345,11 +345,9 @@ const EntitiesContent = ({
           onClick: () => setDeletingEntities(true)
         }, ['Delete Data'])
       ])
-    }, [
-      h(Link, { style: { marginRight: '1rem' } }, [
-        icon('ellipsis-v-circle', { size: 24, 'aria-label': 'selection menu' })
-      ])
-    ])
+    }, [h(Link, { style: { marginRight: '1rem' } }, [
+      icon('ellipsis-v-circle', { size: 24, 'aria-label': 'selection menu' })
+    ])])
   }
 
   // Render

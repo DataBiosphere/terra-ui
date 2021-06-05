@@ -167,7 +167,6 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                 tooltip: 'Browse bucket files',
                 'aria-haspopup': 'dialog'
               }, [icon('folder-open', { size: 20 })])
-
             ]),
             !readOnly && h(Link, {
               style: { marginLeft: '0.25rem' },

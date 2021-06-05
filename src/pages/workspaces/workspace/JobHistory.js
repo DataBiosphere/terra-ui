@@ -257,9 +257,7 @@ const JobHistory = _.flow(
               headerRenderer: () => h(HeaderCell, ['Status']),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowStatuses, status } = filteredSubmissions[rowIndex]
-                return h(Fragment, [
-                  statusCell(workflowStatuses, status)
-                ])
+                return statusCell(workflowStatuses, status)
               }
             },
             {
