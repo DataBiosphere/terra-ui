@@ -21,9 +21,7 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import { versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
-import {
-  appIsSettingUp, convertedAppStatus, currentApp, currentAttachedDataDisk, getGalaxyCost, isCurrentGalaxyDiskDetaching
-} from 'src/libs/runtime-utils'
+import { appIsSettingUp, convertedAppStatus, currentApp, currentAttachedDataDisk, getGalaxyCost, isCurrentGalaxyDiskDetaching } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
