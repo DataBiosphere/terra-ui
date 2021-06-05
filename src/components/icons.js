@@ -7,20 +7,27 @@ import iconDict from 'src/libs/icon-dict'
 
 
 /**
- * Returns true if an element with the given set of children and properties contains a single icon
- * which does not already have a label. This can be used, for example, to determine whether a tooltip
- * should be used as a aria-label.
+ * To support accessibility, every icon must be labeled, either:
+ * * by placing it next to relevant text and hiding the icon, or
+ * * by explicitly setting `aria-label` or `aria-labelledby` on the icon or its interactive container element.
+ *
+ * This function attempts to determine if an element with the given set of children and properties
+ * contains a single icon without a label, so we can do an appropriate resolution.
+ *
+ * If the container element has an 'aria-label` or `aria-labelledby`, or if the icon itself
+ * has `aria-label` or `aria-labelledby`, or if the icon is accompanied by other child elements, then we can
+ * assume the icon is labeled and no further label is needed.
  *
  * @param children
  * @param props
  * @returns {boolean}
  */
 export const containsUnlabelledIcon = ({ children, ...props }) => {
-  if (!('aria-label' in props) && Children.count(children) === 1 && typeof children !== 'string') {
+  if (!props['aria-label'] && !props['aria-labelledby'] && Children.count(children) === 1 && typeof children !== 'string') {
     try {
       const onlyChild = Children.only(children)
 
-      // Is there a better way to test for this other than duck-typing?
+      // Is there a better way to test for an icon component other than duck-typing?
       if ('data-icon' in onlyChild.props && 'icon' in onlyChild.props && onlyChild.props['aria-hidden'] === true) {
         return true
       }

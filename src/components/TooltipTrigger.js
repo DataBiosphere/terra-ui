@@ -93,15 +93,19 @@ const TooltipTrigger = ({ children, content, useTooltipAsLabel, ...props }) => {
   const child = Children.only(children)
   const childId = child.props.id || id
 
-  // If there's only one child which is an icon, and no aria-label, and the user hasn't explicitly set useTooltipAsLabel to false,
-  // then use the tooltip as the label rather than the description.
-  const useLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, props }) : useTooltipAsLabel
+  // To support accessibility, every link must have a label or contain text or a labeled child.
+  // If an unlabeled link contains just a single unlabeled icon, then we should use the tooltip as the label,
+  // rather than as the description as we otherwise would.
+  //
+  // If the auto-detection can't make the proper determination, for example, because the icon is wrapped in other elements,
+  // you can explicitly pass in a boolean as `useTooltipAsLabel` to force the correct behavior.
+  const useAsLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, props }) : useTooltipAsLabel
 
   return h(Fragment, [
     cloneElement(child, {
       id: childId,
-      'aria-labelledby': !!content && useLabel ? descriptionId : undefined,
-      'aria-describedby': !!content && !useLabel ? descriptionId : undefined,
+      'aria-labelledby': !!content && useAsLabel ? descriptionId : undefined,
+      'aria-describedby': !!content && !useAsLabel ? descriptionId : undefined,
       onMouseEnter: (...args) => {
         child.props.onMouseEnter && child.props.onMouseEnter(...args)
         setOpen(true)

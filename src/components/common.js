@@ -62,15 +62,22 @@ export const Clickable = ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip
     ...props
   }, [children])
 
-  // If there's only one child which is an icon, and no aria-label, and the user hasn't explicitly set useTooltipAsLabel to false,
-  // then use the tooltip as the label rather than the description.
-  // TooltipTrigger does this same check, but since we'll be passing it an Interactive child, we need to do the check here instead.
-  const useLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, props }) : useTooltipAsLabel
+  // To support accessibility, every link must have a label or contain text or a labeled child.
+  // If an unlabeled link contains just a single unlabeled icon, then we should use the tooltip as the label,
+  // rather than as the description as we otherwise would.
+  //
+  // If the auto-detection can't make the proper determination, for example, because the icon is wrapped in other elements,
+  // you can explicitly pass in a boolean as `useTooltipAsLabel` to force the correct behavior.
+  //
+  // Note that TooltipTrigger does this same check with its own children, but since we'll be passing it an
+  // Interactive element, we need to do the check here instead.
+  const useAsLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, props }) : useTooltipAsLabel
 
-  Utils.useConsoleAssert(tooltip || !useLabel, 'In order to be accessible, Clickable or the icon contained within it needs an accessible label or tooltip')
+  // If we determined that we need to use the tooltip as a label, assert that we have a tooltip
+  Utils.useConsoleAssert(!useAsLabel || tooltip, 'In order to be accessible, Clickable or the icon contained within it needs an accessible label or tooltip')
 
   if (tooltip) {
-    return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay, useTooltipAsLabel: useLabel }, [child])
+    return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay, useTooltipAsLabel: useAsLabel }, [child])
   } else {
     return child
   }
