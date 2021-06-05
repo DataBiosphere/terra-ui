@@ -1,9 +1,11 @@
 import _ from 'lodash/fp'
 import { useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { PageBox, spinnerOverlay } from 'src/components/common'
+import { PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { AdminNotifierCheckbox, DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
+import {
+  AdminNotifierCheckbox, DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal
+} from 'src/components/group-common'
 import { DelayedSearchInput } from 'src/components/input'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
@@ -25,6 +27,7 @@ const GroupDetails = ({ groupName }) => {
   const [loading, setLoading] = useState(false)
   const [adminCanEdit, setAdminCanEdit] = useState(false)
   const [allowAccessRequests, setAllowAccessRequests] = useState(false)
+  const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
 
   const signal = Utils.useCancellation()
 
@@ -80,7 +83,7 @@ const GroupDetails = ({ groupName }) => {
         value: filter
       })
     ]),
-    h(PageBox, { role: 'main', style: { flexGrow: 1 } }, [
+    h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
       div({ style: Style.cardList.toolbarContainer }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
           `Group Management: ${groupName}`
@@ -96,11 +99,12 @@ const GroupDetails = ({ groupName }) => {
           return refresh()
         })
       }),
-      div({ style: Style.cardList.cardContainer }, [
+      div({ style: { marginTop: '1rem' } }, [
         h(NewUserCard, {
           onClick: () => setCreatingNewUser(true)
         }),
-        div({ style: { flexGrow: 1 } },
+        h(MemberCardHeaders, { sort, onSort: setSort }),
+        div({ style: { flexGrow: 1, marginTop: '1rem' } },
           _.map(member => {
             return h(MemberCard, {
               adminLabel: 'admin',
@@ -109,7 +113,7 @@ const GroupDetails = ({ groupName }) => {
               onEdit: () => setEditingUser(member),
               onDelete: () => setDeletingUser(member)
             })
-          }, _.filter(({ email }) => Utils.textMatch(filter, email), members))
+          }, _.orderBy([sort.field], [sort.direction], _.filter(({ email }) => Utils.textMatch(filter, email), members)))
         ),
         loading && spinnerOverlay
       ]),

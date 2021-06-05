@@ -95,7 +95,7 @@ export const NewGalaxyModal = _.flow(
   const renderActionButton = () => {
     const deleteButton = h(ButtonSecondary, { disabled: false, style: { marginRight: 'auto' }, onClick: () => setViewMode('deleteWarn') },
       ['Delete Environment Options'])
-    const pauseButton = h(ButtonSecondary, { disabled: false, style: { marginRight: '1rem' }, onClick: () => { pauseGalaxy() } }, ['Pause'])
+    const pauseButton = h(ButtonSecondary, { disabled: false, style: { marginRight: '1rem' }, onClick: pauseGalaxy }, ['Pause'])
     const resumeButton = h(ButtonSecondary, { disabled: false, style: { marginRight: '1rem' }, onClick: resumeGalaxy }, ['Resume'])
 
     return Utils.switchCase(viewMode,
@@ -136,7 +136,7 @@ export const NewGalaxyModal = _.flow(
                 disabled: true, style: { marginRight: 'auto' }, tooltip: 'Cloud Compute must be running.', onClick: () => setViewMode('deleteWarn')
               }, ['Delete']),
               h(ButtonSecondary,
-                { disabled: true, style: { marginRight: '1rem' }, tooltip: 'Cloud Compute must be running.', onClick: () => { pauseGalaxy() } },
+                { disabled: true, style: { marginRight: '1rem' }, tooltip: 'Cloud Compute must be running.', onClick: pauseGalaxy },
                 ['Pause'])
             ])
           }]

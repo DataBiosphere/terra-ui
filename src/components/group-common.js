@@ -1,11 +1,12 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, label } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { InfoBox } from 'src/components/PopupTrigger'
+import PopupTrigger, { InfoBox } from 'src/components/PopupTrigger'
+import { MiniSortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -38,37 +39,64 @@ export const AdminNotifierCheckbox = ({ checked, onChange }) => {
 }
 
 export const NewUserCard = ({ onClick }) => {
-  return h(Clickable, {
-    style: Style.cardList.shortCreateCard,
+  return h(ButtonPrimary, {
+    style: { textTransform: 'none' },
     onClick
   }, [
-    div(['Add a User']),
-    icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
+    icon('plus', { size: 14 }),
+    div({ style: { marginLeft: '0.5rem' } }, ['Add User'])
   ])
 }
+
+const UserMenuContent = ({ onEdit, onDelete }) => {
+  return h(Fragment, [
+    h(MenuButton, {
+      onClick: onEdit
+    }, [makeMenuIcon('edit'), 'Edit Role']),
+    h(MenuButton, {
+      onClick: onDelete
+    }, [makeMenuIcon('trash'), 'Remove User'])
+  ])
+}
+
+const menuCardSize = 20
+
+export const MemberCardHeaders = Utils.memoWithName('MemberCardHeaders', ({ sort, onSort }) => {
+  const makeHeaderRenderer = name => h(MiniSortable, { sort, field: name, onSort }, [
+    div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
+  ])
+
+  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' } }, [
+    div({ style: { flex: 1 } }, [
+      makeHeaderRenderer('email')
+    ]),
+    div({ style: { flex: 1 } }, [
+      makeHeaderRenderer('roles')
+    ]),
+    // Width is the same as the menu icon.
+    div({ style: { width: menuCardSize } }, [
+      div({ className: 'sr-only' }, ['Actions'])
+    ])
+  ])
+})
 
 export const MemberCard = Utils.memoWithName('MemberCard', ({ member: { email, roles }, adminCanEdit, onEdit, onDelete, adminLabel, userLabel }) => {
   const canEdit = adminCanEdit || !_.includes(adminLabel, roles)
   const tooltip = !canEdit && `This user is the only ${adminLabel}`
 
   return div({
-    style: Style.cardList.longCard
+    style: Style.cardList.longCardShadowless
   }, [
-    div({ style: { flex: '1', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' } }, [email]),
-    div({ style: { flex: '0 0 150px', textTransform: 'capitalize' } }, [_.includes(adminLabel, roles) ? adminLabel : userLabel]),
+    div({ style: { flex: '1', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', height: '1rem' } }, [email]),
+    div({ style: { flex: '1', textTransform: 'capitalize', height: '1rem' } }, [_.includes(adminLabel, roles) ? adminLabel : userLabel]),
     div({ style: { flex: 'none' } }, [
-      h(TooltipTrigger, { content: tooltip }, [
-        h(Link, {
-          disabled: !canEdit,
-          onClick: canEdit ? onEdit : undefined
-        }, ['Edit Role'])
-      ]),
-      ' | ',
-      h(TooltipTrigger, { content: tooltip }, [
-        h(Link, {
-          disabled: !canEdit,
-          onClick: canEdit ? onDelete : undefined
-        }, ['Remove'])
+      h(PopupTrigger, {
+        side: 'left',
+        style: { height: menuCardSize, width: menuCardSize },
+        closeOnClick: true,
+        content: h(UserMenuContent, { onEdit, onDelete })
+      }, [
+        h(Link, { 'aria-label': `Menu for User: ${email}`, disabled: !canEdit, tooltip, tooltipSide: 'left' }, [icon('cardMenuIcon', { size: menuCardSize })])
       ])
     ])
   ])
@@ -152,7 +180,7 @@ export const NewUserModal = ({
       title,
       okButton: h(ButtonPrimary, {
         tooltip: Utils.summarizeErrors(errors),
-        onClick: () => addUser(),
+        onClick: addUser,
         disabled: errors
       }, ['Add User'])
     }, [
@@ -214,7 +242,7 @@ export const EditUserModal = ({ adminLabel, userLabel, user: { email, roles }, o
     onDismiss,
     title: 'Edit Roles',
     okButton: h(ButtonPrimary, {
-      onClick: () => submit()
+      onClick: submit
     }, ['Change Role'])
   }, [
     div({ style: { marginBottom: '0.25rem' } }, [
