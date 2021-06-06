@@ -117,7 +117,8 @@ const thousandGenomesHighCoverage = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     href: Nav.getLink('workspace-dashboard', { namespace: 'anvil-datastorage', name: '1000G-high-coverage-2019' }),
-    tooltip: 'Visit the workspace'
+    tooltip: 'Visit the workspace',
+    'aria-label': 'Browse 1000 Genomes High Coverage data'
   }, ['Browse data'])
 ])
 
@@ -135,7 +136,7 @@ const thousandGenomesLowCoverage = () => h(Participant, {
   h(ButtonPrimary, {
     href: Nav.getLink('data-explorer-public', { dataset: '1000 Genomes' }),
     tooltip: browseTooltip,
-    'aria-label': 'Browse 1000 Genomes Low Coverage'
+    'aria-label': 'Browse 1000 Genomes Low Coverage data'
   }, ['Browse data'])
 ])
 
@@ -168,10 +169,12 @@ const amppd = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     style: { marginBottom: '1rem' },
-    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD Clinical - 2020_v2release_1218' })
+    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD Clinical - 2020_v2release_1218' }),
+    'aria-label': 'Browse AMP-PD Tier 1 data'
   }, ['Browse Tier 1 Data']),
   h(ButtonPrimary, {
-    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD - 2020_v2release_1218' })
+    href: Nav.getLink('data-explorer-private', { dataset: 'AMP PD - 2020_v2release_1218' }),
+    'aria-label': 'Browse AMP-PD Tier 2 data'
   }, ['Browse Tier 2 Data'])
 ])
 
@@ -188,7 +191,8 @@ const baseline = () => h(Participant, {
   sizeText: 'Participants: > 2,500'
 }, [
   h(ButtonPrimary, {
-    href: Nav.getLink('data-explorer-private', { dataset: 'Baseline Health Study' })
+    href: Nav.getLink('data-explorer-private', { dataset: 'Baseline Health Study' }),
+    'aria-label': 'Browse Baseline Health Study data'
   }, ['Browse Data'])
 ])
 
@@ -202,7 +206,8 @@ const ccdg = () => h(Participant, {
   h(ButtonPrimary, {
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CCDG&project=AnVIL CCDG CVD#library`,
     ...Utils.newTabLinkProps,
-    tooltip: browseTooltip
+    tooltip: browseTooltip,
+    'aria-label': 'Browse CCDG data'
   }, ['Browse data'])
 ])
 
@@ -216,7 +221,8 @@ const cmg = () => h(Participant, {
   h(ButtonPrimary, {
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=AnVIL CMG#library`,
     ...Utils.newTabLinkProps,
-    tooltip: browseTooltip
+    tooltip: browseTooltip,
+    'aria-label': 'Browse CMG data'
   }, ['Browse Data'])
 ])
 
@@ -234,7 +240,8 @@ const encode = () => h(Participant, {
   h(ButtonPrimary, {
     href: 'https://broad-gdr-encode.appspot.com/',
     ...Utils.newTabLinkProps,
-    tooltip: browseTooltip
+    tooltip: browseTooltip,
+    'aria-label': 'Browse ENCODE data'
   }, ['Browse Data'])
 ])
 
@@ -248,7 +255,8 @@ const fcDataLib = () => h(Participant, {
   h(ButtonPrimary, {
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#library`,
     ...Utils.newTabLinkProps,
-    tooltip: 'Search for dataset workspaces'
+    tooltip: 'Search for dataset workspaces',
+    'aria-label': 'Browse Broad Institute datasets'
   }, ['Browse Datasets'])
 ])
 
@@ -267,7 +275,8 @@ const framingham = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     href: Nav.getLink('data-explorer-public', { dataset: 'Framingham Heart Study Teaching Dataset' }),
-    tooltip: browseTooltip
+    tooltip: browseTooltip,
+    'aria-label': 'Browse Framingham Heart Study dataset'
   }, ['Browse data'])
 ])
 
@@ -281,7 +290,8 @@ const hca = () => h(Participant, {
   h(ButtonPrimary, {
     href: 'https://data.humancellatlas.org/explore/projects',
     ...Utils.newTabLinkProps,
-    tooltip: 'Look for the Export Selected Data button to export data from this provider.'
+    tooltip: 'Look for the Export Selected Data button to export data from this provider.',
+    'aria-label': 'Browse Human Cell Atlas data'
   }, ['Browse Data'])
 ])
 
@@ -296,7 +306,8 @@ const nemo = () => h(Participant, {
   h(ButtonPrimary, {
     href: 'http://portal.nemoarchive.org/',
     ...Utils.newTabLinkProps,
-    tooltip: 'Look for the Export to Terra option in the Download Cart to export data.'
+    tooltip: 'Look for the Export to Terra option in the Download Cart to export data.',
+    'aria-label': 'Browse Neuroscience Multi-Omic Archive data'
   }, ['Browse Data'])
 ])
 
@@ -311,7 +322,8 @@ const target = () => h(Participant, {
   sizeText: 'Participants: 1,324'
 }, [h(ButtonPrimary, {
   href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=TARGET#library`,
-  ...Utils.newTabLinkProps
+  ...Utils.newTabLinkProps,
+  'aria-label': 'Browse TARGET data'
 }, ['Browse Data'])])
 
 
@@ -329,7 +341,8 @@ const tcga = () => h(Participant, {
 }, [
   h(ButtonPrimary, {
     href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}&project=TCGA#library`,
-    ...Utils.newTabLinkProps
+    ...Utils.newTabLinkProps,
+    'aria-label': 'Browse Cancer Genome Atlas data'
   }, ['Browse Data'])
 ])
 
@@ -344,7 +357,8 @@ const topMed = () => h(Participant, {
   h(ButtonPrimary, {
     href: 'https://gen3.biodatacatalyst.nhlbi.nih.gov/explorer',
     ...Utils.newTabLinkProps,
-    tooltip: browseTooltip
+    tooltip: browseTooltip,
+    'aria-label': 'Browse TopMed data'
   }, ['Browse Data'])
 ])
 
@@ -360,7 +374,8 @@ const ukb = () => h(Participant, {
   sizeText: 'Participants: > 500,000'
 }, [
   h(ButtonPrimary, {
-    href: Nav.getLink('data-explorer-private', { dataset: 'UK Biobank' })
+    href: Nav.getLink('data-explorer-private', { dataset: 'UK Biobank' }),
+    'aria-label': 'Browse UK BioBank data'
   }, ['Browse Data'])
 ])
 
