@@ -103,18 +103,20 @@ const GroupDetails = ({ groupName }) => {
         h(NewUserCard, {
           onClick: () => setCreatingNewUser(true)
         }),
-        h(MemberCardHeaders, { sort, onSort: setSort }),
-        div({ style: { flexGrow: 1, marginTop: '1rem' } },
-          _.map(member => {
-            return h(MemberCard, {
-              adminLabel: 'admin',
-              userLabel: 'member',
-              member, adminCanEdit,
-              onEdit: () => setEditingUser(member),
-              onDelete: () => setDeletingUser(member)
-            })
-          }, _.orderBy([sort.field], [sort.direction], _.filter(({ email }) => Utils.textMatch(filter, email), members)))
-        ),
+        div({ role: 'table', 'aria-label': 'member list' }, [
+          h(MemberCardHeaders, { sort, onSort: setSort }),
+          div({ style: { flexGrow: 1, marginTop: '1rem' } },
+            _.map(member => {
+              return h(MemberCard, {
+                adminLabel: 'admin',
+                userLabel: 'member',
+                member, adminCanEdit,
+                onEdit: () => setEditingUser(member),
+                onDelete: () => setDeletingUser(member)
+              })
+            }, _.orderBy([sort.field], [sort.direction], _.filter(({ email }) => Utils.textMatch(filter, email), members)))
+          )
+        ]),
         loading && spinnerOverlay
       ]),
       creatingNewUser && h(NewUserModal, {
