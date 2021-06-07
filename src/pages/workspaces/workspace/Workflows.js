@@ -89,6 +89,7 @@ const sortOptions = [
 
 const WorkflowCard = Utils.memoWithName('WorkflowCard', ({ listView, name, namespace, config, onExport, onCopy, onDelete, workspace }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
+  const sourceRepoName = sourceRepo === 'agora' ? 'Terra' : sourceRepo
   const workflowCardMenu = h(PopupTrigger, {
     closeOnClick: true,
     content: h(Fragment, [
@@ -119,8 +120,9 @@ const WorkflowCard = Utils.memoWithName('WorkflowCard', ({ listView, name, names
   const repoLink = h(Link, {
     href: methodLink(config),
     style: styles.innerLink,
+    'aria-label': `View the ${workflowName} workflow on ${sourceRepoName}`,
     ...Utils.newTabLinkProps
-  }, sourceRepo === 'agora' ? 'Terra' : sourceRepo)
+  }, sourceRepoName)
 
   const workflowLink = a({
     'aria-label': workflowName,
