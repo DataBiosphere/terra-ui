@@ -47,7 +47,7 @@ export const Popup = onClickOutside(function({ id, side = 'right', target: targe
   ])
 })
 
-const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, side, closeOnClick, onChange, popupProps: { role = 'dialog', ...popupProps }, children, ...props }, ref) => {
+const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, side, closeOnClick, onChange, popupProps: { role = 'dialog', ...popupProps } = {}, children, ...props }, ref) => {
   const [open, setOpen] = useState(false)
   const id = Utils.useUniqueId()
   const menuId = Utils.useUniqueId()
