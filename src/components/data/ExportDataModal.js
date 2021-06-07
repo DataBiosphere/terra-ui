@@ -121,7 +121,7 @@ const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runnin
       okButton: h(ButtonPrimary, {
         tooltip: !!hardConflicts.length ? 'Are you sure you want to override existing data?' : Utils.summarizeErrors(errors),
         disabled: !!errors || copying,
-        onClick: () => copy()
+        onClick: copy
       }, ['Copy']),
       overlayRef: node => { scollableRef.current = node }
     }, [

@@ -1,12 +1,13 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, IdContainer, Link, PageBox, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Link, PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { AdminNotifierCheckbox } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { MiniSortable } from 'src/components/table'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -54,7 +55,7 @@ const NewGroupModal = ({ onSuccess, onDismiss, existingGroups }) => {
     title: 'Create New Group',
     okButton: h(ButtonPrimary, {
       disabled: errors,
-      onClick: () => submit()
+      onClick: submit
     }, ['Create Group'])
   }, [
     h(IdContainer, [id => h(Fragment, [
@@ -94,10 +95,34 @@ const DeleteGroupModal = ({ groupName, onDismiss, onSubmit }) => {
   ])
 }
 
+const roleSectionWidth = 100
+
+const GroupCardHeaders = Utils.memoWithName('GroupCardHeaders', ({ sort, onSort }) => {
+  const makeHeaderRenderer = name => h(MiniSortable, { sort, field: name, onSort }, [
+    div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
+  ])
+  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' } }, [
+    div({ style: { width: '30%', marginRight: '1rem' } }, [
+      makeHeaderRenderer('groupName')
+    ]),
+    div({ style: { flexGrow: 1 } }, [
+      makeHeaderRenderer('groupEmail')
+    ]),
+    div({ style: { width: '20%' } }, [
+      // This behaves strangely due to the fact that role is an array. If you have multiple roles it can do strange things.
+      makeHeaderRenderer('role')
+    ]),
+    // Width is the same as the menu icon.
+    div({ style: { width: roleSectionWidth } }, [
+      div({ className: 'sr-only' }, ['Actions'])
+    ])
+  ])
+})
+
 const GroupCard = Utils.memoWithName('GroupCard', ({ group: { groupName, groupEmail, role }, onDelete }) => {
   const isAdmin = !!_.includes('admin', role)
 
-  return div({ style: Style.cardList.longCard }, [
+  return div({ style: Style.cardList.longCardShadowless }, [
     a({
       href: isAdmin ? Nav.getLink('group', { groupName }) : undefined,
       style: {
@@ -107,8 +132,8 @@ const GroupCard = Utils.memoWithName('GroupCard', ({ group: { groupName, groupEm
       }
     }, [groupName]),
     div({ style: { flexGrow: 1 } }, [groupEmail]),
-    div({ style: { width: 100, display: 'flex', alignItems: 'center' } }, [
-      div({ style: { flexGrow: 1 } }, [isAdmin ? 'Admin' : 'Member']),
+    div({ style: { width: '20%' } }, [isAdmin ? 'Admin' : 'Member']),
+    div({ style: { width: roleSectionWidth, display: 'flex', alignItems: 'center' } }, [
       isAdmin && h(Link, {
         'aria-label': `Delete group ${groupName}`,
         onClick: onDelete,
@@ -121,17 +146,16 @@ const GroupCard = Utils.memoWithName('GroupCard', ({ group: { groupName, groupEm
 })
 
 const NewGroupCard = ({ onClick }) => {
-  return h(Clickable, {
-    style: Style.cardList.shortCreateCard,
+  return h(ButtonPrimary, {
+    style: { textTransform: 'none' },
     onClick
   }, [
-    div(['Create a']),
-    div(['New Group']),
-    icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
+    icon('plus', { size: 14 }),
+    div({ style: { marginLeft: '0.5rem' } }, ['Create a New Group'])
   ])
 }
 
-const noGroupsMessage = div({ style: { fontSize: 20, margin: '0 1rem' } }, [
+const noGroupsMessage = div({ style: { fontSize: 20, margin: '1rem 1rem 0' } }, [
   div([
     'Create a group to share your workspaces with others.'
   ]),
@@ -151,6 +175,7 @@ const GroupList = () => {
   const [deletingGroup, setDeletingGroup] = useState(false)
   const [updating, setUpdating] = useState(false)
   const [isDataLoaded, setIsDataLoaded] = useState(false)
+  const [sort, setSort] = useState({ field: 'groupName', direction: 'asc' })
 
   const signal = Utils.useCancellation()
 
@@ -196,29 +221,32 @@ const GroupList = () => {
         value: filter
       })
     ]),
-    h(PageBox, { role: 'main', style: { flexGrow: 1 } }, [
+    h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
       div({ style: Style.cardList.toolbarContainer }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
           'Group Management'
         ])
       ]),
-      div({ style: Style.cardList.cardContainer }, [
+      div({ style: { marginTop: '1rem' } }, [
         h(NewGroupCard, {
           onClick: () => setCreatingNewGroup(true)
         }),
         Utils.cond(
           [groups && _.isEmpty(groups), () => noGroupsMessage],
           [!_.isEmpty(groups) && _.isEmpty(filteredGroups), () => {
-            return div({ style: { fontStyle: 'italic' } }, ['No matching groups'])
+            return div({ style: { fontStyle: 'italic', marginTop: '1rem' } }, ['No matching groups'])
           }],
           () => {
-            return div({ style: { flexGrow: 1 } }, [
-              _.map(group => {
-                return h(GroupCard, {
-                  group, key: `${group.groupName}`,
-                  onDelete: () => setDeletingGroup(group)
-                })
-              }, filteredGroups)
+            return h(Fragment, [
+              h(GroupCardHeaders, { sort, onSort: setSort }),
+              div({ style: { flexGrow: 1, marginTop: '1rem' } }, [
+                _.map(group => {
+                  return h(GroupCard, {
+                    group, key: `${group.groupName}`,
+                    onDelete: () => setDeletingGroup(group)
+                  })
+                }, _.orderBy([sort.field], [sort.direction], filteredGroups))
+              ])
             ])
           }
         ),

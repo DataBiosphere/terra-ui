@@ -127,6 +127,11 @@ a {
   animation: progress-bar-stripes 1s linear infinite;
 }
 
+/* Restore focus outlines to the wrapper elements around RSelect boxes */
+[role="combobox"]:focus-within {
+  outline: -webkit-focus-ring-color auto 1px;
+}
+
 /* Prism theme overrides to increase contrast for accessibility */
 .token.punctuation {
   color: #767676 !important; /* #999; */

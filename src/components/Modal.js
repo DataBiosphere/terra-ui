@@ -43,7 +43,7 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
     isOpen: true,
     shouldFocusAfterRender: false,
     shouldReturnFocusAfterClose: false,
-    onRequestClose: () => onDismiss(),
+    onRequestClose: onDismiss,
     onAfterOpen: async () => {
       const nodeToFocus = modalNode.current.contains(document.activeElement) ? document.activeElement : modalNode.current
       // Add the focus update to the end of the event queue

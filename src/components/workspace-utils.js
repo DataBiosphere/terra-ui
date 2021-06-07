@@ -319,7 +319,7 @@ export const NoWorkspacesMessage = ({ onClick }) => {
   return div({ style: { fontSize: 20, margin: '1rem' } }, [
     div([
       'To get started, ', h(Link, {
-        onClick: () => onClick(),
+        onClick,
         style: { fontWeight: 600 }
       }, ['Create a New Workspace'])
     ]),

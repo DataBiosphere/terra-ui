@@ -124,10 +124,10 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
     okButton: billingPresent ?
       h(ButtonPrimary, {
         disabled: errors || !chosenBillingAccount || !chosenBillingAccount.firecloudHasAccess,
-        onClick: () => submit()
+        onClick: submit
       }, ['Create Billing Project']) :
       h(ButtonPrimary, {
-        onClick: () => onDismiss()
+        onClick: onDismiss
       }, ['Ok'])
   }, [
     billingLoadedAndEmpty && h(Fragment, [
@@ -182,7 +182,7 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
             ...Utils.newTabLinkProps
           }, ['Google Cloud Console', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])]),
         div({ style: { marginBottom: '0.25rem' } }, ['Then, ',
-          h(Link, { onClick: () => loadAccounts() }, ['click here']), ' to refresh your billing accounts.']),
+          h(Link, { onClick: loadAccounts }, ['click here']), ' to refresh your billing accounts.']),
         div({ style: { marginTop: '0.5rem' } }, [
           h(Link, {
             href: `https://support.terra.bio/hc/en-us/articles/360026182251`,
