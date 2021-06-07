@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { useEffect, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, h2 } from 'react-hyperscript-helpers'
 import { PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import {
@@ -85,7 +85,7 @@ const GroupDetails = ({ groupName }) => {
     ]),
     h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
       div({ style: Style.cardList.toolbarContainer }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
+        h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
           `Group Management: ${groupName}`
         ])
       ]),

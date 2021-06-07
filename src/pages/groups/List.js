@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { a, b, div, h } from 'react-hyperscript-helpers'
+import { a, b, div, h, h2 } from 'react-hyperscript-helpers'
 import { ButtonPrimary, HeaderRenderer, IdContainer, Link, PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { AdminNotifierCheckbox } from 'src/components/group-common'
@@ -222,7 +222,7 @@ const GroupList = () => {
     ]),
     h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
       div({ style: Style.cardList.toolbarContainer }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
+        h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
           'Group Management'
         ])
       ]),
