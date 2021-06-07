@@ -168,7 +168,7 @@ const amppd = () => h(Participant, {
       div({ style: { display: 'flex' } }, [
         div({ style: { width: 410 } }, [`• STEADY-PD3 Study`]),
         div(['• SURE-PD3 Study'])
-      ]),
+      ])
     ])
   ]),
   sizeText: 'Participants: 10,772'
