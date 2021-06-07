@@ -3,7 +3,7 @@ import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
-import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
+import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { SimpleTabBar } from 'src/components/tabBars'
@@ -28,7 +28,7 @@ const styles = {
 }
 
 const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace }) => div({
-  style: Style.cardList.longCard
+  style: Style.cardList.longCardShadowless
 }, [
   div({ style: styles.workspaceCardField }, [workspace.name]),
   div({ style: styles.workspaceCardField }, [workspace.createdBy]),
@@ -53,31 +53,37 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   const [showBillingModal, setShowBillingModal] = useState(false)
   const [selectedBilling, setSelectedBilling] = useState()
   const [tab, setTab] = useState(query.tab || 'workspaces')
+  const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
 
   const signal = Utils.useCancellation()
+
+  const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
   const tabToTable = {
     workspaces: div({ style: { flexGrow: 1, width: '100%' } }, [
       _.flow(
-        _.filter(response => response.workspace.namespace === projectName),
+        _.filter({ workspace: { namespace: projectName } }),
         _.map(({ workspace }) => h(WorkspaceCard, { workspace, key: workspace.workspaceId }))
       )(workspaces)
     ]),
     users: h(Fragment, [
       h(NewUserCard, {
         onClick: () => setAddingUser(true)
-      }),
-      div({ style: { flexGrow: 1 } },
-        _.map(member => {
-          return h(MemberCard, {
-            key: member.email,
-            adminLabel: billingRoles.owner,
-            userLabel: billingRoles.user,
-            member, adminCanEdit,
-            onEdit: () => setEditingUser(member),
-            onDelete: () => setDeletingUser(member)
-          })
-        }, projectUsers)
+      }, [
+        icon('plus-circle', { size: 14 }),
+        div({ style: { marginLeft: '0.5rem' } }, ['Add User'])
+      ]),
+      h(MemberCardHeaders, { sort, onSort: setSort }),
+      div(_.map(member => {
+        return h(MemberCard, {
+          key: member.email,
+          adminLabel: billingRoles.owner,
+          userLabel: billingRoles.user,
+          member, adminCanEdit,
+          onEdit: () => setEditingUser(member),
+          onDelete: () => setDeletingUser(member)
+        })
+      }, _.orderBy([sort.field], [sort.direction], projectUsers))
       )
     ])
   }
@@ -153,7 +159,6 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
 
 
   // Render
-  const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
   const { displayName = null } = _.find({ accountName: billingAccountName }, billingAccounts) || { displayName: 'No Access' }
 
   return h(Fragment, [
@@ -221,7 +226,6 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
       }),
       div({
         style: {
-          display: 'flex',
           padding: '1rem 1rem 0',
           backgroundColor: colors.light(),
           flexGrow: 1

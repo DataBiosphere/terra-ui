@@ -105,14 +105,14 @@ const FileInUseModal = ({ onDismiss, onCopy, onPlayground, namespace, name, buck
     div({ style: { marginTop: '2rem' } }, [
       h(ButtonSecondary, {
         style: { padding: '0 1rem' },
-        onClick: () => onDismiss()
+        onClick: onDismiss
       }, ['Cancel']),
       h(ButtonSecondary, {
         style: { padding: '0 1rem' },
-        onClick: () => onCopy()
+        onClick: onCopy
       }, ['Make a copy']),
       h(ButtonPrimary, {
-        onClick: () => onPlayground()
+        onClick: onPlayground
       }, ['Run in playground mode'])
     ])
   ])
@@ -134,15 +134,15 @@ const EditModeDisabledModal = ({ onDismiss, onRecreateRuntime, onPlayground }) =
     div({ style: { marginTop: '2rem' } }, [
       h(ButtonSecondary, {
         style: { padding: '0 1rem' },
-        onClick: () => onDismiss()
+        onClick: onDismiss
       }, ['Cancel']),
       h(ButtonSecondary, {
         style: { padding: '0 1rem', marginLeft: '1rem' },
-        onClick: () => onPlayground()
+        onClick: onPlayground
       }, ['Run in playground mode']),
       h(ButtonPrimary, {
         style: { padding: '0 1rem', marginLeft: '2rem' },
-        onClick: () => onRecreateRuntime()
+        onClick: onRecreateRuntime
       }, ['Recreate cloud environment'])
     ])
   ])

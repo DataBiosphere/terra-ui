@@ -227,16 +227,43 @@ const commonSelectProps = {
     placeholder: base => ({ ...base, color: colors.dark(0.8) })
   },
   components: {
-    Option: ({ children, ...props }) => {
-      return h(RSelectComponents.Option, props, [
-        div({ style: { display: 'flex', alignItems: 'center', minHeight: 25 } }, [
-          div({ style: { flex: 1, minWidth: 0, overflowWrap: 'break-word' } }, [children]),
-          props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
-        ])
+    Option: ({ children, selectProps, ...props }) => h(RSelectComponents.Option, _.merge(props, {
+      selectProps,
+      innerProps: {
+        role: 'option',
+        'aria-selected': props.isSelected
+      }
+    }), [
+      div({ style: { display: 'flex', alignItems: 'center', minHeight: 25 } }, [
+        div({ style: { flex: 1, minWidth: 0, overflowWrap: 'break-word' } }, [children]),
+        props.isSelected && icon('check', { size: 14, style: { flex: 'none', marginLeft: '0.5rem', color: colors.dark(0.5) } })
       ])
-    }
+    ]),
+    SelectContainer: ({ children, selectProps, ...props }) => h(RSelectComponents.SelectContainer, _.merge(props, {
+      selectProps,
+      innerProps: {
+        role: 'combobox',
+        'aria-haspopup': 'listbox',
+        'aria-expanded': selectProps.menuIsOpen
+      }
+    }), [children]),
+    Input: ({ children, selectProps, ...props }) => h(RSelectComponents.Input, _.merge(props, {
+      selectProps,
+      role: 'textbox',
+      'aria-multiline': false,
+      'aria-controls': selectProps.menuIsOpen ? selectProps.menuId : undefined
+    }), [children]),
+    Menu: ({ children, selectProps, ...props }) => h(RSelectComponents.Menu, _.merge(props, {
+      selectProps,
+      innerProps: {
+        id: selectProps.menuId,
+        role: 'listbox',
+        'aria-multiselectable': selectProps.isMulti
+      }
+    }), [children])
   }
 }
+
 const formatGroupLabel = group => (
   div({
     style: {
@@ -250,9 +277,13 @@ const formatGroupLabel = group => (
 
 const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) => {
   const newValue = props.isMulti ? _.map(findValue, value) : findValue(value)
+  const menuId = Utils.useUniqueId()
+  const myId = Utils.useUniqueId()
+  const inputId = id || myId
 
   return h(RSelect, _.merge({
-    inputId: id,
+    inputId,
+    menuId,
     ...commonSelectProps,
     getOptionLabel: ({ value, label }) => label || value.toString(),
     value: newValue || null, // need null instead of undefined to clear the select
@@ -265,6 +296,7 @@ const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) =
  * @param {Object} props - see {@link https://react-select.com/props#select-props}
  * @param props.value - a member of options
  * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
+ * @param props.id - The HTML ID to give the form element
  */
 export const Select = ({ value, options, id, ...props }) => {
   const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
@@ -277,6 +309,7 @@ export const Select = ({ value, options, id, ...props }) => {
  * @param {Object} props - see {@link https://react-select.com/props#select-props}
  * @param props.value - a member of an inner options object
  * @param {Array} props.options - an object with toplevel pairs of label:options where label is a group label and options is an array of objects containing value:label pairs
+ * @param props.id - The HTML ID to give the form element
  */
 export const GroupedSelect = ({ value, options, id, ...props }) => {
   const flattenedOptions = _.flatMap('options', options)
@@ -286,13 +319,25 @@ export const GroupedSelect = ({ value, options, id, ...props }) => {
 }
 
 export const AsyncCreatableSelect = props => {
-  return h(RAsyncCreatableSelect, _.merge(commonSelectProps, props))
+  const menuId = Utils.useUniqueId()
+  return h(RAsyncCreatableSelect, {
+    menuId,
+    ...commonSelectProps,
+    ...props
+  })
 }
 
-export const PageBox = ({ children, style = {}, ...props }) => {
+export const PageBoxVariants = {
+  LIGHT: 'light'
+}
+
+export const PageBox = ({ children, variant, style = {}, ...props }) => {
   return div(_.merge({
     style: {
-      margin: '1.5rem', padding: '1.5rem 1.5rem 0', minHeight: 125, flex: 'none', zIndex: 0, ...style
+      margin: '1.5rem', padding: '1.5rem 1.5rem 0', minHeight: 125, flex: 'none', zIndex: 0,
+      ...Utils.switchCase(variant,
+        [PageBoxVariants.LIGHT, () => ({ backgroundColor: colors.light(), margin: 0, padding: '3rem 3rem 1.5rem' })],
+        [Utils.DEFAULT, () => ({})]), ...style
     }
   }, props), [children])
 }

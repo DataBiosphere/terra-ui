@@ -53,7 +53,7 @@ const CookieWarning = () => {
     ]),
     div({ style: { padding: '2rem', display: 'flex' } }, [
       h(ButtonPrimary, { onClick: () => acceptCookies(true) }, ['Agree']),
-      h(ButtonSecondary, { style: { marginLeft: '2rem' }, onClick: () => { rejectCookies() } }, ['Reject'])
+      h(ButtonSecondary, { style: { marginLeft: '2rem' }, onClick: rejectCookies }, ['Reject'])
     ])
   ])
 }

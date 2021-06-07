@@ -208,15 +208,15 @@ const DataTable = props => {
                       h(Checkbox, {
                         checked: pageSelected(),
                         disabled: !entities.length,
-                        onChange: () => pageSelected() ? deselectPage() : selectPage(),
+                        onChange: pageSelected() ? deselectPage : selectPage,
                         'aria-label': 'Select all'
                       }),
                       h(MenuTrigger, {
                         closeOnClick: true,
                         content: h(Fragment, [
-                          h(MenuButton, { onClick: () => selectPage() }, ['Page']),
-                          h(MenuButton, { onClick: () => selectAll() }, [`All (${totalRowCount})`]),
-                          h(MenuButton, { onClick: () => selectNone() }, ['None'])
+                          h(MenuButton, { onClick: selectPage }, ['Page']),
+                          h(MenuButton, { onClick: selectAll }, [`All (${totalRowCount})`]),
+                          h(MenuButton, { onClick: selectNone }, ['None'])
                         ]),
                         side: 'bottom'
                       }, [
