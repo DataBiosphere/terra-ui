@@ -69,7 +69,7 @@ export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput,
   }
 })
 
-export const tools = { rstudio: { label: 'RStudio', ext: 'rmd' }, jupyter: { label: 'Jupyter', ext: 'ipynb' } }
+export const tools = { rstudio: { label: 'RStudio', ext: 'Rmd' }, jupyter: { label: 'Jupyter', ext: 'ipynb' } }
 
 const toolToExtensionMap = { [tools.rstudio.label]: tools.rstudio.ext, [tools.jupyter.label]: tools.jupyter.ext }
 

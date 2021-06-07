@@ -249,7 +249,7 @@ const Analyses = _.flow(
   const signal = Utils.useCancellation()
 
   // Helpers
-  //TODO: does this prevent users from making an .rmd with the same name as an .ipynb?
+  //TODO: does this prevent users from making an .Rmd with the same name as an .ipynb?
   const existingNames = _.map(({ name }) => getDisplayName(name), analyses)
 
   const refreshAnalyses = _.flow(
@@ -313,7 +313,7 @@ const Analyses = _.flow(
 
   const noAnalysisBanner = div([
     div({ style: { fontSize: 48 } }, ['A place for all your analyses ']),
-    div({ style: { display: 'flex', flexDirection: 'row', justifyContent: 'center' } }, [
+    div({ style: { display: 'flex', flexDirection: 'row' } }, [
       img({ src: jupyterLogo, style: { height: 150, width: 100, marginRight: '12rem' } }),
       img({ src: rstudioLogo, style: { height: 150, width: 170, marginRight: '10rem' } }),
       div([
@@ -346,7 +346,7 @@ const Analyses = _.flow(
 
     return div({
       style: {
-        textAlign: 'center'
+        textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80%'
       }
     }, [
       Utils.cond(
@@ -367,10 +367,10 @@ const Analyses = _.flow(
     style: { flexGrow: 1 },
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
     onDropRejected: () => reportError('Not a valid analysis file',
-      'The selected file is not a .ipynb notebook file or an .rmd rstudio file. Ensure your file has the proper extension.'),
+      'The selected file is not a .ipynb notebook file or an .Rmd rstudio file. Ensure your file has the proper extension.'),
     onDropAccepted: uploadFiles
   }, [({ openUploader }) => h(Fragment, [
-    analyses && h(PageBox, [
+    analyses && h(PageBox, { style: { height: '100%' } }, [
       div({ style: { display: 'flex', marginBottom: '1rem' } }, [
         div({ style: { color: colors.dark(), fontSize: 24, fontWeight: 600 } }, ['Your Analyses']),
         h(ButtonPrimary, {
