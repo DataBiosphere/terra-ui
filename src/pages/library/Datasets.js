@@ -149,8 +149,7 @@ const amppd = () => h(Participant, {
     p([
       `The Accelerating Medicines Partnership (AMP) is a public-private partnership between the National Institutes of
     Health (NIH), multiple biopharmaceutical and life sciences companies, and non-profit organizations to identify and
-    validate the most promising biological targets for therapeutics. This AMP effort aims to identify and validate the
-    most promising biological targets for therapeutics relevant to Parkinson's disease.`
+    validate the most promising biomarkers and biological targets for therapeutics.`
     ]),
     p(['Includes data from the following studies:']),
     div({ style: { margin: '0.4rem 0', fontWeight: 'bold', lineHeight: '150%' } }, [
@@ -161,7 +160,15 @@ const amppd = () => h(Participant, {
       div({ style: { display: 'flex' } }, [
         div({ style: { width: 410 } }, [`• Parkinson's Progression Markers Initiative (PPMI)`]),
         div(['• Harvard Biomarkers Study (HBS)'])
-      ])
+      ]),
+      div({ style: { display: 'flex' } }, [
+        div({ style: { width: 410 } }, [`• Lewy Body Dementia Study (LBD)`]),
+        div(['• LRRK2 Cohort Consortium (LCC)'])
+      ]),
+      div({ style: { display: 'flex' } }, [
+        div({ style: { width: 410 } }, [`• STEADY-PD3 Study`]),
+        div(['• SURE-PD3 Study'])
+      ]),
     ])
   ]),
   sizeText: 'Participants: 10,772'
