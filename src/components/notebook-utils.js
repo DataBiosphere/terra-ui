@@ -54,7 +54,6 @@ export const getFileName = _.flow(_.split('/'), _.last)
 
 export const getExtension = _.flow(_.split('.'), _.last)
 
-// removes a file extension from a string
 export const stripExtension = _.replace(/\.[^/.]+$/, '')
 
 // removes leading dirs and a file ext suffix on paths
