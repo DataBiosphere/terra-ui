@@ -147,7 +147,7 @@ const ImportData = () => {
               }),
               isDataset && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [noteMessage]),
               div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
-                h(ButtonSecondary, { onClick: () => setMode(), style: { marginLeft: 'auto' } }, ['Back']),
+                h(ButtonSecondary, { onClick: setMode, style: { marginLeft: 'auto' } }, ['Back']),
                 h(ButtonPrimary, {
                   style: { marginLeft: '2rem' },
                   disabled: !selectedWorkspace,
@@ -193,7 +193,7 @@ const ImportData = () => {
                 }, Utils.toIndexPairs(filteredTemplates))
               ]),
               div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
-                h(ButtonSecondary, { style: { marginLeft: 'auto' }, onClick: () => setMode() }, ['Back']),
+                h(ButtonSecondary, { style: { marginLeft: 'auto' }, onClick: setMode }, ['Back']),
                 h(ButtonPrimary, {
                   style: { marginLeft: '2rem' },
                   disabled: !selectedTemplateWorkspaceKey,

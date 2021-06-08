@@ -63,19 +63,19 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
       disabled: !canRead,
       tooltip: workspace && !canRead && 'You do not have access to the workspace Authorization Domain',
       tooltipSide: 'left',
-      onClick: () => onClone()
+      onClick: onClone
     }, [makeMenuIcon('copy'), 'Clone']),
     h(MenuButton, {
       disabled: !canShare,
       tooltip: workspace && !canShare && 'You have not been granted permission to share this workspace',
       tooltipSide: 'left',
-      onClick: () => onShare()
+      onClick: onShare
     }, [makeMenuIcon('share'), 'Share']),
     h(MenuButton, {
       disabled: !isOwner,
       tooltip: workspace && !isOwner && 'You must be an owner of this workspace or the underlying billing project',
       tooltipSide: 'left',
-      onClick: () => onDelete()
+      onClick: onDelete
     }, [makeMenuIcon('trash'), 'Delete'])
   ])
 }
@@ -397,7 +397,7 @@ export const WorkspaceList = () => {
       deletingWorkspaceId && h(DeleteWorkspaceModal, {
         workspace: getWorkspace(deletingWorkspaceId),
         onDismiss: () => setDeletingWorkspaceId(undefined),
-        onSuccess: () => refreshWorkspaces()
+        onSuccess: refreshWorkspaces
       }),
       sharingWorkspaceId && h(ShareWorkspaceModal, {
         workspace: getWorkspace(sharingWorkspaceId),
