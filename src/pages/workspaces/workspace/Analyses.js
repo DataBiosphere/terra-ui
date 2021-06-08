@@ -346,7 +346,7 @@ const Analyses = _.flow(
 
     return div({
       style: {
-        textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '80%'
+        ..._.merge({ textAlign: 'center', display: 'flex', justifyContent: 'center' }, _.isEmpty(analyses) ? { alignItems: 'center', height: '80%' } : {})
       }
     }, [
       Utils.cond(
