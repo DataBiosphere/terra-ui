@@ -110,7 +110,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   const [showBillingModal, setShowBillingModal] = useState(false)
   const [selectedBilling, setSelectedBilling] = useState()
   const [tab, setTab] = useState(query.tab || 'workspaces')
-  const [expandedWorkspace, setExpandedWorkspace] = useState()
+  const [expandedWorkspaceName, setExpandedWorkspaceName] = useState()
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
 
@@ -128,10 +128,10 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
           _.filter({ namespace: projectName }),
           _.orderBy([workspaceSort.field], [workspaceSort.direction]),
           _.map(workspace => {
-            const isExpanded = expandedWorkspace === workspace.name
+            const isExpanded = expandedWorkspaceName === workspace.name
             return h(WorkspaceCard, {
               workspace, key: workspace.workspaceId, isExpanded,
-              onExpand: () => isExpanded ? setExpandedWorkspace(undefined) : setExpandedWorkspace(workspace.name)
+              onExpand: () => setExpandedWorkspaceName(isExpanded ? undefined : workspace.name)
             })
           })
         )(workspaces)
