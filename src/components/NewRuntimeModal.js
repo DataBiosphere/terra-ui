@@ -760,13 +760,13 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                 })
               ])
             ])
-          ]),
-          div({ style: { marginTop: '0.5rem' } }, [
-            h(LabeledCheckbox, {
-              checked: false,
-              onChange: () => console.log('box checked')
-            }, [span({ style: { marginLeft: '0.5rem' } }, ['Enable GPUs '])])
           ])
+        ]),
+        div({ style: { marginTop: '1rem' } }, [
+          h(LabeledCheckbox, {
+            checked: false,
+            onChange: () => console.log('box checked')
+          }, [span({ style: { marginLeft: '0.5rem', ...styles.label } }, ['Enable GPUs '])])
         ]),
         sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
           legend({ style: { padding: 0, ...styles.label } }, ['Worker config']),
