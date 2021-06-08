@@ -2,7 +2,9 @@ import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Component, Fragment } from 'react'
 import { b, br, code, div, fieldset, h, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
-import { ButtonOutline, ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, Link, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
+import {
+  ButtonOutline, ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, WarningTitle
+} from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
@@ -758,6 +760,12 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                 })
               ])
             ])
+          ]),
+          div({ style: { marginTop: '0.5rem' } }, [
+            h(LabeledCheckbox, {
+              checked: false,
+              onChange: () => console.log('box checked')
+            }, [span({ style: { marginLeft: '0.5rem' } }, ['Enable GPUs '])])
           ])
         ]),
         sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
