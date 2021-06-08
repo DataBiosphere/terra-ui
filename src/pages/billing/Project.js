@@ -283,7 +283,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         ])
       ]),
       h(SimpleTabBar, {
-        style: { marginTop: '2rem', textTransform: 'none', padding: '0 1rem', fontSize: 12, height: '1.5rem' },
+        style: { marginTop: '2rem', textTransform: 'none', padding: '0 1rem', height: '1.5rem' },
         tabStyle: { borderBottomWidth: 4 },
         value: tab,
         onChange: newTab => {
