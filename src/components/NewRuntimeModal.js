@@ -18,7 +18,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
-  currentRuntime, DEFAULT_DISK_SIZE, defaultDataprocMachineType, defaultGceMachineType, findMachineType, getDefaultMachineType,
+  currentRuntime, DEFAULT_DISK_SIZE, DEFAULT_GPU_CONFIG, defaultDataprocMachineType, defaultGceMachineType, findMachineType, getDefaultMachineType,
   persistentDiskCostMonthly,
   RadioBlock,
   runtimeConfigBaseCost, runtimeConfigCost
@@ -128,6 +128,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
 
   getInitialState(runtime, disk) {
     const runtimeConfig = runtime?.runtimeConfig
+    const gpuConfig = runtimeConfig?.gpuConfig
     return {
       selectedPersistentDiskSize: disk?.size || DEFAULT_DISK_SIZE,
       sparkMode: runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false,
@@ -136,7 +137,9 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
       numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
       workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
-      workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DISK_SIZE
+      workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DISK_SIZE,
+      gpuEnabled: !!gpuConfig || false,
+      gpuConfig: gpuConfig || DEFAULT_GPU_CONFIG
     }
   }
 
@@ -722,6 +725,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     ])
 
     const renderRuntimeSection = () => {
+      const { gpuEnabled, gpuConfig } = this.state
       const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '0.8rem', alignItems: 'center' }
       return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
@@ -764,8 +768,8 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
         ]),
         div({ style: { marginTop: '1rem' } }, [
           h(LabeledCheckbox, {
-            checked: false,
-            onChange: () => console.log('box checked')
+            checked: gpuEnabled,
+            onChange: v => this.setState({ gpuEnabled: v })
           }, [span({ style: { marginLeft: '0.5rem', ...styles.label } }, ['Enable GPUs '])])
         ]),
         sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
