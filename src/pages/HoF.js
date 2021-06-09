@@ -1,6 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
-import { div, h, h1, img } from 'react-hyperscript-helpers'
+import { div, h1, img } from 'react-hyperscript-helpers'
 import * as Style from 'src/libs/style'
 
 

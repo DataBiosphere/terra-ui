@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react'
 import { div, h, h1 } from 'react-hyperscript-helpers'
-import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable } from 'src/components/common'
-import { icon } from 'src/components/icons'
+import { backgroundLogo, ButtonPrimary, ButtonSecondary } from 'src/components/common'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
