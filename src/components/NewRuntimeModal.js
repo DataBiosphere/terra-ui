@@ -80,39 +80,39 @@ const MachineSelector = ({ value, machineTypeOptions, onChange }) => {
   ])
 }
 
-// const GpuSelector = ({ value, gpuTypeOptions, onChange }) => {
-//   const { gpuType, numGpus } = findMachineType(value)
-//   return h(Fragment, [
-//     h(IdContainer, [
-//       id => h(Fragment, [
-//         label({ htmlFor: id, style: styles.label }, ['CPUs']),
-//         div([
-//           h(Select, {
-//             id,
-//             isSearchable: false,
-//             value: gpuType,
-//             onChange: option => onChange(_.find({ cpu: option.value }, gpuTypeOptions)?.name || value),
-//             options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(gpuTypeOptions)
-//           })
-//         ])
-//       ])
-//     ]),
-//     h(IdContainer, [
-//       id => h(Fragment, [
-//         label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
-//         div([
-//           h(Select, {
-//             id,
-//             isSearchable: false,
-//             value: currentMemory,
-//             onChange: option => onChange(_.find({ cpu: currentCpu, memory: option.value }, gpuTypeOptions)?.name || value),
-//             options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(gpuTypeOptions)
-//           })
-//         ])
-//       ])
-//     ])
-//   ])
-// }
+const GpuSelector = ({ value, machineTypeOptions, onChange }) => {
+  const { cpu: currentCpu, memory: currentMemory } = findMachineType(value)
+  return h(Fragment, [
+    h(IdContainer, [
+      id => h(Fragment, [
+        label({ htmlFor: id, style: styles.label }, ['GPU type']),
+        div([
+          h(Select, {
+            id,
+            isSearchable: false,
+            value: currentCpu,
+            onChange: option => onChange(_.find({ cpu: option.value }, machineTypeOptions)?.name || value),
+            options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(machineTypeOptions)
+          })
+        ])
+      ])
+    ]),
+    h(IdContainer, [
+      id => h(Fragment, [
+        label({ htmlFor: id, style: styles.label }, ['GPUs']),
+        div([
+          h(Select, {
+            id,
+            isSearchable: false,
+            value: currentMemory,
+            onChange: option => onChange(_.find({ cpu: currentCpu, memory: option.value }, machineTypeOptions)?.name || value),
+            options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(machineTypeOptions)
+          })
+        ])
+      ])
+    ])
+  ])
+}
 
 const DiskSelector = ({ value, onChange }) => {
   return h(IdContainer, [
@@ -805,6 +805,9 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             checked: gpuEnabled,
             onChange: v => this.setState({ gpuEnabled: v })
           }, [span({ style: { marginLeft: '0.5rem', ...styles.label } }, ['Enable GPUs '])])
+        ]),
+        div({ style: { ...gridStyle, marginTop: '1rem' } }, [
+          h(GpuSelector, { value: mainMachineType, machineTypeOptions: validMachineTypes, onChange: v => this.setState({ masterMachineType: v }) })
         ]),
         sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
           legend({ style: { padding: 0, ...styles.label } }, ['Worker config']),
