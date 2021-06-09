@@ -1,12 +1,12 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { div, h, img } from 'react-hyperscript-helpers'
+import { div, h, h1, img } from 'react-hyperscript-helpers'
 import * as Style from 'src/libs/style'
 
 
 const HallOfFame = () => {
   return div({ role: 'main', style: { flexGrow: 1, margin: '2rem', ...Style.proportionalNumbers } }, [
-    div({ style: { display: 'flex', alignItems: 'center', fontSize: '4.5rem', marginBottom: '1rem' } }, [
+    h1({ style: { display: 'flex', alignItems: 'center', fontSize: '4.5rem', marginBottom: '1rem', fontWeight: 400 } }, [
       img({
         src: 'https://avatars1.githubusercontent.com/t/3133227?v=4',
         style: { height: 80, marginRight: '1rem' },
@@ -14,7 +14,8 @@ const HallOfFame = () => {
       }),
       'Team Saturn Hall Of Fame'
     ]),
-    h(Fragment, _.map(({ name, dates, pic }) => div({
+    div({ role: 'list' }, _.map(({ name, dates, pic }) => div({
+      role: 'listitem',
       style: { display: 'flex', alignItems: 'center', margin: '1rem' }
     }, [
       img({ src: pic, style: { height: 50, marginRight: '1rem' }, alt: `${name} photo` }),
