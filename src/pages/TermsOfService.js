@@ -1,7 +1,9 @@
-import { useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
-import { backgroundLogo, ButtonPrimary, ButtonSecondary } from 'src/components/common'
+import { useRef, useState } from 'react'
+import { div, h, h1 } from 'react-hyperscript-helpers'
+import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
+import { scrollToNextPage } from 'src/components/scroll'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -33,15 +35,15 @@ constitutes your consent to the retrieval and disclosure of the
 information within the scope of your authorized access, subject to the
 Privacy Act, and applicable State and Federal laws.
 
-#### Cookies
+## Cookies
 
 Terra uses cookies to enable sign on and other essential features when
 signed in, and to provide statistics to our development team regarding
 how the site is used. For more information, see our privacy policy.
-Privacy policy, including privacy policy of uploaded data, is
-[here](/#privacy). You agree to read and consider before uploading data.
+[Privacy policy, including privacy policy of uploaded data, is here](/#privacy).
+You agree to read and consider before uploading data.
 
-#### Modification of the Agreement
+## Modification of the Agreement
 
 Broad maintains the right to modify these Terms of Service at any time,
 and may do so by posting notice of such modifications on this page. Any
@@ -49,13 +51,13 @@ modification made is effective immediately upon posting the modification
 (unless otherwise stated). You should visit this page periodically to
 review the current Terms of Service.
 
-#### Conduct
+## Conduct
 
 You agree to access and use Terra for lawful purposes only. You are
 solely responsible for the knowledge of and adherence to any and all
 laws, statutes, rules, and regulations pertaining to your use of Terra.
 
-#### By accessing and using Terra, you agree that you must:
+## By accessing and using Terra, you agree that you must:
 
 -   Conduct only authorized business on the system.
 
@@ -89,7 +91,7 @@ laws, statutes, rules, and regulations pertaining to your use of Terra.
     (infosec@broadinstitute.org) if you do not understand any of
     these rules.
 
-#### By accessing and using Terra, you agree that you must NOT:
+## By accessing and using Terra, you agree that you must NOT:
 
 -   Use Terra to commit a criminal offense, or to encourage others to
     conduct acts that would constitute a criminal offense or give rise
@@ -126,7 +128,7 @@ laws, statutes, rules, and regulations pertaining to your use of Terra.
     unsolicited mass email, promotions, advertisings or other
     solicitations or mine for cryptocurrency.
 
-#### Registration
+## Registration
 
 You must sign up to Terra under a Google-managed identity. Both private
 Gmail accounts and institutional Google Apps accounts are allowed. For
@@ -135,12 +137,12 @@ verification for your Google-managed identity. For information about how
 your registration information is accessed and used, see our privacy
 policy.
 
-#### Restrictions on the Use of Shared and Group Accounts
+## Restrictions on the Use of Shared and Group Accounts
 
 You cannot access Terra using group or shared accounts. The credentials
 used for authenticating to Terra must belong to a single individual.
 
-#### Restrictions on the Use of Tutorial Workspaces
+## Restrictions on the Use of Tutorial Workspaces
 
 Terra provides tutorial workspaces preloaded with best practice analysis
 pipelines and example data from TCGA. These workspaces are intended for
@@ -150,7 +152,7 @@ You must not upload your own data sets to these workspaces, nor should
 you add workflows (Method Configs). If you do not follow these
 guidelines, your Terra/Firecloud account may be deactivated.
 
-#### Accessing a Government Website
+## Accessing a Government Website
 
 Terra is a multi-tenant data storage and analysis platform. Terra may
 host or otherwise facilitate access to government-owned research
@@ -168,8 +170,8 @@ By accepting these Terms of Service, you acknowledge:
     datasets may result in disciplinary action, civil, and/or criminal
     penalties. Unauthorized users of these websites or datasets should
     have no expectation of privacy regarding any communications or
-    data processed by these websites. A list of US Government websites
-    and datasets can be found [here](https://support.terra.bio/hc/en-us/community/posts/360056900812-Government-owned-Websites-and-Datasets-Last-Revised-Feb-5-2020-)
+    data processed by these websites. 
+    [A list of US Government websites and datasets can be found here](https://support.terra.bio/hc/en-us/community/posts/360056900812-Government-owned-Websites-and-Datasets-Last-Revised-Feb-5-2020-)
 
 -   By using any of these websites or otherwise accessing these datasets
     through Terra, you expressly consent to monitoring of your actions
@@ -178,7 +180,7 @@ By accepting these Terms of Service, you acknowledge:
     possible evidence of criminal activity, NIH may provide that
     evidence to law enforcement officials.
 
-#### Access Levels
+## Access Levels
 
 Your level of access to systems and networks owned by Broad is limited
 to ensure your access is no more than necessary to perform your
@@ -186,7 +188,7 @@ legitimate tasks or assigned duties. If you believe you are being
 granted access that you should not have, you must immediately notify the
 Broad Operations Center at infosec@broadinstitute.org.
 
-#### Restricted Use of TCGA Controlled-Access Data
+## Restricted Use of TCGA Controlled-Access Data
 
 To access TCGA controlled access data, you must first request to link
 your Terra account to the eRA Commons or NIH identity under which you
@@ -202,13 +204,13 @@ personal workspaces if you lose dbGaP authorized access. You must also
 refrain from distributing TCGA controlled access data to users unless
 they have dbGaP authorized access.
 
-#### Termination of Use
+## Termination of Use
 
 We may in our sole discretion suspend/terminate your access to Terra
 without notification. We may also periodically review and remove
 accounts for which a user has not logged on.
 
-#### External Links
+## External Links
 
 Terra may provide links that are maintained or controlled by external
 organizations. The listing of links are not an endorsement of
@@ -216,14 +218,14 @@ information, products, or services, and do not imply a direct
 association between the Broad and the operators of the outside resource
 links.
 
-#### Content
+## Content
 
 By accessing Terra, you expressly consent to monitoring of your actions
 and all content or data transiting or stored therein. We reserve the
 right to delete, move, or edit any data, which we consider to be
 unacceptable or inappropriate.
 
-#### Data and Workspaces
+## Data and Workspaces
 
 When a user uploads private data to a workspace, they are responsible
 for ensuring authorization domains are attached to the workspace to
@@ -248,7 +250,7 @@ data.
 
 Questions? Contact infosec@broadinstitute.org.
 
-#### Disclaimer of Warranty
+## Disclaimer of Warranty
 
 You expressly understand and agree that your use of Terra, or any
 material available through it, is at your own risk. Neither the Broad
@@ -256,7 +258,7 @@ nor its employees warrant that Terra will be uninterrupted,
 problem-free, free of omissions, or error-free; nor do they make any
 warranty as to the results that may be obtained from Terra.
 
-#### Limitation of Liability
+## Limitation of Liability
 
 In no event will Broad, its affiliates or participating institutions, or
 their respective directors, officers, employees, faculty members or
@@ -266,7 +268,7 @@ your use of or inability to use Terra, including without limitation,
 loss of revenue or anticipated profits, loss of goodwill, loss of data,
 computer failure or malfunction, or any and all other damages.
 
-#### HIPAA, Protected Health Information, and the Clinical Compliance Features
+## HIPAA, Protected Health Information, and the Clinical Compliance Features
 
 Terra is not a Covered Entity as that term is defined in the Health
 Insurance Portability and Accountability Act of 1996, as amended, and
@@ -300,6 +302,7 @@ Terms as of February 12, 2020.
 
 const TermsOfServicePage = () => {
   const [busy, setBusy] = useState()
+  const scrollRef = useRef()
   const { isSignedIn, acceptedTos } = authStore.get() // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
   const needToAccept = isSignedIn && !acceptedTos
 
@@ -314,12 +317,19 @@ const TermsOfServicePage = () => {
     }
   }
 
-  return div({ style: { padding: '1rem', minHeight: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' } }, [
+  const scrollDown = () => {
+    scrollToNextPage(scrollRef.current, 400, 80)
+  }
+
+  return div({ role: 'main', style: { padding: '1rem', minHeight: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' } }, [
     backgroundLogo,
-    div({ style: { backgroundColor: 'white', borderRadius: 5, width: 800, padding: '2rem', boxShadow: Style.standardShadow } }, [
-      div({ style: { color: colors.dark(), fontSize: 38 } }, ['Terra Terms of Service']),
+    div({ style: { backgroundColor: 'white', borderRadius: 5, width: 800, maxHeight: '100%', padding: '2rem', boxShadow: Style.standardShadow } }, [
+      h1({ style: { color: colors.dark(), fontSize: 38, fontWeight: 400 } }, ['Terra Terms of Service']),
       needToAccept && div({ style: { fontSize: 18, fontWeight: 600 } }, ['Please accept the Terms of Service to continue.']),
-      div({ style: { maxHeight: 400, overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' } }, [
+      div({
+        ref: scrollRef,
+        style: { height: '50vh', overflowY: 'scroll', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' }
+      }, [
         h(MarkdownViewer, {
           renderers: {
             link: newWindowLinkRenderer,
@@ -327,6 +337,11 @@ const TermsOfServicePage = () => {
           }
         }, [termsOfService])
       ]),
+      h(Clickable, {
+        style: { textAlign: 'center', width: '100%', padding: '1em 0', borderTop: '1px solid #ccc' },
+        onClick: () => scrollDown(),
+        tooltip: 'Scroll to next page'
+      }, [icon('angle-down', { size: 32 })]),
       needToAccept && div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
         h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
         h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept'])
