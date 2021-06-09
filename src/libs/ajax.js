@@ -444,13 +444,13 @@ const Billing = signal => ({
   },
 
   createProject: async (projectName, billingAccount) => {
-    const res = await fetchRawls('billing',
+    const res = await fetchRawls('billing/v2',
       _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }]))
     return res
   },
 
   project: projectName => {
-    const root = `billing/${projectName}`
+    const root = `billing/v2/${projectName}/members`
 
     const removeRole = (role, email) => {
       return fetchRawls(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
@@ -462,7 +462,7 @@ const Billing = signal => ({
 
     return {
       listUsers: async () => {
-        const res = await fetchRawls(`${root}/members`, _.merge(authOpts(), { signal }))
+        const res = await fetchRawls(`${root}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
