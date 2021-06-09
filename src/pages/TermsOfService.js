@@ -3,7 +3,6 @@ import { div, h, h1 } from 'react-hyperscript-helpers'
 import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
-import { scrollToNextPage } from 'src/components/scroll'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
@@ -317,10 +316,6 @@ const TermsOfServicePage = () => {
     }
   }
 
-  const scrollDown = () => {
-    scrollToNextPage(scrollRef.current, 400, 80)
-  }
-
   return div({ role: 'main', style: { padding: '1rem', minHeight: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' } }, [
     backgroundLogo,
     div({ style: { backgroundColor: 'white', borderRadius: 5, width: 800, maxHeight: '100%', padding: '2rem', boxShadow: Style.standardShadow } }, [
@@ -337,11 +332,6 @@ const TermsOfServicePage = () => {
           }
         }, [termsOfService])
       ]),
-      h(Clickable, {
-        style: { textAlign: 'center', width: '100%', padding: '1em 0', borderTop: '1px solid #ccc' },
-        onClick: () => scrollDown(),
-        tooltip: 'Scroll to next page'
-      }, [icon('angle-down', { size: 32 })]),
       needToAccept && div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
         h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
         h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept'])
