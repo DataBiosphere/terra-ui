@@ -166,7 +166,7 @@ export const NewGalaxyModal = _.flow(
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
           span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('clockSolid', { size: 25, color: colors.accent() })]),
           div([
-            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Set up duration']),
+            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Setup duration']),
             div({ style: { lineHeight: 1.5 } }, [
               div(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
               div(['You can navigate away, and we will notify you when it\'s ready. '])
@@ -189,8 +189,8 @@ export const NewGalaxyModal = _.flow(
             div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Environment updates']),
             div({ style: { lineHeight: 1.5 } }, [
               div(['If you would like to update your compute or disk configuration']),
-              div(['after an app is created, please delete the app and create a new']),
-              div(['app with the desired configuration.'])
+              div(['after an environment is created, please delete the environment and']),
+              div(['create a new environment with the desired configuration.'])
             ])
           ])
         ])

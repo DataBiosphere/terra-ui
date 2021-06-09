@@ -80,6 +80,40 @@ const MachineSelector = ({ value, machineTypeOptions, onChange }) => {
   ])
 }
 
+// const GpuSelector = ({ value, gpuTypeOptions, onChange }) => {
+//   const { gpuType, numGpus } = findMachineType(value)
+//   return h(Fragment, [
+//     h(IdContainer, [
+//       id => h(Fragment, [
+//         label({ htmlFor: id, style: styles.label }, ['CPUs']),
+//         div([
+//           h(Select, {
+//             id,
+//             isSearchable: false,
+//             value: gpuType,
+//             onChange: option => onChange(_.find({ cpu: option.value }, gpuTypeOptions)?.name || value),
+//             options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(gpuTypeOptions)
+//           })
+//         ])
+//       ])
+//     ]),
+//     h(IdContainer, [
+//       id => h(Fragment, [
+//         label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
+//         div([
+//           h(Select, {
+//             id,
+//             isSearchable: false,
+//             value: currentMemory,
+//             onChange: option => onChange(_.find({ cpu: currentCpu, memory: option.value }, gpuTypeOptions)?.name || value),
+//             options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(gpuTypeOptions)
+//           })
+//         ])
+//       ])
+//     ])
+//   ])
+// }
+
 const DiskSelector = ({ value, onChange }) => {
   return h(IdContainer, [
     id => h(Fragment, [
