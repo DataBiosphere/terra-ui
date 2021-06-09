@@ -10,7 +10,7 @@ jobs:
       - name: Select reviewer
         id: reviewer
         run: |
-          REVIEWERS=(dmohs psantos)
+          REVIEWERS=(dmohs petesantos)
           REVIEWER_COUNT=${#REVIEWERS[@]}
           PR_NUMBER=${{ github.event.pull_request.number }}
           
