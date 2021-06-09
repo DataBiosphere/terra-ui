@@ -178,18 +178,8 @@ export const NewGalaxyModal = _.flow(
           div([
             div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
             div({ style: { lineHeight: 1.5 } }, [
-              div(['Please delete the cloud environment when finished; it will']),
+              div(['Please pause or delete the cloud environment when finished; it will']),
               div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running.'])
-            ])
-          ])
-        ]),
-        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
-          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('pause', { size: 25, color: colors.accent() })]),
-          div([
-            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Pause and auto-pause']),
-            div({ style: { lineHeight: 1.5 } }, [
-              div(['You can pause  during the compute, but it will auto-pause when']),
-              div(['the instance is idle more than 1 hour if the analysis is done.'])
             ])
           ])
         ]),
