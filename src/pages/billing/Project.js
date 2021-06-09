@@ -6,6 +6,7 @@ import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, SimpleTabBar,
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { ariaSort } from 'src/components/table'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
@@ -22,14 +23,14 @@ import { billingRoles } from 'src/pages/billing/List'
 const workspaceLastModifiedWidth = 150
 
 const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
-  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
-    div({ style: { flex: 1 } }, [
+  return div({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1 } }, [
       h(HeaderRenderer, { sort, onSort, name: 'name' })
     ]),
-    div({ style: { flex: 1 } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'createdBy'), style: { flex: 1 } }, [
       h(HeaderRenderer, { sort, onSort, name: 'createdBy' })
     ]),
-    div({ style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'lastModified'), style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [
       h(HeaderRenderer, { sort, onSort, name: 'lastModified' })
     ])
   ])
@@ -45,10 +46,10 @@ const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details,
     additionalInfo: { flexGrow: 1 }
   }
 
-  return div({ style: expandedInfoStyles.row }, [
-    div({ style: expandedInfoStyles.title }, [title]),
-    div({ style: expandedInfoStyles.details }, [details]),
-    div({ style: expandedInfoStyles.additionalInfo }, [additionalInfo])
+  return div({ style: expandedInfoStyles.row, role: 'row' }, [
+    div({ role: 'cell', style: expandedInfoStyles.title }, [title]),
+    div({ role: 'cell', style: expandedInfoStyles.details }, [details]),
+    div({ role: 'cell', style: expandedInfoStyles.additionalInfo }, [additionalInfo])
   ])
 })
 
@@ -63,11 +64,9 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpand
     expandedInfoContainer: { display: 'flex', flexDirection: 'column', width: '100%' }
   }
 
-  return div({
-    style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' }
-  }, [
+  return div({ role: 'row', style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' } }, [
     div({ style: workspaceCardStyles.row }, [
-      div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center' } }, [
+      div({ role: 'rowheader', style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center' } }, [
         h(Link, {
           style: { fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
           href: Nav.getLink('workspace-dashboard', { namespace, name })
@@ -80,8 +79,8 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpand
           icon(isExpanded ? 'angle-up' : 'angle-down', { size: workspaceExpandIconSize, style: { marginLeft: '1rem' } })
         ])
       ]),
-      div({ style: workspaceCardStyles.field }, [createdBy]),
-      div({ style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)])
+      div({ role: 'cell', style: workspaceCardStyles.field }, [createdBy]),
+      div({ role: 'cell', style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)])
     ]),
     isExpanded && div({ style: workspaceCardStyles.row }, [
       div({ style: workspaceCardStyles.expandedInfoContainer }, [
@@ -119,7 +118,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
   const tabToTable = {
-    workspaces: h(Fragment, [
+    workspaces: div({ role: 'table', 'aria-label': 'workspace list' }, [
       h(WorkspaceCardHeaders, { sort: workspaceSort, onSort: setWorkspaceSort }),
       div({ style: { flexGrow: 1, width: '100%' } }, [
         _.flow(
