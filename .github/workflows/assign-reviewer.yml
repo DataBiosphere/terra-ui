@@ -1,0 +1,23 @@
+name: Assign Reviewer
+
+on: [ pull_request ]
+
+jobs:
+  assign-reviewer:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Select reviewer
+        id: reviewer
+        run: |
+          REVIEWERS=(dmohs psantos)
+          REVIEWER_COUNT=${#REVIEWERS[@]}
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          
+          echo ::set-output name=reviewer::${REVIEWERS[$(expr $PR_NUMBER % $REVIEWER_COUNT)]}
+    
+      - name: Request review
+        uses: murs313/request-review@v1.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          reviewers: ${{ steps.reviewer.outputs.reviewer }}
