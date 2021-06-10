@@ -14,6 +14,7 @@ import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -48,6 +49,11 @@ const ProjectListItem = ({ project: { projectName, role, creationStatus, message
   const selectableProject = h(Clickable, {
     style: { ...styles.projectListItem(isActive), color: isActive ? colors.dark() : colors.accent() },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
+    onClick: () => {
+      Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, {
+        billingProjectName: projectName
+      })
+    },
     hover: Style.navList.itemHover(isActive)
   }, [projectName, !projectReady && statusIcon])
   const unselectableProject = div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [projectName, !projectReady && statusIcon])
