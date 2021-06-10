@@ -213,6 +213,7 @@ const NewAccountModal = ({ onDismiss }) => {
           'Notify me when the amount remaining reaches'
         ]),
         h(Select, {
+          'aria-label': 'the amount to notify on',
           onChange: ({ value }) => {
             updateAccount('alertPolicy', value)
             updateAccount('alertsOn', true)

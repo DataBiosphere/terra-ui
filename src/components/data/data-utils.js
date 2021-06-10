@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, fieldset, h, img, legend, span } from 'react-hyperscript-helpers'
+import { div, fieldset, h, img, label, legend, span } from 'react-hyperscript-helpers'
 import {
   ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, SimpleTabBar, spinnerOverlay,
   Switch
@@ -585,12 +585,15 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
             ]))
           ]),
           editType === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
-            div({ style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
-            h(Select, {
-              value: linkedEntityType,
-              options: entityTypes,
-              onChange: ({ value }) => setLinkedEntityType(value)
-            })
+            h(IdContainer, [id => h(Fragment, [
+              label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
+              h(Select, {
+                id,
+                value: linkedEntityType,
+                options: entityTypes,
+                onChange: ({ value }) => setLinkedEntityType(value)
+              })
+            ])])
           ])
         ]),
         div({ style: { marginBottom: '0.5rem' } }, [

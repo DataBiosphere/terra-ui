@@ -49,10 +49,11 @@ export const withWorkspaces = WrappedComponent => {
   })
 }
 
-export const WorkspaceSelector = ({ workspaces, value, onChange, ...props }) => {
+export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label': ariaLabel, ...props }) => {
   return h(Select, {
+    id,
+    'aria-label': ariaLabel || 'Select a workspace',
     placeholder: 'Select a workspace',
-    'aria-label': 'Select a workspace',
     disabled: !workspaces,
     value,
     onChange: ({ value }) => onChange(value),

@@ -1,7 +1,7 @@
 import * as _ from 'lodash/fp'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Link, Select, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
@@ -56,15 +56,18 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
       }, ['Ok'])
     }, [
       'This data is in a requester pays bucket. Choose a billing project to continue:',
-      h(FormLabel, { required: true }, ['Billing Project']),
-      h(Select, {
-        isClearable: false,
-        value: selectedBilling,
-        placeholder: 'Select a billing project',
-        onChange: ({ value }) => setSelectedBilling(value),
-        options: _.uniq(_.map('projectName', billingList)).sort()
-      }),
-      billingHelpInfo
+      h(IdContainer, [id => h(Fragment, [
+        h(FormLabel, { htmlFor: id, required: true }, ['Billing Project']),
+        h(Select, {
+          id,
+          isClearable: false,
+          value: selectedBilling,
+          placeholder: 'Select a billing project',
+          onChange: ({ value }) => setSelectedBilling(value),
+          options: _.uniq(_.map('projectName', billingList)).sort()
+        }),
+        billingHelpInfo
+      ])])
     ])],
     () => h(Modal, {
       title: 'Cannot access data',

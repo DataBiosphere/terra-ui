@@ -54,6 +54,7 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
     },
     style: { overlay: styles.overlay, content: { ...styles.modal, width } },
     aria: { labelledby: titleId, modal: true },
+    ariaHideApp: false,
     ...props
   }, [
     title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [
