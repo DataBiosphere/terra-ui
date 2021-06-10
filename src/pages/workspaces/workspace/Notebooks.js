@@ -14,6 +14,7 @@ import { NewGalaxyModal } from 'src/components/NewGalaxyModal'
 import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
 import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import { sampleSteps, Wizard } from 'src/components/Wizard'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -27,43 +28,9 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+
 import Modal from '../../../components/Modal'
 
-const One = ({setNext}) => div({onClick: () => setNext('two')}, 'one')
-const Two = () => div('two')
-const Three = () => div('three')
-
-const states = {
-  state: 'one',
-  component: One,
-  next: ['two', 'three', 'four'],
-  done: true
-}
-
-// useStateAccumulator
-const usePreviousState = (init = null) => {
-  const [state, setState] = useState({previous: null, current: init})
-  return [state, next => setState({previous: state.current, current: next})]
-}
-
-// handles next, prev, state per state, path
-// accumulators for path, state per
-const Wizard = () => {
-  const [view, setNext] = usePreviousState('one')
-  const [totalState, setTotalState] = usePreviousState()
-  const {current} = view
-  
-  // onpr
-  // map over structure
-  // if done === true, render and handle onDone
-  return Utils.switchCase(current, 
-    ['one', () => h(One, {onNext: setTotalState, setNext})],
-    ['two', () => h(Two)],
-    ['three', () => h(Three)],
-  )
-}
-
-const thing = () => h(Wizard, {structure: states})
 
 const notebookCardCommonStyles = listView => _.merge({ display: 'flex' },
   listView ?
@@ -459,7 +426,7 @@ const Notebooks = _.flow(
           })
         ])]),
         h(ViewToggleButtons, { listView, setListView }),
-        creating && h(Modal, [h(Wizard)]),
+        creating && h(Modal, { onDismiss: () => setCreating(false) }, [h(Wizard, { steps: sampleSteps, initialStep: 'one' })]),
         // h(NotebookCreator, {
         //   namespace, bucketName, existingNames,
         //   reloadList: refreshNotebooks,
