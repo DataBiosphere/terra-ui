@@ -5,7 +5,7 @@ import { Fragment, useRef, useState } from 'react'
 import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NewRuntimeModal } from 'src/components/NewRuntimeModal'
@@ -15,7 +15,7 @@ import {
   getDisplayName,
   getTool, notebookLockHash
 } from 'src/components/notebook-utils'
-import PopupTrigger from 'src/components/PopupTrigger'
+import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
@@ -236,7 +236,7 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
         h(HeaderButton, {
           onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
         }, [makeMenuIcon('chalkboard'), 'Playground mode']),
-        h(PopupTrigger, {
+        h(MenuTrigger, {
           closeOnClick: true,
           content: h(Fragment, [
             h(MenuButton, { onClick: () => setCopyingAnalysis(true) }, ['Make a Copy']),
