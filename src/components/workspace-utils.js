@@ -249,7 +249,7 @@ export const SnapshotInfo = ({
 export const WorkspaceImporter = _.flow(
   Utils.withDisplayName('WorkspaceImporter'),
   withWorkspaces
-)(({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs, additionalErrors }) => {
+)(({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs, additionalErrors, ...props }) => {
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(initialWs)
   const [creatingWorkspace, setCreatingWorkspace] = useState(false)
 
@@ -262,7 +262,8 @@ export const WorkspaceImporter = _.flow(
           (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
       }, workspaces),
       value: selectedWorkspaceId,
-      onChange: setSelectedWorkspaceId
+      onChange: setSelectedWorkspaceId,
+      ...props
     }),
     div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
       h(ButtonPrimary, {
