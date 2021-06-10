@@ -66,30 +66,34 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpand
   }
 
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' } }, [
-    div({ style: workspaceCardStyles.row }, [
-      div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center' } }, [
-        h(Link, {
-          style: { fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
-          href: Nav.getLink('workspace-dashboard', { namespace, name })
-        }, [name]),
-        h(Link, {
-          'aria-expanded': isExpanded,
-          style: { display: 'flex', alignItems: 'center', marginLeft: '1rem' },
-          onClick: onExpand,
-          'aria-label': 'expand workspace'
-        }, [
-          icon(isExpanded ? 'angle-up' : 'angle-down', { size: workspaceExpandIconSize, style: { marginLeft: '1rem' } })
-        ])
+    h(IdContainer, [id => h(Fragment, [
+      div({ style: workspaceCardStyles.row }, [
+        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center' } }, [
+          h(Link, {
+            style: { fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
+            href: Nav.getLink('workspace-dashboard', { namespace, name })
+          }, [name]),
+          h(Link, {
+            'aria-expanded': isExpanded,
+            'aria-controls': isExpanded ? id : undefined,
+            'aria-owns': isExpanded ? id : undefined,
+            style: { display: 'flex', alignItems: 'center', marginLeft: '1rem' },
+            onClick: onExpand,
+            'aria-label': 'view more workspace details'
+          }, [
+            icon(isExpanded ? 'angle-up' : 'angle-down', { size: workspaceExpandIconSize, style: { marginLeft: '1rem' } })
+          ])
+        ]),
+        div({ style: workspaceCardStyles.field }, [createdBy]),
+        div({ style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)])
       ]),
-      div({ style: workspaceCardStyles.field }, [createdBy]),
-      div({ style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)])
-    ]),
-    isExpanded && div({ style: workspaceCardStyles.row }, [
-      div({ style: workspaceCardStyles.expandedInfoContainer }, [
-        h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
-        h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountName })
+      isExpanded && div({ id, style: workspaceCardStyles.row }, [
+        div({ style: workspaceCardStyles.expandedInfoContainer }, [
+          h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
+          h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountName })
+        ])
       ])
-    ])
+    ])])
   ])
 })
 
