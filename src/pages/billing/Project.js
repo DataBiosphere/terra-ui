@@ -122,7 +122,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   const tabToTable = {
     workspaces: h(Fragment, [
       h(WorkspaceCardHeaders, { sort: workspaceSort, onSort: setWorkspaceSort }),
-      div({ role: 'list', 'aria-label': 'workspace list', style: { flexGrow: 1, width: '100%' } }, [
+      div({ role: 'list', 'aria-label': `workspaces in billing project ${projectName}`, style: { flexGrow: 1, width: '100%' } }, [
         _.flow(
           // TODO (Post PPW): Remove billing account name here, and move back to just returning workspace. This is for a seamless transition to PPW, where `billingAccountName` should be a field on the workspace.
           _.map(({ workspace }) => { return { billingAccountName, ...workspace } }),
@@ -145,18 +145,20 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         icon('plus-circle', { size: 14 }),
         div({ style: { marginLeft: '0.5rem' } }, ['Add User'])
       ]),
-      h(MemberCardHeaders, { sort, onSort: setSort }),
-      div(_.map(member => {
-        return h(MemberCard, {
-          key: member.email,
-          adminLabel: billingRoles.owner,
-          userLabel: billingRoles.user,
-          member, adminCanEdit,
-          onEdit: () => setEditingUser(member),
-          onDelete: () => setDeletingUser(member)
-        })
-      }, _.orderBy([sort.field], [sort.direction], projectUsers))
-      )
+      div({ role: 'table', 'aria-label': `users in billing project ${projectName}` }, [
+        h(MemberCardHeaders, { sort, onSort: setSort }),
+        div(_.map(member => {
+          return h(MemberCard, {
+            key: member.email,
+            adminLabel: billingRoles.owner,
+            userLabel: billingRoles.user,
+            member, adminCanEdit,
+            onEdit: () => setEditingUser(member),
+            onDelete: () => setDeletingUser(member)
+          })
+        }, _.orderBy([sort.field], [sort.direction], projectUsers))
+        )
+      ])
     ])
   }
 
@@ -296,15 +298,16 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
           }
         },
         tabs
-      }),
-      div({
-        style: {
-          padding: '1rem 1rem 0',
-          backgroundColor: colors.light(),
-          flexGrow: 1
-        }
       }, [
-        tabToTable[tab]
+        div({
+          style: {
+            padding: '1rem 1rem 0',
+            backgroundColor: colors.light(),
+            flexGrow: 1
+          }
+        }, [
+          tabToTable[tab]
+        ])
       ])
     ]),
     addingUser && h(NewUserModal, {
