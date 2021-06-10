@@ -4,7 +4,7 @@ import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import { HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -167,9 +167,7 @@ export const WorkspaceList = () => {
 
   const currentTab = _.find({ key: tab }, tabs)
 
-  const makeHeaderRenderer = name => () => h(MiniSortable, { sort, field: name, onSort: setSort }, [
-    div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
-  ])
+  const makeHeaderRenderer = name => () => h(HeaderRenderer, { sort, name, onSort: setSort })
 
   const renderedWorkspaces = div({ style: { flex: 1, backgroundColor: 'white', padding: '0 1rem' } }, [h(AutoSizer, [
     ({ width, height }) => h(FlexTable, {
