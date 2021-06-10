@@ -40,9 +40,9 @@ const rowBase = { display: 'flex', alignItems: 'center', width: '100%' }
 
 const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details, additionalInfo }) => {
   const expandedInfoStyles = {
-    row: { ...rowBase, marginTop: '0.5rem' },
-    title: { fontWeight: 600, width: '20%', paddingRight: '1rem' },
-    details: { flexGrow: 1, width: '20%', paddingRight: '1rem', ...Style.noWrapEllipsis },
+    row: { ...rowBase, marginTop: '0.5rem', height: '1rem' },
+    title: { fontWeight: 600, width: '20%', paddingRight: '1rem', height: '1rem' },
+    details: { flexGrow: 1, width: '20%', paddingRight: '1rem', height: '1rem', ...Style.noWrapEllipsis },
     additionalInfo: { flexGrow: 1 }
   }
 
@@ -58,7 +58,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpand
   const workspaceExpandIconSize = 20
   const workspaceCardStyles = {
     field: {
-      ...Style.noWrapEllipsis, flex: 1, width: `calc(50% - ${workspaceLastModifiedWidth / 2}px)`, paddingRight: '1rem'
+      ...Style.noWrapEllipsis, flex: 1, height: '1rem', width: `calc(50% - ${workspaceLastModifiedWidth / 2}px)`, paddingRight: '1rem'
     },
     row: rowBase,
     expandedInfoContainer: { display: 'flex', flexDirection: 'column', width: '100%' }
@@ -81,7 +81,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpand
         ])
       ]),
       div({ style: workspaceCardStyles.field }, [createdBy]),
-      div({ style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)])
+      div({ style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)])
     ]),
     isExpanded && div({ style: workspaceCardStyles.row }, [
       div({ style: workspaceCardStyles.expandedInfoContainer }, [
