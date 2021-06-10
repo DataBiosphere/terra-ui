@@ -103,7 +103,7 @@ const GroupDetails = ({ groupName }) => {
         h(NewUserCard, {
           onClick: () => setCreatingNewUser(true)
         }),
-        div({ role: 'table', 'aria-label': 'member list' }, [
+        div({ role: 'table', 'aria-label': `users in group ${groupName}` }, [
           h(MemberCardHeaders, { sort, onSort: setSort }),
           div({ style: { flexGrow: 1, marginTop: '1rem' } },
             _.map(member => {
