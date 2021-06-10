@@ -201,8 +201,8 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
       newName: newAccountName,
       billingProjectName: projectName
     })
-    const { billingAccountName } = await Ajax(signal).GoogleBilling.changeBillingAccount({ projectId: projectName, newAccountName })
-    setBillingAccountName(billingAccountName)
+    const { newBillingAccountName } = await Ajax(signal).GoogleBilling.changeBillingAccount({ projectId: projectName, newAccountName })
+    setBillingAccountName(newBillingAccountName)
   })
 
   const loadBillingInfo = _.flow(
