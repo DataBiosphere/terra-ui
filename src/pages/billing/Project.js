@@ -21,10 +21,11 @@ import { billingRoles } from 'src/pages/billing/List'
 
 
 const workspaceLastModifiedWidth = 150
+const workspaceExpandIconSize = 20
 
 const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
-    div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1 } }, [
+    div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: '1rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'name' })
     ]),
     div({ 'aria-sort': ariaSort(sort, 'createdBy'), style: { flex: 1 } }, [
@@ -32,6 +33,9 @@ const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort,
     ]),
     div({ 'aria-sort': ariaSort(sort, 'lastModified'), style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [
       h(HeaderRenderer, { sort, onSort, name: 'lastModified' })
+    ]),
+    div({ role: 'columnheader', style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
+      div({ className: 'sr-only' }, ['Expand'])
     ])
   ])
 })
@@ -55,10 +59,9 @@ const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details,
 
 const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpanded, onExpand }) => {
   const { namespace, name, createdBy, lastModified, googleProject, billingAccountName } = workspace
-  const workspaceExpandIconSize = 20
   const workspaceCardStyles = {
     field: {
-      ...Style.noWrapEllipsis, flex: 1, height: '1rem', width: `calc(50% - ${workspaceLastModifiedWidth / 2}px)`, paddingRight: '1rem'
+      ...Style.noWrapEllipsis, flex: 1, height: '1rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`, paddingRight: '1rem'
     },
     row: rowBase,
     expandedInfoContainer: { display: 'flex', flexDirection: 'column', width: '100%' }
@@ -66,22 +69,24 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpand
 
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' } }, [
     div({ style: workspaceCardStyles.row }, [
-      div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center' } }, [
+      div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
         h(Link, {
-          style: { fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
+          style: { ...Style.noWrapEllipsis },
           href: Nav.getLink('workspace-dashboard', { namespace, name })
-        }, [name]),
+        }, [name])
+      ]),
+      div({ style: workspaceCardStyles.field }, [createdBy]),
+      div({ style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)]),
+      div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
         h(Link, {
           'aria-expanded': isExpanded,
-          style: { display: 'flex', alignItems: 'center', marginLeft: '1rem' },
+          style: { display: 'flex', alignItems: 'center' },
           onClick: onExpand,
           'aria-label': 'expand workspace'
         }, [
-          icon(isExpanded ? 'angle-up' : 'angle-down', { size: workspaceExpandIconSize, style: { marginLeft: '1rem' } })
+          icon(isExpanded ? 'angle-up' : 'angle-down', { size: workspaceExpandIconSize })
         ])
-      ]),
-      div({ style: workspaceCardStyles.field }, [createdBy]),
-      div({ style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)])
+      ])
     ]),
     isExpanded && div({ style: workspaceCardStyles.row }, [
       div({ style: workspaceCardStyles.expandedInfoContainer }, [
