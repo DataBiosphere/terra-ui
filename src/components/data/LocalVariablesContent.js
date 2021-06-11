@@ -204,7 +204,6 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
                     }
                   }, [icon('edit', { size: 19 })]),
                   h(Link, {
-                    'aria-label': 'Delete variable',
                     disabled: !!Utils.editWorkspaceError(workspace),
                     tooltip: Utils.editWorkspaceError(workspace) || 'Delete variable',
                     style: { marginLeft: '1rem' },

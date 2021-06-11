@@ -156,7 +156,6 @@ const WorkflowSummary = () => {
         h(Link, {
           style: { margin: '0 0.5rem', flexShrink: 0 },
           tooltip: 'Copy import URL',
-          'aria-label': 'Copy import URL',
           onClick: withErrorReporting('Error copying to clipboard', async () => {
             await clipboard.writeText(importUrl)
             setImportUrlCopied(true)

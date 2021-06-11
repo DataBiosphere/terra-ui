@@ -267,7 +267,7 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
     div({ style: { flexGrow: 1 } }),
     div({ style: { position: 'relative' } }, [
       h(Clickable, {
-        'aria-label': 'Exit preview mode',
+        tooltip: 'Exit preview mode',
         style: { opacity: 0.65, marginRight: '1.5rem' },
         hover: { opacity: 1 }, focus: 'hover',
         onClick: () => Nav.goToPath('workspace-notebooks', { namespace, name })
