@@ -4,14 +4,13 @@ import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import {
-  HeaderRenderer, Link, makeMenuIcon, MenuButton, Select, SimpleTabBar, topSpinnerOverlay, transparentSpinnerOverlay
-} from 'src/components/common'
+import { HeaderRenderer, Link, makeMenuIcon, MenuButton, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
+import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
@@ -160,7 +159,7 @@ export const WorkspaceList = () => {
 
   const tabs = _.map(key => ({
     key,
-    title: span({ style: { padding: '0 1rem' } }, [
+    title: span([
       _.upperCase(key), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`
     ]),
     tableName: _.lowerCase(key)
@@ -312,7 +311,7 @@ export const WorkspaceList = () => {
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
         h(Link, {
-          'aria-label': 'Create new workspace', onClick: () => setCreatingNewWorkspace(true),
+          onClick: () => setCreatingNewWorkspace(true),
           style: { marginLeft: '0.5rem' },
           tooltip: 'Create a new workspace'
         },
@@ -375,6 +374,7 @@ export const WorkspaceList = () => {
         ])
       ]),
       h(SimpleTabBar, {
+        label: 'choose a workspace collection',
         value: tab,
         onChange: newTab => {
           if (newTab === tab) {
@@ -384,8 +384,7 @@ export const WorkspaceList = () => {
           }
         },
         tabs
-      }),
-      renderedWorkspaces,
+      }, [renderedWorkspaces]),
       creatingNewWorkspace && h(NewWorkspaceModal, {
         onDismiss: () => setCreatingNewWorkspace(false),
         onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })

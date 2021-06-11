@@ -2,10 +2,11 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, SimpleTabBar, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { SimpleTabBar } from 'src/components/tabBars'
 import { ariaSort } from 'src/components/table'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
@@ -247,7 +248,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
         !!displayName && span({ style: { flexShrink: 0 } }, displayName),
         h(Link, {
-          'aria-label': 'Change Billing Account',
+          tooltip: 'Change Billing Account',
           style: { marginLeft: '0.5rem' },
           onClick: async () => {
             if (Auth.hasBillingScope()) {
@@ -283,6 +284,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         ])
       ]),
       h(SimpleTabBar, {
+        label: 'project details',
         style: { marginTop: '2rem', textTransform: 'none', padding: '0 1rem', height: '1.5rem' },
         tabStyle: { borderBottomWidth: 4 },
         value: tab,

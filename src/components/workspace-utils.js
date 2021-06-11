@@ -134,7 +134,6 @@ export const SnapshotInfo = ({
           !editingDescription && h(Link, {
             style: { marginLeft: '0.5rem' },
             onClick: () => setEditingName(true),
-            'aria-label': 'Edit snapshot name',
             tooltip: 'Edit snapshot name'
           }, [icon('edit')])
         ]),
@@ -143,7 +142,6 @@ export const SnapshotInfo = ({
           !editingDescription && h(Link, {
             style: { marginLeft: '0.5rem' },
             onClick: () => setNewDescription(description),
-            'aria-label': 'Edit description',
             tooltip: 'Edit description'
           }, [icon('edit')])
         ]),
