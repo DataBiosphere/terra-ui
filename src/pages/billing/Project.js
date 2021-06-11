@@ -34,7 +34,7 @@ const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort,
     div({ 'aria-sort': ariaSort(sort, 'lastModified'), style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [
       h(HeaderRenderer, { sort, onSort, name: 'lastModified' })
     ]),
-    div({ role: 'columnheader', style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
+    div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
       div({ className: 'sr-only' }, ['Expand'])
     ])
   ])
