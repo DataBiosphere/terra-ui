@@ -518,7 +518,6 @@ const WorkspaceData = _.flow(
                 afterToggle: h(Link, {
                   style: { marginRight: '0.5rem' },
                   tooltip: 'Snapshot Info',
-                  useTooltipAsLabel: true, // not sure why it doesn't auto-detect this
                   onClick: () => {
                     setSelectedDataType([snapshotName])
                     forceRefresh()
