@@ -1,6 +1,7 @@
 import { getDefaultProperties } from '@databiosphere/bard-client'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
+import { getDisplayName, tools } from 'src/components/notebook-utils'
 import { version } from 'src/data/machines'
 import { ensureAuthSettled, getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
@@ -140,7 +141,8 @@ const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
 
-const nbName = name => encodeURIComponent(`notebooks/${name}.ipynb`)
+const nbName = name => encodeURIComponent(`notebooks/${name}.${tools.jupyter.ext}`)
+const rName = name => encodeURIComponent(`notebooks/${name}.${tools.rstudio.ext}`)
 
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
@@ -916,7 +918,25 @@ const Buckets = signal => ({
       _.merge(authOpts(await saToken(namespace)), { signal })
     )
     const { items } = await res.json()
-    return _.filter(({ name }) => name.endsWith('.ipynb'), items)
+    return _.filter(({ name }) => name.endsWith(`.${tools.jupyter.ext}`), items)
+  },
+
+  listRmds: async (namespace, name) => {
+    const res = await fetchBuckets(
+      `storage/v1/b/${name}/o?prefix=notebooks/`,
+      _.merge(authOpts(await saToken(namespace)), { signal })
+    )
+    const { items } = await res.json()
+    return _.filter(({ name }) => name.endsWith(`.${tools.rstudio.ext}`), items)
+  },
+
+  listAnalyses: async (namespace, name) => {
+    const res = await fetchBuckets(
+      `storage/v1/b/${name}/o?prefix=notebooks/`,
+      _.merge(authOpts(await saToken(namespace)), { signal })
+    )
+    const { items } = await res.json()
+    return _.filter(({ name }) => name.endsWith(`.${tools.rstudio.ext}`) || name.endsWith(`.${tools.jupyter.ext}`), items)
   },
 
   list: async (namespace, bucket, prefix) => {
@@ -960,6 +980,7 @@ const Buckets = signal => ({
     )
   },
 
+  //TODO: this should be deprecated in favor of the smarter `analysis` set of functions
   notebook: (namespace, bucket, name) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
@@ -1004,6 +1025,75 @@ const Buckets = signal => ({
           _.merge(authOpts(await saToken(namespace)), {
             signal, method: 'POST', body: JSON.stringify(contents),
             headers: { 'Content-Type': 'application/x-ipynb+json' }
+          })
+        )
+      },
+
+      delete: doDelete,
+
+      getObject,
+
+      rename: async newName => {
+        await copy(newName, bucket, false)
+        return doDelete()
+      }
+    }
+  },
+
+  analysis: (namespace, bucket, name, toolLabel) => {
+    const bucketUrl = `storage/v1/b/${bucket}/o`
+
+    const calhounPath = Utils.switchCase(toolLabel,
+      [tools.jupyter.label, () => 'api/convert'], [tools.rstudio.label, () => 'api/convert/rmd'])
+
+    const mimeType = Utils.switchCase(toolLabel,
+      [tools.jupyter.label, () => 'application/x-ipynb+json'], [tools.rstudio.label, () => 'text/plain'])
+
+    const encodeFileName = n => Utils.switchCase(toolLabel,
+      [tools.jupyter.label, () => nbName(getDisplayName(n))], [tools.rstudio.label, () => rName(getDisplayName(n))])
+
+    const copy = async (newName, newBucket, clearMetadata) => {
+      const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
+      return fetchBuckets(
+        `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
+        _.mergeAll([authOpts(await saToken(namespace)), jsonBody(body), { signal, method: 'POST' }])
+      )
+    }
+
+    const doDelete = async () => {
+      return fetchBuckets(
+        `${bucketUrl}/${encodeFileName(name)}`,
+        _.merge(authOpts(await saToken(namespace)), { signal, method: 'DELETE' })
+      )
+    }
+
+    const getObject = async () => {
+      const res = await fetchBuckets(
+        `${bucketUrl}/${encodeFileName(name)}`,
+        _.merge(authOpts(await saToken(namespace)), { signal, method: 'GET' })
+      )
+      return await res.json()
+    }
+
+    return {
+      preview: async () => {
+        const nb = await fetchBuckets(
+          `${bucketUrl}/${encodeFileName(name)}?alt=media`,
+          _.merge(authOpts(await saToken(namespace)), { signal })
+        ).then(res => res.text())
+        return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
+          _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
+        ).then(res => res.text())
+      },
+
+      copy,
+
+      create: async textContents => {
+        return fetchBuckets(
+          `upload/${bucketUrl}?uploadType=media&name=${encodeFileName(name)}`,
+          _.merge(authOpts(await saToken(namespace)), {
+            signal, method: 'POST', body: textContents,
+            headers: { 'Content-Type': mimeType }
           })
         )
       },

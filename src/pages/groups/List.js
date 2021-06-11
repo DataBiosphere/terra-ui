@@ -1,13 +1,12 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
 import { a, b, div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, Link, PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, HeaderRenderer, IdContainer, Link, PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { AdminNotifierCheckbox } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { MiniSortable } from 'src/components/table'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -98,19 +97,16 @@ const DeleteGroupModal = ({ groupName, onDismiss, onSubmit }) => {
 const roleSectionWidth = 100
 
 const GroupCardHeaders = Utils.memoWithName('GroupCardHeaders', ({ sort, onSort }) => {
-  const makeHeaderRenderer = name => h(MiniSortable, { sort, field: name, onSort }, [
-    div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
-  ])
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' } }, [
     div({ style: { width: '30%', marginRight: '1rem' } }, [
-      makeHeaderRenderer('groupName')
+      h(HeaderRenderer, { sort, onSort, name: 'groupName' })
     ]),
     div({ style: { flexGrow: 1 } }, [
-      makeHeaderRenderer('groupEmail')
+      h(HeaderRenderer, { sort, onSort, name: 'groupEmail' })
     ]),
     div({ style: { width: '20%' } }, [
       // This behaves strangely due to the fact that role is an array. If you have multiple roles it can do strange things.
-      makeHeaderRenderer('role')
+      h(HeaderRenderer, { sort, onSort, name: 'role' })
     ]),
     // Width is the same as the menu icon.
     div({ style: { width: roleSectionWidth } }, [
