@@ -4,13 +4,14 @@ import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Link, makeMenuIcon, MenuButton, Select, SimpleTabBar, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
+import { HeaderRenderer, Link, makeMenuIcon, MenuButton, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
-import { FlexTable, MiniSortable } from 'src/components/table'
+import { SimpleTabBar } from 'src/components/tabBars'
+import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { NoWorkspacesMessage, useWorkspaces, WorkspaceTagSelect } from 'src/components/workspace-utils'
@@ -63,19 +64,19 @@ const WorkspaceMenuContent = ({ namespace, name, onClone, onShare, onDelete }) =
       disabled: !canRead,
       tooltip: workspace && !canRead && 'You do not have access to the workspace Authorization Domain',
       tooltipSide: 'left',
-      onClick: () => onClone()
+      onClick: onClone
     }, [makeMenuIcon('copy'), 'Clone']),
     h(MenuButton, {
       disabled: !canShare,
       tooltip: workspace && !canShare && 'You have not been granted permission to share this workspace',
       tooltipSide: 'left',
-      onClick: () => onShare()
+      onClick: onShare
     }, [makeMenuIcon('share'), 'Share']),
     h(MenuButton, {
       disabled: !isOwner,
       tooltip: workspace && !isOwner && 'You must be an owner of this workspace or the underlying billing project',
       tooltipSide: 'left',
-      onClick: () => onDelete()
+      onClick: onDelete
     }, [makeMenuIcon('trash'), 'Delete'])
   ])
 }
@@ -158,7 +159,7 @@ export const WorkspaceList = () => {
 
   const tabs = _.map(key => ({
     key,
-    title: span({ style: { padding: '0 1rem' } }, [
+    title: span([
       _.upperCase(key), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`
     ]),
     tableName: _.lowerCase(key)
@@ -166,9 +167,7 @@ export const WorkspaceList = () => {
 
   const currentTab = _.find({ key: tab }, tabs)
 
-  const makeHeaderRenderer = name => () => h(MiniSortable, { sort, field: name, onSort: setSort }, [
-    div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
-  ])
+  const makeHeaderRenderer = name => () => h(HeaderRenderer, { sort, name, onSort: setSort })
 
   const renderedWorkspaces = div({ style: { flex: 1, backgroundColor: 'white', padding: '0 1rem' } }, [h(AutoSizer, [
     ({ width, height }) => h(FlexTable, {
@@ -370,6 +369,7 @@ export const WorkspaceList = () => {
         ])
       ]),
       h(SimpleTabBar, {
+        label: 'choose a workspace collection',
         value: tab,
         onChange: newTab => {
           if (newTab === tab) {
@@ -379,8 +379,7 @@ export const WorkspaceList = () => {
           }
         },
         tabs
-      }),
-      renderedWorkspaces,
+      }, [renderedWorkspaces]),
       creatingNewWorkspace && h(NewWorkspaceModal, {
         onDismiss: () => setCreatingNewWorkspace(false),
         onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
@@ -393,7 +392,7 @@ export const WorkspaceList = () => {
       deletingWorkspaceId && h(DeleteWorkspaceModal, {
         workspace: getWorkspace(deletingWorkspaceId),
         onDismiss: () => setDeletingWorkspaceId(undefined),
-        onSuccess: () => refreshWorkspaces()
+        onSuccess: refreshWorkspaces
       }),
       sharingWorkspaceId && h(ShareWorkspaceModal, {
         workspace: getWorkspace(sharingWorkspaceId),

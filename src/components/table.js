@@ -174,7 +174,7 @@ export const tableHeight = ({ actualRows, maxRows, heightPerRow = 48 }) => (_.mi
  *  'none' if the given field is sortable but the table is currently sorted by a different field,
  *  null if the table or column is not sortable.
  */
-const ariaSort = (sort, field) => {
+export const ariaSort = (sort, field) => {
   if (sort && field) {
     // If we're currently sorting by this column, return the sort direction
     if (sort.field === field) {

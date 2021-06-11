@@ -5,10 +5,11 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, label, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ButtonSecondary, IdContainer, Link, Select, TabBar } from 'src/components/common'
+import { ButtonSecondary, IdContainer, Link, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
+import { TabBar } from 'src/components/tabBars'
 import { FlexTable, HeaderCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
@@ -93,6 +94,7 @@ const SnapshotWrapper = ({ namespace, name, snapshotId, tabName, children }) => 
 
   return h(Fragment, [
     h(TabBar, {
+      label: 'workflow menu',
       activeTab: tabName,
       tabNames: ['dashboard', 'wdl', 'configs'],
       displayNames: { configs: 'configurations' },

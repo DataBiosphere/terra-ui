@@ -279,13 +279,11 @@ export const FileBrowserPanel = _.flow(
       ]),
       uploadStatus.active && h(UploadProgressModal, {
         status: uploadStatus,
-        abort: () => {
-          abortUpload()
-        }
+        abort: abortUpload
       }),
       deletingName && h(DeleteObjectModal, {
         workspace, name: deletingName,
-        onDismiss: () => setDeletingName(),
+        onDismiss: setDeletingName,
         onSuccess: () => {
           setDeletingName()
           load(prefix)

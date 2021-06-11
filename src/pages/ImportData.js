@@ -1,8 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, img, p } from 'react-hyperscript-helpers'
+import { div, h, h2, img, p } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
-import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable, RadioButton, spinnerOverlay } from 'src/components/common'
+import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, wdlIcon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -14,6 +14,7 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { pfbImportJobStore } from 'src/libs/state'
@@ -27,7 +28,7 @@ const styles = {
     position: 'relative', padding: '2rem'
   },
   title: {
-    fontSize: 24, fontWeight: 600, color: colors.dark(), marginBottom: '1rem'
+    fontSize: 24, fontWeight: 600, color: colors.dark(), margin: '0 0 1rem 0'
   },
   card: {
     borderRadius: 5, backgroundColor: 'white', padding: '2rem',
@@ -120,11 +121,11 @@ const ImportData = () => {
   })
 
   return h(FooterWrapper, [
-    backgroundLogo,
     h(TopBar, { title: `Import ${isDataset ? 'Data' : 'Snapshot'}` }),
     div({ role: 'main', style: styles.container }, [
+      backgroundLogo,
       div({ style: styles.card }, [
-        div({ style: styles.title }, [`Importing ${isDataset ? 'Data' : `Snapshot ${snapshotName}`}`]),
+        h2({ style: styles.title }, [`Importing ${isDataset ? 'Data' : `Snapshot ${snapshotName}`}`]),
         div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
         div({ style: { marginTop: '1rem' } }, [
           `The ${isDataset ? 'dataset' : 'snapshot'}(s) you just chose to import to Terra will be made available to you `,
@@ -135,19 +136,22 @@ const ImportData = () => {
         Utils.switchCase(mode,
           ['existing', () => {
             return h(Fragment, [
-              div({ style: styles.title }, ['Start with an existing workspace']),
-              div({ style: { fontWeight: 600, marginBottom: '0.25rem' } }, ['Select one of your workspaces']),
-              h(WorkspaceSelector, {
-                workspaces: _.filter(ws => {
-                  return Utils.canWrite(ws.accessLevel) &&
-                    (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
-                }, workspaces),
-                value: selectedWorkspaceId,
-                onChange: setSelectedWorkspaceId
-              }),
+              h2({ style: styles.title }, ['Start with an existing workspace']),
+              h(IdContainer, [id => h(Fragment, [
+                h(FormLabel, { htmlFor: id, style: { marginBottom: '0.25rem' } }, ['Select one of your workspaces']),
+                h(WorkspaceSelector, {
+                  id,
+                  workspaces: _.filter(ws => {
+                    return Utils.canWrite(ws.accessLevel) &&
+                      (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
+                  }, workspaces),
+                  value: selectedWorkspaceId,
+                  onChange: setSelectedWorkspaceId
+                })
+              ])]),
               isDataset && div({ style: { marginTop: '0.5rem', lineHeight: '1.5' } }, [noteMessage]),
               div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
-                h(ButtonSecondary, { onClick: () => setMode(), style: { marginLeft: 'auto' } }, ['Back']),
+                h(ButtonSecondary, { onClick: setMode, style: { marginLeft: 'auto' } }, ['Back']),
                 h(ButtonPrimary, {
                   style: { marginLeft: '2rem' },
                   disabled: !selectedWorkspace,
@@ -158,9 +162,13 @@ const ImportData = () => {
           }],
           ['template', () => {
             return h(Fragment, [
-              div({ style: styles.title }, ['Start with a template']),
+              h2({ style: styles.title }, ['Start with a template']),
               isDataset && div({ style: { marginBottom: '1rem', lineHeight: '1.5' } }, [noteMessage]),
-              div({ style: { overflow: 'auto', maxHeight: '25rem' } }, [
+              div({
+                role: 'radiogroup',
+                'aria-label': 'choose a template',
+                style: { overflow: 'auto', maxHeight: '25rem' }
+              }, [
                 _.map(([i, ws]) => {
                   const { name, namespace, description, hasNotebooks, hasWorkflows } = ws
                   const isSelected = _.isEqual({ name, namespace }, selectedTemplateWorkspaceKey)
@@ -193,7 +201,7 @@ const ImportData = () => {
                 }, Utils.toIndexPairs(filteredTemplates))
               ]),
               div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
-                h(ButtonSecondary, { style: { marginLeft: 'auto' }, onClick: () => setMode() }, ['Back']),
+                h(ButtonSecondary, { style: { marginLeft: 'auto' }, onClick: setMode }, ['Back']),
                 h(ButtonPrimary, {
                   style: { marginLeft: '2rem' },
                   disabled: !selectedTemplateWorkspaceKey,
@@ -204,7 +212,7 @@ const ImportData = () => {
           }],
           [Utils.DEFAULT, () => {
             return h(Fragment, [
-              div({ style: styles.title }, ['Destination Workspace']),
+              h2({ style: styles.title }, ['Destination Workspace']),
               div({ style: { marginTop: '0.5rem' } }, ['Choose the option below that best suits your needs.']),
               !!filteredTemplates.length && h(ChoiceButton, {
                 onClick: () => setMode('template'),
@@ -222,7 +230,8 @@ const ImportData = () => {
                 onClick: () => setIsCreateOpen(true),
                 iconName: 'plus-circle',
                 title: 'Start with a new workspace',
-                detail: 'Set up an empty workspace that you will configure for analysis'
+                detail: 'Set up an empty workspace that you will configure for analysis',
+                'aria-haspopup': 'dialog'
               }),
               isCreateOpen && h(NewWorkspaceModal, {
                 requiredAuthDomain: ad,
