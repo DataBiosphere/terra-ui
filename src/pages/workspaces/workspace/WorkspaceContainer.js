@@ -2,12 +2,13 @@ import { differenceInSeconds, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, spinnerOverlay, TabBar } from 'src/components/common'
+import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import PopupTrigger from 'src/components/PopupTrigger'
 import RuntimeManager from 'src/components/RuntimeManager'
+import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
 import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
@@ -48,6 +49,7 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
   ]
   return h(Fragment, [
     h(TabBar, {
+      label: 'workspace menu',
       activeTab, refresh,
       tabNames: _.map('name', tabs),
       getHref: currentTab => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name })
