@@ -34,7 +34,7 @@ export const findPotentialNotebookLockers = async ({ canShare, namespace, wsName
   }
 }
 
-export const notebookNameValidator = existing => ({
+export const analysisNameValidator = existing => ({
   presence: { allowEmpty: false },
   format: {
     pattern: /^[^@#$%*+=?,[\]:;/\\]*$/,
@@ -49,7 +49,17 @@ export const notebookNameValidator = existing => ({
   }
 })
 
-export const notebookNameInput = ({ inputProps, ...props }) => h(ValidatedInput, {
+// removes all paths up to and including the last slash
+export const getFileName = _.flow(_.split('/'), _.last)
+
+export const getExtension = _.flow(_.split('.'), _.last)
+
+export const stripExtension = _.replace(/\.[^/.]+$/, '')
+
+// removes leading dirs and a file ext suffix on paths
+export const getDisplayName = _.flow(getFileName, stripExtension)
+
+export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput, {
   ...props,
   inputProps: {
     ...inputProps,
@@ -58,6 +68,13 @@ export const notebookNameInput = ({ inputProps, ...props }) => h(ValidatedInput,
   }
 })
 
+export const tools = { rstudio: { label: 'RStudio', ext: 'Rmd' }, jupyter: { label: 'Jupyter', ext: 'ipynb' } }
+
+const toolToExtensionMap = { [tools.rstudio.label]: tools.rstudio.ext, [tools.jupyter.label]: tools.jupyter.ext }
+
+export const getTool = fileName => _.invert(toolToExtensionMap)[getExtension(fileName)]
+
+export const getAnalysisFileExtension = toolLabel => toolToExtensionMap[toolLabel]
 
 const baseNotebook = {
   cells: [
@@ -97,7 +114,7 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, namespace, b
   const errors = validate(
     { notebookName, notebookKernel },
     {
-      notebookName: notebookNameValidator(existingNames),
+      notebookName: analysisNameValidator(existingNames),
       notebookKernel: { presence: { allowEmpty: false } }
     },
     { prettify: v => ({ notebookName: 'Name', notebookKernel: 'Language' }[v] || validate.prettify(v)) }
@@ -124,7 +141,7 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, namespace, b
   }, [
     h(IdContainer, [id => h(Fragment, [
       h(FormLabel, { htmlFor: id, required: true }, ['Name']),
-      notebookNameInput({
+      analysisNameInput({
         error: Utils.summarizeErrors(nameTouched && errors?.notebookName),
         inputProps: {
           id, value: notebookName,
@@ -150,6 +167,92 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, namespace, b
   ])
 }
 
+export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, printName, toolLabel, wsName, namespace, bucketName, onDismiss, onSuccess }) => {
+  const [newName, setNewName] = useState('')
+  const [existingNames, setExistingNames] = useState([])
+  const [nameTouched, setNameTouched] = useState(false)
+  const [processing, setProcessing] = useState(false)
+  const signal = Utils.useCancellation()
+
+  Utils.useOnMount(() => {
+    const loadNames = async () => {
+      const existingAnalyses = await Ajax(signal).Buckets.listAnalyses(namespace, bucketName)
+      const existingNames = _.map(({ name }) => getDisplayName(name), existingAnalyses)
+      setExistingNames(existingNames)
+    }
+
+    loadNames()
+  })
+
+  const errors = validate(
+    { newName },
+    { newName: analysisNameValidator(existingNames) },
+    { prettify: v => ({ newName: 'Name' }[v] || validate.prettify(v)) }
+  )
+
+  return h(Modal, {
+    onDismiss,
+    title: `${destroyOld ? 'Rename' : 'Copy'} "${printName}"`,
+    okButton: h(ButtonPrimary, {
+      disabled: errors || processing,
+      tooltip: Utils.summarizeErrors(errors),
+      onClick: async () => {
+        setProcessing(true)
+        try {
+          await (destroyOld ?
+            Ajax().Buckets.analysis(namespace, bucketName, printName, toolLabel).rename(newName) :
+            Ajax().Buckets.analysis(namespace, bucketName, printName, toolLabel).copy(newName, bucketName, !destroyOld)
+          )
+          onSuccess()
+          if (fromLauncher) {
+            Nav.goToPath('workspace-analysis-launch', {
+              namespace, name: wsName, analysisName: `${newName}.${getAnalysisFileExtension(toolLabel)}`, toolLabel
+            })
+          }
+          if (destroyOld) {
+            Ajax().Metrics.captureEvent(Events.notebookRename, {
+              oldName: printName,
+              newName,
+              workspaceName: wsName,
+              workspaceNamespace: namespace
+            })
+          } else {
+            Ajax().Metrics.captureEvent(Events.notebookCopy, {
+              oldName: printName,
+              newName,
+              fromWorkspaceNamespace: namespace,
+              fromWorkspaceName: wsName,
+              toWorkspaceNamespace: namespace,
+              toWorkspaceName: wsName
+            })
+          }
+        } catch (error) {
+          reportError(`Error ${destroyOld ? 'renaming' : 'copying'} analysis`, error)
+        }
+      }
+    }, `${destroyOld ? 'Rename' : 'Copy'} Analysis`)
+  },
+  Utils.cond(
+    [processing, () => [centeredSpinner()]],
+    () => [
+      h(IdContainer, [id => h(Fragment, [
+        h(FormLabel, { htmlFor: id, required: true }, ['New Name']),
+        analysisNameInput({
+          error: Utils.summarizeErrors(nameTouched && errors && errors.newName),
+          inputProps: {
+            id, value: newName,
+            onChange: v => {
+              setNewName(v)
+              setNameTouched(true)
+            }
+          }
+        })
+      ])])
+    ]
+  ))
+}
+
+//TODO: deprecate once notebooks tab is removed
 export const NotebookDuplicator = ({ destroyOld = false, fromLauncher = false, printName, wsName, namespace, bucketName, onDismiss, onSuccess }) => {
   const [newName, setNewName] = useState('')
   const [existingNames, setExistingNames] = useState([])
@@ -170,7 +273,7 @@ export const NotebookDuplicator = ({ destroyOld = false, fromLauncher = false, p
 
   const errors = validate(
     { newName },
-    { newName: notebookNameValidator(existingNames) },
+    { newName: analysisNameValidator(existingNames) },
     { prettify: v => ({ newName: 'Name' }[v] || validate.prettify(v)) }
   )
 
@@ -221,7 +324,7 @@ export const NotebookDuplicator = ({ destroyOld = false, fromLauncher = false, p
     () => [
       h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id, required: true }, ['New Name']),
-        notebookNameInput({
+        analysisNameInput({
           error: Utils.summarizeErrors(nameTouched && errors?.newName),
           inputProps: {
             id, value: newName,
@@ -236,6 +339,37 @@ export const NotebookDuplicator = ({ destroyOld = false, fromLauncher = false, p
   ))
 }
 
+export const AnalysisDeleter = ({ printName, toolLabel, namespace, bucketName, onDismiss, onSuccess }) => {
+  const [processing, setProcessing] = useState(false)
+
+  return h(Modal, {
+    onDismiss,
+    title: `Delete "${printName}"`,
+    okButton: h(ButtonPrimary, {
+      disabled: processing,
+      onClick: () => {
+        setProcessing(true)
+        Ajax().Buckets.analysis(namespace, bucketName, printName, toolLabel).delete().then(
+          onSuccess,
+          error => reportError('Error deleting analysis', error)
+        )
+      }
+    }, 'Delete Analysis')
+  },
+  Utils.cond(
+    [processing, () => [centeredSpinner()]],
+    () => [
+      div({ style: { fontSize: '1rem', flexGrow: 1 } },
+        [
+          `Are you sure you want to delete "${printName}"?`,
+          div({ style: { fontWeight: 500, lineHeight: '2rem' } }, 'This cannot be undone.')
+        ]
+      )
+    ]
+  ))
+}
+
+//TODO: deprecate once notebooks tab is removed
 export const NotebookDeleter = ({ printName, namespace, bucketName, onDismiss, onSuccess }) => {
   const [processing, setProcessing] = useState(false)
 

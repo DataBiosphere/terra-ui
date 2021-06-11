@@ -16,7 +16,6 @@ import PopupTrigger from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { isAnvil } from 'src/libs/config'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
@@ -322,7 +321,7 @@ const Notebooks = _.flow(
         div({ style: { fontSize: 18, lineHeight: '22px', width: 160, color: colors.accent() } }, [
           div(['Create a Cloud']),
           div(['Environment for ']),
-          div(['Galaxy ', versionTag('Alpha', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })]),
+          div(['Galaxy ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })]),
           icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
         ])
     }
@@ -353,7 +352,7 @@ const Notebooks = _.flow(
             icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
           ])
         ]),
-        isAnvil() && h(Fragment, [
+        h(Fragment, [
           h(Clickable, {
             style: {
               ...Style.elements.card.container, height: 125, marginTop: 15

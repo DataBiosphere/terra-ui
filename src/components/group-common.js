@@ -1,12 +1,11 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, label } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, HeaderRenderer, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import PopupTrigger, { InfoBox } from 'src/components/PopupTrigger'
-import { MiniSortable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -62,16 +61,12 @@ const UserMenuContent = ({ onEdit, onDelete }) => {
 const menuCardSize = 20
 
 export const MemberCardHeaders = Utils.memoWithName('MemberCardHeaders', ({ sort, onSort }) => {
-  const makeHeaderRenderer = name => h(MiniSortable, { sort, field: name, onSort }, [
-    div({ style: { fontWeight: 600 } }, [Utils.normalizeLabel(name)])
-  ])
-
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' } }, [
     div({ style: { flex: 1 } }, [
-      makeHeaderRenderer('email')
+      h(HeaderRenderer, { sort, onSort, name: 'email' })
     ]),
     div({ style: { flex: 1 } }, [
-      makeHeaderRenderer('roles')
+      h(HeaderRenderer, { sort, onSort, name: 'roles' })
     ]),
     // Width is the same as the menu icon.
     div({ style: { width: menuCardSize } }, [
