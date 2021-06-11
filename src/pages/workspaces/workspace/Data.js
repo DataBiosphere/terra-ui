@@ -473,7 +473,7 @@ const WorkspaceData = _.flow(
 
   return div({ style: styles.tableContainer }, [
     !entityMetadata ? spinnerOverlay : h(Fragment, [
-      div({ style: styles.dataTypeSelectionPanel, role: 'navigation' }, [
+      div({ style: styles.dataTypeSelectionPanel, role: 'navigation', 'aria-label': 'data in this workspace' }, [
         div({ role: 'list' }, [
           h(DataTypeSection, {
             title: 'Tables',
@@ -518,6 +518,7 @@ const WorkspaceData = _.flow(
                 afterToggle: h(Link, {
                   style: { marginRight: '0.5rem' },
                   tooltip: 'Snapshot Info',
+                  useTooltipAsLabel: true, // not sure why it doesn't auto-detect this
                   onClick: () => {
                     setSelectedDataType([snapshotName])
                     forceRefresh()

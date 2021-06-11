@@ -75,7 +75,7 @@ export const TabBar = ({
     ])
   }
 
-  return div({ role: 'navigation' }, [
+  return div({ role: 'navigation', 'aria-label': label }, [
     h(HorizontalNavigation, {
       role: 'menu',
       'aria-label': label,
