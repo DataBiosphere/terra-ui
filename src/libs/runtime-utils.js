@@ -11,10 +11,8 @@ import * as Utils from 'src/libs/utils'
 export const DEFAULT_DISK_SIZE = 50
 export const DEFAULT_BOOT_DISK_SIZE = 50
 
-export const DEFAULT_GPU_CONFIG = {
-  gpuType: 'nvidia-tesla-t4',
-  numOfGpus: '2'
-}
+export const DEFAULT_GPU_TYPE = 'NVIDIA Tesla T4'
+export const DEFAULT_NUM_GPUS = 1
 
 export const usableStatuses = ['Updating', 'Running']
 

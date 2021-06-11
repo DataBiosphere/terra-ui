@@ -12,13 +12,15 @@ import { withModalDrawer } from 'src/components/ModalDrawer'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { SaveFilesHelp } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
-import { cloudServices, machineTypes } from 'src/data/machines'
+import { cloudServices, gpuTypes, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
-  currentRuntime, DEFAULT_DISK_SIZE, DEFAULT_GPU_CONFIG, defaultDataprocMachineType, defaultGceMachineType, findMachineType, getDefaultMachineType,
+  currentRuntime, DEFAULT_DISK_SIZE, DEFAULT_GPU_TYPE, DEFAULT_NUM_GPUS, defaultDataprocMachineType, defaultGceMachineType,
+  findMachineType,
+  getDefaultMachineType,
   persistentDiskCostMonthly,
   RadioBlock,
   runtimeConfigBaseCost, runtimeConfigCost
@@ -80,19 +82,20 @@ const MachineSelector = ({ value, machineTypeOptions, onChange }) => {
   ])
 }
 
-const GpuSelector = ({ value, machineTypeOptions, onChange }) => {
-  const { cpu: currentCpu, memory: currentMemory } = findMachineType(value)
+const GpuSelector = ({ gpuType, numGpus, mainMachineType, onChange }) => {
+  const gpuTypeOptionsByCpuAndMem = _.filter(({ maxNumCpus, maxMem }) => mem <= maxMem && numCpus <= maxNumCpus, gpuTypes)
+  const { cpu: numCpus, memory: mem } = findMachineType(mainMachineType)
   return h(Fragment, [
     h(IdContainer, [
       id => h(Fragment, [
         label({ htmlFor: id, style: styles.label }, ['GPU type']),
-        div([
+        div({ style: { height: 45 } }, [
           h(Select, {
             id,
             isSearchable: false,
-            value: currentCpu,
-            onChange: option => onChange(_.find({ cpu: option.value }, machineTypeOptions)?.name || value),
-            options: _.flow(_.map('cpu'), _.union([currentCpu]), _.sortBy(_.identity))(machineTypeOptions)
+            value: gpuType,
+            onChange: option => onChange(_.find({ type: option.value }, gpuTypeOptionsByCpuAndMem)?.type || gpuType),
+            options: _.flow(_.map('type'), _.union([gpuType]), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)
           })
         ])
       ])
@@ -104,9 +107,9 @@ const GpuSelector = ({ value, machineTypeOptions, onChange }) => {
           h(Select, {
             id,
             isSearchable: false,
-            value: currentMemory,
-            onChange: option => onChange(_.find({ cpu: currentCpu, memory: option.value }, machineTypeOptions)?.name || value),
-            options: _.flow(_.filter({ cpu: currentCpu }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(machineTypeOptions)
+            value: numGpus,
+            onChange: option => onChange(_.find({ type: gpuType, numGpus: option.value }, gpuTypeOptionsByCpuAndMem)?.numGpus || numGpus),
+            options: _.flow(_.filter({ gpuType }), _.map('numGpus'), _.union([numGpus]), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)
           })
         ])
       ])
@@ -173,7 +176,8 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
       workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DISK_SIZE,
       gpuEnabled: !!gpuConfig || false,
-      gpuConfig: gpuConfig || DEFAULT_GPU_CONFIG
+      gpuType: gpuConfig?.gpuType || DEFAULT_GPU_TYPE,
+      numGpus: gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS
     }
   }
 
@@ -759,11 +763,11 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     ])
 
     const renderRuntimeSection = () => {
-      const { gpuEnabled, gpuConfig } = this.state
-      const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '0.8rem', alignItems: 'center' }
+      const { gpuEnabled, gpuType, numGpus } = this.state
+      const gridStyle = col2 => ({ display: 'grid', gridTemplateColumns: `0.75fr ${col2} 1fr 5.5rem 1fr 5.5rem`, gridGap: '0.8rem', alignItems: 'center' })
       return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
-        div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
+        div({ style: { ...gridStyle('4.5rem'), marginTop: '0.75rem' } }, [
           h(MachineSelector, { value: mainMachineType, machineTypeOptions: validMachineTypes, onChange: v => this.setState({ masterMachineType: v }) }),
           !isPersistentDisk ?
             h(DiskSelector, { value: masterDiskSize, onChange: v => this.setState({ masterDiskSize: v }) }) :
@@ -806,13 +810,13 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             onChange: v => this.setState({ gpuEnabled: v })
           }, [span({ style: { marginLeft: '0.5rem', ...styles.label } }, ['Enable GPUs '])])
         ]),
-        div({ style: { ...gridStyle, marginTop: '1rem' } }, [
-          h(GpuSelector, { value: mainMachineType, machineTypeOptions: validMachineTypes, onChange: v => this.setState({ masterMachineType: v }) })
+        div({ style: { ...gridStyle('14rem'), marginTop: '1rem' } }, [
+          h(GpuSelector, { gpuType, numGpus, mainMachineType, onChange: v => this.setState({ gpuType, numGpus }) })
         ]),
         sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
           legend({ style: { padding: 0, ...styles.label } }, ['Worker config']),
           // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
-          div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
+          div({ style: { ...gridStyle('4.5rem'), marginTop: '0.75rem' } }, [
             h(IdContainer, [
               id => h(Fragment, [
                 label({ htmlFor: id, style: styles.label }, ['Workers']),
