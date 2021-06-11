@@ -285,22 +285,19 @@ const SubmissionDetails = _.flow(
                       ...Utils.newTabLinkProps,
                       href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
                       style: { margin: '0.5rem', display: 'flex' },
-                      tooltip: 'Job Manager',
-                      'aria-label': 'Job Manager'
+                      tooltip: 'Job Manager'
                     }, [icon('tasks', { size: 18 })]),
                     h(Link, {
                       href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
                       style: { margin: '0.5rem', display: 'flex' },
-                      tooltip: 'Workflow Dashboard [alpha]',
-                      'aria-label': 'Workflow Dashboard [alpha]'
+                      tooltip: 'Workflow Dashboard [alpha]'
                     }, [icon('tachometer', { size: 18 })])
                   ],
                   inputName && h(Link, {
                     ...Utils.newTabLinkProps,
                     href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`),
                     style: { margin: '0.5rem', display: 'flex' },
-                    tooltip: 'Execution directory',
-                    'aria-label': 'Execution directory'
+                    tooltip: 'Execution directory'
                   }, [icon('folder-open', { size: 18 })])
                 ])
               }
