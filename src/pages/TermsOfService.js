@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { div, h, h1 } from 'react-hyperscript-helpers'
 import { backgroundLogo, ButtonPrimary, ButtonSecondary } from 'src/components/common'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
@@ -300,7 +300,6 @@ Terms as of February 12, 2020.
 
 const TermsOfServicePage = () => {
   const [busy, setBusy] = useState()
-  const scrollRef = useRef()
   const { isSignedIn, acceptedTos } = authStore.get() // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
   const needToAccept = isSignedIn && !acceptedTos
 
@@ -320,10 +319,7 @@ const TermsOfServicePage = () => {
     div({ style: { backgroundColor: 'white', borderRadius: 5, width: 800, maxHeight: '100%', padding: '2rem', boxShadow: Style.standardShadow } }, [
       h1({ style: { color: colors.dark(), fontSize: 38, fontWeight: 400 } }, ['Terra Terms of Service']),
       needToAccept && div({ style: { fontSize: 18, fontWeight: 600 } }, ['Please accept the Terms of Service to continue.']),
-      div({
-        ref: scrollRef,
-        style: { height: '50vh', overflowY: 'scroll', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' }
-      }, [
+      div({ style: { height: '50vh', overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' } }, [
         h(MarkdownViewer, {
           renderers: {
             link: newWindowLinkRenderer,
