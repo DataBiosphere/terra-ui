@@ -197,8 +197,7 @@ export const WorkspaceList = () => {
               div({ style: styles.tableCellContent }, [
                 h(Link, {
                   style: {
-                    color: canView ? undefined : colors.dark(0.8),
-                    fontStyle: canView ? undefined : 'italic',
+                    ...(canView ? {} : { color: colors.dark(0.8), fontStyle: 'italic' }),
                     fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis
                   },
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
