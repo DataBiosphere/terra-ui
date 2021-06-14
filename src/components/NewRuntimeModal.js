@@ -764,10 +764,10 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
 
     const renderRuntimeSection = () => {
       const { gpuEnabled, gpuType, numGpus } = this.state
-      const gridStyle = col2 => ({ display: 'grid', gridTemplateColumns: `0.75fr ${col2} 1fr 5.5rem 1fr 5.5rem`, gridGap: '0.8rem', alignItems: 'center' })
+      const gridStyle = (col2, col4) => ({ display: 'grid', gridTemplateColumns: `0.50fr ${col2} 1fr ${col4} 1fr 5.5rem`, gridGap: '2rem', alignItems: 'center' })
       return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
-        div({ style: { ...gridStyle('4.5rem'), marginTop: '0.75rem' } }, [
+        div({ style: { ...gridStyle('4.5rem', '5.5rem'), marginTop: '0.75rem' } }, [
           h(MachineSelector, { value: mainMachineType, machineTypeOptions: validMachineTypes, onChange: v => this.setState({ masterMachineType: v }) }),
           !isPersistentDisk ?
             h(DiskSelector, { value: masterDiskSize, onChange: v => this.setState({ masterDiskSize: v }) }) :
@@ -804,19 +804,19 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             ])
           ])
         ]),
-        div({ style: { marginTop: '1rem' } }, [
+        div({ style: { marginTop: '1.25rem' } }, [
           h(LabeledCheckbox, {
             checked: gpuEnabled,
             onChange: v => this.setState({ gpuEnabled: v })
           }, [span({ style: { marginLeft: '0.5rem', ...styles.label } }, ['Enable GPUs '])])
         ]),
-        div({ style: { ...gridStyle('14rem'), marginTop: '1rem' } }, [
+        div({ style: { ...gridStyle('14rem', '4.5rem'), marginTop: '1rem' } }, [
           h(GpuSelector, { gpuType, numGpus, mainMachineType, onChange: v => this.setState({ gpuType, numGpus }) })
         ]),
         sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
           legend({ style: { padding: 0, ...styles.label } }, ['Worker config']),
           // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
-          div({ style: { ...gridStyle('4.5rem'), marginTop: '0.75rem' } }, [
+          div({ style: { ...gridStyle('4.5rem', '5.5rem'), marginTop: '0.75rem' } }, [
             h(IdContainer, [
               id => h(Fragment, [
                 label({ htmlFor: id, style: styles.label }, ['Workers']),
