@@ -109,7 +109,7 @@ const GpuSelector = ({ gpuType, numGpus, mainMachineType, onChange }) => {
             isSearchable: false,
             value: numGpus,
             onChange: option => onChange(_.find({ type: gpuType, numGpus: option.value }, gpuTypeOptionsByCpuAndMem)?.numGpus || numGpus),
-            options: _.flow(_.filter({ gpuType }), _.map('numGpus'), _.union([numGpus]), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)
+            options: _.flow(_.filter({ type: gpuType }), _.map('numGpus'), _.union([numGpus]), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)
           })
         ])
       ])

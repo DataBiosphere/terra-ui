@@ -36,7 +36,7 @@ export const normalizeRuntimeConfig = ({
     numberOfPreemptibleWorkers: (isDataproc && numberOfWorkers && numberOfPreemptibleWorkers) || 0,
     workerMachineType: (isDataproc && numberOfWorkers && workerMachineType) || defaultDataprocMachineType,
     workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || DEFAULT_DISK_SIZE,
-    // One caveact with using DEFAULT_BOOT_DISK_SIZE here is this over-estimates old GCE runtimes without PD by 1 cent
+    // One caveat with using DEFAULT_BOOT_DISK_SIZE here is this over-estimates old GCE runtimes without PD by 1 cent
     // because those runtimes do not have a separate boot disk. But those old GCE runtimes are more than 1 year old if they exist.
     // Hence, we're okay with this caveat.
     bootDiskSize: bootDiskSize || DEFAULT_BOOT_DISK_SIZE
@@ -48,7 +48,7 @@ export const findMachineType = name => {
 }
 
 export const getValidGpuTypes = (numCpus, mem) => {
-  const validGpuTypes = _.filter(({ maxNumCpus, maxMem }) => mem <= maxMem && numCpus <= maxNumCpus, gpuTypes)
+  const validGpuTypes = _.filter(({ maxNumCpus, maxMem }) => numCpus <= maxNumCpus && mem <= maxMem, gpuTypes)
   return validGpuTypes || { type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
 }
 
