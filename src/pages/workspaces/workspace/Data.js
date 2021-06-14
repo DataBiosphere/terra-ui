@@ -441,7 +441,6 @@ const WorkspaceData = _.flow(
         h(DataTypeSection, {
           title: 'Tables',
           titleExtras: h(Link, {
-            'aria-label': 'Upload .tsv',
             disabled: !!Utils.editWorkspaceError(workspace),
             tooltip: Utils.editWorkspaceError(workspace) || 'Upload .tsv',
             onClick: () => setUploadingFile(true)
@@ -530,7 +529,6 @@ const WorkspaceData = _.flow(
         div({ style: Style.navList.heading }, [
           div(['Reference Data']),
           h(Link, {
-            'aria-label': 'Add reference data',
             disabled: !!Utils.editWorkspaceError(workspace),
             tooltip: Utils.editWorkspaceError(workspace) || 'Add reference data',
             onClick: () => setImportingReference(true)
@@ -575,7 +573,6 @@ const WorkspaceData = _.flow(
             div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
               type,
               h(Link, {
-                'aria-label': `Delete ${type}`,
                 disabled: !!Utils.editWorkspaceError(workspace),
                 tooltip: Utils.editWorkspaceError(workspace) || `Delete ${type}`,
                 onClick: e => {
