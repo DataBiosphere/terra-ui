@@ -71,7 +71,7 @@ export const Clickable = Utils.forwardRefWithName('Clickable', ({ href, as = (!!
   //
   // Note that TooltipTrigger does this same check with its own children, but since we'll be passing it an
   // Interactive element, we need to do the check here instead.
-  const useAsLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, props }) : useTooltipAsLabel
+  const useAsLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, ...props }) : useTooltipAsLabel
 
   // If we determined that we need to use the tooltip as a label, assert that we have a tooltip
   Utils.useConsoleAssert(!useAsLabel || tooltip, 'In order to be accessible, Clickable or the icon contained within it needs an accessible label or tooltip')
