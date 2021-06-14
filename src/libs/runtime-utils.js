@@ -2,7 +2,9 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, input, label } from 'react-hyperscript-helpers'
 import { IdContainer } from 'src/components/common'
-import { cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, monthlyStoragePrice, storagePrice } from 'src/data/machines'
+import {
+  cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, monthlyStoragePrice, storagePrice
+} from 'src/data/machines'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -43,6 +45,11 @@ export const normalizeRuntimeConfig = ({
 
 export const findMachineType = name => {
   return _.find({ name }, machineTypes) || { name, cpu: '?', memory: '?', price: NaN, preemptiblePrice: NaN }
+}
+
+export const getValidGpuTypes = (numCpus, mem) => {
+  const validGpuTypes = _.filter(({ maxNumCpus, maxMem }) => mem <= maxMem && numCpus <= maxNumCpus, gpuTypes)
+  return validGpuTypes || { type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
 }
 
 const dataprocCost = (machineType, numInstances) => {

@@ -12,7 +12,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { SaveFilesHelp } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
-import { cloudServices, gpuTypes, machineTypes } from 'src/data/machines'
+import { cloudServices, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -20,7 +20,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
   currentRuntime, DEFAULT_DISK_SIZE, DEFAULT_GPU_TYPE, DEFAULT_NUM_GPUS, defaultDataprocMachineType, defaultGceMachineType,
   findMachineType,
-  getDefaultMachineType,
+  getDefaultMachineType, getValidGpuTypes,
   persistentDiskCostMonthly,
   RadioBlock,
   runtimeConfigBaseCost, runtimeConfigCost
@@ -83,8 +83,8 @@ const MachineSelector = ({ value, machineTypeOptions, onChange }) => {
 }
 
 const GpuSelector = ({ gpuType, numGpus, mainMachineType, onChange }) => {
-  const gpuTypeOptionsByCpuAndMem = _.filter(({ maxNumCpus, maxMem }) => mem <= maxMem && numCpus <= maxNumCpus, gpuTypes)
   const { cpu: numCpus, memory: mem } = findMachineType(mainMachineType)
+  const gpuTypeOptionsByCpuAndMem = getValidGpuTypes(numCpus, mem)
   return h(Fragment, [
     h(IdContainer, [
       id => h(Fragment, [

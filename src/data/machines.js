@@ -31,12 +31,12 @@ export const machineTypes = [
 // The limitations don't vary perfectly linearly so it seemed easier and less brittle to enumerate them.
 // Prices below are hourly and per GPU (https://cloud.google.com/compute/gpus-pricing).
 export const gpuTypes = [
-  { type: 'NVIDIA Tesla T4', numGpus: 1, maxNumCpus: 24, maxMem: 24, price: 0.3500, preemptiblePrice: 0.1100 },
-  { type: 'NVIDIA Tesla T4', numGpus: 2, maxNumCpus: 48, maxMem: 24, price: 0.7000, preemptiblePrice: 0.2200 },
-  { type: 'NVIDIA Tesla T4', numGpus: 4, maxNumCpus: 96, maxMem: 24, price: 1.4000, preemptiblePrice: 0.4400 },
+  { type: 'NVIDIA Tesla T4', numGpus: 1, maxNumCpus: 24, maxMem: 156, price: 0.3500, preemptiblePrice: 0.1100 },
+  { type: 'NVIDIA Tesla T4', numGpus: 2, maxNumCpus: 48, maxMem: 312, price: 0.7000, preemptiblePrice: 0.2200 },
+  { type: 'NVIDIA Tesla T4', numGpus: 4, maxNumCpus: 96, maxMem: 624, price: 1.4000, preemptiblePrice: 0.4400 },
   { type: 'NVIDIA Tesla K80', numGpus: 1, maxNumCpus: 8, maxMem: 52, price: 0.4500, preemptiblePrice: 0.1350 },
   { type: 'NVIDIA Tesla K80', numGpus: 2, maxNumCpus: 16, maxMem: 104, price: 0.9000, preemptiblePrice: 0.2700 },
-  { type: 'NVIDIA Tesla K80', numGpus: 4, maxNumCpus: 32, maxMem: 208, price: 0.3500, preemptiblePrice: 0.5400 },
+  { type: 'NVIDIA Tesla K80', numGpus: 4, maxNumCpus: 32, maxMem: 208, price: 1.3500, preemptiblePrice: 0.5400 },
   { type: 'NVIDIA Tesla K80', numGpus: 8, maxNumCpus: 64, maxMem: 208, price: 1.8000, preemptiblePrice: 1.0800 },
   { type: 'NVIDIA Tesla P4', numGpus: 1, maxNumCpus: 24, maxMem: 156, price: 0.6000, preemptiblePrice: 0.2160 },
   { type: 'NVIDIA Tesla P4', numGpus: 2, maxNumCpus: 48, maxMem: 312, price: 1.2000, preemptiblePrice: 0.4320 },
