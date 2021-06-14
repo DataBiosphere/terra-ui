@@ -71,7 +71,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpand
     div({ style: workspaceCardStyles.row }, [
       div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
         h(Link, {
-          style: { ...Style.noWrapEllipsis },
+          style: Style.noWrapEllipsis,
           href: Nav.getLink('workspace-dashboard', { namespace, name })
         }, [name])
       ]),
