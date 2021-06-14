@@ -99,7 +99,7 @@ const TooltipTrigger = ({ children, content, useTooltipAsLabel, ...props }) => {
   //
   // If the auto-detection can't make the proper determination, for example, because the icon is wrapped in other elements,
   // you can explicitly pass in a boolean as `useTooltipAsLabel` to force the correct behavior.
-  const useAsLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, props }) : useTooltipAsLabel
+  const useAsLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, ...props }) : useTooltipAsLabel
 
   return h(Fragment, [
     cloneElement(child, {
