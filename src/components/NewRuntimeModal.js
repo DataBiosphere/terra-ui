@@ -82,7 +82,7 @@ const MachineSelector = ({ value, machineTypeOptions, onChange }) => {
   ])
 }
 
-const GpuSelector = ({ gpuType, numGpus, mainMachineType, onChange }) => {
+const GpuSelector = ({ gpuType, numGpus, mainMachineType, onChangeGpuType, onChangeNumGpus }) => {
   const { cpu: numCpus, memory: mem } = findMachineType(mainMachineType)
   const gpuTypeOptionsByCpuAndMem = getValidGpuTypes(numCpus, mem)
   return h(Fragment, [
@@ -94,7 +94,13 @@ const GpuSelector = ({ gpuType, numGpus, mainMachineType, onChange }) => {
             id,
             isSearchable: false,
             value: gpuType,
-            onChange: option => onChange(_.find({ type: option.value }, gpuTypeOptionsByCpuAndMem)?.type || gpuType),
+            onChange: option => {
+              const x = _.find({ type: option.value }, gpuTypeOptionsByCpuAndMem)?.type
+              console.log(`GPU type option.value is ${option.value}`)
+              console.log(`x is ${x}`)
+              console.log(`gpuType is ${gpuType}`)
+              return onChangeGpuType(x || gpuType)
+            },
             options: _.flow(_.map('type'), _.union([gpuType]), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)
           })
         ])
@@ -108,7 +114,13 @@ const GpuSelector = ({ gpuType, numGpus, mainMachineType, onChange }) => {
             id,
             isSearchable: false,
             value: numGpus,
-            onChange: option => onChange(_.find({ type: gpuType, numGpus: option.value }, gpuTypeOptionsByCpuAndMem)?.numGpus || numGpus),
+            onChange: option => {
+              const y = _.find({ type: gpuType, numGpus: option.value }, gpuTypeOptionsByCpuAndMem)?.numGpus
+              console.log(`GPUs option.value is ${option.value}`)
+              console.log(`y is ${y}`)
+              console.log(`numGpus is ${numGpus}`)
+              return onChangeNumGpus(y || numGpus)
+            },
             options: _.flow(_.filter({ type: gpuType }), _.map('numGpus'), _.union([numGpus]), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)
           })
         ])
@@ -811,7 +823,15 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
           }, [span({ style: { marginLeft: '0.5rem', ...styles.label } }, ['Enable GPUs '])])
         ]),
         div({ style: { ...gridStyle('14rem', '4.5rem'), marginTop: '1rem' } }, [
-          h(GpuSelector, { gpuType, numGpus, mainMachineType, onChange: v => this.setState({ gpuType, numGpus }) })
+          h(GpuSelector, {
+            gpuType, numGpus, mainMachineType, onChangeGpuType: v => {
+              console.log(`v is ${v}`)
+              this.setState({ gpuType: v })
+            }, onChangeNumGpus: v => {
+              console.log(`v is ${v}`)
+              this.setState({ numGpus: v })
+            }
+          })
         ]),
         sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
           legend({ style: { padding: 0, ...styles.label } }, ['Worker config']),
