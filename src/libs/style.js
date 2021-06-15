@@ -51,6 +51,14 @@ export const tabBar = {
   }
 }
 
+const longCardBase = {
+  ...elements.card.container,
+  alignItems: 'center', flexDirection: undefined,
+  width: '100%', minWidth: 0,
+  margin: '0.25rem 0.5rem 0.5rem 0',
+  fontSize: 13
+}
+
 export const cardList = {
   cardContainer: {
     marginTop: '1rem',
@@ -63,12 +71,10 @@ export const cardList = {
     margin: '0.25rem 1rem 0 0',
     color: colors.accent(), fontSize: 18, lineHeight: '22px'
   },
-  longCard: {
-    ...elements.card.container,
-    alignItems: 'center', flexDirection: undefined,
-    width: '100%', minWidth: 0,
-    margin: '0.25rem 0.5rem 0.5rem 0',
-    fontSize: 13
+  longCard: longCardBase,
+  longCardShadowless: {
+    ...longCardBase,
+    boxShadow: 'none'
   },
   longTitle: {
     ...elements.card.title,

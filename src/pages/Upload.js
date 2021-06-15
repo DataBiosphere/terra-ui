@@ -173,7 +173,7 @@ const WorkspaceSelectorPanel = ({
       icon('view-cards', { size: 20, style: { marginRight: '1em' } }),
       span({ ref: header, tabIndex: -1 }, ['Select a Workspace']),
       h(Link, {
-        'aria-label': 'Create new workspace', onClick: () => setCreatingNewWorkspace(true),
+        onClick: () => setCreatingNewWorkspace(true),
         style: { marginLeft: '0.5rem' },
         tooltip: 'Create a new workspace'
       },
@@ -361,7 +361,7 @@ const CollectionSelectorPanel = _.flow(
       icon('folder', { size: 20, style: { marginRight: '1em' } }),
       span({ ref: header, tabIndex: -1 }, ['Select a collection']),
       h(Link, {
-        'aria-label': 'Create new collection', onClick: () => setCreating(true),
+        onClick: () => setCreating(true),
         style: { marginLeft: '0.5rem' },
         tooltip: 'Create a new collection'
       },

@@ -152,6 +152,11 @@ a {
   color: #b56000 !important; /* #e90; */
 }
 
+/* Restore focus outlines to the wrapper elements around RSelect boxes */
+[role="combobox"]:focus-within {
+  outline: -webkit-focus-ring-color auto 1px;
+}
+
 .reveal-on-focus {
   opacity: 0;
   pointer-events: none; /* Allow clicks to pass through */

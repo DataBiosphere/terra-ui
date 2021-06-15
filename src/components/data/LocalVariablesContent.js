@@ -204,7 +204,6 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
                     }
                   }, [icon('edit', { size: 19 })]),
                   h(Link, {
-                    'aria-label': 'Delete variable',
                     disabled: !!Utils.editWorkspaceError(workspace),
                     tooltip: Utils.editWorkspaceError(workspace) || 'Delete variable',
                     style: { marginLeft: '1rem' },
@@ -227,7 +226,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
       }
     }),
     deleteIndex !== undefined && h(Modal, {
-      onDismiss: () => setDeleteIndex(),
+      onDismiss: setDeleteIndex,
       title: 'Are you sure you wish to delete this variable?',
       okButton: h(ButtonPrimary, {
         onClick: _.flow(

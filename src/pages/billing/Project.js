@@ -2,10 +2,12 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, Link, Select, SimpleTabBar, spinnerOverlay } from 'src/components/common'
-import { DeleteUserModal, EditUserModal, MemberCard, NewUserCard, NewUserModal } from 'src/components/group-common'
+import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
+import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { SimpleTabBar } from 'src/components/tabBars'
+import { ariaSort } from 'src/components/table'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
@@ -19,20 +21,82 @@ import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
 
 
-const workspaceLastModifiedWidth = 200
-const styles = {
-  workspaceCardField: {
-    flex: 1, width: `calc(50% - ${workspaceLastModifiedWidth / 2}px)`, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden'
-  }
-}
+const workspaceLastModifiedWidth = 150
+const workspaceExpandIconSize = 20
 
-const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace }) => div({
-  style: Style.cardList.longCard
-}, [
-  div({ style: styles.workspaceCardField }, [workspace.name]),
-  div({ style: styles.workspaceCardField }, [workspace.createdBy]),
-  div({ style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [workspace.lastModified])
-]))
+const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
+  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
+    div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: '1rem' } }, [
+      h(HeaderRenderer, { sort, onSort, name: 'name' })
+    ]),
+    div({ 'aria-sort': ariaSort(sort, 'createdBy'), style: { flex: 1 } }, [
+      h(HeaderRenderer, { sort, onSort, name: 'createdBy' })
+    ]),
+    div({ 'aria-sort': ariaSort(sort, 'lastModified'), style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [
+      h(HeaderRenderer, { sort, onSort, name: 'lastModified' })
+    ]),
+    div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
+      div({ className: 'sr-only' }, ['Expand'])
+    ])
+  ])
+})
+
+const rowBase = { display: 'flex', alignItems: 'center', width: '100%' }
+
+const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details, additionalInfo }) => {
+  const expandedInfoStyles = {
+    row: { ...rowBase, marginTop: '0.5rem', height: '1rem' },
+    title: { fontWeight: 600, width: '20%', paddingRight: '1rem', height: '1rem' },
+    details: { flexGrow: 1, width: '20%', paddingRight: '1rem', height: '1rem', ...Style.noWrapEllipsis },
+    additionalInfo: { flexGrow: 1 }
+  }
+
+  return div({ style: expandedInfoStyles.row }, [
+    div({ style: expandedInfoStyles.title }, [title]),
+    div({ style: expandedInfoStyles.details }, [details]),
+    div({ style: expandedInfoStyles.additionalInfo }, [additionalInfo])
+  ])
+})
+
+const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpanded, onExpand }) => {
+  const { namespace, name, createdBy, lastModified, googleProject, billingAccountName } = workspace
+  const workspaceCardStyles = {
+    field: {
+      ...Style.noWrapEllipsis, flex: 1, height: '1rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`, paddingRight: '1rem'
+    },
+    row: rowBase,
+    expandedInfoContainer: { display: 'flex', flexDirection: 'column', width: '100%' }
+  }
+
+  return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' } }, [
+    div({ style: workspaceCardStyles.row }, [
+      div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
+        h(Link, {
+          style: Style.noWrapEllipsis,
+          href: Nav.getLink('workspace-dashboard', { namespace, name })
+        }, [name])
+      ]),
+      div({ style: workspaceCardStyles.field }, [createdBy]),
+      div({ style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)]),
+      div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
+        h(Link, {
+          'aria-expanded': isExpanded,
+          style: { display: 'flex', alignItems: 'center' },
+          onClick: onExpand,
+          'aria-label': 'expand workspace'
+        }, [
+          icon(isExpanded ? 'angle-up' : 'angle-down', { size: workspaceExpandIconSize })
+        ])
+      ])
+    ]),
+    isExpanded && div({ style: workspaceCardStyles.row }, [
+      div({ style: workspaceCardStyles.expandedInfoContainer }, [
+        h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
+        h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountName })
+      ])
+    ])
+  ])
+})
 
 const ProjectDetail = ({ project, project: { projectName, creationStatus }, billingAccounts, authorizeAndLoadAccounts }) => {
   // State
@@ -52,31 +116,51 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   const [showBillingModal, setShowBillingModal] = useState(false)
   const [selectedBilling, setSelectedBilling] = useState()
   const [tab, setTab] = useState(query.tab || 'workspaces')
+  const [expandedWorkspaceName, setExpandedWorkspaceName] = useState()
+  const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
+  const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
 
   const signal = Utils.useCancellation()
 
+  const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
+
   const tabToTable = {
-    workspaces: div({ style: { flexGrow: 1, width: '100%' } }, [
-      _.flow(
-        _.filter(response => response.workspace.namespace === projectName),
-        _.map(({ workspace }) => h(WorkspaceCard, { workspace, key: workspace.workspaceId }))
-      )(workspaces)
+    workspaces: h(Fragment, [
+      h(WorkspaceCardHeaders, { sort: workspaceSort, onSort: setWorkspaceSort }),
+      div({ role: 'list', 'aria-label': 'workspace list', style: { flexGrow: 1, width: '100%' } }, [
+        _.flow(
+          // TODO (Post PPW): Remove billing account name here, and move back to just returning workspace. This is for a seamless transition to PPW, where `billingAccountName` should be a field on the workspace.
+          _.map(({ workspace }) => { return { billingAccountName, ...workspace } }),
+          _.filter({ namespace: projectName }),
+          _.orderBy([workspaceSort.field], [workspaceSort.direction]),
+          _.map(workspace => {
+            const isExpanded = expandedWorkspaceName === workspace.name
+            return h(WorkspaceCard, {
+              workspace, key: workspace.workspaceId, isExpanded,
+              onExpand: () => setExpandedWorkspaceName(isExpanded ? undefined : workspace.name)
+            })
+          })
+        )(workspaces)
+      ])
     ]),
     users: h(Fragment, [
       h(NewUserCard, {
         onClick: () => setAddingUser(true)
-      }),
-      div({ style: { flexGrow: 1 } },
-        _.map(member => {
-          return h(MemberCard, {
-            key: member.email,
-            adminLabel: billingRoles.owner,
-            userLabel: billingRoles.user,
-            member, adminCanEdit,
-            onEdit: () => setEditingUser(member),
-            onDelete: () => setDeletingUser(member)
-          })
-        }, projectUsers)
+      }, [
+        icon('plus-circle', { size: 14 }),
+        div({ style: { marginLeft: '0.5rem' } }, ['Add User'])
+      ]),
+      h(MemberCardHeaders, { sort, onSort: setSort }),
+      div(_.map(member => {
+        return h(MemberCard, {
+          key: member.email,
+          adminLabel: billingRoles.owner,
+          userLabel: billingRoles.user,
+          member, adminCanEdit,
+          onEdit: () => setEditingUser(member),
+          onDelete: () => setDeletingUser(member)
+        })
+      }, _.orderBy([sort.field], [sort.direction], projectUsers))
       )
     ])
   }
@@ -152,7 +236,6 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
 
 
   // Render
-  const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
   const { displayName = null } = _.find({ accountName: billingAccountName }, billingAccounts) || { displayName: 'No Access' }
 
   return h(Fragment, [
@@ -170,7 +253,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
         !!displayName && span({ style: { flexShrink: 0 } }, displayName),
         h(Link, {
-          'aria-label': 'Change Billing Account',
+          tooltip: 'Change Billing Account',
           style: { marginLeft: '0.5rem' },
           onClick: async () => {
             if (Auth.hasBillingScope()) {
@@ -206,7 +289,8 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         ])
       ]),
       h(SimpleTabBar, {
-        style: { marginTop: '2rem', textTransform: 'none', padding: '0 1rem', fontSize: 12, height: '1.5rem' },
+        label: 'project details',
+        style: { marginTop: '2rem', textTransform: 'none', padding: '0 1rem', height: '1.5rem' },
         tabStyle: { borderBottomWidth: 4 },
         value: tab,
         onChange: newTab => {
@@ -220,7 +304,6 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
       }),
       div({
         style: {
-          display: 'flex',
           padding: '1rem 1rem 0',
           backgroundColor: colors.light(),
           flexGrow: 1
