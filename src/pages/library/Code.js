@@ -36,9 +36,9 @@ export const MethodCard = ({ method: { name, synopsis }, ...props }) => {
       position: 'relative'
     }
   }, [
-    div({ style: { flex: 1, padding: '15px 20px' } }, [
+    div({ style: { flex: 'none', padding: '15px 20px', height: 140 } }, [
       div({ style: { color: colors.accent(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
-      div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [synopsis])
+      div({ style: { lineHeight: '20px', ...Style.noWrapEllipsis, whiteSpace: 'pre-wrap', height: 60 } }, [synopsis])
     ]),
     wdlIcon({ style: { position: 'absolute', top: 0, right: 8 } })
   ])
@@ -61,7 +61,10 @@ export const DockstoreTile = () => {
   return div({ style: { display: 'flex' } }, [
     h(LogoTile, { logoFile: dockstoreLogo, style: { backgroundColor: 'white' } }),
     div([
-      h(Link, { href: `${getConfig().dockstoreUrlRoot}/search?_type=workflow&descriptorType=WDL&searchMode=files` }, 'Dockstore'),
+      h(Link, {
+        href: `${getConfig().dockstoreUrlRoot}/search?_type=workflow&descriptorType=WDL&searchMode=files`,
+        style: { color: colors.accent(1.1) } // For a11y, we need at least 4.5:1 contrast against the gray background
+      }, 'Dockstore'),
       div(['Browse WDL workflows in Dockstore, an open platform used by the GA4GH for sharing Docker-based workflows'])
     ])
   ])
@@ -71,7 +74,10 @@ export const MethodRepoTile = () => {
   return div({ style: { display: 'flex' } }, [
     h(LogoTile, { logoFile: broadSquare, style: { backgroundSize: 37 } }),
     div([
-      h(Link, { href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods` }, 'Broad Methods Repository'),
+      h(Link, {
+        href: `${getConfig().firecloudUrlRoot}/?return=${returnParam()}#methods`,
+        style: { color: colors.accent(1.1) } // For a11y, we need at least 4.5:1 contrast agaisnst the gray background
+      }, 'Broad Methods Repository'),
       div([`Use Broad workflows in ${getAppName()}. Share your own, or choose from > 700 public workflows`])
     ])
   ])
