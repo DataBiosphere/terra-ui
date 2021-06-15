@@ -4,15 +4,14 @@ import { Component, Fragment, useEffect, useState } from 'react'
 import { b, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  ButtonPrimary, ButtonSecondary, Clickable, GroupedSelect, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton,
-  Select, spinnerOverlay
+  ButtonPrimary, ButtonSecondary, Clickable, GroupedSelect, IdContainer, LabeledCheckbox, Link, methodLink, RadioButton, Select, spinnerOverlay
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedAutocompleteTextArea, DelayedSearchInput } from 'src/components/input'
 import { MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
-import PopupTrigger, { InfoBox } from 'src/components/PopupTrigger'
+import { InfoBox, makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
 import { HeaderCell, SimpleFlexTable, SimpleTable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -606,7 +605,7 @@ const WorkflowView = _.flow(
           }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to list']),
           div({ style: { display: 'flex' } }, [
             span({ style: { marginLeft: '-2rem', width: '2rem' } }, [
-              h(PopupTrigger, {
+              h(MenuTrigger, {
                 closeOnClick: true,
                 content: h(Fragment, [
                   h(MenuButton, {

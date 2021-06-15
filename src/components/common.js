@@ -133,25 +133,6 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
   }, props), [children])
 }
 
-export const makeMenuIcon = (iconName, props) => {
-  return icon(iconName, _.merge({ size: 15, style: { marginRight: '.5rem' } }, props))
-}
-
-export const MenuButton = Utils.forwardRefWithName('MenuButton', ({ disabled, children, ...props }, ref) => {
-  return h(Clickable, _.merge({
-    ref,
-    disabled,
-    style: {
-      display: 'flex', alignItems: 'center',
-      fontSize: 12, minWidth: 125, height: '2.25rem',
-      color: disabled ? colors.dark(0.7) : undefined,
-      padding: '0.875rem',
-      cursor: disabled ? 'not-allowed' : 'pointer'
-    },
-    hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.accent() } : undefined
-  }, props), [children])
-})
-
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
   return h(Interactive, _.merge({
     as: 'span',
@@ -333,6 +314,8 @@ const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) =
  * @param props.id - The HTML ID to give the form element
  */
 export const Select = ({ value, options, id, ...props }) => {
+  Utils.useConsoleAssert(props.id || props['aria-label'] || props['aria-labelledby'], 'In order to be accessible, Select needs a label')
+
   const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
   const findValue = target => _.find({ value: target }, newOptions)
 
@@ -346,6 +329,8 @@ export const Select = ({ value, options, id, ...props }) => {
  * @param props.id - The HTML ID to give the form element
  */
 export const GroupedSelect = ({ value, options, id, ...props }) => {
+  Utils.useConsoleAssert(props.id || props['aria-label'] || props['aria-labelledby'], 'In order to be accessible, GroupedSelect needs a label')
+
   const flattenedOptions = _.flatMap('options', options)
   const findValue = target => _.find({ value: target }, flattenedOptions)
 
