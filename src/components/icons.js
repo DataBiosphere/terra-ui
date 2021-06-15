@@ -28,7 +28,7 @@ export const containsUnlabelledIcon = ({ children, ...props }) => {
       const onlyChild = Children.only(children)
 
       // Is there a better way to test for an icon component other than duck-typing?
-      if ('data-icon' in onlyChild.props && 'icon' in onlyChild.props && onlyChild.props['aria-hidden'] === true) {
+      if ('data-icon' in onlyChild.props && onlyChild.props['aria-hidden'] === true) {
         return true
       }
     } catch (e) { /* do nothing */ }

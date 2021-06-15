@@ -288,6 +288,8 @@ const DataTable = props => {
                         div({ style: { flexGrow: 1 } }),
                         editable && h(EditDataLink, {
                           'aria-label': `Edit attribute ${name} of ${entityType} ${entityName}`,
+                          'aria-haspopup': 'dialog',
+                          'aria-expanded': !!updatingEntity,
                           onClick: () => setUpdatingEntity({ entityName, attributeName: name, attributeValue: dataInfo })
                         })
                       ])

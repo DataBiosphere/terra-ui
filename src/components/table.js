@@ -208,7 +208,7 @@ const NoContentRow = ({ noContentMessage, noContentRenderer = _.noop, numColumns
 export const FlexTable = ({
   initialY = 0, width, height, rowCount, variant, columns = [], hoverHighlight = false,
   onScroll = _.noop, noContentMessage, noContentRenderer = _.noop, headerHeight = 48, rowHeight = 48,
-  styleCell = () => ({}), styleHeader = () => ({}), tableName, sort = null,
+  styleCell = () => ({}), styleHeader = () => ({}), tableName, sort = null, readOnly = false,
   ...props
 }) => {
   const [scrollbarSize, setScrollbarSize] = useState(0)
@@ -223,6 +223,7 @@ export const FlexTable = ({
     'aria-rowcount': rowCount + 1, // count the header row too
     'aria-colcount': columns.length,
     'aria-label': tableName,
+    'aria-readonly': readOnly || undefined,
     className: 'flex-table'
   }, [
     div({
@@ -326,17 +327,19 @@ FlexTable.propTypes = {
   sort: PropTypes.shape({
     field: PropTypes.string,
     direction: PropTypes.string
-  })
+  }),
+  readOnly: PropTypes.bool
 }
 
 /**
  * A basic table with a header and flexible column widths. Intended for small amounts of data,
  * since it does not provide scrolling. See FlexTable for prop types.
  */
-export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContentRenderer = _.noop, hoverHighlight, tableName, sort = null }) => {
+export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContentRenderer = _.noop, hoverHighlight, tableName, sort = null, readOnly = false }) => {
   return div({
     role: 'table',
     'aria-label': tableName,
+    'aria-readonly': readOnly || undefined,
     className: 'simple-flex-table'
   }, [
     div({
@@ -383,7 +386,7 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
   width, height, initialX = 0, initialY = 0, rowHeight = 48, headerHeight = 48,
   noContentMessage, noContentRenderer = _.noop,
   rowCount, columns, styleCell = () => ({}), styleHeader = () => ({}), onScroll: customOnScroll = _.noop,
-  tableName, sort = null
+  tableName, sort = null, readOnly = false
 }, ref) => {
   const [scrollbarSize, setScrollbarSize] = useState(0)
   const header = useRef()
@@ -420,6 +423,7 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
         'aria-rowcount': rowCount + 1, // count the header row too
         'aria-colcount': columns.length,
         'aria-label': tableName,
+        'aria-readonly': readOnly || undefined,
         className: 'grid-table'
       }, [
         h(RVGrid, {
@@ -547,7 +551,8 @@ GridTable.propTypes = {
   sort: PropTypes.shape({
     field: PropTypes.string,
     direction: PropTypes.string
-  })
+  }),
+  readOnly: PropTypes.bool
 }
 
 export const SimpleTable = ({ columns, rows, tableName }) => {
@@ -556,7 +561,7 @@ export const SimpleTable = ({ columns, rows, tableName }) => {
     role: 'table',
     'aria-label': tableName
   }, [
-    div({ style: { display: 'flex' } }, [
+    div({ role: 'row', style: { display: 'flex' } }, [
       _.map(({ key, header, size }) => {
         return div({
           key,
@@ -706,6 +711,8 @@ export const ColumnSelector = ({ onSave, columnSettings }) => {
     h(Clickable, {
       style: styles.columnSelector,
       tooltip: 'Select columns',
+      'aria-haspopup': 'dialog',
+      'aria-expanded': open,
       onClick: () => {
         setOpen(true)
         setModifiedColumnSettings(columnSettings)

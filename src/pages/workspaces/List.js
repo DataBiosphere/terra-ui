@@ -196,6 +196,7 @@ export const WorkspaceList = () => {
             return div({ style: styles.tableCellContainer }, [
               div({ style: styles.tableCellContent }, [
                 h(Link, {
+                  'aria-haspopup': canView ? undefined : 'dialog',
                   style: {
                     ...(canView ? {} : { color: colors.dark(0.8), fontStyle: 'italic' }),
                     fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis
@@ -254,15 +255,16 @@ export const WorkspaceList = () => {
           },
           size: { basis: 120, grow: 1, shrink: 0 }
         }, {
-          headerRenderer: () => null,
+          headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
           cellRenderer: ({ rowIndex }) => {
             const { accessLevel, workspace: { workspaceId, namespace, name }, ...workspace } = sortedWorkspaces[rowIndex]
+            if (!Utils.canRead(accessLevel)) {
+              return
+            }
             const onClone = () => setCloningWorkspaceId(workspaceId)
             const onDelete = () => setDeletingWorkspaceId(workspaceId)
             const onShare = () => setSharingWorkspaceId(workspaceId)
-            const canView = Utils.canRead(accessLevel)
             const lastRunStatus = workspaceSubmissionStatus(workspace)
-
 
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
@@ -271,7 +273,10 @@ export const WorkspaceList = () => {
                   closeOnClick: true,
                   content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
                 }, [
-                  h(Link, { 'aria-label': `Menu for Workspace: ${name}`, disabled: !canView }, [icon('cardMenuIcon', { size: 20 })])
+                  h(Link, {
+                    'aria-label': `Menu for Workspace: ${name}`,
+                    'aria-haspopup': 'menu'
+                  }, [icon('cardMenuIcon', { size: 20 })])
                 ])
               ]),
               div({ style: styles.tableCellContent }, [

@@ -1,5 +1,5 @@
 import { Fragment } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, h3, h4 } from 'react-hyperscript-helpers'
 import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import colors from 'src/libs/colors'
@@ -42,11 +42,11 @@ export const collapseCromwellExecutionStatus = status => {
 
 const size = 24
 
-export const successIcon = style => icon('check', { size, style: { color: colors.success(), ...style } })
-export const failedIcon = style => icon('warning-standard', { size, style: { color: colors.danger(), ...style } })
-export const runningIcon = style => icon('sync', { size, style: { color: colors.dark(), ...style } })
-export const submittedIcon = style => icon('clock', { size, style: { color: colors.dark(), ...style } })
-export const unknownIcon = style => icon('question', { size, style: { color: colors.dark(), ...style } })
+export const successIcon = style => icon('check', { size, style: { color: colors.success(), ...style }, 'aria-label': 'success' })
+export const failedIcon = style => icon('warning-standard', { size, style: { color: colors.danger(), ...style }, 'aria-label': 'failed' })
+export const runningIcon = style => icon('sync', { size, style: { color: colors.dark(), ...style }, 'aria-label': 'running' })
+export const submittedIcon = style => icon('clock', { size, style: { color: colors.dark(), ...style }, 'aria-label': 'submitted' })
+export const unknownIcon = style => icon('question', { size, style: { color: colors.dark(), ...style }, 'aria-label': 'unknown' })
 
 export const statusIcon = (status, style, collapseFunction = collapseStatus) => {
   switch (collapseFunction(status)) {
@@ -80,7 +80,7 @@ export const makeSection = (label, children) => div({
     whiteSpace: 'pre', textOverflow: 'ellipsis', overflow: 'hidden'
   }
 }, [
-  div({ style: Style.elements.sectionHeader }, label),
+  h4({ style: Style.elements.sectionHeader }, label),
   h(Fragment, children)
 ])
 
@@ -98,7 +98,7 @@ export const jobHistoryBreadcrumbPrefix = (namespace, workspaceName) => {
 export const submissionDetailsBreadcrumbSubtitle = (namespace, workspaceName, submissionId) => {
   return div({ style: { marginBottom: '1rem', display: 'flex', alignItems: 'center' } }, [
     jobHistoryBreadcrumbPrefix(namespace, workspaceName),
-    div({ style: Style.elements.sectionHeader }, [`Submission ${submissionId}`])
+    h3({ style: Style.elements.sectionHeader }, [`Submission ${submissionId}`])
   ])
 }
 
@@ -109,6 +109,6 @@ export const workflowDetailsBreadcrumbSubtitle = (namespace, workspaceName, subm
       href: Nav.getLink('workspace-submission-details', { namespace, name: workspaceName, submissionId })
     }, [`Submission ${submissionId}`]),
     breadcrumbHistoryCaret,
-    div({ style: Style.elements.sectionHeader }, [`Workflow ${workflowId}`])
+    h3({ style: Style.elements.sectionHeader }, [`Workflow ${workflowId}`])
   ])
 }

@@ -347,7 +347,7 @@ const EntitiesContent = ({
         }, ['Delete Data'])
       ])
     }, [h(Link, { style: { marginRight: '1rem' } }, [
-      icon('ellipsis-v-circle', { size: 24 })
+      icon('ellipsis-v-circle', { size: 24, 'aria-label': 'selection menu' })
     ])])
   }
 
@@ -374,7 +374,11 @@ const EntitiesContent = ({
           !snapshotName && renderDownloadButton(columnSettings),
           !_.endsWith('_set', entityKey) && renderCopyButton(entities, columnSettings),
           div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
-          div({ style: { marginRight: '0.5rem' } }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
+          div({
+            role: 'status',
+            'aria-atomic': true,
+            style: { marginRight: '0.5rem' }
+          }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
           renderSelectedRowsMenu(columnSettings)
         ])
       }),

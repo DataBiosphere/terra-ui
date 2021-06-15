@@ -343,7 +343,8 @@ const Notebooks = _.flow(
           },
           onClick: () => setCreating(true),
           disabled: !canWrite,
-          tooltip: !canWrite ? noWrite : undefined
+          tooltip: !canWrite ? noWrite : undefined,
+          'aria-haspopup': 'dialog'
         }, [
           div({ style: { fontSize: 18, lineHeight: '22px', width: 150 } }, [
             div(['Create a']),
@@ -373,7 +374,7 @@ const Notebooks = _.flow(
           tooltip: !canWrite ? noWrite : undefined
         }, [
           div({ style: { fontSize: 16, lineHeight: '20px' } }, [
-            div(['Drag or ', h(Link, ['Click']), ' to ']),
+            div(['Drag or Click to ']),
             div(['Add an ipynb File']),
             icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginTop: '0.5rem' } })
           ])

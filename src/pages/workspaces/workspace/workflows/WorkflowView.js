@@ -20,6 +20,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { HiddenLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { workflowSelectionStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -99,7 +100,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
     rowCount: sortedData.length,
     tableName: `workflow ${which}`,
     noContentMessage: `No matching ${which}.`,
-    sort,
+    sort, readOnly,
     columns: [
       {
         size: { basis: 350, grow: 0 },
@@ -138,27 +139,32 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
           ])
         ]),
         cellRenderer: ({ rowIndex }) => {
-          const { name, optional, inputType } = sortedData[rowIndex]
+          const io = sortedData[rowIndex]
+          const { name, optional, inputType } = io
           const value = config[which][name] || ''
           const error = errors[which][name]
           const isFile = (inputType === 'File') || (inputType === 'File?')
           const formattedValue = JSON.stringify(Utils.maybeParseJSON(value), null, 2)
           return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
             div({ style: { flex: 1, display: 'flex', position: 'relative', minWidth: 0 } }, [
-              !readOnly ? h(DelayedAutocompleteTextArea, {
-                autosize: true,
-                'aria-label': name,
-                spellCheck: false,
-                placeholder: optional ? 'Optional' : 'Required',
-                value,
-                style: isFile ? { paddingRight: '2rem' } : undefined,
-                onChange: v => onChange(name, v),
-                suggestions
-              }) : h(TextCell, { style: { flex: 1 } }, [value]),
+              !readOnly ? h(IdContainer, [labelId => h(Fragment, [
+                h(HiddenLabel, { id: labelId }, [`${ioTask(io)} ${ioVariable(io)} attribute`]),
+                h(DelayedAutocompleteTextArea, {
+                  autosize: true,
+                  spellCheck: false,
+                  placeholder: optional ? 'Optional' : 'Required',
+                  value,
+                  style: isFile ? { paddingRight: '2rem' } : undefined,
+                  onChange: v => onChange(name, v),
+                  suggestions,
+                  labelId
+                })
+              ])]) : h(TextCell, { style: { flex: 1 } }, [value]),
               !readOnly && isFile && h(Clickable, {
                 style: { position: 'absolute', right: '0.5rem', top: 0, bottom: 0, display: 'flex', alignItems: 'center' },
                 onClick: () => onBrowse(name),
-                tooltip: 'Browse bucket files'
+                tooltip: 'Browse bucket files',
+                'aria-haspopup': 'dialog'
               }, [icon('folder-open', { size: 20 })])
             ]),
             !readOnly && h(Link, {
