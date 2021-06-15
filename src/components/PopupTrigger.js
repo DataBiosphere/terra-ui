@@ -64,7 +64,7 @@ const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, side, 
   const labelledby = child.props['aria-labelledby'] || childId
 
   return h(Fragment, [
-    cloneElement({
+    cloneElement(child, {
       id: childId,
       'aria-haspopup': role,
       'aria-expanded': open,
@@ -75,7 +75,7 @@ const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, side, 
         child.props.onClick && child.props.onClick(...args)
         setOpen(!open)
       }
-    }, child),
+    }),
     open && h(Popup, {
       id: menuId,
       target: childId,
