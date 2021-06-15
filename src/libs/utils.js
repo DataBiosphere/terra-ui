@@ -382,6 +382,24 @@ export const useConsoleAssert = (condition, message) => {
   }
 }
 
+export const useLabelAssert = (componentName, { allowId = false, allowTooltip = false, ...props }) => {
+  const printed = useRef(false)
+
+  if (!printed.current) {
+    // Ensure that the properties contain a label
+    if (!props['aria-label'] && !props['aria-labelledby'] && (!allowId || !props.id) && (!allowTooltip || !props.tooltip)) {
+      printed.current = true
+
+      console.warn(`For accessibility, ${componentName} needs a label. Resolve this by doing any of the following: 
+  * add an aria-label property to this component
+  * add an aria-labelledby property referencing the id on another component containing the label
+  ${allowTooltip ? '* add a tooltip property to this component, which will also be used as the aria-label' : ''}
+  ${allowId ? '* create a label and point its htmlFor property to this component\'s id' : ''}
+      `)
+    }
+  }
+}
+
 export const useCancelable = () => {
   const [controller, setController] = useState(new window.AbortController())
 
