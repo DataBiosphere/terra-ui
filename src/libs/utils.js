@@ -427,7 +427,7 @@ export const useLabelAssert = (componentName, {
  * If aria-labelledby was provided, or an id was provided and allowId is true, then this will return nothing because the component is already labeled
  * If a tooltip was provided without any of the other attributes, it will be returned to be used as the aria-label
  */
-export const useAriaLabelOrTooltip = ({ allowId = false, 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, id, tooltip }) => {
+export const getAriaLabelOrTooltip = ({ allowId = false, 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, id, tooltip }) => {
   return (ariaLabel || ariaLabelledBy || (allowId && id)) ? ariaLabel : tooltip
 }
 

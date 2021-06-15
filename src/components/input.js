@@ -153,7 +153,7 @@ export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity,
 
   const numberInputChild = div([input(_.merge({
     type: 'number',
-    'aria-label': Utils.useAriaLabelOrTooltip({ tooltip, ...props }),
+    'aria-label': Utils.getAriaLabelOrTooltip({ tooltip, ...props }),
     className: 'focus-style',
     min, max,
     value: internalValue !== undefined ? internalValue : _.toString(value), // eslint-disable-line lodash-fp/preferred-alias
