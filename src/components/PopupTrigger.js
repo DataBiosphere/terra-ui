@@ -25,7 +25,7 @@ const styles = {
 export const Popup = onClickOutside(function({ id, side = 'right', target: targetId, onClick, children, popupProps = {} }) {
   // We're passing popupProps here rather than just props, because ...props also includes lots of internal onClickOutside properties which
   // aren't valid to be dropped on a DOM element.
-  Utils.useConsoleAssert('aria-label' in popupProps || 'aria-labelledby' in popupProps, 'In order to be accessible, Popup needs a label')
+  Utils.useConsoleAssert(popupProps['aria-label'] ||  popupProps['aria-labelledby'], 'In order to be accessible, Popup needs a label')
 
   const elementRef = useRef()
   const [target, element, viewport] = useDynamicPosition([{ id: targetId }, { ref: elementRef }, { viewport: true }])
