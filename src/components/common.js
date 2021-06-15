@@ -8,7 +8,7 @@ import RSelect, { components as RSelectComponents } from 'react-select'
 import RAsyncCreatableSelect from 'react-select/async-creatable'
 import RSwitch from 'react-switch'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner, icon } from 'src/components/icons'
+import { centeredSpinner, containsUnlabelledIcon, icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
 import { MiniSortable } from 'src/components/table'
@@ -52,7 +52,7 @@ const styles = {
   }
 }
 
-export const Clickable = Utils.forwardRefWithName('Clickable', ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, onClick, children, ...props }, ref) => {
+export const Clickable = Utils.forwardRefWithName('Clickable', ({ href, as = (!!href ? 'a' : 'div'), disabled, tooltip, tooltipSide, tooltipDelay, useTooltipAsLabel, onClick, children, ...props }, ref) => {
   const child = h(Interactive, {
     'aria-disabled': !!disabled,
     as, disabled, ref,
@@ -62,8 +62,22 @@ export const Clickable = Utils.forwardRefWithName('Clickable', ({ href, as = (!!
     ...props
   }, [children])
 
+  // To support accessibility, every link must have a label or contain text or a labeled child.
+  // If an unlabeled link contains just a single unlabeled icon, then we should use the tooltip as the label,
+  // rather than as the description as we otherwise would.
+  //
+  // If the auto-detection can't make the proper determination, for example, because the icon is wrapped in other elements,
+  // you can explicitly pass in a boolean as `useTooltipAsLabel` to force the correct behavior.
+  //
+  // Note that TooltipTrigger does this same check with its own children, but since we'll be passing it an
+  // Interactive element, we need to do the check here instead.
+  const useAsLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, ...props }) : useTooltipAsLabel
+
+  // If we determined that we need to use the tooltip as a label, assert that we have a tooltip
+  Utils.useConsoleAssert(!useAsLabel || tooltip, 'In order to be accessible, Clickable or the icon contained within it needs an accessible label or tooltip')
+
   if (tooltip) {
-    return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay }, [child])
+    return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay, useTooltipAsLabel: useAsLabel }, [child])
   } else {
     return child
   }
@@ -300,6 +314,8 @@ const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) =
  * @param props.id - The HTML ID to give the form element
  */
 export const Select = ({ value, options, id, ...props }) => {
+  Utils.useConsoleAssert(props.id || props['aria-label'] || props['aria-labelledby'], 'In order to be accessible, Select needs a label')
+
   const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
   const findValue = target => _.find({ value: target }, newOptions)
 
@@ -313,6 +329,8 @@ export const Select = ({ value, options, id, ...props }) => {
  * @param props.id - The HTML ID to give the form element
  */
 export const GroupedSelect = ({ value, options, id, ...props }) => {
+  Utils.useConsoleAssert(props.id || props['aria-label'] || props['aria-labelledby'], 'In order to be accessible, GroupedSelect needs a label')
+
   const flattenedOptions = _.flatMap('options', options)
   const findValue = target => _.find({ value: target }, flattenedOptions)
 
@@ -530,7 +548,7 @@ export const ClipboardButton = ({ text, onClick, ...props }) => {
   const [copied, setCopied] = useState(false)
   return h(Link, {
     ...props,
-    tooltip: 'Copy to clipboard',
+    tooltip: copied ? 'Copied to clipboard' : 'Copy to clipboard',
     onClick: _.flow(
       withErrorReporting('Error copying to clipboard'),
       Utils.withBusyState(setCopied)

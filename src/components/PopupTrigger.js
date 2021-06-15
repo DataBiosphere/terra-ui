@@ -25,7 +25,7 @@ const styles = {
 export const Popup = onClickOutside(function({ id, side = 'right', target: targetId, onClick, children, popupProps = {} }) {
   // We're passing popupProps here rather than just props, because ...props also includes lots of internal onClickOutside properties which
   // aren't valid to be dropped on a DOM element.
-  Utils.useConsoleAssert('aria-label' in popupProps || 'aria-labelledby' in popupProps, 'In order to be accessible, Popup needs a label')
+  Utils.useConsoleAssert(popupProps['aria-label'] || popupProps['aria-labelledby'], 'In order to be accessible, Popup needs a label')
 
   const elementRef = useRef()
   const [target, element, viewport] = useDynamicPosition([{ id: targetId }, { ref: elementRef }, { viewport: true }])
@@ -33,6 +33,8 @@ export const Popup = onClickOutside(function({ id, side = 'right', target: targe
   return h(PopupPortal, [
     div({
       id,
+      role: 'dialog',
+      'aria-modal': true,
       onClick,
       ref: elementRef,
       style: {
@@ -40,8 +42,6 @@ export const Popup = onClickOutside(function({ id, side = 'right', target: targe
         visibility: !viewport.width ? 'hidden' : undefined,
         ...styles.popup
       },
-      role: 'dialog',
-      'aria-modal': true,
       ...popupProps
     }, [children])
   ])
@@ -64,18 +64,18 @@ const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, side, 
   const labelledby = child.props['aria-labelledby'] || childId
 
   return h(Fragment, [
-    cloneElement(child, {
+    cloneElement({
       id: childId,
+      'aria-haspopup': role,
+      'aria-expanded': open,
+      'aria-controls': open ? menuId : undefined, // 'dialog', 'listbox', 'menu' are valid values
+      'aria-owns': open ? menuId : undefined,
       className: `${child.props.className || ''} ${childId}`,
       onClick: (...args) => {
         child.props.onClick && child.props.onClick(...args)
         setOpen(!open)
-      },
-      'aria-haspopup': role, // 'dialog', 'listbox', 'menu' are valid values
-      'aria-expanded': open,
-      'aria-controls': open ? menuId : undefined,
-      'aria-owns': open ? menuId : undefined
-    }),
+      }
+    }, child),
     open && h(Popup, {
       id: menuId,
       target: childId,
@@ -123,9 +123,8 @@ export const MenuButton = Utils.forwardRefWithName('MenuButton', ({ disabled, ch
       style: {
         display: 'flex', alignItems: 'center',
         fontSize: 12, minWidth: 125, height: '2.25rem',
-        color: disabled ? colors.dark(0.7) : undefined,
         padding: '0.875rem',
-        cursor: disabled ? 'not-allowed' : 'pointer'
+        ...(disabled ? { color: colors.dark(0.7), cursor: 'not-allowed' } : { cursor: 'pointer' })
       },
       hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.accent() } : undefined
     }, props), [children])

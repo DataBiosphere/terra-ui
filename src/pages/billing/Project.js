@@ -22,10 +22,11 @@ import { billingRoles } from 'src/pages/billing/List'
 
 
 const workspaceLastModifiedWidth = 150
+const workspaceExpandIconSize = 20
 
 const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
-    div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1 } }, [
+    div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: '1rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'name' })
     ]),
     div({ 'aria-sort': ariaSort(sort, 'createdBy'), style: { flex: 1 } }, [
@@ -33,6 +34,9 @@ const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort,
     ]),
     div({ 'aria-sort': ariaSort(sort, 'lastModified'), style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [
       h(HeaderRenderer, { sort, onSort, name: 'lastModified' })
+    ]),
+    div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
+      div({ className: 'sr-only' }, ['Expand'])
     ])
   ])
 })
@@ -56,10 +60,9 @@ const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details,
 
 const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpanded, onExpand }) => {
   const { namespace, name, createdBy, lastModified, googleProject, billingAccountName } = workspace
-  const workspaceExpandIconSize = 20
   const workspaceCardStyles = {
     field: {
-      ...Style.noWrapEllipsis, flex: 1, height: '1rem', width: `calc(50% - ${workspaceLastModifiedWidth / 2}px)`, paddingRight: '1rem'
+      ...Style.noWrapEllipsis, flex: 1, height: '1rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`, paddingRight: '1rem'
     },
     row: rowBase,
     expandedInfoContainer: { display: 'flex', flexDirection: 'column', width: '100%' }
@@ -68,24 +71,26 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpand
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' } }, [
     h(IdContainer, [id => h(Fragment, [
       div({ style: workspaceCardStyles.row }, [
-        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center' } }, [
+        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
           h(Link, {
-            style: { fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
+            style: Style.noWrapEllipsis,
             href: Nav.getLink('workspace-dashboard', { namespace, name })
-          }, [name]),
+          }, [name])
+        ]),
+        div({ style: workspaceCardStyles.field }, [createdBy]),
+        div({ style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)]),
+        div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
           h(Link, {
+            'aria-label': 'expand workspace',
             'aria-expanded': isExpanded,
             'aria-controls': isExpanded ? id : undefined,
             'aria-owns': isExpanded ? id : undefined,
-            style: { display: 'flex', alignItems: 'center', marginLeft: '1rem' },
-            onClick: onExpand,
-            'aria-label': 'view more workspace details'
+            style: { display: 'flex', alignItems: 'center' },
+            onClick: onExpand
           }, [
-            icon(isExpanded ? 'angle-up' : 'angle-down', { size: workspaceExpandIconSize, style: { marginLeft: '1rem' } })
+            icon(isExpanded ? 'angle-up' : 'angle-down', { size: workspaceExpandIconSize })
           ])
-        ]),
-        div({ style: workspaceCardStyles.field }, [createdBy]),
-        div({ style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)])
+        ])
       ]),
       isExpanded && div({ id, style: workspaceCardStyles.row }, [
         div({ style: workspaceCardStyles.expandedInfoContainer }, [
@@ -254,7 +259,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
         !!displayName && span({ style: { flexShrink: 0 } }, displayName),
         h(Link, {
-          'aria-label': 'Change Billing Account',
+          tooltip: 'Change Billing Account',
           style: { marginLeft: '0.5rem' },
           onClick: async () => {
             if (Auth.hasBillingScope()) {

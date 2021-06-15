@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, label } from 'react-hyperscript-helpers'
+import { div, h, h2, label } from 'react-hyperscript-helpers'
 import { IdContainer, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
@@ -28,7 +28,7 @@ const styles = {
     position: 'relative', padding: '2rem'
   },
   title: {
-    fontSize: 24, fontWeight: 600, color: colors.dark(), marginBottom: '2rem'
+    fontSize: 24, fontWeight: 600, color: colors.dark(), margin: '0 0 1rem 0'
   },
   card: {
     ...Style.elements.card.container, borderRadius: 8, padding: '2rem', flex: 1, minWidth: 0,
@@ -84,13 +84,13 @@ const DockstoreImporter = ({ path, version, source }) => {
 
   return div({ style: styles.container }, [
     div({ style: { ...styles.card, maxWidth: 740 } }, [
-      div({ style: styles.title }, ['Importing from Dockstore']),
+      h2({ style: styles.title }, ['Importing from Dockstore']),
       div({ style: { fontSize: 18 } }, [path]),
       div({ style: { fontSize: 13, color: colors.dark() } }, [`V. ${version}`]),
       div({
         style: {
           display: 'flex', alignItems: 'center',
-          margin: '1rem 0', color: colors.warning()
+          margin: '1rem 0', color: colors.warning(2.35) // Just barely 4.5:1 contrast
         }
       }, [
         icon('warning-standard', { title: 'Warning', size: 32, style: { marginRight: '0.5rem', flex: 'none' } }),
@@ -102,19 +102,23 @@ const DockstoreImporter = ({ path, version, source }) => {
     div({ style: { ...styles.card, margin: '0 2.5rem', maxWidth: 430 } }, [
       h(IdContainer, [
         id => h(Fragment, [
-          div([label({ htmlFor: id, style: { ...styles.title } }, 'Workflow Name')]),
-          div({ style: { marginTop: '2rem' } }, [h(ValidatedInput, {
+          label({ htmlFor: id, style: { ...styles.title } }, 'Workflow Name'),
+          h(ValidatedInput, {
             inputProps: {
               id,
               onChange: setWorkflowName,
               value: workflowName
             },
             error: Utils.summarizeErrors(errors)
-          })])
+          })
         ])
       ]),
-      div({ style: { ...styles.title, paddingTop: '2rem' } }, ['Destination Workspace']),
-      h(WorkspaceImporter, { onImport: doImport, additionalErrors: errors }),
+      h(IdContainer, [
+        id => h(Fragment, [
+          label({ htmlFor: id, style: { ...styles.title, paddingTop: '2rem' } }, ['Destination Workspace']),
+          h(WorkspaceImporter, { id, onImport: doImport, additionalErrors: errors })
+        ])
+      ]),
       isBusy && spinnerOverlay
     ])
   ])

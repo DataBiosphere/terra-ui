@@ -169,7 +169,8 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
                 [formattedValue === undefined, () => 'Cannot format this value'],
                 [formattedValue === value, () => 'Already formatted'],
                 () => 'Reformat'
-              )
+              ),
+              useTooltipAsLabel: true
             }, ['{…}']),
             error && h(TooltipTrigger, { content: error }, [
               icon('error-standard', {

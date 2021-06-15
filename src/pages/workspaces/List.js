@@ -175,7 +175,7 @@ export const WorkspaceList = () => {
       rowCount: sortedWorkspaces.length,
       tableName: currentTab?.tableName || 'workspaces',
       noContentRenderer: () => Utils.cond(
-        [loadingWorkspaces, () => null],
+        [loadingWorkspaces, () => 'Loading...'],
         [_.isEmpty(initialFiltered.myWorkspaces) && tab === 'myWorkspaces', () => NoWorkspacesMessage({
           onClick: () => setCreatingNewWorkspace(true)
         })],
@@ -196,7 +196,10 @@ export const WorkspaceList = () => {
             return div({ style: styles.tableCellContainer }, [
               div({ style: styles.tableCellContent }, [
                 h(Link, {
-                  style: { color: canView ? undefined : colors.dark(0.7), fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
+                  style: {
+                    ...(canView ? {} : { color: colors.dark(0.8), fontStyle: 'italic' }),
+                    fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis
+                  },
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
                   onClick: () => {
                     canAccessWorkspace()
@@ -306,7 +309,7 @@ export const WorkspaceList = () => {
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
         h(Link, {
-          'aria-label': 'Create new workspace', onClick: () => setCreatingNewWorkspace(true),
+          onClick: () => setCreatingNewWorkspace(true),
           style: { marginLeft: '0.5rem' },
           tooltip: 'Create a new workspace'
         },

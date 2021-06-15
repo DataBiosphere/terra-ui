@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { Children, cloneElement, Fragment, useRef, useState } from 'react'
 import { div, h, path, svg } from 'react-hyperscript-helpers'
+import { containsUnlabelledIcon } from 'src/components/icons'
 import { computePopupPosition, PopupPortal, useDynamicPosition } from 'src/components/popup-utils'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
@@ -83,17 +84,28 @@ const Tooltip = ({ side = 'bottom', type, target: targetId, children, id, delay 
   ])
 }
 
-const TooltipTrigger = ({ children, content, ...props }) => {
+const TooltipTrigger = ({ children, content, useTooltipAsLabel, ...props }) => {
   const [open, setOpen] = useState(false)
   const id = Utils.useUniqueId()
   const tooltipId = Utils.useUniqueId()
+  const descriptionId = Utils.useUniqueId()
+
   const child = Children.only(children)
   const childId = child.props.id || id
+
+  // To support accessibility, every link must have a label or contain text or a labeled child.
+  // If an unlabeled link contains just a single unlabeled icon, then we should use the tooltip as the label,
+  // rather than as the description as we otherwise would.
+  //
+  // If the auto-detection can't make the proper determination, for example, because the icon is wrapped in other elements,
+  // you can explicitly pass in a boolean as `useTooltipAsLabel` to force the correct behavior.
+  const useAsLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, ...props }) : useTooltipAsLabel
 
   return h(Fragment, [
     cloneElement(child, {
       id: childId,
-      'aria-describedby': open ? tooltipId : undefined,
+      'aria-labelledby': !!content && useAsLabel ? descriptionId : undefined,
+      'aria-describedby': !!content && !useAsLabel ? descriptionId : undefined,
       onMouseEnter: (...args) => {
         child.props.onMouseEnter && child.props.onMouseEnter(...args)
         setOpen(true)
@@ -111,7 +123,8 @@ const TooltipTrigger = ({ children, content, ...props }) => {
         setOpen(false)
       }
     }),
-    open && !!content && h(Tooltip, { target: childId, id: tooltipId, ...props }, [content])
+    open && !!content && h(Tooltip, { target: childId, id: tooltipId, ...props }, [content]),
+    !!content && div({ id: descriptionId, style: { display: 'none' } }, [content])
   ])
 }
 

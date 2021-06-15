@@ -245,7 +245,6 @@ const Environments = ({ namespace }) => {
     const { appName, status } = app
     return status !== 'DELETING' && h(Link, {
       disabled: status === 'CREATING',
-      'aria-label': 'Delete cloud environment',
       tooltip: status === 'Creating' ? 'Cannot delete a cloud environment while it is being created' : 'Delete cloud environment',
       onClick: () => setDeleteAppId(appName)
     }, [icon('trash')])
@@ -255,7 +254,6 @@ const Environments = ({ namespace }) => {
     const { id, status } = runtime
     return status !== 'Deleting' && h(Link, {
       disabled: status === 'Creating',
-      'aria-label': 'Delete cloud environment',
       tooltip: status === 'Creating' ? 'Cannot delete a cloud environment while it is being created' : 'Delete cloud environment',
       onClick: () => setDeleteRuntimeId(id)
     }, [icon('trash')])
@@ -266,7 +264,6 @@ const Environments = ({ namespace }) => {
       app.status[0] + app.status.substring(1).toLowerCase(),
       app.status === 'ERROR' && h(Clickable, {
         tooltip: 'View error',
-        'aria-label': 'View error',
         onClick: () => setErrorAppId(app.appName)
       }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
     ])
@@ -277,7 +274,6 @@ const Environments = ({ namespace }) => {
       runtime.status,
       runtime.status === 'Error' && h(Clickable, {
         tooltip: 'View error',
-        'aria-label': 'View error',
         onClick: () => setErrorRuntimeId(runtime.id)
       }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
     ])
@@ -490,7 +486,6 @@ const Environments = ({ namespace }) => {
                 [_.some({ runtimeConfig: { persistentDiskId: id } }, runtimes) || _.some({ diskName: name }, apps), () => 'Cannot delete this disk because it is attached. You must delete the cloud environment first.']
               )
               return status !== 'Deleting' && h(Link, {
-                'aria-label': 'Delete persistent disk',
                 disabled: !!error,
                 tooltip: error || 'Delete persistent disk',
                 onClick: () => setDeleteDiskId(id)
