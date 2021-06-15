@@ -76,7 +76,7 @@ export const Clickable = Utils.forwardRefWithName('Clickable', ({ href, as = (!!
   // If we determined that we need to use the tooltip as a label, assert that we have a tooltip.
   // Do the check here and pass empty properties, to bypass the check logic in useLabelAssert() which doesn't take into account the icon's properties.
   if (useAsLabel && !tooltip) {
-    Utils.useLabelAssert('Clickable', { allowTooltip: true })
+    Utils.useLabelAssert('Clickable', { allowTooltip: true, allowNonIconContent: true })
   }
 
   if (tooltip) {

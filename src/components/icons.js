@@ -17,13 +17,9 @@ import iconDict from 'src/libs/icon-dict'
  * If the container element has an 'aria-label` or `aria-labelledby`, or if the icon itself
  * has `aria-label` or `aria-labelledby`, or if the icon is accompanied by other child elements, then we can
  * assume the icon is labeled and no further label is needed.
- *
- * @param children
- * @param props
- * @returns {boolean}
  */
-export const containsUnlabelledIcon = ({ children, ...props }) => {
-  if (!props['aria-label'] && !props['aria-labelledby'] && Children.count(children) === 1 && typeof children !== 'string') {
+export const containsUnlabelledIcon = ({ children, 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy }) => {
+  if (!ariaLabel && !ariaLabelledBy && Children.count(children) === 1 && typeof children !== 'string') {
     try {
       const onlyChild = Children.only(children)
 
