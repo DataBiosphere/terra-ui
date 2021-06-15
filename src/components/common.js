@@ -133,25 +133,6 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
   }, props), [children])
 }
 
-export const makeMenuIcon = (iconName, props) => {
-  return icon(iconName, _.merge({ size: 15, style: { marginRight: '.5rem' } }, props))
-}
-
-export const MenuButton = Utils.forwardRefWithName('MenuButton', ({ disabled, children, ...props }, ref) => {
-  return h(Clickable, _.merge({
-    ref,
-    disabled,
-    style: {
-      display: 'flex', alignItems: 'center',
-      fontSize: 12, minWidth: 125, height: '2.25rem',
-      color: disabled ? colors.dark(0.7) : undefined,
-      padding: '0.875rem',
-      cursor: disabled ? 'not-allowed' : 'pointer'
-    },
-    hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.accent() } : undefined
-  }, props), [children])
-})
-
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
   return h(Interactive, _.merge({
     as: 'span',

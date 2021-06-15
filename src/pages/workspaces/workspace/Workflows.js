@@ -4,13 +4,13 @@ import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { useViewToggle, ViewToggleButtons } from 'src/components/CardsListToggle'
 import {
-  ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, makeMenuIcon, MenuButton, methodLink, PageBox, Select, spinnerOverlay
+  ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, methodLink, PageBox, Select, spinnerOverlay
 } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
-import PopupTrigger from 'src/components/PopupTrigger'
+import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
@@ -90,7 +90,7 @@ const sortOptions = [
 const WorkflowCard = Utils.memoWithName('WorkflowCard', ({ listView, name, namespace, config, onExport, onCopy, onDelete, workspace }) => {
   const { namespace: workflowNamespace, name: workflowName, methodRepoMethod: { sourceRepo, methodVersion } } = config
   const sourceRepoName = sourceRepo === 'agora' ? 'Terra' : Utils.normalizeLabel(sourceRepo)
-  const workflowCardMenu = h(PopupTrigger, {
+  const workflowCardMenu = h(MenuTrigger, {
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
@@ -118,9 +118,9 @@ const WorkflowCard = Utils.memoWithName('WorkflowCard', ({ listView, name, names
     ])
   ])
   const repoLink = h(Link, {
+    'aria-label': `View the ${workflowName} workflow on ${sourceRepoName}`,
     href: methodLink(config),
     style: styles.innerLink,
-    'aria-label': `View the ${workflowName} workflow on ${sourceRepoName}`,
     ...Utils.newTabLinkProps
   }, sourceRepoName)
 
@@ -396,11 +396,11 @@ export const Workflows = _.flow(
     ]),
     div({ style: styles.cardContainer(listView) }, [
       h(Clickable, {
+        'aria-haspopup': 'dialog',
         disabled: !!Utils.editWorkspaceError(ws),
         tooltip: Utils.editWorkspaceError(ws),
         style: { ...styles.card, ...styles.shortCard, color: colors.accent(), fontSize: 18, lineHeight: '22px' },
-        onClick: () => setFindingWorkflow(true),
-        'aria-haspopup': 'dialog'
+        onClick: () => setFindingWorkflow(true)
       }, [
         'Find a Workflow',
         icon('plus-circle', { size: 32 })

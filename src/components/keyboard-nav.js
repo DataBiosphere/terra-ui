@@ -85,9 +85,9 @@ export const VerticalNavigation = ({ children, ...props }) => h(ArrowKeyNavigati
         focusOn(i - 1); break
       case 'ArrowDown':
         focusOn(i + 1); break
-      case 'Home': case 'PageDown':
+      case 'Home': case 'PageUp':
         focusOn(0); break
-      case 'End': case 'PageUp':
+      case 'End': case 'PageDown':
         focusOn(-1); break
       default:
         break

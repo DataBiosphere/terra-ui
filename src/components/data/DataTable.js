@@ -2,12 +2,12 @@ import _ from 'lodash/fp'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Checkbox, Clickable, fixedSpinnerOverlay, Link, MenuButton } from 'src/components/common'
+import { Checkbox, Clickable, fixedSpinnerOverlay, Link } from 'src/components/common'
 import { EditDataLink, EntityEditor, EntityRenamer, renderDataCell } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import PopupTrigger from 'src/components/PopupTrigger'
+import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -211,7 +211,7 @@ const DataTable = props => {
                         onChange: pageSelected() ? deselectPage : selectPage,
                         'aria-label': 'Select all'
                       }),
-                      h(PopupTrigger, {
+                      h(MenuTrigger, {
                         closeOnClick: true,
                         content: h(Fragment, [
                           h(MenuButton, { onClick: selectPage }, ['Page']),
