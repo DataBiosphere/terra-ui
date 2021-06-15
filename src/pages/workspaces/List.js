@@ -196,7 +196,10 @@ export const WorkspaceList = () => {
             return div({ style: styles.tableCellContainer }, [
               div({ style: styles.tableCellContent }, [
                 h(Link, {
-                  style: { color: canView ? undefined : colors.dark(0.7), fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
+                  style: {
+                    ...(canView ? {} : { color: colors.dark(0.8), fontStyle: 'italic' }),
+                    fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis
+                  },
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
                   onClick: () => {
                     canAccessWorkspace()
