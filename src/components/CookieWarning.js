@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, header } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
@@ -33,8 +33,7 @@ const CookieWarning = () => {
     }, cookies)
     signOut()
   }
-  return !cookiesAccepted && div({
-    role: 'banner',
+  return !cookiesAccepted && header({
     style: {
       flex: 0, height: 100, width: '100%',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -47,13 +46,13 @@ const CookieWarning = () => {
         and to improve your experience. By clicking Agree or continuing to use our site, you consent to the use of these functional
         cookies. If you do not wish to allow use of these cookies, you may tell us that by clicking on Reject. As a result, you will be unable
         to use our site. To find out more, read our `,
-        h(Link, { style: { textDecoration: 'underline' }, href: Nav.getLink('privacy') }, ['privacy policy']), '.'
+        h(Link, { style: { textDecoration: 'underline', color: colors.accent(1.1) }, href: Nav.getLink('privacy') }, ['privacy policy']), '.'
       ])
 
     ]),
     div({ style: { padding: '2rem', display: 'flex' } }, [
       h(ButtonPrimary, { onClick: () => acceptCookies(true) }, ['Agree']),
-      h(ButtonSecondary, { style: { marginLeft: '2rem' }, onClick: rejectCookies }, ['Reject'])
+      h(ButtonSecondary, { style: { marginLeft: '2rem', color: colors.accent(1.1) }, onClick: rejectCookies }, ['Reject'])
     ])
   ])
 }
