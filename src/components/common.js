@@ -333,6 +333,8 @@ const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) =
  * @param props.id - The HTML ID to give the form element
  */
 export const Select = ({ value, options, id, ...props }) => {
+  Utils.useConsoleAssert(props.id || props['aria-label'] || props['aria-labelledby'], 'In order to be accessible, Select needs a label')
+
   const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
   const findValue = target => _.find({ value: target }, newOptions)
 
@@ -346,6 +348,8 @@ export const Select = ({ value, options, id, ...props }) => {
  * @param props.id - The HTML ID to give the form element
  */
 export const GroupedSelect = ({ value, options, id, ...props }) => {
+  Utils.useConsoleAssert(props.id || props['aria-label'] || props['aria-labelledby'], 'In order to be accessible, GroupedSelect needs a label')
+
   const flattenedOptions = _.flatMap('options', options)
   const findValue = target => _.find({ value: target }, flattenedOptions)
 
