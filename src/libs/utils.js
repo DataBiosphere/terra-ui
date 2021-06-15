@@ -386,17 +386,17 @@ export const useConsoleAssert = (condition, message) => {
  * Asserts that a component has an accessible label, and alerts the developer how to fix it if it doesn't.
  *
  * @param componentName The name of the component, which will be printed to the console if there's an alert.
- * @param allowLabelledBy If true (default), the component can have an aria-labelledby linked to another element. Set to false to only allow aria-label.
- * @param allowId If true, the component can have an id linked to a label using htmlFor. This is true for form elements.
- * @param allowTooltip If true, the component can have a tooltip which will be used if needed as the label.
- * @param allowNonIconContent If true, the component can used nested textual content as its label, as long as it's not a single unlabelled icon
- * @param ariaLabel Optional: The label provided to the component
- * @param ariaLabelledBy Optional: The ID of the label provided to the component
- * @param id: Optional: The ID of the component if allowId is true
- * @param tooltip Optional: The tooltip provided to the component if allowTooltip is true
+ * @param [allowLabelledBy] If true (default), the component can have an aria-labelledby linked to another element. Set to false to only allow aria-label.
+ * @param [allowId] If true, the component can have an id linked to a label using htmlFor. This is true for form elements.
+ * @param [allowTooltip] If true, the component can have a tooltip which will be used if needed as the label.
+ * @param [allowContent] If true, the component can used nested textual content as its label, as long as it's not a single unlabelled icon
+ * @param [ariaLabel] Optional: The label provided to the component
+ * @param [ariaLabelledBy] Optional: The ID of the label provided to the component
+ * @param [id]: Optional: The ID of the component if allowId is true
+ * @param [tooltip] Optional: The tooltip provided to the component if allowTooltip is true
  */
 export const useLabelAssert = (componentName, {
-  allowLabelledBy = true, allowId = false, allowTooltip = false, allowNonIconContent = false,
+  allowLabelledBy = true, allowId = false, allowTooltip = false, allowContent = false,
   'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, id, tooltip
 }) => {
   const printed = useRef(false)
@@ -409,7 +409,7 @@ export const useLabelAssert = (componentName, {
     )) {
       printed.current = true
 
-      console.warn(`For accessibility, ${componentName} needs a label. Resolve this by doing any of the following: ${allowNonIconContent ? `
+      console.warn(`For accessibility, ${componentName} needs a label. Resolve this by doing any of the following: ${allowContent ? `
   * add a child component with textual content or a label
   * if the child is an icon, add a label to it` : ''}${allowTooltip ? `
   * add a tooltip property to this component, which will also be used as the aria-label` : ''}
