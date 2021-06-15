@@ -428,7 +428,7 @@ export const useLabelAssert = (componentName, {
  * If a tooltip was provided without any of the other attributes, it will be returned to be used as the aria-label
  */
 export const useAriaLabelOrTooltip = ({ allowId = false, 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, id, tooltip }) => {
-  return ariaLabel || ariaLabelledBy || (allowId && id) ? ariaLabel : tooltip
+  return (ariaLabel || ariaLabelledBy || (allowId && id)) ? ariaLabel : tooltip
 }
 
 export const useCancelable = () => {
