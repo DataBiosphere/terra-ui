@@ -11,8 +11,6 @@ import {
   Clickable,
   IdContainer,
   Link,
-  makeMenuIcon,
-  MenuButton,
   PageBox,
   Select,
   spinnerOverlay
@@ -32,7 +30,7 @@ import {
   stripExtension,
   tools
 } from 'src/components/notebook-utils'
-import PopupTrigger from 'src/components/PopupTrigger'
+import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
@@ -91,7 +89,7 @@ const AnalysisCard = ({ namespace, name, updated, metadata, toolLabel, listView,
   const analysisEditLink = `${analysisLink}/?${qs.stringify({ mode: 'edit' })}`
   const analysisPlaygroundLink = `${analysisLink}/?${qs.stringify({ mode: 'playground' })}`
 
-  const analysisMenu = h(PopupTrigger, {
+  const analysisMenu = h(MenuTrigger, {
     side: 'right',
     closeOnClick: true,
     content: h(Fragment, [
