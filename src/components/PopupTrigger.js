@@ -123,9 +123,8 @@ export const MenuButton = Utils.forwardRefWithName('MenuButton', ({ disabled, ch
       style: {
         display: 'flex', alignItems: 'center',
         fontSize: 12, minWidth: 125, height: '2.25rem',
-        color: disabled ? colors.dark(0.7) : undefined,
         padding: '0.875rem',
-        cursor: disabled ? 'not-allowed' : 'pointer'
+        ...(disabled ? { color: colors.dark(0.7), cursor: 'not-allowed' } : { cursor: 'pointer' })
       },
       hover: !disabled ? { backgroundColor: colors.light(0.4), color: colors.accent() } : undefined
     }, props), [children])
