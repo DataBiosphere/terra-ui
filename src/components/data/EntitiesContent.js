@@ -375,9 +375,9 @@ const EntitiesContent = ({
           !_.endsWith('_set', entityKey) && renderCopyButton(entities, columnSettings),
           div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
           div({
-            style: { marginRight: '0.5rem' },
             role: 'status',
-            'aria-atomic': true
+            'aria-atomic': true,
+            style: { marginRight: '0.5rem' }
           }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
           renderSelectedRowsMenu(columnSettings)
         ])
