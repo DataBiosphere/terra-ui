@@ -159,14 +159,3 @@ a {
 .reveal-on-focus:focus-within, .reveal-on-focus:focus {
   opacity: 1;
 }
-
-.skip-navigation-content {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 9999;
-  outline-offset: -2px;
-  pointer-events: none; /* Allow clicks to pass through */
-}
