@@ -208,9 +208,11 @@ const NoContentRow = ({ noContentMessage, noContentRenderer = _.noop, numColumns
 export const FlexTable = ({
   initialY = 0, width, height, rowCount, variant, columns = [], hoverHighlight = false,
   onScroll = _.noop, noContentMessage, noContentRenderer = _.noop, headerHeight = 48, rowHeight = 48,
-  styleCell = () => ({}), styleHeader = () => ({}), tableName, sort = null, readOnly = false,
+  styleCell = () => ({}), styleHeader = () => ({}), 'aria-label': ariaLabel, sort = null, readOnly = false,
   ...props
 }) => {
+  Utils.useLabelAssert('FlexTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
+
   const [scrollbarSize, setScrollbarSize] = useState(0)
   const body = useRef()
 
@@ -222,7 +224,7 @@ export const FlexTable = ({
     role: 'table',
     'aria-rowcount': rowCount + 1, // count the header row too
     'aria-colcount': columns.length,
-    'aria-label': tableName,
+    'aria-label': ariaLabel,
     'aria-readonly': readOnly || undefined,
     className: 'flex-table'
   }, [
@@ -257,7 +259,7 @@ export const FlexTable = ({
       rowCount,
       columnCount: 1,
       'aria-readonly': null, // Clear out ARIA properties which should be at the table level, not here
-      'aria-label': `${tableName} content`, // The whole table is a tab stop so it needs a label
+      'aria-label': `${ariaLabel} content`, // The whole table is a tab stop so it needs a label
       role: 'rowgroup',
       containerRole: 'presentation', // Clear out unnecessary ARIA roles
       onScrollbarPresenceChange: ({ vertical, size }) => {
@@ -323,7 +325,7 @@ FlexTable.propTypes = {
   rowHeight: PropTypes.number,
   styleHeader: PropTypes.func,
   styleCell: PropTypes.func,
-  tableName: PropTypes.string.isRequired,
+  'aria-label': PropTypes.string.isRequired,
   sort: PropTypes.shape({
     field: PropTypes.string,
     direction: PropTypes.string
@@ -335,10 +337,12 @@ FlexTable.propTypes = {
  * A basic table with a header and flexible column widths. Intended for small amounts of data,
  * since it does not provide scrolling. See FlexTable for prop types.
  */
-export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContentRenderer = _.noop, hoverHighlight, tableName, sort = null, readOnly = false }) => {
+export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContentRenderer = _.noop, hoverHighlight, 'aria-label': ariaLabel, sort = null, readOnly = false }) => {
+  Utils.useLabelAssert('SimpleFlexTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
+
   return div({
     role: 'table',
-    'aria-label': tableName,
+    'aria-label': ariaLabel,
     'aria-readonly': readOnly || undefined,
     className: 'simple-flex-table'
   }, [
@@ -386,8 +390,10 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
   width, height, initialX = 0, initialY = 0, rowHeight = 48, headerHeight = 48,
   noContentMessage, noContentRenderer = _.noop,
   rowCount, columns, styleCell = () => ({}), styleHeader = () => ({}), onScroll: customOnScroll = _.noop,
-  tableName, sort = null, readOnly = false
+  'aria-label': ariaLabel, sort = null, readOnly = false
 }, ref) => {
+  Utils.useLabelAssert('GridTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
+
   const [scrollbarSize, setScrollbarSize] = useState(0)
   const header = useRef()
   const body = useRef()
@@ -422,7 +428,7 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
         role: 'table',
         'aria-rowcount': rowCount + 1, // count the header row too
         'aria-colcount': columns.length,
-        'aria-label': tableName,
+        'aria-label': ariaLabel,
         'aria-readonly': readOnly || undefined,
         className: 'grid-table'
       }, [
@@ -437,7 +443,7 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
           role: 'rowgroup',
           containerRole: 'row',
           'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
-          'aria-label': `${tableName} header row`, // The whole table is a tab stop so it needs a label
+          'aria-label': `${ariaLabel} header row`, // The whole table is a tab stop so it needs a label
           cellRenderer: data => {
             const field = columns[data.columnIndex].field
             return div({
@@ -472,7 +478,7 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
           role: 'rowgroup',
           containerRole: 'presentation',
           'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
-          'aria-label': `${tableName} content`, // The whole table is a tab stop so it needs a label
+          'aria-label': `${ariaLabel} content`, // The whole table is a tab stop so it needs a label
           onScrollbarPresenceChange: ({ vertical, size }) => {
             setScrollbarSize(vertical ? size : 0)
           },
@@ -547,7 +553,7 @@ GridTable.propTypes = {
   onScroll: PropTypes.func,
   headerHeight: PropTypes.number,
   rowHeight: PropTypes.number,
-  tableName: PropTypes.string.isRequired,
+  'aria-label': PropTypes.string.isRequired,
   sort: PropTypes.shape({
     field: PropTypes.string,
     direction: PropTypes.string
@@ -555,11 +561,13 @@ GridTable.propTypes = {
   readOnly: PropTypes.bool
 }
 
-export const SimpleTable = ({ columns, rows, tableName }) => {
+export const SimpleTable = ({ columns, rows, 'aria-label': ariaLabel }) => {
+  Utils.useLabelAssert('SimpleTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
+
   const cellStyles = { paddingTop: '0.25rem', paddingBottom: '0.25rem' }
   return h(div, {
     role: 'table',
-    'aria-label': tableName
+    'aria-label': ariaLabel
   }, [
     div({ role: 'row', style: { display: 'flex' } }, [
       _.map(({ key, header, size }) => {

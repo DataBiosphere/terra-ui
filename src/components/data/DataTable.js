@@ -192,9 +192,9 @@ const DataTable = props => {
           ({ width, height }) => {
             return h(GridTable, {
               ref: table,
+              'aria-label': `${entityType} data table, page ${pageNumber} of ${Math.ceil(totalRowCount / itemsPerPage)}`,
               width, height,
               rowCount: entities.length,
-              tableName: `${entityType} data table, page ${pageNumber} of ${Math.ceil(totalRowCount / itemsPerPage)}`,
               noContentMessage: `No ${entityType}s to display.`,
               onScroll,
               initialX,

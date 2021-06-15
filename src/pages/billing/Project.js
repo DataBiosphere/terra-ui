@@ -295,7 +295,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         ])
       ]),
       h(SimpleTabBar, {
-        label: 'project details',
+        'aria-label': 'project details',
         style: { marginTop: '2rem', textTransform: 'none', padding: '0 1rem', height: '1.5rem' },
         tabStyle: { borderBottomWidth: 4 },
         value: tab,

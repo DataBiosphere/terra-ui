@@ -171,9 +171,9 @@ export const WorkspaceList = () => {
 
   const renderedWorkspaces = div({ style: { flex: 1, backgroundColor: 'white', padding: '0 1rem' } }, [h(AutoSizer, [
     ({ width, height }) => h(FlexTable, {
+      'aria-label': currentTab?.tableName || 'workspaces',
       width, height,
       rowCount: sortedWorkspaces.length,
-      tableName: currentTab?.tableName || 'workspaces',
       noContentRenderer: () => Utils.cond(
         [loadingWorkspaces, () => 'Loading...'],
         [_.isEmpty(initialFiltered.myWorkspaces) && tab === 'myWorkspaces', () => NoWorkspacesMessage({
@@ -377,7 +377,7 @@ export const WorkspaceList = () => {
         ])
       ]),
       h(SimpleTabBar, {
-        label: 'choose a workspace collection',
+        'aria-label': 'choose a workspace collection',
         value: tab,
         onChange: newTab => {
           if (newTab === tab) {

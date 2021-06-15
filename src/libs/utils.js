@@ -382,22 +382,45 @@ export const useConsoleAssert = (condition, message) => {
   }
 }
 
-export const useLabelAssert = (componentName, { allowId = false, allowTooltip = false, ...props }) => {
+/**
+ * Asserts that a component has an accessible label, and alerts the developer how to fix it if it doesn't.
+ *
+ * @param componentName The name of the component, which will be printed to the console if there's an alert.
+ * @param allowLabelledBy If true (default), the component can have an aria-labelledby linked to another element. Set to false to only allow aria-label.
+ * @param allowId If true, the component can have an id linked to a label using htmlFor. This is true for form elements.
+ * @param allowTooltip If true, the component can have a tooltip which will be used if needed as the label.
+ * @param ariaLabel Optional: The label provided to the component
+ * @param ariaLabelledBy Optional: The ID of the label provided to the component
+ * @param id: Optional: The ID of the component if allowId is true
+ * @param tooltip Optional: The tooltip provided to the component if allowTooltip is true
+ */
+export const useLabelAssert = (componentName, { allowLabelledBy = true, allowId = false, allowTooltip = false, 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, id, tooltip }) => {
   const printed = useRef(false)
 
   if (!printed.current) {
     // Ensure that the properties contain a label
-    if (!props['aria-label'] && !props['aria-labelledby'] && (!allowId || !props.id) && (!allowTooltip || !props.tooltip)) {
+    if (!ariaLabel && (!allowLabelledBy || !ariaLabelledBy) && (!allowId || !id) && (!allowTooltip || !tooltip)) {
       printed.current = true
 
       console.warn(`For accessibility, ${componentName} needs a label. Resolve this by doing any of the following: 
   * add an aria-label property to this component
-  * add an aria-labelledby property referencing the id on another component containing the label
+  ${allowLabelledBy ? '* add an aria-labelledby property referencing the id on another component containing the label' : ''}
   ${allowTooltip ? '* add a tooltip property to this component, which will also be used as the aria-label' : ''}
   ${allowId ? '* create a label and point its htmlFor property to this component\'s id' : ''}
       `)
     }
   }
+}
+
+/**
+ * Returns the aria-label to use for a component if applicable.
+ *
+ * If aria-label was provided, it will be returned
+ * If aria-labelledby was provided, or an id was provided and allowId is true, then this will return nothing because the component is already labeled
+ * If a tooltip was provided without any of the other attributes, it will be returned to be used as the aria-label
+ */
+export const useAriaLabelOrTooltip = ({ allowId = false, 'aria-label': ariaLabel, 'aria-labelledby': ariaLabelledBy, id, tooltip }) => {
+  return ariaLabel || ariaLabelledBy || (allowId && id) ? ariaLabel : tooltip
 }
 
 export const useCancelable = () => {

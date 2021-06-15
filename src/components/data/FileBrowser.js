@@ -192,10 +192,10 @@ export const FileBrowserPanel = _.flow(
         h(AutoSizer, {}, [
           ({ width, height }) => h(FlexTable, {
             ref: table,
+            'aria-label': 'file browser',
             width,
             height,
             rowCount: numPrefixes + numObjects,
-            tableName: 'file browser',
             noContentMessage: 'No files have been uploaded yet',
             onScroll: saveScroll,
             initialY,

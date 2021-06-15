@@ -186,9 +186,9 @@ const JobHistory = _.flow(
     div({ style: styles.submissionsTable }, [
       hasJobs && h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
+          'aria-label': 'job history',
           width, height, rowCount: filteredSubmissions.length,
           hoverHighlight: true,
-          tableName: 'job history',
           noContentMessage: 'No matching jobs',
           columns: [
             {

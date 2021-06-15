@@ -94,7 +94,7 @@ const SnapshotWrapper = ({ namespace, name, snapshotId, tabName, children }) => 
 
   return h(Fragment, [
     h(TabBar, {
-      label: 'workflow menu',
+      'aria-label': 'workflow menu',
       activeTab: tabName,
       tabNames: ['dashboard', 'wdl', 'configs'],
       displayNames: { configs: 'configurations' },
@@ -211,7 +211,7 @@ const WorkflowConfigs = () => {
       h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           width, height,
-          tableName: 'workflow configuration',
+          'aria-label': 'workflow configuration',
           rowCount: allConfigs.length,
           columns: [
             {
