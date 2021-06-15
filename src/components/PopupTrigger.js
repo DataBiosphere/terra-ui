@@ -33,6 +33,8 @@ export const Popup = onClickOutside(function({ id, side = 'right', target: targe
   return h(PopupPortal, [
     div({
       id,
+      role: 'dialog',
+      'aria-modal': true,
       onClick,
       ref: elementRef,
       style: {
@@ -40,8 +42,6 @@ export const Popup = onClickOutside(function({ id, side = 'right', target: targe
         visibility: !viewport.width ? 'hidden' : undefined,
         ...styles.popup
       },
-      role: 'dialog',
-      'aria-modal': true,
       ...popupProps
     }, [children])
   ])
@@ -66,15 +66,15 @@ const PopupTrigger = Utils.forwardRefWithName('PopupTrigger', ({ content, side, 
   return h(Fragment, [
     cloneElement(child, {
       id: childId,
+      'aria-haspopup': role,
+      'aria-expanded': open,
+      'aria-controls': open ? menuId : undefined, // 'dialog', 'listbox', 'menu' are valid values
+      'aria-owns': open ? menuId : undefined,
       className: `${child.props.className || ''} ${childId}`,
       onClick: (...args) => {
         child.props.onClick && child.props.onClick(...args)
         setOpen(!open)
-      },
-      'aria-haspopup': role, // 'dialog', 'listbox', 'menu' are valid values
-      'aria-expanded': open,
-      'aria-controls': open ? menuId : undefined,
-      'aria-owns': open ? menuId : undefined
+      }
     }),
     open && h(Popup, {
       id: menuId,
