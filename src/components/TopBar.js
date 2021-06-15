@@ -340,48 +340,54 @@ const TopBar = ({ showMenu = true, title, href, children }) => {
       role: 'banner',
       style: {
         ...styles.topBar,
-        backgroundColor: isTerra() ? colors.primary() : colors.light(), // Fallback color for a11y and if background images don't show
-        background: isTerra() ?
-          `81px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat, ${colors.primary()}` :
-          colors.light()
+        // This div contains the primary fallback color for a11y which will be used to calculate color contrast when the background is manually hidden
+        // A 1.47 intensity results in precisely a 4.5:1 ratio against the white text
+        backgroundColor: isTerra() ? colors.primary(1.47) : colors.light()
       }
     }, [
-      showMenu ?
-        h(Clickable, {
-          style: { alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: '0 1rem', margin: '2px 1rem 0 2px' },
-          onClick: navShown ? hideNav : showNav,
-          'aria-expanded': navShown
-        }, [
-          icon('bars', {
-            'aria-label': 'Toggle main menu',
-            'aria-hidden': false,
-            size: 36,
-            style: {
-              color: isTerra() ? 'white' : colors.accent(), flex: 'none',
-              transform: navShown ? 'rotate(90deg)' : undefined, transition: 'transform 0.1s ease-out'
-            }
-          })
-        ]) :
-        div({ style: { width: `calc(1rem + 1rem + 1rem + 2px + 36px)` } }), // padding (l+r) + margin (l+r) + icon size
-      a({
-        style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
-        href: href || Nav.getLink('root')
+      div({
+        style: {
+          background: isTerra() ? `0px url(${headerLeftHexes}) no-repeat, right url(${headerRightHexes}) no-repeat` : undefined,
+          flex: '1 1 auto', display: 'flex', alignSelf: 'stretch', width: '100%', alignItems: 'center'
+        }
       }, [
-        topBarLogo(),
-        div({}, [
-          div({
-            style: title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 }
-          }, [versionTag('Beta')]),
-          title && h1({
-            style: { fontSize: '1em', fontWeight: 500, padding: 0, margin: 0 }
-          }, [title])
-        ])
-      ]),
-      children,
-      openFirecloudModal && h(PreferFirecloudModal, {
-        onDismiss: () => setOpenFirecloudModal(false),
-        authState
-      })
+        showMenu ?
+          h(Clickable, {
+            style: { alignSelf: 'stretch', display: 'flex', alignItems: 'center', padding: '0 1rem', margin: '2px 1rem 0 2px' },
+            onClick: navShown ? hideNav : showNav,
+            'aria-expanded': navShown
+          }, [
+            icon('bars', {
+              'aria-label': 'Toggle main menu',
+              'aria-hidden': false,
+              size: 36,
+              style: {
+                color: isTerra() ? 'white' : colors.accent(), flex: 'none',
+                transform: navShown ? 'rotate(90deg)' : undefined, transition: 'transform 0.1s ease-out'
+              }
+            })
+          ]) :
+          div({ style: { width: `calc(1rem + 1rem + 1rem + 2px + 36px)` } }), // padding (l+r) + margin (l+r) + icon size
+        a({
+          style: { ...styles.pageTitle, display: 'flex', alignItems: 'center' },
+          href: href || Nav.getLink('root')
+        }, [
+          topBarLogo(),
+          div({}, [
+            div({
+              style: title ? { fontSize: '0.8rem', lineHeight: '19px' } : { fontSize: '1rem', fontWeight: 600 }
+            }, [versionTag('Beta')]),
+            title && h1({
+              style: { fontSize: '1em', fontWeight: 500, padding: 0, margin: 0 }
+            }, [title])
+          ])
+        ]),
+        children,
+        openFirecloudModal && h(PreferFirecloudModal, {
+          onDismiss: () => setOpenFirecloudModal(false),
+          authState
+        })
+      ])
     ])
   ])
 }

@@ -175,7 +175,7 @@ export const WorkspaceList = () => {
       rowCount: sortedWorkspaces.length,
       tableName: currentTab?.tableName || 'workspaces',
       noContentRenderer: () => Utils.cond(
-        [loadingWorkspaces, () => null],
+        [loadingWorkspaces, () => 'Loading...'],
         [_.isEmpty(initialFiltered.myWorkspaces) && tab === 'myWorkspaces', () => NoWorkspacesMessage({
           onClick: () => setCreatingNewWorkspace(true)
         })],
@@ -196,9 +196,12 @@ export const WorkspaceList = () => {
             return div({ style: styles.tableCellContainer }, [
               div({ style: styles.tableCellContent }, [
                 h(Link, {
-                  style: { color: canView ? undefined : colors.dark(0.8), fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
-                  href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
                   'aria-haspopup': canView ? undefined : 'dialog',
+                  style: {
+                    ...(canView ? {} : { color: colors.dark(0.8), fontStyle: 'italic' }),
+                    fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis
+                  },
+                  href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
                   onClick: () => {
                     canAccessWorkspace()
                     !!canView && Ajax().Metrics.captureEvent(Events.workspaceOpenFromList, { workspaceName: name, workspaceNamespace: namespace })
