@@ -403,11 +403,10 @@ export const useLabelAssert = (componentName, { allowLabelledBy = true, allowId 
       printed.current = true
 
       console.warn(`For accessibility, ${componentName} needs a label. Resolve this by doing any of the following: 
-  * add an aria-label property to this component
-  ${allowLabelledBy ? '* add an aria-labelledby property referencing the id on another component containing the label' : ''}
-  ${allowTooltip ? '* add a tooltip property to this component, which will also be used as the aria-label' : ''}
-  ${allowId ? '* create a label and point its htmlFor property to this component\'s id' : ''}
-      `)
+  * add an aria-label property to this component${allowLabelledBy ? `
+  * add an aria-labelledby property referencing the id of another component containing the label` : ''}${allowTooltip ? `
+  * add a tooltip property to this component, which will also be used as the aria-label` : ''}${allowId ? `
+  * create a label and point its htmlFor property to this component's id` : ''}`)
     }
   }
 }
