@@ -18,7 +18,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
-  currentRuntime, DEFAULT_DISK_SIZE, DEFAULT_GPU_TYPE, DEFAULT_NUM_GPUS, defaultDataprocMachineType, defaultGceMachineType,
+  currentRuntime, DEFAULT_DISK_SIZE, DEFAULT_GPU_TYPE, DEFAULT_NUM_GPUS, defaultDataprocMachineType, defaultGceMachineType, displayNameForGpuType,
   findMachineType,
   getDefaultMachineType, getValidGpuTypes,
   persistentDiskCostMonthly,
@@ -93,16 +93,16 @@ const GpuSelector = ({ gpuType, numGpus, mainMachineType, onChange }) => {
           h(Select, {
             id,
             isSearchable: false,
-            value: gpuType,
+            value: displayNameForGpuType(gpuType),
             onChange: option => {
-              const x = _.find({ type: option.value }, gpuTypeOptionsByCpuAndMem)?.type
+              const x = _.find({ name: option.value }, gpuTypeOptionsByCpuAndMem)?.type
               console.log(`GPU type option.value is ${option.value}`)
               console.log(`x is ${x}`)
               console.log(`gpuType is ${gpuType}`)
               console.log(`options are ${_.flow(_.map('type'), _.union(gpuType), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)}`)
               return onChange({ gpuType: x, numGpus } || { gpuType, numGpus })
             },
-            options: _.flow(_.map('type'), _.union([gpuType]), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)
+            options: _.flow(_.map('name'), _.union([displayNameForGpuType(gpuType)]), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)
           })
         ])
       ])
@@ -291,6 +291,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
   )(async () => {
     const { onSuccess } = this.props
     const { currentRuntimeDetails, currentPersistentDiskDetails } = this.state
+    const { gpuEnabled, gpuType, numGpus } = this.state
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = this.getExistingEnvironmentConfig()
     const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk } = this.getDesiredEnvironmentConfig()
     const shouldUpdatePersistentDisk = this.canUpdatePersistentDisk() && !_.isEqual(desiredPersistentDisk, existingPersistentDisk)
@@ -314,7 +315,8 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             size: desiredPersistentDisk.size,
             labels: { saturnWorkspaceName: name }
           }
-        })
+        }),
+        ...(gpuEnabled && { gpuConfig: { gpuType, numOfGpus: numGpus } })
       } : {
         masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
         masterDiskSize: desiredRuntime.masterDiskSize,

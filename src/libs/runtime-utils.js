@@ -13,7 +13,7 @@ import * as Utils from 'src/libs/utils'
 export const DEFAULT_DISK_SIZE = 50
 export const DEFAULT_BOOT_DISK_SIZE = 50
 
-export const DEFAULT_GPU_TYPE = 'NVIDIA Tesla T4'
+export const DEFAULT_GPU_TYPE = 'nvidia-tesla-t4'
 export const DEFAULT_NUM_GPUS = 1
 
 export const usableStatuses = ['Updating', 'Running']
@@ -218,6 +218,16 @@ export const convertedAppStatus = appStatus => {
     ['STOPPING', () => _.capitalize('PAUSING')],
     ['STARTING', () => _.capitalize('RESUMING')],
     [Utils.DEFAULT, () => _.capitalize(appStatus)]
+  )
+}
+
+export const displayNameForGpuType = type => {
+  return Utils.switchCase(type,
+    ['nvidia-tesla-t4', () => 'NVIDIA Tesla T4'],
+    ['nvidia-tesla-k80', () => 'NVIDIA Tesla K80'],
+    ['nvidia-tesla-p4', () => 'NVIDIA Tesla P4'],
+    ['nvidia-tesla-v100', () => 'NVIDIA Tesla V100'],
+    [Utils.DEFAULT, () => 'NVIDIA Tesla T4']
   )
 }
 
