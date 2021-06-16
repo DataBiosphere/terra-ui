@@ -73,8 +73,11 @@ export const Clickable = Utils.forwardRefWithName('Clickable', ({ href, as = (!!
   // Interactive element, we need to do the check here instead.
   const useAsLabel = _.isNil(useTooltipAsLabel) ? containsUnlabelledIcon({ children, ...props }) : useTooltipAsLabel
 
-  // If we determined that we need to use the tooltip as a label, assert that we have a tooltip
-  Utils.useConsoleAssert(!useAsLabel || tooltip, 'In order to be accessible, Clickable or the icon contained within it needs an accessible label or tooltip')
+  // If we determined that we need to use the tooltip as a label, assert that we have a tooltip.
+  // Do the check here and pass empty properties, to bypass the check logic in useLabelAssert() which doesn't take into account the icon's properties.
+  if (useAsLabel && !tooltip) {
+    Utils.useLabelAssert('Clickable', { allowTooltip: true, allowContent: true })
+  }
 
   if (tooltip) {
     return h(TooltipTrigger, { content: tooltip, side: tooltipSide, delay: tooltipDelay, useTooltipAsLabel: useAsLabel }, [child])
@@ -313,13 +316,13 @@ const BaseSelect = ({ value, newOptions, id, findValue, maxHeight, ...props }) =
  * @param {Array} props.options - can be of any type; if objects, they should each contain a value and label, unless defining getOptionLabel
  * @param props.id - The HTML ID to give the form element
  */
-export const Select = ({ value, options, id, ...props }) => {
-  Utils.useConsoleAssert(props.id || props['aria-label'] || props['aria-labelledby'], 'In order to be accessible, Select needs a label')
+export const Select = ({ value, options, ...props }) => {
+  Utils.useLabelAssert('Select', { ...props, allowId: true })
 
   const newOptions = options && !_.isObject(options[0]) ? _.map(value => ({ value }), options) : options
   const findValue = target => _.find({ value: target }, newOptions)
 
-  return h(BaseSelect, { value, newOptions, id, findValue, ...props })
+  return h(BaseSelect, { value, newOptions, findValue, ...props })
 }
 
 /**
@@ -328,13 +331,13 @@ export const Select = ({ value, options, id, ...props }) => {
  * @param {Array} props.options - an object with toplevel pairs of label:options where label is a group label and options is an array of objects containing value:label pairs
  * @param props.id - The HTML ID to give the form element
  */
-export const GroupedSelect = ({ value, options, id, ...props }) => {
-  Utils.useConsoleAssert(props.id || props['aria-label'] || props['aria-labelledby'], 'In order to be accessible, GroupedSelect needs a label')
+export const GroupedSelect = ({ value, options, ...props }) => {
+  Utils.useLabelAssert('GroupedSelect', { ...props, allowId: true })
 
   const flattenedOptions = _.flatMap('options', options)
   const findValue = target => _.find({ value: target }, flattenedOptions)
 
-  return h(BaseSelect, { value, newOptions: options, id, findValue, ...props })
+  return h(BaseSelect, { value, newOptions: options, findValue, ...props })
 }
 
 export const AsyncCreatableSelect = props => {

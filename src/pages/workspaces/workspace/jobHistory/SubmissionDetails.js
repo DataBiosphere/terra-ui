@@ -212,9 +212,9 @@ const SubmissionDetails = _.flow(
       ]),
       div({ style: { flex: 1 } }, [
         h(AutoSizer, [({ width, height }) => h(FlexTable, {
+          'aria-label': 'submission details',
           width, height, sort,
           rowCount: filteredWorkflows.length,
-          tableName: 'submission details',
           noContentMessage: 'No matching workflows',
           columns: [
             {

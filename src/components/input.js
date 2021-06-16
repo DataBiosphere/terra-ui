@@ -67,7 +67,7 @@ export const withDebouncedChange = WrappedComponent => {
 }
 
 export const TextInput = Utils.forwardRefWithName('TextInput', ({ onChange, nativeOnChange = false, ...props }, ref) => {
-  Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, TextInput needs a label')
+  Utils.useLabelAssert('TextInput', { ...props, allowId: true })
 
   return input({
     ..._.merge({
@@ -146,11 +146,14 @@ export const SearchInput = ({ value, onChange, ...props }) => {
 export const DelayedSearchInput = withDebouncedChange(SearchInput)
 
 export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity, onlyInteger = false, isClearable = true, tooltip, value, ...props }) => {
-  Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, NumberInput needs a label')
+  // If the user provided a tooltip but no other label, use the tooltip as the label for the input
+  Utils.useLabelAssert('NumberInput', { tooltip, ...props, allowTooltip: true })
+
   const [internalValue, setInternalValue] = useState()
 
   const numberInputChild = div([input(_.merge({
     type: 'number',
+    'aria-label': Utils.getAriaLabelOrTooltip({ tooltip, ...props }),
     className: 'focus-style',
     min, max,
     value: internalValue !== undefined ? internalValue : _.toString(value), // eslint-disable-line lodash-fp/preferred-alias
@@ -226,7 +229,8 @@ const withAutocomplete = WrappedComponent => ({
   instructions, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId,
   renderSuggestion = _.identity, openOnFocus = true, placeholderText, ...props
 }) => {
-  Utils.useConsoleAssert(id || labelId, 'In order to be accessible, AutoComplete needs a label')
+  Utils.useLabelAssert('withAutocomplete', { id, 'aria-labelledby': labelId, ...props, allowId: true })
+
   const suggestions = _.filter(Utils.textMatch(value), rawSuggestions)
 
   return h(Downshift, {
@@ -288,7 +292,7 @@ const withAutocomplete = WrappedComponent => ({
 export const AutocompleteTextInput = withAutocomplete(TextInput)
 
 export const TextArea = ({ onChange, autosize = false, nativeOnChange = false, ...props }) => {
-  Utils.useConsoleAssert(props.id || props['aria-label'] || props['aria-labelledby'], 'In order to be accessible, TextArea needs a label')
+  Utils.useLabelAssert('TextArea', { ...props, allowId: true })
 
   return h(autosize ? TextAreaAutosize : 'textarea', _.merge({
     className: 'focus-style',
@@ -300,7 +304,7 @@ export const TextArea = ({ onChange, autosize = false, nativeOnChange = false, .
 export const DelayedAutocompleteTextArea = withDebouncedChange(withAutocomplete(TextArea))
 
 export const PasteOnlyInput = ({ onPaste, ...props }) => {
-  Utils.useConsoleAssert(props.id || props['aria-label'], 'In order to be accessible, PasteOnlyInput needs a label')
+  Utils.useLabelAssert('PasteOnlyInput', { ...props, allowId: true })
 
   return textarea(_.merge({
     className: 'focus-style',

@@ -11,8 +11,8 @@ const TAB_LINKS = { datasets: 'library-datasets', 'showcase & tutorials': 'libra
 export const libraryTopMatter = activeTab => h(Fragment, [
   h(TopBar, { title: 'Library', href: Nav.getLink('root') }),
   h(TabBar, {
+    'aria-label': 'library menu',
     activeTab,
-    label: 'library menu',
     tabNames: _.keys(TAB_LINKS),
     getHref: currentTab => Nav.getLink(TAB_LINKS[currentTab])
   })

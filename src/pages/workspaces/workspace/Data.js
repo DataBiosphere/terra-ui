@@ -119,10 +119,10 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
     div({ style: { flex: 1 } }, [
       h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
+          'aria-label': 'reference data',
           width, height, rowCount: selectedData.length,
           onScroll: y => saveScroll(0, y),
           initialY,
-          tableName: 'reference data',
           noContentMessage: 'No matching data',
           columns: [
             {
@@ -277,7 +277,7 @@ const BucketContent = _.flow(
     ]),
     div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.dark(0.25)}` } }),
     h(SimpleTable, {
-      tableName: 'file browser',
+      'aria-label': 'file browser',
       columns: [
         { header: div({ className: 'sr-only' }, ['Actions']), size: { basis: 24, grow: 0 }, key: 'button' },
         { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' },

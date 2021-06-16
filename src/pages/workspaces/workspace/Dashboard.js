@@ -224,7 +224,7 @@ const WorkspaceDashboard = _.flow(
       _.some(_.startsWith('library:'), _.keys(attributes)) && h(Fragment, [
         div({ style: Style.dashboard.header }, ['Dataset Attributes']),
         h(SimpleTable, {
-          tableName: 'dataset attributes table',
+          'aria-label': 'dataset attributes table',
           rows: _.flow(
             _.map(({ key, title }) => ({ name: title, value: displayAttributeValue(attributes[key]) })),
             Utils.append({

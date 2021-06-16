@@ -78,7 +78,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
       })
     ]),
     h(TabBar, {
-      label: 'workflows menu',
+      'aria-label': 'workflows menu',
       activeTab: tabName,
       tabNames: Object.keys(tabs),
       displayNames: tabs,
@@ -92,8 +92,8 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
       div({ style: { flex: 1 } }, [
         workflows && h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
+            'aria-label': tabs[tabName],
             width, height, sort,
-            tableName: tabs[tabName],
             rowCount: sortedWorkflows.length,
             columns: [
               {
