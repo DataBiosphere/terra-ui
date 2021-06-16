@@ -462,7 +462,7 @@ const Billing = signal => ({
 
     return {
       listUsers: async () => {
-        const res = await fetchRawls(`${root}`, _.merge(authOpts(), { signal }))
+        const res = await fetchRawls(root, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
