@@ -215,9 +215,7 @@ const WorkflowConfigs = () => {
           rowCount: allConfigs.length,
           columns: [
             {
-              headerRenderer: () => span({
-                'aria-label': 'warnings'
-              }),
+              headerRenderer: () => div({ className: 'sr-only' }, ['Warnings']),
               cellRenderer: ({ rowIndex }) => {
                 const config = allConfigs[rowIndex]
 
