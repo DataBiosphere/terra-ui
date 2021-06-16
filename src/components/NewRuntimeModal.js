@@ -52,6 +52,7 @@ const MachineSelector = ({ value, machineTypeOptions, onChange }) => {
         label({ htmlFor: id, style: styles.label }, ['CPUs']),
         div([
           h(Select, {
+            'aria-label': 'the cpu of the cloud environment',
             id,
             isSearchable: false,
             value: currentCpu,
@@ -66,6 +67,7 @@ const MachineSelector = ({ value, machineTypeOptions, onChange }) => {
         label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
         div([
           h(Select, {
+            'aria-label': 'the memory of the cloud environment',
             id,
             isSearchable: false,
             value: currentMemory,
@@ -83,6 +85,7 @@ const DiskSelector = ({ value, onChange }) => {
     id => h(Fragment, [
       label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
       h(NumberInput, {
+        'aria-label': 'Disk size',
         id,
         min: 10,
         max: 64000,
@@ -674,7 +677,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
                 'The software application + programming languages + packages used when you create your cloud environment. '
               ])
             ]),
-            div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: true })])
+            div({ style: { height: 45 } }, [renderImageSelect({ id, includeCustom: true, 'aria-label': 'Select Environment' })])
           ])
         ]),
         Utils.switchCase(selectedLeoImage,
@@ -746,6 +749,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
               label({ htmlFor: id, style: styles.label }, ['Compute type']),
               div({ style: { marginTop: '0.5rem' } }, [
                 h(Select, {
+                  'aria-label': 'machine compute type',
                   id,
                   isSearchable: false,
                   value: sparkMode,
@@ -768,6 +772,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
               id => h(Fragment, [
                 label({ htmlFor: id, style: styles.label }, ['Workers']),
                 h(NumberInput, {
+                  'aria-label': 'Number of workers in cloud environment',
                   id,
                   min: 2,
                   isClearable: false,
@@ -785,6 +790,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
               id => h(Fragment, [
                 label({ htmlFor: id, style: styles.label }, ['Preemptibles']),
                 h(NumberInput, {
+                  'aria-label': 'Number of preemptable nodes in cloud environment',
                   id,
                   min: 0,
                   isClearable: false,
@@ -814,6 +820,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
               h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
             ]),
             h(NumberInput, {
+              'aria-label': 'persistent disk size',
               id,
               min: 10,
               max: 64000,
