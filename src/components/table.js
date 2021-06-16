@@ -67,6 +67,7 @@ export const paginator = ({
             _.map(num => paginatorButton(
               _.merge({
                 key: num,
+                'aria-current': currentPage === num ? 'page' : undefined,
                 style: {
                   minWidth: '2rem',
                   backgroundColor: currentPage === num ? colors.accent() : undefined,
@@ -252,36 +253,36 @@ export const FlexTable = ({
     }, Utils.toIndexPairs(columns))),
     h(RVGrid, {
       ref: body,
+      role: 'rowgroup',
+      containerRole: 'presentation', // Clear out unnecessary ARIA roles
+      'aria-label': `${ariaLabel} content`, // The whole table is a tab stop so it needs a label
+      'aria-readonly': null, // Clear out ARIA properties which should be at the table level, not here
       width,
       height: height - headerHeight,
       columnWidth: width - scrollbarSize,
       rowHeight,
       rowCount,
       columnCount: 1,
-      'aria-readonly': null, // Clear out ARIA properties which should be at the table level, not here
-      'aria-label': `${ariaLabel} content`, // The whole table is a tab stop so it needs a label
-      role: 'rowgroup',
-      containerRole: 'presentation', // Clear out unnecessary ARIA roles
       onScrollbarPresenceChange: ({ vertical, size }) => {
         setScrollbarSize(vertical ? size : 0)
       },
       cellRenderer: data => {
         return h(Interactive, {
           key: data.key,
+          role: 'row',
           as: 'div',
           className: 'table-row',
-          role: 'row',
           style: { ...data.style, backgroundColor: 'white', display: 'flex' },
           hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
         }, [
           _.map(([i, { size, cellRenderer }]) => {
             return div({
               key: i,
-              className: 'table-cell',
               role: 'cell',
               // ARIA row and column indexes start with 1 https://www.digitala11y.com/aria-colindexproperties/
               'aria-rowindex': data.rowIndex + 2, // The header row is 1, so the first body row is 2
               'aria-colindex': i + 1, // The first column is 1
+              className: 'table-cell',
               style: {
                 ...styles.flexCell(size),
                 ...(variant === 'light' ? {} : styles.cell(i * 1, columns.length)),
@@ -347,32 +348,32 @@ export const SimpleFlexTable = ({ columns, rowCount, noContentMessage, noContent
     className: 'simple-flex-table'
   }, [
     div({
-      style: { height: 48, display: 'flex' },
-      role: 'row'
+      role: 'row',
+      style: { height: 48, display: 'flex' }
     }, [
       _.map(([i, { size, headerRenderer, field }]) => {
         return div({
           key: i,
-          style: { ...styles.flexCell(size), ...styles.header(i * 1, columns.length) },
           role: 'columnheader',
-          'aria-sort': ariaSort(sort, field)
+          'aria-sort': ariaSort(sort, field),
+          style: { ...styles.flexCell(size), ...styles.header(i * 1, columns.length) }
         }, [headerRenderer({ columnIndex: i })])
       }, Utils.toIndexPairs(columns))
     ]),
     _.map(rowIndex => {
       return h(Interactive, {
         key: rowIndex,
+        role: 'row',
         as: 'div',
         className: 'table-row',
-        role: 'row',
         style: { backgroundColor: 'white', display: 'flex', minHeight: 48 },
         hover: hoverHighlight ? { backgroundColor: colors.light(0.4) } : undefined
       }, [
         _.map(([i, { size, cellRenderer }]) => {
           return div({
             key: i,
-            className: 'table-cell',
             role: 'cell',
+            className: 'table-cell',
             style: { ...styles.flexCell(size), ...styles.cell(i * 1, columns.length) }
           }, [cellRenderer({ columnIndex: i, rowIndex })])
         }, Utils.toIndexPairs(columns))
@@ -426,34 +427,34 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
     ({ onScroll, scrollLeft }) => {
       return div({
         role: 'table',
+        'aria-label': ariaLabel,
         'aria-rowcount': rowCount + 1, // count the header row too
         'aria-colcount': columns.length,
-        'aria-label': ariaLabel,
         'aria-readonly': readOnly || undefined,
         className: 'grid-table'
       }, [
         h(RVGrid, {
           ref: header,
+          role: 'rowgroup',
+          containerRole: 'row',
+          'aria-label': `${ariaLabel} header row`, // The whole table is a tab stop so it needs a label
+          'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
           width: width - scrollbarSize,
           height: headerHeight,
           columnWidth: ({ index }) => columns[index].width,
           rowHeight: headerHeight,
           rowCount: 1,
           columnCount: columns.length,
-          role: 'rowgroup',
-          containerRole: 'row',
-          'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
-          'aria-label': `${ariaLabel} header row`, // The whole table is a tab stop so it needs a label
           cellRenderer: data => {
             const field = columns[data.columnIndex].field
             return div({
               key: data.key,
-              className: 'table-cell',
               role: 'columnheader',
               // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
               'aria-rowindex': 1, // The header row is 1
               'aria-colindex': data.columnIndex + 1, // The first column is 1
               'aria-sort': ariaSort(sort, field),
+              className: 'table-cell',
               style: {
                 ...data.style,
                 ...styles.header(data.columnIndex, columns.length),
@@ -469,16 +470,16 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
         }),
         h(RVGrid, {
           ref: body,
+          role: 'rowgroup',
+          containerRole: 'presentation',
+          'aria-label': `${ariaLabel} content`, // The whole table is a tab stop so it needs a label
+          'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
           width,
           height: height - headerHeight,
           columnWidth: ({ index }) => columns[index].width,
           rowHeight,
           rowCount,
           columnCount: columns.length,
-          role: 'rowgroup',
-          containerRole: 'presentation',
-          'aria-readonly': null, // Clear out ARIA properties which have been moved one level up
-          'aria-label': `${ariaLabel} content`, // The whole table is a tab stop so it needs a label
           onScrollbarPresenceChange: ({ vertical, size }) => {
             setScrollbarSize(vertical ? size : 0)
           },
@@ -488,11 +489,11 @@ export const GridTable = Utils.forwardRefWithName('GridTable', ({
               rowIndex: data.rowIndex,
               cell: div({
                 key: data.key,
-                className: 'table-cell',
                 role: 'cell',
                 // ARIA row and column indexes start with 1 rather than 0 https://www.digitala11y.com/aria-colindexproperties/
                 'aria-rowindex': data.rowIndex + 2, // The header row is 1, so the first body row is 2
                 'aria-colindex': data.columnIndex + 1, // The first column is 1
+                className: 'table-cell',
                 style: {
                   ...data.style,
                   ...styles.cell(data.columnIndex, columns.length),
@@ -581,8 +582,8 @@ export const SimpleTable = ({ columns, rows, 'aria-label': ariaLabel }) => {
     _.map(([i, row]) => {
       return h(Interactive, {
         key: i,
-        as: 'div',
         role: 'row',
+        as: 'div',
         style: { display: 'flex' }, className: 'table-row',
         hover: { backgroundColor: colors.light(0.4) }
       }, [
@@ -717,10 +718,10 @@ export const ColumnSelector = ({ onSave, columnSettings }) => {
 
   return h(Fragment, [
     h(Clickable, {
-      style: styles.columnSelector,
-      tooltip: 'Select columns',
       'aria-haspopup': 'dialog',
       'aria-expanded': open,
+      style: styles.columnSelector,
+      tooltip: 'Select columns',
       onClick: () => {
         setOpen(true)
         setModifiedColumnSettings(columnSettings)
