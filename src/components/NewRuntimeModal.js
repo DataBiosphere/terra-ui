@@ -85,7 +85,7 @@ const DiskSelector = ({ value, onChange }) => {
     id => h(Fragment, [
       label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
       h(NumberInput, {
-        'aria-label': 'Disk size',
+        'aria-label': 'Disk size of the cloud environment',
         id,
         min: 10,
         max: 64000,
@@ -749,7 +749,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
               label({ htmlFor: id, style: styles.label }, ['Compute type']),
               div({ style: { marginTop: '0.5rem' } }, [
                 h(Select, {
-                  'aria-label': 'machine compute type',
+                  'aria-label': 'machine compute type in cloud environment',
                   id,
                   isSearchable: false,
                   value: sparkMode,
@@ -820,7 +820,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
               h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
             ]),
             h(NumberInput, {
-              'aria-label': 'persistent disk size',
+              'aria-label': 'persistent disk size of the cloud environment',
               id,
               min: 10,
               max: 64000,
