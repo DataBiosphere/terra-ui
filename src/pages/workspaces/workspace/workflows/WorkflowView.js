@@ -936,6 +936,8 @@ const WorkflowView = _.flow(
     const isSingleAndOutputs = key === 'outputs' && this.isSingle()
     const isEditable = !currentSnapRedacted && !Utils.editWorkspaceError(workspace) && !isSingleAndOutputs
 
+    const linkStyle = { color: colors.accent(1.05) } // Get to 4.5:1 contrast on the gray background
+
     return h(Dropzone, {
       key,
       accept: '.json',
@@ -957,13 +959,13 @@ const WorkflowView = _.flow(
           div(['To write to the data model, select "Process multiple workflows" above.'])
         ]),
         key === 'inputs' && _.some('optional', modifiedInputsOutputs['inputs']) ?
-          h(Link, { style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
+          h(Link, { style: { marginRight: 'auto', ...linkStyle }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
             [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']) :
           div({ style: { marginRight: 'auto' } }),
-        h(Link, { onClick: () => this.downloadJson(key) }, ['Download json']),
+        h(Link, { style: linkStyle, onClick: () => this.downloadJson(key) }, ['Download json']),
         isEditable && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
-          h(Link, { onClick: openUploader }, ['upload json'])
+          h(Link, { style: linkStyle, onClick: openUploader }, ['upload json'])
         ]),
         h(DelayedSearchInput, {
           'aria-label': `Search ${key}`,
