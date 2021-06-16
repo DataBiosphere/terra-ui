@@ -2,7 +2,7 @@ import * as clipboard from 'clipboard-polyfill/text'
 import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2, label, span } from 'react-hyperscript-helpers'
+import { div, h, h2, label } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonSecondary, IdContainer, Link, Select } from 'src/components/common'
@@ -215,9 +215,7 @@ const WorkflowConfigs = () => {
           rowCount: allConfigs.length,
           columns: [
             {
-              headerRenderer: () => span({
-                'aria-label': 'warnings'
-              }),
+              headerRenderer: () => div({ className: 'sr-only' }, ['Warnings']),
               cellRenderer: ({ rowIndex }) => {
                 const config = allConfigs[rowIndex]
 
