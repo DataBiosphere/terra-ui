@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { div, h, header } from 'react-hyperscript-helpers'
+import { aside, div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
@@ -33,7 +33,8 @@ const CookieWarning = () => {
     }, cookies)
     signOut()
   }
-  return !cookiesAccepted && header({
+  return !cookiesAccepted && aside({
+    'aria-label': 'cookie consent banner',
     style: {
       flex: 0, height: 100, width: '100%',
       display: 'flex', alignItems: 'center', justifyContent: 'space-between',

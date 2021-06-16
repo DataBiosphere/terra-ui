@@ -147,7 +147,7 @@ export const DelayedSearchInput = withDebouncedChange(SearchInput)
 
 export const NumberInput = ({ onChange, onBlur, min = -Infinity, max = Infinity, onlyInteger = false, isClearable = true, tooltip, value, ...props }) => {
   // If the user provided a tooltip but no other label, use the tooltip as the label for the input
-  Utils.useLabelAssert('NumberInput', { tooltip, ...props, allowTooltip: true })
+  Utils.useLabelAssert('NumberInput', { tooltip, ...props, allowId: true, allowTooltip: true })
 
   const [internalValue, setInternalValue] = useState()
 

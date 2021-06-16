@@ -354,7 +354,7 @@ const DataTypeSection = ({ title, titleExtras, error, retryFunction, children })
       tooltip: 'Error loading, click to retry.'
     }, [icon('sync', { size: 18 })]) : titleExtras
   ]),
-  div({
+  children?.length && div({
     style: { display: 'flex', flexDirection: 'column', width: '100%' },
     role: 'list'
   }, [children])
