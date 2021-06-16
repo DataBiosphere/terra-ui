@@ -75,7 +75,13 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpand
         div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
           h(Link, {
             style: Style.noWrapEllipsis,
-            href: Nav.getLink('workspace-dashboard', { namespace, name })
+            href: Nav.getLink('workspace-dashboard', { namespace, name }),
+            onClick: () => {
+              Ajax().Metrics.captureEvent(Events.billingProjectGoToWorkspace, {
+                billingProjectName: namespace,
+                workspaceName: name
+              })
+            }
           }, [name])
         ]),
         div({ style: workspaceCardStyles.field }, [createdBy]),
