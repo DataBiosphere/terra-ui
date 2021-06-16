@@ -2,10 +2,11 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, SimpleTabBar, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { SimpleTabBar } from 'src/components/tabBars'
 import { ariaSort } from 'src/components/table'
 import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
@@ -22,10 +23,11 @@ import { billingRoles } from 'src/pages/billing/List'
 
 
 const workspaceLastModifiedWidth = 150
+const workspaceExpandIconSize = 20
 
 const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
-    div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1 } }, [
+    div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: '1rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'name' })
     ]),
     div({ 'aria-sort': ariaSort(sort, 'createdBy'), style: { flex: 1 } }, [
@@ -33,6 +35,9 @@ const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort,
     ]),
     div({ 'aria-sort': ariaSort(sort, 'lastModified'), style: { flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [
       h(HeaderRenderer, { sort, onSort, name: 'lastModified' })
+    ]),
+    div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
+      div({ className: 'sr-only' }, ['Expand'])
     ])
   ])
 })
@@ -56,52 +61,51 @@ const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details,
 
 const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpanded, onExpand }) => {
   const { namespace, name, createdBy, lastModified, googleProject, billingAccountName } = workspace
-  const workspaceExpandIconSize = 20
   const workspaceCardStyles = {
     field: {
-      ...Style.noWrapEllipsis, flex: 1, height: '1rem', width: `calc(50% - ${workspaceLastModifiedWidth / 2}px)`, paddingRight: '1rem'
+      ...Style.noWrapEllipsis, flex: 1, height: '1rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`, paddingRight: '1rem'
     },
     row: rowBase,
     expandedInfoContainer: { display: 'flex', flexDirection: 'column', width: '100%' }
   }
 
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' } }, [
-    div({ style: workspaceCardStyles.row }, [
-      div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center' } }, [
-        h(Link, {
-          style: { fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
-          href: Nav.getLink('workspace-dashboard', { namespace, name }),
-          onClick: () => {
-            Ajax().Metrics.captureEvent(Events.billingProjectGoToWorkspace, {
-              billingProjectName: namespace,
-              workspaceName: name
-            })
-          }
-        }, [name]),
-        h(Link, {
-          'aria-expanded': isExpanded,
-          style: { display: 'flex', alignItems: 'center', marginLeft: '1rem' },
-          onClick: () => {
-            Ajax().Metrics.captureEvent(Events.billingProjectExpandWorkspace, {
-              billingProjectName: namespace,
-              workspaceName: name
-            })
-            onExpand()
-          },
-          'aria-label': 'expand workspace'
-        }, [
-          icon(isExpanded ? 'angle-up' : 'angle-down', { size: workspaceExpandIconSize, style: { marginLeft: '1rem' } })
+    h(IdContainer, [id => h(Fragment, [
+      div({ style: workspaceCardStyles.row }, [
+        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
+          h(Link, {
+            style: Style.noWrapEllipsis,
+            href: Nav.getLink('workspace-dashboard', { namespace, name })
+          }, [name])
+        ]),
+        div({ style: workspaceCardStyles.field }, [createdBy]),
+        div({ style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)]),
+        div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
+          h(Link, {
+            'aria-label': 'expand workspace',
+            'aria-expanded': isExpanded,
+            'aria-controls': isExpanded ? id : undefined,
+            'aria-owns': isExpanded ? id : undefined,
+            style: { display: 'flex', alignItems: 'center' },
+            onClick: () => {
+              Ajax().Metrics.captureEvent(Events.billingProjectExpandWorkspace, {
+                billingProjectName: namespace,
+                workspaceName: name
+              })
+              onExpand()
+            }
+          }, [
+            icon(isExpanded ? 'angle-up' : 'angle-down', { size: workspaceExpandIconSize })
+          ])
         ])
       ]),
-      div({ style: workspaceCardStyles.field }, [createdBy]),
-      div({ style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)])
-    ]),
-    isExpanded && div({ style: workspaceCardStyles.row }, [
-      div({ style: workspaceCardStyles.expandedInfoContainer }, [
-        h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
-        h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountName })
+      isExpanded && div({ id, style: workspaceCardStyles.row }, [
+        div({ style: workspaceCardStyles.expandedInfoContainer }, [
+          h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
+          h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountName })
+        ])
       ])
-    ])
+    ])])
   ])
 })
 
@@ -134,7 +138,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   const tabToTable = {
     workspaces: h(Fragment, [
       h(WorkspaceCardHeaders, { sort: workspaceSort, onSort: setWorkspaceSort }),
-      div({ role: 'list', 'aria-label': 'workspace list', style: { flexGrow: 1, width: '100%' } }, [
+      div({ role: 'list', 'aria-label': `workspaces in billing project ${projectName}`, style: { flexGrow: 1, width: '100%' } }, [
         _.flow(
           // TODO (Post PPW): Remove billing account name here, and move back to just returning workspace. This is for a seamless transition to PPW, where `billingAccountName` should be a field on the workspace.
           _.map(({ workspace }) => { return { billingAccountName, ...workspace } }),
@@ -157,18 +161,20 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         icon('plus-circle', { size: 14 }),
         div({ style: { marginLeft: '0.5rem' } }, ['Add User'])
       ]),
-      h(MemberCardHeaders, { sort, onSort: setSort }),
-      div(_.map(member => {
-        return h(MemberCard, {
-          key: member.email,
-          adminLabel: billingRoles.owner,
-          userLabel: billingRoles.user,
-          member, adminCanEdit,
-          onEdit: () => setEditingUser(member),
-          onDelete: () => setDeletingUser(member)
-        })
-      }, _.orderBy([sort.field], [sort.direction], projectUsers))
-      )
+      div({ role: 'table', 'aria-label': `users in billing project ${projectName}` }, [
+        h(MemberCardHeaders, { sort, onSort: setSort }),
+        div(_.map(member => {
+          return h(MemberCard, {
+            key: member.email,
+            adminLabel: billingRoles.owner,
+            userLabel: billingRoles.user,
+            member, adminCanEdit,
+            onEdit: () => setEditingUser(member),
+            onDelete: () => setDeletingUser(member)
+          })
+        }, _.orderBy([sort.field], [sort.direction], projectUsers))
+        )
+      ])
     ])
   }
 
@@ -265,7 +271,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
         !!displayName && span({ style: { flexShrink: 0 } }, displayName),
         h(Link, {
-          'aria-label': 'Change Billing Account',
+          tooltip: 'Change Billing Account',
           style: { marginLeft: '0.5rem' },
           onClick: async () => {
             if (Auth.hasBillingScope()) {
@@ -301,6 +307,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         ])
       ]),
       h(SimpleTabBar, {
+        'aria-label': 'project details',
         style: { marginTop: '2rem', textTransform: 'none', padding: '0 1rem', height: '1.5rem' },
         tabStyle: { borderBottomWidth: 4 },
         value: tab,
@@ -312,15 +319,16 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
           }
         },
         tabs
-      }),
-      div({
-        style: {
-          padding: '1rem 1rem 0',
-          backgroundColor: colors.light(),
-          flexGrow: 1
-        }
       }, [
-        tabToTable[tab]
+        div({
+          style: {
+            padding: '1rem 1rem 0',
+            backgroundColor: colors.light(),
+            flexGrow: 1
+          }
+        }, [
+          tabToTable[tab]
+        ])
       ])
     ]),
     addingUser && h(NewUserModal, {

@@ -32,6 +32,7 @@ export const billingRoles = {
 const styles = {
   projectListItem: selected => {
     return {
+      ...Style.navList.itemContainer(selected),
       ...Style.navList.item(selected),
       ...(selected ? { backgroundColor: colors.dark(0.1) } : {}),
       paddingLeft: '3rem'
@@ -54,10 +55,11 @@ const ProjectListItem = ({ project: { projectName, role, creationStatus, message
         billingProjectName: projectName
       })
     },
-    hover: Style.navList.itemHover(isActive)
+    hover: Style.navList.itemHover(isActive),
+    'aria-current': isActive ? 'location' : false
   }, [projectName, !projectReady && statusIcon])
   const unselectableProject = div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [projectName, !projectReady && statusIcon])
-  return div([_.includes(billingRoles.owner, role) && projectReady ? selectableProject : unselectableProject])
+  return div({ role: 'listitem' }, [_.includes(billingRoles.owner, role) && projectReady ? selectableProject : unselectableProject])
 }
 
 const billingProjectNameValidator = existing => ({
@@ -303,12 +305,13 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         }
       }, [
         div({
+          role: 'navigation',
           style: {
             fontSize: 16, fontWeight: 600, padding: '2rem 1rem 1rem', display: 'flex', justifyContent: 'space-between',
             alignItems: 'center', textTransform: 'uppercase', color: colors.dark()
           }
         }, [
-          'Billing Projects',
+          h2({ style: { fontSize: 16 } }, 'Billing Projects'),
           h(ButtonOutline, {
             'aria-label': 'Create new billing project',
             onClick: showCreateProjectModal
@@ -319,17 +322,21 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
         ]),
 
         h(BillingProjectSubheader, { title: 'Owned by You' }, [
-          _.map(project => h(ProjectListItem, {
-            project, key: project.projectName,
-            isActive: !!selectedName && project.projectName === selectedName
-          }), _.filter(project => _.includes(billingRoles.owner, project.role), billingProjects))
+          div({ role: 'list' }, [
+            _.map(project => h(ProjectListItem, {
+              project, key: project.projectName,
+              isActive: !!selectedName && project.projectName === selectedName
+            }), _.filter(project => _.includes(billingRoles.owner, project.role), billingProjects))
+          ])
         ]),
 
         h(BillingProjectSubheader, { title: 'Shared with You' }, [
-          _.map(project => h(ProjectListItem, {
-            project, key: project.projectName,
-            isActive: !!selectedName && project.projectName === selectedName
-          }), _.filter(project => !_.includes(billingRoles.owner, project.role), billingProjects))
+          div({ role: 'list' }, [
+            _.map(project => h(ProjectListItem, {
+              project, key: project.projectName,
+              isActive: !!selectedName && project.projectName === selectedName
+            }), _.filter(project => !_.includes(billingRoles.owner, project.role), billingProjects))
+          ])
         ])
       ]),
       creatingBillingProject && h(NewBillingProjectModal, {

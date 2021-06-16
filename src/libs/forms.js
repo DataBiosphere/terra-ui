@@ -22,3 +22,7 @@ export const FormLabel = ({ style = {}, required = false, children, ...props }) 
 export const formHint = text => {
   return div({ style: styles.formHint }, [text])
 }
+
+export const HiddenLabel = ({ children, ...props }) => {
+  return label({ style: { display: 'none' }, ...props }, [children])
+}

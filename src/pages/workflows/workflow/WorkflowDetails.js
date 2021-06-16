@@ -2,13 +2,14 @@ import * as clipboard from 'clipboard-polyfill/text'
 import FileSaver from 'file-saver'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2, label, span } from 'react-hyperscript-helpers'
+import { div, h, h2, label } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ButtonSecondary, IdContainer, Link, Select, TabBar } from 'src/components/common'
+import { ButtonSecondary, IdContainer, Link, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
+import { TabBar } from 'src/components/tabBars'
 import { FlexTable, HeaderCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
@@ -93,6 +94,7 @@ const SnapshotWrapper = ({ namespace, name, snapshotId, tabName, children }) => 
 
   return h(Fragment, [
     h(TabBar, {
+      'aria-label': 'workflow menu',
       activeTab: tabName,
       tabNames: ['dashboard', 'wdl', 'configs'],
       displayNames: { configs: 'configurations' },
@@ -154,7 +156,6 @@ const WorkflowSummary = () => {
         h(Link, {
           style: { margin: '0 0.5rem', flexShrink: 0 },
           tooltip: 'Copy import URL',
-          'aria-label': 'Copy import URL',
           onClick: withErrorReporting('Error copying to clipboard', async () => {
             await clipboard.writeText(importUrl)
             setImportUrlCopied(true)
@@ -210,13 +211,11 @@ const WorkflowConfigs = () => {
       h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           width, height,
-          tableName: 'workflow configuration',
+          'aria-label': 'workflow configuration',
           rowCount: allConfigs.length,
           columns: [
             {
-              headerRenderer: () => span({
-                'aria-label': 'warnings'
-              }),
+              headerRenderer: () => div({ className: 'sr-only' }, ['Warnings']),
               cellRenderer: ({ rowIndex }) => {
                 const config = allConfigs[rowIndex]
 

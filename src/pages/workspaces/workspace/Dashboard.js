@@ -200,9 +200,8 @@ const WorkspaceDashboard = _.flow(
         !isEditing && h(Link, {
           style: { marginLeft: '0.5rem' },
           disabled: !!Utils.editWorkspaceError(workspace),
-          tooltip: Utils.editWorkspaceError(workspace),
-          onClick: () => setEditDescription(description),
-          'aria-label': 'Edit description'
+          tooltip: Utils.editWorkspaceError(workspace) || 'Edit description',
+          onClick: () => setEditDescription(description)
         }, [icon('edit')])
       ]),
       Utils.cond(
@@ -225,7 +224,7 @@ const WorkspaceDashboard = _.flow(
       _.some(_.startsWith('library:'), _.keys(attributes)) && h(Fragment, [
         div({ style: Style.dashboard.header }, ['Dataset Attributes']),
         h(SimpleTable, {
-          tableName: 'dataset attributes table',
+          'aria-label': 'dataset attributes table',
           rows: _.flow(
             _.map(({ key, title }) => ({ name: title, value: displayAttributeValue(attributes[key]) })),
             Utils.append({
@@ -286,7 +285,6 @@ const WorkspaceDashboard = _.flow(
             tag,
             Utils.canWrite(accessLevel) && h(Link, {
               tooltip: 'Remove tag',
-              'aria-label': 'Remove tag',
               disabled: busy,
               onClick: () => deleteTag(tag),
               style: { marginLeft: '0.25rem', verticalAlign: 'middle', display: 'inline-block' }

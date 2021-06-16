@@ -3,9 +3,10 @@ import * as qs from 'qs'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Link, TabBar } from 'src/components/common'
+import { Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { DelayedSearchInput } from 'src/components/input'
+import { TabBar } from 'src/components/tabBars'
 import { FlexTable, HeaderCell, Sortable, TooltipCell } from 'src/components/table'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
@@ -77,6 +78,7 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
       })
     ]),
     h(TabBar, {
+      'aria-label': 'workflows menu',
       activeTab: tabName,
       tabNames: Object.keys(tabs),
       displayNames: tabs,
@@ -90,8 +92,8 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
       div({ style: { flex: 1 } }, [
         workflows && h(AutoSizer, [
           ({ width, height }) => h(FlexTable, {
+            'aria-label': tabs[tabName],
             width, height, sort,
-            tableName: tabs[tabName],
             rowCount: sortedWorkflows.length,
             columns: [
               {

@@ -6,13 +6,13 @@ import { a, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
-import { Clickable, IdContainer, Link, makeMenuIcon, MenuButton, PageBox, Select, spinnerOverlay } from 'src/components/common'
+import { Clickable, IdContainer, Link, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { NewGalaxyModal } from 'src/components/NewGalaxyModal'
 import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
-import PopupTrigger from 'src/components/PopupTrigger'
+import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -82,7 +82,7 @@ const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, on
   const notebookEditLink = `${notebookLink}/?${qs.stringify({ mode: 'edit' })}`
   const notebookPlaygroundLink = `${notebookLink}/?${qs.stringify({ mode: 'playground' })}`
 
-  const notebookMenu = h(PopupTrigger, {
+  const notebookMenu = h(MenuTrigger, {
     side: 'right',
     closeOnClick: true,
     content: h(Fragment, [
@@ -343,7 +343,8 @@ const Notebooks = _.flow(
           },
           onClick: () => setCreating(true),
           disabled: !canWrite,
-          tooltip: !canWrite ? noWrite : undefined
+          tooltip: !canWrite ? noWrite : undefined,
+          'aria-haspopup': 'dialog'
         }, [
           div({ style: { fontSize: 18, lineHeight: '22px', width: 150 } }, [
             div(['Create a']),
@@ -373,7 +374,7 @@ const Notebooks = _.flow(
           tooltip: !canWrite ? noWrite : undefined
         }, [
           div({ style: { fontSize: 16, lineHeight: '20px' } }, [
-            div(['Drag or ', h(Link, ['Click']), ' to ']),
+            div(['Drag or Click to ']),
             div(['Add an ipynb File']),
             icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginTop: '0.5rem' } })
           ])

@@ -32,11 +32,11 @@ const findInGrid = (page, textContains, options) => {
 }
 
 const clickable = ({ text, textContains }) => {
-  const base = '(//a | //*[@role="button"] | //button)'
+  const base = '(//a | //button | //*[@role="button"] | //*[@role="link"])'
   if (text) {
-    return `${base}[normalize-space(.)="${text}" or @aria-label="${text}"]`
+    return `${base}[normalize-space(.)="${text}" or @aria-label="${text}" or @aria-labelledby=//*[normalize-space(.)="${text}"]/@id]`
   } else if (textContains) {
-    return `${base}[contains(normalize-space(.),"${textContains}") or contains(@aria-label,"${textContains}")]`
+    return `${base}[contains(normalize-space(.),"${textContains}") or contains(@aria-label,"${textContains}") or @aria-labelledby=//*[contains(normalize-space(.),"${textContains}")]/@id]`
   }
 }
 
@@ -51,7 +51,7 @@ const findText = (page, textContains, options) => {
 const input = ({ labelContains, placeholder }) => {
   const base = '(//input | //textarea)'
   if (labelContains) {
-    return `${base}[contains(@aria-label,"${labelContains}") or @id=//label[contains(normalize-space(.),"${labelContains}")]/@for]`
+    return `${base}[contains(@aria-label,"${labelContains}") or @id=//label[contains(normalize-space(.),"${labelContains}")]/@for or @aria-labelledby=//*[contains(normalize-space(.),"${labelContains}")]/@id]`
   } else if (placeholder) {
     return `${base}[@placeholder="${placeholder}"]`
   }
@@ -106,7 +106,7 @@ const svgText = ({ textContains }) => {
 }
 
 const navChild = text => {
-  return `//*[@role="tablist"]/*[contains(normalize-space(.),"${text}")]`
+  return `//*[@role="navigation"]//a[contains(normalize-space(.),"${text}")]`
 }
 
 const elementInDataTableRow = (entityName, text) => {

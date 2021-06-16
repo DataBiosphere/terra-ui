@@ -96,8 +96,9 @@ const DiskSelector = ({ value, onChange }) => {
 }
 
 const CUSTOM_MODE = '__custom_mode__'
+const titleId = 'new-runtime-modal-title'
 
-export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeModal extends Component {
+export const NewRuntimeModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(class NewRuntimeModal extends Component {
   static propTypes = {
     runtimes: PropTypes.array,
     persistentDisks: PropTypes.array,
@@ -651,7 +652,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
         _.map(({ cost, label, unitLabel }) => {
           return div({ key: label, style: { flex: 1, ...styles.label } }, [
             div({ style: { fontSize: 10 } }, [label]),
-            div({ style: { color: colors.accent(), marginTop: '0.25rem' } }, [
+            div({ style: { color: colors.accent(1.1), marginTop: '0.25rem' } }, [
               span({ style: { fontSize: 20 } }, [cost]),
               span([' ', unitLabel])
             ])
@@ -832,6 +833,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = this.getExistingEnvironmentConfig()
       return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
         h(TitleBar, {
+          id: titleId,
           style: styles.titleBar,
           title: h(WarningTitle, ['Delete environment options']),
           onDismiss,
@@ -907,6 +909,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const renderEnvironmentWarning = () => {
       return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
         h(TitleBar, {
+          id: titleId,
           style: styles.titleBar,
           title: h(WarningTitle, [
             Utils.cond(
@@ -957,6 +960,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const renderCustomImageWarning = () => {
       return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
         h(TitleBar, {
+          id: titleId,
           style: styles.titleBar,
           title: h(WarningTitle, ['Unverified Docker image']),
           onDismiss,
@@ -993,6 +997,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       const renderTitleAndTagline = () => {
         return h(Fragment, [
           h(TitleBar, {
+            id: titleId,
             style: { marginBottom: '0.5rem' },
             title: 'Cloud Environment',
             onDismiss
@@ -1003,6 +1008,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       const renderBottomButtons = () => {
         return div({ style: { display: 'flex', marginTop: '2rem' } }, [
           (!!existingRuntime || !!existingPersistentDisk) && h(ButtonSecondary, {
+            style: { color: colors.accent(1.05) }, // 4.5:1 contrast with gray background
             onClick: () => this.setState({ viewMode: 'deleteEnvironmentOptions' })
           }, [
             Utils.cond(
@@ -1083,6 +1089,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       const { currentRuntimeDetails } = this.state
       return div({ style: styles.drawerContent }, [
         h(TitleBar, {
+          id: titleId,
           style: styles.titleBar,
           title: 'About persistent disk',
           onDismiss,
@@ -1104,6 +1111,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const renderPackages = () => {
       return div({ style: styles.drawerContent }, [
         h(TitleBar, {
+          id: titleId,
           style: styles.titleBar,
           title: 'Installed packages',
           onDismiss,

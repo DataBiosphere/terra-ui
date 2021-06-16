@@ -4,14 +4,13 @@ import * as qs from 'qs'
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import {
-  HeaderRenderer, Link, makeMenuIcon, MenuButton, Select, SimpleTabBar, topSpinnerOverlay, transparentSpinnerOverlay
-} from 'src/components/common'
+import { HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import PopupTrigger from 'src/components/PopupTrigger'
+import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { SimpleTabBar } from 'src/components/tabBars'
 import { FlexTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
@@ -160,7 +159,7 @@ export const WorkspaceList = () => {
 
   const tabs = _.map(key => ({
     key,
-    title: span({ style: { padding: '0 1rem' } }, [
+    title: span([
       _.upperCase(key), ` (${loadingWorkspaces ? '...' : filteredWorkspaces[key].length})`
     ]),
     tableName: _.lowerCase(key)
@@ -172,11 +171,11 @@ export const WorkspaceList = () => {
 
   const renderedWorkspaces = div({ style: { flex: 1, backgroundColor: 'white', padding: '0 1rem' } }, [h(AutoSizer, [
     ({ width, height }) => h(FlexTable, {
+      'aria-label': currentTab?.tableName || 'workspaces',
       width, height,
       rowCount: sortedWorkspaces.length,
-      tableName: currentTab?.tableName || 'workspaces',
       noContentRenderer: () => Utils.cond(
-        [loadingWorkspaces, () => null],
+        [loadingWorkspaces, () => 'Loading...'],
         [_.isEmpty(initialFiltered.myWorkspaces) && tab === 'myWorkspaces', () => NoWorkspacesMessage({
           onClick: () => setCreatingNewWorkspace(true)
         })],
@@ -197,7 +196,11 @@ export const WorkspaceList = () => {
             return div({ style: styles.tableCellContainer }, [
               div({ style: styles.tableCellContent }, [
                 h(Link, {
-                  style: { color: canView ? undefined : colors.dark(0.7), fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis },
+                  'aria-haspopup': canView ? undefined : 'dialog',
+                  style: {
+                    ...(canView ? {} : { color: colors.dark(0.8), fontStyle: 'italic' }),
+                    fontWeight: 600, fontSize: 16, ...Style.noWrapEllipsis
+                  },
                   href: canView ? Nav.getLink('workspace-dashboard', { namespace, name }) : undefined,
                   onClick: () => {
                     canAccessWorkspace()
@@ -252,24 +255,28 @@ export const WorkspaceList = () => {
           },
           size: { basis: 120, grow: 1, shrink: 0 }
         }, {
-          headerRenderer: () => null,
+          headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
           cellRenderer: ({ rowIndex }) => {
             const { accessLevel, workspace: { workspaceId, namespace, name }, ...workspace } = sortedWorkspaces[rowIndex]
+            if (!Utils.canRead(accessLevel)) {
+              return
+            }
             const onClone = () => setCloningWorkspaceId(workspaceId)
             const onDelete = () => setDeletingWorkspaceId(workspaceId)
             const onShare = () => setSharingWorkspaceId(workspaceId)
-            const canView = Utils.canRead(accessLevel)
             const lastRunStatus = workspaceSubmissionStatus(workspace)
-
 
             return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
               div({ style: styles.tableCellContent }, [
-                h(PopupTrigger, {
+                h(MenuTrigger, {
                   side: 'left',
                   closeOnClick: true,
                   content: h(WorkspaceMenuContent, { namespace, name, onShare, onClone, onDelete })
                 }, [
-                  h(Link, { 'aria-label': `Menu for Workspace: ${name}`, disabled: !canView }, [icon('cardMenuIcon', { size: 20 })])
+                  h(Link, {
+                    'aria-label': `Menu for Workspace: ${name}`,
+                    'aria-haspopup': 'menu'
+                  }, [icon('cardMenuIcon', { size: 20 })])
                 ])
               ]),
               div({ style: styles.tableCellContent }, [
@@ -307,7 +314,7 @@ export const WorkspaceList = () => {
       div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
         div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workspaces']),
         h(Link, {
-          'aria-label': 'Create new workspace', onClick: () => setCreatingNewWorkspace(true),
+          onClick: () => setCreatingNewWorkspace(true),
           style: { marginLeft: '0.5rem' },
           tooltip: 'Create a new workspace'
         },
@@ -370,6 +377,7 @@ export const WorkspaceList = () => {
         ])
       ]),
       h(SimpleTabBar, {
+        'aria-label': 'choose a workspace collection',
         value: tab,
         onChange: newTab => {
           if (newTab === tab) {
@@ -379,8 +387,7 @@ export const WorkspaceList = () => {
           }
         },
         tabs
-      }),
-      renderedWorkspaces,
+      }, [renderedWorkspaces]),
       creatingNewWorkspace && h(NewWorkspaceModal, {
         onDismiss: () => setCreatingNewWorkspace(false),
         onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })

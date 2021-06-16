@@ -1,14 +1,15 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, fieldset, h, img, legend, span } from 'react-hyperscript-helpers'
+import { div, fieldset, h, img, label, legend, span } from 'react-hyperscript-helpers'
 import {
-  ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, SimpleTabBar, spinnerOverlay,
+  ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay,
   Switch
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { NumberInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { SimpleTabBar } from 'src/components/tabBars'
 import { TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { UriViewerLink } from 'src/components/UriViewer'
@@ -277,6 +278,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
               href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
             }, ['Click here for more info on the table.'])]),
         h(SimpleTabBar, {
+          'aria-label': 'import type',
           tabs: [{ title: 'File Import', key: true, width: 121 }, { title: 'Text Import', key: false, width: 127 }],
           value: isFileImportCurrMode,
           onChange: value => {
@@ -585,12 +587,15 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
             ]))
           ]),
           editType === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
-            div({ style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
-            h(Select, {
-              value: linkedEntityType,
-              options: entityTypes,
-              onChange: ({ value }) => setLinkedEntityType(value)
-            })
+            h(IdContainer, [id => h(Fragment, [
+              label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
+              h(Select, {
+                id,
+                value: linkedEntityType,
+                options: entityTypes,
+                onChange: ({ value }) => setLinkedEntityType(value)
+              })
+            ])])
           ])
         ]),
         div({ style: { marginBottom: '0.5rem' } }, [

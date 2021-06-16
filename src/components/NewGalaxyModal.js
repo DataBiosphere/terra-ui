@@ -36,10 +36,11 @@ const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/k
 
 // Removing low cpu/memory options based on the Galaxy team's suggestions
 const validMachineTypes = _.filter(({ cpu, memory }) => cpu >= 4 && memory >= 52, machineTypes)
+const titleId = 'new-galaxy-modal-title'
 
 export const NewGalaxyModal = _.flow(
   Utils.withDisplayName('NewGalaxyModal'),
-  withModalDrawer({ width: 675 })
+  withModalDrawer({ width: 675, 'aria-labelledby': titleId })
 )(({ onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
   // Assumption: If there is an app defined, there must be a data disk corresponding to it.
   const app = currentApp(apps)
@@ -156,6 +157,7 @@ export const NewGalaxyModal = _.flow(
   const renderCreateWarning = () => {
     return div({ style: styles.drawerContent }, [
       h(TitleBar, {
+        id: titleId,
         title: 'Cloud Environment',
         style: { marginBottom: '0.5rem' },
         onDismiss,
@@ -214,6 +216,7 @@ export const NewGalaxyModal = _.flow(
   const renderLaunchWarning = () => {
     return div({ style: styles.drawerContent }, [
       h(TitleBar, {
+        id: titleId,
         title: h(WarningTitle, ['Launch Galaxy']),
         style: { marginBottom: '0.5rem' },
         onDismiss,
@@ -339,6 +342,7 @@ export const NewGalaxyModal = _.flow(
   const renderDeleteDiskChoices = () => {
     return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
       h(TitleBar, {
+        id: titleId,
         style: styles.titleBar,
         title: h(WarningTitle, ['Delete environment options']),
         onDismiss,
@@ -391,6 +395,7 @@ export const NewGalaxyModal = _.flow(
   const renderDefaultCase = () => {
     return div({ style: styles.drawerContent }, [
       h(TitleBar, {
+        id: titleId,
         title: 'Cloud Environment',
         style: { marginBottom: '0.5rem' },
         onDismiss,

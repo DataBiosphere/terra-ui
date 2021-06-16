@@ -1,12 +1,13 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { a, b, div, h } from 'react-hyperscript-helpers'
+import { a, b, div, h, h2 } from 'react-hyperscript-helpers'
 import { ButtonPrimary, HeaderRenderer, IdContainer, Link, PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { AdminNotifierCheckbox } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { ariaSort } from 'src/components/table'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -94,22 +95,22 @@ const DeleteGroupModal = ({ groupName, onDismiss, onSubmit }) => {
   ])
 }
 
-const roleSectionWidth = 100
+const roleSectionWidth = 20
 
 const GroupCardHeaders = Utils.memoWithName('GroupCardHeaders', ({ sort, onSort }) => {
-  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' } }, [
-    div({ style: { width: '30%', marginRight: '1rem' } }, [
+  return div({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'groupName'), style: { width: '30%', marginRight: '1rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'groupName' })
     ]),
-    div({ style: { flexGrow: 1 } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'groupEmail'), style: { flexGrow: 1 } }, [
       h(HeaderRenderer, { sort, onSort, name: 'groupEmail' })
     ]),
-    div({ style: { width: '20%' } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'role'), style: { width: '20%' } }, [
       // This behaves strangely due to the fact that role is an array. If you have multiple roles it can do strange things.
       h(HeaderRenderer, { sort, onSort, name: 'role' })
     ]),
     // Width is the same as the menu icon.
-    div({ style: { width: roleSectionWidth } }, [
+    div({ role: 'columnheader', style: { width: roleSectionWidth } }, [
       div({ className: 'sr-only' }, ['Actions'])
     ])
   ])
@@ -118,18 +119,20 @@ const GroupCardHeaders = Utils.memoWithName('GroupCardHeaders', ({ sort, onSort 
 const GroupCard = Utils.memoWithName('GroupCard', ({ group: { groupName, groupEmail, role }, onDelete }) => {
   const isAdmin = !!_.includes('admin', role)
 
-  return div({ style: Style.cardList.longCardShadowless }, [
-    a({
-      href: isAdmin ? Nav.getLink('group', { groupName }) : undefined,
-      style: {
-        ...Style.cardList.longTitle,
-        marginRight: '1rem',
-        width: '30%', color: isAdmin ? colors.accent() : undefined
-      }
-    }, [groupName]),
-    div({ style: { flexGrow: 1 } }, [groupEmail]),
-    div({ style: { width: '20%' } }, [isAdmin ? 'Admin' : 'Member']),
-    div({ style: { width: roleSectionWidth, display: 'flex', alignItems: 'center' } }, [
+  return div({ role: 'row', style: Style.cardList.longCardShadowless }, [
+    div({ role: 'rowheader', style: { marginRight: '1rem', width: '30%' } }, [
+      a({
+        href: isAdmin ? Nav.getLink('group', { groupName }) : undefined,
+        'aria-disabled': !isAdmin,
+        style: {
+          ...Style.cardList.longTitle,
+          color: isAdmin ? colors.accent() : undefined
+        }
+      }, [groupName])
+    ]),
+    div({ role: 'cell', style: { flexGrow: 1 } }, [groupEmail]),
+    div({ role: 'cell', style: { width: '20%' } }, [isAdmin ? 'Admin' : 'Member']),
+    div({ role: 'cell', style: { width: roleSectionWidth, display: 'flex', alignItems: 'center' } }, [
       isAdmin && h(Link, {
         'aria-label': `Delete group ${groupName}`,
         onClick: onDelete,
@@ -219,7 +222,7 @@ const GroupList = () => {
     ]),
     h(PageBox, { role: 'main', style: { flexGrow: 1 }, variant: PageBoxVariants.LIGHT }, [
       div({ style: Style.cardList.toolbarContainer }, [
-        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, [
+        h2({ style: { ...Style.elements.sectionHeader, margin: 0, textTransform: 'uppercase' } }, [
           'Group Management'
         ])
       ]),
@@ -233,7 +236,7 @@ const GroupList = () => {
             return div({ style: { fontStyle: 'italic', marginTop: '1rem' } }, ['No matching groups'])
           }],
           () => {
-            return h(Fragment, [
+            return div({ role: 'table', 'aria-label': 'groups list' }, [
               h(GroupCardHeaders, { sort, onSort: setSort }),
               div({ style: { flexGrow: 1, marginTop: '1rem' } }, [
                 _.map(group => {

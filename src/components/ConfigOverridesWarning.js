@@ -11,7 +11,7 @@ const ConfigOverridesWarning = () => {
   return (!!configOverrides || !!ajaxOverrides) && div({
     style: {
       position: 'fixed', bottom: 0, right: 0,
-      color: 'white', backgroundColor: colors.accent(),
+      color: 'white', backgroundColor: colors.accent(1.2),
       padding: '0.5rem'
     }
   }, [

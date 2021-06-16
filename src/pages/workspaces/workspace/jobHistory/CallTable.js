@@ -19,10 +19,10 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
   return div([
     h(AutoSizer, { disableHeight: true }, [
       ({ width }) => h(FlexTable, {
+        'aria-label': 'call table',
         height: tableHeight({ actualRows: callObjects.length, maxRows: 10.5 }), // The half-row here hints at there being extra rows if scrolled
         width,
         rowCount: callObjects.length,
-        tableName: 'call table',
         noContentMessage: 'No matching calls',
         columns: [
           {
@@ -73,7 +73,6 @@ const CallTable = ({ namespace, name, submissionId, workflowId, callName, callOb
                     key: 'cc',
                     style: { marginLeft: '0.5rem' },
                     tooltip: 'Call Cache Debug Wizard',
-                    'aria-label': 'Call Cache Debug Wizard',
                     onClick: () => setWizardSelection({ callFqn: callName, index })
                   }, [
                     icon('search', { size: 18 })

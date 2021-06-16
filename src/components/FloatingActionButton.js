@@ -20,6 +20,8 @@ const FloatingActionButton = ({ label, iconShape, onClick, bottom = 30, right = 
       },
       onMouseEnter: () => setHover(true),
       onMouseLeave: () => setHover(false),
+      onFocus: () => setHover(true),
+      onBlur: () => setHover(false),
       onClick: () => {
         onClick()
         setHover(false)

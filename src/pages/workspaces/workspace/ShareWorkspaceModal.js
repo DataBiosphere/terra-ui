@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useLayoutEffect, useRef, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, h2 } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
@@ -31,7 +31,7 @@ const styles = {
   }
 }
 
-const AclInput = ({ value, onChange, disabled, maxAccessLevel, autoFocus }) => {
+const AclInput = ({ value, onChange, disabled, maxAccessLevel, autoFocus, ...props }) => {
   const { accessLevel, canShare, canCompute } = value
   return div({ style: { display: 'flex', marginTop: '0.25rem' } }, [
     div({ style: { width: 200 } }, [
@@ -52,7 +52,8 @@ const AclInput = ({ value, onChange, disabled, maxAccessLevel, autoFocus }) => {
           )
         }),
         options: accessLevel === 'PROJECT_OWNER' ? ['PROJECT_OWNER'] : ['READER', 'WRITER', 'OWNER'],
-        menuPortalTarget: document.getElementById('modal-root')
+        menuPortalTarget: document.getElementById('modal-root'),
+        ...props
       })
     ]),
     div({ style: { marginLeft: '1rem' } }, [
@@ -122,6 +123,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
     const isOld = _.find({ email }, originalAcl)
 
     return div({
+      role: 'listitem',
       style: {
         display: 'flex', alignItems: 'center', borderRadius: 5,
         padding: '0.5rem 0.75rem', marginBottom: 10,
@@ -133,6 +135,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
         email,
         pending && div({ style: styles.pending }, ['Pending']),
         h(AclInput, {
+          'aria-label': `permissions for ${email}`,
           autoFocus: email === lastAddedEmail,
           value: aclItem,
           onChange: v => setAcl(_.set([index], v)),
@@ -141,6 +144,7 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
         })
       ]),
       !disabled && h(Link, {
+        tooltip: 'Remove',
         onClick: () => setAcl(_.remove({ email }))
       }, [icon('times', { size: 20, style: { marginRight: '0.5rem' } })])
     ])
@@ -227,8 +231,8 @@ const ShareWorkspaceModal = ({ onDismiss, workspace, workspace: { workspace: { n
         style: { fontSize: 16 }
       })
     ])]),
-    div({ style: { ...Style.elements.sectionHeader, marginTop: '1rem' } }, ['Current Collaborators']),
-    div({ ref: list, style: styles.currentCollaboratorsArea }, [
+    h2({ style: { ...Style.elements.sectionHeader, margin: '1rem 0 0.5rem 0' } }, ['Current Collaborators']),
+    div({ ref: list, role: 'list', style: styles.currentCollaboratorsArea }, [
       h(Fragment, _.map(renderCollaborator, Utils.toIndexPairs(acl))),
       !loaded && centeredSpinner()
     ]),

@@ -49,10 +49,11 @@ export const withWorkspaces = WrappedComponent => {
   })
 }
 
-export const WorkspaceSelector = ({ workspaces, value, onChange, ...props }) => {
+export const WorkspaceSelector = ({ workspaces, value, onChange, id, 'aria-label': ariaLabel, ...props }) => {
   return h(Select, {
+    id,
+    'aria-label': ariaLabel || 'Select a workspace',
     placeholder: 'Select a workspace',
-    'aria-label': 'Select a workspace',
     disabled: !workspaces,
     value,
     onChange: ({ value }) => onChange(value),
@@ -134,7 +135,6 @@ export const SnapshotInfo = ({
           !editingDescription && h(Link, {
             style: { marginLeft: '0.5rem' },
             onClick: () => setEditingName(true),
-            'aria-label': 'Edit snapshot name',
             tooltip: 'Edit snapshot name'
           }, [icon('edit')])
         ]),
@@ -143,7 +143,6 @@ export const SnapshotInfo = ({
           !editingDescription && h(Link, {
             style: { marginLeft: '0.5rem' },
             onClick: () => setNewDescription(description),
-            'aria-label': 'Edit description',
             tooltip: 'Edit description'
           }, [icon('edit')])
         ]),
@@ -249,7 +248,7 @@ export const SnapshotInfo = ({
 export const WorkspaceImporter = _.flow(
   Utils.withDisplayName('WorkspaceImporter'),
   withWorkspaces
-)(({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs, additionalErrors }) => {
+)(({ workspaces, refreshWorkspaces, onImport, authorizationDomain: ad, selectedWorkspaceId: initialWs, additionalErrors, ...props }) => {
   const [selectedWorkspaceId, setSelectedWorkspaceId] = useState(initialWs)
   const [creatingWorkspace, setCreatingWorkspace] = useState(false)
 
@@ -262,7 +261,8 @@ export const WorkspaceImporter = _.flow(
           (!ad || _.some({ membersGroupName: ad }, ws.workspace.authorizationDomain))
       }, workspaces),
       value: selectedWorkspaceId,
-      onChange: setSelectedWorkspaceId
+      onChange: setSelectedWorkspaceId,
+      ...props
     }),
     div({ style: { display: 'flex', alignItems: 'center', marginTop: '1rem' } }, [
       h(ButtonPrimary, {
