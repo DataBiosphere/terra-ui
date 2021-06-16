@@ -376,7 +376,7 @@ const Environments = ({ namespace }) => {
           },
           {
             size: { basis: 50, grow: 0 },
-            headerRenderer: () => null,
+            headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
               return cloudEnvironment.appName ? renderDeleteButtonApps(cloudEnvironment) : renderDeleteButtonRuntimes(cloudEnvironment)
@@ -478,7 +478,7 @@ const Environments = ({ namespace }) => {
           },
           {
             size: { basis: 50, grow: 0 },
-            headerRenderer: () => null,
+            headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
             cellRenderer: ({ rowIndex }) => {
               const { id, status, name } = filteredDisks[rowIndex]
               const error = cond(
