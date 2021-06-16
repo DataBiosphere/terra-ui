@@ -4,8 +4,9 @@ import { Link } from 'src/components/common'
 import { icon } from 'src/components/icons'
 
 
-const TitleBar = ({ onPrevious, title, onDismiss, titleExtras, style = {} }) => {
+const TitleBar = ({ id, onPrevious, title, onDismiss, titleExtras, style = {} }) => {
   return div({
+    id,
     style: {
       display: 'flex', alignItems: 'flex-start', flex: 'none', ...style
     }

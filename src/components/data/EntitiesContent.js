@@ -49,12 +49,14 @@ const getDataset = dataExplorerUrl => {
   return dataset
 }
 
+const toolDrawerId = 'tool-drawer-title'
+
 const ToolDrawer = _.flow(
   Utils.withDisplayName('ToolDrawer'),
   requesterPaysWrapper({
     onDismiss: ({ onDismiss }) => onDismiss()
   }),
-  withModalDrawer()
+  withModalDrawer({ 'aria-labelledby': toolDrawerId })
 )(({
   workspace, workspace: { workspace: { bucketName, name: wsName, namespace, workspaceId } },
   onDismiss, onIgvSuccess, onRequesterPaysError, entityMetadata, entityKey, selectedEntities
@@ -179,6 +181,7 @@ const ToolDrawer = _.flow(
 
   return div({ style: { padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1 } }, [
     h(TitleBar, {
+      id: toolDrawerId,
       title,
       onPrevious: toolMode ? () => { setToolMode(undefined) } : undefined,
       onDismiss

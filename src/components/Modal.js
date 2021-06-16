@@ -39,6 +39,8 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
   // react-modal applies aria-hidden to the app root *and* takes care of limiting what can be tab-focused - see appLoader.js
   return h(RModal, {
     contentRef: node => { modalNode.current = node },
+    aria: { labelledby: titleId, modal: true },
+    ariaHideApp: false,
     parentSelector: () => document.getElementById('modal-root'),
     isOpen: true,
     shouldFocusAfterRender: false,
@@ -53,8 +55,6 @@ const Modal = ({ onDismiss, title, titleExtras, children, width = 450, showCance
       nodeToFocus.focus()
     },
     style: { overlay: styles.overlay, content: { ...styles.modal, width } },
-    aria: { labelledby: titleId, modal: true },
-    ariaHideApp: false,
     ...props
   }, [
     title && div({ style: { display: 'flex', alignItems: 'baseline', marginBottom: '1rem', flex: 'none' } }, [

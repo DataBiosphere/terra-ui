@@ -137,6 +137,7 @@ export const ButtonOutline = ({ disabled, children, ...props }) => {
 }
 
 export const Checkbox = ({ checked, onChange, disabled, ...props }) => {
+  Utils.useLabelAssert('Checkbox', { ...props, allowId: true })
   return h(Interactive, _.merge({
     as: 'span',
     className: 'fa-layers fa-fw',
