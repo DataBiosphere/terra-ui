@@ -82,7 +82,7 @@ const MachineSelector = ({ value, machineTypeOptions, onChange }) => {
   ])
 }
 
-const GpuSelector = ({ gpuType, numGpus, mainMachineType, onChangeGpuType, onChangeNumGpus }) => {
+const GpuSelector = ({ gpuType, numGpus, mainMachineType, onChange }) => {
   const { cpu: numCpus, memory: mem } = findMachineType(mainMachineType)
   const gpuTypeOptionsByCpuAndMem = getValidGpuTypes(numCpus, mem)
   return h(Fragment, [
@@ -99,7 +99,8 @@ const GpuSelector = ({ gpuType, numGpus, mainMachineType, onChangeGpuType, onCha
               console.log(`GPU type option.value is ${option.value}`)
               console.log(`x is ${x}`)
               console.log(`gpuType is ${gpuType}`)
-              return onChangeGpuType(x || gpuType)
+              console.log(`options are ${_.flow(_.map('type'), _.union(gpuType), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)}`)
+              return onChange({ gpuType: x, numGpus } || { gpuType, numGpus })
             },
             options: _.flow(_.map('type'), _.union([gpuType]), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)
           })
@@ -119,7 +120,8 @@ const GpuSelector = ({ gpuType, numGpus, mainMachineType, onChangeGpuType, onCha
               console.log(`GPUs option.value is ${option.value}`)
               console.log(`y is ${y}`)
               console.log(`numGpus is ${numGpus}`)
-              return onChangeNumGpus(y || numGpus)
+              console.log(`options are ${_.flow(_.filter({ type: gpuType }), _.map('numGpus'), _.union(numGpus), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)}`)
+              return onChange({ gpuType, numGpus: y } || { gpuType, numGpus })
             },
             options: _.flow(_.filter({ type: gpuType }), _.map('numGpus'), _.union([numGpus]), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)
           })
@@ -816,20 +818,17 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
             ])
           ])
         ]),
-        div({ style: { marginTop: '1.25rem' } }, [
+        div({ style: { marginTop: '2rem' } }, [
           h(LabeledCheckbox, {
             checked: gpuEnabled,
             onChange: v => this.setState({ gpuEnabled: v })
           }, [span({ style: { marginLeft: '0.5rem', ...styles.label } }, ['Enable GPUs '])])
         ]),
-        div({ style: { ...gridStyle('14rem', '4.5rem'), marginTop: '1rem' } }, [
+        gpuEnabled && div({ style: { ...gridStyle('14rem', '4.5rem'), marginTop: '1rem' } }, [
           h(GpuSelector, {
-            gpuType, numGpus, mainMachineType, onChangeGpuType: v => {
+            gpuType, numGpus, mainMachineType, onChange: v => {
               console.log(`v is ${v}`)
-              this.setState({ gpuType: v })
-            }, onChangeNumGpus: v => {
-              console.log(`v is ${v}`)
-              this.setState({ numGpus: v })
+              this.setState(v)
             }
           })
         ]),
