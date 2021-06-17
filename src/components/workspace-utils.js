@@ -142,7 +142,7 @@ export const SnapshotInfo = ({
           'Description:',
           !editingDescription && h(Link, {
             style: { marginLeft: '0.5rem' },
-            onClick: () => setNewDescription(description),
+            onClick: () => setNewDescription(description || ''), // description is null for newly-added snapshot references
             tooltip: 'Edit description'
           }, [icon('edit')])
         ]),
@@ -156,7 +156,7 @@ export const SnapshotInfo = ({
             h(ButtonSecondary, { onClick: () => setNewDescription(undefined) }, 'Cancel'),
             h(ButtonPrimary, { style: { marginLeft: '1rem' }, onClick: save }, 'Save')
           ])
-        ]) : h(MarkdownViewer, [description])
+        ]) : h(MarkdownViewer, [description || '']) // description is null for newly-added snapshot references
       ]),
       div({ style: { paddingLeft: '1rem' } }, [
         div({ style: Style.dashboard.header }, ['Linked Data Repo Snapshot']),
