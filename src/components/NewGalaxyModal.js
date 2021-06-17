@@ -179,7 +179,11 @@ export const NewGalaxyModal = _.flow(
             div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
             div({ style: { lineHeight: 1.5 } }, [
               div(['Please pause or delete the cloud environment when finished; it will']),
-              div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running.'])
+              div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running. Please see the subsection']),
+              h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
+                'Pausing/Resuming a Galaxy instance.',
+                icon('pop-out', { size: 12, style: { marginTop: '0.5rem', marginLeft: '0.25rem' } })
+              ])
             ])
           ])
         ]),
