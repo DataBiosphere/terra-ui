@@ -683,7 +683,7 @@ export class NewRuntimeModalBase extends Component {
         _.map(({ cost, label, unitLabel }) => {
           return div({ key: label, style: { flex: 1, ...styles.label } }, [
             div({ style: { fontSize: 10 } }, [label]),
-            div({ style: { color: colors.accent(), marginTop: '0.25rem' } }, [
+            div({ style: { color: colors.accent(1.1), marginTop: '0.25rem' } }, [
               span({ style: { fontSize: 20 } }, [cost]),
               span([' ', unitLabel])
             ])
