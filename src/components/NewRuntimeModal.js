@@ -824,7 +824,12 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
           h(LabeledCheckbox, {
             checked: gpuEnabled,
             onChange: v => this.setState({ gpuEnabled: v })
-          }, [span({ style: { marginLeft: '0.5rem', ...styles.label } }, ['Enable GPUs '])])
+          }, [span({ style: { marginLeft: '1rem', ...styles.label } }, ['Enable GPUs ']),
+            // TODO Update the article link when it's ready
+            h(Link, { style: { marginLeft: '0.5rem' }, href: 'https://support.terra.bio/hc/en-us/articles/', ...Utils.newTabLinkProps }, [
+              'Learn more about GPU cost and restrictions.',
+              icon('pop-out', { size: 12, style: { marginTop: '0.5rem', marginLeft: '0.25rem' } })
+            ])])
         ]),
         gpuEnabled && div({ style: { ...gridStyle('14rem', '4.5rem'), marginTop: '1rem' } }, [
           h(GpuSelector, {
