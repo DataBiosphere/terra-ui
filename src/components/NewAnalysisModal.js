@@ -16,6 +16,8 @@ import * as Utils from 'src/libs/utils'
 
 //TODO: title id in titleBar and aria-labelled-by in withModalDrawer
 
+const titleId = 'new-analysis-modal-title'
+
 export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
   ({ isOpen, onDismiss, onSuccess, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
     const [viewMode, setViewMode] = useState(undefined)
@@ -86,6 +88,7 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
 
     const modalBody = h(Fragment, [
       h(TitleBar, {
+        id: titleId,
         title: 'Select an application',
         titleStyles: _.merge(viewMode === undefined ? {} : { display: 'none' }, { margin: '1.5rem 0 0 1.5rem' }),
         width,
@@ -97,7 +100,7 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       busy && spinnerOverlay
     ])
 
-    const modalProps = { isOpen, onDismiss, width }
+    const modalProps = { isOpen, onDismiss, width, 'aria-labelledby': titleId }
 
     return h(ModalDrawer, { ...modalProps, children: modalBody })
   }
