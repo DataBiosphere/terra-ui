@@ -7,6 +7,7 @@ import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
 import {
+  ButtonOutline,
   ButtonPrimary,
   Clickable,
   IdContainer,
@@ -18,6 +19,7 @@ import {
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
+import { NewAnalysisModal } from 'src/components/NewAnalysisModal'
 import {
   AnalysisDeleter,
   AnalysisDuplicator,
@@ -25,7 +27,6 @@ import {
   getDisplayName,
   getFileName,
   getTool,
-  NotebookCreator,
   notebookLockHash,
   stripExtension,
   tools
@@ -143,8 +144,8 @@ const AnalysisCard = ({ namespace, name, updated, metadata, toolLabel, listView,
     ])
   }, [
     h(Link, { 'aria-label': 'Analyses menu', onClick: e => e.preventDefault() }, [
-      icon('cardMenuIcon', {
-        size: listView ? 18 : 24
+      icon('ellipsis-v', {
+        size: listView ? 18 : 16
       })
     ])
   ])
@@ -158,7 +159,7 @@ const AnalysisCard = ({ namespace, name, updated, metadata, toolLabel, listView,
     } : { height: 60, padding: '1rem' })
   }, getDisplayName(name))
 
-  const appIconSrc = Utils.switchCase(toolLabel, [tools.jupyter.label, () => jupyterLogo], [tools.rstudio.label, () => rLogo])
+  const appIconSrc = Utils.switchCase(toolLabel, [tools.Jupyter.label, () => jupyterLogo], [tools.RStudio.label, () => rLogo])
   const appIcon = div({ style: { marginRight: '1rem' } }, [
     img({ src: appIconSrc, style: { height: 40, width: 40 } })
   ])
@@ -227,7 +228,10 @@ const Analyses = _.flow(
   withViewToggle('analysesTab')
 )(({
   apps, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { bucketName } },
-  refreshApps, onRequesterPaysError, listView, setListView
+  refreshApps, onRequesterPaysError, listView, setListView, runtimes,
+  persistentDisks,
+  refreshRuntimes,
+  galaxyDataDisks
 }) => {
   // State
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
@@ -256,9 +260,9 @@ const Analyses = _.flow(
     Utils.withBusyState(setBusy)
   )(async () => {
     const notebooks = await Ajax(signal).Buckets.listNotebooks(namespace, bucketName)
-    const enhancedNotebooks = _.map(notebook => _.merge(notebook, { toolLabel: tools.jupyter.label }), notebooks)
+    const enhancedNotebooks = _.map(notebook => _.merge(notebook, { toolLabel: tools.Jupyter.label }), notebooks)
     const rmds = await Ajax(signal).Buckets.listRmds(namespace, bucketName)
-    const enhancedRmd = _.map(rmd => _.merge(rmd, { toolLabel: tools.rstudio.label }), rmds)
+    const enhancedRmd = _.map(rmd => _.merge(rmd, { toolLabel: tools.RStudio.label }), rmds)
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
     setAnalyses(_.reverse(_.sortBy('updated', analyses)))
   })
@@ -360,7 +364,7 @@ const Analyses = _.flow(
 
   // Render
   return h(Dropzone, {
-    accept: `.${tools.jupyter.ext}, .${tools.rstudio.ext}`,
+    accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext}`,
     disabled: !Utils.canWrite(accessLevel),
     style: { flexGrow: 1 },
     activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
@@ -371,7 +375,7 @@ const Analyses = _.flow(
     analyses && h(PageBox, { style: { height: '100%' } }, [
       div({ style: { display: 'flex', marginBottom: '1rem' } }, [
         div({ style: { color: colors.dark(), fontSize: 24, fontWeight: 600 } }, ['Your Analyses']),
-        h(ButtonPrimary, {
+        h(ButtonOutline, {
           style: {
             marginLeft: '6.5rem'
           },
@@ -379,10 +383,8 @@ const Analyses = _.flow(
           disabled: !Utils.canWrite(accessLevel),
           tooltip: !Utils.canWrite(accessLevel) ? noWrite : undefined
         }, [
-          div({ style: { marginBottom: '0.5rem' } }, [
-            icon('plus-circle', { style: { marginTop: '0.5rem', marginRight: '0.5rem' }, size: 21 }),
-            'Create'
-          ])
+          icon('plus', { size: 14, style: { color: colors.accent() } }),
+          div({ style: { marginLeft: '0.5rem' } }, ['Create'])
         ]),
         h(ButtonPrimary, {
           style: {
@@ -418,9 +420,16 @@ const Analyses = _.flow(
         ])]),
         !_.isEmpty(analyses) && h(ViewToggleButtons, { listView, setListView }),
         //TODO: create impl for analyses. will not live in the same place, but keeping code and state for reference
-        creating && h(NotebookCreator, {
-          namespace, bucketName, existingNames,
-          reloadList: refreshAnalyses,
+        h(NewAnalysisModal, {
+          isOpen: creating,
+          namespace,
+          workspace,
+          runtimes,
+          persistentDisks,
+          refreshRuntimes,
+          galaxyDataDisks,
+          apps,
+          refreshApps,
           onDismiss: () => setCreating(false),
           onSuccess: () => setCreating(false)
         }),
