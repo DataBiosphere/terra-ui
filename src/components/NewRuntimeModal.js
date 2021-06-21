@@ -820,6 +820,25 @@ export class NewRuntimeModalBase extends Component {
           !isPersistentDisk ?
             h(DiskSelector, { value: masterDiskSize, onChange: v => this.setState({ masterDiskSize: v }) }) :
             div({ style: { gridColumnEnd: 'span 2' } }),
+          div({ style: { gridColumnEnd: 'span 6' } }, [
+            h(LabeledCheckbox, {
+              checked: gpuEnabled,
+              onChange: v => this.setState({ gpuEnabled: v })
+            }, [span({ style: { marginLeft: '0.5rem', ...styles.label, verticalAlign: 'top' } }, ['Enable GPUs ']),
+              // TODO Update the article link when it's ready
+              h(Link, { style: { marginLeft: '1rem', verticalAlign: 'top' }, href: 'https://support.terra.bio/hc/en-us/articles/', ...Utils.newTabLinkProps }, [
+                'Learn more about GPU cost and restrictions.',
+                icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+              ])])
+          ]),
+          gpuEnabled && div({ style: { ...gridStyle('14rem', '4.5rem'), marginTop: '1rem' } }, [
+            h(GpuSelector, {
+              gpuType, numGpus, mainMachineType, onChange: v => {
+                console.log(`v is ${v}`)
+                this.setState(v)
+              }
+            })
+          ]),
           h(IdContainer, [
             id => div({ style: { gridColumnEnd: 'span 6' } }, [
               label({ htmlFor: id, style: styles.label }, ['Startup script']),
@@ -851,25 +870,6 @@ export class NewRuntimeModalBase extends Component {
               ])
             ])
           ])
-        ]),
-        div({ style: { marginTop: '2rem' } }, [
-          h(LabeledCheckbox, {
-            checked: gpuEnabled,
-            onChange: v => this.setState({ gpuEnabled: v })
-          }, [span({ style: { marginLeft: '1rem', ...styles.label } }, ['Enable GPUs ']),
-            // TODO Update the article link when it's ready
-            h(Link, { style: { marginLeft: '0.5rem' }, href: 'https://support.terra.bio/hc/en-us/articles/', ...Utils.newTabLinkProps }, [
-              'Learn more about GPU cost and restrictions.',
-              icon('pop-out', { size: 12, style: { marginTop: '0.5rem', marginLeft: '0.25rem' } })
-            ])])
-        ]),
-        gpuEnabled && div({ style: { ...gridStyle('14rem', '4.5rem'), marginTop: '1rem' } }, [
-          h(GpuSelector, {
-            gpuType, numGpus, mainMachineType, onChange: v => {
-              console.log(`v is ${v}`)
-              this.setState(v)
-            }
-          })
         ]),
         sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
           legend({ style: { padding: 0, ...styles.label } }, ['Worker config']),
