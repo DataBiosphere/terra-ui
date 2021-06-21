@@ -59,7 +59,7 @@ const input = ({ labelContains, placeholder }) => {
 
 const fillIn = async (page, xpath, text) => {
   (await page.waitForXPath(xpath)).type(text, { delay: 20 })
-  return delay(500)
+  return delay(2000)
   // return (await page.waitForXPath(xpath)).type(text, { delay: 20 })
 }
 
