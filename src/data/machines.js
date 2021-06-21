@@ -23,11 +23,13 @@ export const machineTypes = [
   { name: 'n1-highcpu-96', cpu: 96, memory: 86.4, price: 3.402, preemptiblePrice: 0.7200 }
 ]
 
-// As of June 9, 2021:
+// As of June 21, 2021:
 // GPUs are only supported with general-purpose N1 or accelerator-optimized A2 machine types.
 // (https://cloud.google.com/compute/docs/gpus#restrictions)
 // Instances with GPUs also have limitations on maximum number of CPUs and memory they can have.
 // (https://cloud.google.com/compute/docs/gpus#other_available_nvidia_gpu_models)
+// NVIDIA Tesla P100 is not available within the zone 'us-central1-a`.
+// (https://cloud.google.com/compute/docs/gpus/gpu-regions-zones)
 // The limitations don't vary perfectly linearly so it seemed easier and less brittle to enumerate them.
 // Prices below are hourly and per GPU (https://cloud.google.com/compute/gpus-pricing).
 export const gpuTypes = [
