@@ -6,7 +6,7 @@ import * as qs from 'qs'
 import { Fragment, useRef, useState } from 'react'
 import { div, form, h, input } from 'react-hyperscript-helpers'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
-import { ButtonPrimary, Link, MenuButton } from 'src/components/common'
+import { ButtonPrimary, Link } from 'src/components/common'
 import { EntityDeleter, ModalToolButton, saveScroll } from 'src/components/data/data-utils'
 import DataTable from 'src/components/data/DataTable'
 import ExportDataModal from 'src/components/data/ExportDataModal'
@@ -15,7 +15,7 @@ import IGVBrowser from 'src/components/IGVBrowser'
 import IGVFileSelector from 'src/components/IGVFileSelector'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { cohortNotebook, cohortRNotebook, NotebookCreator } from 'src/components/notebook-utils'
-import PopupTrigger from 'src/components/PopupTrigger'
+import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TitleBar from 'src/components/TitleBar'
 import WorkflowSelector from 'src/components/WorkflowSelector'
 import datasets from 'src/data/datasets'
@@ -49,12 +49,14 @@ const getDataset = dataExplorerUrl => {
   return dataset
 }
 
+const toolDrawerId = 'tool-drawer-title'
+
 const ToolDrawer = _.flow(
   Utils.withDisplayName('ToolDrawer'),
   requesterPaysWrapper({
     onDismiss: ({ onDismiss }) => onDismiss()
   }),
-  withModalDrawer()
+  withModalDrawer({ 'aria-labelledby': toolDrawerId })
 )(({
   workspace, workspace: { workspace: { bucketName, name: wsName, namespace, workspaceId } },
   onDismiss, onIgvSuccess, onRequesterPaysError, entityMetadata, entityKey, selectedEntities
@@ -179,6 +181,7 @@ const ToolDrawer = _.flow(
 
   return div({ style: { padding: '1.5rem', display: 'flex', flexDirection: 'column', flex: 1 } }, [
     h(TitleBar, {
+      id: toolDrawerId,
       title,
       onPrevious: toolMode ? () => { setToolMode(undefined) } : undefined,
       onDismiss
@@ -311,7 +314,7 @@ const EntitiesContent = ({
     const noEdit = Utils.editWorkspaceError(workspace)
     const disabled = entityKey.endsWith('_set_set')
 
-    return !_.isEmpty(selectedEntities) && h(PopupTrigger, {
+    return !_.isEmpty(selectedEntities) && h(MenuTrigger, {
       side: 'bottom',
       closeOnClick: true,
       content: h(Fragment, [
@@ -347,7 +350,7 @@ const EntitiesContent = ({
         }, ['Delete Data'])
       ])
     }, [h(Link, { style: { marginRight: '1rem' } }, [
-      icon('ellipsis-v-circle', { size: 24 })
+      icon('ellipsis-v-circle', { size: 24, 'aria-label': 'selection menu' })
     ])])
   }
 
@@ -374,7 +377,11 @@ const EntitiesContent = ({
           !snapshotName && renderDownloadButton(columnSettings),
           !_.endsWith('_set', entityKey) && renderCopyButton(entities, columnSettings),
           div({ style: { margin: '0 1.5rem', height: '100%', borderLeft: Style.standardLine } }),
-          div({ style: { marginRight: '0.5rem' } }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
+          div({
+            role: 'status',
+            'aria-atomic': true,
+            style: { marginRight: '0.5rem' }
+          }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
           renderSelectedRowsMenu(columnSettings)
         ])
       }),

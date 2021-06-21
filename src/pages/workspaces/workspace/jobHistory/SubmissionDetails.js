@@ -1,7 +1,7 @@
 import { differenceInDays, parseISO } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, h4 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ClipboardButton, Link, Select } from 'src/components/common'
@@ -147,7 +147,7 @@ const SubmissionDetails = _.flow(
     _.isEmpty(submission) ? centeredSpinner() : h(Fragment, [
       div({ style: { display: 'flex' } }, [
         div({ style: { flex: '0 0 200px', marginRight: '2rem', lineHeight: '24px' } }, [
-          div({ style: Style.elements.sectionHeader }, 'Workflow Statuses'),
+          h4({ style: Style.elements.sectionHeader }, 'Workflow Statuses'),
           succeeded && makeStatusLine(successIcon, `Succeeded: ${succeeded.length}`, { marginTop: '0.5rem' }),
           failed && makeStatusLine(failedIcon, `Failed: ${failed.length}`, { marginTop: '0.5rem' }),
           running && makeStatusLine(runningIcon, `Running: ${running.length}`, { marginTop: '0.5rem' }),
@@ -212,9 +212,9 @@ const SubmissionDetails = _.flow(
       ]),
       div({ style: { flex: 1 } }, [
         h(AutoSizer, [({ width, height }) => h(FlexTable, {
+          'aria-label': 'submission details',
           width, height, sort,
           rowCount: filteredWorkflows.length,
-          tableName: 'submission details',
           noContentMessage: 'No matching workflows',
           columns: [
             {
@@ -282,22 +282,28 @@ const SubmissionDetails = _.flow(
                     deletedInfoIcon({ name: 'Workflow Dashboard', iconOverride: 'tachometer' })
                   ] : [
                     h(Link, {
+                      key: 'manager',
                       ...Utils.newTabLinkProps,
                       href: `${getConfig().jobManagerUrlRoot}/${workflowId}`,
                       style: { margin: '0.5rem', display: 'flex' },
-                      tooltip: 'Job Manager'
+                      tooltip: 'Job Manager',
+                      'aria-label': `Job Manager (for workflow ID ${workflowId})`
                     }, [icon('tasks', { size: 18 })]),
                     h(Link, {
+                      key: 'dashboard',
                       href: Nav.getLink('workspace-workflow-dashboard', { namespace, name, submissionId, workflowId }),
                       style: { margin: '0.5rem', display: 'flex' },
-                      tooltip: 'Workflow Dashboard [alpha]'
+                      tooltip: 'Workflow Dashboard [alpha]',
+                      'aria-label': `Workflow Dashboard (for workflow ID ${workflowId}}`
                     }, [icon('tachometer', { size: 18 })])
                   ],
                   inputName && h(Link, {
+                    key: 'directory',
                     ...Utils.newTabLinkProps,
                     href: bucketBrowserUrl(`${bucketName}/${submissionId}/${inputName.split('.')[0]}/${workflowId}`),
                     style: { margin: '0.5rem', display: 'flex' },
-                    tooltip: 'Execution directory'
+                    tooltip: 'Execution directory',
+                    'aria-label': `Execution directory (for workflow ID ${workflowId})`
                   }, [icon('folder-open', { size: 18 })])
                 ])
               }

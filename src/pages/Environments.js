@@ -297,8 +297,8 @@ const Environments = ({ namespace }) => {
     div({ role: 'main', style: { padding: '1rem', flexGrow: 1 } }, [
       h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '0 0 1rem 0', padding: 0 } }, ['Your cloud environments']),
       runtimes && h(SimpleFlexTable, {
+        'aria-label': 'cloud environments',
         sort,
-        tableName: 'cloud environments',
         rowCount: filteredCloudEnvironments.length,
         columns: [
           {
@@ -376,7 +376,7 @@ const Environments = ({ namespace }) => {
           },
           {
             size: { basis: 50, grow: 0 },
-            headerRenderer: () => null,
+            headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
               return cloudEnvironment.appName ? renderDeleteButtonApps(cloudEnvironment) : renderDeleteButtonRuntimes(cloudEnvironment)
@@ -386,8 +386,8 @@ const Environments = ({ namespace }) => {
       }),
       h2({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase', margin: '1rem 0', padding: 0 } }, ['Your persistent disks']),
       disks && h(SimpleFlexTable, {
+        'aria-label': 'persistent disks',
         sort: diskSort,
-        tableName: 'persistent disks',
         rowCount: filteredDisks.length,
         columns: [
           {
@@ -478,7 +478,7 @@ const Environments = ({ namespace }) => {
           },
           {
             size: { basis: 50, grow: 0 },
-            headerRenderer: () => null,
+            headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
             cellRenderer: ({ rowIndex }) => {
               const { id, status, name } = filteredDisks[rowIndex]
               const error = cond(

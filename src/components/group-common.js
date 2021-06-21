@@ -1,11 +1,12 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, label } from 'react-hyperscript-helpers'
-import { ButtonPrimary, HeaderRenderer, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, HeaderRenderer, IdContainer, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { AutocompleteTextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import PopupTrigger, { InfoBox } from 'src/components/PopupTrigger'
+import { InfoBox, makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { ariaSort } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -61,15 +62,15 @@ const UserMenuContent = ({ onEdit, onDelete }) => {
 const menuCardSize = 20
 
 export const MemberCardHeaders = Utils.memoWithName('MemberCardHeaders', ({ sort, onSort }) => {
-  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' } }, [
-    div({ style: { flex: 1 } }, [
+  return div({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'email'), style: { flex: 1 } }, [
       h(HeaderRenderer, { sort, onSort, name: 'email' })
     ]),
-    div({ style: { flex: 1 } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'roles'), style: { flex: 1 } }, [
       h(HeaderRenderer, { sort, onSort, name: 'roles' })
     ]),
     // Width is the same as the menu icon.
-    div({ style: { width: menuCardSize } }, [
+    div({ role: 'columnheader', style: { width: menuCardSize } }, [
       div({ className: 'sr-only' }, ['Actions'])
     ])
   ])
@@ -80,12 +81,13 @@ export const MemberCard = Utils.memoWithName('MemberCard', ({ member: { email, r
   const tooltip = !canEdit && `This user is the only ${adminLabel}`
 
   return div({
+    role: 'row',
     style: Style.cardList.longCardShadowless
   }, [
-    div({ style: { flex: '1', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', height: '1rem' } }, [email]),
-    div({ style: { flex: '1', textTransform: 'capitalize', height: '1rem' } }, [_.includes(adminLabel, roles) ? adminLabel : userLabel]),
-    div({ style: { flex: 'none' } }, [
-      h(PopupTrigger, {
+    div({ role: 'rowheader', style: { flex: '1', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden', height: '1rem' } }, [email]),
+    div({ role: 'cell', style: { flex: '1', textTransform: 'capitalize', height: '1rem' } }, [_.includes(adminLabel, roles) ? adminLabel : userLabel]),
+    div({ role: 'cell', style: { flex: 'none' } }, [
+      h(MenuTrigger, {
         side: 'left',
         style: { height: menuCardSize, width: menuCardSize },
         closeOnClick: true,

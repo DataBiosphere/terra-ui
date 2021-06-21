@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, fieldset, h, img, legend, span } from 'react-hyperscript-helpers'
+import { div, fieldset, h, img, label, legend, span } from 'react-hyperscript-helpers'
 import {
   ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay,
   Switch
@@ -278,6 +278,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
               href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
             }, ['Click here for more info on the table.'])]),
         h(SimpleTabBar, {
+          'aria-label': 'import type',
           tabs: [{ title: 'File Import', key: true, width: 121 }, { title: 'Text Import', key: false, width: 127 }],
           value: isFileImportCurrMode,
           onChange: value => {
@@ -586,12 +587,15 @@ export const EntityEditor = ({ entityType, entityName, attributeName, attributeV
             ]))
           ]),
           editType === 'reference' && div({ style: { marginTop: '0.5rem' } }, [
-            div({ style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
-            h(Select, {
-              value: linkedEntityType,
-              options: entityTypes,
-              onChange: ({ value }) => setLinkedEntityType(value)
-            })
+            h(IdContainer, [id => h(Fragment, [
+              label({ htmlFor: id, style: { marginBottom: '0.5rem' } }, 'Referenced entity type:'),
+              h(Select, {
+                id,
+                value: linkedEntityType,
+                options: entityTypes,
+                onChange: ({ value }) => setLinkedEntityType(value)
+              })
+            ])])
           ])
         ]),
         div({ style: { marginBottom: '0.5rem' } }, [

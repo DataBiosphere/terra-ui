@@ -9,6 +9,7 @@ import { icon } from 'src/components/icons'
 import { ImageDepViewer } from 'src/components/ImageDepViewer'
 import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
+import { tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { SaveFilesHelp } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
@@ -32,6 +33,7 @@ import validate from 'validate.js'
 
 // Change to true to enable a debugging panel (intended for dev mode only)
 const showDebugPanel = false
+const titleId = 'new-runtime-modal-title'
 
 const styles = {
   label: { fontWeight: 600, whiteSpace: 'pre' },
@@ -150,13 +152,15 @@ const DiskSelector = ({ value, onChange }) => {
 
 const CUSTOM_MODE = '__custom_mode__'
 
-export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeModal extends Component {
+export class NewRuntimeModalBase extends Component {
   static propTypes = {
     runtimes: PropTypes.array,
     persistentDisks: PropTypes.array,
     workspace: PropTypes.object.isRequired,
     onDismiss: PropTypes.func.isRequired,
-    onSuccess: PropTypes.func.isRequired
+    onSuccess: PropTypes.func.isRequired,
+    isAnalysisMode: PropTypes.bool,
+    tool: PropTypes.string
   }
 
   constructor(props) {
@@ -170,6 +174,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       currentPersistentDiskDetails: currentPersistentDisk,
       ...this.getInitialState(currentRuntime, currentPersistentDisk),
       jupyterUserScriptUri: '', customEnvImage: '',
+      //TODO: once this uses a wizard approach, we need to modify this to start in a default state
       viewMode: undefined,
       deleteDiskSelected: false,
       upgradeDiskSelected: false,
@@ -522,6 +527,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const { googleProject } = this.getWorkspaceObj()
     const currentRuntime = this.getCurrentRuntime()
     const currentPersistentDisk = this.getCurrentPersistentDisk()
+    const { tool } = this.props
 
     Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
       existingConfig: !!currentRuntime, ...extractWorkspaceDetails(this.getWorkspaceObj())
@@ -532,11 +538,37 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
     ])
 
+    const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
+
     const imageUrl = currentRuntimeDetails ? this.getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
     const foundImage = _.find({ image: imageUrl }, newLeoImages)
+
+    /* eslint-disable indent */
+    //TODO: open to feedback and still thinking about this...
+    //Selected Leo image uses the following logic (psuedoCode not written in same way as code for clarity)
+    //if found image (aka image associated with users runtime) NOT in newLeoImages (the image dropdown list from bucket)
+      //user is using custom image
+    //else
+      //if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection) and isAnalysisMode
+        //use default image for selected tool
+      //else
+        //use imageUrl derived from users current runtime
+    /* eslint-disable indent */
+    const getSelectedImage = () => {
+      if (foundImage) {
+        if (!_.includes(foundImage, filteredNewLeoImages) && this.props.isAnalysisMode) {
+          return _.find({ id: tools[this.props.tool].defaultImageId }, newLeoImages).image
+        } else {
+         return imageUrl
+        }
+      } else {
+        return CUSTOM_MODE
+      }
+    }
+
     this.setState({
-      leoImages: newLeoImages, currentRuntimeDetails, currentPersistentDiskDetails,
-      selectedLeoImage: foundImage ? imageUrl : CUSTOM_MODE,
+      leoImages: filteredNewLeoImages, currentRuntimeDetails, currentPersistentDiskDetails,
+      selectedLeoImage: getSelectedImage(),
       customEnvImage: !foundImage ? imageUrl : '',
       jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri || '',
       ...this.getInitialState(currentRuntimeDetails, currentPersistentDiskDetails)
@@ -603,7 +635,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
   }
 
   render() {
-    const { onDismiss } = this.props
+    const { onDismiss, isAnalysisMode } = this.props
     const {
       masterMachineType, masterDiskSize, selectedPersistentDiskSize, sparkMode, workerMachineType,
       numberOfWorkers, numberOfPreemptibleWorkers, workerDiskSize,
@@ -710,7 +742,7 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
         _.map(({ cost, label, unitLabel }) => {
           return div({ key: label, style: { flex: 1, ...styles.label } }, [
             div({ style: { fontSize: 10 } }, [label]),
-            div({ style: { color: colors.accent(), marginTop: '0.25rem' } }, [
+            div({ style: { color: colors.accent(1.1), marginTop: '0.25rem' } }, [
               span({ style: { fontSize: 20 } }, [cost]),
               span([' ', unitLabel])
             ])
@@ -911,8 +943,10 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = this.getExistingEnvironmentConfig()
       return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
         h(TitleBar, {
+          id: titleId,
           style: styles.titleBar,
           title: h(WarningTitle, ['Delete environment options']),
+          hideCloseButton: isAnalysisMode,
           onDismiss,
           onPrevious: () => this.setState({ viewMode: undefined, deleteDiskSelected: false })
         }),
@@ -986,7 +1020,9 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const renderEnvironmentWarning = () => {
       return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
         h(TitleBar, {
+          id: titleId,
           style: styles.titleBar,
+          hideCloseButton: isAnalysisMode,
           title: h(WarningTitle, [
             Utils.cond(
               [this.willDetachPersistentDisk(), () => 'Replace application configuration and cloud compute profile for Spark'],
@@ -1036,6 +1072,8 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const renderCustomImageWarning = () => {
       return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
         h(TitleBar, {
+          id: titleId,
+          hideCloseButton: isAnalysisMode,
           style: styles.titleBar,
           title: h(WarningTitle, ['Unverified Docker image']),
           onDismiss,
@@ -1072,8 +1110,10 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       const renderTitleAndTagline = () => {
         return h(Fragment, [
           h(TitleBar, {
+            id: titleId,
             style: { marginBottom: '0.5rem' },
             title: 'Cloud Environment',
+            hideCloseButton: isAnalysisMode,
             onDismiss
           }),
           div(['A cloud environment consists of application configuration, cloud compute and persistent disk(s).'])
@@ -1162,8 +1202,10 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
       const { currentRuntimeDetails } = this.state
       return div({ style: styles.drawerContent }, [
         h(TitleBar, {
+          id: titleId,
           style: styles.titleBar,
           title: 'About persistent disk',
+          hideCloseButton: isAnalysisMode,
           onDismiss,
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
@@ -1183,8 +1225,10 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const renderPackages = () => {
       return div({ style: styles.drawerContent }, [
         h(TitleBar, {
+          id: titleId,
           style: styles.titleBar,
           title: 'Installed packages',
+          hideCloseButton: isAnalysisMode,
           onDismiss,
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
@@ -1232,4 +1276,12 @@ export const NewRuntimeModal = withModalDrawer({ width: 675 })(class NewRuntimeM
     const { runtime: existingRuntime } = this.getExistingEnvironmentConfig()
     return existingRuntime && (!this.canUpdateRuntime() || this.isStopRequired())
   }
-})
+}
+
+NewRuntimeModalBase.defaultProps = {
+  isAnalysisMode: false
+}
+
+export const NewRuntimeModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(
+  NewRuntimeModalBase
+)

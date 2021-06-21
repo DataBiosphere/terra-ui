@@ -4,15 +4,14 @@ import { Component, Fragment, useEffect, useState } from 'react'
 import { b, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  ButtonPrimary, ButtonSecondary, Clickable, GroupedSelect, IdContainer, LabeledCheckbox, Link, makeMenuIcon, MenuButton, methodLink, RadioButton,
-  Select, spinnerOverlay
+  ButtonPrimary, ButtonSecondary, Clickable, GroupedSelect, IdContainer, LabeledCheckbox, Link, methodLink, RadioButton, Select, spinnerOverlay
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedAutocompleteTextArea, DelayedSearchInput } from 'src/components/input'
 import { MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
-import PopupTrigger, { InfoBox } from 'src/components/PopupTrigger'
+import { InfoBox, makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
 import { HeaderCell, SimpleFlexTable, SimpleTable, Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -21,6 +20,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { HiddenLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { workflowSelectionStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -97,10 +97,10 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
   )
 
   return h(SimpleFlexTable, {
+    'aria-label': `workflow ${which}`,
     rowCount: sortedData.length,
-    tableName: `workflow ${which}`,
     noContentMessage: `No matching ${which}.`,
-    sort,
+    sort, readOnly,
     columns: [
       {
         size: { basis: 350, grow: 0 },
@@ -139,27 +139,32 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
           ])
         ]),
         cellRenderer: ({ rowIndex }) => {
-          const { name, optional, inputType } = sortedData[rowIndex]
+          const io = sortedData[rowIndex]
+          const { name, optional, inputType } = io
           const value = config[which][name] || ''
           const error = errors[which][name]
           const isFile = (inputType === 'File') || (inputType === 'File?')
           const formattedValue = JSON.stringify(Utils.maybeParseJSON(value), null, 2)
           return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
             div({ style: { flex: 1, display: 'flex', position: 'relative', minWidth: 0 } }, [
-              !readOnly ? h(DelayedAutocompleteTextArea, {
-                autosize: true,
-                'aria-label': name,
-                spellCheck: false,
-                placeholder: optional ? 'Optional' : 'Required',
-                value,
-                style: isFile ? { paddingRight: '2rem' } : undefined,
-                onChange: v => onChange(name, v),
-                suggestions
-              }) : h(TextCell, { style: { flex: 1 } }, [value]),
+              !readOnly ? h(IdContainer, [labelId => h(Fragment, [
+                h(HiddenLabel, { id: labelId }, [`${ioTask(io)} ${ioVariable(io)} attribute`]),
+                h(DelayedAutocompleteTextArea, {
+                  autosize: true,
+                  spellCheck: false,
+                  placeholder: optional ? 'Optional' : 'Required',
+                  value,
+                  style: isFile ? { paddingRight: '2rem' } : undefined,
+                  onChange: v => onChange(name, v),
+                  suggestions,
+                  labelId
+                })
+              ])]) : h(TextCell, { style: { flex: 1 } }, [value]),
               !readOnly && isFile && h(Clickable, {
                 style: { position: 'absolute', right: '0.5rem', top: 0, bottom: 0, display: 'flex', alignItems: 'center' },
                 onClick: () => onBrowse(name),
-                tooltip: 'Browse bucket files'
+                tooltip: 'Browse bucket files',
+                'aria-haspopup': 'dialog'
               }, [icon('folder-open', { size: 20 })])
             ]),
             !readOnly && h(Link, {
@@ -231,7 +236,7 @@ const BucketContentModal = ({ workspace: { workspace: { namespace, bucketName } 
     ]),
     div({ style: { margin: '1rem -1rem 1rem -1rem', borderBottom: `1px solid ${colors.light(0.4)}` } }),
     h(SimpleTable, {
-      tableName: 'file browser',
+      'aria-label': 'file browser',
       columns: [
         { header: h(HeaderCell, ['Name']), size: { grow: 1 }, key: 'name' }
       ],
@@ -606,7 +611,7 @@ const WorkflowView = _.flow(
           }, [icon('arrowLeft', { style: { marginRight: '0.5rem' } }), 'Back to list']),
           div({ style: { display: 'flex' } }, [
             span({ style: { marginLeft: '-2rem', width: '2rem' } }, [
-              h(PopupTrigger, {
+              h(MenuTrigger, {
                 closeOnClick: true,
                 content: h(Fragment, [
                   h(MenuButton, {
@@ -931,6 +936,8 @@ const WorkflowView = _.flow(
     const isSingleAndOutputs = key === 'outputs' && this.isSingle()
     const isEditable = !currentSnapRedacted && !Utils.editWorkspaceError(workspace) && !isSingleAndOutputs
 
+    const linkStyle = { color: colors.accent(1.05) } // Get to 4.5:1 contrast on the gray background
+
     return h(Dropzone, {
       key,
       accept: '.json',
@@ -952,13 +959,13 @@ const WorkflowView = _.flow(
           div(['To write to the data model, select "Process multiple workflows" above.'])
         ]),
         key === 'inputs' && _.some('optional', modifiedInputsOutputs['inputs']) ?
-          h(Link, { style: { marginRight: 'auto' }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
+          h(Link, { style: { marginRight: 'auto', ...linkStyle }, onClick: () => this.setState({ includeOptionalInputs: !includeOptionalInputs }) },
             [includeOptionalInputs ? 'Hide optional inputs' : 'Show optional inputs']) :
           div({ style: { marginRight: 'auto' } }),
-        h(Link, { onClick: () => this.downloadJson(key) }, ['Download json']),
+        h(Link, { style: linkStyle, onClick: () => this.downloadJson(key) }, ['Download json']),
         isEditable && h(Fragment, [
           div({ style: { whiteSpace: 'pre' } }, ['  |  Drag or click to ']),
-          h(Link, { onClick: openUploader }, ['upload json'])
+          h(Link, { style: linkStyle, onClick: openUploader }, ['upload json'])
         ]),
         h(DelayedSearchInput, {
           'aria-label': `Search ${key}`,

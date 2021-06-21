@@ -39,16 +39,16 @@ const styles = {
  * @param refresh If provided, a function to refresh the current tab
  * @param getHref A function to get the href for a given tab
  * @param getOnClick An optional click handler function, given the current tab
- * @param label The ARIA label for the menu, which is required for accessibility
+ * @param aria-label The ARIA label for the menu, which is required for accessibility
  * @param tabProps Optionally, properties to add to each tab
  * @param children Children, which will be appended to teh end of the tab bar
  * @param props Any additional properties to add to the container menu element
  */
 export const TabBar = ({
   activeTab, tabNames, displayNames = {}, refresh = _.noop, getHref,
-  getOnClick = _.noop, label, tabProps = {}, children, ...props
+  getOnClick = _.noop, tabProps = {}, children, ...props
 }) => {
-  Utils.useConsoleAssert(!!label, 'You must provide an accessible label for this tab bar')
+  Utils.useLabelAssert('TabBar', props)
 
   const navTab = (i, currentTab) => {
     const selected = currentTab === activeTab
@@ -75,10 +75,13 @@ export const TabBar = ({
     ])
   }
 
-  return div({ role: 'navigation' }, [
+  return div({
+    role: 'navigation',
+    'aria-label': props['aria-label'], // duplicate the menu's label on the navigation element
+    'aria-labelledby': props['aria-labelledby']
+  }, [
     h(HorizontalNavigation, {
       role: 'menu',
-      'aria-label': label,
       'aria-orientation': 'horizontal',
       style: Style.tabBar.container,
       ...props
@@ -93,7 +96,6 @@ TabBar.propTypes = {
   activeTab: PropTypes.string.isRequired,
   tabNames: PropTypes.arrayOf(PropTypes.string).isRequired,
   displayNames: PropTypes.arrayOf(PropTypes.string),
-  label: PropTypes.string.isRequired,
   refresh: PropTypes.func,
   getHref: PropTypes.func,
   getOnClick: PropTypes.func,
@@ -113,7 +115,7 @@ TabBar.propTypes = {
  * @param tabs[].key The key of the tab
  * @param tabs[].title The display name of the tab
  * @param tabs[].width Optionally the width at which to render the tab
- * @param label The ARIA label for the menu, which is required for accessibility
+ * @param aria-label The ARIA label for the menu, which is required for accessibility
  * @param tabProps Optionally, properties to add to each tab
  * @param panelProps Optionally, properties to add to the tabpanel element
  * @param style Optionally, additional styles to add to the tab container
@@ -122,9 +124,9 @@ TabBar.propTypes = {
  * @param props Any additional properties to add to the container menu element
  */
 export const SimpleTabBar = ({
-  value, onChange, tabs, label, tabProps = {}, panelProps = {}, style = {}, tabStyle = {}, children, ...props
+  value, onChange, tabs, tabProps = {}, panelProps = {}, style = {}, tabStyle = {}, children, ...props
 }) => {
-  Utils.useConsoleAssert(!!label, 'You must provide an accessible label for this tab bar')
+  Utils.useLabelAssert('SimpleTabBar', props)
 
   const tabIds = _.map(Utils.useUniqueId, _.range(0, tabs.length))
   const panelRef = useRef()
@@ -135,7 +137,6 @@ export const SimpleTabBar = ({
   return h(Fragment, [
     h(HorizontalNavigation, {
       role: 'tablist',
-      'aria-label': label,
       style: { ...styles.tabBar.container, flex: 0, ...style },
       ...props
     }, _.map(([i, { key, title, width }]) => {
@@ -176,7 +177,6 @@ SimpleTabBar.propTypes = {
     title: PropTypes.node.isRequired,
     width: PropTypes.number
   })).isRequired,
-  label: PropTypes.string.isRequired,
   tabProps: PropTypes.object,
   panelProps: PropTypes.object,
   style: PropTypes.object,

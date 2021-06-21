@@ -2,11 +2,11 @@ import { differenceInSeconds, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, comingSoon, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import PopupTrigger from 'src/components/PopupTrigger'
+import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import RuntimeManager from 'src/components/RuntimeManager'
 import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
@@ -49,12 +49,12 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
   ]
   return h(Fragment, [
     h(TabBar, {
-      label: 'workspace menu',
+      'aria-label': 'workspace menu',
       activeTab, refresh,
       tabNames: _.map('name', tabs),
       getHref: currentTab => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name })
     }, [
-      h(PopupTrigger, {
+      h(MenuTrigger, {
         closeOnClick: true,
         content: h(Fragment, [
           h(MenuButton, { onClick: () => setCloningWorkspace(true) }, [makeMenuIcon('copy'), 'Clone']),
@@ -99,7 +99,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
         div({ style: Style.noWrapEllipsis }, breadcrumbs),
-        div({ style: Style.breadcrumb.textUnderBreadcrumb }, [
+        h2({ style: Style.breadcrumb.textUnderBreadcrumb }, [
           title || `${namespace}/${name}`,
           workspace && !Utils.canWrite(workspace.accessLevel) && span({ style: { paddingLeft: '0.5rem', color: colors.dark(0.85) } }, '(read only)')
         ])

@@ -134,11 +134,11 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
     ]),
     div({ style: { flex: 1 } }, [
       h(AutoSizer, [({ width, height }) => h(FlexTable, {
+        'aria-label': 'workspace data local variables table',
         width, height, rowCount: amendedAttributes.length,
         onScroll: y => saveScroll(0, y),
         initialY,
         hoverHighlight: true,
-        tableName: 'workspace data local variables table',
         noContentMessage: _.isEmpty(initialAttributes) ? 'No Workspace Data defined' : 'No matching data',
         columns: [{
           size: { basis: 400, grow: 0 },
@@ -170,6 +170,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
               editIndex === rowIndex ?
                 h(Fragment, [
                   h(Select, {
+                    'aria-label': 'data type',
                     styles: { container: base => ({ ...base, marginLeft: '1rem', width: 150 }) },
                     isSearchable: false,
                     isClearable: false,
@@ -207,7 +208,8 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
                     disabled: !!Utils.editWorkspaceError(workspace),
                     tooltip: Utils.editWorkspaceError(workspace) || 'Delete variable',
                     style: { marginLeft: '1rem' },
-                    onClick: () => setDeleteIndex(rowIndex)
+                    onClick: () => setDeleteIndex(rowIndex),
+                    'aria-haspopup': 'dialog'
                   }, [icon('trash', { size: 19 })])
                 ])
             ])

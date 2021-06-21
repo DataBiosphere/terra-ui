@@ -3,6 +3,7 @@ import { h } from 'react-hyperscript-helpers'
 import RModal from 'react-modal'
 import { Transition } from 'react-transition-group'
 import colors from 'src/libs/colors'
+import * as Utils from 'src/libs/utils'
 
 
 const drawer = {
@@ -24,6 +25,8 @@ const drawer = {
 }
 
 const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, ...props }) => {
+  Utils.useLabelAssert('ModalDrawer', props)
+
   return h(Transition, {
     in: isOpen,
     timeout: { exit: 200 },
@@ -31,18 +34,19 @@ const ModalDrawer = ({ isOpen, onDismiss, width = 450, children, ...props }) => 
     mountOnEnter: true,
     unmountOnExit: true
   }, [transitionState => h(RModal, {
+    aria: { label: props['aria-label'], labelledby: props['aria-labelledby'], modal: true },
+    ariaHideApp: false,
     parentSelector: () => document.getElementById('modal-root'),
     isOpen: true,
     onRequestClose: onDismiss,
     style: { overlay: drawer.overlay(transitionState), content: { ...drawer.container(transitionState), width } },
-    ariaHideApp: false,
     ...props
   }, [children])])
 }
 
-export const withModalDrawer = ({ width } = {}) => WrappedComponent => {
+export const withModalDrawer = ({ width, ...modalProps } = {}) => WrappedComponent => {
   const Wrapper = ({ isOpen, onDismiss, ...props }) => {
-    return h(ModalDrawer, { isOpen, width, onDismiss }, [
+    return h(ModalDrawer, { isOpen, width, onDismiss, ...modalProps }, [
       isOpen && h(WrappedComponent, { onDismiss, ...props })
     ])
   }

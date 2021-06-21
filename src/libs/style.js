@@ -25,7 +25,7 @@ export const elements = {
       boxShadow: '0 2px 5px 0 rgba(0,0,0,0.35), 0 3px 2px 0 rgba(0,0,0,0.12)'
     }
   },
-  sectionHeader: { color: colors.dark(), fontSize: 16, fontWeight: 600 },
+  sectionHeader: { color: colors.dark(), fontSize: 16, fontWeight: 600, margin: '0.25em 0' },
   pageContentContainer: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column' }
 }
 
@@ -88,14 +88,17 @@ export const cardList = {
 export const navList = {
   heading: {
     color: colors.dark(), backgroundColor: colors.light(0.4), fontSize: 16, padding: '1rem 1.5rem',
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: 0,
     fontWeight: 600, textTransform: 'uppercase', borderBottom: `0.5px solid ${colors.dark(0.2)}`
   },
-  item: selected => ({
-    display: 'flex', alignItems: 'center', padding: '0 1.5rem', height: 50, fontWeight: selected ? 700 : 500,
-    backgroundColor: 'white',
+  itemContainer: selected => ({
+    display: 'flex', alignItems: 'center', flex: 'none', width: '100%', height: 50,
+    padding: '0 1.5rem', backgroundColor: 'white',
     borderBottom: `1px solid ${colors.dark(0.2)}`,
     boxShadow: selected ? `inset -10px 0px ${terraSpecial()}` : undefined
+  }),
+  item: selected => ({
+    display: 'flex', alignItems: 'center', height: 50, fontWeight: selected ? 700 : 500
   }),
   itemHover: selected => selected ? {} : {
     boxShadow: `inset -6px 0px ${terraSpecial(0.5)}`
@@ -110,7 +113,10 @@ export const breadcrumb = {
   },
   textUnderBreadcrumb: {
     color: isTerra() ? 'white' : colors.accent(),
-    fontSize: '1.25rem', ...noWrapEllipsis
+    fontSize: '1.25rem', ...noWrapEllipsis,
+    fontWeight: 500,
+    padding: 0,
+    margin: 0
   }
 }
 
