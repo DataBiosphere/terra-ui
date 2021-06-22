@@ -136,16 +136,17 @@ export class NewRuntimeModalBase extends Component {
   getInitialState(runtime, disk) {
     const runtimeConfig = runtime?.runtimeConfig
     const gpuConfig = runtimeConfig?.gpuConfig
+    const sparkMode = runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false
     return {
       selectedPersistentDiskSize: disk?.size || DEFAULT_DISK_SIZE,
-      sparkMode: runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false,
+      sparkMode,
       masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
       masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || DEFAULT_DISK_SIZE,
       numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
       numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
       workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
       workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DISK_SIZE,
-      gpuEnabled: !!gpuConfig || false,
+      gpuEnabled: (!!gpuConfig && !sparkMode) || false,
       gpuType: gpuConfig?.gpuType || DEFAULT_GPU_TYPE,
       numGpus: gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS
     }
@@ -807,7 +808,7 @@ export class NewRuntimeModalBase extends Component {
               div({ style: { gridColumnEnd: 'span 2' } })
           ]),
           // GPU Enabling
-          div({ style: { gridColumnEnd: 'span 6', marginTop: '1.25rem' } }, [
+          !sparkMode && div({ style: { gridColumnEnd: 'span 6', marginTop: '1.25rem' } }, [
             h(LabeledCheckbox, {
               checked: gpuEnabled,
               onChange: v => this.setState({ gpuEnabled: v })
@@ -819,7 +820,7 @@ export class NewRuntimeModalBase extends Component {
               ])])
           ]),
           // GPU Selection
-          gpuEnabled && div({ style: { ...gridStyle, gridTemplateColumns: `0.75fr 14rem 1fr 5.5rem 1fr 5.5rem`, marginTop: '0.75rem' } }, [
+          gpuEnabled && !sparkMode && div({ style: { ...gridStyle, gridTemplateColumns: `0.75fr 12rem 1fr 5.5rem 1fr 5.5rem`, marginTop: '0.75rem' } }, [
             h(Fragment, [
               h(IdContainer, [
                 id => h(Fragment, [
