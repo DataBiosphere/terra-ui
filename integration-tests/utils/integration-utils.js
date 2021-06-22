@@ -58,7 +58,20 @@ const input = ({ labelContains, placeholder }) => {
 }
 
 const fillIn = async (page, xpath, text) => {
-  return (await page.waitForXPath(xpath)).type(text, { delay: 20 })
+  const input = await page.waitForXPath(xpath)
+  await input.type(text, { delay: 20 })
+  // There are several places (e.g. workspace list search) where the page responds dynamically to
+  // typed input. That behavior could involve extra renders as component state settles. We strive to
+  // avoid the kinds of complex, multi-stage state transitions that can result in extra renders.
+  // But we aren't perfect.
+  //
+  // The impact on these tests is that elements found in the DOM immediately after typing text might
+  // get re-rendered (effectively going away) before the test can interact with them, leading to
+  // frustrating intermittent test failures. This test suite is _not_ intended to guard against
+  // unnecessary renders. It is to check that some specific critical paths through the application
+  // (Critical User Journeys) are not broken. Therefore, we'll delay briefly here instead of
+  // charging forward at a super-human pace.
+  return delay(250)
 }
 
 // Replace pre-existing value
