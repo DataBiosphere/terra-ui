@@ -58,9 +58,7 @@ const input = ({ labelContains, placeholder }) => {
 }
 
 const fillIn = async (page, xpath, text) => {
-  const input = await page.waitForXPath(xpath)
-  await input.type(text, { delay: 20 })
-  return delay(250)
+  return (await page.waitForXPath(xpath)).type(text, { delay: 20 })
 }
 
 // Replace pre-existing value
