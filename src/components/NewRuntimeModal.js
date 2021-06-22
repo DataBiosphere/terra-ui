@@ -769,8 +769,8 @@ export class NewRuntimeModalBase extends Component {
       return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
         div([
-          // CPU & Memory Selection
           div({ style: { ...gridStyle, gridTemplateColumns: `0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem` } }, [
+            // CPU & Memory Selection
             h(Fragment, [
               h(IdContainer, [
                 id => h(Fragment, [
@@ -804,9 +804,10 @@ export class NewRuntimeModalBase extends Component {
             // Disk Selection
             !isPersistentDisk ?
               h(DiskSelector, { value: masterDiskSize, onChange: v => this.setState({ masterDiskSize: v }) }) :
-              div({ style: { gridColumnEnd: 'span 2' } }),
+              div({ style: { gridColumnEnd: 'span 2' } })
+          ]),
           // GPU Enabling
-          div({ style: { gridColumnEnd: 'span 6' } }, [
+          div({ style: { gridColumnEnd: 'span 6', marginTop: '1.25rem' } }, [
             h(LabeledCheckbox, {
               checked: gpuEnabled,
               onChange: v => this.setState({ gpuEnabled: v })
@@ -818,7 +819,7 @@ export class NewRuntimeModalBase extends Component {
               ])])
           ]),
           // GPU Selection
-          gpuEnabled && div({ style: { ...gridStyle, gridTemplateColumns: `0.75fr 14rem 1fr 5.5rem 1fr 5.5rem` } }, [
+          gpuEnabled && div({ style: { ...gridStyle, gridTemplateColumns: `0.75fr 14rem 1fr 5.5rem 1fr 5.5rem`, marginTop: '0.75rem' } }, [
             h(Fragment, [
               h(IdContainer, [
                 id => h(Fragment, [
@@ -864,43 +865,44 @@ export class NewRuntimeModalBase extends Component {
               ])
             ])
           ]),
-          h(IdContainer, [
-            id => div({ style: { gridColumnEnd: 'span 6' } }, [
-              label({ htmlFor: id, style: styles.label }, ['Startup script']),
-              div({ style: { marginTop: '0.5rem' } }, [
-                h(TextInput, {
-                  id,
-                  placeholder: 'URI',
-                  value: jupyterUserScriptUri,
-                  onChange: v => this.setState({ jupyterUserScriptUri: v })
-                })
+          div({ style: { ...gridStyle } }, [
+            h(IdContainer, [
+              id => div({ style: { gridColumnEnd: 'span 6', marginTop: '0.75rem' } }, [
+                label({ htmlFor: id, style: styles.label }, ['Startup script']),
+                div({ style: { marginTop: '0.5rem' } }, [
+                  h(TextInput, {
+                    id,
+                    placeholder: 'URI',
+                    value: jupyterUserScriptUri,
+                    onChange: v => this.setState({ jupyterUserScriptUri: v })
+                  })
+                ])
               ])
-            ])
-          ]),
-          h(IdContainer, [
-            id => div({ style: { gridColumnEnd: 'span 3' } }, [
-              label({ htmlFor: id, style: styles.label }, ['Compute type']),
-              div({ style: { marginTop: '0.5rem' } }, [
-                h(Select, {
-                  id,
-                  isSearchable: false,
-                  value: sparkMode,
-                  onChange: ({ value }) => this.setState({ sparkMode: value }),
-                  options: [
-                    { value: false, label: 'Standard VM', isDisabled: requiresSpark },
-                    { value: 'master', label: 'Spark master node' },
-                    { value: 'cluster', label: 'Spark cluster' }
-                  ]
-                })
+            ]),
+            h(IdContainer, [
+              id => div({ style: { gridColumnEnd: 'span 3', marginTop: '0.75rem' } }, [
+                label({ htmlFor: id, style: styles.label }, ['Compute type']),
+                div({ style: { marginTop: '0.5rem' } }, [
+                  h(Select, {
+                    id,
+                    isSearchable: false,
+                    value: sparkMode,
+                    onChange: ({ value }) => this.setState({ sparkMode: value }),
+                    options: [
+                      { value: false, label: 'Standard VM', isDisabled: requiresSpark },
+                      { value: 'master', label: 'Spark master node' },
+                      { value: 'cluster', label: 'Spark cluster' }
+                    ]
+                  })
+                ])
               ])
             ])
           ])
-        ])
         ]),
         sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
           legend({ style: { padding: 0, ...styles.label } }, ['Worker config']),
           // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
-          div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
+          div({ style: { ...gridStyle, gridTemplateColumns: `0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem`, marginTop: '0.75rem' } }, [
             h(IdContainer, [
               id => h(Fragment, [
                 label({ htmlFor: id, style: styles.label }, ['Workers']),
