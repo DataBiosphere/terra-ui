@@ -761,7 +761,7 @@ export class NewRuntimeModalBase extends Component {
       div(['Version: ', version || null])
     ])
 
-    const renderRuntimeSection = () => {
+    const renderCloudComputeProfileSection = () => {
       const { gpuEnabled, gpuType, numGpus } = this.state
       const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(mainMachineType)
       const gpuTypeOptionsByCpuAndMem = getValidGpuTypes(currentNumCpus, currentMemory)
@@ -1206,7 +1206,7 @@ export class NewRuntimeModalBase extends Component {
           ]),
           div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
             renderApplicationSection(),
-            renderRuntimeSection(),
+            renderCloudComputeProfileSection(),
             !!isPersistentDisk && renderPersistentDiskSection(),
             !sparkMode && !isPersistentDisk && div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
               div([
