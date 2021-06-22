@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const { withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
-const { findText, navChild, fillIn, click, clickable, elementInDataTableRow, waitForNoSpinners, input, signIntoTerra, dismissNotifications, delay } = require('../utils/integration-utils')
+const { findText, navChild, fillIn, click, clickable, elementInDataTableRow, waitForNoSpinners, input, signIntoTerra, dismissNotifications } = require('../utils/integration-utils')
 
 
 const testPreviewDrsUriFn = _.flow(
@@ -24,20 +24,6 @@ const testPreviewDrsUriFn = _.flow(
 
   await click(page, clickable({ textContains: 'View Workspaces' }))
   await waitForNoSpinners(page)
-
-  for (let i = 0; i < 50; i++) {
-    // console.log(`Attempt #${i}...`)
-    await fillIn(page, input({ placeholder: 'SEARCH WORKSPACES' }), workspaceName)
-    await click(page, clickable({ textContains: workspaceName }))
-
-    await findText(page, 'About the workspace')
-    // await delay(1000)
-    await page.reload()
-    await signIntoTerra(page, token)
-    await click(page, clickable({ text: 'Workspaces' }))
-    await waitForNoSpinners(page)
-  }
-
   await fillIn(page, input({ placeholder: 'SEARCH WORKSPACES' }), workspaceName)
   await click(page, clickable({ textContains: workspaceName }))
 
