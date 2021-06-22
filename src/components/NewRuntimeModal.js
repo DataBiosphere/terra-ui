@@ -765,43 +765,47 @@ export class NewRuntimeModalBase extends Component {
       const { gpuEnabled, gpuType, numGpus } = this.state
       const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(mainMachineType)
       const gpuTypeOptionsByCpuAndMem = getValidGpuTypes(currentNumCpus, currentMemory)
-      const gridStyle = { display: 'grid', gridTemplateColumns: `0.50fr '4.5rem' 1fr '5.5rem' 1fr 5.5rem`, gridGap: '2rem', alignItems: 'center' }
+      const gridStyle = { display: 'grid', gridGap: '0.8rem', alignItems: 'center', marginTop: '0.75rem' }
       return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
-        div({ style: { ...gridStyle, marginTop: '0.75rem' } }, [
-          h(Fragment, [
-            h(IdContainer, [
-              id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, ['CPUs']),
-                div([
-                  h(Select, {
-                    id,
-                    isSearchable: false,
-                    value: currentNumCpus,
-                    onChange: option => this.setState({ masterMachineType: _.find({ cpu: option.value }, validMachineTypes)?.name || mainMachineType }),
-                    options: _.flow(_.map('cpu'), _.union([currentNumCpus]), _.sortBy(_.identity))(validMachineTypes)
-                  })
+        div([
+          // CPU & Memory Selection
+          div({ style: { ...gridStyle, gridTemplateColumns: `0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem` } }, [
+            h(Fragment, [
+              h(IdContainer, [
+                id => h(Fragment, [
+                  label({ htmlFor: id, style: styles.label }, ['CPUs']),
+                  div([
+                    h(Select, {
+                      id,
+                      isSearchable: false,
+                      value: currentNumCpus,
+                      onChange: option => this.setState({ masterMachineType: _.find({ cpu: option.value }, validMachineTypes)?.name || mainMachineType }),
+                      options: _.flow(_.map('cpu'), _.union([currentNumCpus]), _.sortBy(_.identity))(validMachineTypes)
+                    })
+                  ])
+                ])
+              ]),
+              h(IdContainer, [
+                id => h(Fragment, [
+                  label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
+                  div([
+                    h(Select, {
+                      id,
+                      isSearchable: false,
+                      value: currentMemory,
+                      onChange: option => this.setState({ masterMachineType: _.find({ cpu: currentNumCpus, memory: option.value }, validMachineTypes)?.name || mainMachineType }),
+                      options: _.flow(_.filter({ cpu: currentNumCpus }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
+                    })
+                  ])
                 ])
               ])
             ]),
-            h(IdContainer, [
-              id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
-                div([
-                  h(Select, {
-                    id,
-                    isSearchable: false,
-                    value: currentMemory,
-                    onChange: option => this.setState({ masterMachineType: _.find({ cpu: currentNumCpus, memory: option.value }, validMachineTypes)?.name || mainMachineType }),
-                    options: _.flow(_.filter({ cpu: currentNumCpus }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
-                  })
-                ])
-              ])
-            ])
-          ]),
-          !isPersistentDisk ?
-            h(DiskSelector, { value: masterDiskSize, onChange: v => this.setState({ masterDiskSize: v }) }) :
-            div({ style: { gridColumnEnd: 'span 2' } }),
+            // Disk Selection
+            !isPersistentDisk ?
+              h(DiskSelector, { value: masterDiskSize, onChange: v => this.setState({ masterDiskSize: v }) }) :
+              div({ style: { gridColumnEnd: 'span 2' } }),
+          // GPU Enabling
           div({ style: { gridColumnEnd: 'span 6' } }, [
             h(LabeledCheckbox, {
               checked: gpuEnabled,
@@ -813,46 +817,49 @@ export class NewRuntimeModalBase extends Component {
                 icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
               ])])
           ]),
-          gpuEnabled && h(Fragment, [
-            h(IdContainer, [
-              id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, ['GPU type']),
-                div({ style: { height: 45 } }, [
-                  h(Select, {
-                    id,
-                    isSearchable: false,
-                    value: displayNameForGpuType(gpuType),
-                    onChange: option => {
-                      const x = _.find({ name: option.value }, gpuTypeOptionsByCpuAndMem)?.type
-                      console.log(`GPU type option.value is ${option.value}`)
-                      console.log(`x is ${x}`)
-                      console.log(`gpuType is ${gpuType}`)
-                      console.log(`options are ${_.flow(_.map('type'), _.union(gpuType), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)}`)
-                      this.setState({ gpuType: x })
-                    },
-                    options: _.flow(_.map('name'), _.union([displayNameForGpuType(gpuType)]), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)
-                  })
+          // GPU Selection
+          gpuEnabled && div({ style: { ...gridStyle, gridTemplateColumns: `0.75fr 14rem 1fr 5.5rem 1fr 5.5rem` } }, [
+            h(Fragment, [
+              h(IdContainer, [
+                id => h(Fragment, [
+                  label({ htmlFor: id, style: styles.label }, ['GPU type']),
+                  div({ style: { height: 45 } }, [
+                    h(Select, {
+                      id,
+                      isSearchable: false,
+                      value: displayNameForGpuType(gpuType),
+                      onChange: option => {
+                        const x = _.find({ name: option.value }, gpuTypeOptionsByCpuAndMem)?.type
+                        console.log(`GPU type option.value is ${option.value}`)
+                        console.log(`x is ${x}`)
+                        console.log(`gpuType is ${gpuType}`)
+                        console.log(`options are ${_.flow(_.map('type'), _.union(gpuType), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)}`)
+                        this.setState({ gpuType: x })
+                      },
+                      options: _.flow(_.map('name'), _.union([displayNameForGpuType(gpuType)]), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)
+                    })
+                  ])
                 ])
-              ])
-            ]),
-            h(IdContainer, [
-              id => h(Fragment, [
-                label({ htmlFor: id, style: styles.label }, ['GPUs']),
-                div([
-                  h(Select, {
-                    id,
-                    isSearchable: false,
-                    value: numGpus,
-                    onChange: option => {
-                      const y = _.find({ type: gpuType, numGpus: option.value }, gpuTypeOptionsByCpuAndMem)?.numGpus
-                      console.log(`GPUs option.value is ${option.value}`)
-                      console.log(`y is ${y}`)
-                      console.log(`numGpus is ${numGpus}`)
-                      console.log(`options are ${_.flow(_.filter({ type: gpuType }), _.map('numGpus'), _.union(numGpus), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)}`)
-                      this.setState({ numGpus: y })
-                    },
-                    options: _.flow(_.filter({ type: gpuType }), _.map('numGpus'), _.union([numGpus]), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)
-                  })
+              ]),
+              h(IdContainer, [
+                id => h(Fragment, [
+                  label({ htmlFor: id, style: styles.label }, ['GPUs']),
+                  div([
+                    h(Select, {
+                      id,
+                      isSearchable: false,
+                      value: numGpus,
+                      onChange: option => {
+                        const y = _.find({ type: gpuType, numGpus: option.value }, gpuTypeOptionsByCpuAndMem)?.numGpus
+                        console.log(`GPUs option.value is ${option.value}`)
+                        console.log(`y is ${y}`)
+                        console.log(`numGpus is ${numGpus}`)
+                        console.log(`options are ${_.flow(_.filter({ type: gpuType }), _.map('numGpus'), _.union(numGpus), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)}`)
+                        this.setState({ numGpus: y })
+                      },
+                      options: _.flow(_.filter({ type: gpuType }), _.map('numGpus'), _.union([numGpus]), _.sortBy(_.identity))(gpuTypeOptionsByCpuAndMem)
+                    })
+                  ])
                 ])
               ])
             ])
@@ -888,6 +895,7 @@ export class NewRuntimeModalBase extends Component {
               ])
             ])
           ])
+        ])
         ]),
         sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
           legend({ style: { padding: 0, ...styles.label } }, ['Worker config']),
