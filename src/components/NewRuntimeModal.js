@@ -603,8 +603,6 @@ export class NewRuntimeModalBase extends Component {
     const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes)
     const mainMachineType = _.find({ name: masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(sparkMode)
     const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
-    const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(mainMachineType)
-    const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory)
     const errors = validate(
       { mainMachineType, workerMachineType, customEnvImage },
       {
@@ -766,6 +764,10 @@ export class NewRuntimeModalBase extends Component {
 
     const renderCloudComputeProfileSection = () => {
       const { gpuEnabled, gpuType, numGpus } = this.state
+      const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(mainMachineType)
+      const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory)
+      const validGpuNames = _.flow(_.map('name'), _.uniq, _.sortBy('price'))(validGpuOptions)
+      const validGpuName = _.includes(displayNameForGpuType(gpuType), validGpuNames) ? displayNameForGpuType(gpuType) : _.head(validGpuNames)
       const gridStyle = { display: 'grid', gridGap: '0.8rem', alignItems: 'center', marginTop: '0.75rem' }
       return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
@@ -829,7 +831,7 @@ export class NewRuntimeModalBase extends Component {
                     h(Select, {
                       id,
                       isSearchable: false,
-                      value: displayNameForGpuType(gpuType),
+                      value: validGpuName,
                       onChange: option => {
                         const x = _.find({ name: option.value }, validGpuOptions)?.type
                         console.log(`GPU type option.value is ${option.value}`)

@@ -49,7 +49,7 @@ export const findMachineType = name => {
 
 export const getValidGpuTypes = (numCpus, mem) => {
   const validGpuTypes = _.filter(({ maxNumCpus, maxMem }) => numCpus <= maxNumCpus && mem <= maxMem, gpuTypes)
-  return validGpuTypes || { type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
+  return validGpuTypes || { name: '?', type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
 }
 
 const dataprocCost = (machineType, numInstances) => {
