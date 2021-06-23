@@ -832,14 +832,7 @@ export class NewRuntimeModalBase extends Component {
                       id,
                       isSearchable: false,
                       value: validGpuName,
-                      onChange: option => {
-                        const x = _.find({ name: option.value }, validGpuOptions)?.type
-                        console.log(`GPU type option.value is ${option.value}`)
-                        console.log(`x is ${x}`)
-                        console.log(`gpuType is ${gpuType}`)
-                        console.log(`options are ${_.flow(_.map('type'), _.union(gpuType), _.sortBy(_.identity))(validGpuOptions)}`)
-                        this.setState({ gpuType: x })
-                      },
+                      onChange: option => this.setState({ gpuType: _.find({ name: option.value }, validGpuOptions)?.type }),
                       options: _.flow(_.map('name'), _.uniq, _.sortBy(_.identity))(validGpuOptions)
                     })
                   ])
@@ -853,14 +846,7 @@ export class NewRuntimeModalBase extends Component {
                       id,
                       isSearchable: false,
                       value: numGpus,
-                      onChange: option => {
-                        const y = _.find({ type: gpuType, numGpus: option.value }, validGpuOptions)?.numGpus
-                        console.log(`GPUs option.value is ${option.value}`)
-                        console.log(`y is ${y}`)
-                        console.log(`numGpus is ${numGpus}`)
-                        console.log(`options are ${_.flow(_.filter({ type: gpuType }), _.map('numGpus'), _.union(numGpus), _.sortBy(_.identity))(validGpuOptions)}`)
-                        this.setState({ numGpus: y })
-                      },
+                      onChange: option => this.setState({ numGpus: _.find({ type: gpuType, numGpus: option.value }, validGpuOptions)?.numGpus }),
                       options: _.flow(_.filter({ type: gpuType }), _.map('numGpus'), _.union([numGpus]), _.sortBy(_.identity))(validGpuOptions)
                     })
                   ])
