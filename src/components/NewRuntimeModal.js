@@ -768,11 +768,13 @@ export class NewRuntimeModalBase extends Component {
       const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory)
       const validGpuNames = _.flow(_.map('name'), _.uniq, _.sortBy('price'))(validGpuOptions)
       const validGpuName = _.includes(displayNameForGpuType(gpuType), validGpuNames) ? displayNameForGpuType(gpuType) : _.head(validGpuNames)
-      const gridStyle = { display: 'grid', gridGap: '0.8rem', alignItems: 'center', marginTop: '0.75rem' }
+      const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
+      const validNumGpus = _.includes(numGpus, validNumGpusOptions) ? numGpus : _.head(validNumGpusOptions)
+      const gridStyle = { display: 'grid', gridGap: '1.5rem', alignItems: 'center', marginTop: '0.75rem' }
       return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
         div([
-          div({ style: { ...gridStyle, gridTemplateColumns: `0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem` } }, [
+          div({ style: { ...gridStyle, gridTemplateColumns: `0.25fr 4.5rem 1fr 5.5rem 1fr 5.5rem` } }, [
             // CPU & Memory Selection
             h(Fragment, [
               h(IdContainer, [
@@ -833,7 +835,7 @@ export class NewRuntimeModalBase extends Component {
                       isSearchable: false,
                       value: validGpuName,
                       onChange: option => this.setState({ gpuType: _.find({ name: option.value }, validGpuOptions)?.type }),
-                      options: _.flow(_.map('name'), _.uniq, _.sortBy(_.identity))(validGpuOptions)
+                      options: validGpuNames
                     })
                   ])
                 ])
@@ -845,9 +847,9 @@ export class NewRuntimeModalBase extends Component {
                     h(Select, {
                       id,
                       isSearchable: false,
-                      value: numGpus,
+                      value: validNumGpus,
                       onChange: option => this.setState({ numGpus: _.find({ type: gpuType, numGpus: option.value }, validGpuOptions)?.numGpus }),
-                      options: _.flow(_.filter({ type: gpuType }), _.map('numGpus'), _.union([numGpus]), _.sortBy(_.identity))(validGpuOptions)
+                      options: validNumGpusOptions
                     })
                   ])
                 ])
