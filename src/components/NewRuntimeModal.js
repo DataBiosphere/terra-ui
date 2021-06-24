@@ -18,6 +18,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
+import { versionTag } from 'src/libs/logos'
 import {
   currentRuntime, DEFAULT_DISK_SIZE, DEFAULT_GPU_TYPE, DEFAULT_NUM_GPUS, defaultDataprocMachineType, defaultGceMachineType, displayNameForGpuType,
   findMachineType,
@@ -826,7 +827,7 @@ export class NewRuntimeModalBase extends Component {
             h(LabeledCheckbox, {
               checked: gpuEnabled,
               onChange: v => this.setState({ gpuEnabled: v || hasGpu })
-            }, [span({ style: { marginLeft: '0.5rem', ...styles.label, verticalAlign: 'top' } }, ['Enable GPUs ']),
+            }, [span({ style: { marginLeft: '0.5rem', ...styles.label, verticalAlign: 'top' } }, ['Enable GPUs ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })]),
               // TODO Update the article link when it's ready
               h(Link, { style: { marginLeft: '1rem', verticalAlign: 'top' }, href: 'https://support.terra.bio/hc/en-us/articles/', ...Utils.newTabLinkProps }, [
                 'Learn more about GPU cost and restrictions.',
