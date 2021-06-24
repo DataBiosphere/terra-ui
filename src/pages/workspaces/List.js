@@ -1,7 +1,7 @@
 import { isAfter, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Fragment, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { HeaderRenderer, Link, Select, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
@@ -86,7 +86,7 @@ export const WorkspaceList = () => {
   const [featuredList, setFeaturedList] = useState()
 
   const { query } = Nav.useRoute()
-  const [filter, setFilter] = useState(query.filter || '')
+  const filter = query.filter || ''
   const [accessLevelsFilter, setAccessLevelsFilter] = useState(query.accessLevelsFilter || [])
   const [projectsFilter, setProjectsFilter] = useState(query.projectsFilter || undefined)
   const [submissionsFilter, setSubmissionsFilter] = useState(query.submissionsFilter || [])
@@ -109,7 +109,7 @@ export const WorkspaceList = () => {
     loadFeatured()
   })
 
-  useEffect(() => {
+  const onSearchChange = filter => {
     // Note: setting undefined so that falsy values don't show up at all
     const newSearch = qs.stringify({
       ...query, filter: filter || undefined, accessLevelsFilter, projectsFilter, tagsFilter, submissionsFilter,
@@ -119,7 +119,7 @@ export const WorkspaceList = () => {
     if (newSearch !== Nav.history.location.search) {
       Nav.history.replace({ search: newSearch })
     }
-  })
+  }
 
   const getWorkspace = id => _.find({ workspace: { workspaceId: id } }, workspaces)
 
@@ -306,7 +306,7 @@ export const WorkspaceList = () => {
         style: { marginLeft: '2rem', width: 500 },
         placeholder: 'SEARCH WORKSPACES',
         'aria-label': 'Search workspaces',
-        onChange: setFilter,
+        onChange: onSearchChange,
         value: filter
       })
     ]),
