@@ -13,6 +13,7 @@ import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -74,7 +75,13 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpand
         div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
           h(Link, {
             style: Style.noWrapEllipsis,
-            href: Nav.getLink('workspace-dashboard', { namespace, name })
+            href: Nav.getLink('workspace-dashboard', { namespace, name }),
+            onClick: () => {
+              Ajax().Metrics.captureEvent(Events.billingProjectGoToWorkspace, {
+                billingProjectName: namespace,
+                workspaceName: name
+              })
+            }
           }, [name])
         ]),
         div({ style: workspaceCardStyles.field }, [createdBy]),
@@ -86,7 +93,13 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpand
             'aria-controls': isExpanded ? id : undefined,
             'aria-owns': isExpanded ? id : undefined,
             style: { display: 'flex', alignItems: 'center' },
-            onClick: onExpand
+            onClick: () => {
+              Ajax().Metrics.captureEvent(Events.billingProjectExpandWorkspace, {
+                billingProjectName: namespace,
+                workspaceName: name
+              })
+              onExpand()
+            }
           }, [
             icon(isExpanded ? 'angle-up' : 'angle-down', { size: workspaceExpandIconSize })
           ])
@@ -195,8 +208,13 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
     withErrorReporting('Error updating billing account'),
     Utils.withBusyState(setUpdatingAccount)
   )(async newAccountName => {
-    const { billingAccountName } = await Ajax(signal).GoogleBilling.changeBillingAccount({ projectId: projectName, newAccountName })
-    setBillingAccountName(billingAccountName)
+    Ajax().Metrics.captureEvent(Events.changeBillingAccount, {
+      oldName: billingAccountName,
+      newName: newAccountName,
+      billingProjectName: projectName
+    })
+    const { newBillingAccountName } = await Ajax(signal).GoogleBilling.changeBillingAccount({ projectId: projectName, newAccountName })
+    setBillingAccountName(newBillingAccountName)
   })
 
   const loadBillingInfo = _.flow(
