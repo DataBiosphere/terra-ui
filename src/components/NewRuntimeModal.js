@@ -137,6 +137,7 @@ export class NewRuntimeModalBase extends Component {
     const runtimeConfig = runtime?.runtimeConfig
     const gpuConfig = runtimeConfig?.gpuConfig
     const sparkMode = runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false
+
     return {
       selectedPersistentDiskSize: disk?.size || DEFAULT_DISK_SIZE,
       sparkMode,
@@ -147,6 +148,7 @@ export class NewRuntimeModalBase extends Component {
       workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
       workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DISK_SIZE,
       gpuEnabled: (!!gpuConfig && !sparkMode) || false,
+      hasGpu: !!gpuConfig,
       gpuType: gpuConfig?.gpuType || DEFAULT_GPU_TYPE,
       numGpus: gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS
     }
@@ -184,9 +186,8 @@ export class NewRuntimeModalBase extends Component {
       ...(desiredRuntime.cloudService === cloudServices.GCE ? {
         machineType: desiredRuntime.machineType || defaultGceMachineType,
         bootDiskSize: desiredRuntime.bootDiskSize,
-        ...(desiredRuntime.diskSize ? {
-          diskSize: desiredRuntime.diskSize
-        } : {})
+        ...(desiredRuntime.gpuConfig ? { gpuConfig: desiredRuntime.gpuConfig } : {}),
+        ...(desiredRuntime.diskSize ? { diskSize: desiredRuntime.diskSize } : {})
       } : {
         masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
         masterDiskSize: desiredRuntime.masterDiskSize,
@@ -323,7 +324,7 @@ export class NewRuntimeModalBase extends Component {
     const {
       deleteDiskSelected, selectedPersistentDiskSize, viewMode, masterMachineType,
       masterDiskSize, sparkMode, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType,
-      workerDiskSize, jupyterUserScriptUri, selectedLeoImage, customEnvImage
+      workerDiskSize, gpuEnabled, gpuType, numGpus, jupyterUserScriptUri, selectedLeoImage, customEnvImage
     } = this.state
     const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = this.getExistingEnvironmentConfig()
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
@@ -337,6 +338,7 @@ export class NewRuntimeModalBase extends Component {
             ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
             ...(cloudService === cloudServices.GCE ? {
               machineType: masterMachineType || defaultGceMachineType,
+              ...(gpuEnabled ? { gpuConfig: { gpuType, numOfGpus: numGpus } } : {}),
               bootDiskSize: existingRuntime?.bootDiskSize,
               ...(this.shouldUsePersistentDisk() ? {
                 persistentDiskAttached: true
@@ -367,17 +369,20 @@ export class NewRuntimeModalBase extends Component {
   }
 
   getExistingEnvironmentConfig() {
-    const { currentRuntimeDetails, currentPersistentDiskDetails } = this.state
+    const { currentRuntimeDetails, currentPersistentDiskDetails, hasGpu } = this.state
     const runtimeConfig = currentRuntimeDetails?.runtimeConfig
     const cloudService = runtimeConfig?.cloudService
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
+    const gpuConfig = runtimeConfig?.gpuConfig
     return {
+      hasGpu,
       runtime: currentRuntimeDetails ? {
         cloudService,
         toolDockerImage: this.getImageUrl(currentRuntimeDetails),
         ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
         ...(cloudService === cloudServices.GCE ? {
           machineType: runtimeConfig.machineType || defaultGceMachineType,
+          ...(hasGpu ? { gpuConfig } : {}),
           bootDiskSize: runtimeConfig.bootDiskSize,
           ...(runtimeConfig.persistentDiskId ? {
             persistentDiskAttached: true
@@ -617,12 +622,17 @@ export class NewRuntimeModalBase extends Component {
     )
 
     const renderActionButton = () => {
-      const { runtime: existingRuntime } = this.getExistingEnvironmentConfig()
+      const { runtime: existingRuntime, hasGpu } = this.getExistingEnvironmentConfig()
       const { runtime: desiredRuntime } = this.getDesiredEnvironmentConfig()
-      const commonButtonProps = { disabled: !this.hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) }
+      const commonButtonProps = hasGpu && viewMode !== 'deleteEnvironmentOptions' ?
+        { disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' } :
+        { disabled: !this.hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) }
       const canShowCustomImageWarning = viewMode === undefined
       const canShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
       return Utils.cond(
+        // [hasGpu, () => {
+        //   return h(ButtonPrimary, { disabled: hasGpu, tooltip: 'Runtimes with GPUs cannot be updated. Please delete it and create a new one.' }, ['Update'])
+        // }],
         [canShowCustomImageWarning && isCustomImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage, () => {
           return h(ButtonPrimary, { ...commonButtonProps, onClick: () => this.setState({ viewMode: 'customImageWarning' }) }, ['Next'])
         }],
@@ -763,7 +773,7 @@ export class NewRuntimeModalBase extends Component {
     ])
 
     const renderCloudComputeProfileSection = () => {
-      const { gpuEnabled, gpuType, numGpus } = this.state
+      const { hasGpu, gpuEnabled, gpuType, numGpus } = this.state
       const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(mainMachineType)
       const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory)
       const validGpuNames = _.flow(_.map('name'), _.uniq, _.sortBy('price'))(validGpuOptions)
@@ -815,7 +825,7 @@ export class NewRuntimeModalBase extends Component {
           !sparkMode && div({ style: { gridColumnEnd: 'span 6', marginTop: '1.25rem' } }, [
             h(LabeledCheckbox, {
               checked: gpuEnabled,
-              onChange: v => this.setState({ gpuEnabled: v })
+              onChange: v => this.setState({ gpuEnabled: v || hasGpu })
             }, [span({ style: { marginLeft: '0.5rem', ...styles.label, verticalAlign: 'top' } }, ['Enable GPUs ']),
               // TODO Update the article link when it's ready
               h(Link, { style: { marginLeft: '1rem', verticalAlign: 'top' }, href: 'https://support.terra.bio/hc/en-us/articles/', ...Utils.newTabLinkProps }, [

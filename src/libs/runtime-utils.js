@@ -52,6 +52,8 @@ export const getValidGpuTypes = (numCpus, mem) => {
   return validGpuTypes || { name: '?', type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
 }
 
+const gpuCost = (gpuType, numGpus) => _.find({ type: gpuType, numGpus }, gpuTypes)?.price || NaN
+
 const dataprocCost = (machineType, numInstances) => {
   const { cpu: cpuPrice } = findMachineType(machineType)
 
@@ -77,6 +79,8 @@ export const runtimeConfigCost = config => {
   const { price: masterPrice } = findMachineType(masterMachineType)
   const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
   const numberOfStandardVms = 1 + numberOfWorkers // 1 is for the master VM
+  const gpuConfig = config?.gpuConfig
+  const gpuEnabled = cloudService === cloudServices.GCE && !!gpuConfig
 
   return _.sum([
     masterPrice,
@@ -84,6 +88,7 @@ export const runtimeConfigCost = config => {
     numberOfPreemptibleWorkers * preemptiblePrice,
     numberOfPreemptibleWorkers * workerDiskSize * storagePrice,
     cloudService === cloudServices.DATAPROC && dataprocCost(workerMachineType, numberOfPreemptibleWorkers),
+    gpuEnabled && gpuCost(gpuConfig.gpuType, gpuConfig.numOfGpus),
     ephemeralExternalIpAddressCost({ numStandardVms: numberOfStandardVms, numPreemptibleVms: numberOfPreemptibleWorkers }),
     runtimeConfigBaseCost(config)
   ])
