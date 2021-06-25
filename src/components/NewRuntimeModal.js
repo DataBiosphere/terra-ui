@@ -631,9 +631,6 @@ export class NewRuntimeModalBase extends Component {
       const canShowCustomImageWarning = viewMode === undefined
       const canShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
       return Utils.cond(
-        // [hasGpu, () => {
-        //   return h(ButtonPrimary, { disabled: hasGpu, tooltip: 'Runtimes with GPUs cannot be updated. Please delete it and create a new one.' }, ['Update'])
-        // }],
         [canShowCustomImageWarning && isCustomImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage, () => {
           return h(ButtonPrimary, { ...commonButtonProps, onClick: () => this.setState({ viewMode: 'customImageWarning' }) }, ['Next'])
         }],
