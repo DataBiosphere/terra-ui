@@ -778,11 +778,11 @@ export class NewRuntimeModalBase extends Component {
       const validGpuName = _.includes(displayNameForGpuType(gpuType), validGpuNames) ? displayNameForGpuType(gpuType) : _.head(validGpuNames)
       const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
       const validNumGpus = _.includes(numGpus, validNumGpusOptions) ? numGpus : _.head(validNumGpusOptions)
-      const gridStyle = { display: 'grid', gridGap: '1.5rem', alignItems: 'center', marginTop: '0.75rem' }
+      const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '0.75rem' }
       return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
         div([
-          div({ style: { ...gridStyle, gridTemplateColumns: `0.25fr 4.5rem 1fr 5.5rem 1fr 5.5rem` } }, [
+          div({ style: { ...gridStyle, gridTemplateColumns: `0.25fr 4.5rem 1fr 5.5rem 1fr 5rem` } }, [
           // CPU & Memory Selection
             h(IdContainer, [
               id => h(Fragment, [
@@ -899,7 +899,7 @@ export class NewRuntimeModalBase extends Component {
         sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
           legend({ style: { padding: 0, ...styles.label } }, ['Worker config']),
           // grid styling in a div because of display issues in chrome: https://bugs.chromium.org/p/chromium/issues/detail?id=375693
-          div({ style: { ...gridStyle, gridTemplateColumns: `0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem`, marginTop: '0.75rem' } }, [
+          div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 4.5rem 1fr 5rem 1fr 5rem', marginTop: '0.75rem' } }, [
             h(IdContainer, [
               id => h(Fragment, [
                 label({ htmlFor: id, style: styles.label }, ['Workers']),
