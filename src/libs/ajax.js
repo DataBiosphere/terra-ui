@@ -451,6 +451,24 @@ const Billing = signal => ({
     return res
   },
 
+  changeBillingAccount: async ({ billingProjectName, newBillingAccountName }) => {
+    const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
+      _.mergeAll([
+        authOpts(), { signal, method: 'PUT' },
+        jsonBody({ billingAccount: newBillingAccountName })
+      ]))
+    return res
+  },
+
+  updateSpendConfiguration: async ({ billingProjectName, datasetGoogleProject, datasetName }) => {
+    const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/spendReportConfiguration`,
+      _.mergeAll([
+        authOpts(), { signal, method: 'PUT' },
+        jsonBody({ datasetGoogleProject, datasetName })
+      ]))
+    return res
+  },
+
   project: projectName => {
     const root = `billing/${projectName}`
 
