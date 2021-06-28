@@ -783,38 +783,36 @@ export class NewRuntimeModalBase extends Component {
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
         div([
           div({ style: { ...gridStyle, gridTemplateColumns: `0.25fr 4.5rem 1fr 5.5rem 1fr 5.5rem` } }, [
-            // CPU & Memory Selection
-            h(Fragment, [
-              h(IdContainer, [
-                id => h(Fragment, [
-                  label({ htmlFor: id, style: styles.label }, ['CPUs']),
-                  div([
-                    h(Select, {
-                      id,
-                      isSearchable: false,
-                      value: currentNumCpus,
-                      onChange: option => this.setState({ masterMachineType: _.find({ cpu: option.value }, validMachineTypes)?.name || mainMachineType }),
-                      options: _.flow(_.map('cpu'), _.union([currentNumCpus]), _.sortBy(_.identity))(validMachineTypes)
-                    })
-                  ])
-                ])
-              ]),
-              h(IdContainer, [
-                id => h(Fragment, [
-                  label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
-                  div([
-                    h(Select, {
-                      id,
-                      isSearchable: false,
-                      value: currentMemory,
-                      onChange: option => this.setState({ masterMachineType: _.find({ cpu: currentNumCpus, memory: option.value }, validMachineTypes)?.name || mainMachineType }),
-                      options: _.flow(_.filter({ cpu: currentNumCpus }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
-                    })
-                  ])
+          // CPU & Memory Selection
+            h(IdContainer, [
+              id => h(Fragment, [
+                label({ htmlFor: id, style: styles.label }, ['CPUs']),
+                div([
+                  h(Select, {
+                    id,
+                    isSearchable: false,
+                    value: currentNumCpus,
+                    onChange: option => this.setState({ masterMachineType: _.find({ cpu: option.value }, validMachineTypes)?.name || mainMachineType }),
+                    options: _.flow(_.map('cpu'), _.union([currentNumCpus]), _.sortBy(_.identity))(validMachineTypes)
+                  })
                 ])
               ])
             ]),
-            // Disk Selection
+            h(IdContainer, [
+              id => h(Fragment, [
+                label({ htmlFor: id, style: styles.label }, ['Memory (GB)']),
+                div([
+                  h(Select, {
+                    id,
+                    isSearchable: false,
+                    value: currentMemory,
+                    onChange: option => this.setState({ masterMachineType: _.find({ cpu: currentNumCpus, memory: option.value }, validMachineTypes)?.name || mainMachineType }),
+                    options: _.flow(_.filter({ cpu: currentNumCpus }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
+                  })
+                ])
+              ])
+            ]),
+          // Disk Selection
             !isPersistentDisk ?
               h(DiskSelector, { value: masterDiskSize, onChange: v => this.setState({ masterDiskSize: v }) }) :
               div({ style: { gridColumnEnd: 'span 2' } })
