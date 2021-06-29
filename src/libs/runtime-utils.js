@@ -228,7 +228,6 @@ export const convertedAppStatus = appStatus => {
 
 export const displayNameForGpuType = type => {
   return Utils.switchCase(type,
-    ['nvidia-tesla-t4', () => 'NVIDIA Tesla T4'],
     ['nvidia-tesla-k80', () => 'NVIDIA Tesla K80'],
     ['nvidia-tesla-p4', () => 'NVIDIA Tesla P4'],
     ['nvidia-tesla-v100', () => 'NVIDIA Tesla V100'],
