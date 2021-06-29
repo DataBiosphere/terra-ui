@@ -320,8 +320,8 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
               options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
               onChange: ({ value: newAccountName }) => setSelectedBilling(newAccountName)
             }),
-            div({ style: { marginTop: '1rem' } }, ['Note: Changing the billing account for this ' +
-            'billing project will clear the spend report configuration.'])
+            div({ style: { marginTop: '1rem' } },
+              ['Note: Changing the billing account for this billing project will clear the spend report configuration.'])
           ])])
         ])
       ]),
