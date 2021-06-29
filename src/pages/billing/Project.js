@@ -321,7 +321,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
               onChange: ({ value: newAccountName }) => setSelectedBilling(newAccountName)
             }),
             div({ style: { marginTop: '1rem' } },
-              ['Note: Changing the billing account for this billing project will clear the spend report configuration.'])
+              ['Note: Changing the billing account for this billing project will clear the workflow spend report configuration.'])
           ])])
         ])
       ]),
