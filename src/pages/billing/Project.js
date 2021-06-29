@@ -232,7 +232,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   })
 
   const updateSpendConfiguration = _.flow(
-    withErrorReporting('Error updating spend report configuration'),
+    withErrorReporting('Error updating workflow spend report configuration'),
     Utils.withBusyState(setUpdating)
   )(async () => {
     await Ajax(signal).Billing.updateSpendConfiguration({ billingProjectName: projectName, datasetGoogleProject: selectedDatasetProjectName, datasetName: selectedDatasetName })
@@ -326,10 +326,10 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         ])
       ]),
       div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
-        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Spend Report Configuration:'),
+        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Workflow Spend Report Configuration:'),
         span({ style: { flexShrink: 0 } }, 'Edit'),
         h(Link, {
-          tooltip: 'Configure Spend Reporting',
+          tooltip: 'Configure Workflow Spend Reporting',
           style: { marginLeft: '0.5rem' },
           onClick: async () => {
             if (Auth.hasBillingScope()) {
@@ -341,7 +341,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
           }
         }, [icon('edit', { size: 12 })]),
         showSpendReportConfigurationModal && h(Modal, {
-          title: 'Configure Spend Reporting',
+          title: 'Configure Workflow Spend Reporting',
           onDismiss: () => setShowSpendReportConfigurationModal(false),
           okButton: h(ButtonPrimary, {
             disabled: !selectedDatasetProjectName || !selectedDatasetName,
@@ -366,8 +366,8 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
             }),
             div({ style: { marginTop: '1rem' } }, [
               ['See '],
-              h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/4402636420763', ...Utils.newTabLinkProps }, ['our documentation']),
-              [' for details on configuring spend reporting for billing projects.']
+              h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360037862771', ...Utils.newTabLinkProps }, ['our documentation']),
+              [' for details on configuring workflow spend reporting for billing projects.']
             ])
           ])])
         ])
