@@ -386,7 +386,7 @@ export class NewRuntimeModalBase extends Component {
         ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
         ...(cloudService === cloudServices.GCE ? {
           machineType: runtimeConfig.machineType || defaultGceMachineType,
-          ...(hasGpu ? { gpuConfig } : {}),
+          ...(hasGpu && gpuConfig ? { gpuConfig } : {}),
           bootDiskSize: runtimeConfig.bootDiskSize,
           ...(runtimeConfig.persistentDiskId ? {
             persistentDiskAttached: true
@@ -788,7 +788,7 @@ export class NewRuntimeModalBase extends Component {
       return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
         div([
-          div({ style: { ...gridStyle, gridTemplateColumns: `0.25fr 4.5rem 1fr 5.5rem 1fr 5rem` } }, [
+          div({ style: { ...gridStyle, gridTemplateColumns: '0.25fr 4.5rem 1fr 5.5rem 1fr 5rem' } }, [
           // CPU & Memory Selection
             h(IdContainer, [
               id => h(Fragment, [
@@ -843,7 +843,7 @@ export class NewRuntimeModalBase extends Component {
             ])
           ]),
           // GPU Selection
-          gpuEnabled && !sparkMode && div({ style: { ...gridStyle, gridTemplateColumns: `0.75fr 12rem 1fr 5.5rem 1fr 5.5rem`, marginTop: '0.75rem' } }, [
+          gpuEnabled && !sparkMode && div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 12rem 1fr 5.5rem 1fr 5.5rem', marginTop: '0.75rem' } }, [
             h(Fragment, [
               h(IdContainer, [
                 id => h(Fragment, [
@@ -875,7 +875,7 @@ export class NewRuntimeModalBase extends Component {
               ])
             ])
           ]),
-          div({ style: { ...gridStyle } }, [
+          div({ style: gridStyle }, [
             h(IdContainer, [
               id => div({ style: { gridColumnEnd: 'span 6', marginTop: '0.75rem' } }, [
                 label({ htmlFor: id, style: styles.label }, ['Startup script']),
