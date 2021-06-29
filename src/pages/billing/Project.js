@@ -355,7 +355,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
             h(FormLabel, { htmlFor: id, required: true }, ['Dataset Project Name']),
             h(TextInput, {
               id,
-              onChange: v => setSelectedDatasetProjectName(v)
+              onChange: setSelectedDatasetProjectName
             })
           ])]),
           h(IdContainer, [id => h(Fragment, [
