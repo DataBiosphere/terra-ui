@@ -362,7 +362,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
             h(FormLabel, { htmlFor: id, required: true }, ['Dataset Name']),
             h(TextInput, {
               id,
-              onChange: v => setSelectedDatasetName(v)
+              onChange: setSelectedDatasetName
             }),
             div({ style: { marginTop: '1rem' } }, [
               ['See '],
