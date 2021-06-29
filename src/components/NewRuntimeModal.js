@@ -13,6 +13,7 @@ import { tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { SaveFilesHelp } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { cloudServices, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -821,13 +822,20 @@ export class NewRuntimeModalBase extends Component {
           !sparkMode && div({ style: { gridColumnEnd: 'span 6', marginTop: '1.25rem' } }, [
             h(LabeledCheckbox, {
               checked: gpuEnabled,
+              disabled: !hasGpu,
               onChange: v => this.setState({ gpuEnabled: v || hasGpu })
-            }, [span({ style: { marginLeft: '0.5rem', ...styles.label, verticalAlign: 'top' } }, ['Enable GPUs ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })]),
+            }, [
+              span({ style: { marginLeft: '0.5rem', ...styles.label, verticalAlign: 'top' } }, [
+                h(TooltipTrigger, { content: ['GPUs can only be added to Standard VM compute at creation time.'] }, [
+                  span(['Enable GPUs ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })])
+                ])
+              ]),
               // TODO Update the article link when it's ready
               h(Link, { style: { marginLeft: '1rem', verticalAlign: 'top' }, href: 'https://support.terra.bio/hc/en-us/articles/', ...Utils.newTabLinkProps }, [
                 'Learn more about GPU cost and restrictions.',
                 icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-              ])])
+              ])
+            ])
           ]),
           // GPU Selection
           gpuEnabled && !sparkMode && div({ style: { ...gridStyle, gridTemplateColumns: `0.75fr 12rem 1fr 5.5rem 1fr 5.5rem`, marginTop: '0.75rem' } }, [
