@@ -326,12 +326,14 @@ export class NewRuntimeModalBase extends Component {
     const {
       deleteDiskSelected, selectedPersistentDiskSize, viewMode, masterMachineType,
       masterDiskSize, sparkMode, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType,
-      workerDiskSize, gpuEnabled, gpuType, numGpus, jupyterUserScriptUri, selectedLeoImage, customEnvImage
+      workerDiskSize, gpuEnabled, gpuType, numGpus, jupyterUserScriptUri, selectedLeoImage,
+      customEnvImage, hasGpu
     } = this.state
     const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = this.getExistingEnvironmentConfig()
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
     const desiredNumberOfWorkers = sparkMode === 'cluster' ? numberOfWorkers : 0
     return {
+      hasGpu,
       runtime: Utils.cond(
         [(viewMode !== 'deleteEnvironmentOptions'), () => {
           return {
@@ -771,7 +773,7 @@ export class NewRuntimeModalBase extends Component {
       div(['Version: ', version || null])
     ])
 
-    const renderCloudComputeProfileSection = () => {
+    const renderCloudComputeProfileSection = computeExists => {
       const { hasGpu, gpuEnabled, gpuType, numGpus } = this.state
       const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(mainMachineType)
       const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory)
@@ -779,7 +781,10 @@ export class NewRuntimeModalBase extends Component {
       const validGpuName = _.includes(displayNameForGpuType(gpuType), validGpuNames) ? displayNameForGpuType(gpuType) : _.head(validGpuNames)
       const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
       const validNumGpus = _.includes(numGpus, validNumGpusOptions) ? numGpus : _.head(validNumGpusOptions)
+      const gpuCheckboxDisabled = computeExists ? !gpuEnabled : sparkMode
+      const enableGpusSpan = span(['Enable GPUs ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })])
       const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '0.75rem' }
+
       return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
         div([
@@ -822,13 +827,13 @@ export class NewRuntimeModalBase extends Component {
           !sparkMode && div({ style: { gridColumnEnd: 'span 6', marginTop: '1.25rem' } }, [
             h(LabeledCheckbox, {
               checked: gpuEnabled,
-              disabled: !hasGpu,
+              disabled: gpuCheckboxDisabled,
               onChange: v => this.setState({ gpuEnabled: v || hasGpu })
             }, [
               span({ style: { marginLeft: '0.5rem', ...styles.label, verticalAlign: 'top' } }, [
-                h(TooltipTrigger, { content: ['GPUs can only be added to Standard VM compute at creation time.'] }, [
-                  span(['Enable GPUs ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })])
-                ])
+                gpuCheckboxDisabled ?
+                  h(TooltipTrigger, { content: ['GPUs can be added only to Standard VM compute at creation time.'] }, [enableGpusSpan]) :
+                  enableGpusSpan
               ]),
               // TODO Update the article link when it's ready
               h(Link, { style: { marginLeft: '1rem', verticalAlign: 'top' }, href: 'https://support.terra.bio/hc/en-us/articles/', ...Utils.newTabLinkProps }, [
@@ -1213,7 +1218,7 @@ export class NewRuntimeModalBase extends Component {
           ]),
           div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
             renderApplicationSection(),
-            renderCloudComputeProfileSection(),
+            renderCloudComputeProfileSection(existingRuntime),
             !!isPersistentDisk && renderPersistentDiskSection(),
             !sparkMode && !isPersistentDisk && div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
               div([
