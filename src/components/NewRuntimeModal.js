@@ -832,7 +832,7 @@ export class NewRuntimeModalBase extends Component {
             }, [
               span({ style: { marginLeft: '0.5rem', ...styles.label, verticalAlign: 'top' } }, [
                 gpuCheckboxDisabled ?
-                  h(TooltipTrigger, { content: ['GPUs can be added only to Standard VM compute at creation time.'] }, [enableGpusSpan]) :
+                  h(TooltipTrigger, { content: ['GPUs can be added only to Standard VM compute at creation time.'], side: 'right' }, [enableGpusSpan]) :
                   enableGpusSpan
               ]),
               // TODO Update the article link when it's ready
