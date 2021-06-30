@@ -42,7 +42,7 @@ const styles = {
   titleBar: { marginBottom: '1rem' },
   drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
   warningView: { backgroundColor: colors.warning(0.1) },
-  whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' }
+  whiteBoxContainer: { padding: '1.5rem', borderRadius: 3, backgroundColor: 'white' }
 }
 
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
@@ -783,7 +783,7 @@ export class NewRuntimeModalBase extends Component {
       const validNumGpus = _.includes(numGpus, validNumGpusOptions) ? numGpus : _.head(validNumGpusOptions)
       const gpuCheckboxDisabled = computeExists ? !gpuEnabled : sparkMode
       const enableGpusSpan = span(['Enable GPUs ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })])
-      const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '0.75rem' }
+      const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
 
       return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
@@ -824,7 +824,7 @@ export class NewRuntimeModalBase extends Component {
               div({ style: { gridColumnEnd: 'span 2' } })
           ]),
           // GPU Enabling
-          !sparkMode && div({ style: { gridColumnEnd: 'span 6', marginTop: '1.25rem' } }, [
+          !sparkMode && div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
             h(LabeledCheckbox, {
               checked: gpuEnabled,
               disabled: gpuCheckboxDisabled,
@@ -843,7 +843,7 @@ export class NewRuntimeModalBase extends Component {
             ])
           ]),
           // GPU Selection
-          gpuEnabled && !sparkMode && div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 12rem 1fr 5.5rem 1fr 5.5rem', marginTop: '0.75rem' } }, [
+          gpuEnabled && !sparkMode && div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 12rem 1fr 5.5rem 1fr 5.5rem' } }, [
             h(Fragment, [
               h(IdContainer, [
                 id => h(Fragment, [
@@ -877,7 +877,7 @@ export class NewRuntimeModalBase extends Component {
           ]),
           div({ style: gridStyle }, [
             h(IdContainer, [
-              id => div({ style: { gridColumnEnd: 'span 6', marginTop: '0.75rem' } }, [
+              id => div({ style: { gridColumnEnd: 'span 6', marginTop: '0.5rem' } }, [
                 label({ htmlFor: id, style: styles.label }, ['Startup script']),
                 div({ style: { marginTop: '0.5rem' } }, [
                   h(TextInput, {
@@ -890,7 +890,7 @@ export class NewRuntimeModalBase extends Component {
               ])
             ]),
             h(IdContainer, [
-              id => div({ style: { gridColumnEnd: 'span 3', marginTop: '0.75rem' } }, [
+              id => div({ style: { gridColumnEnd: 'span 3', marginTop: '0.5rem' } }, [
                 label({ htmlFor: id, style: styles.label }, ['Compute type']),
                 div({ style: { marginTop: '0.5rem' } }, [
                   h(Select, {
