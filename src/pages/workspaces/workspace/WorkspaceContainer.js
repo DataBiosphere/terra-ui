@@ -3,6 +3,7 @@ import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, comingSoon, Link, spinnerOverlay } from 'src/components/common'
+import { ContextBarButtons } from 'src/components/ContextBar'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -30,10 +31,11 @@ const navIconProps = {
   hover: { opacity: 1 }, focus: 'hover'
 }
 
-const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
-  const [deletingWorkspace, setDeletingWorkspace] = useState(false)
-  const [cloningWorkspace, setCloningWorkspace] = useState(false)
-  const [sharingWorkspace, setSharingWorkspace] = useState(false)
+const WorkspaceTabs = ({
+  namespace, name, workspace, activeTab, refresh,
+  deletingWorkspace, setDeletingWorkspace, cloningWorkspace, setCloningWorkspace,
+  sharingWorkspace, setSharingWorkspace
+}) => {
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = workspace?.canShare
 
@@ -95,6 +97,12 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
 }
 
 const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, children }) => {
+  const [deletingWorkspace, setDeletingWorkspace] = useState(false)
+  const [cloningWorkspace, setCloningWorkspace] = useState(false)
+  const [sharingWorkspace, setSharingWorkspace] = useState(false)
+  const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
+  const canShare = !!workspace?.canShare
+
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
@@ -124,8 +132,24 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
         apps, galaxyDataDisks, workspace, refreshApps
       })
     ]),
-    showTabBar && h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace }),
-    div({ role: 'main', style: Style.elements.pageContentContainer }, [children])
+    showTabBar && h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace, deletingWorkspace, setDeletingWorkspace, cloningWorkspace, setCloningWorkspace, sharingWorkspace, setSharingWorkspace }),
+    div({ role: 'main', style: Style.elements.pageContentContainer },
+      // Display the context bar only if the analysis tab is visible, for now
+      (isAnalysisTabVisible() && activeTab === 'analyses' ?
+        [div({ style: { flex: 1, display: 'flex' } }, [
+          div({ style: { flex: 1 } }, [
+            children
+          ]),
+          div({ style: Style.elements.contextBarContainer }, [
+            h(ContextBarButtons, {
+              setDeletingWorkspace,
+              setCloningWorkspace,
+              setSharingWorkspace,
+              isOwner,
+              canShare
+            })
+          ])
+        ])] : [children]))
   ])
 }
 

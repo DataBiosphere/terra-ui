@@ -26,7 +26,8 @@ export const elements = {
     }
   },
   sectionHeader: { color: colors.dark(), fontSize: 16, fontWeight: 600, margin: '0.25em 0' },
-  pageContentContainer: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column' }
+  pageContentContainer: { position: 'relative', flexGrow: 1, display: 'flex', flexDirection: 'column' },
+  contextBarContainer: { flex: 'none', width: 55, backgroundColor: colors.dark(0.15) }
 }
 
 export const tabBar = {
