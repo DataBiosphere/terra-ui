@@ -5,6 +5,7 @@ import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon, spinner } from 'src/components/icons'
+import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { ariaSort } from 'src/components/table'
@@ -131,7 +132,10 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   const [loadingBillingInfo, setLoadingBillingInfo] = useState(false)
   const [billingAccountName, setBillingAccountName] = useState(null)
   const [showBillingModal, setShowBillingModal] = useState(false)
+  const [showSpendReportConfigurationModal, setShowSpendReportConfigurationModal] = useState(false)
   const [selectedBilling, setSelectedBilling] = useState()
+  const [selectedDatasetProjectName, setSelectedDatasetProjectName] = useState(null)
+  const [selectedDatasetName, setSelectedDatasetName] = useState(null)
   const [tab, setTab] = useState(query.tab || 'workspaces')
   const [expandedWorkspaceName, setExpandedWorkspaceName] = useState()
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
@@ -213,8 +217,8 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
       newName: newAccountName,
       billingProjectName: projectName
     })
-    const { newBillingAccountName } = await Ajax(signal).GoogleBilling.changeBillingAccount({ projectId: projectName, newAccountName })
-    setBillingAccountName(newBillingAccountName)
+    await Ajax(signal).Billing.changeBillingAccount({ billingProjectName: projectName, newBillingAccountName: newAccountName })
+    setBillingAccountName(newAccountName)
   })
 
   const loadBillingInfo = _.flow(
@@ -225,6 +229,13 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
       const { billingAccountName } = await Ajax(signal).GoogleBilling.getBillingInfo(projectName)
       setBillingAccountName(billingAccountName)
     }
+  })
+
+  const updateSpendConfiguration = _.flow(
+    withErrorReporting('Error updating workflow spend report configuration'),
+    Utils.withBusyState(setUpdating)
+  )(async () => {
+    await Ajax(signal).Billing.updateSpendConfiguration({ billingProjectName: projectName, datasetGoogleProject: selectedDatasetProjectName, datasetName: selectedDatasetName })
   })
 
   const refresh = _.flow(
@@ -308,7 +319,56 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
               isClearable: false,
               options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
               onChange: ({ value: newAccountName }) => setSelectedBilling(newAccountName)
+            }),
+            div({ style: { marginTop: '1rem' } },
+              ['Note: Changing the billing account for this billing project will clear the workflow spend report configuration.'])
+          ])])
+        ])
+      ]),
+      div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
+        span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, marginRight: '0.75rem' } }, 'Workflow Spend Report Configuration:'),
+        span({ style: { flexShrink: 0 } }, 'Edit'),
+        h(Link, {
+          tooltip: 'Configure Workflow Spend Reporting',
+          style: { marginLeft: '0.5rem' },
+          onClick: async () => {
+            if (Auth.hasBillingScope()) {
+              setShowSpendReportConfigurationModal(true)
+            } else {
+              await authorizeAndLoadAccounts()
+              setShowSpendReportConfigurationModal(Auth.hasBillingScope())
+            }
+          }
+        }, [icon('edit', { size: 12 })]),
+        showSpendReportConfigurationModal && h(Modal, {
+          title: 'Configure Workflow Spend Reporting',
+          onDismiss: () => setShowSpendReportConfigurationModal(false),
+          okButton: h(ButtonPrimary, {
+            disabled: !selectedDatasetProjectName || !selectedDatasetName,
+            onClick: async () => {
+              setShowSpendReportConfigurationModal(false)
+              await updateSpendConfiguration(projectName, selectedDatasetProjectName, selectedDatasetName)
+            }
+          }, ['Ok'])
+        }, [
+          h(IdContainer, [id => h(Fragment, [
+            h(FormLabel, { htmlFor: id, required: true }, ['Dataset Project Name']),
+            h(TextInput, {
+              id,
+              onChange: setSelectedDatasetProjectName
             })
+          ])]),
+          h(IdContainer, [id => h(Fragment, [
+            h(FormLabel, { htmlFor: id, required: true }, ['Dataset Name']),
+            h(TextInput, {
+              id,
+              onChange: setSelectedDatasetName
+            }),
+            div({ style: { marginTop: '1rem' } }, [
+              ['See '],
+              h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360037862771', ...Utils.newTabLinkProps }, ['our documentation']),
+              [' for details on configuring workflow spend reporting for billing projects.']
+            ])
           ])])
         ])
       ]),
