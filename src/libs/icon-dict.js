@@ -14,6 +14,7 @@ import { ReactComponent as arrowLeftRegular } from 'src/icons/arrow-left-regular
 import { ReactComponent as bars } from 'src/icons/bars-light.svg'
 import { ReactComponent as books } from 'src/icons/books-solid.svg'
 import { ReactComponent as cardMenuIcon } from 'src/icons/card-menu-icon.svg'
+import { ReactComponent as faCloudBolt } from 'src/icons/cloud-compute.svg'
 import { ReactComponent as cloudUpload } from 'src/icons/cloud-upload-solid.svg'
 import { ReactComponent as columnGrabber } from 'src/icons/column_grabber.svg'
 import { ReactComponent as copySolid } from 'src/icons/copy-solid.svg'
@@ -56,7 +57,7 @@ const iconDict = {
   clockSolid: fa(faClockSolid),
   cloud: fa(faCloud),
   // TODO: obtain from font-awesome Pro
-  //cloudBolt: fa(faCloudBolt),
+  cloudBolt: custom(faCloudBolt),
   cog: fa(faCog),
   columnGrabber: custom(columnGrabber),
   copy: fa(faClone),

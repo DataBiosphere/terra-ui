@@ -2,12 +2,12 @@ import { differenceInSeconds, parseJSON } from 'date-fns/fp'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, comingSoon, Link, makeMenuIcon, MenuButton, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, Clickable, comingSoon, Link, spinnerOverlay } from 'src/components/common'
 import { ContextBarButtons } from 'src/components/ContextBar'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
-import { MenuTrigger } from 'src/components/PopupTrigger'
+import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import RuntimeManager from 'src/components/RuntimeManager'
 import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
@@ -101,7 +101,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
   const [cloningWorkspace, setCloningWorkspace] = useState(false)
   const [sharingWorkspace, setSharingWorkspace] = useState(false)
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-  const canShare = workspace?.canShare
+  const canShare = !!workspace?.canShare
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -135,7 +135,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
     showTabBar && h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace, deletingWorkspace, setDeletingWorkspace, cloningWorkspace, setCloningWorkspace, sharingWorkspace, setSharingWorkspace }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
       // Display the context bar only if the analysis tab is visible, for now
-      (isAnalysisTabVisible() ?
+      (isAnalysisTabVisible() && activeTab === 'analyses' ?
         [div({ style: { flex: 1, display: 'flex' } }, [
           div({ style: { flex: 1 } }, [
             children

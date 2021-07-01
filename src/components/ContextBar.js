@@ -1,8 +1,8 @@
 import { Fragment } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { Clickable, comingSoon, makeMenuIcon, MenuButton } from 'src/components/common'
+import { Clickable, comingSoon } from 'src/components/common'
 import { icon } from 'src/components/icons'
-import PopupTrigger from 'src/components/PopupTrigger'
+import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import colors, { terraSpecial } from 'src/libs/colors'
 
 
@@ -11,9 +11,9 @@ const contextBarStyles = {
     display: 'flex', flexWrap: 'wrap'
   },
   contextBarButton: {
-    display: 'flex', //, justifyContent: 'center', alignItems: 'center',
+    display: 'flex',
     borderBottom: `1px solid ${colors.accent()}`,
-    padding: '1rem 1rem 1rem 1rem',
+    padding: '1rem',
     color: colors.accent(),
     backgroundColor: colors.accent(0.2)
   }
@@ -21,7 +21,7 @@ const contextBarStyles = {
 
 export const ContextBarButtons = ({ setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, isOwner, canShare }) => {
   return div({ style: contextBarStyles.contextBarContainer }, [
-    h(PopupTrigger, {
+    h(MenuTrigger, {
       closeOnClick: true,
       content: h(Fragment, [
         h(MenuButton, { onClick: () => setCloningWorkspace(true) }, [makeMenuIcon('copy'), 'Clone']),
@@ -42,24 +42,26 @@ export const ContextBarButtons = ({ setDeletingWorkspace, setCloningWorkspace, s
       side: 'bottom'
     }, [
       h(Clickable, {
-        style: { ...contextBarStyles.contextBarButton },
+        'aria-label': 'Menu',
+        style: contextBarStyles.contextBarButton,
         hover: { boxShadow: `inset -6px 0px ${terraSpecial(0.9)}` },
-        ...{ tooltip: 'Menu', tooltipDelay: 100 },
-        'aria-label': 'Menu'
+        tooltip: 'Menu',
+        tooltipDelay: 100
       }, [icon('ellipsis-v', { size: 24 })])
     ]),
     h(Clickable, {
-      style: { ...contextBarStyles.contextBarButton },
+      style: contextBarStyles.contextBarButton,
       hover: { boxShadow: `inset -6px 0px ${terraSpecial(0.9)}` },
       // TODO: add click handler
       ...{ tooltip: 'Compute Configuration', tooltipDelay: 100 },
       'aria-label': 'Compute Configuration'
-    }, [icon('cloud', { size: 24 })]),
+    }, [icon('cloudBolt', { size: 24 })]),
     h(Clickable, {
-      style: { ...contextBarStyles.contextBarButton },
+      style: contextBarStyles.contextBarButton,
       hover: { boxShadow: `inset -6px 0px ${terraSpecial(0.9)}` },
       // TODO: add click handler
-      ...{ tooltip: 'Terminal', tooltipDelay: 100 },
+      tooltip: 'Terminal',
+      tooltipDelay: 100,
       'aria-label': 'Terminal'
     }, [icon('terminal', { size: 24 })])
   ])
