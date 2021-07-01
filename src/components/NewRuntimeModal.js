@@ -835,8 +835,7 @@ export class NewRuntimeModalBase extends Component {
                   h(TooltipTrigger, { content: ['GPUs can be added only to Standard VM compute at creation time.'], side: 'right' }, [enableGpusSpan]) :
                   enableGpusSpan
               ]),
-              // TODO Update the article link when it's ready
-              h(Link, { style: { marginLeft: '1rem', verticalAlign: 'top' }, href: 'https://support.terra.bio/hc/en-us/articles/', ...Utils.newTabLinkProps }, [
+              h(Link, { style: { marginLeft: '1rem', verticalAlign: 'top' }, href: 'https://support.terra.bio/hc/en-us/articles/4403006001947', ...Utils.newTabLinkProps }, [
                 'Learn more about GPU cost and restrictions.',
                 icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
               ])
