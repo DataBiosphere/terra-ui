@@ -188,7 +188,7 @@ const SubmissionDetails = _.flow(
           makeSection('Call Caching', [useCallCache ? 'Enabled' : 'Disabled']),
           makeSection('Delete Intermediate Outputs', [deleteIntermediateOutputFiles ? 'Enabled' : 'Disabled']),
           makeSection('Use Reference Disks', [useReferenceDisks ? 'Enabled' : 'Disabled']),
-          makeSection('Increase Memory on Retries', [memoryRetryMultiplier !== 1 ? `Enabled with factor ${memoryRetryMultiplier}` : 'Disabled'])
+          makeSection('Retry with More Memory', [memoryRetryMultiplier !== 1 ? `Enabled with factor ${memoryRetryMultiplier}` : 'Disabled'])
         ])
       ]),
       div({ style: { margin: '1rem 0', display: 'flex', alignItems: 'center' } }, [

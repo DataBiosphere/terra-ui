@@ -848,13 +848,13 @@ const WorkflowView = _.flow(
               // enabled and the value of the retry multiplier.
               (!this.isMemoryIncreasedOnRetries() || !this.warnMemoryFactor()) && h(InfoBox,
                 [
-                  'If a task in your workflow fails only because it ran out of memory, and the maxRetries property is defined on your task, retry it with more memory. ',
+                  'If a task has a maxRetries value greater than zero and fails because it ran out of memory, retry it with more memory. ',
                   h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps },
                     [clickToLearnMore])
                 ]),
               this.isMemoryIncreasedOnRetries() && this.warnMemoryFactor() && h(InfoBox,
                 { style: { color: colors.warning() }, iconOverride: 'warning-standard' }, [
-                  'Because the retry factor is multiplicative and compounding, values greater than 2 may quickly exceed your available memory. ',
+                  'Retry factors above 2 are not recommended. The retry factor compounds and may substantially increase costs. ',
                   h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps },
                     [clickToLearnMore])
                 ])
