@@ -34,8 +34,8 @@ import { ariaSort } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
-import rLogo from 'src/images/r-logo.svg'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
+import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -158,10 +158,10 @@ const AnalysisCard = ({ namespace, name, lastModified, metadata, application, ws
 
   const toolIconSrc = Utils.switchCase(application,
     [tools.Jupyter.label, () => jupyterLogo],
-    [tools.RStudio.label, () => rLogo])
+    [tools.RStudio.label, () => rstudioSquareLogo])
 
   const toolIcon = div({ style: { marginRight: '1rem' } }, [
-    img({ src: toolIconSrc, style: { height: 40, width: 50 } })
+    img({ src: toolIconSrc, style: { height: 40, width: 40 } })
   ])
 
   const toolContainer = div({ style: { display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center' } }, [
@@ -351,9 +351,7 @@ const Analyses = _.flow(
       div({ style: { display: 'flex', marginBottom: '1rem' } }, [
         div({ style: { color: colors.dark(), fontSize: 24, fontWeight: 600 } }, ['Your Analyses']),
         h(ButtonOutline, {
-          style: {
-            marginLeft: '6.5rem'
-          },
+          style: { marginLeft: '1.5rem' },
           onClick: () => setCreating(true),
           disabled: !Utils.canWrite(accessLevel),
           tooltip: !Utils.canWrite(accessLevel) ? noWrite : undefined
