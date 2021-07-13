@@ -10,7 +10,6 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
-
 const signInStyle = {
   backgroundColor: 'white',
   padding: '1rem 1rem',
