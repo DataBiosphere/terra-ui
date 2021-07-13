@@ -70,6 +70,12 @@ const styles = {
   },
   placeholder: {
     fontStyle: 'italic'
+  },
+  checkBoxSpanMargins: {
+    margin: '0 0.5rem 0 1rem'
+  },
+  checkBoxLeftMargin: {
+    marginLeft: '1rem'
   }
 }
 
@@ -355,12 +361,6 @@ const WorkflowView = _.flow(
   /** Returns the href link for the specified article. */
   getSupportLink(article) { return `https://support.terra.bio/hc/en-us/articles/${article}` }
 
-  /** Returns true if the increasing memory on retries is enabled */
-  isMemoryIncreasedOnRetries() { return this.state.retryWithMoreMemory }
-
-  /** Returns true if the memory retry factor is outside the expected range */
-  warnMemoryFactor() { return this.state.retryMemoryFactor > 2 }
-
   render() {
     // isFreshData: controls spinnerOverlay on initial load
     // variableSelected: field of focus for bucket file browser
@@ -609,8 +609,6 @@ const WorkflowView = _.flow(
     const inputsValid = _.isEmpty(errors.inputs)
     const outputsValid = _.isEmpty(errors.outputs)
     const sourceDisplay = sourceRepo === 'agora' ? `${methodNamespace}/${methodName}/${methodVersion}` : `${methodPath}:${methodVersion}`
-    const checkBoxSpanMargins = { margin: '0 0.5rem 0 1rem' }
-    const checkBoxLeftMargin = { marginLeft: '1rem' }
     const clickToLearnMore = 'Click here to learn more.'
     return div({
       style: {
@@ -788,11 +786,11 @@ const WorkflowView = _.flow(
                 checked: useCallCache,
                 onChange: v => this.setState({ useCallCache: v })
               }, [' Use call caching']),
-              span({ style: checkBoxSpanMargins }, [
+              span({ style: styles.checkBoxSpanMargins }, [
                 h(LabeledCheckbox, {
                   checked: deleteIntermediateOutputFiles,
                   onChange: v => this.setState({ deleteIntermediateOutputFiles: v }),
-                  style: checkBoxLeftMargin
+                  style: styles.checkBoxLeftMargin
                 }, [' Delete intermediate outputs'])
               ]),
               h(InfoBox, [
@@ -800,11 +798,11 @@ const WorkflowView = _.flow(
                 h(Link, { href: this.getSupportLink('360039681632'), ...Utils.newTabLinkProps },
                   [clickToLearnMore])
               ]),
-              span({ style: checkBoxSpanMargins }, [
+              span({ style: styles.checkBoxSpanMargins }, [
                 h(LabeledCheckbox, {
                   checked: useReferenceDisks,
                   onChange: v => this.setState({ useReferenceDisks: v }),
-                  style: checkBoxLeftMargin
+                  style: styles.checkBoxLeftMargin
                 }, [' Use reference disks'])
               ]),
               h(InfoBox, [
@@ -812,16 +810,16 @@ const WorkflowView = _.flow(
                 h(Link, { href: this.getSupportLink('360056384631'), ...Utils.newTabLinkProps },
                   [clickToLearnMore])
               ]),
-              span({ style: checkBoxSpanMargins }, [
+              span({ style: styles.checkBoxSpanMargins }, [
                 h(LabeledCheckbox, {
                   checked: retryWithMoreMemory,
                   onChange: v => this.setState({ retryWithMoreMemory: v }),
-                  style: checkBoxLeftMargin
+                  style: styles.checkBoxLeftMargin
                 }, [' Retry with more memory'])
               ])
             ]),
             div({ style: { display: 'inline-block' } }, [
-              this.isMemoryIncreasedOnRetries() && span({ style: { margin: '0 0.5rem 0 0.5rem' } }, [
+              retryWithMoreMemory && span({ style: { margin: '0 0.5rem 0 0.5rem' } }, [
                 h(IdContainer, [
                   id => h(Fragment, [
                     label({
@@ -846,18 +844,19 @@ const WorkflowView = _.flow(
               ]),
               // We show either an info message or a warning, based on whether increasing memory on retries is
               // enabled and the value of the retry multiplier.
-              (!this.isMemoryIncreasedOnRetries() || !this.warnMemoryFactor()) && h(InfoBox,
-                [
+              (retryWithMoreMemory && retryMemoryFactor > 2 ?
+                h(InfoBox,
+                  { style: { color: colors.warning() }, iconOverride: 'warning-standard' }, [
+                    'Retry factors above 2 are not recommended. The retry factor compounds and may substantially increase costs. ',
+                    h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps },
+                      [clickToLearnMore])
+                  ]) :
+                h(InfoBox, [
                   'If a task has a maxRetries value greater than zero and fails because it ran out of memory, retry it with more memory. ',
                   h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps },
                     [clickToLearnMore])
-                ]),
-              this.isMemoryIncreasedOnRetries() && this.warnMemoryFactor() && h(InfoBox,
-                { style: { color: colors.warning() }, iconOverride: 'warning-standard' }, [
-                  'Retry factors above 2 are not recommended. The retry factor compounds and may substantially increase costs. ',
-                  h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps },
-                    [clickToLearnMore])
                 ])
+              )
             ])
           ]),
           h(StepButtons, {
