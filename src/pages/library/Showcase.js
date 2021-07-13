@@ -103,7 +103,7 @@ const makeCard = variant => workspace => {
       height: 175,
       borderRadius: 5,
       display: 'flex',
-      marginBottom: '1rem',
+      margin: '1rem 1rem 0',
       boxShadow: Style.standardShadow
     }
   }, [
@@ -281,65 +281,17 @@ const Showcase = () => {
   )(featuredList)
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('featured workspaces'),
-    !featuredList ?
+    libraryTopMatter('showcase & tutorials'),
+    !allFeatured ?
       centeredSpinner() :
-      h(Fragment, [
-        div({ style: { display: 'flex', margin: '1rem 1rem 0', alignItems: 'baseline' } }, [
-          div({ style: { width: '19rem', flex: 'none' } }, [
-            div({ style: styles.sidebarRow }, [
-              div({ style: styles.header }, 'Featured workspaces'),
-              h(Pill, {
-                count: _.size(filteredWorkspaces),
-                highlight: _.isEmpty(selectedSections) && _.isEmpty(selectedTags)
-              })
-            ]),
-            div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
-              div({ style: { flex: 1 } }),
-              h(Link, {
-                onClick: () => {
-                  setSelectedSections([])
-                  setSelectedTags([])
-                }
-              }, ['clear'])
-            ])
-          ]),
-          h(DelayedSearchInput, {
-            style: { flex: 1, marginLeft: '1rem' },
-            'aria-label': 'Search Featured Workspaces',
-            placeholder: 'Search Name or Description',
-            value: searchFilter,
-            onChange: setSearchFilter
-          }),
-          h(IdContainer, [
-            id => h(Fragment, [
-              label({ htmlFor: id, style: { margin: '0 0.5rem 0 1rem', whiteSpace: 'nowrap' } }, ['Sort by']),
-              h(Select, {
-                id,
-                isClearable: false,
-                isSearchable: false,
-                styles: { container: old => ({ ...old, width: '10rem' }) },
-                value: sort,
-                onChange: v => setSort(v.value),
-                options: ['most recent', 'alphabetical']
-              })
-            ])
-          ])
+      div({ style: { display: 'flex', margin: '1rem 1rem 0' } }, [
+        div({ sytle: { width: 300 } }, [
+          div({ style: styles.header }, 'Featured workspaces')
+          // filtering here
         ]),
-        div({ style: { display: 'flex', margin: '0 1rem' } }, [
-          div({ style: { width: '19rem', flex: 'none' } }, [
-            h(Sidebar, {
-              onSectionFilter: section => setSelectedSections(_.xor([section], selectedSections)),
-              onTagFilter: tag => setSelectedTags(_.xor([tag], selectedTags)),
-              sections,
-              selectedSections,
-              selectedTags,
-              workspacesByTag: groupByFeaturedTags(filteredWorkspaces)
-            })
-          ]),
-          div({ style: { marginLeft: '1rem', minWidth: 0 } }, [
-            _.map(makeCard(), sortWorkspaces(filteredWorkspaces))
-          ])
+        div({ style: { flex: 1 } }, [
+          // search & sort here
+          ..._.map(makeCard(), allFeatured)
         ])
       ])
   ])
