@@ -32,7 +32,7 @@ const makeCard = variant => ({ workspace: { namespace, name, attributes: { descr
       height: 175,
       borderRadius: 5,
       display: 'flex',
-      marginBottom: 20,
+      margin: '1rem 1rem 0',
       boxShadow: Style.standardShadow
     }
   }, [
@@ -87,24 +87,18 @@ const Showcase = () => {
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('showcase & tutorials'),
-    div({ role: 'main', style: { margin: '2.5rem 2rem', flexGrow: 1 } }, [
-      !(featuredList && workspaces) ?
-        centeredSpinner() :
-        div({ style: { display: 'flex' } }, [
-          !_.isEmpty(newAndInteresting) && div({ style: styles.column }, [
-            div({ style: styles.header }, 'New and interesting'),
-            ..._.map(makeCard('new'), newAndInteresting)
-          ]),
-          div({ style: styles.column }, [
-            div({ style: styles.header }, 'Featured workspaces'),
-            ..._.map(makeCard(), featured)
-          ]),
-          div({ style: { ...styles.column, marginRight: undefined } }, [
-            div({ style: styles.header }, 'GATK4 example workspaces'),
-            ..._.map(makeCard('gatk'), bestPractices)
-          ])
+    !allFeatured ?
+      centeredSpinner() :
+      div({ style: { display: 'flex', margin: '1rem 1rem 0' } }, [
+        div({ sytle: { width: 300 } }, [
+          div({ style: styles.header }, 'Featured workspaces')
+          // filtering here
+        ]),
+        div({ style: { flex: 1 } }, [
+          // search & sort here
+          ..._.map(makeCard(), allFeatured)
         ])
-    ])
+      ])
   ])
 }
 
