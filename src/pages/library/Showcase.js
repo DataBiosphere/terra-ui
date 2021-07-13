@@ -76,15 +76,6 @@ const Showcase = () => {
     workspaces,
     featuredList)
 
-  const { bestPractices, newAndInteresting, featured } = _.groupBy(
-    ({ workspace: { namespace, name, attributes: { description } } }) => Utils.cond(
-      [description?.startsWith('### GATK Best Practices'), () => 'bestPractices'],
-      [_.find({ namespace, name }, featuredList)?.isNew, () => 'newAndInteresting'],
-      () => 'featured'
-    ),
-    allFeatured
-  )
-
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('showcase & tutorials'),
     !allFeatured ?
@@ -92,10 +83,8 @@ const Showcase = () => {
       div({ style: { display: 'flex', margin: '1rem 1rem 0' } }, [
         div({ sytle: { width: 300 } }, [
           div({ style: styles.header }, 'Featured workspaces')
-          // filtering here
         ]),
         div({ style: { flex: 1 } }, [
-          // search & sort here
           ..._.map(makeCard(), allFeatured)
         ])
       ])
