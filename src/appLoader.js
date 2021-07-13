@@ -24,5 +24,11 @@ initializeTCell()
 
 if (process.env.NODE_ENV !== 'production') {
   const axe = require('@axe-core/react')
-  axe(React, ReactDOM, 1000)
+  const axeConfig = {
+    runOnly: [
+      'section508'
+    ]
+  }
+
+  axe(React, ReactDOM, 1000, axeConfig)
 }
