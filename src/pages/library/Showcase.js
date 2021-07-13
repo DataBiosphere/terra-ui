@@ -258,27 +258,10 @@ const Showcase = () => {
     loadData()
   })
 
-  const filterBySections = workspaces => {
-    if (_.isEmpty(selectedSections)) {
-      return workspaces
-    } else {
-      const tags = _.uniq(_.flatMap(section => section.tags, selectedSections))
-      return _.uniq(_.flatMap(tag => workspacesByTag[tag], tags))
-    }
-  }
-  // eslint-disable-next-line lodash-fp/no-single-composition
-  const filterByTags = workspaces => _.flow(_.map(tag => _.intersection(workspacesByTag[tag]), selectedTags))(workspaces)
-  const filterByText = workspaces => {
-    const lowerSearch = _.toLower(searchFilter)
-    return _.isEmpty(lowerSearch) ?
-      workspaces :
-      _.filter(workspace => _.includes(lowerSearch, workspace.lowerName) || _.includes(lowerSearch, workspace.lowerDescription), workspaces)
-  }
-  const filteredWorkspaces = _.flow(
-    filterBySections,
-    filterByTags,
-    filterByText
-  )(featuredList)
+  const allFeatured = _.intersectionWith(
+    ({ workspace }, featured) => workspace.namespace === featured.namespace && workspace.name === featured.name,
+    workspaces,
+    featuredList)
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('showcase & tutorials'),
@@ -287,10 +270,8 @@ const Showcase = () => {
       div({ style: { display: 'flex', margin: '1rem 1rem 0' } }, [
         div({ sytle: { width: 300 } }, [
           div({ style: styles.header }, 'Featured workspaces')
-          // filtering here
         ]),
         div({ style: { flex: 1 } }, [
-          // search & sort here
           ..._.map(makeCard(), allFeatured)
         ])
       ])
