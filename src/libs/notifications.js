@@ -149,7 +149,7 @@ const showNotification = ({ id, timeout }) => {
     dismiss: { duration: !!timeout ? timeout : 0, click: false, touch: false },
     animationIn: ['animate__animated', 'animate__fadeIn'],
     animationOut: ['animate__animated', 'animate__fadeOut'],
-    insert: "bottom",
+    insert: 'bottom',
     width: 350
   })
 }
