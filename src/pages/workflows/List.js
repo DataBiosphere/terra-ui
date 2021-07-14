@@ -19,6 +19,14 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
+const styles = {
+  cell: {
+    ...Style.lightTable.cellContainer,
+    display: 'flex',
+    flexDirection: 'column'
+  }
+}
+
 // TODO: add error handling, consider wrapping query updates in useEffect
 const WorkflowList = () => {
   const { query } = Nav.useRoute()
@@ -108,7 +116,7 @@ const WorkflowList = () => {
         tabs
       }, [
         div({ style: { flex: 1, backgroundColor: 'white', padding: '0 1rem' } }, [
-          workflows && h(AutoSizer, [
+          sortedWorkflows && h(AutoSizer, [
             ({ width, height }) => h(FlexTable, {
               'aria-label': _.find({ key: tab }, tabs).title,
               variant: 'light',
@@ -124,7 +132,7 @@ const WorkflowList = () => {
                   cellRenderer: ({ rowIndex }) => {
                     const { namespace, name } = sortedWorkflows[rowIndex]
 
-                    return h(TextCell, { style: Style.lightTable.cellContainer }, [
+                    return h(TextCell, { style: styles.cell }, [
                       div({ style: { fontSize: 12 } }, [namespace]),
                       h(Link, {
                         style: { fontWeight: 600 },
@@ -141,8 +149,8 @@ const WorkflowList = () => {
                   cellRenderer: ({ rowIndex }) => {
                     const { synopsis } = sortedWorkflows[rowIndex]
 
-                    return h(TextCell, { style: Style.lightTable.cellContainer },
-                      [h(TooltipTrigger, { content: synopsis }, [synopsis])])
+                    return h(TextCell, { style: styles.cell },
+                      [h(TooltipTrigger, { content: synopsis }, [div([synopsis])])])
                   },
                   size: { basis: 475 }
                 },
@@ -155,7 +163,7 @@ const WorkflowList = () => {
                   cellRenderer: ({ rowIndex }) => {
                     const { managers } = sortedWorkflows[rowIndex]
 
-                    return h(TooltipCell, [managers?.join(', ')])
+                    return managers && h(TooltipCell, [managers.join(', ')])
                   },
                   size: { basis: 225 }
                 },
