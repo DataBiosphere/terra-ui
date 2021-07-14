@@ -776,16 +776,16 @@ const WorkflowView = _.flow(
                 ])
             ])
           ]),
-          div([
-            // Because the retries numeric input is not always visible, and will be taller than the other components
-            // on this line, wrap the components that are always visible with a div and add top/bottom margins to
-            // avoid vertical resizing when the numeric input is rendered.
-            div({ style: { display: 'inline-block', marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
-              h(LabeledCheckbox, {
-                disabled: currentSnapRedacted || !!Utils.computeWorkspaceError(ws),
-                checked: useCallCache,
-                onChange: v => this.setState({ useCallCache: v })
-              }, [' Use call caching']),
+          div({ style: { display: 'flex', alignItems: 'baseline', minWidth: 'max-content' } }, [
+            // This span is to prevent vertical resizing when the memory retry multiplier input is visible.
+            span({ style: { marginTop: '0.5rem', marginBottom: '0.5rem' } }, [
+              span([
+                h(LabeledCheckbox, {
+                  disabled: currentSnapRedacted || !!Utils.computeWorkspaceError(ws),
+                  checked: useCallCache,
+                  onChange: v => this.setState({ useCallCache: v })
+                }, [' Use call caching'])
+              ]),
               span({ style: styles.checkBoxSpanMargins }, [
                 h(LabeledCheckbox, {
                   checked: deleteIntermediateOutputFiles,
@@ -818,46 +818,44 @@ const WorkflowView = _.flow(
                 }, [' Retry with more memory'])
               ])
             ]),
-            div({ style: { display: 'inline-block' } }, [
-              retryWithMoreMemory && span({ style: { margin: '0 0.5rem 0 0.5rem' } }, [
-                h(IdContainer, [
-                  id => h(Fragment, [
-                    label({
-                      htmlFor: id,
-                      style: { ...styles.label, verticalAlign: 'middle' }
-                    }, ['Memory retry factor:']),
-                    div({ style: { display: 'inline-block', marginLeft: '0.25rem' } }, [
-                      h(NumberInput, {
-                        id,
-                        min: 1.1,
-                        max: 10,
-                        step: 0.1,
-                        isClearable: false,
-                        onlyInteger: false,
-                        value: retryMemoryFactor,
-                        style: { width: '5rem' },
-                        onChange: v => this.setState({ retryMemoryFactor: v })
-                      })
-                    ])
+            retryWithMoreMemory && span({ style: { margin: '0 0.5rem 0 0.5rem' } }, [
+              h(IdContainer, [
+                id => h(Fragment, [
+                  label({
+                    htmlFor: id,
+                    style: { ...styles.label, verticalAlign: 'middle' }
+                  }, ['Memory retry factor:']),
+                  div({ style: { display: 'inline-block', marginLeft: '0.25rem' } }, [
+                    h(NumberInput, {
+                      id,
+                      min: 1.1,
+                      max: 10,
+                      step: 0.1,
+                      isClearable: false,
+                      onlyInteger: false,
+                      value: retryMemoryFactor,
+                      style: { width: '5rem' },
+                      onChange: v => this.setState({ retryMemoryFactor: v })
+                    })
                   ])
                 ])
-              ]),
-              // We show either an info message or a warning, based on whether increasing memory on retries is
-              // enabled and the value of the retry multiplier.
-              (retryWithMoreMemory && retryMemoryFactor > 2 ?
-                h(InfoBox,
-                  { style: { color: colors.warning() }, iconOverride: 'warning-standard' }, [
-                    'Retry factors above 2 are not recommended. The retry factor compounds and may substantially increase costs. ',
-                    h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps },
-                      [clickToLearnMore])
-                  ]) :
-                h(InfoBox, [
-                  'If a task has a maxRetries value greater than zero and fails because it ran out of memory, retry it with more memory. ',
+              ])
+            ]),
+            // We show either an info message or a warning, based on whether increasing memory on retries is
+            // enabled and the value of the retry multiplier.
+            (retryWithMoreMemory && retryMemoryFactor > 2 ?
+              h(InfoBox,
+                { style: { color: colors.warning() }, iconOverride: 'warning-standard' }, [
+                  'Retry factors above 2 are not recommended. The retry factor compounds and may substantially increase costs. ',
                   h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps },
                     [clickToLearnMore])
-                ])
-              )
-            ])
+                ]) :
+              h(InfoBox, [
+                'If a task has a maxRetries value greater than zero and fails because it ran out of memory, retry it with more memory. ',
+                h(Link, { href: this.getSupportLink('4403215299355'), ...Utils.newTabLinkProps },
+                  [clickToLearnMore])
+              ])
+            )
           ]),
           h(StepButtons, {
             tabs: [
