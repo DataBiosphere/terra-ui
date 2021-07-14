@@ -22,10 +22,10 @@ import * as Utils from 'src/libs/utils'
 const styles = {
   cell: {
     ...Style.lightTable.cellContainer,
-    display: 'flex',
+    display: 'grid',
     flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'start'
+    justifyContent: 'start',
+    alignItems: 'center'
   }
 }
 
@@ -137,7 +137,7 @@ const WorkflowList = () => {
                     return h(TextCell, { style: styles.cell }, [
                       div({ style: { fontSize: 12 } }, [namespace]),
                       h(Link, {
-                        style: { fontWeight: 600 },
+                        style: { fontWeight: 600, ...Style.noWrapEllipsis },
                         tooltip: `${namespace}/${name}`, tooltipSide: 'right', tooltipDelay: 500,
                         href: Nav.getLink('workflow-dashboard', { namespace, name })
                       }, [name])
@@ -152,7 +152,7 @@ const WorkflowList = () => {
                     const { synopsis } = sortedWorkflows[rowIndex]
 
                     return h(TextCell, { style: styles.cell }, [
-                      h(TooltipTrigger, { content: synopsis, delay: 250 }, [div([synopsis])])
+                      h(TooltipTrigger, { content: synopsis, delay: 250 }, [div({ style: Style.noWrapEllipsis }, [synopsis])])
                     ])
                   },
                   size: { basis: 475 }
@@ -167,7 +167,7 @@ const WorkflowList = () => {
                     const managers = sortedWorkflows[rowIndex].managers?.join(', ')
 
                     return h(TextCell, { style: styles.cell }, [
-                      h(TooltipTrigger, { content: managers, delay: 250 }, [div([managers])])
+                      h(TooltipTrigger, { content: managers, delay: 250 }, [div({ style: Style.noWrapEllipsis }, [managers])])
                     ])
                   },
                   size: { basis: 225 }
