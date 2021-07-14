@@ -23,7 +23,9 @@ const styles = {
   cell: {
     ...Style.lightTable.cellContainer,
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'start'
   }
 }
 
@@ -163,7 +165,7 @@ const WorkflowList = () => {
                   cellRenderer: ({ rowIndex }) => {
                     const { managers } = sortedWorkflows[rowIndex]
 
-                    return managers && h(TooltipCell, [managers.join(', ')])
+                    return h(TooltipCell, { style: styles.cell }, [managers?.join(', ')])
                   },
                   size: { basis: 225 }
                 },
@@ -176,7 +178,7 @@ const WorkflowList = () => {
                   cellRenderer: ({ rowIndex }) => {
                     const { numSnapshots } = sortedWorkflows[rowIndex]
 
-                    return numSnapshots
+                    return h(TextCell, { style: styles.cell }, [numSnapshots])
                   },
                   size: { basis: 108, grow: 0, shrink: 0 }
                 },
@@ -189,7 +191,7 @@ const WorkflowList = () => {
                   cellRenderer: ({ rowIndex }) => {
                     const { numConfigurations } = sortedWorkflows[rowIndex]
 
-                    return numConfigurations
+                    return h(TextCell, { style: styles.cell }, [numConfigurations])
                   },
                   size: { basis: 145, grow: 0, shrink: 0 }
                 }
