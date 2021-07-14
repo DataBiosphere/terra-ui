@@ -188,8 +188,7 @@ const WorkflowWdl = () => {
 const WorkflowConfigs = () => {
   const signal = Utils.useCancellation()
   const { namespace, name, snapshotId } = Utils.useStore(snapshotStore)
-  const [allConfigs, setAllConfigs] = useState()
-  const [snapshotConfigs, setSnapshotConfigs] = useState()
+  const [configs, setConfigs] = useState()
 
   Utils.useOnMount(() => {
     const loadConfigs = async () => {
@@ -198,29 +197,30 @@ const WorkflowConfigs = () => {
         Ajax(signal).Methods.method(namespace, name, snapshotId).configs()
       ])
 
-      setAllConfigs(allConfigs)
-      setSnapshotConfigs(snapshotConfigs)
+      const configs = _.map(config => _.find(_.isEqual(config), snapshotConfigs) ? config : _.set(['incompatible'], true, config), allConfigs)
+
+      setConfigs(configs)
     }
 
     loadConfigs()
   })
 
   return div({ style: { flex: 1, padding: '1rem' }, role: 'tabpanel' }, [
-    !allConfigs ?
+    !configs ?
       centeredSpinner() :
       h(AutoSizer, [
         ({ width, height }) => h(FlexTable, {
           width, height,
           'aria-label': 'workflow configuration',
-          rowCount: allConfigs.length,
+          rowCount: _.size(configs),
           columns: [
             {
               headerRenderer: () => div({ className: 'sr-only' }, ['Warnings']),
               cellRenderer: ({ rowIndex }) => {
-                const config = allConfigs[rowIndex]
+                const config = configs[rowIndex]
 
-                return !_.find(_.isEqual(config), snapshotConfigs) && h(TooltipTrigger, {
-                  content: `This configuration is not fully compatible with snapshot ${snapshotId}`
+                return config.incompatible && h(TooltipTrigger, {
+                  content: `This configuration is not fully compatible with this workflow snapshot (${snapshotId})`, side: 'right'
                 }, [icon('warning-standard', { style: { color: colors.warning() } })])
               },
               size: { basis: 45, grow: 0, shrink: 0 }
@@ -228,7 +228,7 @@ const WorkflowConfigs = () => {
             {
               headerRenderer: () => h(HeaderCell, ['Configuration']),
               cellRenderer: ({ rowIndex }) => {
-                const { namespace, name, snapshotId } = allConfigs[rowIndex]
+                const { namespace, name, snapshotId } = configs[rowIndex]
 
                 return h(Link, [`${namespace}/${name} Snapshot ID: ${snapshotId}`])
               },
@@ -237,7 +237,7 @@ const WorkflowConfigs = () => {
             {
               headerRenderer: () => h(HeaderCell, ['Workflow Snapshot']),
               cellRenderer: ({ rowIndex }) => {
-                const { payloadObject: { methodRepoMethod: { methodVersion } } } = allConfigs[rowIndex]
+                const { payloadObject: { methodRepoMethod: { methodVersion } } } = configs[rowIndex]
 
                 return methodVersion
               },
@@ -246,7 +246,7 @@ const WorkflowConfigs = () => {
             {
               headerRenderer: () => h(HeaderCell, ['Synopsis']),
               cellRenderer: ({ rowIndex }) => {
-                const { synopsis } = allConfigs[rowIndex]
+                const { synopsis } = configs[rowIndex]
 
                 return synopsis
               },
