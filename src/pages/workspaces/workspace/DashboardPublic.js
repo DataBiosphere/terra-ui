@@ -1,23 +1,33 @@
 import _ from 'lodash/fp'
+import { useState } from 'react'
 import { div, h, h2 } from 'react-hyperscript-helpers'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { MarkdownViewer } from 'src/components/markdown'
 import SignInButton from 'src/components/SignInButton'
 import TopBar from 'src/components/TopBar'
+import { Ajax } from 'src/libs/ajax'
 import * as Style from 'src/libs/style'
-
-// test case
-const showcase = [
-  {
-    namespace: 'broad-dsde-alpha',
-    name: '2000_samples',
-    description: 'sample fetch anything description'
-  }
-]
+import * as StateHistory from 'src/libs/state-history'
+import * as Utils from 'src/libs/utils'
 
 //render
 const DashboardPublic = ({ namespace, name }) => {
-  const { description } = _.find({ namespace, name }, showcase)
+  const stateHistory = StateHistory.get()
+  const [showcaseList, setShowcaseList] = useState(stateHistory.featuredList)
+
+  Utils.useOnMount(() => {
+    const loadData = async () => {
+      const showcaseList = await Ajax().Buckets.getShowcaseWorkspaces()
+
+      setShowcaseList(showcaseList)
+      StateHistory.update({ showcaseList })
+    }
+
+    loadData()
+  })
+
+  const workspace = _.find({ namespace, name }, showcaseList)
+  const description = !workspace ? '' : workspace['description']
 
   return h(FooterWrapper, [
     h(TopBar, [
