@@ -54,6 +54,17 @@ const makeCard = variant => ({ workspace: { namespace, name, attributes: { descr
   ])
 }
 
+// match tags case-insensitively
+const sidebarSections = [
+  {
+    name: 'Getting Started',
+    labels: ['terra tutorials']
+  }
+]
+
+const Sidebar = () => {
+  return div('sidebar goes here')
+}
 
 const Showcase = () => {
   const { workspaces } = useWorkspaces()
@@ -82,7 +93,8 @@ const Showcase = () => {
       centeredSpinner() :
       div({ style: { display: 'flex', margin: '1rem 1rem 0' } }, [
         div({ sytle: { width: 300 } }, [
-          div({ style: styles.header }, 'Featured workspaces')
+          div({ style: styles.header }, 'Featured workspaces'),
+          h(Sidebar)
         ]),
         div({ style: { flex: 1 } }, [
           ..._.map(makeCard(), allFeatured)
