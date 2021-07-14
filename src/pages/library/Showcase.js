@@ -1,6 +1,7 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
+import { Clickable } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -90,14 +91,34 @@ const sideBarSections = [
   }
 ]
 
-const Sidebar = () => {
-  // return div(sideBarSections)
-  return null
+const Sidebar = props => {
+  const { onFilterChange } = props
+  return div({ style: { display: 'flex', flexDirection: 'column' } }, [
+    h(Clickable, {
+      onClick: () => onFilterChange(undefined)
+    }, ['clear']),
+    _.map(section => {
+      return div([
+        div({ style: { fontWeight: 600, marginBottom: '0.5rem' } }, section.name),
+        ..._.map(label => {
+          return div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
+            h(Clickable, {
+              style: { flex: 1 },
+              onClick: () => onFilterChange(label)
+            }, [label]),
+            div('999')
+          ])
+        }, section.labels)
+      ])
+    }, sideBarSections)
+  ])
 }
 
 const Showcase = () => {
   const stateHistory = StateHistory.get()
   const [featuredList, setFeaturedList] = useState(stateHistory.featuredList)
+
+  const [filter, setFilter] = useState()
 
   Utils.useOnMount(() => {
     const loadData = async () => {
@@ -115,12 +136,15 @@ const Showcase = () => {
     !featuredList ?
       centeredSpinner() :
       div({ style: { display: 'flex', margin: '1rem 1rem 0' } }, [
-        div({ sytle: { width: 300 } }, [
+        div({ sytle: { width: 400 } }, [
           div({ style: styles.header }, 'Featured workspaces'),
-          h(Sidebar)
+          h(Sidebar, {
+            onFilterChange: setFilter
+          })
         ]),
         div({ style: { flex: 1 } }, [
-          ..._.map(makeCard(), featuredList)
+          // TODO: make this case insensitive
+          ..._.map(makeCard(), filter ? _.filter(workspace => _.includes(filter, workspace.tags.items), featuredList) : featuredList)
         ])
       ])
   ])
