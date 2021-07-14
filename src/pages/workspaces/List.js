@@ -27,17 +27,6 @@ import { RequestAccessModal } from 'src/pages/workspaces/workspace/RequestAccess
 import ShareWorkspaceModal from 'src/pages/workspaces/workspace/ShareWorkspaceModal'
 
 
-const styles = {
-  tableCellContainer: {
-    height: '100%', padding: '0.5rem 0', paddingRight: '2rem',
-    borderTop: `1px solid ${colors.light()}`
-  },
-  tableCellContent: {
-    height: '50%', display: 'flex', alignItems: 'center'
-  },
-  filter: { marginRight: '1rem', flex: '1 0 300px', minWidth: 0 }
-}
-
 const workspaceSubmissionStatus = ({ workspaceSubmissionStats: { runningSubmissionsCount, lastSuccessDate, lastFailureDate } }) => {
   return Utils.cond(
     [runningSubmissionsCount, () => 'running'],
@@ -193,8 +182,8 @@ export const WorkspaceList = () => {
             const canView = Utils.canRead(accessLevel)
             const canAccessWorkspace = () => !canView ? setRequestingAccessWorkspaceId(workspaceId) : undefined
 
-            return div({ style: styles.tableCellContainer }, [
-              div({ style: styles.tableCellContent }, [
+            return div({ style: Style.lightTable.cellContainer }, [
+              div({ style: Style.lightTable.cellContent }, [
                 h(Link, {
                   'aria-haspopup': canView ? undefined : 'dialog',
                   style: {
@@ -211,7 +200,7 @@ export const WorkspaceList = () => {
                   tooltipSide: 'right'
                 }, [name])
               ]),
-              div({ style: styles.tableCellContent }, [
+              div({ style: Style.lightTable.cellContent }, [
                 span({ style: { ...Style.noWrapEllipsis, color: !!description ? undefined : colors.dark(0.75) } }, [
                   description?.split('\n')[0] || 'No description added'
                 ])
@@ -225,8 +214,8 @@ export const WorkspaceList = () => {
           cellRenderer: ({ rowIndex }) => {
             const { workspace: { lastModified } } = sortedWorkspaces[rowIndex]
 
-            return div({ style: styles.tableCellContainer }, [
-              div({ style: styles.tableCellContent }, [
+            return div({ style: Style.lightTable.cellContainer }, [
+              div({ style: Style.lightTable.cellContent }, [
                 h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [div([Utils.makeStandardDate(lastModified)])])
               ])
             ])
@@ -238,8 +227,8 @@ export const WorkspaceList = () => {
           cellRenderer: ({ rowIndex }) => {
             const { workspace: { createdBy } } = sortedWorkspaces[rowIndex]
 
-            return div({ style: styles.tableCellContainer }, [
-              div({ style: styles.tableCellContent }, [span({ style: Style.noWrapEllipsis }, [createdBy])])
+            return div({ style: Style.lightTable.cellContainer }, [
+              div({ style: Style.lightTable.cellContent }, [span({ style: Style.noWrapEllipsis }, [createdBy])])
             ])
           },
           size: { basis: 200, grow: 1, shrink: 0 }
@@ -249,8 +238,8 @@ export const WorkspaceList = () => {
           cellRenderer: ({ rowIndex }) => {
             const { accessLevel } = sortedWorkspaces[rowIndex]
 
-            return div({ style: styles.tableCellContainer }, [
-              div({ style: styles.tableCellContent }, [Utils.normalizeLabel(accessLevel)])
+            return div({ style: Style.lightTable.cellContainer }, [
+              div({ style: Style.lightTable.cellContent }, [Utils.normalizeLabel(accessLevel)])
             ])
           },
           size: { basis: 120, grow: 1, shrink: 0 }
@@ -266,8 +255,8 @@ export const WorkspaceList = () => {
             const onShare = () => setSharingWorkspaceId(workspaceId)
             const lastRunStatus = workspaceSubmissionStatus(workspace)
 
-            return div({ style: { ...styles.tableCellContainer, paddingRight: 0 } }, [
-              div({ style: styles.tableCellContent }, [
+            return div({ style: { ...Style.lightTable.cellContainer, paddingRight: 0 } }, [
+              div({ style: Style.lightTable.cellContent }, [
                 h(MenuTrigger, {
                   side: 'left',
                   closeOnClick: true,
@@ -279,7 +268,7 @@ export const WorkspaceList = () => {
                   }, [icon('cardMenuIcon', { size: 20 })])
                 ])
               ]),
-              div({ style: styles.tableCellContent }, [
+              div({ style: Style.lightTable.cellContent }, [
                 !!lastRunStatus && h(TooltipTrigger, {
                   content: span(['Last submitted workflow status: ', span({ style: { fontWeight: 600 } }, [_.startCase(lastRunStatus)])]),
                   side: 'left'
@@ -321,7 +310,7 @@ export const WorkspaceList = () => {
         [icon('lighter-plus-circle', { size: 24 })])
       ]),
       div({ style: { display: 'flex', marginBottom: '1rem' } }, [
-        div({ style: styles.filter }, [
+        div({ style: Style.lightTable.filter }, [
           h(WorkspaceTagSelect, {
             isClearable: true,
             isMulti: true,
@@ -332,7 +321,7 @@ export const WorkspaceList = () => {
             onChange: data => setTagsFilter(_.map('value', data))
           })
         ]),
-        div({ style: { ...styles.filter, flexBasis: '250px' } }, [
+        div({ style: { ...Style.lightTable.filter, flexBasis: '250px' } }, [
           h(Select, {
             isClearable: true,
             isMulti: true,
@@ -345,7 +334,7 @@ export const WorkspaceList = () => {
             getOptionLabel: ({ value }) => Utils.normalizeLabel(value)
           })
         ]),
-        div({ style: styles.filter }, [
+        div({ style: Style.lightTable.filter }, [
           h(Select, {
             isClearable: true,
             isMulti: false,
@@ -361,7 +350,7 @@ export const WorkspaceList = () => {
             )(workspaces)
           })
         ]),
-        div({ style: { ...styles.filter, flexBasis: '220px', marginRight: '' } }, [
+        div({ style: { ...Style.lightTable.filter, flexBasis: '220px', marginRight: '' } }, [
           h(Select, {
             isClearable: true,
             isMulti: true,

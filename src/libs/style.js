@@ -151,3 +151,13 @@ export const dashboard = {
     fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase', color: colors.dark()
   }
 }
+export const lightTable = {
+  cellContainer: {
+    height: '100%', padding: '0.5rem 0', paddingRight: '2rem',
+    borderTop: `1px solid ${colors.light()}`
+  },
+  cellContent: {
+    height: '50%', display: 'flex', alignItems: 'center'
+  },
+  filter: { marginRight: '1rem', flex: '1 0 300px', minWidth: 0 }
+}

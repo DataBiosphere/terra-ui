@@ -3,30 +3,38 @@ import * as qs from 'qs'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { Link } from 'src/components/common'
+import { HeaderRenderer, Link, topSpinnerOverlay, transparentSpinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { DelayedSearchInput } from 'src/components/input'
-import { TabBar } from 'src/components/tabBars'
-import { FlexTable, HeaderCell, Sortable, TooltipCell } from 'src/components/table'
+import { SimpleTabBar } from 'src/components/tabBars'
+import { FlexTable, TextCell, TooltipCell } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import { getConfig } from 'src/libs/config'
+import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
 // TODO: add error handling, consider wrapping query updates in useEffect
-const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
+const WorkflowList = () => {
+  const { query } = Nav.useRoute()
+  const filter = query.filter || ''
+  const [tab, setTab] = useState(query.tab || 'mine')
+  const [loading, setLoading] = useState(false)
+
   const signal = Utils.useCancellation()
+
   const [sort, setSort] = useState({ field: 'name', direction: 'asc' })
   const [workflows, setWorkflows] = useState()
 
-  const getTabQueryName = newTab => newTab === 'mine' ? undefined : newTab
 
   const getUpdatedQuery = ({ newTab = tab, newFilter = filter }) => {
     // Note: setting undefined so that falsy values don't show up at all
-    return qs.stringify({ ...query, tab: getTabQueryName(newTab), filter: newFilter || undefined }, { addQueryPrefix: true })
+    return qs.stringify({ ...query, tab: newTab === 'mine' ? undefined : newTab, filter: newFilter || undefined }, { addQueryPrefix: true })
   }
 
   const updateQuery = newParams => {
@@ -37,35 +45,40 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
     }
   }
 
-  const tabName = tab || 'mine'
-  const tabs = { mine: 'My Workflows', public: 'Public Workflows', featured: 'Featured Workflows' }
+  const loadWorkflows = _.flow(
+    Utils.withBusyState(setLoading),
+    withErrorReporting('Unable to load workflows')
+  )(async () => {
+    const [allWorkflows, featuredList] = await Promise.all([
+      Ajax(signal).Methods.definitions(),
+      fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`, { signal }).then(res => res.json())
+    ])
+
+    const isMine = ({ public: isPublic, managers }) => !isPublic || _.includes(getUser().email, managers)
+    setWorkflows({
+      mine: _.filter(isMine, allWorkflows),
+      featured: _.flow(
+        _.map(featuredWf => _.find(featuredWf, allWorkflows)),
+        _.compact
+      )(featuredList),
+      public: _.filter('public', allWorkflows)
+    })
+  })
 
   Utils.useOnMount(() => {
-    const isMine = ({ public: isPublic, managers }) => !isPublic || _.includes(getUser().email, managers)
-
-    const loadWorkflows = async () => {
-      const [allWorkflows, featuredList] = await Promise.all([
-        Ajax(signal).Methods.definitions(),
-        fetch(`${getConfig().firecloudBucketRoot}/featured-methods.json`, { signal }).then(res => res.json())
-      ])
-
-      setWorkflows({
-        mine: _.filter(isMine, allWorkflows),
-        featured: _.flow(
-          _.map(featuredWf => _.find(featuredWf, allWorkflows)),
-          _.compact
-        )(featuredList),
-        public: _.filter('public', allWorkflows)
-      })
-    }
-
     loadWorkflows()
   })
 
   const sortedWorkflows = _.flow(
     _.filter(({ namespace, name }) => Utils.textMatch(filter, `${namespace}/${name}`)),
     _.orderBy([({ [sort.field]: field }) => _.lowerCase(field)], [sort.direction])
-  )(workflows?.[tabName])
+  )(workflows?.[tab])
+
+  const tabs = [
+    { key: 'mine', title: 'My Workflows' },
+    { key: 'public', title: 'Public Workflows' },
+    { key: 'featured', title: 'Featured Workflows' }
+  ]
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workflows' }, [
@@ -77,82 +90,107 @@ const WorkflowList = ({ queryParams: { tab, filter = '', ...query } }) => {
         value: filter
       })
     ]),
-    h(TabBar, {
-      'aria-label': 'workflows menu',
-      activeTab: tabName,
-      tabNames: Object.keys(tabs),
-      displayNames: tabs,
-      getHref: currentTab => `${Nav.getLink('workflows')}${getUpdatedQuery({ newTab: currentTab })}`,
-      getOnClick: currentTab => e => {
-        e.preventDefault()
-        updateQuery({ newTab: currentTab })
-      }
-    }),
-    div({ role: 'main', style: { padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { flex: 1 } }, [
-        workflows && h(AutoSizer, [
-          ({ width, height }) => h(FlexTable, {
-            'aria-label': tabs[tabName],
-            width, height, sort,
-            rowCount: sortedWorkflows.length,
-            columns: [
-              {
-                field: 'name',
-                headerRenderer: () => h(Sortable, { sort, field: 'name', onSort: setSort }, [h(HeaderCell, ['Workflow'])]),
-                cellRenderer: ({ rowIndex }) => {
-                  const { namespace, name } = sortedWorkflows[rowIndex]
+    div({ role: 'main', style: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
+      div({ style: { display: 'flex', alignItems: 'center', marginBottom: '1rem' } }, [
+        div({ style: { ...Style.elements.sectionHeader, textTransform: 'uppercase' } }, ['Workflows'])
+      ]),
+      h(SimpleTabBar, {
+        'aria-label': 'workflows menu',
+        value: tab,
+        onChange: newTab => {
+          if (newTab === tab) {
+            loadWorkflows()
+          } else {
+            updateQuery({ newTab })
+            setTab(newTab)
+          }
+        },
+        tabs
+      }, [
+        div({ style: { flex: 1, backgroundColor: 'white', padding: '0 1rem' } }, [
+          workflows && h(AutoSizer, [
+            ({ width, height }) => h(FlexTable, {
+              'aria-label': _.find({ key: tab }, tabs).title,
+              variant: 'light',
+              width, height, sort,
+              rowCount: sortedWorkflows.length,
+              columns: [
+                {
+                  field: 'name',
+                  headerRenderer: () => h(HeaderRenderer, {
+                    name: 'Workflow Name', sortName: 'name',
+                    sort, onSort: setSort
+                  }),
+                  cellRenderer: ({ rowIndex }) => {
+                    const { namespace, name } = sortedWorkflows[rowIndex]
 
-                  return h(TooltipCell, { tooltip: `${namespace}/${name}` }, [
-                    div({ style: { fontSize: 12 } }, [namespace]),
-                    h(Link, { style: { fontWeight: 600 }, href: Nav.getLink('workflow-dashboard', { namespace, name }) }, [name])
-                  ])
+                    return h(TextCell, { style: Style.lightTable.cellContainer }, [
+                      div({ style: { fontSize: 12 } }, [namespace]),
+                      h(Link, {
+                        style: { fontWeight: 600 },
+                        tooltip: `${namespace}/${name}`, tooltipSide: 'right',
+                        href: Nav.getLink('workflow-dashboard', { namespace, name })
+                      }, [name])
+                    ])
+                  },
+                  size: { basis: 300 }
                 },
-                size: { basis: 300 }
-              },
-              {
-                field: 'synopsis',
-                headerRenderer: () => h(Sortable, { sort, field: 'synopsis', onSort: setSort }, [h(HeaderCell, ['Synopsis'])]),
-                cellRenderer: ({ rowIndex }) => {
-                  const { synopsis } = sortedWorkflows[rowIndex]
+                {
+                  field: 'synopsis',
+                  headerRenderer: () => h(HeaderRenderer, { name: 'synopsis', sort, onSort: setSort }),
+                  cellRenderer: ({ rowIndex }) => {
+                    const { synopsis } = sortedWorkflows[rowIndex]
 
-                  return h(TooltipCell, [synopsis])
+                    return h(TextCell, { style: Style.lightTable.cellContainer },
+                      [h(TooltipTrigger, { content: synopsis }, [synopsis])])
+                  },
+                  size: { basis: 475 }
                 },
-                size: { basis: 475 }
-              },
-              {
-                field: 'managers',
-                headerRenderer: () => h(Sortable, { sort, field: 'managers', onSort: setSort }, [h(HeaderCell, ['Owners'])]),
-                cellRenderer: ({ rowIndex }) => {
-                  const { managers } = sortedWorkflows[rowIndex]
+                {
+                  field: 'managers',
+                  headerRenderer: () => h(HeaderRenderer, {
+                    name: 'Owners', sortName: 'managers',
+                    sort, onSort: setSort
+                  }),
+                  cellRenderer: ({ rowIndex }) => {
+                    const { managers } = sortedWorkflows[rowIndex]
 
-                  return h(TooltipCell, [managers?.join(', ')])
+                    return h(TooltipCell, [managers?.join(', ')])
+                  },
+                  size: { basis: 225 }
                 },
-                size: { basis: 225 }
-              },
-              {
-                field: 'numSnapshots',
-                headerRenderer: () => h(Sortable, { sort, field: 'numSnapshots', onSort: setSort }, [h(HeaderCell, ['Snapshots'])]),
-                cellRenderer: ({ rowIndex }) => {
-                  const { numSnapshots } = sortedWorkflows[rowIndex]
+                {
+                  field: 'numSnapshots',
+                  headerRenderer: () => h(HeaderRenderer, {
+                    name: 'Snapshots', sortName: 'numSnapshots',
+                    sort, onSort: setSort
+                  }),
+                  cellRenderer: ({ rowIndex }) => {
+                    const { numSnapshots } = sortedWorkflows[rowIndex]
 
-                  return div({ style: { textAlign: 'end', flex: 1 } }, [numSnapshots])
+                    return numSnapshots
+                  },
+                  size: { basis: 108, grow: 0, shrink: 0 }
                 },
-                size: { basis: 108, grow: 0, shrink: 0 }
-              },
-              {
-                field: 'numConfigurations',
-                headerRenderer: () => h(Sortable, { sort, field: 'numConfigurations', onSort: setSort }, [h(HeaderCell, ['Configurations'])]),
-                cellRenderer: ({ rowIndex }) => {
-                  const { numConfigurations } = sortedWorkflows[rowIndex]
+                {
+                  field: 'numConfigurations',
+                  headerRenderer: () => h(HeaderRenderer, {
+                    name: 'Configurations', sortName: 'numConfigurations',
+                    sort, onSort: setSort
+                  }),
+                  cellRenderer: ({ rowIndex }) => {
+                    const { numConfigurations } = sortedWorkflows[rowIndex]
 
-                  return div({ style: { textAlign: 'end', flex: 1 } }, [numConfigurations])
-                },
-                size: { basis: 145, grow: 0, shrink: 0 }
-              }
-            ]
-          })
+                    return numConfigurations
+                  },
+                  size: { basis: 145, grow: 0, shrink: 0 }
+                }
+              ]
+            })
+          ])
         ])
-      ])
+      ]),
+      loading && (!workflows ? transparentSpinnerOverlay : topSpinnerOverlay)
     ])
   ])
 }
