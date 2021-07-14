@@ -7,7 +7,7 @@ import { HeaderRenderer, Link, topSpinnerOverlay, transparentSpinnerOverlay } fr
 import FooterWrapper from 'src/components/FooterWrapper'
 import { DelayedSearchInput } from 'src/components/input'
 import { SimpleTabBar } from 'src/components/tabBars'
-import { FlexTable, TextCell, TooltipCell } from 'src/components/table'
+import { FlexTable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
@@ -138,7 +138,7 @@ const WorkflowList = () => {
                       div({ style: { fontSize: 12 } }, [namespace]),
                       h(Link, {
                         style: { fontWeight: 600 },
-                        tooltip: `${namespace}/${name}`, tooltipSide: 'right',
+                        tooltip: `${namespace}/${name}`, tooltipSide: 'right', tooltipDelay: 500,
                         href: Nav.getLink('workflow-dashboard', { namespace, name })
                       }, [name])
                     ])
@@ -151,8 +151,9 @@ const WorkflowList = () => {
                   cellRenderer: ({ rowIndex }) => {
                     const { synopsis } = sortedWorkflows[rowIndex]
 
-                    return h(TextCell, { style: styles.cell },
-                      [h(TooltipTrigger, { content: synopsis }, [div([synopsis])])])
+                    return h(TextCell, { style: styles.cell }, [
+                      h(TooltipTrigger, { content: synopsis, delay: 250 }, [div([synopsis])])
+                    ])
                   },
                   size: { basis: 475 }
                 },
@@ -163,9 +164,11 @@ const WorkflowList = () => {
                     sort, onSort: setSort
                   }),
                   cellRenderer: ({ rowIndex }) => {
-                    const { managers } = sortedWorkflows[rowIndex]
+                    const managers = sortedWorkflows[rowIndex].managers?.join(', ')
 
-                    return h(TooltipCell, { style: styles.cell }, [managers?.join(', ')])
+                    return h(TextCell, { style: styles.cell }, [
+                      h(TooltipTrigger, { content: managers, delay: 250 }, [div([managers])])
+                    ])
                   },
                   size: { basis: 225 }
                 },
