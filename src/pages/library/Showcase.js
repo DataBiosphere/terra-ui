@@ -4,7 +4,6 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
-import { useWorkspaces } from 'src/components/workspace-utils'
 import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
 import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
@@ -24,7 +23,8 @@ const styles = {
   }
 }
 
-const makeCard = variant => ({ workspace: { namespace, name, attributes: { description } } }) => {
+const makeCard = variant => (workspace) => {
+  const { namespace, name, description } = workspace
   return a({
     href: Nav.getLink('workspace-dashboard', { namespace, name }),
     style: {
@@ -55,25 +55,53 @@ const makeCard = variant => ({ workspace: { namespace, name, attributes: { descr
 }
 
 // match tags case-insensitively
-const sidebarSections = [
+const sideBarSections = [
   {
     name: 'Getting Started',
-    labels: ['terra tutorials']
+    labels: ['tutorials', 'demos', 'workshops']
+  },
+  {
+    name: 'Analysis Tools',
+    labels: ['wdls', 'jupyter notebooks', 'rstudio', 'galaxy', 'hail', 'bioconductor', 'gatk', 'cumulus', 'spark']
+  },
+  {
+    name: 'Experimental Strategy',
+    labels: ['gwas', 'alignment', 'exome analysis', 'whole genome analysis', 'fusion transcript detection', 'rna analysis', 'machine learning', 'variant discovery', 'epigenomics', 'methylated dna', 'copy number variation', 'structural variation', 'functional annotation', 'quality control']
+  },
+  {
+    name: 'Data Generation Technology',
+    labels: ['10x analysis']
+  },
+  {
+    name: 'Scientific Domain',
+    labels: ['cancer', 'infectious diseases', 'mpg', 'single-cell', 'immunology']
+  },
+  {
+    name: 'Datasets',
+    labels: ['anvil', 'hca', 'target', 'encode', 'biodata catalyst', 'tcga', '1000 genomes', 'brain initiative', 'gnomad', 'nci', 'covid-19']
+  },
+  {
+    name: 'Utilities',
+    labels: ['format conversion', 'developer tools']
+  },
+  {
+    name: 'Projects',
+    labels: ['hca', 'anvil', 'brain initiative', 'biodata catalyst']
   }
 ]
 
 const Sidebar = () => {
-  return div('sidebar goes here')
+  // return div(sideBarSections)
+  return null
 }
 
 const Showcase = () => {
-  const { workspaces } = useWorkspaces()
   const stateHistory = StateHistory.get()
   const [featuredList, setFeaturedList] = useState(stateHistory.featuredList)
 
   Utils.useOnMount(() => {
     const loadData = async () => {
-      const featuredList = await Ajax().Buckets.getFeaturedWorkspaces()
+      const featuredList = await Ajax().Buckets.getShowcaseWorkspaces()
 
       setFeaturedList(featuredList)
       StateHistory.update({ featuredList })
@@ -82,14 +110,9 @@ const Showcase = () => {
     loadData()
   })
 
-  const allFeatured = _.intersectionWith(
-    ({ workspace }, featured) => workspace.namespace === featured.namespace && workspace.name === featured.name,
-    workspaces,
-    featuredList)
-
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('showcase & tutorials'),
-    !allFeatured ?
+    !featuredList ?
       centeredSpinner() :
       div({ style: { display: 'flex', margin: '1rem 1rem 0' } }, [
         div({ sytle: { width: 300 } }, [
@@ -97,12 +120,11 @@ const Showcase = () => {
           h(Sidebar)
         ]),
         div({ style: { flex: 1 } }, [
-          ..._.map(makeCard(), allFeatured)
+          ..._.map(makeCard(), featuredList)
         ])
       ])
   ])
 }
-
 
 export const navPaths = [
   {
