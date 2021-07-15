@@ -96,7 +96,24 @@ const sideBarSections = [
 ]
 
 const Sidebar = props => {
-  const { onFilterChange } = props
+  const { onFilterChange, featuredList } = props
+
+  const labelCounts = new Map()
+  sideBarSections.forEach(function (section) {
+    section.labels.forEach(function (label) {
+      labelCounts.set(label, 0)
+    })
+  })
+
+  featuredList.forEach(function (workspace) {
+    workspace.tags.items?.forEach(function (tag) {
+      tag = tag.toLowerCase()
+      if (labelCounts.has(tag)) {
+        labelCounts.set(tag, labelCounts.get(tag) + 1)
+      }
+    })
+  })
+
   return div({ style: { display: 'flex', flexDirection: 'column' } }, [
     h(Clickable, {
       onClick: () => onFilterChange(undefined)
@@ -108,9 +125,9 @@ const Sidebar = props => {
           return div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
             h(Clickable, {
               style: { flex: 1 },
-              onClick: () => onFilterChange(label)
+              onClick: () => onFilterChange(label.toLowerCase())
             }, [label]),
-            div('999')
+            div(labelCounts.get(label))
           ])
         }, section.labels)
       ])
@@ -143,7 +160,8 @@ const Showcase = () => {
         div({ style: { width: '18rem' } }, [
           div({ style: styles.header }, 'Featured workspaces'),
           h(Sidebar, {
-            onFilterChange: setFilter
+            onFilterChange: setFilter,
+            featuredList: featuredList
           })
         ]),
         div({ style: { flex: 1, minWidth: 0, marginLeft: '1rem' } }, [
