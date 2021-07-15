@@ -6,10 +6,23 @@ import { MarkdownViewer } from 'src/components/markdown'
 import SignInButton from 'src/components/SignInButton'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
-import * as Style from 'src/libs/style'
 import * as StateHistory from 'src/libs/state-history'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
+
+const signInStyle = {
+  backgroundColor: 'white',
+  padding: '1rem 1rem',
+  marginTop: '2rem',
+  display: 'flex',
+  flexDirection: 'column',
+  borderRadius: 5,
+  textAlign: 'center',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  fontSize: 20
+}
 //render
 const DashboardPublic = ({ namespace, name }) => {
   const stateHistory = StateHistory.get()
@@ -45,7 +58,12 @@ const DashboardPublic = ({ namespace, name }) => {
         !!description && h(MarkdownViewer, [description])
       ]),
       div({ style: Style.dashboard.rightBox }, [
-        h(SignInButton)
+        div({ style: signInStyle },
+          [
+            'Sign in to view full workspace',
+            h(SignInButton, { theme: 'dark' })
+          ]
+        )
       ])
     ])
   ])
