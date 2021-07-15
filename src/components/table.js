@@ -607,8 +607,8 @@ export const TextCell = ({ children, ...props }) => {
   return div(_.merge({ style: Style.noWrapEllipsis }, props), [children])
 }
 
-export const TooltipCell = ({ children, tooltip, ...props }) => h(TooltipTrigger, {
-  content: tooltip || children
+export const TooltipCell = ({ children, tooltip, tooltipDelay, ...props }) => h(TooltipTrigger, {
+  content: tooltip || children, delay: tooltipDelay
 }, [h(TextCell, props, [children])])
 
 export const HeaderCell = props => {

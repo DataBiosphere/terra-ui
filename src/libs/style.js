@@ -147,15 +147,9 @@ export const dashboard = {
   header: {
     ...elements.sectionHeader, textTransform: 'uppercase',
     margin: '2.5rem 0 1rem 0', display: 'flex'
-  },
-  infoTile: {
-    backgroundColor: colors.dark(0.15), color: 'black',
-    width: 125, padding: 7, margin: 4
-  },
-  tinyCaps: {
-    fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase', color: colors.dark()
   }
 }
+
 export const lightTable = {
   cellContainer: {
     height: '100%', padding: '0.5rem 0', paddingRight: '2rem',

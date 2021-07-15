@@ -4,23 +4,22 @@ import { Component, Fragment, useEffect, useState } from 'react'
 import { b, div, h, label, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import {
-  ButtonPrimary, ButtonSecondary, Clickable, GroupedSelect, IdContainer, LabeledCheckbox, Link, methodLink, RadioButton, Select, spinnerOverlay
+  ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, methodLink, RadioButton, Select, spinnerOverlay
 } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { DelayedAutocompleteTextArea, DelayedSearchInput } from 'src/components/input'
+import { DelayedSearchInput } from 'src/components/input'
 import { MarkdownViewer } from 'src/components/markdown'
 import Modal from 'src/components/Modal'
 import { InfoBox, makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import StepButtons from 'src/components/StepButtons'
-import { HeaderCell, SimpleFlexTable, SimpleTable, Sortable, TextCell } from 'src/components/table'
-import TooltipTrigger from 'src/components/TooltipTrigger'
+import { HeaderCell, SimpleTable, TextCell } from 'src/components/table'
 import WDLViewer from 'src/components/WDLViewer'
+import IOTable from 'src/components/workflows/IOTable'
 import { Ajax } from 'src/libs/ajax'
 import colors, { terraSpecial } from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import { HiddenLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { workflowSelectionStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
@@ -61,10 +60,6 @@ const styles = {
     padding: `1rem ${sideMargin}`,
     backgroundColor: colors.dark(0.1)
   },
-  cell: optional => ({
-    fontWeight: !optional && 500,
-    fontStyle: optional && 'italic'
-  }),
   outputInfoLabel: {
     color: colors.dark()
   },
@@ -73,121 +68,12 @@ const styles = {
   }
 }
 
-const ioTask = ({ name }) => _.nth(-2, name.split('.'))
-const ioVariable = ({ name }) => _.nth(-1, name.split('.'))
-const ioType = ({ inputType, outputType }) => (inputType || outputType).match(/(.*?)\??$/)[1] // unify, and strip off trailing '?'
-
 // Trim a config down based on what the `/inputsOutputs` endpoint says
 const filterConfigIO = ({ inputs, outputs }) => {
   return _.flow(
     _.update('inputs', _.pick(_.map('name', inputs))),
     _.update('outputs', _.pick(_.map('name', outputs)))
   )
-}
-
-const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions, readOnly }) => {
-  const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' })
-
-  const taskSort = o => ioTask(o).toLowerCase()
-  const varSort = o => ioVariable(o).toLowerCase()
-  const sortedData = _.orderBy(
-    sort.field === 'taskVariable' ? ['optional', taskSort, varSort] : ['optional', varSort, taskSort],
-    ['asc', sort.direction, sort.direction],
-    data
-  )
-
-  return h(SimpleFlexTable, {
-    'aria-label': `workflow ${which}`,
-    rowCount: sortedData.length,
-    noContentMessage: `No matching ${which}.`,
-    sort, readOnly,
-    columns: [
-      {
-        size: { basis: 350, grow: 0 },
-        field: 'taskVariable',
-        headerRenderer: () => h(Sortable, { sort, field: 'taskVariable', onSort: setSort }, [h(HeaderCell, ['Task name'])]),
-        cellRenderer: ({ rowIndex }) => {
-          const io = sortedData[rowIndex]
-          return h(TextCell, { style: { fontWeight: 500 } }, [
-            ioTask(io)
-          ])
-        }
-      },
-      {
-        size: { basis: 360, grow: 0 },
-        field: 'workflowVariable',
-        headerRenderer: () => h(Sortable, { sort, field: 'workflowVariable', onSort: setSort }, ['Variable']),
-        cellRenderer: ({ rowIndex }) => {
-          const io = sortedData[rowIndex]
-          return h(TextCell, { style: styles.cell(io.optional) }, [ioVariable(io)])
-        }
-      },
-      {
-        size: { basis: 160, grow: 0 },
-        headerRenderer: () => h(HeaderCell, ['Type']),
-        cellRenderer: ({ rowIndex }) => {
-          const io = sortedData[rowIndex]
-          return h(TextCell, { style: styles.cell(io.optional) }, [ioType(io)])
-        }
-      },
-      {
-        headerRenderer: () => h(Fragment, [
-          div({ style: { fontWeight: 'bold' } }, ['Attribute']),
-          !readOnly && which === 'outputs' && h(Fragment, [
-            div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
-            h(Link, { onClick: onSetDefaults }, ['Use defaults'])
-          ])
-        ]),
-        cellRenderer: ({ rowIndex }) => {
-          const io = sortedData[rowIndex]
-          const { name, optional, inputType } = io
-          const value = config[which][name] || ''
-          const error = errors[which][name]
-          const isFile = (inputType === 'File') || (inputType === 'File?')
-          const formattedValue = JSON.stringify(Utils.maybeParseJSON(value), null, 2)
-          return div({ style: { display: 'flex', alignItems: 'center', width: '100%', paddingTop: '0.5rem', paddingBottom: '0.5rem' } }, [
-            div({ style: { flex: 1, display: 'flex', position: 'relative', minWidth: 0 } }, [
-              !readOnly ? h(IdContainer, [labelId => h(Fragment, [
-                h(HiddenLabel, { id: labelId }, [`${ioTask(io)} ${ioVariable(io)} attribute`]),
-                h(DelayedAutocompleteTextArea, {
-                  autosize: true,
-                  spellCheck: false,
-                  placeholder: optional ? 'Optional' : 'Required',
-                  value,
-                  style: isFile ? { paddingRight: '2rem' } : undefined,
-                  onChange: v => onChange(name, v),
-                  suggestions,
-                  labelId
-                })
-              ])]) : h(TextCell, { style: { flex: 1 } }, [value]),
-              !readOnly && isFile && h(Clickable, {
-                style: { position: 'absolute', right: '0.5rem', top: 0, bottom: 0, display: 'flex', alignItems: 'center' },
-                onClick: () => onBrowse(name),
-                tooltip: 'Browse bucket files',
-                'aria-haspopup': 'dialog'
-              }, [icon('folder-open', { size: 20 })])
-            ]),
-            !readOnly && h(Link, {
-              style: { marginLeft: '0.25rem' },
-              disabled: formattedValue === undefined || formattedValue === value,
-              onClick: () => onChange(name, formattedValue),
-              tooltip: Utils.cond(
-                [formattedValue === undefined, () => 'Cannot format this value'],
-                [formattedValue === value, () => 'Already formatted'],
-                () => 'Reformat'
-              ),
-              useTooltipAsLabel: true
-            }, ['{…}']),
-            error && h(TooltipTrigger, { content: error }, [
-              icon('error-standard', {
-                size: 14, style: { marginLeft: '0.5rem', color: colors.warning(), cursor: 'help' }
-              })
-            ])
-          ])
-        }
-      }
-    ]
-  })
 }
 
 const BucketContentModal = ({ workspace: { workspace: { namespace, bucketName } }, onSelect, onDismiss }) => {
@@ -976,7 +862,7 @@ const WorkflowView = _.flow(
         })
       ]),
       div({ style: { flex: '1 0 auto' } }, [
-        h(WorkflowIOTable, {
+        h(IOTable, {
           readOnly: !isEditable,
           which: key,
           inputsOutputs: filteredData,

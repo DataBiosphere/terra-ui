@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useImperativeHandle, useState } from 'react'
 import { div, h, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, ClipboardButton, DashboardInfoTile, Link, spinnerOverlay } from 'src/components/common'
 import { icon, spinner } from 'src/components/icons'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
@@ -40,13 +40,6 @@ const roleString = {
   WRITER: 'Writer',
   OWNER: 'Owner',
   PROJECT_OWNER: 'Proj. Owner'
-}
-
-const InfoTile = ({ title, children }) => {
-  return div({ style: Style.dashboard.infoTile }, [
-    div({ style: Style.dashboard.tinyCaps }, [title]),
-    div({ style: { fontSize: 12 } }, [children])
-  ])
 }
 
 const displayAttributeValue = v => {
@@ -243,14 +236,14 @@ const WorkspaceDashboard = _.flow(
     div({ style: Style.dashboard.rightBox }, [
       div({ style: Style.dashboard.header }, ['Workspace information']),
       div({ style: { display: 'flex', flexWrap: 'wrap', margin: -4 } }, [
-        h(InfoTile, { title: 'Creation date' }, [new Date(createdDate).toLocaleDateString()]),
-        h(InfoTile, { title: 'Last updated' }, [new Date(lastModified).toLocaleDateString()]),
-        h(InfoTile, { title: 'Submissions' }, [submissionsCount]),
-        h(InfoTile, { title: 'Access level' }, [roleString[accessLevel]]),
-        Utils.canWrite(accessLevel) && h(InfoTile, { title: 'Est. $/month' }, [
+        h(DashboardInfoTile, { title: 'Creation date' }, [new Date(createdDate).toLocaleDateString()]),
+        h(DashboardInfoTile, { title: 'Last updated' }, [new Date(lastModified).toLocaleDateString()]),
+        h(DashboardInfoTile, { title: 'Submissions' }, [submissionsCount]),
+        h(DashboardInfoTile, { title: 'Access level' }, [roleString[accessLevel]]),
+        Utils.canWrite(accessLevel) && h(DashboardInfoTile, { title: 'Est. $/month' }, [
           storageCostEstimate || '$ ...'
         ]),
-        h(InfoTile, { title: 'Google Project Id' }, [
+        h(DashboardInfoTile, { title: 'Google Project Id' }, [
           div({ style: { display: 'flex' } }, [
             h(TooltipCell, [googleProject]),
             h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })

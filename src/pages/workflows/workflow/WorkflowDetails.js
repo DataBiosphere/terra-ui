@@ -5,10 +5,11 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, label } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ButtonPrimary, ButtonSecondary, IdContainer, Link, Select } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, IdContainer, DashboardInfoTile, Link, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
+import Modal from 'src/components/Modal'
 import { TabBar } from 'src/components/tabBars'
 import { FlexTable, HeaderCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -22,15 +23,8 @@ import * as Nav from 'src/libs/nav'
 import { snapshotsListStore, snapshotStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import ConfigDetails from 'src/pages/workflows/workflow/ConfigDetails'
 
-
-// TODO: add error handling, dedupe
-const InfoTile = ({ title, children }) => {
-  return div({ style: Style.dashboard.infoTile }, [
-    div({ style: Style.dashboard.tinyCaps }, [title]),
-    div({ style: { fontSize: 12 } }, [children])
-  ])
-}
 
 const WorkflowWrapper = ({ namespace, name, children, tabName, snapshotId }) => {
   const signal = Utils.useCancellation()
@@ -141,8 +135,8 @@ const WorkflowSummary = () => {
     div({ style: Style.dashboard.rightBox }, [
       h2({ style: Style.dashboard.header }, ['Snapshot information']),
       div({ style: { display: 'flex', flexWrap: 'wrap', margin: -4 } }, [
-        h(InfoTile, { title: 'Creation date' }, [new Date(createDate).toLocaleDateString()]),
-        h(InfoTile, { title: 'Public' }, [_.startCase(isPublic)])
+        h(DashboardInfoTile, { title: 'Creation date' }, [new Date(createDate).toLocaleDateString()]),
+        h(DashboardInfoTile, { title: 'Public' }, [_.startCase(isPublic)])
       ]),
       h2({ style: Style.dashboard.header }, ['Owners']),
       _.map(email => {
@@ -192,6 +186,7 @@ const WorkflowConfigs = () => {
   const signal = Utils.useCancellation()
   const { namespace, name, snapshotId } = Utils.useStore(snapshotStore)
   const [configs, setConfigs] = useState()
+  const [displayingConfig, setDisplayingConfig] = useState()
 
   Utils.useOnMount(() => {
     const loadConfigs = async () => {
@@ -233,7 +228,7 @@ const WorkflowConfigs = () => {
               cellRenderer: ({ rowIndex }) => {
                 const { namespace, name, snapshotId } = configs[rowIndex]
 
-                return h(Link, [`${namespace}/${name} Snapshot ID: ${snapshotId}`])
+                return h(Link, { onClick: () => setDisplayingConfig(configs[rowIndex]) }, [`${namespace}/${name} Version: ${snapshotId}`])
               },
               size: { basis: 400, grow: 0, shrink: 0 }
             },
@@ -257,7 +252,16 @@ const WorkflowConfigs = () => {
             }
           ]
         })
-      ])
+      ]),
+    displayingConfig && h(Modal, {
+      width: 'min(95%, 1200px)',
+      title: h2({ style: { margin: 0, fontSize: 'inherit' } }, [
+        `Configuration ${displayingConfig.namespace}/${displayingConfig.name} Version: ${displayingConfig.snapshotId}`
+      ]),
+      onDismiss: () => setDisplayingConfig(), showCancel: false
+    }, [
+      h(ConfigDetails, displayingConfig)
+    ])
   ])
 }
 

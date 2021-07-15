@@ -1213,6 +1213,17 @@ const Methods = signal => ({
         return res.json()
       }
     }
+  },
+
+  configuration: (namespace, name, snapshotId) => {
+    const root = `configurations/${namespace}/${name}/${snapshotId}`
+
+    return {
+      get: async () => {
+        const res = await fetchAgora(`${root}?payloadAsObject=true`, _.merge(authOpts(), { signal }))
+        return res.json()
+      }
+    }
   }
 })
 

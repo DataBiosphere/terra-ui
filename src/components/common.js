@@ -567,3 +567,10 @@ export const ClipboardButton = ({ text, onClick, ...props }) => {
 export const HeaderRenderer = ({ name, sort, sortName, onSort, style, ...props }) => h(MiniSortable, { sort, field: sortName || name, onSort }, [
   div({ style: { fontWeight: 600, ...style }, ...props }, [Utils.normalizeLabel(name)])
 ])
+
+export const DashboardInfoTile = ({ title, children }) => {
+  return div({ style: { backgroundColor: colors.dark(0.15), color: 'black', width: 125, padding: 7, margin: 4 } }, [
+    div({ style: { fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase', color: colors.dark() } }, [title]),
+    div({ style: { fontSize: 12 } }, [children])
+  ])
+}
