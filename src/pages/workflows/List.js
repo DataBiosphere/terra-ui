@@ -19,14 +19,11 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-const styles = {
-  cell: {
-    ...Style.lightTable.cellContainer,
-    display: 'grid',
-    flexDirection: 'column',
-    justifyContent: 'start',
-    alignItems: 'center'
-  }
+const cellStyle = {
+  ...Style.lightTable.cellContainer,
+  display: 'grid',
+  justifyContent: 'start',
+  alignItems: 'center'
 }
 
 // TODO: add error handling, consider wrapping query updates in useEffect
@@ -134,7 +131,7 @@ const WorkflowList = () => {
                   cellRenderer: ({ rowIndex }) => {
                     const { namespace, name } = sortedWorkflows[rowIndex]
 
-                    return h(TextCell, { style: styles.cell }, [
+                    return h(TextCell, { style: cellStyle }, [
                       div({ style: { fontSize: 12 } }, [namespace]),
                       h(Link, {
                         style: { fontWeight: 600, ...Style.noWrapEllipsis },
@@ -151,7 +148,7 @@ const WorkflowList = () => {
                   cellRenderer: ({ rowIndex }) => {
                     const { synopsis } = sortedWorkflows[rowIndex]
 
-                    return h(TextCell, { style: styles.cell }, [
+                    return h(TextCell, { style: cellStyle }, [
                       h(TooltipTrigger, { content: synopsis, delay: 250 }, [div({ style: Style.noWrapEllipsis }, [synopsis])])
                     ])
                   },
@@ -166,7 +163,7 @@ const WorkflowList = () => {
                   cellRenderer: ({ rowIndex }) => {
                     const managers = sortedWorkflows[rowIndex].managers?.join(', ')
 
-                    return h(TextCell, { style: styles.cell }, [
+                    return h(TextCell, { style: cellStyle }, [
                       h(TooltipTrigger, { content: managers, delay: 250 }, [div({ style: Style.noWrapEllipsis }, [managers])])
                     ])
                   },
@@ -181,7 +178,7 @@ const WorkflowList = () => {
                   cellRenderer: ({ rowIndex }) => {
                     const { numSnapshots } = sortedWorkflows[rowIndex]
 
-                    return h(TextCell, { style: styles.cell }, [numSnapshots])
+                    return h(TextCell, { style: cellStyle }, [numSnapshots])
                   },
                   size: { basis: 108, grow: 0, shrink: 0 }
                 },
@@ -194,7 +191,7 @@ const WorkflowList = () => {
                   cellRenderer: ({ rowIndex }) => {
                     const { numConfigurations } = sortedWorkflows[rowIndex]
 
-                    return h(TextCell, { style: styles.cell }, [numConfigurations])
+                    return h(TextCell, { style: cellStyle }, [numConfigurations])
                   },
                   size: { basis: 145, grow: 0, shrink: 0 }
                 }
