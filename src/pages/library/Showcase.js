@@ -152,6 +152,13 @@ const Showcase = () => {
     loadData()
   })
 
+  const matchWorkspaceTags = filter => workspace => {
+    const tags = _.map(_.toLower, workspace.tags.items)
+    return _.includes(_.toLower(filter), tags)
+  }
+
+  const filteredWorkspaces = filter ? _.filter(matchWorkspaceTags(filter), featuredList) : featuredList
+
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('showcase & tutorials'),
     !featuredList ?
@@ -166,7 +173,7 @@ const Showcase = () => {
         ]),
         div({ style: { flex: 1, minWidth: 0, marginLeft: '1rem' } }, [
           // TODO: make this case insensitive
-          ..._.map(makeCard(), filter ? _.filter(workspace => _.includes(filter, workspace.tags.items), featuredList) : featuredList)
+          ..._.map(makeCard(), filteredWorkspaces)
         ])
       ])
   ])
