@@ -32,10 +32,10 @@ const InfoTile = ({ title, children }) => {
   ])
 }
 
-const WorkflowWrapper = ({ namespace, name, children }) => {
+const WorkflowWrapper = ({ namespace, name, children, tabName, snapshotId }) => {
   const signal = Utils.useCancellation()
   const cachedSnapshotsList = Utils.useStore(snapshotsListStore)
-
+  const selectedSnapshot = (snapshotId * 1) || _.last(cachedSnapshotsList).snapshotId
 
   const snapshotsList = cachedSnapshotsList && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedSnapshotsList[0])) ?
     cachedSnapshotsList :
@@ -57,7 +57,19 @@ const WorkflowWrapper = ({ namespace, name, children }) => {
       div({ style: Style.breadcrumb.breadcrumb }, [
         div(breadcrumbs.commonPaths.workflowList()),
         div({ style: Style.breadcrumb.textUnderBreadcrumb }, [`${namespace}/${name}`])
-      ])
+      ]),
+      h(IdContainer, [id => h(Fragment, [
+        label({ htmlFor: id, style: { ...Style.tabBarText, fontSize: '1.25rem', marginLeft: '2rem', marginRight: '1rem' } }, ['Snapshot:']),
+        div({ style: { width: 100 } }, [
+          h(Select, {
+            id,
+            value: selectedSnapshot,
+            isSearchable: false,
+            options: _.map('snapshotId', cachedSnapshotsList),
+            onChange: ({ value }) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value })
+          })
+        ])
+      ])])
     ]),
     div({ role: 'main', style: { flex: 1, display: 'flex', flexFlow: 'column nowrap' } }, [
       snapshotsList ?
@@ -99,20 +111,7 @@ const SnapshotWrapper = ({ namespace, name, snapshotId, tabName, children }) => 
       tabNames: ['dashboard', 'wdl', 'configs'],
       displayNames: { configs: 'configurations' },
       getHref: currentTab => Nav.getLink(`workflow-${currentTab}`, { namespace, name, snapshotId: selectedSnapshot })
-    }, [
-      h(IdContainer, [id => h(Fragment, [
-        label({ htmlFor: id, style: { marginRight: '1rem' } }, ['Snapshot:']),
-        div({ style: { width: 100 } }, [
-          h(Select, {
-            id,
-            value: selectedSnapshot,
-            isSearchable: false,
-            options: _.map('snapshotId', cachedSnapshotsList),
-            onChange: ({ value }) => Nav.goToPath(`workflow-${tabName}`, { namespace, name, snapshotId: value })
-          })
-        ])
-      ])])
-    ]),
+    }),
     snapshot ?
       children :
       centeredSpinner()

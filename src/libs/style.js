@@ -106,6 +106,11 @@ export const navList = {
   }
 }
 
+export const tabBarText = {
+  color: isTerra() ? 'white' : colors.accent(),
+  fontSize: '1.25rem'
+}
+
 export const breadcrumb = {
   breadcrumb: {
     display: 'flex', flexDirection: 'column',
@@ -113,8 +118,8 @@ export const breadcrumb = {
     paddingLeft: '4rem', minWidth: 0, marginRight: '0.5rem'
   },
   textUnderBreadcrumb: {
-    color: isTerra() ? 'white' : colors.accent(),
-    fontSize: '1.25rem', ...noWrapEllipsis,
+    ...tabBarText,
+    ...noWrapEllipsis,
     fontWeight: 500,
     padding: 0,
     margin: 0
