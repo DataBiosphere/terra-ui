@@ -5,7 +5,7 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, label } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ButtonSecondary, IdContainer, Link, Select } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, IdContainer, Link, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
@@ -111,7 +111,11 @@ const SnapshotWrapper = ({ namespace, name, snapshotId, tabName, children }) => 
       tabNames: ['dashboard', 'wdl', 'configs'],
       displayNames: { configs: 'configurations' },
       getHref: currentTab => Nav.getLink(`workflow-${currentTab}`, { namespace, name, snapshotId: selectedSnapshot })
-    }),
+    }, [
+      h(ButtonPrimary, {
+        onClick: () => _.noop
+      }, ['Export to Workspace'])
+    ]),
     snapshot ?
       children :
       centeredSpinner()
