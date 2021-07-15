@@ -4,6 +4,7 @@ import { a, div, h } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner } from 'src/components/icons'
+import { DelayedSearchInput } from 'src/components/input'
 import { libraryTopMatter } from 'src/components/library-common'
 import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
@@ -19,7 +20,7 @@ import * as Utils from 'src/libs/utils'
 const styles = {
   column: { marginRight: '1.5rem', flex: '1 1 0px', maxWidth: 415 },
   header: {
-    fontSize: 22, color: colors.dark(), fontWeight: 500,
+    fontSize: 16, color: colors.dark(), fontWeight: 'bold',
     marginBottom: '1rem'
   }
 }
@@ -139,7 +140,8 @@ const Showcase = () => {
   const stateHistory = StateHistory.get()
   const [featuredList, setFeaturedList] = useState(stateHistory.featuredList)
 
-  const [filter, setFilter] = useState()
+  const [tagFilter, setTagFilter] = useState()
+  const [searchFilter, setSearchFilter] = useState()
 
   Utils.useOnMount(() => {
     const loadData = async () => {
@@ -152,12 +154,14 @@ const Showcase = () => {
     loadData()
   })
 
-  const matchWorkspaceTags = filter => workspace => {
+  const matchWorkspace = workspace => {
+    console.log(workspace)
     const tags = _.map(_.toLower, workspace.tags.items)
-    return _.includes(_.toLower(filter), tags)
+    return (!tagFilter || _.includes(_.toLower(tagFilter), tags)) &&
+      (!searchFilter || _.includes(searchFilter, workspace.name) || _.includes(searchFilter, workspace.description))
   }
 
-  const filteredWorkspaces = filter ? _.filter(matchWorkspaceTags(filter), featuredList) : featuredList
+  const filteredWorkspaces = _.filter(matchWorkspace, featuredList)
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('showcase & tutorials'),
@@ -167,11 +171,21 @@ const Showcase = () => {
         div({ style: { width: '18rem' } }, [
           div({ style: styles.header }, 'Featured workspaces'),
           h(Sidebar, {
-            onFilterChange: setFilter,
-            featuredList: featuredList
+            onFilterChange: setTagFilter,
+            featuredList
           })
         ]),
         div({ style: { flex: 1, minWidth: 0, marginLeft: '1rem' } }, [
+          div({ style: { display: 'flex', marginBottom: '0.5rem' } }, [
+            h(DelayedSearchInput, {
+              style: { flex: 1 },
+              placeholder: 'Search Name or Description',
+              'aria-label': 'Search Featured Workspaces',
+              value: searchFilter,
+              onChange: setSearchFilter
+            }),
+            div('Sort by')
+          ]),
           // TODO: make this case insensitive
           ..._.map(makeCard(), filteredWorkspaces)
         ])
