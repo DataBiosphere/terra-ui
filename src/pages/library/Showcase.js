@@ -24,8 +24,8 @@ const styles = {
   }
 }
 
-const makeCard = variant => (workspace) => {
-  const { namespace, name, description } = workspace
+const makeCard = variant => workspace => {
+  const { namespace, name, created, description } = workspace
   return a({
     href: Nav.getLink('workspace-dashboard', { namespace, name }),
     style: {
@@ -33,17 +33,13 @@ const makeCard = variant => (workspace) => {
       height: 175,
       borderRadius: 5,
       display: 'flex',
-      margin: '1rem 1rem 0',
+      marginBottom: '1rem',
       boxShadow: Style.standardShadow
     }
   }, [
-    div({ style: { flex: 1, minWidth: 0, padding: '15px 20px' } }, [
-      div({ style: { color: colors.accent(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
-      div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [description])
-    ]),
     div({
       style: {
-        backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: 'auto 100%', borderRadius: '0 5px 5px 0',
+        backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: 'auto 100%', borderRadius: '5px 0 0 5px',
         width: 87,
         ...Utils.cond(
           [name.toLowerCase().includes('covid'), () => ({ backgroundImage: `url(${covidBg})` })],
@@ -51,7 +47,15 @@ const makeCard = variant => (workspace) => {
           () => ({ backgroundImage: `url(${featuredBg})`, opacity: 0.75 })
         )
       }
-    })
+    }),
+    div({ style: { flex: 1, minWidth: 0, padding: '15px 20px', overflow: 'hidden' } }, [
+      div({ style: { display: 'flex' } }, [
+        div({ style: { flex: 1, color: colors.accent(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
+        div([Utils.makeStandardDate(created)])
+      ]),
+      div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [description])
+      // h(MarkdownViewer, [description]) // TODO: should we render this as markdown?
+    ])
   ])
 }
 
@@ -136,13 +140,13 @@ const Showcase = () => {
     !featuredList ?
       centeredSpinner() :
       div({ style: { display: 'flex', margin: '1rem 1rem 0' } }, [
-        div({ sytle: { width: 400 } }, [
+        div({ style: { width: '18rem' } }, [
           div({ style: styles.header }, 'Featured workspaces'),
           h(Sidebar, {
             onFilterChange: setFilter
           })
         ]),
-        div({ style: { flex: 1 } }, [
+        div({ style: { flex: 1, minWidth: 0, marginLeft: '1rem' } }, [
           // TODO: make this case insensitive
           ..._.map(makeCard(), filter ? _.filter(workspace => _.includes(filter, workspace.tags.items), featuredList) : featuredList)
         ])
@@ -155,6 +159,7 @@ export const navPaths = [
     name: 'library-showcase',
     path: '/library/showcase',
     component: Showcase,
-    title: 'Showcase & Tutorials'
+    title: 'Showcase & Tutorials',
+    public: true
   }
 ]
