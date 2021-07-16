@@ -104,22 +104,26 @@ const WorkflowConfigs = ({ onConfigClick = _.noop }) => {
   ])
 }
 
-// const methodAjax = Ajax().Methods.method(namespace, name, snapshotId).toWorkspace({}, config)
 
-
-const WorkspaceSelection = ({ namespace: workflowNamespace, name: workflowName, snapshotId, onCancel, selectedConfig }) => {
+const ExportFinalizer = ({ namespace: workflowNamespace, name: workflowName, snapshotId, onCancel, selectedConfig = {} }) => {
   const [loading, setLoading] = useState()
-  const [name, setName] = useState('')
 
-  const configNamespace = selectedConfig?.namespace || workflowNamespace
+  // With a blank config, `selectedConfig` will be empty
+  const [name, setName] = useState(selectedConfig.name || workflowName)
+  const configNamespace = selectedConfig.namespace || workflowNamespace
 
   const exportToWorkspace = _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error exporting workflow to workspace')
   )(async workspace => {
-    await Ajax().Methods.method(workflowNamespace, workflowName, snapshotId).toWorkspace(workspace, _.set(['payloadObject', 'name'], name, selectedConfig))
-    Nav.goToPath('workflow',
-      { namespace: workspace.namespace, name: workspace.name, workflowNamespace: configNamespace, workflowName: name })
+    await Ajax()
+      .Methods
+      .method(workflowNamespace, workflowName, snapshotId)
+      .toWorkspace(workspace, _.merge(selectedConfig, { payloadObject: { namespace: configNamespace, name } }))
+
+    Nav.goToPath('workflow', {
+      namespace: workspace.namespace, name: workspace.name, workflowNamespace: configNamespace, workflowName: name
+    })
   })
 
   return h(Fragment, [
@@ -191,7 +195,7 @@ const ExportToWorkspaceModal = ({ title, onDismiss, namespace, name, snapshotId 
     h(TitleBar, { title, onDismiss }),
     view === step.config ?
       h(ConfigSelection, { selectedConfig, setSelectedConfig, onOk: () => setView(step.workspace) }) :
-      h(WorkspaceSelection, { namespace, name, snapshotId, selectedConfig, onCancel: () => setView(step.config) })
+      h(ExportFinalizer, { namespace, name, snapshotId, selectedConfig, onCancel: () => setView(step.config) })
 
   ])
 }
