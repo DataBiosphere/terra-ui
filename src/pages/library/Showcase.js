@@ -170,54 +170,57 @@ const Showcase = () => {
     libraryTopMatter('showcase & tutorials'),
     !featuredList ?
       centeredSpinner() :
-      div({ style: { display: 'flex', margin: '1rem 1rem 0' } }, [
-        div({ style: { width: '18rem' } }, [
-          div({ style: styles.header }, 'Featured workspaces'),
-          div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
-            ..._.map(tag => {
-              return div({ style: { display: 'flex', alignItems: 'center', marginRight: '0.5rem' } }, [
-                h(ButtonSecondary, {
-                  onClick: () => setTagFilters(_.without([tag], tagFilters))
-                }, [icon('times')]),
-                tag
-              ])
-            }, tagFilters),
-            div({ style: { flex: 1 } }),
-            h(Clickable, {
-              onClick: () => setTagFilters([])
-            }, ['clear'])
-          ]),
-          h(Sidebar, {
-            onFilterChange: tag => setTagFilters(_.uniq([...tagFilters, tag])),
-            featuredList
-          })
-        ]),
-        div({ style: { flex: 1, minWidth: 0, marginLeft: '1rem' } }, [
-          div({ style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' } }, [
-            div({ style: { flex: 1 } }, [
-              h(DelayedSearchInput, {
-                'aria-label': 'Search Featured Workspaces',
-                placeholder: 'Search Name or Description',
-                value: searchFilter,
-                onChange: setSearchFilter
-              })
-            ]),
-            h(IdContainer, [
-              id => h(Fragment, [
-                label({ htmlFor: id, style: { margin: '0 0.5rem 0 1rem' } }, ['Sort by']),
-                h(Select, {
-                  id,
-                  isClearable: false,
-                  isSearchable: false,
-                  styles: { container: old => ({ ...old, width: '10rem' }) },
-                  value: sort,
-                  onChange: v => setSort(v.value),
-                  options: ['most recent', 'alphabetical']
-                })
-              ])
+      h(Fragment, [
+        div({ style: { display: 'flex', margin: '1rem 1rem 0', alignItems: 'baseline' } }, [
+          div({ style: { width: '18rem', flex: '0 0 auto' } }, [
+            div({ style: styles.header }, 'Featured workspaces'),
+            div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
+              ..._.map(tag => {
+                return div({ style: { display: 'flex', alignItems: 'center', marginRight: '0.5rem' } }, [
+                  h(ButtonSecondary, {
+                    onClick: () => setTagFilters(_.without([tag], tagFilters))
+                  }, [icon('times')]),
+                  tag
+                ])
+              }, tagFilters),
+              div({ style: { flex: 1 } }),
+              h(Clickable, {
+                onClick: () => setTagFilters([])
+              }, ['clear'])
             ])
           ]),
-          ..._.map(makeCard(), sortedWorkspaces)
+          h(DelayedSearchInput, {
+            style: { flex: 1, marginLeft: '1rem' },
+            'aria-label': 'Search Featured Workspaces',
+            placeholder: 'Search Name or Description',
+            value: searchFilter,
+            onChange: setSearchFilter
+          }),
+          h(IdContainer, [
+            id => h(Fragment, [
+              label({ htmlFor: id, style: { margin: '0 0.5rem 0 1rem', whiteSpace: 'nowrap' } }, ['Sort by']),
+              h(Select, {
+                id,
+                isClearable: false,
+                isSearchable: false,
+                styles: { container: old => ({ ...old, width: '10rem' }) },
+                value: sort,
+                onChange: v => setSort(v.value),
+                options: ['most recent', 'alphabetical']
+              })
+            ])
+          ])
+        ]),
+        div({ style: { display: 'flex', margin: '0 1rem' } }, [
+          div({ style: { width: '18rem', flex: '0 0 auto' } }, [
+            h(Sidebar, {
+              onFilterChange: tag => setTagFilters(_.uniq([...tagFilters, tag])),
+              featuredList
+            })
+          ]),
+          div({ style: { marginLeft: '1rem', minWidth: 0 } }, [
+            ..._.map(makeCard(), sortedWorkspaces)
+          ])
         ])
       ])
   ])
