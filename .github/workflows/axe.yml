@@ -32,4 +32,4 @@ jobs:
           http://localhost:3000/#workspaces/broad-dsde-alpha/large_submission/data, \
           http://localhost:3000/#workspaces/broad-dsde-alpha/large_submission/notebooks, \
           http://localhost:3000/#workspaces/broad-dsde-alpha/large_submission/workflows, \
-          http://localhost:3000/#workspaces/broad-dsde-alpha/large_submission/job_history --exit
+          http://localhost:3000/#workspaces/broad-dsde-alpha/large_submission/job_history --exit --tags section508

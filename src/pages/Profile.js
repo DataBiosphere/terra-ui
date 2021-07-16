@@ -250,14 +250,12 @@ const Profile = ({ queryParams = {} }) => {
   const line = children => div({ style: styles.form.line }, children)
 
   const textField = (key, title, { placeholder, required } = {}) => h(IdContainer, [id => div({ style: styles.form.container }, [
-    label({ htmlFor: id, style: styles.form.title }, [title]),
     required ?
       h(ValidatedInput, {
         inputProps: {
           id,
           value: profileInfo[key],
           onChange: assignValue(key),
-          placeholder: placeholder || 'Required'
         },
         error: Utils.summarizeErrors(errors && errors[key])
       }) :
@@ -265,7 +263,6 @@ const Profile = ({ queryParams = {} }) => {
         id,
         value: profileInfo[key],
         onChange: assignValue(key),
-        placeholder
       })
   ])])
 
