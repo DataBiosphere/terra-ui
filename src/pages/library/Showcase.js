@@ -1,9 +1,9 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { a, div, h, label } from 'react-hyperscript-helpers'
-import { Clickable, IdContainer, Select } from 'src/components/common'
+import { ButtonSecondary, Clickable, IdContainer, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { libraryTopMatter } from 'src/components/library-common'
 import covidBg from 'src/images/library/showcase/covid-19.jpg'
@@ -116,9 +116,6 @@ const Sidebar = props => {
   })
 
   return div({ style: { display: 'flex', flexDirection: 'column' } }, [
-    h(Clickable, {
-      onClick: () => onFilterChange(undefined)
-    }, ['clear']),
     _.map(section => {
       return div([
         div({ style: { fontWeight: 600, marginBottom: '0.5rem' } }, section.name),
@@ -140,7 +137,7 @@ const Showcase = () => {
   const stateHistory = StateHistory.get()
   const [featuredList, setFeaturedList] = useState(stateHistory.featuredList)
 
-  const [tagFilter, setTagFilter] = useState()
+  const [tagFilters, setTagFilters] = useState([])
   const [searchFilter, setSearchFilter] = useState()
   const [sort, setSort] = useState('most recent')
 
@@ -157,7 +154,7 @@ const Showcase = () => {
 
   const matchWorkspace = workspace => {
     const tags = _.map(_.toLower, workspace.tags.items)
-    return (!tagFilter || _.includes(_.toLower(tagFilter), tags)) &&
+    return (_.isEmpty(tagFilters) || _.includes(_.toLower(tagFilters), tags)) &&
       (!searchFilter || _.includes(searchFilter, workspace.name) || _.includes(searchFilter, workspace.description))
   }
   const filteredWorkspaces = _.filter(matchWorkspace, featuredList)
@@ -176,8 +173,22 @@ const Showcase = () => {
       div({ style: { display: 'flex', margin: '1rem 1rem 0' } }, [
         div({ style: { width: '18rem' } }, [
           div({ style: styles.header }, 'Featured workspaces'),
+          div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
+            ..._.map(tag => {
+              return div({ style: { display: 'flex', alignItems: 'center', marginRight: '0.5rem' } }, [
+                h(ButtonSecondary, {
+                  onClick: () => setTagFilters(_.without([tag], tagFilters))
+                }, [icon('times')]),
+                tag
+              ])
+            }, tagFilters),
+            div({ style: { flex: 1 } }),
+            h(Clickable, {
+              onClick: () => setTagFilters([])
+            }, ['clear'])
+          ]),
           h(Sidebar, {
-            onFilterChange: setTagFilter,
+            onFilterChange: tag => setTagFilters(_.uniq([...tagFilters, tag])),
             featuredList
           })
         ]),
