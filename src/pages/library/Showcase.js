@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
+import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, div, h, label } from 'react-hyperscript-helpers'
 import { ButtonSecondary, Clickable, IdContainer, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -22,7 +23,29 @@ const styles = {
   header: {
     fontSize: 16, color: colors.dark(), fontWeight: 'bold',
     marginBottom: '1rem'
+  },
+  nav: {
+    background: {
+      position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
+      overflow: 'auto', cursor: 'pointer',
+      zIndex: 2
+    },
+    container: state => ({
+      ...(state === 'entered' ? {} : { opacity: 0, transform: 'translate(-2rem)' }),
+      transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
+      display: 'flex', flexDirection: 'column'
+    }),
+    navSection: {
+      flex: 'none', height: 50, padding: '0 28px', fontWeight: 600,
+      borderTop: `1px solid ${colors.dark(0.55)}`
+    }
   }
+}
+
+const NavItem = ({ children, ...props }) => {
+  return h(Clickable, _.merge({
+    style: { display: 'flex', alignItems: 'center', outlineOffset: -4 }
+  }, props), [children])
 }
 
 const makeCard = variant => workspace => {
@@ -57,6 +80,25 @@ const makeCard = variant => workspace => {
       div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [description])
       // h(MarkdownViewer, [description]) // TODO: should we render this as markdown?
     ])
+  ])
+}
+
+// collapsible section for sidebar categories
+const sideBarCollapser = ({ titleIcon, title, isOpened, onClick, children }) => {
+  return div({
+    role: 'group'
+  }, [
+    h(NavItem, {
+      onClick,
+      style: styles.nav.navSection
+    }, [
+      title,
+      div({ style: { flexGrow: 1 } }),
+      icon(isOpened ? 'angle-up' : 'angle-down', { size: 18, style: { flex: 'none' } })
+    ]),
+    div({
+      style: { flex: 'none' }
+    }, [h(RCollapse, { isOpened }, [children])])
   ])
 }
 
@@ -101,6 +143,10 @@ const sideBarSections = [
 const Sidebar = props => {
   const { onFilterChange, featuredList } = props
 
+  // setup open-ness state for each sidebar section
+  const initialOpenStates = _.fromPairs(_.map(sideBarSections, section => [section.name, true]))
+  const [openState, setOpenState] = useState(initialOpenStates)
+
   const labelCounts = new Map()
   sideBarSections.forEach(section => {
     section.labels.forEach(label => {
@@ -120,16 +166,24 @@ const Sidebar = props => {
   return div({ style: { display: 'flex', flexDirection: 'column' } }, [
     _.map(section => {
       return div([
-        div({ style: { fontWeight: 600, marginBottom: '0.5rem' } }, section.name),
-        ..._.map(label => {
-          return div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
-            h(Clickable, {
-              style: { flex: 1 },
-              onClick: () => onFilterChange(label.toLowerCase())
-            }, [label]),
-            div(labelCounts.get(_.toLower(label)))
-          ])
-        }, section.labels)
+        h(sideBarCollapser,
+          {
+            title: section.name,
+            onClick: () => setOpenState(_.update(section.name, open => !open, openState)),
+            isOpened: openState[section.name]
+          },
+          [
+            ..._.map(label => {
+              return div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
+                h(Clickable, {
+                  style: { flex: 1 },
+                  onClick: () => onFilterChange(label.toLowerCase())
+                }, [label]),
+                div(labelCounts.get(_.toLower(label)))
+              ])
+            }, section.labels)
+          ]
+        )
       ])
     }, sideBarSections)
   ])
