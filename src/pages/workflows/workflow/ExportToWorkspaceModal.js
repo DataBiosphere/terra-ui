@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2 } from 'react-hyperscript-helpers'
+import { div, h, h2, h3 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
-import { ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, IdContainer, Link } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { DelayedSearchInput } from 'src/components/input'
+import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { FlexTable, HeaderCell } from 'src/components/table'
 import TitleBar from 'src/components/TitleBar'
@@ -13,6 +13,7 @@ import { WorkspaceImporter } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
+import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { snapshotStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
@@ -106,19 +107,27 @@ const WorkflowConfigs = ({ onConfigClick = _.noop }) => {
 // const methodAjax = Ajax().Methods.method(namespace, name, snapshotId).toWorkspace({}, config)
 
 
-const WorkspaceSelection = ({ namespace, name, snapshotId, onCancel, selectedConfig }) => {
+const WorkspaceSelection = ({ namespace: workflowNamespace, name: workflowName, snapshotId, onCancel, selectedConfig }) => {
   const [loading, setLoading] = useState()
-  const { namespace: workflowNamespace, name: workflowName } = selectedConfig
+  const [name, setName] = useState('')
+
+  const configNamespace = selectedConfig?.namespace || workflowNamespace
 
   const exportToWorkspace = _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error exporting workflow to workspace')
   )(async workspace => {
-    await Ajax().Methods.method(namespace, name, snapshotId).toWorkspace(workspace, selectedConfig)
-    Nav.goToPath('workflow', { namespace: workspace.namespace, name: workspace.name, workflowNamespace, workflowName })
+    await Ajax().Methods.method(workflowNamespace, workflowName, snapshotId).toWorkspace(workspace, _.set(['payloadObject', 'name'], name, selectedConfig))
+    Nav.goToPath('workflow',
+      { namespace: workspace.namespace, name: workspace.name, workflowNamespace: configNamespace, workflowName: name })
   })
 
   return h(Fragment, [
+    h(IdContainer, [id => h(Fragment, [
+      h(FormLabel, { htmlFor: id }, ['Name']),
+      h(TextInput, { onChange: setName, value: name })
+    ])]),
+
     h(WorkspaceImporter, {
       onImport: exportToWorkspace
     }),
@@ -135,17 +144,7 @@ const WorkspaceSelection = ({ namespace, name, snapshotId, onCancel, selectedCon
 
 const ConfigSelection = ({ selectedConfig, setSelectedConfig, onOk }) => {
   return h(Fragment, [
-    div({ style: { fontSize: '1.125rem', margin: '1rem 1rem 0.5rem' } }, ['Select Method Configuration']),
-    h(DelayedSearchInput, {
-      'aria-label': 'Filter Methods',
-      onChange: _.noop,
-      style: {
-        margin: '0 1rem',
-        width: '20rem'
-      },
-      placeholder: 'Filter Methods'
-      // value: filter
-    }),
+    h3({ style: { fontSize: '1.125rem', margin: '1rem 1rem 0.5rem' } }, ['Select Method Configuration']),
     div({
       style: {
         display: 'grid',
@@ -164,7 +163,12 @@ const ConfigSelection = ({ selectedConfig, setSelectedConfig, onOk }) => {
     div({
       style: { marginTop: '1rem', display: 'flex', justifyContent: 'flex-end' }
     }, [
-      h(ButtonSecondary, { onClick: _.noop }, ['Use Blank Configuration']),
+      h(ButtonSecondary, {
+        onClick: () => {
+          setSelectedConfig(undefined)
+          onOk()
+        }
+      }, ['Use Blank Configuration']),
       h(ButtonPrimary, { style: { marginLeft: '1rem' }, disabled: !selectedConfig, onClick: onOk }, ['Use Selected Config'])
     ])
   ])
