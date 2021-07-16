@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
-import { useState } from 'react'
-import { a, div, h } from 'react-hyperscript-helpers'
-import { Clickable } from 'src/components/common'
+import { Fragment, useState } from 'react'
+import { a, div, h, label } from 'react-hyperscript-helpers'
+import { Clickable, IdContainer, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -142,6 +142,7 @@ const Showcase = () => {
 
   const [tagFilter, setTagFilter] = useState()
   const [searchFilter, setSearchFilter] = useState()
+  const [sort, setSort] = useState('most recent')
 
   Utils.useOnMount(() => {
     const loadData = async () => {
@@ -155,13 +156,18 @@ const Showcase = () => {
   })
 
   const matchWorkspace = workspace => {
-    console.log(workspace)
     const tags = _.map(_.toLower, workspace.tags.items)
     return (!tagFilter || _.includes(_.toLower(tagFilter), tags)) &&
       (!searchFilter || _.includes(searchFilter, workspace.name) || _.includes(searchFilter, workspace.description))
   }
-
   const filteredWorkspaces = _.filter(matchWorkspace, featuredList)
+
+  const sortWorkspaces = Utils.cond(
+    [sort === 'most recent', () => _.orderBy(['created'], ['desc'])],
+    [sort === 'alphabetical', () => _.orderBy(w => _.toLower(_.trim(w.name)), ['asc'])],
+    () => _.identity
+  )
+  const sortedWorkspaces = sortWorkspaces(filteredWorkspaces)
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('showcase & tutorials'),
@@ -176,18 +182,31 @@ const Showcase = () => {
           })
         ]),
         div({ style: { flex: 1, minWidth: 0, marginLeft: '1rem' } }, [
-          div({ style: { display: 'flex', marginBottom: '0.5rem' } }, [
-            h(DelayedSearchInput, {
-              style: { flex: 1 },
-              placeholder: 'Search Name or Description',
-              'aria-label': 'Search Featured Workspaces',
-              value: searchFilter,
-              onChange: setSearchFilter
-            }),
-            div('Sort by')
+          div({ style: { display: 'flex', alignItems: 'center', marginBottom: '0.5rem' } }, [
+            div({ style: { flex: 1 } }, [
+              h(DelayedSearchInput, {
+                'aria-label': 'Search Featured Workspaces',
+                placeholder: 'Search Name or Description',
+                value: searchFilter,
+                onChange: setSearchFilter
+              })
+            ]),
+            h(IdContainer, [
+              id => h(Fragment, [
+                label({ htmlFor: id, style: { margin: '0 0.5rem 0 1rem' } }, ['Sort by']),
+                h(Select, {
+                  id,
+                  isClearable: false,
+                  isSearchable: false,
+                  styles: { container: old => ({ ...old, width: '10rem' }) },
+                  value: sort,
+                  onChange: v => setSort(v.value),
+                  options: ['most recent', 'alphabetical']
+                })
+              ])
+            ])
           ]),
-          // TODO: make this case insensitive
-          ..._.map(makeCard(), filteredWorkspaces)
+          ..._.map(makeCard(), sortedWorkspaces)
         ])
       ])
   ])
