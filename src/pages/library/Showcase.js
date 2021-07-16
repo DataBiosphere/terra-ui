@@ -184,12 +184,13 @@ const Sidebar = props => {
           },
           [
             ..._.map(label => {
-              return div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
+              const count = labelCounts.get(_.toLower(label))
+              return count > 0 && div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
                 h(Clickable, {
                   style: { flex: 1 },
                   onClick: () => onFilterChange(label.toLowerCase())
                 }, [label]),
-                div({ style: _.includes(_.toLower(label), tagFilters) ? styles.hilightedPill : styles.pill }, labelCounts.get(_.toLower(label)))
+                div({ style: _.includes(_.toLower(label), tagFilters) ? styles.hilightedPill : styles.pill }, count)
               ])
             }, section.labels)
           ]
