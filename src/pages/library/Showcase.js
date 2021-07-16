@@ -100,14 +100,14 @@ const Sidebar = props => {
   const { onFilterChange, featuredList } = props
 
   const labelCounts = new Map()
-  sideBarSections.forEach(function (section) {
-    section.labels.forEach(function (label) {
+  sideBarSections.forEach(section => {
+    section.labels.forEach(label => {
       labelCounts.set(label, 0)
     })
   })
 
-  featuredList.forEach(function (workspace) {
-    workspace.tags.items?.forEach(function (tag) {
+  featuredList.forEach(workspace => {
+    workspace.tags.items?.forEach(tag => {
       tag = tag.toLowerCase()
       if (labelCounts.has(tag)) {
         labelCounts.set(tag, labelCounts.get(tag) + 1)
