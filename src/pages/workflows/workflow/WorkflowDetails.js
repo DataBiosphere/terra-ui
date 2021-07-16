@@ -5,7 +5,7 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, label } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ButtonPrimary, ButtonSecondary, IdContainer, DashboardInfoTile, Link, Select } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, DashboardInfoTile, IdContainer, Link, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
@@ -24,6 +24,7 @@ import { snapshotsListStore, snapshotStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import ConfigDetails from 'src/pages/workflows/workflow/ConfigDetails'
+import ExportToWorkspaceModal from 'src/pages/workflows/workflow/ExportToWorkspaceModal'
 
 
 const WorkflowWrapper = ({ namespace, name, children, tabName, snapshotId }) => {
@@ -77,6 +78,7 @@ const SnapshotWrapper = ({ namespace, name, snapshotId, tabName, children }) => 
   const signal = Utils.useCancellation()
   const cachedSnapshotsList = Utils.useStore(snapshotsListStore)
   const cachedSnapshot = Utils.useStore(snapshotStore)
+  const [showExportModal, setShowExportModal] = useState(false)
   const selectedSnapshot = (snapshotId * 1) || _.last(cachedSnapshotsList).snapshotId
 
   const snapshot = cachedSnapshot &&
@@ -107,9 +109,13 @@ const SnapshotWrapper = ({ namespace, name, snapshotId, tabName, children }) => 
       getHref: currentTab => Nav.getLink(`workflow-${currentTab}`, { namespace, name, snapshotId: selectedSnapshot })
     }, [
       h(ButtonPrimary, {
-        onClick: () => _.noop
+        onClick: () => setShowExportModal(true)
       }, ['Export to Workspace'])
     ]),
+    showExportModal && h(ExportToWorkspaceModal, {
+      namespace, name, snapshotId: selectedSnapshot,
+      title: `Export ${name} to Workspace`, onDismiss: () => setShowExportModal(false)
+    }),
     snapshot ?
       children :
       centeredSpinner()
