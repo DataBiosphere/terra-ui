@@ -39,6 +39,16 @@ const styles = {
       flex: 'none', height: 50, padding: '0 28px', fontWeight: 600,
       borderTop: `1px solid ${colors.dark(0.55)}`
     }
+  },
+  pill: {
+    width: '3rem', padding: '0.1rem', textAlign: 'center',
+    border: '1px solid', borderColor: colors.dark(0.25), borderRadius: '0.7rem / 50%',
+    backgroundColor: 'white'
+  },
+  hilightedPill: {
+    width: '3rem', padding: '0.1rem', textAlign: 'center',
+    border: '1px solid', borderColor: colors.primary(1), borderRadius: '0.7rem / 50%',
+    backgroundColor: colors.primary(1), color: 'white'
   }
 }
 
@@ -141,7 +151,7 @@ const sideBarSections = [
 ]
 
 const Sidebar = props => {
-  const { onFilterChange, featuredList } = props
+  const { onFilterChange, featuredList, tagFilters } = props
 
   // setup open-ness state for each sidebar section
   const initialOpenStates = _.fromPairs(_.map(sideBarSections, section => [section.name, true]))
@@ -179,7 +189,7 @@ const Sidebar = props => {
                   style: { flex: 1 },
                   onClick: () => onFilterChange(label.toLowerCase())
                 }, [label]),
-                div(labelCounts.get(_.toLower(label)))
+                div({ style: _.includes(_.toLower(label), tagFilters) ? styles.hilightedPill : styles.pill }, labelCounts.get(_.toLower(label)))
               ])
             }, section.labels)
           ]
@@ -272,7 +282,8 @@ const Showcase = () => {
           div({ style: { width: '18rem', flex: '0 0 auto' } }, [
             h(Sidebar, {
               onFilterChange: tag => setTagFilters(_.uniq([...tagFilters, tag])),
-              featuredList
+              featuredList,
+              tagFilters
             })
           ]),
           div({ style: { marginLeft: '1rem', minWidth: 0 } }, [
