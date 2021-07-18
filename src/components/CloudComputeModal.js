@@ -103,7 +103,48 @@ const DiskSelector = ({ value, onChange }) => {
   ])
 }
 
-export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(() => { return 'CloudComputeModal' })
+export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
+  ({ onDismiss, onSuccess, isAnalysisMode = false }) => {
+    const [loading, setLoading] = useState(false)
+    const [viewMode, setViewMode] = useState(undefined)
+
+    const renderAboutPersistentDisk = () => {
+      const { currentRuntimeDetails } = this.state
+      return div({ style: styles.drawerContent }, [
+        h(TitleBar, {
+          id: titleId,
+          style: styles.titleBar,
+          title: 'About persistent disk',
+          hideCloseButton: isAnalysisMode,
+          onDismiss,
+          onPrevious: () => this.setState({ viewMode: undefined })
+        }),
+        div({ style: { lineHeight: 1.5 } }, [
+          p(['Your persistent disk is mounted in the directory ', code({ style: { fontWeight: 600 } }, [this.getCurrentMountDirectory(currentRuntimeDetails)]), br(), 'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
+          p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
+          p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
+          p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
+          h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360047318551', ...Utils.newTabLinkProps }, [
+            'Learn more about persistent disks',
+            icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+          ])
+        ])
+      ])
+    }
+
+    return h(Fragment, [
+      Utils.switchCase(viewMode,
+        // ['packages', renderPackages],
+        ['aboutPersistentDisk', renderAboutPersistentDisk]
+        // ['customImageWarning', renderCustomImageWarning],
+        // ['environmentWarning', renderEnvironmentWarning],
+        // ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
+        // [Utils.DEFAULT, renderMainForm]
+      ),
+      loading && spinnerOverlay,
+      showDebugPanel && this.renderDebugger()
+    ])
+  })
 
 export const CloudComputeModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(
   CloudComputeModalBase
