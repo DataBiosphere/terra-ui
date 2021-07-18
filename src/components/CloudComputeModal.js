@@ -112,11 +112,69 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
     const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(getCurrentRuntime())
     const [viewMode, setViewMode] = useState(undefined)
 
+    const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
+
     const getCurrentMountDirectory = currentRuntimeDetails => {
       const rstudioMountPoint = '/home/rstudio'
       const jupyterMountPoint = '/home/jupyter-user/notebooks'
       const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
       return currentRuntimeDetails?.labels.tool ? (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) : noMountDirectory
+    }
+
+    const renderImageSelect = ({ includeCustom, ...props }) => {
+      return h(GroupedSelect, {
+        ...props,
+        maxMenuHeight: '25rem',
+        value: selectedLeoImage,
+        onChange: ({ value }) => {
+          const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
+          this.setState({
+            selectedLeoImage: value, customEnvImage: '',
+            sparkMode: requiresSpark ? (sparkMode || 'master') : false
+          })
+        },
+        isSearchable: true,
+        isClearable: false,
+        options: [
+          {
+            label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
+            options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isCommunity, isRStudio }) => (!isCommunity && !isRStudio), leoImages))
+          },
+          {
+            label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
+            options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isCommunity }) => isCommunity, leoImages))
+          },
+          {
+            label: 'COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)',
+            options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isRStudio }) => isRStudio, leoImages))
+          },
+          ...(includeCustom ? [{
+            label: 'OTHER ENVIRONMENTS',
+            options: [{ label: 'Custom Environment', value: CUSTOM_MODE }]
+          }] : [])
+        ]
+      })
+    }
+
+    const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
+      div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
+      div(['Version: ', version || null])
+    ])
+
+    const renderPackages = () => {
+      return div({ style: styles.drawerContent }, [
+        h(TitleBar, {
+          id: titleId,
+          style: styles.titleBar,
+          title: 'Installed packages',
+          hideCloseButton: isAnalysisMode,
+          onDismiss,
+          onPrevious: () => setViewMode(undefined)
+        }),
+        renderImageSelect({ 'aria-label': 'Select Environment' }),
+        makeImageInfo({ margin: '1rem 0 0.5rem' }),
+        packages && h(ImageDepViewer, { packageLink: packages })
+      ])
     }
 
     const renderAboutPersistentDisk = () => {
@@ -144,7 +202,7 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
 
     return h(Fragment, [
       Utils.switchCase(viewMode,
-        // ['packages', renderPackages],
+        ['packages', renderPackages],
         ['aboutPersistentDisk', renderAboutPersistentDisk]
         // ['customImageWarning', renderCustomImageWarning],
         // ['environmentWarning', renderEnvironmentWarning],
