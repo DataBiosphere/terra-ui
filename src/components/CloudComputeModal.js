@@ -104,12 +104,22 @@ const DiskSelector = ({ value, onChange }) => {
 }
 
 export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
-  ({ onDismiss, onSuccess, isAnalysisMode = false }) => {
+  ({ onDismiss, onSuccess, runtimes, isAnalysisMode = false }) => {
+    // TODO remove before merging
+    const getCurrentRuntime = () => currentRuntime(runtimes)
+
     const [loading, setLoading] = useState(false)
+    const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(getCurrentRuntime())
     const [viewMode, setViewMode] = useState(undefined)
 
+    const getCurrentMountDirectory = currentRuntimeDetails => {
+      const rstudioMountPoint = '/home/rstudio'
+      const jupyterMountPoint = '/home/jupyter-user/notebooks'
+      const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
+      return currentRuntimeDetails?.labels.tool ? (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) : noMountDirectory
+    }
+
     const renderAboutPersistentDisk = () => {
-      const { currentRuntimeDetails } = this.state
       return div({ style: styles.drawerContent }, [
         h(TitleBar, {
           id: titleId,
@@ -117,10 +127,10 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
           title: 'About persistent disk',
           hideCloseButton: isAnalysisMode,
           onDismiss,
-          onPrevious: () => this.setState({ viewMode: undefined })
+          onPrevious: () => setViewMode(undefined)
         }),
         div({ style: { lineHeight: 1.5 } }, [
-          p(['Your persistent disk is mounted in the directory ', code({ style: { fontWeight: 600 } }, [this.getCurrentMountDirectory(currentRuntimeDetails)]), br(), 'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
+          p(['Your persistent disk is mounted in the directory ', code({ style: { fontWeight: 600 } }, [getCurrentMountDirectory(currentRuntimeDetails)]), br(), 'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
           p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
           p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
           p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
