@@ -354,7 +354,7 @@ const DataTypeSection = ({ title, titleExtras, error, retryFunction, children })
       tooltip: 'Error loading, click to retry.'
     }, [icon('sync', { size: 18 })]) : titleExtras
   ]),
-  children?.length && div({
+  !!children?.length && div({
     style: { display: 'flex', flexDirection: 'column', width: '100%' },
     role: 'list'
   }, [children])
@@ -573,7 +573,7 @@ const WorkspaceData = _.flow(
               onClick: () => setImportingReference(true),
               'aria-haspopup': 'dialog'
             }, [icon('plus-circle', { size: 21 })])
-          }, _.map(type => h(DataTypeButton, {
+          }, [_.map(type => h(DataTypeButton, {
             key: type,
             selected: selectedDataType === type,
             onClick: () => {
@@ -590,7 +590,7 @@ const WorkspaceData = _.flow(
               }
             }, [icon('minus-circle', { size: 16 })])
           }, [type]), _.keys(referenceData)
-          )),
+          )]),
           importingReference && h(ReferenceDataImporter, {
             onDismiss: () => setImportingReference(false),
             onSuccess: () => {
