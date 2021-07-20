@@ -17,8 +17,6 @@ const contextBarStyles = {
     color: colors.accent(),
     backgroundColor: colors.accent(0.2)
   },
-  //original hover for reference
-  // hover: { boxShadow: `inset -6px 0px ${colors.accent()}` }
   hover: { backgroundColor: colors.accent(0.4) }
 }
 
@@ -49,6 +47,7 @@ export const ContextBarButtons = ({ setDeletingWorkspace, setCloningWorkspace, s
         style: contextBarStyles.contextBarButton,
         hover: contextBarStyles.hover,
         tooltip: 'Menu',
+        tooltipSide: 'left',
         tooltipDelay: 100
       }, [icon('ellipsis-v', { size: 24 })])
     ]),
@@ -56,7 +55,9 @@ export const ContextBarButtons = ({ setDeletingWorkspace, setCloningWorkspace, s
       style: contextBarStyles.contextBarButton,
       hover: contextBarStyles.hover,
       // TODO: add click handler
-      ...{ tooltip: 'Compute Configuration', tooltipDelay: 100 },
+      tooltip: 'Compute Configuration',
+      tooltipDelay: 100,
+      tooltipSide: 'left',
       'aria-label': 'Compute Configuration'
     }, [icon('cloudBolt', { size: 24 })]),
     h(Clickable, {
@@ -64,6 +65,7 @@ export const ContextBarButtons = ({ setDeletingWorkspace, setCloningWorkspace, s
       hover: contextBarStyles.hover,
       // TODO: add click handler
       tooltip: 'Terminal',
+      tooltipSide: 'left',
       tooltipDelay: 100,
       'aria-label': 'Terminal'
     }, [icon('terminal', { size: 24 })])

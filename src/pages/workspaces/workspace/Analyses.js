@@ -56,18 +56,23 @@ const sortTokens = {
 }
 const defaultSort = { label: 'Most Recently Updated', value: { field: 'lastModified', direction: 'desc' } }
 
-const analysisContextMenuSize = 18
+const analysisContextMenuSize = 16
+const centerColumnFlex = { flex: 5 }
+const endColumnFlex = { flex: '0 0 150px', display: 'flex', justifyContent: 'flex-left', whiteSpace: 'nowrap' }
 
 const AnalysisCardHeaders = Utils.memoWithName('AnalysisCardHeaders', ({ sort, onSort }) => {
-  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem 0 1.5rem', marginBottom: '0.5rem' } }, [
+  return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', paddingLeft: '1.5rem', marginBottom: '0.5rem' } }, [
     div({ 'aria-sort': ariaSort(sort, 'Application'), style: { flex: 1 } }, [
       h(HeaderRenderer, { sort, onSort, name: 'application' })
     ]),
-    div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 5 } }, [
+    div({ 'aria-sort': ariaSort(sort, 'name'), style: centerColumnFlex }, [
       h(HeaderRenderer, { sort, onSort, name: 'name' })
     ]),
-    div({ 'aria-sort': ariaSort(sort, 'lastModified'), style: { flex: '0 0 10%', justifyContent: 'flex-left', display: 'flex' } }, [
+    div({ 'aria-sort': ariaSort(sort, 'lastModified'), style: { ...endColumnFlex, paddingRight: '1rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'lastModified' })
+    ]),
+    div({ style: { flex: `0 0 ${analysisContextMenuSize}px` } }, [
+      div({ className: 'sr-only' }, ['Expand'])
     ])
   ])
 })
@@ -144,10 +149,10 @@ const AnalysisCard = ({ namespace, name, lastModified, metadata, application, ws
   ])
 
   //the flex values for columns here correspond to the flex values in the header
-  const artefactName = div({
+  const artifactName = div({
     title: getDisplayName(name),
     style: {
-      ...Style.elements.card.title, whiteSpace: 'normal', overflowY: 'auto', flex: 5, textAlign: 'left'
+      ...Style.elements.card.title, whiteSpace: 'normal', overflowY: 'auto', textAlign: 'left', ...centerColumnFlex
     }
   }, [getDisplayName(name)])
 
@@ -171,19 +176,19 @@ const AnalysisCard = ({ namespace, name, lastModified, metadata, application, ws
     }, { marginBottom: '.75rem', paddingLeft: '1.5rem' })
   }, [
     toolContainer,
-    artefactName,
+    artifactName,
     //The 10% allows for the longest date possible (September XX, XXXX), plus a locked symbol, without text wrapping when the screen is maximized
-    div({ style: { flex: '0 0 10%', display: 'flex', flexDirection: 'row', justifyContent: 'flex-left' } }, [
+    div({ style: { ...endColumnFlex, flexDirection: 'row' } }, [
       div({ style: { flex: 1, display: 'flex' } }, [
         locked && h(Clickable, {
           style: { display: 'flex', paddingRight: '1rem', color: colors.dark(0.75) },
           tooltip: `This analysis is currently being edited by ${lockedBy || 'another user'}`
         }, [icon('lock')]),
         h(TooltipTrigger, { content: Utils.makeCompleteDate(lastModified) }, [
-          div({ style: { fontSize: '0.8rem', display: 'flex', alignItems: 'center' } }, [Utils.makePrettyDate(lastModified)])
+          div({ style: { fontSize: '0.8rem', display: 'flex', alignItems: 'center', textAlign: 'left' } }, [Utils.makePrettyDate(lastModified)])
         ])
       ]),
-      analysisMenu
+      div({ style: { marginLeft: '1rem' } }, [analysisMenu])
     ])
   ])
 }
@@ -214,7 +219,7 @@ const Analyses = _.flow(
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
-  //TODO: add galaxy artefacts to this once we have galaxy artefacts
+  //TODO: add galaxy artifacts to this once we have galaxy artifacts
   const [analyses, setAnalyses] = useState(() => StateHistory.get().analyses || undefined)
   const [currentUserHash, setCurrentUserHash] = useState(undefined)
   const [potentialLockers, setPotentialLockers] = useState(undefined)
@@ -240,7 +245,7 @@ const Analyses = _.flow(
     setAnalyses(_.reverse(_.sortBy('lastModified', analyses)))
   })
 
-  //TODO: eventually load app artefacts
+  //TODO: eventually load app artifacts
   // const doAppRefresh = _.flow(
   //   withErrorReporting('Error loading Apps'),
   //   Utils.withBusyState(setBusy)
@@ -332,7 +337,7 @@ const Analyses = _.flow(
         }],
         [Utils.DEFAULT, () => h(Fragment, [
           h(AnalysisCardHeaders, { sort: sortOrder, onSort: setSortOrder }),
-          div({ role: 'list', 'aria-label': 'analysis artefacts in workspace', style: { flexGrow: 1, width: '100%' } }, [renderedAnalyses])
+          div({ role: 'list', 'aria-label': 'analysis artifacts in workspace', style: { flexGrow: 1, width: '100%' } }, [renderedAnalyses])
         ])]
       )
     ])
