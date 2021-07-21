@@ -10,7 +10,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-export const DEFAULT_DISK_SIZE = 50
+export const DEFAULT_DISK_SIZE = 60
 export const DEFAULT_BOOT_DISK_SIZE = 50
 
 export const DEFAULT_GPU_TYPE = 'nvidia-tesla-t4'
