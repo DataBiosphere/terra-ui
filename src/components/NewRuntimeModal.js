@@ -92,7 +92,7 @@ const DiskSelector = ({ value, onChange }) => {
       label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
       h(NumberInput, {
         id,
-        min: 10,
+        min: 60, // sizes below this are too small for images
         max: 64000,
         isClearable: false,
         onlyInteger: true,
@@ -963,7 +963,7 @@ export class NewRuntimeModalBase extends Component {
             ]),
             h(NumberInput, {
               id,
-              min: 10,
+              min: 60,
               max: 64000,
               isClearable: false,
               onlyInteger: true,
