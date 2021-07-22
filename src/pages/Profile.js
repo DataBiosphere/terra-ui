@@ -200,7 +200,7 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
   Utils.useOnMount(() => {
     const { state, code } = qs.parse(window.location.search, { ignoreQueryPrefix: true })
     const extractedProvider = state ? JSON.parse(atob(state)).provider : ''
-    const token = key === extractedProvider && code
+    const token = key === extractedProvider ? code : undefined
 
     const linkFenceAccount = _.flow(
       withErrorReporting('Error linking NIH account'),
