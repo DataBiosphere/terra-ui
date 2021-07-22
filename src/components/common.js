@@ -390,7 +390,7 @@ export const ShibbolethLink = ({ children, ...props }) => {
   ])
 }
 
-export const FrameworkServiceLink = ({ linkText, provider, redirectUrl, ...props }) => {
+export const FrameworkServiceLink = ({ linkText, provider, redirectUrl, button = false, ...props }) => {
   const [href, setHref] = useState()
 
   Utils.useOnMount(() => {
@@ -401,8 +401,11 @@ export const FrameworkServiceLink = ({ linkText, provider, redirectUrl, ...props
     loadAuthUrl()
   })
 
-  return !!href ?
-    h(Link, {
+  return Utils.cond(
+    [!!href && button, () => h(ButtonPrimary, { href }, [
+      linkText, icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
+    ])],
+    [!!href, () => h(Link, {
       href,
       style: { display: 'inline-flex', alignItems: 'center' },
       ...Utils.newTabLinkProps,
@@ -410,7 +413,9 @@ export const FrameworkServiceLink = ({ linkText, provider, redirectUrl, ...props
     }, [
       linkText,
       icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
-    ]) : h(Fragment, [linkText])
+    ])],
+    () => h(Fragment, [linkText])
+  )
 }
 
 export const UnlinkFenceAccount = ({ linkText, provider }) => {
