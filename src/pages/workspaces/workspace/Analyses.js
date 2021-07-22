@@ -177,7 +177,6 @@ const AnalysisCard = ({ namespace, name, lastModified, metadata, application, ws
   }, [
     toolContainer,
     artifactName,
-    //The 10% allows for the longest date possible (September XX, XXXX), plus a locked symbol, without text wrapping when the screen is maximized
     div({ style: { ...endColumnFlex, flexDirection: 'row' } }, [
       div({ style: { flex: 1, display: 'flex' } }, [
         locked && h(Clickable, {
@@ -236,20 +235,17 @@ const Analyses = _.flow(
     withErrorReporting('Error loading analyses'),
     Utils.withBusyState(setBusy)
   )(async () => {
-    const notebooks = await Ajax(signal).Buckets.listNotebooks(namespace, bucketName)
+    const rawAnalyses = await Ajax(signal).Buckets.listAnalyses(namespace, bucketName)
+    const notebooks = _.filter(({ name }) => name.endsWith(`.${tools.Jupyter.ext}`), rawAnalyses)
+    const rmds = _.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`), rawAnalyses)
+
     //we map the `toolLabel` and `updated` fields to their corresponding header label, which simplifies the table sorting code
     const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: tools.Jupyter.label, lastModified: notebook.updated }), notebooks)
-    const rmds = await Ajax(signal).Buckets.listRmds(namespace, bucketName)
     const enhancedRmd = _.map(rmd => _.merge(rmd, { application: tools.RStudio.label, lastModified: rmd.updated }), rmds)
+
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
     setAnalyses(_.reverse(_.sortBy('lastModified', analyses)))
   })
-
-  //TODO: eventually load app artifacts
-  // const doAppRefresh = _.flow(
-  //   withErrorReporting('Error loading Apps'),
-  //   Utils.withBusyState(setBusy)
-  // )(refreshApps)
 
   const uploadFiles = Utils.withBusyState(setBusy, async files => {
     try {
