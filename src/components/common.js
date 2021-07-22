@@ -378,16 +378,13 @@ export const methodLink = config => {
     `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}:${methodVersion}`
 }
 
-export const ShibbolethLink = ({ children, ...props }) => {
+export const ShibbolethLink = ({ button = false, children, ...props }) => {
   const nihRedirectUrl = `${window.location.origin}/${Nav.getLink('profile')}?nih-username-token=<token>`
-  return h(Link, _.merge({
+  return h(button ? ButtonPrimary : Link, _.merge({
     href: `${getConfig().shibbolethUrlRoot}/login?${qs.stringify({ 'return-url': nihRedirectUrl })}`,
-    style: { display: 'inline-flex', alignItems: 'center' },
+    ...(button ? {} : { style: { display: 'inline-flex', alignItems: 'center' } }),
     ...Utils.newTabLinkProps
-  }, props), [
-    children,
-    icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
-  ])
+  }, props), [children, icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })])
 }
 
 export const FrameworkServiceLink = ({ linkText, provider, redirectUrl, button = false, ...props }) => {
@@ -401,20 +398,14 @@ export const FrameworkServiceLink = ({ linkText, provider, redirectUrl, button =
     loadAuthUrl()
   })
 
-  const popoutIcon = icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
-
-  return Utils.cond(
-    [!href, () => h(Fragment, [linkText])],
-    [button, () => h(ButtonPrimary, { href, ...Utils.newTabLinkProps, ...props }, [
-      linkText, popoutIcon
-    ])],
-    () => h(Link, {
+  return !!href ?
+    h(button ? ButtonPrimary : Link, {
       href,
-      style: { display: 'inline-flex', alignItems: 'center' },
+      ...(button ? {} : { style: { display: 'inline-flex', alignItems: 'center' } }),
       ...Utils.newTabLinkProps,
       ...props
-    }, [linkText, popoutIcon])
-  )
+    }, [linkText, icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })]) :
+    h(Fragment, [linkText])
 }
 
 export const UnlinkFenceAccount = ({ linkText, provider }) => {

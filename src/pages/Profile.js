@@ -137,21 +137,20 @@ const NihLink = ({ nihToken }) => {
       Utils.cond(
         [!nihStatus, () => h(SpacedSpinner, ['Loading NIH account status...'])],
         [isLinking, () => h(SpacedSpinner, ['Linking NIH account...'])],
-        [!linkedNihUsername, () => h(ShibbolethLink, ['Log in to NIH to link your account'])],
-        () =>
-          h(Fragment, [
+        [!linkedNihUsername, () => div([h(ShibbolethLink, { button: true }, ['Log in to NIH'])])],
+        () => h(Fragment, [
+          div([
+            span({ style: styles.idLink.linkDetailLabel }, ['Username:']),
+            linkedNihUsername
+          ]),
+          div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
             div([
-              span({ style: styles.idLink.linkDetailLabel }, ['Username:']),
-              linkedNihUsername
+              span({ style: styles.idLink.linkDetailLabel }, ['Link Expiration:']),
+              span([Utils.makeCompleteDate(linkExpireTime * 1000)])
             ]),
-            div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-              div([
-                span({ style: styles.idLink.linkDetailLabel }, ['Link Expiration:']),
-                span([Utils.makeCompleteDate(linkExpireTime * 1000)])
-              ]),
-              h(ShibbolethLink, ['Renew'])
-            ])
+            h(ShibbolethLink, ['Renew'])
           ])
+        ])
       )
     ]),
     isLinked && div({ style: styles.idLink.linkContentBottom }, [
@@ -227,7 +226,7 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
       ]),
       Utils.cond(
         [isLinking, () => h(SpacedSpinner, ['Loading account status...'])],
-        [!username, () => h(FrameworkServiceLink, { button: true, linkText: `Log in to ${short} `, provider: key, redirectUrl })],
+        [!username, () => div([h(FrameworkServiceLink, { button: true, linkText: `Log in to ${short} `, provider: key, redirectUrl })])],
         () => h(Fragment, [
           div([
             span({ style: styles.idLink.linkDetailLabel }, ['Username:']),
