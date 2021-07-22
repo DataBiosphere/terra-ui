@@ -80,9 +80,6 @@ const styles = {
     },
     linkDetailLabel: {
       fontWeight: 700, marginBottom: '0.6rem', marginRight: '1.2rem'
-    },
-    identityLine: {
-      display: 'flex', margin: '0.3rem 0 0'
     }
   }
 }
@@ -119,12 +116,14 @@ const NihLink = ({ nihToken }) => {
 
 
   // Render
+  const { linkedNihUsername, linkExpireTime, datasetPermissions } = nihStatus || {}
+
   const [authorizedDatasets, unauthorizedDatasets] = _.flow(
     _.sortBy('name'),
     _.partition('authorized')
-  )(nihStatus?.datasetPermissions)
+  )(datasetPermissions)
 
-  const isLinked = !!nihStatus?.linkedNihUsername
+  const isLinked = !!linkedNihUsername && !isLinking
 
   return div({ style: styles.idLink.container }, [
     div({ style: styles.idLink.linkContentTop(isLinked) }, [
@@ -138,10 +137,9 @@ const NihLink = ({ nihToken }) => {
       Utils.cond(
         [!nihStatus, () => h(SpacedSpinner, ['Loading NIH account status...'])],
         [isLinking, () => h(SpacedSpinner, ['Linking NIH account...'])],
-        [!nihStatus?.linkedNihUsername, () => h(ShibbolethLink, ['Log in to NIH to link your account'])],
-        () => {
-          const { linkedNihUsername, linkExpireTime } = nihStatus
-          return h(Fragment, [
+        [!linkedNihUsername, () => h(ShibbolethLink, ['Log in to NIH to link your account'])],
+        () =>
+          h(Fragment, [
             div([
               span({ style: styles.idLink.linkDetailLabel }, ['Username:']),
               linkedNihUsername
@@ -154,7 +152,6 @@ const NihLink = ({ nihToken }) => {
               h(ShibbolethLink, ['Renew'])
             ])
           ])
-        }
       )
     ]),
     isLinked && div({ style: styles.idLink.linkContentBottom }, [
@@ -230,9 +227,7 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
       ]),
       Utils.cond(
         [isLinking, () => h(SpacedSpinner, ['Loading account status...'])],
-        [!username, () => div({ style: styles.idLink.identityLine },
-          [h(FrameworkServiceLink, { button: true, linkText: `Log in to ${short} `, provider: key, redirectUrl })]
-        )],
+        [!username, () => h(FrameworkServiceLink, { button: true, linkText: `Log in to ${short} `, provider: key, redirectUrl })],
         () => h(Fragment, [
           div([
             span({ style: styles.idLink.linkDetailLabel }, ['Username:']),
