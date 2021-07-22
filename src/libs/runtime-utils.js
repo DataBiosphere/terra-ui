@@ -70,8 +70,9 @@ export const runtimeConfigBaseCost = config => {
 
   return _.sum([
     (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice,
-    isDataproc && (dataprocCost(masterMachineType, 1) + dataprocCost(workerMachineType, numberOfWorkers)),
-    !isDataproc && (bootDiskSize * storagePrice)
+    isDataproc ?
+      (dataprocCost(masterMachineType, 1) + dataprocCost(workerMachineType, numberOfWorkers)) :
+      (bootDiskSize * storagePrice)
   ])
 }
 

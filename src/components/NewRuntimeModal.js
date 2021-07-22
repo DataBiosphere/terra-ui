@@ -21,15 +21,10 @@ import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { versionTag } from 'src/libs/logos'
 import {
-  currentRuntime, DEFAULT_DATAPROC_DISK_SIZE, DEFAULT_GCE_BOOT_DISK_SIZE, DEFAULT_GCE_PERSISTENT_DISK_SIZE, DEFAULT_GPU_TYPE, DEFAULT_NUM_GPUS,
-  defaultDataprocMachineType,
-  defaultGceMachineType,
-  displayNameForGpuType,
-  findMachineType,
-  getDefaultMachineType, getValidGpuTypes,
-  persistentDiskCostMonthly,
-  RadioBlock,
-  runtimeConfigBaseCost, runtimeConfigCost
+  currentRuntime, DEFAULT_DATAPROC_DISK_SIZE, DEFAULT_GCE_BOOT_DISK_SIZE, DEFAULT_GCE_PERSISTENT_DISK_SIZE,
+  DEFAULT_GPU_TYPE, DEFAULT_NUM_GPUS, defaultDataprocMachineType, defaultGceMachineType,
+  displayNameForGpuType, findMachineType, getDefaultMachineType, getValidGpuTypes,
+  persistentDiskCostMonthly, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
