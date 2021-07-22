@@ -401,20 +401,19 @@ export const FrameworkServiceLink = ({ linkText, provider, redirectUrl, button =
     loadAuthUrl()
   })
 
+  const popoutIcon = icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
+
   return Utils.cond(
-    [!!href && button, () => h(ButtonPrimary, { href }, [
-      linkText, icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
+    [!href, () => h(Fragment, [linkText])],
+    [button, () => h(ButtonPrimary, { href, ...Utils.newTabLinkProps, ...props }, [
+      linkText, popoutIcon
     ])],
-    [!!href, () => h(Link, {
+    () => h(Link, {
       href,
       style: { display: 'inline-flex', alignItems: 'center' },
       ...Utils.newTabLinkProps,
       ...props
-    }, [
-      linkText,
-      icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
-    ])],
-    () => h(Fragment, [linkText])
+    }, [linkText, popoutIcon])
   )
 }
 
