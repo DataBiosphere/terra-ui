@@ -475,7 +475,7 @@ export class NewRuntimeModalBase extends Component {
 
   getCurrentMountDirectory(currentRuntimeDetails) {
     const rstudioMountPoint = '/home/rstudio'
-    const jupyterMountPoint = '/home/jupyter-user/notebooks'
+    const jupyterMountPoint = '/home/jupyter/notebooks'
     const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
     return currentRuntimeDetails?.labels.tool ? (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) : noMountDirectory
   }
