@@ -1,13 +1,14 @@
 import _ from 'lodash/fp'
 import { Fragment, useEffect, useState } from 'react'
-import { a, b, div, h, h2 } from 'react-hyperscript-helpers'
-import { ButtonPrimary, HeaderRenderer, IdContainer, Link, PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
+import { a, b, div, h, h2, wbr } from 'react-hyperscript-helpers'
+import { ButtonPrimary, ClipboardButton, HeaderRenderer, IdContainer, Link, PageBox, PageBoxVariants, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { AdminNotifierCheckbox } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { ariaSort } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -22,6 +23,7 @@ import { validate } from 'validate.js'
 
 const groupNameValidator = existing => ({
   presence: { allowEmpty: false },
+  length: { maximum: 60 },
   format: {
     pattern: /[A-Za-z0-9_-]*$/,
     message: 'can only contain letters, numbers, underscores, and dashes'
@@ -99,18 +101,18 @@ const roleSectionWidth = 20
 
 const GroupCardHeaders = Utils.memoWithName('GroupCardHeaders', ({ sort, onSort }) => {
   return div({ role: 'row', style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem' } }, [
-    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'groupName'), style: { width: '30%', marginRight: '1rem' } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'groupName'), style: { flexGrow: 1, marginRight: '1rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'groupName' })
     ]),
-    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'groupEmail'), style: { flexGrow: 1 } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'groupEmail'), style: { flex: '0 0 30%' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'groupEmail' })
     ]),
-    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'role'), style: { width: '20%' } }, [
+    div({ role: 'columnheader', 'aria-sort': ariaSort(sort, 'role'), style: { flex: '0 0 6rem' } }, [
       // This behaves strangely due to the fact that role is an array. If you have multiple roles it can do strange things.
       h(HeaderRenderer, { sort, onSort, name: 'role' })
     ]),
     // Width is the same as the menu icon.
-    div({ role: 'columnheader', style: { width: roleSectionWidth } }, [
+    div({ role: 'columnheader', style: { flex: `0 0 ${roleSectionWidth}px` } }, [
       div({ className: 'sr-only' }, ['Actions'])
     ])
   ])
@@ -118,21 +120,28 @@ const GroupCardHeaders = Utils.memoWithName('GroupCardHeaders', ({ sort, onSort 
 
 const GroupCard = Utils.memoWithName('GroupCard', ({ group: { groupName, groupEmail, role }, onDelete }) => {
   const isAdmin = !!_.includes('admin', role)
+  const wrappableGroupName = h(Fragment, _.flatMap(char => char === '_' ? ['_', wbr()] : char, groupName))
 
-  return div({ role: 'row', style: Style.cardList.longCardShadowless }, [
-    div({ role: 'rowheader', style: { marginRight: '1rem', width: '30%' } }, [
-      a({
-        href: isAdmin ? Nav.getLink('group', { groupName }) : undefined,
-        'aria-disabled': !isAdmin,
-        style: {
-          ...Style.cardList.longTitle,
-          color: isAdmin ? colors.accent() : undefined
-        }
-      }, [groupName])
+  return div({ role: 'row', className: 'table-row', style: Style.cardList.longCardShadowless }, [
+    div({ role: 'rowheader', style: { marginRight: '1rem', flexGrow: 1, ...Style.noWrapEllipsis } }, [
+      h(TooltipTrigger, { content: wrappableGroupName, delay: 500 }, [
+        a({
+          href: isAdmin ? Nav.getLink('group', { groupName }) : undefined,
+          tooltip: groupName,
+          'aria-disabled': !isAdmin,
+          style: {
+            ...Style.cardList.longTitle,
+            color: isAdmin ? colors.accent() : undefined
+          }
+        }, [groupName])
+      ])
     ]),
-    div({ role: 'cell', style: { flexGrow: 1 } }, [groupEmail]),
-    div({ role: 'cell', style: { width: '20%' } }, [isAdmin ? 'Admin' : 'Member']),
-    div({ role: 'cell', style: { width: roleSectionWidth, display: 'flex', alignItems: 'center' } }, [
+    div({ role: 'cell', style: { flex: '0 0 30%', display: 'flex', overflow: 'hidden', alignItems: 'center' } }, [
+      div({ style: { ...Style.noWrapEllipsis, marginRight: '0.5rem' } }, [groupEmail]),
+      h(ClipboardButton, { text: groupEmail, className: 'hover-only', style: { marginRight: '1rem' } })
+    ]),
+    div({ role: 'cell', style: { flex: '0 0 6rem' } }, [isAdmin ? 'Admin' : 'Member']),
+    div({ role: 'cell', style: { flex: `0 0 ${roleSectionWidth}px`, display: 'flex', alignItems: 'center' } }, [
       isAdmin && h(Link, {
         'aria-label': `Delete group ${groupName}`,
         onClick: onDelete,
