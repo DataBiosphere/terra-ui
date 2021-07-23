@@ -143,13 +143,11 @@ const NihLink = ({ nihToken }) => {
             span({ style: styles.idLink.linkDetailLabel }, ['Username:']),
             linkedNihUsername
           ]),
-          div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-            div([
-              span({ style: styles.idLink.linkDetailLabel }, ['Link Expiration:']),
-              span([Utils.makeCompleteDate(linkExpireTime * 1000)])
-            ]),
-            h(ShibbolethLink, ['Renew'])
-          ])
+          div([
+            span({ style: styles.idLink.linkDetailLabel }, ['Link Expiration:']),
+            span([Utils.makeCompleteDate(linkExpireTime * 1000)])
+          ]),
+          h(ShibbolethLink, ['Renew'])
         ])
       )
     ]),
@@ -221,9 +219,7 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
   // Render
   return div({ style: styles.idLink.container }, [
     div({ style: styles.idLink.linkContentTop(false) }, [
-      div({ style: { ...styles.form.title, marginBottom: 0 } }, [
-        h3({ style: { marginRight: '0.5rem', ...styles.idLink.linkName } }, [name])
-      ]),
+      h3({ style: { marginTop: 0, ...styles.idLink.linkName } }, [name]),
       Utils.cond(
         [isLinking, () => h(SpacedSpinner, ['Loading account status...'])],
         [!username, () => div([h(FrameworkServiceLink, { button: true, linkText: `Log in to ${short} `, provider: key, redirectUrl })])],
@@ -232,16 +228,14 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
             span({ style: styles.idLink.linkDetailLabel }, ['Username:']),
             username
           ]),
-          div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
-            div([
-              span({ style: styles.idLink.linkDetailLabel }, ['Link Expiration:']),
-              span([Utils.makeCompleteDate(addDays(expiresAfter, parseJSON(issuedAt)))])
-            ]),
-            div([
-              h(FrameworkServiceLink, { linkText: 'Renew', 'aria-label': `Renew your ${short} link`, provider: key, redirectUrl }),
-              span({ style: { margin: '0 .25rem 0' } }, [' | ']),
-              h(UnlinkFenceAccount, { linkText: `Unlink`, 'aria-label': `Unlink from ${short}`, provider: { key, name } })
-            ])
+          div([
+            span({ style: styles.idLink.linkDetailLabel }, ['Link Expiration:']),
+            span([Utils.makeCompleteDate(addDays(expiresAfter, parseJSON(issuedAt)))])
+          ]),
+          div([
+            h(FrameworkServiceLink, { linkText: 'Renew', 'aria-label': `Renew your ${short} link`, provider: key, redirectUrl }),
+            span({ style: { margin: '0 .25rem 0' } }, [' | ']),
+            h(UnlinkFenceAccount, { linkText: `Unlink`, 'aria-label': `Unlink from ${short}`, provider: { key, name } })
           ])
         ])
       )
