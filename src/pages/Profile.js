@@ -174,7 +174,7 @@ const NihLink = ({ nihToken }) => {
             ...Utils.newTabLinkProps
           }, [
             'verify your credentials here',
-            icon('pop-out', { size: 12 })
+            icon('pop-out', { size: 12, style: { marginLeft: '0.2rem', verticalAlign: 'baseline' } })
           ]),
           '.'
         ])
