@@ -3,6 +3,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, h2, h3, label, span } from 'react-hyperscript-helpers'
+import Collapse from 'src/components/Collapse'
 import {
   ButtonPrimary, FrameworkServiceLink, IdContainer, LabeledCheckbox, Link, RadioButton, ShibbolethLink, spinnerOverlay, UnlinkFenceAccount
 } from 'src/components/common'
@@ -16,7 +17,7 @@ import { getUser, refreshTerraProfile } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
-import { allProviders } from 'src/libs/providers'
+import allProviders from 'src/libs/providers'
 import { authStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -62,30 +63,48 @@ const styles = {
       marginLeft: '0.5rem'
     }
   },
-  identityLine: {
-    display: 'flex',
-    margin: '.3rem 0 0'
+  idLink: {
+    container: {
+      display: 'grid', marginBottom: '0.6rem', border: `1px solid ${colors.dark(0.55)}`, borderRadius: 4
+    },
+    linkContentTop: hasBottom => ({
+      display: 'grid', rowGap: '0.6rem',
+      backgroundColor: colors.light(), padding: '1.2rem',
+      borderRadius: hasBottom ? '4px 4px 0 0' : 4
+    }),
+    linkContentBottom: {
+      padding: '1.2rem'
+    },
+    linkName: {
+      fontSize: 18, fontWeight: 700, marginBottom: '0.6rem', display: 'inline'
+    },
+    linkDetailLabel: {
+      fontWeight: 700, marginBottom: '0.6rem', marginRight: '1.2rem'
+    }
   }
+}
+
+const SpacedSpinner = ({ children }) => {
+  return div({ style: { display: 'flex', alignItems: 'center' } }, [
+    spinner({ style: { marginRight: '1rem' } }), children
+  ])
 }
 
 
 const NihLink = ({ nihToken }) => {
-  /*
-   * Hooks
-   */
+  // State
   const { nihStatus } = Utils.useStore(authStore)
-  const [linking, setLinking] = useState(false)
-  const signal = Utils.useCancellation()
+  const [isLinking, setIsLinking] = useState(false)
 
+
+  // Lifecycle
   Utils.useOnMount(() => {
-    const { User } = Ajax(signal)
-
     const linkNihAccount = _.flow(
       withErrorReporting('Error linking NIH account'),
-      Utils.withBusyState(setLinking)
+      Utils.withBusyState(setIsLinking)
     )(async () => {
-      const nihStatus = await User.linkNihAccount(nihToken)
-      authStore.update(state => ({ ...state, nihStatus }))
+      const nihStatus = await Ajax().User.linkNihAccount(nihToken)
+      authStore.update(_.set(['nihStatus'], nihStatus))
     })
 
     if (nihToken) {
@@ -96,104 +115,101 @@ const NihLink = ({ nihToken }) => {
   })
 
 
-  /*
-   * Render helpers
-   */
-  const renderDatasetAuthStatus = ({ name, authorized }) => {
-    return div({ key: `nih-auth-status-${name}`, style: styles.identityLine }, [
-      div({ style: { flex: 1 } }, [`${name} Authorization`]),
-      div({ style: { flex: 2 } }, [
-        authorized ? 'Authorized' : span({ style: { marginRight: '0.5rem' } }, ['Not Authorized']),
-        !authorized && h(InfoBox, [
-          'Your account was linked, but you are not authorized to view this controlled dataset. Please go ',
+  // Render
+  const { linkedNihUsername, linkExpireTime, datasetPermissions } = nihStatus || {}
+
+  const [authorizedDatasets, unauthorizedDatasets] = _.flow(
+    _.sortBy('name'),
+    _.partition('authorized')
+  )(datasetPermissions)
+
+  const isLinked = !!linkedNihUsername && !isLinking
+
+  return div({ style: styles.idLink.container }, [
+    div({ style: styles.idLink.linkContentTop(isLinked) }, [
+      div({ style: { ...styles.form.title, marginBottom: 0 } }, [
+        h3({ style: { marginRight: '0.5rem', ...styles.idLink.linkName } }, ['NIH Account']),
+        h(InfoBox, [
+          'Linking with eRA Commons will allow Terra to automatically determine if you can access controlled datasets hosted in Terra (ex. TCGA) ',
+          'based on your valid dbGaP applications.'
+        ])
+      ]),
+      Utils.cond(
+        [!nihStatus, () => h(SpacedSpinner, ['Loading NIH account status...'])],
+        [isLinking, () => h(SpacedSpinner, ['Linking NIH account...'])],
+        [!linkedNihUsername, () => div([h(ShibbolethLink, { button: true }, ['Log in to NIH'])])],
+        () => h(Fragment, [
+          div([
+            span({ style: styles.idLink.linkDetailLabel }, ['Username:']),
+            linkedNihUsername
+          ]),
+          div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+            div([
+              span({ style: styles.idLink.linkDetailLabel }, ['Link Expiration:']),
+              span([Utils.makeCompleteDate(linkExpireTime * 1000)])
+            ]),
+            h(ShibbolethLink, ['Renew'])
+          ])
+        ])
+      )
+    ]),
+    isLinked && div({ style: styles.idLink.linkContentBottom }, [
+      h3({ style: { fontWeight: 500, marginTop: 0 } }, ['Resources']),
+      !_.isEmpty(authorizedDatasets) && h(Collapse, {
+        title: div({ style: { marginRight: '0.5rem' } }, ['Authorized to access']), titleFirst: true,
+        buttonStyle: { flex: '0 0 auto' }
+      }, [
+        div({ style: { marginBottom: _.isEmpty(unauthorizedDatasets) ? 0 : '1rem' } }, [
+          _.map(({ name }) => div({ key: name, style: { lineHeight: '24px' } }, [name]), authorizedDatasets)
+        ])
+      ]),
+      !_.isEmpty(unauthorizedDatasets) && h(Collapse, {
+        title: div({ style: { marginRight: '0.5rem' } }, ['Not authorized']), titleFirst: true,
+        buttonStyle: { flex: '0 0 auto' },
+        afterToggle: h(InfoBox, { style: { marginBottom: '0.5rem' } }, [
+          'Your account was linked, but you are not authorized to view these controlled datasets. ',
+          'If you think you should have access, please ',
           h(Link, {
             href: 'https://dbgap.ncbi.nlm.nih.gov/aa/wga.cgi?page=login',
             ...Utils.newTabLinkProps
           }, [
-            'here',
-            icon('pop-out', { size: 12 })
+            'verify your credentials here',
+            icon('pop-out', { size: 12, style: { marginLeft: '0.2rem', verticalAlign: 'baseline' } })
           ]),
-          ' to check your credentials.'
+          '.'
         ])
+      }, [
+        _.map(({ name }) => div({ key: name, style: { lineHeight: '24px' } }, [name]), unauthorizedDatasets)
       ])
     ])
-  }
-
-  const renderStatus = () => {
-    const { linkedNihUsername, linkExpireTime, datasetPermissions } = nihStatus
-    return div({ style: styles.identityLine }, [
-      !linkedNihUsername && h(ShibbolethLink, ['Log in to NIH to link your account']),
-      !!linkedNihUsername && div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
-        div({ style: styles.identityLine }, [
-          div({ style: { flex: 1 } }, ['Username:']),
-          div({ style: { flex: 2 } }, [linkedNihUsername])
-        ]),
-        div({ style: styles.identityLine }, [
-          div({ style: { flex: 1 } }, ['Link Expiration:']),
-          div({ style: { flex: 2 } }, [
-            div([Utils.makeCompleteDate(linkExpireTime * 1000)]),
-            div({ style: styles.identityLine }, [h(ShibbolethLink, ['Renew'])])
-          ])
-        ]),
-        _.flow(
-          _.sortBy('name'),
-          _.map(renderDatasetAuthStatus)
-        )(datasetPermissions)
-      ])
-    ])
-  }
-
-  const loading = !nihStatus
-
-  /*
-   * Render
-   */
-  return div({ style: { marginBottom: '1rem' } }, [
-    div({ style: styles.form.title }, [
-      span({ style: { marginRight: '0.5rem', fontWeight: 600 } }, ['NIH Account']),
-      h(InfoBox, [
-        'Linking with eRA Commons will allow Terra to automatically determine if you can access controlled datasets hosted in Terra (ex. TCGA) based on your valid dbGaP applications.'
-      ])
-    ]),
-    Utils.cond(
-      [loading, () => div([spinner(), 'Loading NIH account status...'])],
-      [linking, () => div([spinner(), 'Linking NIH account...'])],
-      () => renderStatus()
-    )
   ])
 }
 
 
 const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
-  const decodeProvider = state => state ? JSON.parse(atob(state)).provider : ''
-
-  const extractToken = (provider, { state, code }) => {
-    const extractedProvider = decodeProvider(state)
-    return extractedProvider && provider === extractedProvider ? code : undefined
-  }
-
-  const queryParams = qs.parse(window.location.search, { ignoreQueryPrefix: true })
-  const token = extractToken(key, queryParams)
-  const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
-
-  /*
-   * Hooks
-   */
+  // State
   const { fenceStatus: { [key]: { username, issued_at: issuedAt } = {} } } = Utils.useStore(authStore)
   const [isLinking, setIsLinking] = useState(false)
-  const signal = Utils.useCancellation()
 
-  const { User } = Ajax(signal)
 
-  const linkFenceAccount = _.flow(
-    withErrorReporting('Error linking NIH account'),
-    Utils.withBusyState(setIsLinking)
-  )(async () => {
-    const status = await User.linkFenceAccount(key, token, redirectUrl)
-    authStore.update(_.set(['fenceStatus', key], status))
-  })
+  // Helpers
+  const redirectUrl = `${window.location.origin}/${Nav.getLink('fence-callback')}`
 
+
+  // Lifecycle
   Utils.useOnMount(() => {
+    const { state, code } = qs.parse(window.location.search, { ignoreQueryPrefix: true })
+    const extractedProvider = state ? JSON.parse(atob(state)).provider : ''
+    const token = key === extractedProvider ? code : undefined
+
+    const linkFenceAccount = _.flow(
+      withErrorReporting('Error linking NIH account'),
+      Utils.withBusyState(setIsLinking)
+    )(async () => {
+      const status = await Ajax().User.linkFenceAccount(key, token, redirectUrl)
+      authStore.update(_.set(['fenceStatus', key], status))
+    })
+
     if (token) {
       const profileLink = `/${Nav.getLink('profile')}`
       window.history.replaceState({}, '', profileLink)
@@ -201,32 +217,35 @@ const FenceLink = ({ provider: { key, name, expiresAfter, short } }) => {
     }
   })
 
-  /*
-   * Render
-   */
-  return div({ style: { marginBottom: '1rem' } }, [
-    h3({ style: { ...styles.form.title, fontWeight: 600 } }, [name]),
-    Utils.cond(
-      [isLinking, () => div([spinner(), 'Loading account status...'])],
-      [!username, () => div({ style: styles.identityLine },
-        [h(FrameworkServiceLink, { linkText: `Log in to link your ${short} account`, provider: key, redirectUrl })]
-      )],
-      () => div({ style: { display: 'flex', flexDirection: 'column', width: '33rem' } }, [
-        div({ style: styles.identityLine }, [
-          div({ style: { flex: 1 } }, ['Username:']),
-          div({ style: { flex: 2 } }, [username])
-        ]),
-        div({ style: styles.identityLine }, [
-          div({ style: { flex: 1 } }, ['Link Expiration:']),
-          div({ style: { flex: 2 } }, [Utils.makeCompleteDate(addDays(expiresAfter, parseJSON(issuedAt)))])
-        ]),
-        div({ style: styles.identityLine }, [
-          h(FrameworkServiceLink, { linkText: 'Renew', 'aria-label': `Renew your ${short} link`, provider: key, redirectUrl }),
-          span({ style: { margin: '0 .25rem 0' } }, [' | ']),
-          h(UnlinkFenceAccount, { linkText: `Unlink`, 'aria-label': `Unlink from ${short}`, provider: { key, name } })
+
+  // Render
+  return div({ style: styles.idLink.container }, [
+    div({ style: styles.idLink.linkContentTop(false) }, [
+      div({ style: { ...styles.form.title, marginBottom: 0 } }, [
+        h3({ style: { marginRight: '0.5rem', ...styles.idLink.linkName } }, [name])
+      ]),
+      Utils.cond(
+        [isLinking, () => h(SpacedSpinner, ['Loading account status...'])],
+        [!username, () => div([h(FrameworkServiceLink, { button: true, linkText: `Log in to ${short} `, provider: key, redirectUrl })])],
+        () => h(Fragment, [
+          div([
+            span({ style: styles.idLink.linkDetailLabel }, ['Username:']),
+            username
+          ]),
+          div({ style: { display: 'flex', justifyContent: 'space-between' } }, [
+            div([
+              span({ style: styles.idLink.linkDetailLabel }, ['Link Expiration:']),
+              span([Utils.makeCompleteDate(addDays(expiresAfter, parseJSON(issuedAt)))])
+            ]),
+            div([
+              h(FrameworkServiceLink, { linkText: 'Renew', 'aria-label': `Renew your ${short} link`, provider: key, redirectUrl }),
+              span({ style: { margin: '0 .25rem 0' } }, [' | ']),
+              h(UnlinkFenceAccount, { linkText: `Unlink`, 'aria-label': `Unlink from ${short}`, provider: { key, name } })
+            ])
+          ])
         ])
-      ])
-    )
+      )
+    ])
   ])
 }
 
@@ -397,8 +416,8 @@ const Profile = ({ queryParams = {} }) => {
               tooltip: !!errors && 'Please fill out all required fields'
             }, ['Save Profile'])
           ]),
-          div({ style: { marginTop: '0', marginLeft: '1rem' } }, [
-            sectionTitle('Identity & External Servers'),
+          div({ style: { margin: '0 2rem 0' } }, [
+            sectionTitle('External Identities'),
             h(NihLink, { nihToken: queryParams['nih-username-token'] }),
             _.map(provider => h(FenceLink, { key: provider.key, provider }), allProviders)
           ])
