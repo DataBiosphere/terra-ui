@@ -60,7 +60,7 @@ const analysisContextMenuSize = 16
 const centerColumnFlex = { flex: 5 }
 const endColumnFlex = { flex: '0 0 150px', display: 'flex', justifyContent: 'flex-left', whiteSpace: 'nowrap' }
 
-const AnalysisCardHeaders = Utils.memoWithName('AnalysisCardHeaders', ({ sort, onSort }) => {
+const AnalysisCardHeaders = ({ sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', paddingLeft: '1.5rem', marginBottom: '0.5rem' } }, [
     div({ 'aria-sort': ariaSort(sort, 'Application'), style: { flex: 1 } }, [
       h(HeaderRenderer, { sort, onSort, name: 'application' })
@@ -75,7 +75,7 @@ const AnalysisCardHeaders = Utils.memoWithName('AnalysisCardHeaders', ({ sort, o
       div({ className: 'sr-only' }, ['Expand'])
     ])
   ])
-})
+}
 
 const AnalysisCard = ({ namespace, name, lastModified, metadata, application, wsName, onRename, onCopy, onDelete, onExport, canWrite, currentUserHash, potentialLockers }) => {
   const { lockExpiresAt, lastLockedBy } = metadata || {}
@@ -159,6 +159,7 @@ const AnalysisCard = ({ namespace, name, lastModified, metadata, application, ws
   const toolIconSrc = Utils.switchCase(application,
     [tools.Jupyter.label, () => jupyterLogo],
     [tools.RStudio.label, () => rLogo])
+
   const toolIcon = div({ style: { marginRight: '1rem' } }, [
     img({ src: toolIconSrc, style: { height: 40, width: 50 } })
   ])
@@ -236,8 +237,8 @@ const Analyses = _.flow(
     Utils.withBusyState(setBusy)
   )(async () => {
     const rawAnalyses = await Ajax(signal).Buckets.listAnalyses(namespace, bucketName)
-    const notebooks = _.filter(({ name }) => name.endsWith(`.${tools.Jupyter.ext}`), rawAnalyses)
-    const rmds = _.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`), rawAnalyses)
+    const notebooks = _.filter(({ name }) => _.endsWith(`.${tools.Jupyter.ext}`, name), rawAnalyses)
+    const rmds = _.filter(({ name }) => _.endsWith(`.${tools.RStudio.ext}`, name), rawAnalyses)
 
     //we map the `toolLabel` and `updated` fields to their corresponding header label, which simplifies the table sorting code
     const enhancedNotebooks = _.map(notebook => _.merge(notebook, { application: tools.Jupyter.label, lastModified: notebook.updated }), notebooks)
