@@ -205,11 +205,8 @@ const Analyses = _.flow(
   withViewToggle('analysesTab')
 )(({
   apps, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { bucketName } },
-  refreshApps, onRequesterPaysError, runtimes,
-  persistentDisks,
-  refreshRuntimes,
-  galaxyDataDisks
-}) => {
+  refreshApps, onRequesterPaysError, runtimes, persistentDisks, refreshRuntimes, galaxyDataDisks
+}, ref) => {
   // State
   const [renamingAnalysisName, setRenamingAnalysisName] = useState(undefined)
   const [copyingAnalysisName, setCopyingAnalysisName] = useState(undefined)
