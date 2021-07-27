@@ -939,15 +939,6 @@ const Buckets = signal => ({
     return _.filter(({ name }) => name.endsWith(`.${tools.Jupyter.ext}`), items)
   },
 
-  listRmds: async (namespace, name) => {
-    const res = await fetchBuckets(
-      `storage/v1/b/${name}/o?prefix=notebooks/`,
-      _.merge(authOpts(await saToken(namespace)), { signal })
-    )
-    const { items } = await res.json()
-    return _.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`), items)
-  },
-
   listAnalyses: async (namespace, name) => {
     const res = await fetchBuckets(
       `storage/v1/b/${name}/o?prefix=notebooks/`,
