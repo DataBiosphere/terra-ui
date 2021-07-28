@@ -87,11 +87,6 @@ const baseNotebook = {
 }
 
 const notebookData = {
-  python2: _.merge({
-    metadata: {
-      kernelspec: { display_name: 'Python 2', language: 'python', name: 'python2' }
-    }
-  }, baseNotebook),
   python3: _.merge({
     metadata: {
       kernelspec: { display_name: 'Python 3', language: 'python', name: 'python3' }
@@ -164,7 +159,7 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, namespace, b
         getOptionLabel: ({ value }) => _.startCase(value),
         value: notebookKernel,
         onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
-        options: ['python2', 'python3', 'r']
+        options: ['python3', 'r']
       })
     ])]),
     creating && spinnerOverlay
