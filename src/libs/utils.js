@@ -101,7 +101,7 @@ export const makeCompleteDate = dateString => completeDateFormat.format(new Date
 
 export const makeCompleteDateParts = dateString => {
   const date = new Date(dateString)
-  return _.map(part => part.format(date), completeDateFormatParts)
+  return _.map(part => part.format(new Date(dateString)), completeDateFormatParts)
 }
 
 const usdFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
