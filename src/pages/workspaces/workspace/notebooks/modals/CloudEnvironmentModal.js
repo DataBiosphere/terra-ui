@@ -9,10 +9,10 @@ import { NewRuntimeModalBase } from 'src/components/NewRuntimeModal'
 import { tools } from 'src/components/notebook-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import TitleBar from 'src/components/TitleBar'
+import cloudIcon from 'src/icons/cloud-compute.svg'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo-long.png'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
-import cloudIcon from 'src/icons/cloud-compute.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -272,8 +272,8 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
       hover: { backgroundColor: colors.accent(0.2) },
       tooltip: Utils.cond(
         [doesCloudEnvForToolExist && !isDisabled, () => 'Launch'],
-        [doesCloudEnvForToolExist && isDisabled && toolLabel !== tools.Jupyter.label, () => 'Launch disabled'],
-        [doesCloudEnvForToolExist && isDisabled && toolLabel === tools.Jupyter.label, () => 'Generic launch disabled for Jupyter. Select a notebook in the analyses tab to launch Jupyter'],
+        [doesCloudEnvForToolExist && isDisabled && toolLabel !== tools.Jupyter.label, () => 'Please wait until Galaxy is running'],
+        [doesCloudEnvForToolExist && isDisabled && toolLabel === tools.Jupyter.label, () => 'Select or create a notebook in the analyses tab to launch Jupyter'],
         [Utils.DEFAULT, () => 'No Environment found']
       ),
       tooltipDelay: 100
@@ -345,7 +345,7 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
           h(Clickable, { ...getToolLaunchClickableProps(toolLabel) }, [
             icon('rocket', { size: 20 }),
             span('Launch'),
-            span(toolLabel)
+            span(_.capitalize(toolLabel))
           ])
         ])
       ])
