@@ -351,7 +351,7 @@ const JobHistory = _.flow(
                     ]),
                     side: 'bottom'
                   }, [
-                    h(Clickable, { 'aria-label': `Menu for submission ID beginning: ${_.split('-', submissionId)[0]}` }, [icon('cardMenuIcon', { size: 27 })])
+                    h(Link, { 'aria-label': `Menu for submission ID beginning: ${_.split('-', submissionId)[0]}` }, [icon('cardMenuIcon', { size: 24 })])
                   ])
                 ])
               }
