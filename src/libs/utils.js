@@ -100,7 +100,6 @@ export const makeStandardDate = dateString => dateFormat.format(new Date(dateStr
 export const makeCompleteDate = dateString => completeDateFormat.format(new Date(dateString))
 
 export const makeCompleteDateParts = dateString => {
-  const date = new Date(dateString)
   return _.map(part => part.format(new Date(dateString)), completeDateFormatParts)
 }
 
