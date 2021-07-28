@@ -221,6 +221,7 @@ const JobHistory = _.flow(
           columns: [
             {
               size: { basis: 500, grow: 0 },
+              field: 'methodConfigurationName',
               headerRenderer: makeHeaderRenderer('methodConfigurationName', 'Submission (click for details)'),
               cellRenderer: ({ rowIndex }) => {
                 const {
@@ -266,6 +267,7 @@ const JobHistory = _.flow(
             },
             {
               size: { basis: 250, grow: 0 },
+              field: 'entityName',
               headerRenderer: makeHeaderRenderer('entityName', 'Data entity'),
               cellRenderer: ({ rowIndex }) => {
                 const { submissionEntity: { entityName, entityType } = {} } = sortedSubmissions[rowIndex]
@@ -274,6 +276,7 @@ const JobHistory = _.flow(
             },
             {
               size: { basis: 170, grow: 0 },
+              field: 'numberOfWorkflomws',
               headerRenderer: makeHeaderRenderer('numberOfWorkflows', 'No. of Workflows'),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowStatuses } = sortedSubmissions[rowIndex]
@@ -282,6 +285,7 @@ const JobHistory = _.flow(
             },
             {
               size: { basis: 150, grow: 0 },
+              field: 'status',
               headerRenderer: makeHeaderRenderer('status'),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowStatuses, status } = sortedSubmissions[rowIndex]
@@ -290,6 +294,7 @@ const JobHistory = _.flow(
             },
             {
               size: { basis: 170, grow: 0 },
+              field: 'submissionDate',
               headerRenderer: makeHeaderRenderer('submissionDate', 'Submitted'),
               cellRenderer: ({ rowIndex }) => {
                 const { submissionDate } = sortedSubmissions[rowIndex]
@@ -302,6 +307,7 @@ const JobHistory = _.flow(
             },
             {
               size: { basis: 210, grow: 1 },
+              field: 'submissionId',
               headerRenderer: makeHeaderRenderer('submissionId', 'Submission ID'),
               cellRenderer: ({ rowIndex }) => {
                 const { submissionId } = sortedSubmissions[rowIndex]
@@ -345,7 +351,7 @@ const JobHistory = _.flow(
                     ]),
                     side: 'bottom'
                   }, [
-                    h(Clickable, { 'aria-label': 'Workspace menu' }, [icon('cardMenuIcon', { size: 27 })])
+                    h(Clickable, { 'aria-label': `Menu for submission ID beginning: ${_.split('-', submissionId)[0]}` }, [icon('cardMenuIcon', { size: 27 })])
                   ])
                 ])
               }
