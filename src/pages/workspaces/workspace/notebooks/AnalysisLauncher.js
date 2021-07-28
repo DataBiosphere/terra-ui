@@ -87,6 +87,8 @@ const AnalysisLauncher = _.flow(
       // }),
       h(CloudComputeModal, {
         isOpen: createOpen,
+        tool: toolLabel,
+        isAnalysisMode: true,
         workspace,
         runtimes,
         persistentDisks,

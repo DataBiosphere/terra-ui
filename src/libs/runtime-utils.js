@@ -10,8 +10,9 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-export const DEFAULT_DISK_SIZE = 50
-export const DEFAULT_BOOT_DISK_SIZE = 50
+export const DEFAULT_DATAPROC_DISK_SIZE = 60 // For both main and worker machine disks. Dataproc clusters don't have persistent disks.
+export const DEFAULT_GCE_BOOT_DISK_SIZE = 70 // GCE boot disk size is not customizable by users. We use this for cost estimate calculations only.
+export const DEFAULT_GCE_PERSISTENT_DISK_SIZE = 50
 
 export const DEFAULT_GPU_TYPE = 'nvidia-tesla-t4'
 export const DEFAULT_NUM_GPUS = 1
@@ -31,15 +32,15 @@ export const normalizeRuntimeConfig = ({
   return {
     cloudService: cloudService || cloudServices.GCE,
     masterMachineType: masterMachineType || machineType || getDefaultMachineType(isDataproc),
-    masterDiskSize: masterDiskSize || diskSize || DEFAULT_DISK_SIZE,
+    masterDiskSize: masterDiskSize || diskSize || (isDataproc ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE),
     numberOfWorkers: (isDataproc && numberOfWorkers) || 0,
     numberOfPreemptibleWorkers: (isDataproc && numberOfWorkers && numberOfPreemptibleWorkers) || 0,
     workerMachineType: (isDataproc && numberOfWorkers && workerMachineType) || defaultDataprocMachineType,
-    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || DEFAULT_DISK_SIZE,
+    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || DEFAULT_DATAPROC_DISK_SIZE,
     // One caveat with using DEFAULT_BOOT_DISK_SIZE here is this over-estimates old GCE runtimes without PD by 1 cent
     // because those runtimes do not have a separate boot disk. But those old GCE runtimes are more than 1 year old if they exist.
     // Hence, we're okay with this caveat.
-    bootDiskSize: bootDiskSize || DEFAULT_BOOT_DISK_SIZE
+    bootDiskSize: bootDiskSize || DEFAULT_GCE_BOOT_DISK_SIZE
   }
 }
 
@@ -63,13 +64,15 @@ const dataprocCost = (machineType, numInstances) => {
 export const runtimeConfigBaseCost = config => {
   const {
     cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize
-  } = normalizeRuntimeConfig(
-    config)
+  } = normalizeRuntimeConfig(config)
+
+  const isDataproc = cloudService === cloudServices.DATAPROC
 
   return _.sum([
     (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice,
-    cloudService === cloudServices.DATAPROC && (dataprocCost(masterMachineType, 1) + dataprocCost(workerMachineType, numberOfWorkers)),
-    bootDiskSize * storagePrice
+    isDataproc ?
+      (dataprocCost(masterMachineType, 1) + dataprocCost(workerMachineType, numberOfWorkers)) :
+      (bootDiskSize * storagePrice)
   ])
 }
 

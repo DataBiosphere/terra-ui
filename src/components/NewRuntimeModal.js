@@ -21,12 +21,10 @@ import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { versionTag } from 'src/libs/logos'
 import {
-  currentRuntime, DEFAULT_DISK_SIZE, DEFAULT_GPU_TYPE, DEFAULT_NUM_GPUS, defaultDataprocMachineType, defaultGceMachineType, displayNameForGpuType,
-  findMachineType,
-  getDefaultMachineType, getValidGpuTypes,
-  persistentDiskCostMonthly,
-  RadioBlock,
-  runtimeConfigBaseCost, runtimeConfigCost
+  currentRuntime, DEFAULT_DATAPROC_DISK_SIZE, DEFAULT_GCE_BOOT_DISK_SIZE, DEFAULT_GCE_PERSISTENT_DISK_SIZE,
+  DEFAULT_GPU_TYPE, DEFAULT_NUM_GPUS, defaultDataprocMachineType, defaultGceMachineType,
+  displayNameForGpuType, findMachineType, getDefaultMachineType, getValidGpuTypes,
+  persistentDiskCostMonthly, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -86,13 +84,13 @@ const WorkerSelector = ({ value, machineTypeOptions, onChange }) => {
   ])
 }
 
-const DiskSelector = ({ value, onChange }) => {
+const DataprocDiskSelector = ({ value, onChange }) => {
   return h(IdContainer, [
     id => h(Fragment, [
       label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
       h(NumberInput, {
         id,
-        min: 10,
+        min: 60, // less than this size causes failures in cluster creation
         max: 64000,
         isClearable: false,
         onlyInteger: true,
@@ -139,16 +137,17 @@ export class NewRuntimeModalBase extends Component {
     const runtimeConfig = runtime?.runtimeConfig
     const gpuConfig = runtimeConfig?.gpuConfig
     const sparkMode = runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false
+    const isDataproc = !sparkMode && !runtimeConfig?.diskSize
 
     return {
-      selectedPersistentDiskSize: disk?.size || DEFAULT_DISK_SIZE,
+      selectedPersistentDiskSize: disk?.size || DEFAULT_GCE_PERSISTENT_DISK_SIZE,
       sparkMode,
       masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
-      masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || DEFAULT_DISK_SIZE,
+      masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || (isDataproc ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE),
       numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
       numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
       workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
-      workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DISK_SIZE,
+      workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DATAPROC_DISK_SIZE,
       gpuEnabled: (!!gpuConfig && !sparkMode) || false,
       hasGpu: !!gpuConfig,
       gpuType: gpuConfig?.gpuType || DEFAULT_GPU_TYPE,
@@ -476,7 +475,7 @@ export class NewRuntimeModalBase extends Component {
 
   getCurrentMountDirectory(currentRuntimeDetails) {
     const rstudioMountPoint = '/home/rstudio'
-    const jupyterMountPoint = '/home/jupyter-user/notebooks'
+    const jupyterMountPoint = '/home/jupyter/notebooks'
     const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
     return currentRuntimeDetails?.labels.tool ? (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) : noMountDirectory
   }
@@ -718,7 +717,7 @@ export class NewRuntimeModalBase extends Component {
       ])
     }
 
-    const renderApplicationSection = () => {
+    const renderApplicationConfigurationSection = () => {
       return div({ style: styles.whiteBoxContainer }, [
         h(IdContainer, [
           id => h(Fragment, [
@@ -820,7 +819,7 @@ export class NewRuntimeModalBase extends Component {
             ]),
           // Disk Selection
             !isPersistentDisk ?
-              h(DiskSelector, { value: masterDiskSize, onChange: v => this.setState({ masterDiskSize: v }) }) :
+              h(DataprocDiskSelector, { value: masterDiskSize, onChange: v => this.setState({ masterDiskSize: v }) }) :
               div({ style: { gridColumnEnd: 'span 2' } })
           ]),
           // GPU Enabling
@@ -946,7 +945,7 @@ export class NewRuntimeModalBase extends Component {
             ]),
             div({ style: { gridColumnEnd: 'span 2' } }),
             h(WorkerSelector, { value: workerMachineType, machineTypeOptions: validMachineTypes, onChange: v => this.setState({ workerMachineType: v }) }),
-            h(DiskSelector, { value: workerDiskSize, onChange: v => this.setState({ workerDiskSize: v }) })
+            h(DataprocDiskSelector, { value: workerDiskSize, onChange: v => this.setState({ workerDiskSize: v }) })
           ])
         ])
       ])
@@ -1216,7 +1215,7 @@ export class NewRuntimeModalBase extends Component {
             renderCostBreakdown()
           ]),
           div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
-            renderApplicationSection(),
+            renderApplicationConfigurationSection(),
             renderCloudComputeProfileSection(existingRuntime),
             !!isPersistentDisk && renderPersistentDiskSection(),
             !sparkMode && !isPersistentDisk && div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
