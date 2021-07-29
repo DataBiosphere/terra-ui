@@ -45,6 +45,9 @@ const styles = {
   whiteBoxContainer: { padding: '1.5rem', borderRadius: 3, backgroundColor: 'white' }
 }
 
+const CUSTOM_MODE = '__custom_mode__'
+
+// TODO Capitalize the constants below?
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
 const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
@@ -103,18 +106,80 @@ const DataprocDiskSelector = ({ value, onChange }) => {
   ])
 }
 
+const getImageUrl = runtimeDetails => {
+  return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)?.imageUrl
+}
+
 export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
-  ({ onDismiss, onSuccess, runtimes, isAnalysisMode = false }) => {
-    // TODO remove before merging
+  ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, isAnalysisMode = false }) => {
+    // TODO Should be able to remove some of the block below before merging
+    const getWorkspaceObj = () => workspace.workspace
     const getCurrentRuntime = () => currentRuntime(runtimes)
+    const currentPersistentDisk = getCurrentPersistentDisk()
+
+    const googleProject = getWorkspaceObj()
 
     const [loading, setLoading] = useState(false)
-    const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(getCurrentRuntime())
+    const [currentComputeDetails, setCurrentComputeDetails] = useState(getCurrentRuntime())
     const [viewMode, setViewMode] = useState(undefined)
 
+    const [currentRuntimeDetails, newLeoImages, currentPersistentDiskDetails] = async () => {
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+        existingConfig: !!currentRuntime, ...extractWorkspaceDetails(getWorkspaceObj())
+      })
+
+      await Promise.all([
+        currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
+        Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', googleProject, true).then(res => res.json()),
+        currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
+      ])
+    }
+
+    const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
+    const selectedLeoImage = getSelectedImage()
+
+    const leoImages = filteredNewLeoImages
     const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
+    const runtime = currentRuntime(runtimes)
+    const runtimeConfig = runtime?.runtimeConfig
+    const gpuConfig = runtimeConfig?.gpuConfig
+    const sparkMode = runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false
+    const isDataproc = !sparkMode && !runtimeConfig?.diskSize
 
+    /* eslint-disable indent */
+    //TODO: open to feedback and still thinking about this...
+    //Selected Leo image uses the following logic (psuedoCode not written in same way as code for clarity)
+    //if found image (aka image associated with users runtime) NOT in newLeoImages (the image dropdown list from bucket)
+    //user is using custom image
+    //else
+    //if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection) and isAnalysisMode
+    //use default image for selected tool
+    //else
+    //use imageUrl derived from users current runtime
+    /* eslint-disable indent */
+    const getSelectedImage = () => {
+      const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
+      const foundImage = _.find({ image: imageUrl }, newLeoImages)
+      if (foundImage) {
+        if (!_.includes(foundImage, filteredNewLeoImages) && isAnalysisMode) {
+          return _.find({ id: tools[this.props.tool].defaultImageId }, newLeoImages).image
+        } else {
+          return imageUrl
+        }
+      } else {
+        return CUSTOM_MODE
+      }
+    }
+
+    const getCurrentPersistentDisk = () => {
+      const currentRuntime = getCurrentRuntime()
+      const id = currentRuntime?.runtimeConfig.persistentDiskId
+      const attachedIds = _.without([undefined], _.map(runtime => runtime.runtimeConfig.persistentDiskId, runtimes))
+      return id ?
+        _.find({ id }, persistentDisks) :
+        _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id, status }) => status !== 'Deleting' && !_.includes(id, attachedIds), persistentDisks)))
+    }
 
     const getCurrentMountDirectory = currentRuntimeDetails => {
       const rstudioMountPoint = '/home/rstudio'
@@ -190,7 +255,7 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
           onPrevious: () => setViewMode(undefined)
         }),
         div({ style: { lineHeight: 1.5 } }, [
-          p(['Your persistent disk is mounted in the directory ', code({ style: { fontWeight: 600 } }, [getCurrentMountDirectory(currentRuntimeDetails)]), br(), 'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
+          p(['Your persistent disk is mounted in the directory ', code({ style: { fontWeight: 600 } }, [getCurrentMountDirectory(currentComputeDetails)]), br(), 'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
           p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
           p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
           p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
