@@ -86,13 +86,13 @@ const WorkerSelector = ({ value, machineTypeOptions, onChange }) => {
   ])
 }
 
-const DiskSelector = ({ value, onChange }) => {
+const DataprocDiskSelector = ({ value, onChange }) => {
   return h(IdContainer, [
     id => h(Fragment, [
       label({ htmlFor: id, style: styles.label }, ['Disk size (GB)']),
       h(NumberInput, {
         id,
-        min: 10,
+        min: 60, // less than this size causes failures in cluster creation
         max: 64000,
         isClearable: false,
         onlyInteger: true,
@@ -114,9 +114,11 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
 
     const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
+
+
     const getCurrentMountDirectory = currentRuntimeDetails => {
       const rstudioMountPoint = '/home/rstudio'
-      const jupyterMountPoint = '/home/jupyter-user/notebooks'
+      const jupyterMountPoint = '/home/jupyter/notebooks'
       const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
       return currentRuntimeDetails?.labels.tool ? (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) : noMountDirectory
     }
