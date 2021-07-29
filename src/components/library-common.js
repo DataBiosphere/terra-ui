@@ -6,7 +6,7 @@ import TopBar from 'src/components/TopBar'
 import * as Nav from 'src/libs/nav'
 
 
-const TAB_LINKS = { datasets: 'library-datasets', 'showcase & tutorials': 'library-showcase', 'code & workflows': 'library-code' }
+const TAB_LINKS = { datasets: 'library-datasets', 'featured workspaces': 'library-showcase', 'code & workflows': 'library-code' }
 
 export const libraryTopMatter = activeTab => h(Fragment, [
   h(TopBar, { title: 'Library', href: Nav.getLink('root') }),

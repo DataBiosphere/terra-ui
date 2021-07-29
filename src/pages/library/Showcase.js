@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, div, h, label } from 'react-hyperscript-helpers'
-import { ButtonSecondary, Clickable, IdContainer, Select } from 'src/components/common'
+import { Clickable, IdContainer, Link, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -21,8 +21,11 @@ import * as Utils from 'src/libs/utils'
 const styles = {
   column: { marginRight: '1.5rem', flex: '1 1 0px', maxWidth: 415 },
   header: {
-    fontSize: 16, color: colors.dark(), fontWeight: 'bold',
+    fontSize: 19, color: colors.dark(), fontWeight: 'bold',
     marginBottom: '1rem'
+  },
+  sideBarRow: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'baseline'
   },
   nav: {
     background: {
@@ -36,21 +39,17 @@ const styles = {
       display: 'flex', flexDirection: 'column'
     }),
     navSection: {
-      flex: 'none', height: 50, padding: '0 28px', fontWeight: 600,
-      borderTop: `1px solid ${colors.dark(0.55)}`
+      alignItems: 'center', flex: 'none', padding: '1.2rem 0', fontWeight: 700,
+      borderTop: `1px solid ${colors.dark(0.35)}`
     }
   },
   pill: {
-    width: '3rem', padding: '0.1rem', textAlign: 'center',
-    border: '1px solid', borderColor: colors.dark(0.25), borderRadius: '0.7rem / 50%',
+    width: '4.5rem', padding: '0.25rem', fontWeight: 500, textAlign: 'center',
+    border: '1px solid', borderColor: colors.dark(0.25), borderRadius: '1rem',
     backgroundColor: 'white'
-  },
-  hilightedPill: {
-    width: '3rem', padding: '0.1rem', textAlign: 'center',
-    border: '1px solid', borderColor: colors.primary(1), borderRadius: '0.7rem / 50%',
-    backgroundColor: colors.primary(1), color: 'white'
   }
 }
+styles.hilightedPill = { ...styles.pill, color: 'white', backgroundColor: colors.primary(1), borderColor: colors.primary(1) }
 
 const NavItem = ({ children, ...props }) => {
   return h(Clickable, _.merge({
@@ -94,13 +93,13 @@ const makeCard = variant => workspace => {
 }
 
 // collapsible section for sidebar categories
-const sideBarCollapser = ({ titleIcon, title, isOpened, onClick, children }) => {
+const sideBarCollapser = ({ title, isOpened, onClick, children }) => {
   return div({
     role: 'group'
   }, [
     h(NavItem, {
       onClick,
-      style: styles.nav.navSection
+      style: { ...styles.sideBarRow, ...styles.nav.navSection }
     }, [
       title,
       div({ style: { flexGrow: 1 } }),
@@ -185,11 +184,11 @@ const Sidebar = props => {
           [
             ..._.map(label => {
               const count = labelCounts.get(_.toLower(label))
-              return count > 0 && div({ style: { marginBottom: '0.5rem', display: 'flex' } }, [
-                h(Clickable, {
-                  style: { flex: 1 },
-                  onClick: () => onFilterChange(label.toLowerCase())
-                }, [label]),
+              return count > 0 && h(Clickable, {
+                style: { display: 'flex', alignItems: 'baseline', margin: '0.5rem 0' },
+                onClick: () => onFilterChange(label.toLowerCase())
+              }, [
+                div({ style: { flex: 1 } }, [label]),
                 div({ style: _.includes(_.toLower(label), tagFilters) ? styles.hilightedPill : styles.pill }, count)
               ])
             }, section.labels)
@@ -204,7 +203,7 @@ const Showcase = () => {
   const stateHistory = StateHistory.get()
   const [featuredList, setFeaturedList] = useState(stateHistory.featuredList)
 
-  const [tagFilters, setTagFilters] = useState([])
+  const [tagFilterMap, setTagFilterMap] = useState({})
   const [searchFilter, setSearchFilter] = useState()
   const [sort, setSort] = useState('most recent')
 
@@ -219,10 +218,10 @@ const Showcase = () => {
     loadData()
   })
 
+  const lowerTagFilters = _.map(_.toLower, _.keys(_.pickBy(_.identity, tagFilterMap)))
   const matchWorkspace = workspace => {
     const lowerWorkspaceTags = _.map(_.toLower, workspace.tags.items)
-    const lowerTagFilters = _.map(_.toLower, tagFilters)
-    return (_.isEmpty(tagFilters) || _.every(t => _.includes(t, lowerWorkspaceTags), lowerTagFilters)) &&
+    return (_.isEmpty(lowerTagFilters) || _.every(t => _.includes(t, lowerWorkspaceTags), lowerTagFilters)) &&
       (!searchFilter || _.includes(searchFilter, workspace.name) || _.includes(searchFilter, workspace.description))
   }
   const filteredWorkspaces = _.filter(matchWorkspace, featuredList)
@@ -235,25 +234,22 @@ const Showcase = () => {
   const sortedWorkspaces = sortWorkspaces(filteredWorkspaces)
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('showcase & tutorials'),
+    libraryTopMatter('featured workspaces'),
     !featuredList ?
       centeredSpinner() :
       h(Fragment, [
         div({ style: { display: 'flex', margin: '1rem 1rem 0', alignItems: 'baseline' } }, [
-          div({ style: { width: '18rem', flex: '0 0 auto' } }, [
-            div({ style: styles.header }, 'Featured workspaces'),
+          div({ style: { width: '19rem', flex: '0 0 auto' } }, [
+            div({ style: styles.sideBarRow }, [
+              div({ style: styles.header }, 'Featured workspaces'),
+              div({
+                style: _.size(filteredWorkspaces) === _.size(featuredList) ? styles.hilightedPill : styles.pill
+              }, [_.size(filteredWorkspaces)])
+            ]),
             div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
-              ..._.map(tag => {
-                return div({ style: { display: 'flex', alignItems: 'center', marginRight: '0.5rem' } }, [
-                  h(ButtonSecondary, {
-                    onClick: () => setTagFilters(_.without([tag], tagFilters))
-                  }, [icon('times')]),
-                  tag
-                ])
-              }, tagFilters),
               div({ style: { flex: 1 } }),
-              h(Clickable, {
-                onClick: () => setTagFilters([])
+              h(Link, {
+                onClick: () => setTagFilterMap({})
               }, ['clear'])
             ])
           ]),
@@ -280,11 +276,11 @@ const Showcase = () => {
           ])
         ]),
         div({ style: { display: 'flex', margin: '0 1rem' } }, [
-          div({ style: { width: '18rem', flex: '0 0 auto' } }, [
+          div({ style: { width: '19rem', flex: '0 0 auto' } }, [
             h(Sidebar, {
-              onFilterChange: tag => setTagFilters(_.uniq([...tagFilters, tag])),
+              onFilterChange: tag => setTagFilterMap(_.update(tag, state => !state, tagFilterMap)),
               featuredList,
-              tagFilters
+              tagFilters: lowerTagFilters
             })
           ]),
           div({ style: { marginLeft: '1rem', minWidth: 0 } }, [
@@ -300,7 +296,7 @@ export const navPaths = [
     name: 'library-showcase',
     path: '/library/showcase',
     component: Showcase,
-    title: 'Showcase & Tutorials',
+    title: 'Featured Workspaces',
     public: true
   }
 ]
