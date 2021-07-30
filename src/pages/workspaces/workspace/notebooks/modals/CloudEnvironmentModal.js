@@ -23,6 +23,7 @@ import {
   getConvertedRuntimeStatus,
   getCurrentApp,
   getCurrentRuntime,
+  getDisplayRuntimeStatus,
   getGalaxyCostTextChildren,
   getIsAppBusy,
   getIsRuntimeBusy,
@@ -204,7 +205,7 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
           disabled: true,
           tooltip: 'Environment update in progress',
           messageChildren: [span('Environment'),
-            span(toolLabel === tools.galaxy.label ? getConvertedAppStatus(_.upperCase(status)) : status)]
+            span(toolLabel === tools.galaxy.label ? getConvertedAppStatus(_.upperCase(status)) : getDisplayRuntimeStatus(status))]
         })
       case 'Error':
         return h(RuntimeIcon, {
@@ -242,7 +243,7 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
     [getRuntimeForTool(toolLabel), () => {
       const runtime = getRuntimeForTool(toolLabel)
       const totalCost = runtimeCost(runtime) + _.sum(_.map(persistentDiskCost, persistentDisks))
-      return span([`${runtime.status} (${Utils.formatUSD(totalCost)} / hr)`])
+      return span([`${getDisplayRuntimeStatus(runtime.status)} (${Utils.formatUSD(totalCost)} / hr)`])
     }],
     [Utils.DEFAULT, () => span(['None'])]
   )

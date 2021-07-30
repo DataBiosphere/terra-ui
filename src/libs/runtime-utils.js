@@ -220,19 +220,25 @@ export const getGalaxyCostTextChildren = (app, galaxyDataDisks) => {
     [getConvertedAppStatus(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``] : ['None']
 }
 
+export const isAppDeletable = app => _.includes(app?.status, ['RUNNING', 'ERROR'])
+
 export const getConvertedRuntimeStatus = runtime => {
   return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status) // NOTE: preserves null vs undefined
 }
 
-export const isAppDeletable = app => _.includes(app?.status, ['RUNNING', 'ERROR'])
+export const getDisplayRuntimeStatus = status => Utils.switchCase(status, ['Starting', () => 'Resuming'],
+  ['Stopping', () => 'Pausing'],
+  ['Stopped', () => 'Paused'],
+  [Utils.DEFAULT, () => status])
+
 
 export const getConvertedAppStatus = appStatus => {
   return Utils.switchCase(_.upperCase(appStatus),
     ['STOPPED', () => 'Paused'],
     ['STOPPING', () => 'Pausing'],
     ['STARTING', () => 'Resuming'],
-    ['PRESTARTING', () => 'Starting'],
-    ['PRESTOPPING', () => 'Stopping'],
+    ['PRESTARTING', () => 'Resuming'],
+    ['PRESTOPPING', () => 'Pausing'],
     [Utils.DEFAULT, () => _.capitalize(appStatus)]
   )
 }
