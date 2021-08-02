@@ -160,7 +160,7 @@ const groupByFeaturedTags = workspaces => _.flow([
 ])(uniqueSidebarTags)
 
 const Sidebar = props => {
-  const { onFilterChange, sections, tagFilters, workspacesByTag } = props
+  const { onFilterChange, sections, selectedTags, workspacesByTag } = props
 
   // setup open-ness state for each sidebar section
   const initialOpenStates = _.fromPairs(_.map(sections, section => [section.name, true]))
@@ -184,7 +184,7 @@ const Sidebar = props => {
               }, [
                 div({ style: { flex: 1 } }, [label]),
                 div({
-                  style: _.includes(_.toLower(label), tagFilters) ? styles.hilightedPill : styles.pill
+                  style: _.includes(_.toLower(label), selectedTags) ? styles.hilightedPill : styles.pill
                 }, [
                   _.size(workspacesByTag[tag])
                 ])
@@ -203,7 +203,7 @@ const Showcase = () => {
   const [workspacesByTag, setWorkspacesByTag] = useState({})
   const [sections, setSections] = useState([])
 
-  const [tagFilterMap, setTagFilterMap] = useState({})
+  const [selectedTags, setSelectedTags] = useState([])
   const [searchFilter, setSearchFilter] = useState()
   const [sort, setSort] = useState('most recent')
 
@@ -240,13 +240,8 @@ const Showcase = () => {
     loadData()
   })
 
-  const tagFilters = _.flow([
-    _.pickBy(_.identity),
-    _.keys
-  ])(tagFilterMap)
-
   // eslint-disable-next-line lodash-fp/no-single-composition
-  const filterByTags = workspaces => _.flow(_.map(tag => _.intersection(workspacesByTag[tag]), tagFilters))(workspaces)
+  const filterByTags = workspaces => _.flow(_.map(tag => _.intersection(workspacesByTag[tag]), selectedTags))(workspaces)
   const filterByText = workspaces => {
     return _.isEmpty(searchFilter) ?
       workspaces :
@@ -267,13 +262,13 @@ const Showcase = () => {
             div({ style: styles.sideBarRow }, [
               div({ style: styles.header }, 'Featured workspaces'),
               div({
-                style: _.isEmpty(tagFilters) ? styles.hilightedPill : styles.pill
+                style: _.isEmpty(selectedTags) ? styles.hilightedPill : styles.pill
               }, [_.size(filteredWorkspaces)])
             ]),
             div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
               div({ style: { flex: 1 } }),
               h(Link, {
-                onClick: () => setTagFilterMap({})
+                onClick: () => setSelectedTags([])
               }, ['clear'])
             ])
           ]),
@@ -302,9 +297,9 @@ const Showcase = () => {
         div({ style: { display: 'flex', margin: '0 1rem' } }, [
           div({ style: { width: '19rem', flex: '0 0 auto' } }, [
             h(Sidebar, {
-              onFilterChange: tag => setTagFilterMap(_.update(tag, state => !state, tagFilterMap)),
+              onFilterChange: tag => setSelectedTags(_.xor([tag], selectedTags)),
               sections,
-              tagFilters,
+              selectedTags,
               workspacesByTag: groupByFeaturedTags(filteredWorkspaces)
             })
           ]),
