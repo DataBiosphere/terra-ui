@@ -84,7 +84,7 @@ const WorkspaceDashboard = _.flow(
     accessLevel,
     owners,
     workspace: {
-      authorizationDomain, createdDate, lastModified, bucketName, googleProjectId,
+      authorizationDomain, createdDate, lastModified, bucketName, googleProject,
       attributes, attributes: { description = '' }
     }
   }
@@ -252,8 +252,8 @@ const WorkspaceDashboard = _.flow(
         ]),
         h(InfoTile, { title: 'Google Project Id' }, [
           div({ style: { display: 'flex' } }, [
-            h(TooltipCell, [googleProjectId]),
-            h(ClipboardButton, { text: googleProjectId, style: { marginLeft: '0.25rem' } })
+            h(TooltipCell, [googleProject]),
+            h(ClipboardButton, { text: googleProject, style: { marginLeft: '0.25rem' } })
           ])
         ])
       ]),
