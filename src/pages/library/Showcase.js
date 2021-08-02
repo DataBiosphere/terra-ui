@@ -163,12 +163,12 @@ const Sidebar = props => {
   const { onFilterChange, sections, selectedTags, workspacesByTag } = props
 
   // setup open-ness state for each sidebar section
-  const initialOpenStates = _.fromPairs(_.map(sections, section => [section.name, true]))
-  const [openState, setOpenState] = useState(initialOpenStates)
+  const initialOpenState = _.fromPairs(_.map(section => [section.name, true], sideBarSections))
+  const [openState, setOpenState] = useState(initialOpenState)
 
   return div({ style: { display: 'flex', flexDirection: 'column' } }, [
     _.map(section => {
-      return div([
+      return div({ key: section.name }, [
         h(sideBarCollapser,
           {
             title: section.name,
