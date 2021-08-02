@@ -111,7 +111,7 @@ const sideBarCollapser = ({ title, isOpened, onClick, children }) => {
   ])
 }
 
-// match tags case-insensitively
+// Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const sideBarSections = [
   {
     name: 'Getting Started',
@@ -149,28 +149,22 @@ const sideBarSections = [
   }
 ]
 
+const uniqueSidebarTags = _.flow([
+  _.flatMap(s => _.map(_.toLower, s.labels)),
+  _.uniq
+])(sideBarSections)
+
+const groupByFeaturedTags = workspaces => _.flow([
+  _.map(tag => [tag, _.filter(w => _.includes(tag, w.tags.items), workspaces)]),
+  _.fromPairs
+])(uniqueSidebarTags)
+
 const Sidebar = props => {
-  const { onFilterChange, featuredList, tagFilters } = props
+  const { onFilterChange, sections, tagFilters, workspacesByTag } = props
 
   // setup open-ness state for each sidebar section
-  const initialOpenStates = _.fromPairs(_.map(sideBarSections, section => [section.name, true]))
+  const initialOpenStates = _.fromPairs(_.map(sections, section => [section.name, true]))
   const [openState, setOpenState] = useState(initialOpenStates)
-
-  const labelCounts = new Map()
-  sideBarSections.forEach(section => {
-    section.labels.forEach(label => {
-      labelCounts.set(_.toLower(label), 0)
-    })
-  })
-
-  featuredList.forEach(workspace => {
-    workspace.tags.items?.forEach(tag => {
-      tag = tag.toLowerCase()
-      if (labelCounts.has(tag)) {
-        labelCounts.set(tag, labelCounts.get(tag) + 1)
-      }
-    })
-  })
 
   return div({ style: { display: 'flex', flexDirection: 'column' } }, [
     _.map(section => {
@@ -183,55 +177,85 @@ const Sidebar = props => {
           },
           [
             ..._.map(label => {
-              const count = labelCounts.get(_.toLower(label))
-              return count > 0 && h(Clickable, {
+              const tag = _.toLower(label)
+              return h(Clickable, {
                 style: { display: 'flex', alignItems: 'baseline', margin: '0.5rem 0' },
-                onClick: () => onFilterChange(label.toLowerCase())
+                onClick: () => onFilterChange(tag)
               }, [
                 div({ style: { flex: 1 } }, [label]),
-                div({ style: _.includes(_.toLower(label), tagFilters) ? styles.hilightedPill : styles.pill }, count)
+                div({
+                  style: _.includes(_.toLower(label), tagFilters) ? styles.hilightedPill : styles.pill
+                }, [
+                  _.size(workspacesByTag[tag])
+                ])
               ])
             }, section.labels)
           ]
         )
       ])
-    }, sideBarSections)
+    }, sections)
   ])
 }
 
 const Showcase = () => {
   const stateHistory = StateHistory.get()
   const [featuredList, setFeaturedList] = useState(stateHistory.featuredList)
+  const [workspacesByTag, setWorkspacesByTag] = useState({})
+  const [sections, setSections] = useState([])
 
   const [tagFilterMap, setTagFilterMap] = useState({})
   const [searchFilter, setSearchFilter] = useState()
   const [sort, setSort] = useState('most recent')
-
-  Utils.useOnMount(() => {
-    const loadData = async () => {
-      const featuredList = await Ajax().Buckets.getShowcaseWorkspaces()
-
-      setFeaturedList(featuredList)
-      StateHistory.update({ featuredList })
-    }
-
-    loadData()
-  })
-
-  const lowerTagFilters = _.map(_.toLower, _.keys(_.pickBy(_.identity, tagFilterMap)))
-  const matchWorkspace = workspace => {
-    const lowerWorkspaceTags = _.map(_.toLower, workspace.tags.items)
-    return (_.isEmpty(lowerTagFilters) || _.every(t => _.includes(t, lowerWorkspaceTags), lowerTagFilters)) &&
-      (!searchFilter || _.includes(searchFilter, workspace.name) || _.includes(searchFilter, workspace.description))
-  }
-  const filteredWorkspaces = _.filter(matchWorkspace, featuredList)
 
   const sortWorkspaces = Utils.cond(
     [sort === 'most recent', () => _.orderBy(['created'], ['desc'])],
     [sort === 'alphabetical', () => _.orderBy(w => _.toLower(_.trim(w.name)), ['asc'])],
     () => _.identity
   )
-  const sortedWorkspaces = sortWorkspaces(filteredWorkspaces)
+
+  Utils.useOnMount(() => {
+    const loadData = async () => {
+      const showcase = await Ajax().Buckets.getShowcaseWorkspaces()
+
+      // Immediately lowercase the workspace tags so we don't have to think about it again.
+      const featuredWorkspaces = _.map(_.update(['tags', 'items'], _.map(_.toLower)), showcase)
+
+      const workspacesByTag = _.omitBy(_.isEmpty, groupByFeaturedTags(featuredWorkspaces))
+
+      // Trim items from the sidebar for which there aren't any featured workspaces.
+      const activeTags = _.keys(workspacesByTag)
+      const activeSections = _.flow([
+        _.map(_.update(['labels'], labels => _.intersectionBy(_.toLower, labels, activeTags))),
+        _.remove(section => _.isEmpty(section.labels))
+      ])(sideBarSections)
+
+      setFeaturedList(featuredWorkspaces)
+      setWorkspacesByTag(workspacesByTag)
+      setSections(activeSections)
+
+      // TODO: is this actually doing anything for us?
+      StateHistory.update({ featuredWorkspaces })
+    }
+
+    loadData()
+  })
+
+  const tagFilters = _.flow([
+    _.pickBy(_.identity),
+    _.keys
+  ])(tagFilterMap)
+
+  // eslint-disable-next-line lodash-fp/no-single-composition
+  const filterByTags = workspaces => _.flow(_.map(tag => _.intersection(workspacesByTag[tag]), tagFilters))(workspaces)
+  const filterByText = workspaces => {
+    return _.isEmpty(searchFilter) ?
+      workspaces :
+      _.filter(workspace => _.includes(searchFilter, workspace.name) || _.includes(searchFilter, workspace.description), workspaces)
+  }
+  const filteredWorkspaces = _.flow([
+    filterByTags,
+    filterByText
+  ])(featuredList)
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('featured workspaces'),
@@ -243,7 +267,7 @@ const Showcase = () => {
             div({ style: styles.sideBarRow }, [
               div({ style: styles.header }, 'Featured workspaces'),
               div({
-                style: _.size(filteredWorkspaces) === _.size(featuredList) ? styles.hilightedPill : styles.pill
+                style: _.isEmpty(tagFilters) ? styles.hilightedPill : styles.pill
               }, [_.size(filteredWorkspaces)])
             ]),
             div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
@@ -279,12 +303,13 @@ const Showcase = () => {
           div({ style: { width: '19rem', flex: '0 0 auto' } }, [
             h(Sidebar, {
               onFilterChange: tag => setTagFilterMap(_.update(tag, state => !state, tagFilterMap)),
-              featuredList,
-              tagFilters: lowerTagFilters
+              sections,
+              tagFilters,
+              workspacesByTag: groupByFeaturedTags(filteredWorkspaces)
             })
           ]),
           div({ style: { marginLeft: '1rem', minWidth: 0 } }, [
-            ..._.map(makeCard(), sortedWorkspaces)
+            ..._.map(makeCard(), sortWorkspaces(filteredWorkspaces))
           ])
         ])
       ])
