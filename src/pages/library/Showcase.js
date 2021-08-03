@@ -24,7 +24,7 @@ const styles = {
     fontSize: 19, color: colors.dark(), fontWeight: 'bold',
     marginBottom: '1rem'
   },
-  sideBarRow: {
+  sidebarRow: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'baseline'
   },
   nav: {
@@ -93,13 +93,13 @@ const makeCard = variant => workspace => {
 }
 
 // collapsible section for sidebar categories
-const sideBarCollapser = ({ title, isOpened, onClick, children }) => {
+const SidebarCollapser = ({ title, isOpened, onClick, children }) => {
   return div({
     role: 'group'
   }, [
     h(NavItem, {
       onClick,
-      style: { ...styles.sideBarRow, ...styles.nav.navSection }
+      style: { ...styles.sidebarRow, ...styles.nav.navSection }
     }, [
       title,
       div({ style: { flexGrow: 1 } }),
@@ -112,7 +112,7 @@ const sideBarCollapser = ({ title, isOpened, onClick, children }) => {
 }
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
-const sideBarSections = [
+const sidebarSections = [
   {
     name: 'Getting Started',
     labels: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials'],
@@ -153,7 +153,7 @@ const sideBarSections = [
 const uniqueSidebarTags = _.flow([
   _.flatMap(s => _.map(_.toLower, s.labels)),
   _.uniq
-])(sideBarSections)
+])(sidebarSections)
 
 const groupByFeaturedTags = workspaces => _.flow([
   _.map(tag => [tag, _.filter(w => _.includes(tag, w.tags.items), workspaces)]),
@@ -164,7 +164,7 @@ const Sidebar = props => {
   const { onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, workspacesByTag } = props
 
   // setup open-ness state for each sidebar section
-  const initialOpenState = _.fromPairs(_.map(section => [section.name, true], sideBarSections))
+  const initialOpenState = _.fromPairs(_.map(section => [section.name, true], sidebarSections))
   const [openState, setOpenState] = useState(initialOpenState)
 
   const unionSectionWorkspaces = section => {
@@ -177,7 +177,7 @@ const Sidebar = props => {
         h(Clickable, {
           key: section.name,
           onClick: () => onSectionFilter(section),
-          style: { ...styles.sideBarRow, ...styles.nav.navSection }
+          style: { ...styles.sidebarRow, ...styles.nav.navSection }
         }, [
           div({ style: { flex: 1 } }, [section.name]),
           div({ style: { flexGrow: 1 } }),
@@ -185,7 +185,7 @@ const Sidebar = props => {
             style: _.includes(section, selectedSections) ? styles.hilightedPill : styles.pill
           }, [_.size(unionSectionWorkspaces(section))])
         ]) :
-        h(sideBarCollapser,
+        h(SidebarCollapser,
           {
             key: section.name,
             title: section.name,
@@ -243,7 +243,7 @@ const Showcase = () => {
         _.map(_.update(['labels'], labels => _.intersectionBy(_.toLower, labels, activeTags))),
         _.map(section => ({ ...section, tags: _.map(_.toLower, section.labels) })),
         _.remove(section => _.isEmpty(section.labels))
-      ])(sideBarSections)
+      ])(sidebarSections)
 
       setFeaturedList(featuredWorkspaces)
       setWorkspacesByTag(workspacesByTag)
@@ -284,7 +284,7 @@ const Showcase = () => {
       h(Fragment, [
         div({ style: { display: 'flex', margin: '1rem 1rem 0', alignItems: 'baseline' } }, [
           div({ style: { width: '19rem', flex: '0 0 auto' } }, [
-            div({ style: styles.sideBarRow }, [
+            div({ style: styles.sidebarRow }, [
               div({ style: styles.header }, 'Featured workspaces'),
               div({
                 style: _.isEmpty(selectedSections) && _.isEmpty(selectedTags) ? styles.hilightedPill : styles.pill
