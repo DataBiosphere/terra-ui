@@ -369,7 +369,7 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
   const modalBody = h(Fragment, [
     h(TitleBar, {
       id: titleId,
-      title: 'Cloud Environment details',
+      title: 'Cloud Environment Details',
       titleStyles: _.merge(viewMode === undefined ? {} : { display: 'none' }, { margin: '1.5rem 0 .5rem 1rem' }),
       width,
       onDismiss,

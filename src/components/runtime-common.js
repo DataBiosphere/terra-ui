@@ -147,8 +147,6 @@ export const GalaxyWarning = () => {
 
 export const GalaxyLaunchButton = ({ app, key = app.status, onClick, ...props }) => {
   const cookieReady = Utils.useStore(cookieReadyStore)
-  console.log('in galaxy launch button, status')
-  console.log(app.status)
   return h(ButtonPrimary, {
     disabled: !cookieReady || _.lowerCase(app.status) !== 'running',
     // toolTip: _.lowerCase(app.status) == 'running' ? 'Cannot launch galaxy that is not Running' : '',
