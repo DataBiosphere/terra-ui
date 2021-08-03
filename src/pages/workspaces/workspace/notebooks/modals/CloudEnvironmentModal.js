@@ -106,7 +106,6 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
     return h(Clickable, {
       'aria-label': `${toolLabel} Status`,
       hover: { backgroundColor: colors.accent(0.2) },
-      tooltipDelay: 100,
       // css takes the last thing if there are duplicate fields, the order here is important because all three things can specify color
       style: { ...toolButtonStyles, color: onClick && !disabled ? colors.accent() : colors.dark(0.7), ...style },
       onClick, disabled, ...props
@@ -128,7 +127,7 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
     }
   }
 
-  // We assume here that button disabling is working properly, so the only thing to check is whether its galaxy or the current (assumed to be existing) runtime
+  // We assume here that button disabling is working properly, so the only thing to check is whether it's a Galaxy app or the current (assumed to be existing) runtime
   const startApp = toolLabel => Utils.cond([toolLabel === tools.galaxy.label, () => {
     const { googleProject, appName } = currentApp
     executeAndRefresh(toolLabel,
@@ -141,12 +140,10 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
 
   const stopApp = toolLabel => Utils.cond([toolLabel === tools.galaxy.label, () => {
     const { googleProject, appName } = currentApp
-    executeAndRefresh(toolLabel,
-      Ajax().Apps.app(googleProject, appName).pause())
+    executeAndRefresh(toolLabel, Ajax().Apps.app(googleProject, appName).pause())
   }], [Utils.DEFAULT, () => {
     const { googleProject, runtimeName } = currentRuntime
-    executeAndRefresh(toolLabel,
-      Ajax().Runtimes.runtime(googleProject, runtimeName).stop())
+    executeAndRefresh(toolLabel, Ajax().Runtimes.runtime(googleProject, runtimeName).stop())
   }])
 
   const defaultIcon = toolLabel => h(RuntimeIcon, {
@@ -276,8 +273,7 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
         [doesCloudEnvForToolExist && isDisabled && toolLabel !== tools.Jupyter.label, () => 'Please wait until Galaxy is running'],
         [doesCloudEnvForToolExist && isDisabled && toolLabel === tools.Jupyter.label, () => 'Select or create a notebook in the analyses tab to launch Jupyter'],
         [Utils.DEFAULT, () => 'No Environment found']
-      ),
-      tooltipDelay: 100
+      )
     }
 
     return Utils.switchCase(toolLabel,
@@ -333,7 +329,6 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
               [doesCloudEnvForToolExist, () => 'Edit existing Environment'],
               [!doesCloudEnvForToolExist, () => 'Create new Environment (may overwrite existing)']),
             disabled: isCloudEnvForToolDisabled,
-            tooltipDelay: 100,
             onClick: () => setViewMode(toolLabel)
           }, [
             img({ src: cloudIcon, style: { height: 20, width: 20, opacity: isCloudEnvForToolDisabled ? 0.4 : 1 } }), //TODO: why doesn't this icon disable properly color-wise?
@@ -374,7 +369,7 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
   const modalBody = h(Fragment, [
     h(TitleBar, {
       id: titleId,
-      title: 'Cloud environment details',
+      title: 'Cloud Environment details',
       titleStyles: _.merge(viewMode === undefined ? {} : { display: 'none' }, { margin: '1.5rem 0 .5rem 1rem' }),
       width,
       onDismiss,

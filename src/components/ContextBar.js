@@ -124,8 +124,9 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
           hover: contextBarStyles.hover,
           tooltipSide: 'left',
           onClick: () => setCloudEnvOpen(!isCloudEnvOpen),
-          ...{ tooltip: 'Environment Configuration', tooltipDelay: 100 },
-          'aria-label': 'Environment Configuration'
+          tooltip: 'Environment Configuration',
+          tooltipDelay: 100,
+          useTooltipAsLabel: true
         }, [
           img({ src: cloudIcon, style: { display: 'flex', margin: 'auto', height: 26, width: 26 } }),
           getEnvironmentStatusIcons()
@@ -139,7 +140,7 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
           onClick: window.location.hash === terminalLaunchLink && currentRuntime?.status === 'Stopped' ? () => startCurrentRuntime() : undefined,
           tooltip: !isTerminalEnabled ? 'Terminal can only be launched for Jupyter environments' : 'Terminal',
           tooltipDelay: 100,
-          'aria-label': 'Terminal',
+          useTooltipAsLabel: true,
           ...Utils.newTabLinkProps
         }, [icon('terminal', { size: 24 })])
       ])
