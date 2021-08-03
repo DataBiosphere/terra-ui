@@ -3,8 +3,8 @@ import { Fragment } from 'react'
 import { h } from 'react-hyperscript-helpers'
 import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
+import { isAnalysisTabVisible, isDataBrowserVisible } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
-import {isAnalysisTabVisible, isDataBrowserVisible} from "src/libs/config";
 
 
 const TAB_LINKS = {
