@@ -18,6 +18,50 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
+// Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
+const sidebarSections = [
+  {
+    name: 'Getting Started',
+    labels: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials'],
+    keepCollapsed: true
+  },
+  {
+    name: 'Analysis Tools',
+    labels: ['WDLs', 'Jupyter Notebooks', 'RStudio', 'Galaxy', 'Hail', 'Bioconductor', 'GATK', 'Cumulus', 'Spark']
+  },
+  {
+    name: 'Experimental Strategy',
+    labels: ['GWAS', 'Exome Analysis', 'Whole Genome Analysis', 'Fusion Transcript Detection', 'RNA Analysis', 'Machine Learning',
+      'Variant Discovery', 'Epigenomics', 'DNA Methylation', 'Copy Number Variation', 'Structural Variation', 'Functional Annotation']
+  },
+  {
+    name: 'Data Generation Technology',
+    labels: ['10x analysis', 'Bisulfate Sequencing']
+  },
+  {
+    name: 'Scientific Domain',
+    labels: ['Cancer', 'Infectious Diseases', 'MPG', 'Single-cell', 'Immunology']
+  },
+  {
+    name: 'Datasets',
+    labels: ['AnVIL', 'CMG', 'CCDG', 'TopMed', 'HCA', 'TARGET', 'ENCODE', 'BioData Catalyst', 'TCGA', '1000 Genomes', 'BRAIN Initiative',
+      'gnomAD', 'NCI', 'COVID-19']
+  },
+  {
+    name: 'Utilities',
+    labels: ['Format Conversion', 'Developer Tools']
+  },
+  {
+    name: 'Projects',
+    labels: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI']
+  }
+]
+
+const uniqueSidebarTags = _.flow([
+  _.flatMap(s => _.map(_.toLower, s.labels)),
+  _.uniq
+])(sidebarSections)
+
 const styles = {
   column: { marginRight: '1.5rem', flex: '1 1 0px', maxWidth: 415 },
   header: {
@@ -110,50 +154,6 @@ const SidebarCollapser = ({ title, isOpened, onClick, children }) => {
     }, [h(RCollapse, { isOpened }, [children])])
   ])
 }
-
-// Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
-const sidebarSections = [
-  {
-    name: 'Getting Started',
-    labels: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials'],
-    keepCollapsed: true
-  },
-  {
-    name: 'Analysis Tools',
-    labels: ['WDLs', 'Jupyter Notebooks', 'RStudio', 'Galaxy', 'Hail', 'Bioconductor', 'GATK', 'Cumulus', 'Spark']
-  },
-  {
-    name: 'Experimental Strategy',
-    labels: ['GWAS', 'Exome Analysis', 'Whole Genome Analysis', 'Fusion Transcript Detection', 'RNA Analysis', 'Machine Learning',
-      'Variant Discovery', 'Epigenomics', 'DNA Methylation', 'Copy Number Variation', 'Structural Variation', 'Functional Annotation']
-  },
-  {
-    name: 'Data Generation Technology',
-    labels: ['10x analysis', 'Bisulfate Sequencing']
-  },
-  {
-    name: 'Scientific Domain',
-    labels: ['Cancer', 'Infectious Diseases', 'MPG', 'Single-cell', 'Immunology']
-  },
-  {
-    name: 'Datasets',
-    labels: ['AnVIL', 'CMG', 'CCDG', 'TopMed', 'HCA', 'TARGET', 'ENCODE', 'BioData Catalyst', 'TCGA', '1000 Genomes', 'BRAIN Initiative',
-      'gnomAD', 'NCI', 'COVID-19']
-  },
-  {
-    name: 'Utilities',
-    labels: ['Format Conversion', 'Developer Tools']
-  },
-  {
-    name: 'Projects',
-    labels: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI']
-  }
-]
-
-const uniqueSidebarTags = _.flow([
-  _.flatMap(s => _.map(_.toLower, s.labels)),
-  _.uniq
-])(sidebarSections)
 
 const groupByFeaturedTags = workspaces => _.flow([
   _.map(tag => [tag, _.filter(w => _.includes(tag, w.tags.items), workspaces)]),
