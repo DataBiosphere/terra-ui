@@ -233,7 +233,11 @@ const Showcase = () => {
       const showcase = await Ajax().Buckets.getShowcaseWorkspaces()
 
       // Immediately lowercase the workspace tags so we don't have to think about it again.
-      const featuredWorkspaces = _.map(_.update(['tags', 'items'], _.map(_.toLower)), showcase)
+      // Also pre-compute lower name and description.
+      const featuredWorkspaces = _.flow([
+        _.map(_.update(['tags', 'items'], _.map(_.toLower))),
+        _.map(workspace => ({ ...workspace, lowerName: _.toLower(workspace.name), lowerDescription: _.toLower(workspace.description) }))
+      ])(showcase)
 
       const workspacesByTag = _.omitBy(_.isEmpty, groupByFeaturedTags(featuredWorkspaces))
 
@@ -267,9 +271,10 @@ const Showcase = () => {
   // eslint-disable-next-line lodash-fp/no-single-composition
   const filterByTags = workspaces => _.flow(_.map(tag => _.intersection(workspacesByTag[tag]), selectedTags))(workspaces)
   const filterByText = workspaces => {
-    return _.isEmpty(searchFilter) ?
+    const lowerSearch = _.toLower(searchFilter)
+    return _.isEmpty(lowerSearch) ?
       workspaces :
-      _.filter(workspace => _.includes(searchFilter, workspace.name) || _.includes(searchFilter, workspace.description), workspaces)
+      _.filter(workspace => _.includes(lowerSearch, workspace.lowerName) || _.includes(lowerSearch, workspace.lowerDescription), workspaces)
   }
   const filteredWorkspaces = _.flow([
     filterBySections,
