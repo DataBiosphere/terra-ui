@@ -115,7 +115,8 @@ const sideBarCollapser = ({ title, isOpened, onClick, children }) => {
 const sideBarSections = [
   {
     name: 'Getting Started',
-    labels: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials']
+    labels: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials'],
+    keepCollapsed: true
   },
   {
     name: 'Analysis Tools',
@@ -160,17 +161,33 @@ const groupByFeaturedTags = workspaces => _.flow([
 ])(uniqueSidebarTags)
 
 const Sidebar = props => {
-  const { onFilterChange, sections, selectedTags, workspacesByTag } = props
+  const { onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, workspacesByTag } = props
 
   // setup open-ness state for each sidebar section
   const initialOpenState = _.fromPairs(_.map(section => [section.name, true], sideBarSections))
   const [openState, setOpenState] = useState(initialOpenState)
 
+  const unionSectionWorkspaces = section => {
+    return _.uniq(_.flatMap(tag => workspacesByTag[tag], section.tags))
+  }
+
   return div({ style: { display: 'flex', flexDirection: 'column' } }, [
     _.map(section => {
-      return div({ key: section.name }, [
+      return section.keepCollapsed ?
+        h(Clickable, {
+          key: section.name,
+          onClick: () => onSectionFilter(section),
+          style: { ...styles.sideBarRow, ...styles.nav.navSection }
+        }, [
+          div({ style: { flex: 1 } }, [section.name]),
+          div({ style: { flexGrow: 1 } }),
+          div({
+            style: _.includes(section, selectedSections) ? styles.hilightedPill : styles.pill
+          }, [_.size(unionSectionWorkspaces(section))])
+        ]) :
         h(sideBarCollapser,
           {
+            key: section.name,
             title: section.name,
             onClick: () => setOpenState(_.update(section.name, open => !open, openState)),
             isOpened: openState[section.name]
@@ -180,19 +197,16 @@ const Sidebar = props => {
               const tag = _.toLower(label)
               return h(Clickable, {
                 style: { display: 'flex', alignItems: 'baseline', margin: '0.5rem 0' },
-                onClick: () => onFilterChange(tag)
+                onClick: () => onTagFilter(tag)
               }, [
                 div({ style: { flex: 1 } }, [label]),
                 div({
-                  style: _.includes(_.toLower(label), selectedTags) ? styles.hilightedPill : styles.pill
-                }, [
-                  _.size(workspacesByTag[tag])
-                ])
+                  style: _.includes(tag, selectedTags) ? styles.hilightedPill : styles.pill
+                }, [_.size(workspacesByTag[tag])])
               ])
             }, section.labels)
           ]
         )
-      ])
     }, sections)
   ])
 }
@@ -203,6 +217,7 @@ const Showcase = () => {
   const [workspacesByTag, setWorkspacesByTag] = useState({})
   const [sections, setSections] = useState([])
 
+  const [selectedSections, setSelectedSections] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [searchFilter, setSearchFilter] = useState()
   const [sort, setSort] = useState('most recent')
@@ -226,6 +241,7 @@ const Showcase = () => {
       const activeTags = _.keys(workspacesByTag)
       const activeSections = _.flow([
         _.map(_.update(['labels'], labels => _.intersectionBy(_.toLower, labels, activeTags))),
+        _.map(section => ({ ...section, tags: _.map(_.toLower, section.labels) })),
         _.remove(section => _.isEmpty(section.labels))
       ])(sideBarSections)
 
@@ -240,6 +256,14 @@ const Showcase = () => {
     loadData()
   })
 
+  const filterBySections = workspaces => {
+    if (_.isEmpty(selectedSections)) {
+      return workspaces
+    } else {
+      const tags = _.uniq(_.flatMap(section => section.tags, selectedSections))
+      return _.uniq(_.flatMap(tag => workspacesByTag[tag], tags))
+    }
+  }
   // eslint-disable-next-line lodash-fp/no-single-composition
   const filterByTags = workspaces => _.flow(_.map(tag => _.intersection(workspacesByTag[tag]), selectedTags))(workspaces)
   const filterByText = workspaces => {
@@ -248,6 +272,7 @@ const Showcase = () => {
       _.filter(workspace => _.includes(searchFilter, workspace.name) || _.includes(searchFilter, workspace.description), workspaces)
   }
   const filteredWorkspaces = _.flow([
+    filterBySections,
     filterByTags,
     filterByText
   ])(featuredList)
@@ -262,7 +287,7 @@ const Showcase = () => {
             div({ style: styles.sideBarRow }, [
               div({ style: styles.header }, 'Featured workspaces'),
               div({
-                style: _.isEmpty(selectedTags) ? styles.hilightedPill : styles.pill
+                style: _.isEmpty(selectedSections) && _.isEmpty(selectedTags) ? styles.hilightedPill : styles.pill
               }, [_.size(filteredWorkspaces)])
             ]),
             div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
@@ -297,8 +322,10 @@ const Showcase = () => {
         div({ style: { display: 'flex', margin: '0 1rem' } }, [
           div({ style: { width: '19rem', flex: '0 0 auto' } }, [
             h(Sidebar, {
-              onFilterChange: tag => setSelectedTags(_.xor([tag], selectedTags)),
+              onSectionFilter: section => setSelectedSections(_.xor([section], selectedSections)),
+              onTagFilter: tag => setSelectedTags(_.xor([tag], selectedTags)),
               sections,
+              selectedSections,
               selectedTags,
               workspacesByTag: groupByFeaturedTags(filteredWorkspaces)
             })
