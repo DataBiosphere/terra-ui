@@ -110,18 +110,29 @@ const getImageUrl = runtimeDetails => {
   return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)?.imageUrl
 }
 
+const getCurrentRuntime = runtimes => currentRuntime(runtimes)
+
+const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
+  const currentRuntime = getCurrentRuntime()
+  const id = currentRuntime?.runtimeConfig.persistentDiskId
+  const attachedIds = _.without([undefined], _.map(runtime => runtime.runtimeConfig.persistentDiskId, runtimes))
+  return id ?
+    _.find({ id }, persistentDisks) :
+    _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id, status }) => status !== 'Deleting' && !_.includes(id, attachedIds), persistentDisks)))
+}
+
 export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
   ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, isAnalysisMode = false }) => {
     // TODO Should be able to remove some of the block below before merging
     const getWorkspaceObj = () => workspace.workspace
-    const getCurrentRuntime = () => currentRuntime(runtimes)
-    const currentPersistentDisk = getCurrentPersistentDisk()
+    const currentPersistentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
 
     const googleProject = getWorkspaceObj()
 
     const [loading, setLoading] = useState(false)
-    const [currentComputeDetails, setCurrentComputeDetails] = useState(getCurrentRuntime())
+    const [currentComputeDetails, setCurrentComputeDetails] = useState(getCurrentRuntime(runtimes))
     const [viewMode, setViewMode] = useState(undefined)
+    const [leoImages, setLeoImages] = useState([])
 
     const [currentRuntimeDetails, newLeoImages, currentPersistentDiskDetails] = async () => {
       Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
@@ -134,18 +145,6 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
         currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
       ])
     }
-
-    const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
-    const selectedLeoImage = getSelectedImage()
-
-    const leoImages = filteredNewLeoImages
-    const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
-
-    const runtime = currentRuntime(runtimes)
-    const runtimeConfig = runtime?.runtimeConfig
-    const gpuConfig = runtimeConfig?.gpuConfig
-    const sparkMode = runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false
-    const isDataproc = !sparkMode && !runtimeConfig?.diskSize
 
     /* eslint-disable indent */
     //TODO: open to feedback and still thinking about this...
@@ -172,14 +171,16 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
       }
     }
 
-    const getCurrentPersistentDisk = () => {
-      const currentRuntime = getCurrentRuntime()
-      const id = currentRuntime?.runtimeConfig.persistentDiskId
-      const attachedIds = _.without([undefined], _.map(runtime => runtime.runtimeConfig.persistentDiskId, runtimes))
-      return id ?
-        _.find({ id }, persistentDisks) :
-        _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id, status }) => status !== 'Deleting' && !_.includes(id, attachedIds), persistentDisks)))
-    }
+    const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
+    setLeoImages(filteredNewLeoImages)
+    const selectedLeoImage = getSelectedImage()
+    const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
+
+    const runtime = currentRuntime(runtimes)
+    const runtimeConfig = runtime?.runtimeConfig
+    const gpuConfig = runtimeConfig?.gpuConfig
+    const sparkMode = runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false
+    const isDataproc = !sparkMode && !runtimeConfig?.diskSize
 
     const getCurrentMountDirectory = currentRuntimeDetails => {
       const rstudioMountPoint = '/home/rstudio'
