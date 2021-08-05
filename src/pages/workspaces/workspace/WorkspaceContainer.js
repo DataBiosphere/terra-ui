@@ -96,10 +96,10 @@ const WorkspaceTabs = ({
   ])
 }
 
-const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, children }) => {
-  const [deletingWorkspace, setDeletingWorkspace] = useState(false)
-  const [cloningWorkspace, setCloningWorkspace] = useState(false)
-  const [sharingWorkspace, setSharingWorkspace] = useState(false)
+const WorkspaceContainer = ({
+  namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, children,
+  setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, deletingWorkspace, cloningWorkspace, sharingWorkspace
+}) => {
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
 
   const canShare = !!workspace?.canShare
@@ -256,6 +256,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const accessNotificationId = useRef()
     const cachedWorkspace = Utils.useStore(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
+    const [deletingWorkspace, setDeletingWorkspace] = useState(false)
+    const [cloningWorkspace, setCloningWorkspace] = useState(false)
+    const [sharingWorkspace, setSharingWorkspace] = useState(false)
     const { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks } = useCloudEnvironmentPolling(namespace)
     const { apps, refreshApps } = useAppPolling(namespace, name)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
@@ -315,6 +318,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     } else {
       return h(WorkspaceContainer, {
         namespace, name, activeTab, showTabBar, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps,
+        setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, deletingWorkspace, cloningWorkspace, sharingWorkspace,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
@@ -330,6 +334,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
           ref: child,
           workspace, refreshWorkspace, refreshApps, refreshRuntimes,
           runtimes, persistentDisks, galaxyDataDisks, apps,
+          setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace,
           ...props
         }),
         loadingWorkspace && spinnerOverlay
