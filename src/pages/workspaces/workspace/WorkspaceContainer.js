@@ -138,7 +138,7 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
       // When we switch this over to all tabs, ensure other workspace tabs look the same when inside these divs
       (isAnalysisTabVisible() && activeTab === 'analyses' ?
         [div({ style: { flex: 1, display: 'flex' } }, [
-          div({ style: { flex: 1 } }, [
+          div({ style: { flex: 1, flexDirection: 'column', display: 'flex' } }, [
             children
           ]),
           workspace && h(ContextBar, {

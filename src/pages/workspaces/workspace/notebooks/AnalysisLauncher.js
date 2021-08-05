@@ -44,7 +44,7 @@ const AnalysisLauncher = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'analyses'),
     title: _.get('analysisName'),
-    showTabBar: false
+    showTabBar: false, activeTab: 'analyses'
   })
 )(
   ({ queryParams, analysisName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks, refreshRuntimes },
