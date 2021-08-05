@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { b, br, code, div, fieldset, h, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
 import {
   ButtonOutline, ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, WarningTitle
@@ -20,7 +20,10 @@ import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { versionTag } from 'src/libs/logos'
 import {
-  currentRuntime, DEFAULT_DISK_SIZE, DEFAULT_GPU_TYPE, DEFAULT_NUM_GPUS, defaultDataprocMachineType, defaultGceMachineType, displayNameForGpuType,
+  currentRuntime, DEFAULT_DATAPROC_DISK_SIZE, DEFAULT_DISK_SIZE, DEFAULT_GCE_BOOT_DISK_SIZE, DEFAULT_GCE_PERSISTENT_DISK_SIZE, DEFAULT_GPU_TYPE,
+  DEFAULT_NUM_GPUS,
+  defaultDataprocMachineType,
+  defaultGceMachineType, displayNameForGpuType,
   findMachineType,
   getDefaultMachineType, getValidGpuTypes,
   persistentDiskCostMonthly,
@@ -125,62 +128,36 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
   ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, isAnalysisMode = false }) => {
     // TODO Should be able to remove some of the block below before merging
     const getWorkspaceObj = () => workspace.workspace
-    const currentPersistentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
+    const isDataproc = (sparkMode, runtimeConfig) => !sparkMode && !runtimeConfig?.diskSize
 
     const googleProject = getWorkspaceObj()
 
     const [loading, setLoading] = useState(false)
-    const [currentComputeDetails, setCurrentComputeDetails] = useState(getCurrentRuntime(runtimes))
+    const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(getCurrentRuntime(runtimes))
+    const [currentPersistentDiskDetails, setCurrentPersistentDiskDetails] = useState(getCurrentPersistentDisk(runtimes, persistentDisks))
     const [viewMode, setViewMode] = useState(undefined)
     const [leoImages, setLeoImages] = useState([])
+    const [selectedLeoImage, setSelectedLeoImage] = useState(undefined)
+    const [customEnvImage, setCustomEnvImage] = useState(undefined)
+    const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState(undefined)
 
-    const [currentRuntimeDetails, newLeoImages, currentPersistentDiskDetails] = async () => {
-      Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
-        existingConfig: !!currentRuntime, ...extractWorkspaceDetails(getWorkspaceObj())
-      })
-
-      await Promise.all([
-        currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
-        Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', googleProject, true).then(res => res.json()),
-        currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
-      ])
-    }
-
-    /* eslint-disable indent */
-    //TODO: open to feedback and still thinking about this...
-    //Selected Leo image uses the following logic (psuedoCode not written in same way as code for clarity)
-    //if found image (aka image associated with users runtime) NOT in newLeoImages (the image dropdown list from bucket)
-    //user is using custom image
-    //else
-    //if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection) and isAnalysisMode
-    //use default image for selected tool
-    //else
-    //use imageUrl derived from users current runtime
-    /* eslint-disable indent */
-    const getSelectedImage = () => {
-      const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
-      const foundImage = _.find({ image: imageUrl }, newLeoImages)
-      if (foundImage) {
-        if (!_.includes(foundImage, filteredNewLeoImages) && isAnalysisMode) {
-          return _.find({ id: tools[this.props.tool].defaultImageId }, newLeoImages).image
-        } else {
-          return imageUrl
-        }
-      } else {
-        return CUSTOM_MODE
-      }
-    }
-
-    const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
-    setLeoImages(filteredNewLeoImages)
-    const selectedLeoImage = getSelectedImage()
-    const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
-
-    const runtime = currentRuntime(runtimes)
-    const runtimeConfig = runtime?.runtimeConfig
+    const runtimeConfig = currentRuntimeDetails?.runtimeConfig
     const gpuConfig = runtimeConfig?.gpuConfig
-    const sparkMode = runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false
-    const isDataproc = !sparkMode && !runtimeConfig?.diskSize
+
+    const [selectedPersistentDiskSize, setSelectedPersistentDiskSize] = useState(currentPersistentDiskDetails?.size || DEFAULT_GCE_PERSISTENT_DISK_SIZE)
+    const [sparkMode, setSparkMode] = useState(runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false)
+    const [masterMachineType, setMasterMachineType] = useState(runtimeConfig?.masterMachineType || runtimeConfig?.machineType)
+    const [masterDiskSize, setMasterDiskSize] = useState(runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || (isDataproc(sparkMode, runtimeConfig) ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE))
+    const [numberOfWorkers, setNumberOfWorkers] = useState(runtimeConfig?.numberOfWorkers || 2)
+    const [numberOfPreemptibleWorkers, setNumberOfPreemptibleWorkers] = useState(runtimeConfig?.numberOfPreemptibleWorkers || 0)
+    const [workerMachineType, setWorkerMachineType] = useState(runtimeConfig?.workerMachineType || defaultDataprocMachineType)
+    const [workerDiskSize, setWorkerDiskSize] = useState(runtimeConfig?.workerDiskSize || DEFAULT_DATAPROC_DISK_SIZE)
+    const [gpuEnabled, setGpuEnabled] = useState((!!gpuConfig && !sparkMode) || false)
+    const [hasGpu, setHasGpu] = useState(!!gpuConfig)
+    const [gpuType, setGpuType] = useState(gpuConfig?.gpuType || DEFAULT_GPU_TYPE)
+    const [numGpus, setNumGpus] = useState(gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS)
+
+    const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
     const getCurrentMountDirectory = currentRuntimeDetails => {
       const rstudioMountPoint = '/home/rstudio'
@@ -188,6 +165,75 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
       const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
       return currentRuntimeDetails?.labels.tool ? (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) : noMountDirectory
     }
+
+    // This stuff was in componentDidMount when it was a class component.
+    useEffect(() => _.flow(
+      withErrorReporting('Error loading cloud environment'),
+      Utils.withBusyState(v => this.setState({ loading: v }))
+    )(async () => {
+      const { googleProject } = getWorkspaceObj()
+      const currentRuntime = getCurrentRuntime()
+      const currentPersistentDisk = getCurrentPersistentDisk()
+
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+        existingConfig: !!currentRuntime, ...extractWorkspaceDetails(getWorkspaceObj())
+      })
+      const [currentRuntimeDetails, newLeoImages, currentPersistentDiskDetails] = await Promise.all([
+        currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
+        Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', googleProject, true).then(res => res.json()),
+        currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
+      ])
+
+      const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
+
+      const imageUrl = currentRuntimeDetails ? this.getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
+      const foundImage = _.find({ image: imageUrl }, newLeoImages)
+
+      /* eslint-disable indent */
+      // TODO: open to feedback and still thinking about this...
+      // Selected Leo image uses the following logic (psuedoCode not written in same way as code for clarity)
+      // if found image (aka image associated with user's runtime) NOT in newLeoImages (the image dropdown list from bucket)
+      //   user is using custom image
+      // else if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection) and isAnalysisMode
+      //   use default image for selected tool
+      // else
+      //   use imageUrl derived from users current runtime
+      /* eslint-disable indent */
+      const getSelectedImage = () => {
+        if (foundImage) {
+          if (!_.includes(foundImage, filteredNewLeoImages) && this.props.isAnalysisMode) {
+            return _.find({ id: tools[this.props.tool].defaultImageId }, newLeoImages).image
+          } else {
+            return imageUrl
+          }
+        } else {
+          return CUSTOM_MODE
+        }
+      }
+
+      setSelectedLeoImage(getSelectedImage())
+      setLeoImages(filteredNewLeoImages)
+      setCurrentRuntimeDetails(currentRuntimeDetails)
+      setCurrentPersistentDiskDetails(currentPersistentDiskDetails)
+      setCustomEnvImage(!foundImage ? imageUrl : '')
+      setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
+
+      const runtimeConfig = currentRuntimeDetails?.runtimeConfig
+      const gpuConfig = runtimeConfig?.gpuConfig
+
+      setSelectedPersistentDiskSize(currentPersistentDiskDetails?.size || DEFAULT_GCE_PERSISTENT_DISK_SIZE)
+      setSparkMode(runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false)
+      setMasterMachineType(runtimeConfig?.masterMachineType || runtimeConfig?.machineType)
+      setMasterDiskSize(runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || (isDataproc(sparkMode, runtimeConfig) ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE))
+      setNumberOfWorkers(runtimeConfig?.numberOfWorkers || 2)
+      setNumberOfPreemptibleWorkers(runtimeConfig?.numberOfPreemptibleWorkers || 0)
+      setWorkerMachineType(runtimeConfig?.workerMachineType || defaultDataprocMachineType)
+      setWorkerDiskSize(runtimeConfig?.workerDiskSize || DEFAULT_DATAPROC_DISK_SIZE)
+      setGpuEnabled((!!gpuConfig && !sparkMode) || false)
+      setHasGpu(!!gpuConfig)
+      setGpuType(gpuConfig?.gpuType || DEFAULT_GPU_TYPE)
+      setNumGpus(gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS)
+    }), [])
 
     const renderImageSelect = ({ includeCustom, ...props }) => {
       return h(GroupedSelect, {
@@ -256,7 +302,7 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
           onPrevious: () => setViewMode(undefined)
         }),
         div({ style: { lineHeight: 1.5 } }, [
-          p(['Your persistent disk is mounted in the directory ', code({ style: { fontWeight: 600 } }, [getCurrentMountDirectory(currentComputeDetails)]), br(), 'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
+          p(['Your persistent disk is mounted in the directory ', code({ style: { fontWeight: 600 } }, [getCurrentMountDirectory(currentRuntimeDetails)]), br(), 'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
           p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
           p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
           p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
