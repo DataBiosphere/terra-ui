@@ -15,7 +15,7 @@ import { getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/notebooks/modals/CloudEnvironmentModal'
-import { WorkspaceMenu } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+import { WorkspaceMenuTrigger } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const contextBarStyles = {
@@ -30,6 +30,13 @@ const contextBarStyles = {
     backgroundColor: colors.accent(0.2)
   },
   hover: { backgroundColor: colors.accent(0.4) }
+}
+
+const commonButtonProps = {
+  hover: contextBarStyles.hover,
+  tooltipSide: 'left',
+  tooltipDelay: 100,
+  useTooltipAsLabel: true
 }
 
 export const ContextBar = ({
@@ -91,38 +98,29 @@ export const ContextBar = ({
     }),
     div({ style: Style.elements.contextBarContainer }, [
       div({ style: contextBarStyles.contextBarContainer }, [
-        h(WorkspaceMenu, { setCloningWorkspace, canShare, setSharingWorkspace, isOwner, setDeletingWorkspace }, [
+        h(WorkspaceMenuTrigger, { setCloningWorkspace, canShare, setSharingWorkspace, isOwner, setDeletingWorkspace }, [
           h(Clickable, {
-            'aria-label': 'Menu',
             style: contextBarStyles.contextBarButton,
-            hover: contextBarStyles.hover,
-            tooltipSide: 'left',
             tooltip: 'Menu',
-            tooltipDelay: 100
+            ...commonButtonProps
           }, [icon('ellipsis-v', { size: 24 })])
         ]),
         h(Clickable, {
           style: { ...contextBarStyles.contextBarButton, flexDirection: 'column', justifyContent: 'center', padding: '.75rem' },
-          hover: contextBarStyles.hover,
-          tooltipSide: 'left',
           onClick: () => setCloudEnvOpen(!isCloudEnvOpen),
           tooltip: 'Environment Configuration',
-          tooltipDelay: 100,
-          useTooltipAsLabel: true
+          ...commonButtonProps
         }, [
           img({ src: cloudIcon, style: { display: 'flex', margin: 'auto', height: 26, width: 26 } }),
           getEnvironmentStatusIcons()
         ]),
         h(Clickable, {
           style: { ...contextBarStyles.contextBarButton, color: !isTerminalEnabled ? colors.dark(0.7) : contextBarStyles.contextBarButton.color },
-          hover: contextBarStyles.hover,
-          tooltipSide: 'left',
           disabled: !isTerminalEnabled,
           href: terminalLaunchLink,
           onClick: window.location.hash === terminalLaunchLink && currentRuntime?.status === 'Stopped' ? () => startCurrentRuntime() : undefined,
           tooltip: !isTerminalEnabled ? 'Terminal can only be launched for Jupyter environments' : 'Terminal',
-          tooltipDelay: 100,
-          useTooltipAsLabel: true,
+          ...commonButtonProps,
           ...Utils.newTabLinkProps
         }, [icon('terminal', { size: 24 })])
       ])

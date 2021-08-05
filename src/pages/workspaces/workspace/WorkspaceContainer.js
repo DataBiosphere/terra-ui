@@ -31,7 +31,7 @@ const navIconProps = {
   hover: { opacity: 1 }, focus: 'hover'
 }
 
-export const WorkspaceMenu = ({ setCloningWorkspace, canShare, setSharingWorkspace, isOwner, setDeletingWorkspace, children }) => {
+export const WorkspaceMenuTrigger = ({ setCloningWorkspace, canShare, setSharingWorkspace, isOwner, setDeletingWorkspace, children }) => {
   return h(MenuTrigger, {
     closeOnClick: true,
     content: h(Fragment, [
@@ -78,7 +78,7 @@ const WorkspaceTabs = ({
       tabNames: _.map('name', tabs),
       getHref: currentTab => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name })
     }, [
-      h(WorkspaceMenu, { setCloningWorkspace, canShare, setSharingWorkspace, isOwner, setDeletingWorkspace }, [
+      h(WorkspaceMenuTrigger, { setCloningWorkspace, canShare, setSharingWorkspace, isOwner, setDeletingWorkspace }, [
         h(Clickable, { 'aria-label': 'Workspace menu', ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
       ])
     ])
