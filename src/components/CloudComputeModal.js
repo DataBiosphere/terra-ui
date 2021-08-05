@@ -134,6 +134,7 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
 
     // State -- begin
 
+    const [showDebugger, setShowDebugger] = useState(false)
     const [loading, setLoading] = useState(false)
     const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(getCurrentRuntime(runtimes))
     const [currentPersistentDiskDetails, setCurrentPersistentDiskDetails] = useState(getCurrentPersistentDisk(runtimes, persistentDisks))
@@ -232,8 +233,8 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
     }
 
     const canUpdateRuntime = () => {
-      const { runtime: existingRuntime } = this.getExistingEnvironmentConfig()
-      const { runtime: desiredRuntime } = this.getDesiredEnvironmentConfig()
+      const { runtime: existingRuntime } = getExistingEnvironmentConfig()
+      const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
 
       return !(
         !existingRuntime ||
@@ -362,6 +363,44 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
       }
     }
 
+    /**
+     * Transforms the new environment config into the shape of runtime config
+     * returned from leonardo. The cost calculation functions expect that shape,
+     * so this is necessary to compute the cost for potential new configurations.
+     */
+    const getPendingRuntimeConfig = () => {
+      const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
+
+      return {
+        cloudService: desiredRuntime.cloudService,
+        ...(desiredRuntime.cloudService === cloudServices.GCE ? {
+          machineType: desiredRuntime.machineType || defaultGceMachineType,
+          bootDiskSize: desiredRuntime.bootDiskSize,
+          ...(desiredRuntime.gpuConfig ? { gpuConfig: desiredRuntime.gpuConfig } : {}),
+          ...(desiredRuntime.diskSize ? { diskSize: desiredRuntime.diskSize } : {})
+        } : {
+          masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
+          masterDiskSize: desiredRuntime.masterDiskSize,
+          numberOfWorkers: desiredRuntime.numberOfWorkers,
+          ...(desiredRuntime.numberOfWorkers && {
+            numberOfPreemptibleWorkers: desiredRuntime.numberOfPreemptibleWorkers,
+            workerMachineType: desiredRuntime.workerMachineType,
+            workerDiskSize: desiredRuntime.workerDiskSize
+          })
+        })
+      }
+    }
+
+    /**
+     * Transforms the new environment config into the shape of a disk returned
+     * from leonardo. The cost calculation functions expect that shape, so this
+     * is necessary to compute the cost for potential new disk configurations.
+     */
+    const getPendingDisk = () => {
+      const { persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
+      return { size: desiredPersistentDisk.size, status: 'Ready' }
+    }
+
     const sendCloudEnvironmentMetrics = () => {
       const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
       const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
@@ -370,32 +409,32 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
       const { cpu: desiredRuntimeCpus, memory: desiredRuntimeMemory } = findMachineType(desiredMachineType)
       const { cpu: existingRuntimeCpus, memory: existingRuntimeMemory } = findMachineType(existingMachineType)
       const metricsEvent = Utils.cond(
-        [(this.state.viewMode === 'deleteEnvironmentOptions'), () => 'cloudEnvironmentDelete'],
+        [(viewMode === 'deleteEnvironmentOptions'), () => 'cloudEnvironmentDelete'],
         [(!!existingRuntime), () => 'cloudEnvironmentUpdate'],
         () => 'cloudEnvironmentCreate'
       )
 
       Ajax().Metrics.captureEvent(Events[metricsEvent], {
-        ...extractWorkspaceDetails(this.getWorkspaceObj()),
+        ...extractWorkspaceDetails(getWorkspaceObj()),
         ..._.mapKeys(key => `desiredRuntime_${key}`, desiredRuntime),
         desiredRuntime_exists: !!desiredRuntime,
         desiredRuntime_cpus: desiredRuntime && desiredRuntimeCpus,
         desiredRuntime_memory: desiredRuntime && desiredRuntimeMemory,
-        desiredRuntime_costPerHour: desiredRuntime && runtimeConfigCost(this.getPendingRuntimeConfig()),
-        desiredRuntime_pausedCostPerHour: desiredRuntime && runtimeConfigBaseCost(this.getPendingRuntimeConfig()),
+        desiredRuntime_costPerHour: desiredRuntime && runtimeConfigCost(getPendingRuntimeConfig()),
+        desiredRuntime_pausedCostPerHour: desiredRuntime && runtimeConfigBaseCost(getPendingRuntimeConfig()),
         ..._.mapKeys(key => `existingRuntime_${key}`, existingRuntime),
         existingRuntime_exists: !!existingRuntime,
         existingRuntime_cpus: existingRuntime && existingRuntimeCpus,
         existingRuntime_memory: existingRuntime && existingRuntimeMemory,
         ..._.mapKeys(key => `desiredPersistentDisk_${key}`, desiredPersistentDisk),
-        desiredPersistentDisk_costPerMonth: (desiredPersistentDisk && persistentDiskCostMonthly(this.getPendingDisk())),
+        desiredPersistentDisk_costPerMonth: (desiredPersistentDisk && persistentDiskCostMonthly(getPendingDisk())),
         ..._.mapKeys(key => `existingPersistentDisk_${key}`, existingPersistentDisk),
-        isDefaultConfig: !!this.state.simplifiedForm
+        isDefaultConfig: !!simplifiedForm
       })
     }
 
     const applyChanges = _.flow(
-      Utils.withBusyState(() => this.setState({ loading: true })),
+      Utils.withBusyState(() => setLoading(true)),
       withErrorReporting('Error creating cloud environment')
     )(async () => {
       const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
@@ -490,7 +529,7 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
 
       const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
 
-      const imageUrl = currentRuntimeDetails ? this.getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
+      const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
       const foundImage = _.find({ image: imageUrl }, newLeoImages)
 
       /* eslint-disable indent */
@@ -505,8 +544,8 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
       /* eslint-disable indent */
       const getSelectedImage = () => {
         if (foundImage) {
-          if (!_.includes(foundImage, filteredNewLeoImages) && this.props.isAnalysisMode) {
-            return _.find({ id: tools[this.props.tool].defaultImageId }, newLeoImages).image
+          if (!_.includes(foundImage, filteredNewLeoImages) && isAnalysisMode) {
+            return _.find({ id: tools[tool].defaultImageId }, newLeoImages).image
           } else {
             return imageUrl
           }
@@ -541,6 +580,63 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
 
     // Render functions -- begin
 
+    const renderDebugger = () => {
+      const makeHeader = text => div({ style: { fontSize: 20, margin: '0.5rem 0' } }, [text])
+      const makeJSON = value => div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace' } }, [JSON.stringify(value, null, 2)])
+      return showDebugger ?
+        div({ style: { position: 'fixed', top: 0, left: 0, bottom: 0, right: '50vw', backgroundColor: 'white', padding: '1rem', overflowY: 'auto' } }, [
+          h(Link, { onClick: () => setShowDebugger(false), style: { position: 'absolute', top: 0, right: 0 } }, ['x']),
+          makeHeader('Old Environment Config'),
+          makeJSON(getExistingEnvironmentConfig()),
+          makeHeader('New Environment Config'),
+          makeJSON(getDesiredEnvironmentConfig()),
+          makeHeader('Misc'),
+          makeJSON({
+            canUpdateRuntime: !!canUpdateRuntime(),
+            willDeleteBuiltinDisk: !!willDeleteBuiltinDisk(),
+            willDeletePersistentDisk: !!willDeletePersistentDisk(),
+            willRequireDowntime: !!willRequireDowntime()
+          })
+        ]) :
+        h(Link, { onClick: () => setShowDebugger(true), style: { position: 'fixed', top: 0, left: 0, color: 'white' } }, ['D'])
+    }
+
+    const renderDeleteDiskChoices = () => {
+      return h(Fragment, [
+        h(RadioBlock, {
+          name: 'keep-persistent-disk',
+          labelText: 'Keep persistent disk, delete application configuration and compute profile',
+          checked: !deleteDiskSelected,
+          onChange: () => setDeleteDiskSelected(false)
+        }, [
+          p(['Please save your analysis data in the directory ', code({ style: { fontWeight: 600 } }, [getCurrentMountDirectory(currentRuntimeDetails)]), ' to ensure it’s stored on your disk.']),
+          p([
+            'Deletes your application configuration and cloud compute profile, but detaches your persistent disk and saves it for later. ',
+            'The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.'
+          ]),
+          p({ style: { marginBottom: 0 } }, [
+            'You will continue to incur persistent disk cost at ',
+            span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCostMonthly(currentPersistentDiskDetails)), ' per month.'])
+          ])
+        ]),
+        h(RadioBlock, {
+          name: 'delete-persistent-disk',
+          labelText: 'Delete everything, including persistent disk',
+          checked: deleteDiskSelected,
+          onChange: () => setDeleteDiskSelected(true),
+          style: { marginTop: '1rem' }
+        }, [
+          p([
+            'Deletes your persistent disk, which will also ', span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
+          ]),
+          p({ style: { marginBottom: 0 } }, [
+            'Also deletes your application configuration and cloud compute profile.'
+          ])
+        ]),
+        h(SaveFilesHelp)
+      ])
+    }
+
     const renderImageSelect = ({ includeCustom, ...props }) => {
       return h(GroupedSelect, {
         ...props,
@@ -548,10 +644,9 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
         value: selectedLeoImage,
         onChange: ({ value }) => {
           const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
-          this.setState({
-            selectedLeoImage: value, customEnvImage: '',
-            sparkMode: requiresSpark ? (sparkMode || 'master') : false
-          })
+          setSelectedLeoImage(value)
+          setCustomEnvImage('')
+          setSparkMode(requiresSpark ? (sparkMode || 'master') : false)
         },
         isSearchable: true,
         isClearable: false,
@@ -673,19 +768,74 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
       ])
     }
 
+    const renderEnvironmentWarning = () => {
+      return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
+        h(TitleBar, {
+          id: titleId,
+          style: styles.titleBar,
+          hideCloseButton: isAnalysisMode,
+          title: h(WarningTitle, [
+            Utils.cond(
+              [willDetachPersistentDisk(), () => 'Replace application configuration and cloud compute profile for Spark'],
+              [willDeleteBuiltinDisk() || willDeletePersistentDisk(), () => 'Data will be deleted'],
+              [willRequireDowntime(), () => 'Downtime required']
+            )
+          ]),
+          onDismiss,
+          onPrevious: () => {
+            setViewMode(undefined)
+            setDeleteDiskSelected(false)
+          }
+        }),
+        div({ style: { lineHeight: 1.5 } }, [
+          Utils.cond(
+            [willDetachPersistentDisk(), () => h(Fragment, [
+              div([
+                'You have requested to replace your existing application configuration and cloud compute profile to ones that support Spark. ',
+                'This type of cloud compute does not support the persistent disk feature.'
+              ]),
+              div({ style: { margin: '1rem 0 0.5rem', fontSize: 16, fontWeight: 600 } }, ['What would you like to do with your disk?']),
+              renderDeleteDiskChoices()
+            ])],
+            [willDeleteBuiltinDisk(), () => h(Fragment, [
+              p([
+                'This change requires rebuilding your cloud environment, which will ',
+                span({ style: { fontWeight: 600 } }, ['delete all files on built-in hard disk.'])
+              ]),
+              h(SaveFilesHelp)
+            ])],
+            [willDeletePersistentDisk(), () => h(Fragment, [
+              p([
+                'Reducing the size of a persistent disk requires it to be deleted and recreated. This will ',
+                span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
+              ]),
+              h(SaveFilesHelp)
+            ])],
+            [willRequireDowntime(), () => h(Fragment, [
+              p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
+              p(['Your existing data will be preserved during this update.'])
+            ])]
+          )
+        ]),
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          renderActionButton()
+        ])
+      ])
+    }
+
     // Render functions -- end
 
     return h(Fragment, [
       Utils.switchCase(viewMode,
         ['packages', renderPackages],
         ['aboutPersistentDisk', renderAboutPersistentDisk],
-        ['customImageWarning', renderCustomImageWarning]
-        // ['environmentWarning', renderEnvironmentWarning],
+        ['customImageWarning', renderCustomImageWarning],
+        ['environmentWarning', renderEnvironmentWarning]
         // ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
         // [Utils.DEFAULT, renderMainForm]
       ),
       loading && spinnerOverlay,
-      showDebugPanel && this.renderDebugger()
+      showDebugPanel && renderDebugger()
     ])
   })
 
