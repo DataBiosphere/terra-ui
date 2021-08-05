@@ -823,6 +823,88 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
       ])
     }
 
+    const renderDeleteEnvironmentOptions = () => {
+      const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
+      return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
+        h(TitleBar, {
+          id: titleId,
+          style: styles.titleBar,
+          title: h(WarningTitle, ['Delete environment options']),
+          hideCloseButton: isAnalysisMode,
+          onDismiss,
+          onPrevious: () => {
+            setViewMode(undefined)
+            setDeleteDiskSelected(false)
+          }
+        }),
+        div({ style: { lineHeight: '1.5rem' } }, [
+          Utils.cond(
+            [existingRuntime && existingPersistentDisk && !existingRuntime.persistentDiskAttached, () => {
+              return h(Fragment, [
+                h(RadioBlock, {
+                  name: 'delete-persistent-disk',
+                  labelText: 'Delete application configuration and cloud compute profile',
+                  checked: !deleteDiskSelected,
+                  onChange: () => setDeleteDiskSelected(false)
+                }, [
+                  p({ style: { marginBottom: 0 } }, [
+                    'Deletes your application configuration and cloud compute profile. This will also ',
+                    span({ style: { fontWeight: 600 } }, ['delete all files on the built-in hard disk.'])
+                  ])
+                ]),
+                h(RadioBlock, {
+                  name: 'delete-persistent-disk',
+                  labelText: 'Delete persistent disk',
+                  checked: deleteDiskSelected,
+                  onChange: () => setDeleteDiskSelected(true),
+                  style: { marginTop: '1rem' }
+                }, [
+                  p([
+                    'Deletes your persistent disk, which will also ', span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
+                  ]),
+                  p({ style: { marginBottom: 0 } }, [
+                    'Since the persistent disk is not attached, the application configuration and cloud compute profile will remain.'
+                  ])
+                ]),
+                h(SaveFilesHelp)
+              ])
+            }],
+            [existingRuntime && existingPersistentDisk, () => renderDeleteDiskChoices()],
+            [!existingRuntime && existingPersistentDisk, () => {
+              return h(Fragment, [
+                h(RadioBlock, {
+                  name: 'delete-persistent-disk',
+                  labelText: 'Delete persistent disk',
+                  checked: deleteDiskSelected,
+                  onChange: () => setDeleteDiskSelected(true)
+                }, [
+                  p([
+                    'Deletes your persistent disk, which will also ', span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
+                  ]),
+                  p({ style: { marginBottom: 0 } }, [
+                    'If you want to permanently save some files from the disk before deleting it, you will need to create a new cloud environment to access it.'
+                  ])
+                ]),
+                h(SaveFilesHelp)
+              ])
+            }],
+            () => {
+              return h(Fragment, [
+                p([
+                  'Deleting your application configuration and cloud compute profile will also ',
+                  span({ style: { fontWeight: 600 } }, ['delete all files on the built-in hard disk.'])
+                ]),
+                h(SaveFilesHelp)
+              ])
+            }
+          )
+        ]),
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          renderActionButton()
+        ])
+      ])
+    }
+
     // Render functions -- end
 
     return h(Fragment, [
@@ -830,8 +912,8 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
         ['packages', renderPackages],
         ['aboutPersistentDisk', renderAboutPersistentDisk],
         ['customImageWarning', renderCustomImageWarning],
-        ['environmentWarning', renderEnvironmentWarning]
-        // ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
+        ['environmentWarning', renderEnvironmentWarning],
+        ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions]
         // [Utils.DEFAULT, renderMainForm]
       ),
       loading && spinnerOverlay,
