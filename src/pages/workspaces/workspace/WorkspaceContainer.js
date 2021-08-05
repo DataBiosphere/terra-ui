@@ -127,7 +127,7 @@ const WorkspaceContainer = ({
     }),
     div({ role: 'main', style: Style.elements.pageContentContainer }, [
       // When we switch this over to all tabs, ensure other workspace tabs look the same when inside these divs
-      (isAnalysisTabVisible() && activeTab === 'analyses' ?
+      (isAnalysisTabVisible() && activeTab === 'analyses') ?
         div({ style: { flex: 1, display: 'flex' } }, [
           div({ style: { flex: 1, flexDirection: 'column', display: 'flex' } }, [
             children
@@ -138,7 +138,7 @@ const WorkspaceContainer = ({
             runtimes, persistentDisks, galaxyDataDisks, apps
           })
         ]) :
-        children)
+        children
     ]),
     deletingWorkspace && h(DeleteWorkspaceModal, {
       workspace,
