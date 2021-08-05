@@ -133,6 +133,7 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
     const googleProject = getWorkspaceObj()
 
     // State -- begin
+
     const [loading, setLoading] = useState(false)
     const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(getCurrentRuntime(runtimes))
     const [currentPersistentDiskDetails, setCurrentPersistentDiskDetails] = useState(getCurrentPersistentDisk(runtimes, persistentDisks))
@@ -160,11 +161,31 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
     const [hasGpu, setHasGpu] = useState(!!gpuConfig)
     const [gpuType, setGpuType] = useState(gpuConfig?.gpuType || DEFAULT_GPU_TYPE)
     const [numGpus, setNumGpus] = useState(gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS)
+
     // State -- end
 
+    const isCustomImage = selectedLeoImage === CUSTOM_MODE
     const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
+    const minRequiredMemory = sparkMode ? 7.5 : 3.75
+    const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes)
+    const mainMachineType = _.find({ name: masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(sparkMode)
+    const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
+    const errors = validate(
+      { mainMachineType, workerMachineType, customEnvImage },
+      {
+        masterMachineType: machineTypeConstraints,
+        workerMachineType: machineTypeConstraints,
+        customEnvImage: isCustomImage ? { format: { pattern: imageValidationRegexp } } : {}
+      },
+      {
+        prettify: v => ({ customEnvImage: 'Container image', masterMachineType: 'Main CPU/memory', workerMachineType: 'Worker CPU/memory' }[v] ||
+          validate.prettify(v))
+      }
+    )
+
     // Helper functions -- begin
+
     const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
       div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
       div(['Version: ', version || null])
@@ -177,8 +198,28 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
       return currentRuntimeDetails?.labels.tool ? (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) : noMountDirectory
     }
 
+    const willDetachPersistentDisk = () => {
+      const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
+      return desiredRuntime.cloudService === cloudServices.DATAPROC && hasAttachedDisk()
+    }
+
     const shouldUsePersistentDisk = () => {
       return !sparkMode && (!currentRuntimeDetails?.runtimeConfig.diskSize || upgradeDiskSelected)
+    }
+
+    const willDeletePersistentDisk = () => {
+      const { persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
+      return existingPersistentDisk && !canUpdatePersistentDisk()
+    }
+
+    const willDeleteBuiltinDisk = () => {
+      const { runtime: existingRuntime } = getExistingEnvironmentConfig()
+      return (existingRuntime?.diskSize || existingRuntime?.masterDiskSize) && !canUpdateRuntime()
+    }
+
+    const willRequireDowntime = () => {
+      const { runtime: existingRuntime } = getExistingEnvironmentConfig()
+      return existingRuntime && (!canUpdateRuntime() || isStopRequired())
     }
 
     const hasAttachedDisk = () => {
@@ -229,6 +270,17 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
       const desiredConfig = getDesiredEnvironmentConfig()
 
       return !_.isEqual(existingConfig, desiredConfig)
+    }
+
+    // Original diagram (without PD) for update runtime logic: https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
+    const isStopRequired = () => {
+      const { runtime: existingRuntime } = getExistingEnvironmentConfig()
+      const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
+
+      return canUpdateRuntime() &&
+        (existingRuntime.cloudService === cloudServices.GCE ?
+          existingRuntime.machineType !== desiredRuntime.machineType :
+          existingRuntime.masterMachineType !== desiredRuntime.masterMachineType)
     }
 
     const getExistingEnvironmentConfig = () => {
@@ -415,6 +467,7 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
 
       onSuccess()
     })
+
     // Helper functions -- end
 
     // componentDidMount() logic
@@ -487,6 +540,7 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
     }), [])
 
     // Render functions -- begin
+
     const renderImageSelect = ({ includeCustom, ...props }) => {
       return h(GroupedSelect, {
         ...props,
@@ -520,6 +574,38 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
           }] : [])
         ]
       })
+    }
+
+    const renderActionButton = () => {
+      const { runtime: existingRuntime, hasGpu } = getExistingEnvironmentConfig()
+      const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
+      const commonButtonProps = hasGpu && viewMode !== 'deleteEnvironmentOptions' ?
+        { disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' } :
+        { disabled: !hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) }
+      const canShowCustomImageWarning = viewMode === undefined
+      const canShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
+      return Utils.cond(
+        [canShowCustomImageWarning && isCustomImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage, () => {
+          return h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('customImageWarning') }, ['Next'])
+        }],
+        [canShowEnvironmentWarning && (willDeleteBuiltinDisk() || willDeletePersistentDisk() || willRequireDowntime() || willDetachPersistentDisk()), () => {
+          return h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('environmentWarning') }, ['Next'])
+        }],
+        () => {
+          return h(ButtonPrimary, {
+            ...commonButtonProps,
+            onClick: () => {
+              applyChanges()
+            }
+          }, [
+            Utils.cond(
+              [viewMode === 'deleteEnvironmentOptions', () => 'Delete'],
+              [existingRuntime, () => 'Update'],
+              () => 'Create'
+            )
+          ])
+        }
+      )
     }
 
     const renderPackages = () => {
@@ -560,13 +646,40 @@ export const CloudComputeModalBase = Utils.withDisplayName('CloudComputeModal')(
         ])
       ])
     }
+
+    const renderCustomImageWarning = () => {
+      return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
+        h(TitleBar, {
+          id: titleId,
+          hideCloseButton: isAnalysisMode,
+          style: styles.titleBar,
+          title: h(WarningTitle, ['Unverified Docker image']),
+          onDismiss,
+          onPrevious: () => setViewMode(undefined)
+        }),
+        div({ style: { lineHeight: 1.5 } }, [
+          p([
+            'You are about to create a virtual machine using an unverified Docker image. ',
+            'Please make sure that it was created by you or someone you trust, using one of our ',
+            h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
+            ' Custom Docker images could potentially cause serious security issues.'
+          ]),
+          h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
+          p(['If you\'re confident that your image is safe, you may continue using it. Otherwise, go back to select another image.'])
+        ]),
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          renderActionButton()
+        ])
+      ])
+    }
+
     // Render functions -- end
 
     return h(Fragment, [
       Utils.switchCase(viewMode,
         ['packages', renderPackages],
-        ['aboutPersistentDisk', renderAboutPersistentDisk]
-        // ['customImageWarning', renderCustomImageWarning],
+        ['aboutPersistentDisk', renderAboutPersistentDisk],
+        ['customImageWarning', renderCustomImageWarning]
         // ['environmentWarning', renderEnvironmentWarning],
         // ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
         // [Utils.DEFAULT, renderMainForm]
