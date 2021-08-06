@@ -43,6 +43,8 @@ const styles = {
   whiteBoxContainer: { padding: '1.5rem', borderRadius: 3, backgroundColor: 'white' }
 }
 
+const CUSTOM_MODE = '__custom_mode__'
+
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
 const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
@@ -100,8 +102,6 @@ const DataprocDiskSelector = ({ value, onChange }) => {
     ])
   ])
 }
-
-const CUSTOM_MODE = '__custom_mode__'
 
 export class NewRuntimeModalBase extends Component {
   static propTypes = {
