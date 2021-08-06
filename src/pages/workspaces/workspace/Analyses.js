@@ -359,19 +359,6 @@ const Analyses = _.flow(
           icon('plus', { size: 14, style: { color: colors.accent() } }),
           div({ style: { marginLeft: '0.5rem' } }, ['Create'])
         ]),
-        h(ButtonPrimary, {
-          style: {
-            marginLeft: '1rem'
-          },
-          onClick: openUploader,
-          disabled: !Utils.canWrite(accessLevel),
-          tooltip: !Utils.canWrite(accessLevel) ? noWrite : undefined
-        }, [
-          div({ style: { marginBottom: '0.5rem' } }, [
-            icon('upload-cloud', { style: { marginTop: '0.5rem', marginRight: '0.5rem' }, size: 21 }),
-            'Upload'
-          ])
-        ]),
         div({ style: { flex: 2 } }),
         !_.isEmpty(analyses) && h(DelayedSearchInput, {
           'aria-label': 'Search analyses',
@@ -388,10 +375,18 @@ const Analyses = _.flow(
           persistentDisks,
           refreshRuntimes,
           galaxyDataDisks,
+          refreshAnalyses,
+          analyses,
           apps,
           refreshApps,
-          onDismiss: () => setCreating(false),
-          onSuccess: () => setCreating(false)
+          onDismiss: () => {
+            refreshAnalyses()
+            setCreating(false)
+          },
+          onSuccess: () => {
+            refreshAnalyses()
+            setCreating(false)
+          }
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
           printName: getDisplayName(renamingAnalysisName),

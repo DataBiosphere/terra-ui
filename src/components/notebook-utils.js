@@ -86,7 +86,7 @@ const baseNotebook = {
   ], nbformat: 4, nbformat_minor: 2
 }
 
-const notebookData = {
+export const notebookData = {
   python3: _.merge({
     metadata: {
       kernelspec: { display_name: 'Python 3', language: 'python', name: 'python3' }
@@ -165,6 +165,67 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, namespace, b
     creating && spinnerOverlay
   ])
 }
+
+// export const AnalysisCreator = ({ reloadAnalyses, onSuccess, onDismiss, namespace, bucketName, existingNames }) => {
+//   const [analysisName, setAnalysisName] = useState('')
+//   const [notebookKernel, setNotebookKernel] = useState(undefined)
+//   const [creating, setCreating] = useState(false)
+//   const [nameTouched, setNameTouched] = useState(false)
+//   const errors = validate(
+//     { analysisName, notebookKernel },
+//     {
+//       notebookName: analysisNameValidator(existingNames),
+//       notebookKernel: { presence: { allowEmpty: true } }
+//     },
+//     { prettify: v => ({ analysisName: 'Name', notebookKernel: 'Language' }[v] || validate.prettify(v)) }
+//   )
+//
+//   return div(, {
+//     onDismiss,
+//     title: 'Create New A',
+//     okButton: h(ButtonPrimary, {
+//       disabled: creating || errors,
+//       tooltip: Utils.summarizeErrors(errors),
+//       onClick: async () => {
+//         setCreating(true)
+//         try {
+//           await Ajax().Buckets.notebook(namespace, bucketName, notebookName).create(notebookData[notebookKernel])
+//           reloadList()
+//           onSuccess(notebookName, notebookKernel)
+//         } catch (error) {
+//           await reportError('Error creating notebook', error)
+//           onDismiss()
+//         }
+//       }
+//     }, 'Create Notebook')
+//   }, [
+//     h(IdContainer, [id => h(Fragment, [
+//       h(FormLabel, { htmlFor: id, required: true }, ['Name']),
+//       analysisNameInput({
+//         error: Utils.summarizeErrors(nameTouched && errors?.notebookName),
+//         inputProps: {
+//           id, value: notebookName,
+//           onChange: v => {
+//             setNotebookName(v)
+//             setNameTouched(true)
+//           }
+//         }
+//       })
+//     ])]),
+//     h(IdContainer, [id => h(Fragment, [
+//       h(FormLabel, { htmlFor: id, required: true }, ['Language']),
+//       h(Select, {
+//         id, isSearchable: true,
+//         placeholder: 'Select a language',
+//         getOptionLabel: ({ value }) => _.startCase(value),
+//         value: notebookKernel,
+//         onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
+//         options: ['python3', 'r']
+//       })
+//     ])]),
+//     creating && spinnerOverlay
+//   ])
+// }
 
 export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, printName, toolLabel, wsName, namespace, bucketName, onDismiss, onSuccess }) => {
   const [newName, setNewName] = useState('')
