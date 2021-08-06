@@ -37,14 +37,17 @@ import * as Utils from 'src/libs/utils'
 
 const titleId = 'cloud-env-modal'
 
-export const CloudEnvironmentModal = ({ isOpen, onDismiss, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
+export const CloudEnvironmentModal = ({
+  isOpen, onDismiss, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, workspace, persistentDisks,
+  workspace: { canCompute: wsCanCompute, workspace: { namespace, name: workspaceName } }
+}) => {
   const [viewMode, setViewMode] = useState(undefined)
   const [busy, setBusy] = useState(false)
   const [errorRuntimeId, setErrorRuntimeId] = useState(undefined)
   const [errorAppId, setErrorAppId] = useState(undefined)
   const cookieReady = Utils.useStore(cookieReadyStore)
 
-  const canCompute = !!(workspace.canCompute || runtimes?.length)
+  const canCompute = wsCanCompute || !_.isEmpty(runtimes)
   const noCompute = 'You do not have access to run analyses on this workspace.'
 
   const renderNewRuntimeModal = tool => h(NewRuntimeModalBase, {
