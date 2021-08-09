@@ -8,8 +8,8 @@ import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/b
 import { withViewToggle } from 'src/components/CardsListToggle'
 import {
   ButtonOutline,
-  ButtonPrimary,
-  Clickable, HeaderRenderer,
+  Clickable,
+  HeaderRenderer,
   Link,
   PageBox,
   spinnerOverlay
@@ -379,6 +379,7 @@ const Analyses = _.flow(
           analyses,
           apps,
           refreshApps,
+          uploadFiles, openUploader,
           onDismiss: () => {
             refreshAnalyses()
             setCreating(false)

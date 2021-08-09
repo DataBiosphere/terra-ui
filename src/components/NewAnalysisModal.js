@@ -1,7 +1,8 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2, h3, hr, img } from 'react-hyperscript-helpers'
+import { div, h, h2, hr, img } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
+import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { NewGalaxyModalBase } from 'src/components/NewGalaxyModal'
 import { NewRuntimeModalBase } from 'src/components/NewRuntimeModal'
@@ -9,7 +10,7 @@ import {
   analysisNameInput,
   analysisNameValidator,
   getDisplayName,
-  NotebookCreator, notebookData,
+  notebookData,
   tools
 } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
@@ -17,12 +18,12 @@ import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
-import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import * as Utils from 'src/libs/utils'
-import { getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
 import { FormLabel } from 'src/libs/forms'
+import { getCurrentApp, getCurrentRuntime, isRuntimeDeletable } from 'src/libs/runtime-utils'
+import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
 //TODO: title id in titleBar and aria-labelled-by in withModalDrawer
@@ -30,7 +31,7 @@ import validate from 'validate.js'
 const titleId = 'new-analysis-modal-title'
 
 export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
-  ({ isOpen, onDismiss, onSuccess, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, refreshAnalyses, analyses, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
+  ({ isOpen, onDismiss, onSuccess, openUploader, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, refreshAnalyses, analyses, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
     const [viewMode, setViewMode] = useState(undefined)
     const [busy, setBusy] = useState()
 
@@ -49,35 +50,39 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
 
     const resetView = () => {
       setViewMode(undefined)
+      setAnalysisName('')
       setCurrentTool(undefined)
+      setNotebookKernel('python3')
     }
 
-    console.log('viewmode')
-    console.log(viewMode)
-
-    const setNextViewMode = () => {
+    const setNextViewMode = currentTool => {
       const doesCloudEnvForToolExist = currentRuntimeTool === currentTool || (currentApp && currentTool === tools.galaxy.label)
 
-      console.log('in setNextViewMode, currentTool')
-      console.log(currentTool)
-      return Utils.switchCase(viewMode,
-        [NEW_ANALYSIS_MODE, () => {
-          if (doesCloudEnvForToolExist) {
+      Utils.switchCase(viewMode,
+        [NEW_ANALYSIS_MODE, () => Utils.cond(
+          [doesCloudEnvForToolExist, () => {
             resetView()
             onSuccess()
-          } else {
-            //TODO, if (current runtime exists && isNotDeletable), if before is true dont take them to new env creation because they cannot create one at this time. Should this be handled in the modal itself?
-            setViewMode(NEW_ENVIRONMENT_MODE)
-          }
-        }],
+          }],
+          [!doesCloudEnvForToolExist && currentRuntime && isRuntimeDeletable(currentRuntime), () => setViewMode(NEW_ENVIRONMENT_MODE)],
+          [!doesCloudEnvForToolExist && !currentRuntime, () => setViewMode(NEW_ENVIRONMENT_MODE)],
+          [!doesCloudEnvForToolExist && currentRuntime && !isRuntimeDeletable(currentRuntime), () => {
+            resetView()
+            onSuccess()
+          }]
+        )],
         [NEW_ENVIRONMENT_MODE, () => resetView()],
-        [Utils.DEFAULT, () => currentTool === tools.galaxy.label ? setViewMode(NEW_ENVIRONMENT_MODE) : setViewMode(NEW_ANALYSIS_MODE)]
+        [Utils.DEFAULT, () => Utils.cond(
+          [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(NEW_ANALYSIS_MODE)],
+          [currentTool === tools.galaxy.label && !currentApp, () => setViewMode(NEW_ENVIRONMENT_MODE)],
+          [currentTool === tools.galaxy.label && currentApp, () => resetView()] //This shouldn't be possible, as the button is disabled in this case
+        )]
       )
     }
 
     const setPreviousViewMode = () => Utils.switchCase(viewMode,
-      [NEW_ANALYSIS_MODE, () => setViewMode(undefined)],
-      [NEW_ENVIRONMENT_MODE, () => setViewMode(undefined)],
+      [NEW_ANALYSIS_MODE, () => resetView()],
+      [NEW_ENVIRONMENT_MODE, () => resetView()],
       [Utils.DEFAULT, () => undefined]
     )
 
@@ -138,9 +143,9 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
     const imageStyles = { verticalAlign: 'middle', height: '100%', width: '40%' }
 
     const renderToolButtons = () => div({ style: { display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'space-between' } }, [
-      div({ style: toolCardStyles, onClick: async () => { await setCurrentTool(tools.Jupyter.label); await setNextViewMode() } }, [img({ src: jupyterLogoLong, style: _.merge(imageStyles, { width: '30%' }) })]),
-      div({ style: toolCardStyles, onClick: async () => { await setCurrentTool(tools.RStudio.label); await setNextViewMode() } }, [img({ src: rstudioLogo, style: imageStyles })]),
-      div({ style: toolCardStyles, onClick: async () => { await setCurrentTool(tools.galaxy.label); await setNextViewMode() }, disabled: !currentApp, tooltip: !currentApp ? 'You already have a galaxy app' : '' }, [img({ src: galaxyLogo, style: _.merge(imageStyles, { width: '30%' }) })])
+      div({ style: toolCardStyles, onClick: () => { setCurrentTool(tools.Jupyter.label); setNextViewMode(tools.Jupyter.label) } }, [img({ src: jupyterLogoLong, style: _.merge(imageStyles, { width: '30%' }) })]),
+      div({ style: toolCardStyles, onClick: () => { setCurrentTool(tools.RStudio.label); setNextViewMode(tools.RStudio.label) } }, [img({ src: rstudioLogo, style: imageStyles })]),
+      div({ style: { opacity: currentApp ? '.5' : '1', ...toolCardStyles }, onClick: () => { setCurrentTool(tools.galaxy.label); setNextViewMode(tools.galaxy.label) }, disabled: !currentApp, title: currentApp ? 'You already have a galaxy environment' : '' }, [img({ src: galaxyLogo, style: _.merge(imageStyles, { width: '30%' }) })])
     ])
 
     const renderSelectAnalysisBody = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '.5rem 1.5rem 1.5rem 1.5rem' } }, [
@@ -149,7 +154,7 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
 
     const getArtifactLabel = toolLabel => Utils.switchCase(toolLabel, [tools.RStudio.label, () => 'R markdown file'],
       [tools.Jupyter.label, () => 'notebook'],
-      [Utils.DEFAULT, () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, arteficts not implemented`)])
+      [Utils.DEFAULT, () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`)])
 
     const renderCreateAnalysis = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '.5rem 1.5rem 1.5rem 1.5rem' } }, [
       h2([`Create a new ${getArtifactLabel(currentTool)}`]),
@@ -181,7 +186,7 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
           }
         })
       ])]),
-      toolLabel === tools.Jupyter.label ? h(IdContainer, [id => h(Fragment, [
+      toolLabel === tools.Jupyter.label && h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id, required: true }, ['Language']),
         h(Select, {
           id, isSearchable: true,
@@ -191,7 +196,19 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
           onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
           options: ['python3', 'r']
         })
-      ])]) : [],
+      ])]),
+      div({ onClick: () => openUploader(), style: { marginTop: '1rem', fontSize: 16, lineHeight: '20px', ...Style.elements.card.container, alignItems: 'center', width: '100%', height: 150, backgroundColor: colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none' } }, [
+
+        div(['Or click to upload an analysis file']),
+        div({ style: { fontSize: 12, display: 'flex', fontStyle: 'italic' } }, ['You can also drag files to the main Analysis page.']),
+        icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginTop: '0.5rem' } })
+      ]),
+      //if runtime
+      //and runtime is not deletable
+      (toolLabel === tools.Jupyter.label || toolLabel === tools.RStudio.label) && (currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel) && div({ style: { backgroundColor: colors.warning(0.1), margin: '.5rem', padding: '.5rem' } }, [
+        div({ style: { marginBottom: '.5rem' } }, ['You have a non-deletable environment associated with another application.']),
+        div(['You may create an analysis, but must wait for your current environment to finish processing and get a suitable environment to run it.'])
+      ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
         h(ButtonPrimary, {
           disabled: errors,
@@ -199,9 +216,15 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
           onClick: async () => {
             try {
               const contents = toolLabel === tools.Jupyter.label ? notebookData[notebookKernel] : '# Starter Rmd file'
-              await Ajax().Buckets.analysis(namespace, bucketName, analysisName, toolLabel).create(contents)
+              if (toolLabel === tools.Jupyter.label) {
+                // notebook creation requires special handling of json in request
+                await Ajax().Buckets.notebook(namespace, bucketName, analysisName).create(contents)
+              } else {
+                await Ajax().Buckets.analysis(namespace, bucketName, analysisName, toolLabel).create(contents)
+              }
               refreshAnalyses()
-              setNextViewMode()
+              setAnalysisName('')
+              setNextViewMode(toolLabel)
             } catch (error) {
               await reportError('Error creating analysis', error)
               onDismiss()
