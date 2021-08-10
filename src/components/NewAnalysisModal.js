@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Clickable, IdContainer, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
@@ -26,7 +26,7 @@ import { getCurrentApp, getCurrentRuntime, isRuntimeDeletable } from 'src/libs/r
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
-import { WorkspaceMenuTrigger } from 'src/pages/workspaces/workspace/WorkspaceContainer'
+
 
 const titleId = 'new-analysis-modal-title'
 
