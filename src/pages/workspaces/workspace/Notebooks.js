@@ -294,6 +294,7 @@ const Notebooks = _.flow(
     StateHistory.update({ notebooks, sortOrder, filter })
   }, [notebooks, sortOrder, filter])
 
+
   // Render helpers
   const renderNotebooks = openUploader => {
     const { field, direction } = sortOrder
