@@ -159,60 +159,64 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal', ({
     }
   )
 
-  const renderCreateAnalysisBody = toolLabel => div({ style: { display: 'flex', flexDirection: 'column' } }, [
-    h(IdContainer, [id => h(Fragment, [
-      h(FormLabel, { htmlFor: id, required: true }, [`Name of the ${getArtifactLabel(toolLabel)}`]),
-      analysisNameInput({
-        error: Utils.summarizeErrors(nameTouched && errors?.analysisName),
-        inputProps: {
-          id, value: analysisName,
-          onChange: v => {
-            setAnalysisName(v)
-            setNameTouched(true)
+  const renderCreateAnalysisBody = toolLabel => {
+    const isJupyter = toolLabel === tools.Jupyter.label
+    const showWarning = (isJupyter || toolLabel === tools.RStudio.label) &&
+      currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel
+
+    return div({ style: { display: 'flex', flexDirection: 'column' } }, [
+      h(IdContainer, [id => h(Fragment, [
+        h(FormLabel, { htmlFor: id, required: true }, [`Name of the ${getArtifactLabel(toolLabel)}`]),
+        analysisNameInput({
+          error: Utils.summarizeErrors(nameTouched && errors?.analysisName),
+          inputProps: {
+            id, value: analysisName,
+            onChange: v => {
+              setAnalysisName(v)
+              setNameTouched(true)
+            }
           }
-        }
-      })
-    ])]),
-    toolLabel === tools.Jupyter.label && h(IdContainer, [id => h(Fragment, [
-      h(FormLabel, { htmlFor: id, required: true }, ['Language']),
-      h(Select, {
-        id, isSearchable: true,
-        placeholder: 'Select a language',
-        getOptionLabel: ({ value }) => _.startCase(value),
-        value: notebookKernel,
-        onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
-        options: ['python3', 'r']
-      })
-    ])]),
-    (toolLabel === tools.Jupyter.label || toolLabel === tools.RStudio.label) &&
-    (currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel) &&
-    div({ style: { backgroundColor: colors.warning(0.1), margin: '0.5rem', padding: '1rem' } }, [
-      h(WarningTitle, { iconSize: 16 }, [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]),
-      div({ style: { marginBottom: '0.5rem', marginTop: '1rem' } }, ['You have a non-deletable environment associated with another application.']),
-      div(['You may create an analysis, but must wait for your current environment to finish processing and get a suitable environment to run it.'])
-    ]),
-    div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-      h(ButtonPrimary, {
-        disabled: errors,
-        tooltip: Utils.summarizeErrors(errors),
-        onClick: async () => {
-          try {
-            const contents = toolLabel === tools.Jupyter.label ? notebookData[notebookKernel] : '# Starter Rmd file'
-            await toolLabel === tools.Jupyter.label ?
-              // notebook creation requires special handling of json in request
-              Ajax().Buckets.notebook(namespace, bucketName, analysisName).create(contents) :
-              await Ajax().Buckets.analysis(namespace, bucketName, analysisName, toolLabel).create(contents)
-            refreshAnalyses()
-            setAnalysisName('')
-            goToNextView(toolLabel)
-          } catch (error) {
-            await reportError('Error creating analysis', error)
-            onDismiss()
+        })
+      ])]),
+      isJupyter && h(IdContainer, [id => h(Fragment, [
+        h(FormLabel, { htmlFor: id, required: true }, ['Language']),
+        h(Select, {
+          id, isSearchable: true,
+          placeholder: 'Select a language',
+          getOptionLabel: ({ value }) => _.startCase(value),
+          value: notebookKernel,
+          onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
+          options: ['python3', 'r']
+        })
+      ])]),
+      showWarning && div({ style: { backgroundColor: colors.warning(0.1), margin: '0.5rem', padding: '1rem' } }, [
+        h(WarningTitle, { iconSize: 16 }, [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]),
+        div({ style: { marginBottom: '0.5rem', marginTop: '1rem' } }, ['You have a non-deletable environment associated with another application.']),
+        div(['You may create an analysis, but must wait for your current environment to finish processing and get a suitable environment to run it.'])
+      ]),
+      div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+        h(ButtonPrimary, {
+          disabled: errors,
+          tooltip: Utils.summarizeErrors(errors),
+          onClick: async () => {
+            try {
+              const contents = isJupyter ? notebookData[notebookKernel] : '# Starter Rmd file'
+              await (isJupyter ?
+                // notebook creation requires special handling of json in request
+                Ajax().Buckets.notebook(namespace, bucketName, analysisName).create(contents) :
+                Ajax().Buckets.analysis(namespace, bucketName, analysisName, toolLabel).create(contents))
+              refreshAnalyses()
+              setAnalysisName('')
+              goToNextView(toolLabel)
+            } catch (error) {
+              await reportError('Error creating analysis', error)
+              onDismiss()
+            }
           }
-        }
-      }, 'Create Analysis')
+        }, ['Create Analysis'])
+      ])
     ])
-  ])
+  }
 
   const width = viewMode === NEW_ENVIRONMENT_MODE ? 675 : 450
 
