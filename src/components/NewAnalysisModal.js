@@ -218,7 +218,9 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
         })
       ])]),
       (toolLabel === tools.Jupyter.label || toolLabel === tools.RStudio.label) && (currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel) && div({ style: { backgroundColor: colors.warning(0.1), margin: '.5rem', padding: '1rem' } }, [
-        h(WarningTitle, [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]),
+        h(WarningTitle, { iconSize: 16,
+          [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]
+        }) ,
         div({ style: { marginBottom: '.5rem', marginTop: '1rem' } }, ['You have a non-deletable environment associated with another application.']),
         div(['You may create an analysis, but must wait for your current environment to finish processing and get a suitable environment to run it.'])
       ]),
