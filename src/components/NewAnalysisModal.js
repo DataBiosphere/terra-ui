@@ -27,24 +27,20 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
-//TODO: title id in titleBar and aria-labelled-by in withModalDrawer
-
 const titleId = 'new-analysis-modal-title'
 
 export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
   ({ isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, refreshAnalyses, analyses, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
     const [viewMode, setViewMode] = useState(undefined)
     const [busy, setBusy] = useState()
-
-
     const [notebookKernel, setNotebookKernel] = useState('python3')
     const [nameTouched, setNameTouched] = useState(false)
     const [analysisName, setAnalysisName] = useState('')
     const currentRuntime = getCurrentRuntime(runtimes)
     const currentRuntimeTool = currentRuntime?.labels?.tool
     const currentApp = getCurrentApp(apps)
-
     const [currentTool, setCurrentTool] = useState(undefined)
+
 
     const NEW_ANALYSIS_MODE = 'NEW_ARTIFACT'
     const NEW_ENVIRONMENT_MODE = 'NEW_ENVIRONMENT'
@@ -89,7 +85,6 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       [NEW_ENVIRONMENT_MODE, () => resetView()],
       [Utils.DEFAULT, () => undefined]
     )
-
 
     const getView = () => Utils.switchCase(viewMode,
       [NEW_ANALYSIS_MODE, renderCreateAnalysis],
@@ -178,7 +173,6 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       ])])
     ])
 
-
     const getArtifactLabel = toolLabel => Utils.switchCase(toolLabel, [tools.RStudio.label, () => 'R markdown file'],
       [tools.Jupyter.label, () => 'notebook'],
       [Utils.DEFAULT, () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`)])
@@ -199,7 +193,6 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
     )
 
     const renderCreateAnalysisBody = toolLabel => div({ style: { display: 'flex', flexDirection: 'column' } }, [
-      // div()
       h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id, required: true }, [`Name of the ${getArtifactLabel(toolLabel)}`]),
         analysisNameInput({
@@ -224,8 +217,6 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
           options: ['python3', 'r']
         })
       ])]),
-      //if runtime
-      //and runtime is not deletable
       (toolLabel === tools.Jupyter.label || toolLabel === tools.RStudio.label) && (currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel) && div({ style: { backgroundColor: colors.warning(0.1), margin: '.5rem', padding: '1rem' } }, [
         h(WarningTitle, [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]),
         div({ style: { marginBottom: '.5rem', marginTop: '1rem' } }, ['You have a non-deletable environment associated with another application.']),
