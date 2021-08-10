@@ -1,5 +1,5 @@
 import _ from 'lodash/fp'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useState } from 'react'
 import { b, br, code, div, fieldset, h, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
 import {
   ButtonOutline, ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, WarningTitle
@@ -48,9 +48,7 @@ const styles = {
   whiteBoxContainer: { padding: '1.5rem', borderRadius: 3, backgroundColor: 'white' }
 }
 
-const CUSTOM_MODE = '__custom_mode__'
-
-// TODO Capitalize the constants below?
+const customMode = '__custom_mode__'
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
 const terraBaseImages = `${terraDockerBaseGithubUrl}#terra-base-images`
 const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/360034669811'
@@ -127,6 +125,7 @@ const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
 export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, isAnalysisMode = false }) => {
   // TODO Should be able to remove some of the block below before merging
   const getWorkspaceObj = () => workspace.workspace
+  const shouldUsePersistentDisk = () => !sparkMode && (!currentRuntimeDetails?.runtimeConfig.diskSize || upgradeDiskSelected)
   const isDataproc = (sparkMode, runtimeConfig) => !sparkMode && !runtimeConfig?.diskSize
 
   const googleProject = getWorkspaceObj()
@@ -148,36 +147,39 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
 
   const runtimeConfig = currentRuntimeDetails?.runtimeConfig
   const gpuConfig = runtimeConfig?.gpuConfig
+  const sparkMode = runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false
 
-  const [selectedPersistentDiskSize, setSelectedPersistentDiskSize] = useState(currentPersistentDiskDetails?.size || DEFAULT_GCE_PERSISTENT_DISK_SIZE)
-  const [sparkMode, setSparkMode] = useState(
-    runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false)
-  const [masterMachineType, setMasterMachineType] = useState(runtimeConfig?.masterMachineType || runtimeConfig?.machineType)
-  const [masterDiskSize, setMasterDiskSize] = useState(runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
-    (isDataproc(sparkMode, runtimeConfig) ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE))
-  const [numberOfWorkers, setNumberOfWorkers] = useState(runtimeConfig?.numberOfWorkers || 2)
-  const [numberOfPreemptibleWorkers, setNumberOfPreemptibleWorkers] = useState(runtimeConfig?.numberOfPreemptibleWorkers || 0)
-  const [workerMachineType, setWorkerMachineType] = useState(runtimeConfig?.workerMachineType || defaultDataprocMachineType)
-  const [workerDiskSize, setWorkerDiskSize] = useState(runtimeConfig?.workerDiskSize || DEFAULT_DATAPROC_DISK_SIZE)
-  const [gpuEnabled, setGpuEnabled] = useState((!!gpuConfig && !sparkMode) || false)
-  const [hasGpu, setHasGpu] = useState(!!gpuConfig)
-  const [gpuType, setGpuType] = useState(gpuConfig?.gpuType || DEFAULT_GPU_TYPE)
-  const [numGpus, setNumGpus] = useState(gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS)
+  // computeConfig is always defined so we don't guard against it throughout the rest of the code
+  const [computeConfig, setComputeConfig] = useState({
+    selectedPersistentDiskSize: currentPersistentDiskDetails?.size || DEFAULT_GCE_PERSISTENT_DISK_SIZE,
+    sparkMode,
+    masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
+    masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
+      (isDataproc ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE),
+    numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
+    numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
+    workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
+    workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DATAPROC_DISK_SIZE,
+    gpuEnabled: (!!gpuConfig && !sparkMode) || false,
+    hasGpu: !!gpuConfig,
+    gpuType: gpuConfig?.gpuType || DEFAULT_GPU_TYPE,
+    numGpus: gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS
+  })
 
   // State -- end
 
   const isPersistentDisk = shouldUsePersistentDisk()
 
 
-  const isCustomImage = selectedLeoImage === CUSTOM_MODE
+  const isCustomImage = selectedLeoImage === customMode
   const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
   const minRequiredMemory = sparkMode ? 7.5 : 3.75
   const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes)
-  const mainMachineType = _.find({ name: masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(sparkMode)
+  const mainMachineType = _.find({ name: computeConfig.masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(sparkMode)
   const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
   const errors = validate(
-    { mainMachineType, workerMachineType, customEnvImage },
+    { mainMachineType, workerMachineType: computeConfig.workerMachineType, customEnvImage },
     {
       masterMachineType: machineTypeConstraints,
       workerMachineType: machineTypeConstraints,
@@ -190,6 +192,8 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
   )
 
   // Helper functions -- begin
+
+  const updateComputeConfig = (key, value) => setComputeConfig(_.set(key, value))
 
   const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
     div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
@@ -208,10 +212,6 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
   const willDetachPersistentDisk = () => {
     const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
     return desiredRuntime.cloudService === cloudServices.DATAPROC && hasAttachedDisk()
-  }
-
-  const shouldUsePersistentDisk = () => {
-    return !sparkMode && (!currentRuntimeDetails?.runtimeConfig.diskSize || upgradeDiskSelected)
   }
 
   const willDeletePersistentDisk = () => {
@@ -296,14 +296,14 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
     const gpuConfig = runtimeConfig?.gpuConfig
     return {
-      hasGpu,
+      hasGpu: computeConfig.hasGpu,
       runtime: currentRuntimeDetails ? {
         cloudService,
         toolDockerImage: getImageUrl(currentRuntimeDetails),
         ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
         ...(cloudService === cloudServices.GCE ? {
           machineType: runtimeConfig.machineType || defaultGceMachineType,
-          ...(hasGpu && gpuConfig ? { gpuConfig } : {}),
+          ...(computeConfig.hasGpu && gpuConfig ? { gpuConfig } : {}),
           bootDiskSize: runtimeConfig.bootDiskSize,
           ...(runtimeConfig.persistentDiskId ? {
             persistentDiskAttached: true
@@ -328,32 +328,32 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
   const getDesiredEnvironmentConfig = () => {
     const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = getExistingEnvironmentConfig()
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
-    const desiredNumberOfWorkers = sparkMode === 'cluster' ? numberOfWorkers : 0
+    const desiredNumberOfWorkers = sparkMode === 'cluster' ? computeConfig.numberOfWorkers : 0
     return {
-      hasGpu,
+      hasGpu: computeConfig.hasGpu,
       runtime: Utils.cond(
         [(viewMode !== 'deleteEnvironmentOptions'), () => {
           return {
             cloudService,
-            toolDockerImage: selectedLeoImage === CUSTOM_MODE ? customEnvImage : selectedLeoImage,
+            toolDockerImage: selectedLeoImage === customMode ? customEnvImage : selectedLeoImage,
             ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
             ...(cloudService === cloudServices.GCE ? {
-              machineType: masterMachineType || defaultGceMachineType,
-              ...(gpuEnabled ? { gpuConfig: { gpuType, numOfGpus: numGpus } } : {}),
+              machineType: computeConfig.masterMachineType || defaultGceMachineType,
+              ...(computeConfig.gpuEnabled ? { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } } : {}),
               bootDiskSize: existingRuntime?.bootDiskSize,
               ...(shouldUsePersistentDisk() ? {
                 persistentDiskAttached: true
               } : {
-                diskSize: masterDiskSize
+                diskSize: computeConfig.masterDiskSize
               })
             } : {
-              masterMachineType: masterMachineType || defaultDataprocMachineType,
-              masterDiskSize,
+              masterMachineType: computeConfig.masterMachineType || defaultDataprocMachineType,
+              masterDiskSize: computeConfig.masterDiskSize,
               numberOfWorkers: desiredNumberOfWorkers,
               ...(desiredNumberOfWorkers && {
-                numberOfPreemptibleWorkers,
-                workerMachineType: workerMachineType || defaultDataprocMachineType,
-                workerDiskSize
+                numberOfPreemptibleWorkers: computeConfig.numberOfPreemptibleWorkers,
+                workerMachineType: computeConfig.workerMachineType || defaultDataprocMachineType,
+                workerDiskSize: computeConfig.workerDiskSize
               })
             })
           }
@@ -363,7 +363,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
       ),
       persistentDisk: Utils.cond(
         [deleteDiskSelected, () => undefined],
-        [viewMode !== 'deleteEnvironmentOptions' && shouldUsePersistentDisk(), () => ({ size: selectedPersistentDiskSize })],
+        [viewMode !== 'deleteEnvironmentOptions' && shouldUsePersistentDisk(), () => ({ size: computeConfig.selectedPersistentDiskSize })],
         () => existingPersistentDisk
       )
     }
@@ -476,7 +476,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
             labels: { saturnWorkspaceName: name }
           }
         }),
-        ...(gpuEnabled && { gpuConfig: { gpuType, numOfGpus: numGpus } })
+        ...(computeConfig.gpuEnabled && { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } })
       } : {
         masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
         masterDiskSize: desiredRuntime.masterDiskSize,
@@ -564,7 +564,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
           return imageUrl
         }
       } else {
-        return CUSTOM_MODE
+        return customMode
       }
     }
 
@@ -578,19 +578,21 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
     const runtimeConfig = currentRuntimeDetails?.runtimeConfig
     const gpuConfig = runtimeConfig?.gpuConfig
 
-    setSelectedPersistentDiskSize(currentPersistentDiskDetails?.size || DEFAULT_GCE_PERSISTENT_DISK_SIZE)
-    setSparkMode(runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false)
-    setMasterMachineType(runtimeConfig?.masterMachineType || runtimeConfig?.machineType)
-    setMasterDiskSize(runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
-      (isDataproc(sparkMode, runtimeConfig) ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE))
-    setNumberOfWorkers(runtimeConfig?.numberOfWorkers || 2)
-    setNumberOfPreemptibleWorkers(runtimeConfig?.numberOfPreemptibleWorkers || 0)
-    setWorkerMachineType(runtimeConfig?.workerMachineType || defaultDataprocMachineType)
-    setWorkerDiskSize(runtimeConfig?.workerDiskSize || DEFAULT_DATAPROC_DISK_SIZE)
-    setGpuEnabled((!!gpuConfig && !sparkMode) || false)
-    setHasGpu(!!gpuConfig)
-    setGpuType(gpuConfig?.gpuType || DEFAULT_GPU_TYPE)
-    setNumGpus(gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS)
+    setComputeConfig({
+      selectedPersistentDiskSize: currentPersistentDiskDetails?.size || DEFAULT_GCE_PERSISTENT_DISK_SIZE,
+      sparkMode,
+      masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
+      masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
+        (isDataproc ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE),
+      numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
+      numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
+      workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
+      workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DATAPROC_DISK_SIZE,
+      gpuEnabled: (!!gpuConfig && !sparkMode) || false,
+      hasGpu: !!gpuConfig,
+      gpuType: gpuConfig?.gpuType || DEFAULT_GPU_TYPE,
+      numGpus: gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS
+    })
   }))
 
   // Render functions -- begin
@@ -666,7 +668,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
         ])
       ]),
       Utils.switchCase(selectedLeoImage,
-        [CUSTOM_MODE, () => {
+        [customMode, () => {
           return h(Fragment, [
             h(IdContainer, [
               id => h(Fragment, [
@@ -706,10 +708,12 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
     const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(mainMachineType)
     const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory)
     const validGpuNames = _.flow(_.map('name'), _.uniq, _.sortBy('price'))(validGpuOptions)
-    const validGpuName = _.includes(displayNameForGpuType(gpuType), validGpuNames) ? displayNameForGpuType(gpuType) : _.head(validGpuNames)
+    const validGpuName = _.includes(displayNameForGpuType(computeConfig.gpuType), validGpuNames) ?
+      displayNameForGpuType(computeConfig.gpuType) :
+      _.head(validGpuNames)
     const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
-    const validNumGpus = _.includes(numGpus, validNumGpusOptions) ? numGpus : _.head(validNumGpusOptions)
-    const gpuCheckboxDisabled = computeExists ? !gpuEnabled : sparkMode
+    const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
+    const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : sparkMode
     const enableGpusSpan = span(
       ['Enable GPUs ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })])
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
@@ -727,7 +731,8 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
                   id,
                   isSearchable: false,
                   value: currentNumCpus,
-                  onChange: option => setMasterMachineType(_.find({ cpu: option.value }, validMachineTypes)?.name || mainMachineType),
+                  onChange: option => updateComputeConfig('masterMachineType',
+                    _.find({ cpu: option.value }, validMachineTypes)?.name || mainMachineType),
                   options: _.flow(_.map('cpu'), _.union([currentNumCpus]), _.sortBy(_.identity))(validMachineTypes)
                 })
               ])
@@ -741,7 +746,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
                   id,
                   isSearchable: false,
                   value: currentMemory,
-                  onChange: option => setMasterMachineType(
+                  onChange: option => updateComputeConfig('masterMachineType',
                     _.find({ cpu: currentNumCpus, memory: option.value }, validMachineTypes)?.name || mainMachineType),
                   options: _.flow(_.filter({ cpu: currentNumCpus }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(
                     validMachineTypes)
@@ -751,15 +756,15 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
           ]),
           // Disk Selection
           !isPersistentDisk ?
-            h(DataprocDiskSelector, { value: masterDiskSize, onChange: v => setMasterDiskSize(v) }) :
+            h(DataprocDiskSelector, { value: computeConfig.masterDiskSize, onChange: v => updateComputeConfig('masterDiskSize', v) }) :
             div({ style: { gridColumnEnd: 'span 2' } })
         ]),
         // GPU Enabling
         !sparkMode && div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
           h(LabeledCheckbox, {
-            checked: gpuEnabled,
+            checked: computeConfig.gpuEnabled,
             disabled: gpuCheckboxDisabled,
-            onChange: v => setGpuEnabled(v || hasGpu)
+            onChange: v => updateComputeConfig('gpuEnabled', v || computeConfig.hasGpu)
           }, [
             span({ style: { marginLeft: '0.5rem', ...styles.label, verticalAlign: 'top' } }, [
               gpuCheckboxDisabled ?
@@ -776,7 +781,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
           ])
         ]),
         // GPU Selection
-        gpuEnabled && !sparkMode && div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 12rem 1fr 5.5rem 1fr 5.5rem' } }, [
+        computeConfig.gpuEnabled && !sparkMode && div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 12rem 1fr 5.5rem 1fr 5.5rem' } }, [
           h(Fragment, [
             h(IdContainer, [
               id => h(Fragment, [
@@ -786,7 +791,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
                     id,
                     isSearchable: false,
                     value: validGpuName,
-                    onChange: option => setGpuType(_.find({ name: option.value }, validGpuOptions)?.type),
+                    onChange: option => updateComputeConfig('gpuType', _.find({ name: option.value }, validGpuOptions)?.type),
                     options: validGpuNames
                   })
                 ])
@@ -800,7 +805,8 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
                     id,
                     isSearchable: false,
                     value: validNumGpus,
-                    onChange: option => setNumGpus(_.find({ type: gpuType, numGpus: option.value }, validGpuOptions)?.numGpus),
+                    onChange: option => updateComputeConfig('numGpus',
+                      _.find({ type: computeConfig.gpuType, numGpus: option.value }, validGpuOptions)?.numGpus),
                     options: validNumGpusOptions
                   })
                 ])
@@ -830,7 +836,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
                   id,
                   isSearchable: false,
                   value: sparkMode,
-                  onChange: ({ value }) => setSparkMode(value),
+                  onChange: v => updateComputeConfig('sparkMode', v),
                   options: [
                     { value: false, label: 'Standard VM', isDisabled: requiresSpark },
                     { value: 'master', label: 'Spark master node' },
@@ -854,10 +860,10 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
                 min: 2,
                 isClearable: false,
                 onlyInteger: true,
-                value: numberOfWorkers,
+                value: computeConfig.numberOfWorkers,
                 disabled: !canUpdateNumberOfWorkers(),
                 tooltip: !canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of workers.' : undefined,
-                onChange: v => setNumberOfWorkers(v)
+                onChange: v => updateComputeConfig('numberOfWorkers', v)
               })
             ])
           ]),
@@ -869,16 +875,18 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
                 min: 0,
                 isClearable: false,
                 onlyInteger: true,
-                value: numberOfPreemptibleWorkers,
+                value: computeConfig.numberOfPreemptibleWorkers,
                 disabled: !canUpdateNumberOfWorkers(),
                 tooltip: !canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of preemptibles' : undefined,
-                onChange: v => setNumberOfPreemptibleWorkers(v)
+                onChange: v => updateComputeConfig('numberOfPreemptibleWorkers', v)
               })
             ])
           ]),
           div({ style: { gridColumnEnd: 'span 2' } }),
-          h(WorkerSelector, { value: workerMachineType, machineTypeOptions: validMachineTypes, onChange: v => setWorkerMachineType(v) }),
-          h(DataprocDiskSelector, { value: workerDiskSize, onChange: v => setWorkerDiskSize(v) })
+          h(WorkerSelector, {
+            value: computeConfig.workerMachineType, machineTypeOptions: validMachineTypes, onChange: v => updateComputeConfig('workerMachineType', v)
+          }),
+          h(DataprocDiskSelector, { value: computeConfig.workerDiskSize, onChange: v => updateComputeConfig('workerDiskSize', v) })
         ])
       ])
     ])
@@ -1143,7 +1151,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
         const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
         setSelectedLeoImage(value)
         setCustomEnvImage('')
-        setSparkMode(requiresSpark ? (sparkMode || 'master') : false)
+        updateComputeConfig('sparkMode', requiresSpark ? (sparkMode || 'master') : false)
       },
       isSearchable: true,
       isClearable: false,
@@ -1163,7 +1171,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
         },
         ...(includeCustom ? [{
           label: 'OTHER ENVIRONMENTS',
-          options: [{ label: 'Custom Environment', value: CUSTOM_MODE }]
+          options: [{ label: 'Custom Environment', value: customMode }]
         }] : [])
       ]
     })
@@ -1200,7 +1208,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
       ])
     }
     const renderDiskText = () => {
-      return span({ style: { fontWeight: 600 } }, [selectedPersistentDiskSize, ' GB persistent disk'])
+      return span({ style: { fontWeight: 600 } }, [computeConfig.selectedPersistentDiskSize, ' GB persistent disk'])
     }
     return simplifiedForm ?
       div({ style: styles.drawerContent }, [
@@ -1294,9 +1302,9 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
             max: 64000,
             isClearable: false,
             onlyInteger: true,
-            value: selectedPersistentDiskSize,
+            value: computeConfig.selectedPersistentDiskSize,
             style: { marginTop: '0.5rem', width: '5rem' },
-            onChange: value => setSelectedPersistentDiskSize(value)
+            onChange: v => updateComputeConfig('selectedPersistentDiskSize', v)
           })
         ])
       ])
