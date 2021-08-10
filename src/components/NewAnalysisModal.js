@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
+import { ButtonPrimary, Clickable, IdContainer, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
@@ -26,6 +26,7 @@ import { getCurrentApp, getCurrentRuntime, isRuntimeDeletable } from 'src/libs/r
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
+import { WorkspaceMenuTrigger } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 const titleId = 'new-analysis-modal-title'
 
@@ -218,9 +219,9 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
         })
       ])]),
       (toolLabel === tools.Jupyter.label || toolLabel === tools.RStudio.label) && (currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel) && div({ style: { backgroundColor: colors.warning(0.1), margin: '.5rem', padding: '1rem' } }, [
-        h(WarningTitle, { iconSize: 16,
+        h(WarningTitle, { iconSize: 16 },
           [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]
-        }) ,
+        ),
         div({ style: { marginBottom: '.5rem', marginTop: '1rem' } }, ['You have a non-deletable environment associated with another application.']),
         div(['You may create an analysis, but must wait for your current environment to finish processing and get a suitable environment to run it.'])
       ]),
