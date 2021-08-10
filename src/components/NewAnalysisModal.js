@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, hr, img } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
+import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { NewGalaxyModalBase } from 'src/components/NewGalaxyModal'
@@ -9,7 +10,7 @@ import { NewRuntimeModalBase } from 'src/components/NewRuntimeModal'
 import {
   analysisNameInput,
   analysisNameValidator,
-  getDisplayName,
+  getDisplayName, getTool,
   notebookData,
   tools
 } from 'src/components/notebook-utils'
@@ -31,7 +32,7 @@ import validate from 'validate.js'
 const titleId = 'new-analysis-modal-title'
 
 export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
-  ({ isOpen, onDismiss, onSuccess, openUploader, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, refreshAnalyses, analyses, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
+  ({ isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, refreshAnalyses, analyses, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
     const [viewMode, setViewMode] = useState(undefined)
     const [busy, setBusy] = useState()
 
@@ -55,10 +56,10 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       setNotebookKernel('python3')
     }
 
-    const setNextViewMode = currentTool => {
+    const setNextViewMode = (currentTool, baseViewMode = viewMode) => {
       const doesCloudEnvForToolExist = currentRuntimeTool === currentTool || (currentApp && currentTool === tools.galaxy.label)
 
-      Utils.switchCase(viewMode,
+      Utils.switchCase(baseViewMode,
         [NEW_ANALYSIS_MODE, () => Utils.cond(
           [doesCloudEnvForToolExist, () => {
             resetView()
@@ -71,7 +72,10 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
             onSuccess()
           }]
         )],
-        [NEW_ENVIRONMENT_MODE, () => resetView()],
+        [NEW_ENVIRONMENT_MODE, () => {
+          resetView()
+          onSuccess()
+        }],
         [Utils.DEFAULT, () => Utils.cond(
           [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(NEW_ANALYSIS_MODE)],
           [currentTool === tools.galaxy.label && !currentApp, () => setViewMode(NEW_ENVIRONMENT_MODE)],
@@ -149,8 +153,31 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
     ])
 
     const renderSelectAnalysisBody = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '.5rem 1.5rem 1.5rem 1.5rem' } }, [
-      renderToolButtons()
+      renderToolButtons(),
+      h(Dropzone, {
+        accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext}`,
+        style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
+        activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
+        onDropRejected: () => reportError('Not a valid analysis file',
+          'The selected file is not a .ipynb otebook file or an .Rmd rstudio file. Ensure your file has the proper extension.'),
+        onDropAccepted: files => {
+          const tool = getTool(files.pop().path)
+          setCurrentTool(tool)
+          currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== tool ? onSuccess() : setNextViewMode(tool, NEW_ANALYSIS_MODE)
+          uploadFiles()
+        }
+      }, [() => div({
+        onClick: () => {
+          resetView()
+          onSuccess()
+          openUploader()
+        }, style: { marginTop: '1rem', fontSize: 16, lineHeight: '20px', ...Style.elements.card.container, alignItems: 'center', width: '100%', height: 150, backgroundColor: colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none' }
+      }, [
+        div(['Or Click / Drag to upload an analysis file']),
+        icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginTop: '0.5rem' } })
+      ])])
     ])
+
 
     const getArtifactLabel = toolLabel => Utils.switchCase(toolLabel, [tools.RStudio.label, () => 'R markdown file'],
       [tools.Jupyter.label, () => 'notebook'],
@@ -197,12 +224,6 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
           options: ['python3', 'r']
         })
       ])]),
-      div({ onClick: () => openUploader(), style: { marginTop: '1rem', fontSize: 16, lineHeight: '20px', ...Style.elements.card.container, alignItems: 'center', width: '100%', height: 150, backgroundColor: colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none' } }, [
-
-        div(['Or click to upload an analysis file']),
-        div({ style: { fontSize: 12, display: 'flex', fontStyle: 'italic' } }, ['You can also drag files to the main Analysis page.']),
-        icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginTop: '0.5rem' } })
-      ]),
       //if runtime
       //and runtime is not deletable
       (toolLabel === tools.Jupyter.label || toolLabel === tools.RStudio.label) && (currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel) && div({ style: { backgroundColor: colors.warning(0.1), margin: '.5rem', padding: '.5rem' } }, [
