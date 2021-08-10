@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2, hr, img } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/components/common'
+import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers'
+import { ButtonPrimary, IdContainer, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
@@ -184,7 +184,7 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       [Utils.DEFAULT, () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`)])
 
     const renderCreateAnalysis = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '.5rem 1.5rem 1.5rem 1.5rem' } }, [
-      h2([`Create a new ${getArtifactLabel(currentTool)}`]),
+      h2({ style: { fontWeight: 600, marginBottom: 0 } }, [`Create a new ${getArtifactLabel(currentTool)}`]),
       renderCreateAnalysisBody(currentTool)
     ])
 
@@ -198,7 +198,7 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       }
     )
 
-    const renderCreateAnalysisBody = toolLabel => div({ styles: { display: 'flex', flexDirection: 'column', padding: '1.5rem' } }, [
+    const renderCreateAnalysisBody = toolLabel => div({ style: { display: 'flex', flexDirection: 'column' } }, [
       // div()
       h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id, required: true }, [`Name of the ${getArtifactLabel(toolLabel)}`]),
@@ -226,8 +226,9 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       ])]),
       //if runtime
       //and runtime is not deletable
-      (toolLabel === tools.Jupyter.label || toolLabel === tools.RStudio.label) && (currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel) && div({ style: { backgroundColor: colors.warning(0.1), margin: '.5rem', padding: '.5rem' } }, [
-        div({ style: { marginBottom: '.5rem' } }, ['You have a non-deletable environment associated with another application.']),
+      (toolLabel === tools.Jupyter.label || toolLabel === tools.RStudio.label) && (currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel) && div({ style: { backgroundColor: colors.warning(0.1), margin: '.5rem', padding: '1rem' } }, [
+        h(WarningTitle, [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]),
+        div({ style: { marginBottom: '.5rem', marginTop: '1rem' } }, ['You have a non-deletable environment associated with another application.']),
         div(['You may create an analysis, but must wait for your current environment to finish processing and get a suitable environment to run it.'])
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
