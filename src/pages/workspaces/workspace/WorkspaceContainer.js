@@ -56,43 +56,12 @@ const WorkspaceTabs = ({
       tabNames: _.map('name', tabs),
       getHref: currentTab => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name })
     }, [
-      h(MenuTrigger, {
-        closeOnClick: true,
-        content: h(Fragment, [
-          h(MenuButton, { onClick: () => setCloningWorkspace(true) }, [makeMenuIcon('copy'), 'Clone']),
-          h(MenuButton, {
-            disabled: !canShare,
-            tooltip: !canShare && 'You have not been granted permission to share this workspace',
-            tooltipSide: 'left',
-            onClick: () => setSharingWorkspace(true)
-          }, [makeMenuIcon('share'), 'Share']),
-          h(MenuButton, { disabled: true }, [makeMenuIcon('export'), 'Publish', comingSoon]),
-          h(MenuButton, {
-            disabled: !isOwner,
-            tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
-            tooltipSide: 'left',
-            onClick: () => setDeletingWorkspace(true)
-          }, [makeMenuIcon('trash'), 'Delete Workspace'])
-        ]),
-        side: 'bottom'
-      }, [
-        h(Clickable, { 'aria-label': 'Workspace menu', ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
-      ])
-    ]),
-    deletingWorkspace && h(DeleteWorkspaceModal, {
-      workspace,
-      onDismiss: () => setDeletingWorkspace(false),
-      onSuccess: () => Nav.goToPath('workspaces')
-    }),
-    cloningWorkspace && h(NewWorkspaceModal, {
-      cloneWorkspace: workspace,
-      onDismiss: () => setCloningWorkspace(false),
-      onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
-    }),
-    sharingWorkspace && h(ShareWorkspaceModal, {
-      workspace,
-      onDismiss: () => setSharingWorkspace(false)
-    })
+      h(WorkspaceMenuTrigger, { canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace },
+        [
+          h(Clickable, { 'aria-label': 'Workspace menu', ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
+        ]
+      )
+    ])
   ])
 }
 
@@ -151,7 +120,21 @@ const WorkspaceContainer = ({
             workspace, refreshApps, refreshRuntimes,
             runtimes, persistentDisks, galaxyDataDisks, apps
           })
-        ])] : [children]))
+        ])] : [children])),
+    deletingWorkspace && h(DeleteWorkspaceModal, {
+      workspace,
+      onDismiss: () => setDeletingWorkspace(false),
+      onSuccess: () => Nav.goToPath('workspaces')
+    }),
+    cloningWorkspace && h(NewWorkspaceModal, {
+      cloneWorkspace: workspace,
+      onDismiss: () => setCloningWorkspace(false),
+      onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
+    }),
+    sharingWorkspace && h(ShareWorkspaceModal, {
+      workspace,
+      onDismiss: () => setSharingWorkspace(false)
+    })
   ])
 }
 
@@ -343,3 +326,24 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
   }
   return Utils.withDisplayName('wrapWorkspace', Wrapper)
 }
+
+export const WorkspaceMenuTrigger = ({ children, canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace}) => h(MenuTrigger, {
+  closeOnClick: true,
+  content: h(Fragment, [
+    h(MenuButton, { onClick: () => setCloningWorkspace(true) }, [makeMenuIcon('copy'), 'Clone']),
+    h(MenuButton, {
+      disabled: !canShare,
+      tooltip: !canShare && 'You have not been granted permission to share this workspace',
+      tooltipSide: 'left',
+      onClick: () => setSharingWorkspace(true)
+    }, [makeMenuIcon('share'), 'Share']),
+    h(MenuButton, { disabled: true }, [makeMenuIcon('export'), 'Publish', comingSoon]),
+    h(MenuButton, {
+      disabled: !isOwner,
+      tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
+      tooltipSide: 'left',
+      onClick: () => setDeletingWorkspace(true)
+    }, [makeMenuIcon('trash'), 'Delete Workspace'])
+  ]),
+  side: 'bottom'
+}, [children])

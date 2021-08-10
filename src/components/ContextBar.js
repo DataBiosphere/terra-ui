@@ -19,6 +19,7 @@ import {
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/notebooks/modals/CloudEnvironmentModal'
+import { WorkspaceMenuTrigger } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
 const contextBarStyles = {
@@ -90,35 +91,17 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
     }),
     div({ style: Style.elements.contextBarContainer }, [
       div({ style: contextBarStyles.contextBarContainer }, [
-        h(MenuTrigger, {
-          closeOnClick: true,
-          content: h(Fragment, [
-            h(MenuButton, { onClick: () => setCloningWorkspace(true) }, [makeMenuIcon('copy'), 'Clone']),
-            h(MenuButton, {
-              disabled: !canShare,
-              tooltip: !canShare && 'You have not been granted permission to share this workspace',
+        h(WorkspaceMenuTrigger, { canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace },
+          [
+            h(Clickable, {
+              'aria-label': 'Menu',
+              style: contextBarStyles.contextBarButton,
+              hover: contextBarStyles.hover,
               tooltipSide: 'left',
-              onClick: () => setSharingWorkspace(true)
-            }, [makeMenuIcon('share'), 'Share']),
-            h(MenuButton, { disabled: true }, [makeMenuIcon('export'), 'Publish', comingSoon]),
-            h(MenuButton, {
-              disabled: !isOwner,
-              tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
-              tooltipSide: 'left',
-              onClick: () => setDeletingWorkspace(true)
-            }, [makeMenuIcon('trash'), 'Delete Workspace'])
+              tooltip: 'Menu',
+              tooltipDelay: 100
+            }, [icon('ellipsis-v', { size: 24 })])
           ]),
-          side: 'bottom'
-        }, [
-          h(Clickable, {
-            'aria-label': 'Menu',
-            style: contextBarStyles.contextBarButton,
-            hover: contextBarStyles.hover,
-            tooltipSide: 'left',
-            tooltip: 'Menu',
-            tooltipDelay: 100
-          }, [icon('ellipsis-v', { size: 24 })])
-        ]),
         h(Clickable, {
           style: { ...contextBarStyles.contextBarButton, flexDirection: 'column', justifyContent: 'center', padding: '.75rem' },
           hover: contextBarStyles.hover,
