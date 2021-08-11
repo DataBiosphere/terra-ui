@@ -8,17 +8,15 @@ import { Disabled } from 'src/pages/Disabled'
 import Register from 'src/pages/Register'
 import SignIn from 'src/pages/SignIn'
 import TermsOfService from 'src/pages/TermsOfService'
-import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic'
 
 
 const AuthContainer = ({ children }) => {
-  const { name, params, public: isPublic } = useRoute()
+  const { name, public: isPublic } = useRoute()
   const { isSignedIn, registrationStatus, acceptedTos, profile } = Utils.useStore(authStore)
   const authspinner = () => h(centeredSpinner, { style: { position: 'fixed' } })
 
   return Utils.cond(
     [isSignedIn === undefined && !isPublic, authspinner],
-    [isSignedIn === false && name === 'workspace-dashboard', () => h(DashboardPublic, params)],
     [isSignedIn === false && !isPublic, () => h(SignIn)],
     [registrationStatus === undefined && !isPublic, authspinner],
     [registrationStatus === 'unregistered', () => h(Register)],

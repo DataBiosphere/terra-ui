@@ -23,7 +23,7 @@ const signInStyle = {
   justifyContent: 'space-between',
   fontSize: 20
 }
-//render
+
 const DashboardPublic = ({ namespace, name }) => {
   const stateHistory = StateHistory.get()
   const [showcaseList, setShowcaseList] = useState(stateHistory.featuredList)
@@ -58,12 +58,10 @@ const DashboardPublic = ({ namespace, name }) => {
         !!description && h(MarkdownViewer, [description])
       ]),
       div({ style: Style.dashboard.rightBox }, [
-        div({ style: signInStyle },
-          [
-            'Sign in to view full workspace',
-            h(SignInButton, { theme: 'dark' })
-          ]
-        )
+        div({ style: signInStyle }, [
+          div(['Sign in to view full workspace']),
+          div([h(SignInButton, { theme: 'dark' })])
+        ])
       ])
     ])
   ])

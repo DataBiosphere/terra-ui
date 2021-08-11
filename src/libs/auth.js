@@ -54,10 +54,11 @@ export const ensureBillingScope = async () => {
   }
 }
 
+export const authSettled = ({ isSignedIn, registrationStatus }) => {
+  return isSignedIn !== undefined && (!isSignedIn || registrationStatus !== undefined)
+}
+
 export const ensureAuthSettled = () => {
-  const authSettled = ({ isSignedIn, registrationStatus }) => {
-    return isSignedIn !== undefined && (!isSignedIn || registrationStatus !== undefined)
-  }
   if (authSettled(authStore.get())) {
     return
   }
