@@ -68,14 +68,14 @@ commands:
           at: .
       - restore_cache:
           keys:
-            - test-deps7-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
-            - test-deps7-{{ checksum "integration-tests/package.json" }}-
-            - test-deps7-
+            - test-deps8-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
+            - test-deps8-{{ checksum "integration-tests/package.json" }}-
+            - test-deps8-
       - run:
           working_directory: integration-tests
           command: yarn install --immutable
       - save_cache:
-          key: test-deps7-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
+          key: test-deps8-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
           paths:
             - integration-tests/node_modules
             - integration-tests/.yarn/cache
@@ -122,12 +122,12 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - deps6-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
-            - deps6-{{ checksum "package.json" }}-
-            - deps6-
+            - deps7-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
+            - deps7-{{ checksum "package.json" }}-
+            - deps7-
       - run: yarn install --immutable
       - save_cache:
-          key: deps6-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
+          key: deps7-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
             - .yarn/cache
