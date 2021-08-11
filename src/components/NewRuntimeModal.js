@@ -21,9 +21,9 @@ import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { versionTag } from 'src/libs/logos'
 import {
-  currentRuntime, DEFAULT_DATAPROC_DISK_SIZE, DEFAULT_GCE_BOOT_DISK_SIZE, DEFAULT_GCE_PERSISTENT_DISK_SIZE,
+  DEFAULT_DATAPROC_DISK_SIZE, DEFAULT_GCE_BOOT_DISK_SIZE, DEFAULT_GCE_PERSISTENT_DISK_SIZE,
   DEFAULT_GPU_TYPE, DEFAULT_NUM_GPUS, defaultDataprocMachineType, defaultGceMachineType,
-  displayNameForGpuType, findMachineType, getDefaultMachineType, getValidGpuTypes,
+  displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType, getValidGpuTypes,
   persistentDiskCostMonthly, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -161,7 +161,7 @@ export class NewRuntimeModalBase extends Component {
 
   getCurrentRuntime() {
     const { runtimes } = this.props
-    return currentRuntime(runtimes)
+    return getCurrentRuntime(runtimes)
   }
 
   getCurrentPersistentDisk() {
