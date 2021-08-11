@@ -141,10 +141,10 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
     const renderToolButtons = () => div({ style: { display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'space-between' } }, [
       div({ style: styles.toolCard, onClick: () => { setCurrentTool(tools.Jupyter.label); enterNextViewMode(tools.Jupyter.label) } }, [img({ src: jupyterLogoLong, style: _.merge(styles.image, { width: '30%' }) })]),
       div({ style: styles.toolCard, onClick: () => { setCurrentTool(tools.RStudio.label); enterNextViewMode(tools.RStudio.label) } }, [img({ src: rstudioLogo, style: styles.image })]),
-      div({ style: { opacity: currentApp ? '.5' : '1', ...styles.toolCard }, onClick: () => { setCurrentTool(tools.galaxy.label); enterNextViewMode(tools.galaxy.label) }, disabled: !currentApp, title: currentApp ? 'You already have a galaxy environment' : '' }, [img({ src: galaxyLogo, style: _.merge(styles.image, { width: '30%' }) })])
+      div({ style: { opacity: currentApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => { setCurrentTool(tools.galaxy.label); enterNextViewMode(tools.galaxy.label) }, disabled: !currentApp, title: currentApp ? 'You already have a galaxy environment' : '' }, [img({ src: galaxyLogo, style: _.merge(styles.image, { width: '30%' }) })])
     ])
 
-    const renderSelectAnalysisBody = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '.5rem 1.5rem 1.5rem 1.5rem' } }, [
+    const renderSelectAnalysisBody = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '0.5rem 1.5rem 1.5rem 1.5rem' } }, [
       renderToolButtons(),
       h(Dropzone, {
         accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext}`,
@@ -175,17 +175,15 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       [tools.Jupyter.label, () => 'notebook'],
       [Utils.DEFAULT, () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`)])
 
-    const renderCreateAnalysis = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '.5rem 1.5rem 1.5rem 1.5rem' } }, [
+    const renderCreateAnalysis = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '0.5rem 1.5rem 1.5rem 1.5rem' } }, [
       h2({ style: { fontWeight: 600, marginBottom: 0 } }, [`Create a new ${getArtifactLabel(currentTool)}`]),
       renderCreateAnalysisBody(currentTool)
     ])
 
-    const existingNames = _.map(({ name }) => getDisplayName(name), analyses)
-
     const errors = validate(
       { analysisName, notebookKernel },
       {
-        analysisName: analysisNameValidator(existingNames),
+        analysisName: analysisNameValidator(_.map(({ name }) => getDisplayName(name), analyses)),
         notebookKernel: { presence: { allowEmpty: true } }
       }
     )
@@ -217,11 +215,11 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
             options: ['python3', 'r']
           })
         ])]),
-        (isJupyter || toolLabel === tools.RStudio.label) && (currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel) && div({ style: { backgroundColor: colors.warning(0.1), margin: '.5rem', padding: '1rem' } }, [
+        (isJupyter || toolLabel === tools.RStudio.label) && (currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel) && div({ style: { backgroundColor: colors.warning(0.1), margin: '0.5rem', padding: '1rem' } }, [
           h(WarningTitle, { iconSize: 16 },
             [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]
           ),
-          div({ style: { marginBottom: '.5rem', marginTop: '1rem' } }, ['You have a non-deletable environment associated with another application.']),
+          div({ style: { marginBottom: '0.5rem', marginTop: '1rem' } }, ['You have a non-deletable environment associated with another application.']),
           div(['You may create an analysis, but must wait for your current environment to finish processing and get a suitable environment to run it.'])
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
