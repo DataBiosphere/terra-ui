@@ -6,29 +6,12 @@ import { a, div, h, img } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
-import {
-  ButtonOutline,
-  Clickable,
-  HeaderRenderer,
-  Link,
-  PageBox,
-  spinnerOverlay
-} from 'src/components/common'
+import { ButtonOutline, Clickable, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { NewAnalysisModal } from 'src/components/NewAnalysisModal'
-import {
-  AnalysisDeleter,
-  AnalysisDuplicator,
-  findPotentialNotebookLockers,
-  getDisplayName,
-  getFileName,
-  getTool,
-  notebookLockHash,
-  stripExtension,
-  tools
-} from 'src/components/notebook-utils'
+import { AnalysisDeleter, AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, notebookLockHash, stripExtension, tools } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ariaSort } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'

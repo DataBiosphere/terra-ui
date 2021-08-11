@@ -7,13 +7,7 @@ import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { NewGalaxyModalBase } from 'src/components/NewGalaxyModal'
 import { NewRuntimeModalBase } from 'src/components/NewRuntimeModal'
-import {
-  analysisNameInput,
-  analysisNameValidator,
-  getDisplayName, getTool,
-  notebookData,
-  tools
-} from 'src/components/notebook-utils'
+import { analysisNameInput, analysisNameValidator, getDisplayName, getTool, notebookData, tools } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
@@ -29,6 +23,8 @@ import validate from 'validate.js'
 
 
 const titleId = 'new-analysis-modal-title'
+const NEW_ANALYSIS_MODE = 'NEW_ARTIFACT'
+const NEW_ENVIRONMENT_MODE = 'NEW_ENVIRONMENT'
 
 export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
   ({ isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, refreshAnalyses, analyses, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
@@ -37,14 +33,12 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
     const [notebookKernel, setNotebookKernel] = useState('python3')
     const [nameTouched, setNameTouched] = useState(false)
     const [analysisName, setAnalysisName] = useState('')
-    const currentRuntime = getCurrentRuntime(runtimes)
-    const currentRuntimeTool = currentRuntime?.labels?.tool
-    const currentApp = getCurrentApp(apps)
     const [currentTool, setCurrentTool] = useState(undefined)
 
 
-    const NEW_ANALYSIS_MODE = 'NEW_ARTIFACT'
-    const NEW_ENVIRONMENT_MODE = 'NEW_ENVIRONMENT'
+    const currentRuntime = getCurrentRuntime(runtimes)
+    const currentRuntimeTool = currentRuntime?.labels?.tool
+    const currentApp = getCurrentApp(apps)
 
     const resetView = () => {
       setViewMode(undefined)
@@ -53,7 +47,7 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       setNotebookKernel('python3')
     }
 
-    const setNextViewMode = (currentTool, baseViewMode = viewMode) => {
+    const enterNextViewMode = (currentTool, baseViewMode = viewMode) => {
       const doesCloudEnvForToolExist = currentRuntimeTool === currentTool || (currentApp && currentTool === tools.galaxy.label)
 
       Utils.switchCase(baseViewMode,
@@ -139,13 +133,15 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       })
     })
 
-    const toolCardStyles = { backgroundColor: 'white', borderRadius: 5, padding: '1rem', display: 'inline-block', verticalAlign: 'middle', marginBottom: '1rem', textAlign: 'center', width: '100%', height: 60 }
-    const imageStyles = { verticalAlign: 'middle', height: '100%', width: '40%' }
+    const styles = {
+      toolCard: { backgroundColor: 'white', borderRadius: 5, padding: '1rem', display: 'inline-block', verticalAlign: 'middle', marginBottom: '1rem', textAlign: 'center', width: '100%', height: 60 },
+      image: { verticalAlign: 'middle', height: '100%', width: '40%' }
+    }
 
     const renderToolButtons = () => div({ style: { display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'space-between' } }, [
-      div({ style: toolCardStyles, onClick: () => { setCurrentTool(tools.Jupyter.label); setNextViewMode(tools.Jupyter.label) } }, [img({ src: jupyterLogoLong, style: _.merge(imageStyles, { width: '30%' }) })]),
-      div({ style: toolCardStyles, onClick: () => { setCurrentTool(tools.RStudio.label); setNextViewMode(tools.RStudio.label) } }, [img({ src: rstudioLogo, style: imageStyles })]),
-      div({ style: { opacity: currentApp ? '.5' : '1', ...toolCardStyles }, onClick: () => { setCurrentTool(tools.galaxy.label); setNextViewMode(tools.galaxy.label) }, disabled: !currentApp, title: currentApp ? 'You already have a galaxy environment' : '' }, [img({ src: galaxyLogo, style: _.merge(imageStyles, { width: '30%' }) })])
+      div({ style: styles.toolCard, onClick: () => { setCurrentTool(tools.Jupyter.label); enterNextViewMode(tools.Jupyter.label) } }, [img({ src: jupyterLogoLong, style: _.merge(styles.image, { width: '30%' }) })]),
+      div({ style: styles.toolCard, onClick: () => { setCurrentTool(tools.RStudio.label); enterNextViewMode(tools.RStudio.label) } }, [img({ src: rstudioLogo, style: styles.image })]),
+      div({ style: { opacity: currentApp ? '.5' : '1', ...styles.toolCard }, onClick: () => { setCurrentTool(tools.galaxy.label); enterNextViewMode(tools.galaxy.label) }, disabled: !currentApp, title: currentApp ? 'You already have a galaxy environment' : '' }, [img({ src: galaxyLogo, style: _.merge(styles.image, { width: '30%' }) })])
     ])
 
     const renderSelectAnalysisBody = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '.5rem 1.5rem 1.5rem 1.5rem' } }, [
@@ -159,7 +155,7 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
         onDropAccepted: files => {
           const tool = getTool(files.pop().path)
           setCurrentTool(tool)
-          currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== tool ? onSuccess() : setNextViewMode(tool, NEW_ANALYSIS_MODE)
+          currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== tool ? onSuccess() : enterNextViewMode(tool, NEW_ANALYSIS_MODE)
           uploadFiles()
         }
       }, [() => div({
@@ -174,7 +170,8 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       ])])
     ])
 
-    const getArtifactLabel = toolLabel => Utils.switchCase(toolLabel, [tools.RStudio.label, () => 'R markdown file'],
+    const getArtifactLabel = toolLabel => Utils.switchCase(toolLabel,
+      [tools.RStudio.label, () => 'R markdown file'],
       [tools.Jupyter.label, () => 'notebook'],
       [Utils.DEFAULT, () => console.error(`Should not be calling getArtifactLabel for ${toolLabel}, artifacts not implemented`)])
 
@@ -193,62 +190,62 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       }
     )
 
-    const renderCreateAnalysisBody = toolLabel => div({ style: { display: 'flex', flexDirection: 'column' } }, [
-      h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, [`Name of the ${getArtifactLabel(toolLabel)}`]),
-        analysisNameInput({
-          error: Utils.summarizeErrors(nameTouched && errors?.analysisName),
-          inputProps: {
-            id, value: analysisName,
-            onChange: v => {
-              setAnalysisName(v)
-              setNameTouched(true)
-            }
-          }
-        })
-      ])]),
-      toolLabel === tools.Jupyter.label && h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, ['Language']),
-        h(Select, {
-          id, isSearchable: true,
-          placeholder: 'Select a language',
-          getOptionLabel: ({ value }) => _.startCase(value),
-          value: notebookKernel,
-          onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
-          options: ['python3', 'r']
-        })
-      ])]),
-      (toolLabel === tools.Jupyter.label || toolLabel === tools.RStudio.label) && (currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel) && div({ style: { backgroundColor: colors.warning(0.1), margin: '.5rem', padding: '1rem' } }, [
-        h(WarningTitle, { iconSize: 16 },
-          [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]
-        ),
-        div({ style: { marginBottom: '.5rem', marginTop: '1rem' } }, ['You have a non-deletable environment associated with another application.']),
-        div(['You may create an analysis, but must wait for your current environment to finish processing and get a suitable environment to run it.'])
-      ]),
-      div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
-        h(ButtonPrimary, {
-          disabled: errors,
-          tooltip: Utils.summarizeErrors(errors),
-          onClick: async () => {
-            try {
-              const contents = toolLabel === tools.Jupyter.label ? notebookData[notebookKernel] : '# Starter Rmd file'
-              if (toolLabel === tools.Jupyter.label) {
-                // notebook creation requires special handling of json in request
-                await Ajax().Buckets.notebook(namespace, bucketName, analysisName).create(contents)
-              } else {
-                await Ajax().Buckets.analysis(namespace, bucketName, analysisName, toolLabel).create(contents)
+    const renderCreateAnalysisBody = toolLabel => {
+      const isJupyter = toolLabel === tools.Jupyter.label
+      return div({ style: { display: 'flex', flexDirection: 'column' } }, [
+        h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { htmlFor: id, required: true }, [`Name of the ${getArtifactLabel(toolLabel)}`]),
+          analysisNameInput({
+            error: Utils.summarizeErrors(nameTouched && errors?.analysisName),
+            inputProps: {
+              id, value: analysisName,
+              onChange: v => {
+                setAnalysisName(v)
+                setNameTouched(true)
               }
-              refreshAnalyses()
-              setAnalysisName('')
-              setNextViewMode(toolLabel)
-            } catch (error) {
-              await reportError('Error creating analysis', error)
-              onDismiss()
             }
-          }
-        }, 'Create Analysis')
+          })
+        ])]),
+        isJupyter && h(IdContainer, [id => h(Fragment, [
+          h(FormLabel, { htmlFor: id, required: true }, ['Language']),
+          h(Select, {
+            id, isSearchable: true,
+            placeholder: 'Select a language',
+            getOptionLabel: ({ value }) => _.startCase(value),
+            value: notebookKernel,
+            onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
+            options: ['python3', 'r']
+          })
+        ])]),
+        (isJupyter || toolLabel === tools.RStudio.label) && (currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel) && div({ style: { backgroundColor: colors.warning(0.1), margin: '.5rem', padding: '1rem' } }, [
+          h(WarningTitle, { iconSize: 16 },
+            [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]
+          ),
+          div({ style: { marginBottom: '.5rem', marginTop: '1rem' } }, ['You have a non-deletable environment associated with another application.']),
+          div(['You may create an analysis, but must wait for your current environment to finish processing and get a suitable environment to run it.'])
+        ]),
+        div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+          h(ButtonPrimary, {
+            disabled: errors,
+            tooltip: Utils.summarizeErrors(errors),
+            onClick: async () => {
+              try {
+                const contents = isJupyter ? notebookData[notebookKernel] : '# Starter Rmd file'
+                isJupyter ?
+                  await Ajax().Buckets.notebook(namespace, bucketName, analysisName).create(contents) :
+                  await Ajax().Buckets.analysis(namespace, bucketName, analysisName, toolLabel).create(contents)
+                refreshAnalyses()
+                setAnalysisName('')
+                enterNextViewMode(toolLabel)
+              } catch (error) {
+                await reportError('Error creating analysis', error)
+                onDismiss()
+              }
+            }
+          }, 'Create Analysis')
+        ])
       ])
-    ])
+    }
 
     const width = Utils.switchCase(viewMode,
       [NEW_ENVIRONMENT_MODE, () => 675],
@@ -260,7 +257,7 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       h(TitleBar, {
         id: titleId,
         title: 'Select an application',
-        titleStyles: _.merge(viewMode === undefined ? {} : { display: 'none' }, { margin: '1.5rem 0 0 1.5rem' }),
+        titleStyles: { margin: '1.5rem 0 0 1.5rem', display: !!viewMode ? 'none' : undefined },
         width,
         onDismiss: () => {
           resetView()
