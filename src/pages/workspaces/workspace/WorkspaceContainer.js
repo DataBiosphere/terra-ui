@@ -66,11 +66,13 @@ const WorkspaceTabs = ({
 }
 
 const WorkspaceContainer = ({
-  namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, children,
-  setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, deletingWorkspace, cloningWorkspace, sharingWorkspace
+  namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, children
 }) => {
-  const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
+  const [deletingWorkspace, setDeletingWorkspace] = useState(false)
+  const [cloningWorkspace, setCloningWorkspace] = useState(false)
+  const [sharingWorkspace, setSharingWorkspace] = useState(false)
 
+  const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = !!workspace?.canShare
 
   return h(FooterWrapper, [
@@ -104,21 +106,18 @@ const WorkspaceContainer = ({
     ]),
     showTabBar && h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace, deletingWorkspace, setDeletingWorkspace, cloningWorkspace, setCloningWorkspace, sharingWorkspace, setSharingWorkspace }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
-      // When we switch this over to all tabs, ensure other workspace tabs look the same when inside these divs
-      (isAnalysisTabVisible() && activeTab === 'analyses' ?
+
+      // TODO: When we switch this over to all tabs, ensure other workspace tabs look the same when inside these divs
+      (isAnalysisTabVisible() && (activeTab === 'analyses' || activeTab === undefined) ?
         [div({ style: { flex: 1, display: 'flex' } }, [
-          div({ style: { flex: 1 } }, [
+          div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
             children
           ]),
           workspace && h(ContextBar, {
-            setDeletingWorkspace,
-            setCloningWorkspace,
-            setSharingWorkspace,
-            isOwner,
-            canShare,
+            workspace, isOwner, canShare, setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace,
             canCompute: !!(workspace?.canCompute || runtimes?.length),
-            workspace, refreshApps, refreshRuntimes,
-            runtimes, persistentDisks, galaxyDataDisks, apps
+            apps, galaxyDataDisks, refreshApps,
+            runtimes, persistentDisks, refreshRuntimes
           })
         ])] : [children])),
     deletingWorkspace && h(DeleteWorkspaceModal, {
@@ -239,9 +238,6 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const accessNotificationId = useRef()
     const cachedWorkspace = Utils.useStore(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
-    const [deletingWorkspace, setDeletingWorkspace] = useState(false)
-    const [cloningWorkspace, setCloningWorkspace] = useState(false)
-    const [sharingWorkspace, setSharingWorkspace] = useState(false)
     const { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks } = useCloudEnvironmentPolling(namespace)
     const { apps, refreshApps } = useAppPolling(namespace, name)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
@@ -301,7 +297,6 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     } else {
       return h(WorkspaceContainer, {
         namespace, name, activeTab, showTabBar, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps,
-        setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, deletingWorkspace, cloningWorkspace, sharingWorkspace,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),
@@ -315,9 +310,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, refreshApps, refreshRuntimes,
-          runtimes, persistentDisks, galaxyDataDisks, apps,
-          setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace,
+          workspace, refreshWorkspace, refreshRuntimes, runtimes, persistentDisks, galaxyDataDisks,
           ...props
         }),
         loadingWorkspace && spinnerOverlay
@@ -327,7 +320,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
   return Utils.withDisplayName('wrapWorkspace', Wrapper)
 }
 
-export const WorkspaceMenuTrigger = ({ children, canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace}) => h(MenuTrigger, {
+export const WorkspaceMenuTrigger = ({ children, canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace }) => h(MenuTrigger, {
   closeOnClick: true,
   content: h(Fragment, [
     h(MenuButton, { onClick: () => setCloningWorkspace(true) }, [makeMenuIcon('copy'), 'Clone']),

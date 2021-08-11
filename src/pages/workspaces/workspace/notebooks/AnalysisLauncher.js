@@ -6,16 +6,10 @@ import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
-import { ContextBar } from 'src/components/ContextBar'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NewRuntimeModal } from 'src/components/NewRuntimeModal'
-import {
-  AnalysisDuplicator,
-  findPotentialNotebookLockers,
-  getDisplayName,
-  getTool, notebookLockHash
-} from 'src/components/notebook-utils'
+import { AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getTool, notebookLockHash } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { dataSyncingDocUrl } from 'src/data/machines'
@@ -48,7 +42,7 @@ const AnalysisLauncher = _.flow(
     showTabBar: false
   })
 )(
-  ({ queryParams, analysisName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks, refreshRuntimes, refreshApps, galaxyDataDisks, apps, setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace },
+  ({ queryParams, analysisName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks, refreshRuntimes },
     ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const runtime = getCurrentRuntime(runtimes)
@@ -57,8 +51,6 @@ const AnalysisLauncher = _.flow(
     const [busy, setBusy] = useState()
     const { mode } = queryParams
     const toolLabel = getTool(analysisName)
-    const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-    const canShare = !!workspace?.canShare
     const iframeStyles = { height: '100%', width: '100%' }
 
     return h(Fragment, [
@@ -73,16 +65,6 @@ const AnalysisLauncher = _.flow(
               h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel, workspace })
             ])
         ]),
-        workspace && h(ContextBar, {
-          setDeletingWorkspace,
-          setCloningWorkspace,
-          setSharingWorkspace,
-          isOwner,
-          canShare,
-          canCompute: !!(workspace?.canCompute || runtimes?.length),
-          workspace, refreshApps, refreshRuntimes,
-          runtimes, persistentDisks, galaxyDataDisks, apps
-        }),
         mode && h(RuntimeKicker, { runtime, refreshRuntimes, onNullRuntime: () => setCreateOpen(true) }),
         mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
         h(NewRuntimeModal, {

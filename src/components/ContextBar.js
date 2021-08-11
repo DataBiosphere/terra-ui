@@ -1,10 +1,9 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, img } from 'react-hyperscript-helpers'
-import { Clickable, comingSoon } from 'src/components/common'
+import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { tools } from 'src/components/notebook-utils'
-import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import cloudIcon from 'src/icons/cloud-compute.svg'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
@@ -12,10 +11,7 @@ import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
-import {
-  getCurrentApp,
-  getCurrentRuntime
-} from 'src/libs/runtime-utils'
+import { getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/notebooks/modals/CloudEnvironmentModal'
