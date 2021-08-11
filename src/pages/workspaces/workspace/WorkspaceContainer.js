@@ -154,7 +154,7 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const useCloudEnvironmentPolling = namespace => {
+const useCloudEnvironmentPolling = googleProject => {
   const signal = Utils.useCancellation()
   const timeout = useRef()
   const [runtimes, setRuntimes] = useState()
@@ -167,11 +167,11 @@ const useCloudEnvironmentPolling = namespace => {
   }
   const load = async maybeStale => {
     try {
-      const [newDisks, newRuntimes, galaxyDisks] = await Promise.all([
-        Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email }),
-        Ajax(signal).Runtimes.list({ googleProject: namespace, creator: getUser().email }),
-        Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email, saturnApplication: 'galaxy' })
-      ])
+      const [newDisks, newRuntimes, galaxyDisks] = googleProject ? await Promise.all([
+        Ajax(signal).Disks.list({ googleProject, creator: getUser().email }),
+        Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email }),
+        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: 'galaxy' })
+      ]) : [[], [], []]
       const galaxyDiskNames = _.map(disk => disk.name, galaxyDisks)
       setRuntimes(newRuntimes)
       setGalaxyDataDisks(galaxyDisks)
@@ -193,7 +193,7 @@ const useCloudEnvironmentPolling = namespace => {
   return { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks }
 }
 
-const useAppPolling = (namespace, name) => {
+const useAppPolling = (googleProject, workspaceName) => {
   const signal = Utils.useCancellation()
   const timeout = useRef()
   const [apps, setApps] = useState()
@@ -203,7 +203,7 @@ const useAppPolling = (namespace, name) => {
   }
   const loadApps = async () => {
     try {
-      const newApps = await Ajax(signal).Apps.list(namespace, { creator: getUser().email, saturnWorkspaceName: name })
+      const newApps = googleProject ? await Ajax(signal).Apps.list(googleProject, { creator: getUser().email, saturnWorkspaceName: workspaceName }) : []
       setApps(newApps)
       const app = currentApp(newApps)
       reschedule((app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
@@ -230,11 +230,14 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const accessNotificationId = useRef()
     const cachedWorkspace = Utils.useStore(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
-    const { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks } = useCloudEnvironmentPolling(namespace)
-    const { apps, refreshApps } = useAppPolling(namespace, name)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
       cachedWorkspace :
       undefined
+    const [googleProject, setGoogleProject] = useState(workspace ? workspace.workspace.googleProject : undefined)
+    const prevGoogleProject = Utils.usePrevious(googleProject)
+    const { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks } = useCloudEnvironmentPolling(googleProject)
+    const { apps, refreshApps } = useAppPolling(googleProject, name)
+    googleProject !== prevGoogleProject && refreshRuntimes() && refreshApps()
 
     const refreshWorkspace = _.flow(
       withErrorReporting('Error loading workspace'),
@@ -247,6 +250,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
           'workspaceSubmissionStats'
         ])
         workspaceStore.set(workspace)
+        setGoogleProject(workspace.workspace.googleProject)
 
         const { accessLevel, workspace: { createdBy, createdDate } } = workspace
 
