@@ -19,43 +19,34 @@ import * as Utils from 'src/libs/utils'
 
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
-const sidebarSections = [
-  {
-    name: 'Getting Started',
-    labels: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials'],
-    keepCollapsed: true
-  },
-  {
-    name: 'Analysis Tools',
-    labels: ['WDLs', 'Jupyter Notebooks', 'RStudio', 'Galaxy', 'Hail', 'Bioconductor', 'GATK', 'Cumulus', 'Spark']
-  },
-  {
-    name: 'Experimental Strategy',
-    labels: ['GWAS', 'Exome Analysis', 'Whole Genome Analysis', 'Fusion Transcript Detection', 'RNA Analysis', 'Machine Learning',
-      'Variant Discovery', 'Epigenomics', 'DNA Methylation', 'Copy Number Variation', 'Structural Variation', 'Functional Annotation']
-  },
-  {
-    name: 'Data Generation Technology',
-    labels: ['10x analysis', 'Bisulfate Sequencing']
-  },
-  {
-    name: 'Scientific Domain',
-    labels: ['Cancer', 'Infectious Diseases', 'MPG', 'Single-cell', 'Immunology']
-  },
-  {
-    name: 'Datasets',
-    labels: ['AnVIL', 'CMG', 'CCDG', 'TopMed', 'HCA', 'TARGET', 'ENCODE', 'BioData Catalyst', 'TCGA', '1000 Genomes', 'BRAIN Initiative',
-      'gnomAD', 'NCI', 'COVID-19']
-  },
-  {
-    name: 'Utilities',
-    labels: ['Format Conversion', 'Developer Tools']
-  },
-  {
-    name: 'Projects',
-    labels: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI']
-  }
-]
+const sidebarSections = [{
+  name: 'Getting Started',
+  labels: ['Workflow Tutorials', 'Notebook Tutorials', 'Data Tutorials', 'RStudio Tutorials', 'Galaxy Tutorials'],
+  keepCollapsed: true
+}, {
+  name: 'Analysis Tools',
+  labels: ['WDLs', 'Jupyter Notebooks', 'RStudio', 'Galaxy', 'Hail', 'Bioconductor', 'GATK', 'Cumulus', 'Spark']
+}, {
+  name: 'Experimental Strategy',
+  labels: ['GWAS', 'Exome Analysis', 'Whole Genome Analysis', 'Fusion Transcript Detection', 'RNA Analysis', 'Machine Learning',
+    'Variant Discovery', 'Epigenomics', 'DNA Methylation', 'Copy Number Variation', 'Structural Variation', 'Functional Annotation']
+}, {
+  name: 'Data Generation Technology',
+  labels: ['10x analysis', 'Bisulfate Sequencing']
+}, {
+  name: 'Scientific Domain',
+  labels: ['Cancer', 'Infectious Diseases', 'MPG', 'Single-cell', 'Immunology']
+}, {
+  name: 'Datasets',
+  labels: ['AnVIL', 'CMG', 'CCDG', 'TopMed', 'HCA', 'TARGET', 'ENCODE', 'BioData Catalyst', 'TCGA', '1000 Genomes', 'BRAIN Initiative',
+    'gnomAD', 'NCI', 'COVID-19']
+}, {
+  name: 'Utilities',
+  labels: ['Format Conversion', 'Developer Tools']
+}, {
+  name: 'Projects',
+  labels: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI']
+}]
 
 const uniqueSidebarTags = _.flow([
   _.flatMap(s => _.map(_.toLower, s.labels)),
@@ -74,8 +65,7 @@ const styles = {
   nav: {
     background: {
       position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
-      overflow: 'auto', cursor: 'pointer',
-      zIndex: 2
+      overflow: 'auto', cursor: 'pointer'
     },
     container: state => ({
       ...(state === 'entered' ? {} : { opacity: 0, transform: 'translate(-2rem)' }),
@@ -91,9 +81,11 @@ const styles = {
     width: '4.5rem', padding: '0.25rem', fontWeight: 500, textAlign: 'center',
     border: '1px solid', borderColor: colors.dark(0.25), borderRadius: '1rem',
     backgroundColor: 'white'
+  },
+  pillHighlight: {
+    color: 'white', backgroundColor: colors.primary(1), borderColor: colors.primary(1)
   }
 }
-styles.hilightedPill = { ...styles.pill, color: 'white', backgroundColor: colors.primary(1), borderColor: colors.primary(1) }
 
 const NavItem = ({ children, ...props }) => {
   return h(Clickable, _.merge({
@@ -160,12 +152,14 @@ const groupByFeaturedTags = workspaces => _.flow([
   _.fromPairs
 ])(uniqueSidebarTags)
 
-const Sidebar = props => {
-  const { onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, workspacesByTag } = props
+const Pill = ({ count, highlight }) => {
+  return div({
+    style: _.merge(styles.pill, highlight ? styles.pillHighlight : {})
+  }, [count])
+}
 
-  // setup open-ness state for each sidebar section
-  const initialOpenState = _.fromPairs(_.map(section => [section.name, true], sidebarSections))
-  const [openState, setOpenState] = useState(initialOpenState)
+const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, workspacesByTag }) => {
+  const [collapsedSections, setCollapsedSections] = useState([])
 
   const unionSectionWorkspaces = section => {
     return _.uniq(_.flatMap(tag => workspacesByTag[tag], section.tags))
@@ -180,17 +174,17 @@ const Sidebar = props => {
           style: { ...styles.sidebarRow, ...styles.nav.navSection }
         }, [
           div({ style: { flex: 1 } }, [section.name]),
-          div({ style: { flexGrow: 1 } }),
-          div({
-            style: _.includes(section, selectedSections) ? styles.hilightedPill : styles.pill
-          }, [_.size(unionSectionWorkspaces(section))])
+          h(Pill, {
+            count: _.size(unionSectionWorkspaces(section)),
+            highlight: _.includes(section, selectedSections)
+          })
         ]) :
         h(SidebarCollapser,
           {
             key: section.name,
             title: section.name,
-            onClick: () => setOpenState(_.update(section.name, open => !open, openState)),
-            isOpened: openState[section.name]
+            onClick: () => setCollapsedSections(_.xor([section], collapsedSections)),
+            isOpened: !_.includes(section, collapsedSections)
           },
           [
             ..._.map(label => {
@@ -200,9 +194,10 @@ const Sidebar = props => {
                 onClick: () => onTagFilter(tag)
               }, [
                 div({ style: { flex: 1 } }, [label]),
-                div({
-                  style: _.includes(tag, selectedTags) ? styles.hilightedPill : styles.pill
-                }, [_.size(workspacesByTag[tag])])
+                h(Pill, {
+                  count: _.size(workspacesByTag[tag]),
+                  highlight: _.includes(tag, selectedTags)
+                })
               ])
             }, section.labels)
           ]
@@ -288,12 +283,13 @@ const Showcase = () => {
       centeredSpinner() :
       h(Fragment, [
         div({ style: { display: 'flex', margin: '1rem 1rem 0', alignItems: 'baseline' } }, [
-          div({ style: { width: '19rem', flex: '0 0 auto' } }, [
+          div({ style: { width: '19rem', flex: 'none' } }, [
             div({ style: styles.sidebarRow }, [
               div({ style: styles.header }, 'Featured workspaces'),
-              div({
-                style: _.isEmpty(selectedSections) && _.isEmpty(selectedTags) ? styles.hilightedPill : styles.pill
-              }, [_.size(filteredWorkspaces)])
+              h(Pill, {
+                count: _.size(filteredWorkspaces),
+                highlight: _.isEmpty(selectedSections) && _.isEmpty(selectedTags)
+              })
             ]),
             div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
               div({ style: { flex: 1 } }),
@@ -325,7 +321,7 @@ const Showcase = () => {
           ])
         ]),
         div({ style: { display: 'flex', margin: '0 1rem' } }, [
-          div({ style: { width: '19rem', flex: '0 0 auto' } }, [
+          div({ style: { width: '19rem', flex: 'none' } }, [
             h(Sidebar, {
               onSectionFilter: section => setSelectedSections(_.xor([section], selectedSections)),
               onTagFilter: tag => setSelectedTags(_.xor([tag], selectedTags)),
