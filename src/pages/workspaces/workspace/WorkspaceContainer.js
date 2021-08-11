@@ -221,7 +221,7 @@ const useAppPolling = (googleProject, workspaceName) => {
   return { apps, refreshApps }
 }
 
-export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryparams }) => WrappedComponent => {
+export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true }) => WrappedComponent => {
   const Wrapper = props => {
     const { namespace, name } = props
     const child = useRef()
