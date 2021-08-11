@@ -30,3 +30,10 @@ saturn-ui.iml
 .vscode/
 
 /integration-tests/failures
+
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions

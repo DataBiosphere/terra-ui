@@ -1,4 +1,4 @@
-import arrayMove from 'array-move'
+import { arrayMoveImmutable as arrayMove } from 'array-move'
 import _ from 'lodash/fp'
 import PropTypes from 'prop-types'
 import { Fragment, useImperativeHandle, useRef, useState } from 'react'
