@@ -37,3 +37,4 @@ saturn-ui.iml
 !.yarn/plugins
 !.yarn/sdks
 !.yarn/versions
+/integration-tests/.yarn/cache/
