@@ -78,6 +78,7 @@ commands:
           key: test-deps7-{{ checksum "integration-tests/package.json" }}-{{ checksum "integration-tests/yarn.lock" }}
           paths:
             - integration-tests/node_modules
+            - integration-tests/.yarn/cache
       - when:
           condition: << parameters.local >>
           steps:
@@ -129,6 +130,7 @@ jobs:
           key: deps6-{{ checksum "package.json" }}-{{ checksum "yarn.lock" }}
           paths:
             - node_modules
+            - .yarn/cache
       - run: yarn test
       - run: yarn build
       - run: tar -czf build.tgz .gcloudignore app.yaml build config
