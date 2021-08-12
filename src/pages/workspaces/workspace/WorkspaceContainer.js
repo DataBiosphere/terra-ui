@@ -3,6 +3,7 @@ import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, comingSoon, Link, spinnerOverlay } from 'src/components/common'
+import { ContextBar } from 'src/components/ContextBar'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -17,7 +18,7 @@ import { isAnalysisTabVisible, isTerra } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { collapsedRuntimeStatus, currentApp, currentRuntime } from 'src/libs/runtime-utils'
+import { getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -30,10 +31,11 @@ const navIconProps = {
   hover: { opacity: 1 }, focus: 'hover'
 }
 
-const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
-  const [deletingWorkspace, setDeletingWorkspace] = useState(false)
-  const [cloningWorkspace, setCloningWorkspace] = useState(false)
-  const [sharingWorkspace, setSharingWorkspace] = useState(false)
+const WorkspaceTabs = ({
+  namespace, name, workspace, activeTab, refresh,
+  deletingWorkspace, setDeletingWorkspace, cloningWorkspace, setCloningWorkspace,
+  sharingWorkspace, setSharingWorkspace
+}) => {
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = workspace?.canShare
 
@@ -95,6 +97,13 @@ const WorkspaceTabs = ({ namespace, name, workspace, activeTab, refresh }) => {
 }
 
 const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, children }) => {
+  const [deletingWorkspace, setDeletingWorkspace] = useState(false)
+  const [cloningWorkspace, setCloningWorkspace] = useState(false)
+  const [sharingWorkspace, setSharingWorkspace] = useState(false)
+  const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
+
+  const canShare = !!workspace?.canShare
+
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
       div({ style: Style.breadcrumb.breadcrumb }, [
@@ -124,8 +133,25 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
         apps, galaxyDataDisks, workspace, refreshApps
       })
     ]),
-    showTabBar && h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace }),
-    div({ role: 'main', style: Style.elements.pageContentContainer }, [children])
+    showTabBar && h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace, deletingWorkspace, setDeletingWorkspace, cloningWorkspace, setCloningWorkspace, sharingWorkspace, setSharingWorkspace }),
+    div({ role: 'main', style: Style.elements.pageContentContainer },
+      // When we switch this over to all tabs, ensure other workspace tabs look the same when inside these divs
+      (isAnalysisTabVisible() && activeTab === 'analyses' ?
+        [div({ style: { flex: 1, display: 'flex' } }, [
+          div({ style: { flex: 1 } }, [
+            children
+          ]),
+          workspace && h(ContextBar, {
+            setDeletingWorkspace,
+            setCloningWorkspace,
+            setSharingWorkspace,
+            isOwner,
+            canShare,
+            canCompute: !!(workspace?.canCompute || runtimes?.length),
+            workspace, refreshApps, refreshRuntimes,
+            runtimes, persistentDisks, galaxyDataDisks, apps
+          })
+        ])] : [children]))
   ])
 }
 
@@ -177,8 +203,8 @@ const useCloudEnvironmentPolling = namespace => {
       setGalaxyDataDisks(galaxyDisks)
       setPersistentDisks(_.remove(disk => _.includes(disk.name, galaxyDiskNames), newDisks))
 
-      const runtime = currentRuntime(newRuntimes)
-      reschedule(maybeStale || _.includes(collapsedRuntimeStatus(runtime), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
+      const runtime = getCurrentRuntime(newRuntimes)
+      reschedule(maybeStale || _.includes(getConvertedRuntimeStatus(runtime), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
     } catch (error) {
       reschedule(30000)
       throw error
@@ -205,7 +231,7 @@ const useAppPolling = (namespace, name) => {
     try {
       const newApps = await Ajax(signal).Apps.list(namespace, { creator: getUser().email, saturnWorkspaceName: name })
       setApps(newApps)
-      const app = currentApp(newApps)
+      const app = getCurrentApp(newApps)
       reschedule((app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
     } catch (error) {
       reschedule(30000)

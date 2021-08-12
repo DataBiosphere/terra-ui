@@ -378,19 +378,16 @@ export const methodLink = config => {
     `${getConfig().dockstoreUrlRoot}/workflows/${methodPath}:${methodVersion}`
 }
 
-export const ShibbolethLink = ({ children, ...props }) => {
+export const ShibbolethLink = ({ button = false, children, ...props }) => {
   const nihRedirectUrl = `${window.location.origin}/${Nav.getLink('profile')}?nih-username-token=<token>`
-  return h(Link, _.merge({
+  return h(button ? ButtonPrimary : Link, _.merge({
     href: `${getConfig().shibbolethUrlRoot}/login?${qs.stringify({ 'return-url': nihRedirectUrl })}`,
-    style: { display: 'inline-flex', alignItems: 'center' },
+    ...(button ? {} : { style: { display: 'inline-flex', alignItems: 'center' } }),
     ...Utils.newTabLinkProps
-  }, props), [
-    children,
-    icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
-  ])
+  }, props), [children, icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })])
 }
 
-export const FrameworkServiceLink = ({ linkText, provider, redirectUrl, ...props }) => {
+export const FrameworkServiceLink = ({ linkText, provider, redirectUrl, button = false, ...props }) => {
   const [href, setHref] = useState()
 
   Utils.useOnMount(() => {
@@ -402,15 +399,13 @@ export const FrameworkServiceLink = ({ linkText, provider, redirectUrl, ...props
   })
 
   return !!href ?
-    h(Link, {
+    h(button ? ButtonPrimary : Link, {
       href,
-      style: { display: 'inline-flex', alignItems: 'center' },
+      ...(button ? {} : { style: { display: 'inline-flex', alignItems: 'center' } }),
       ...Utils.newTabLinkProps,
       ...props
-    }, [
-      linkText,
-      icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })
-    ]) : h(Fragment, [linkText])
+    }, [linkText, icon('pop-out', { size: 12, style: { marginLeft: '0.2rem' } })]) :
+    h(Fragment, [linkText])
 }
 
 export const UnlinkFenceAccount = ({ linkText, provider }) => {
@@ -564,6 +559,6 @@ export const ClipboardButton = ({ text, onClick, ...props }) => {
   }, [icon(copied ? 'check' : 'copy-to-clipboard')])
 }
 
-export const HeaderRenderer = ({ name, sort, onSort, style, ...props }) => h(MiniSortable, { sort, field: name, onSort }, [
-  div({ style: { fontWeight: 600, ...style }, ...props }, [Utils.normalizeLabel(name)])
+export const HeaderRenderer = ({ name, label, sort, onSort, style, ...props }) => h(MiniSortable, { sort, field: name, onSort }, [
+  div({ style: { fontWeight: 600, ...style }, ...props }, [label || Utils.normalizeLabel(name)])
 ])
