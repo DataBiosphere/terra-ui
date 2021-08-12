@@ -516,9 +516,9 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
 
     onSuccess()
   })
-
   // Helper functions -- end
 
+  // Lifecycle
   Utils.useOnMount(() => _.flow(
     withErrorReporting('Error loading cloud environment'),
     Utils.withBusyState(setLoading)
@@ -565,6 +565,8 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
 
     setSelectedLeoImage(getSelectedImage())
     setLeoImages(filteredNewLeoImages)
+    console.log('useOnMount: filteredNewLeoImages:')
+    console.log(filteredNewLeoImages)
     setCurrentRuntimeDetails(currentRuntimeDetails)
     setCurrentPersistentDiskDetails(currentPersistentDiskDetails)
     setCustomEnvImage(!foundImage ? imageUrl : '')
@@ -650,6 +652,8 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
   }
 
   const renderApplicationConfigurationSection = () => {
+    console.log(`renderApplicationConfigurationSection: leoImages:`)
+    console.log(leoImages)
     return div({ style: styles.whiteBoxContainer }, [
       h(IdContainer, [
         id => h(Fragment, [
@@ -1138,6 +1142,13 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
   }
 
   const renderImageSelect = ({ includeCustom, ...props }) => {
+    console.log(`renderImageSelect: leoImages:`)
+    console.log(leoImages)
+    const getImages = predicate => _.flow(
+      _.filter(predicate),
+      _.map(({ label, image }) => ({ label, value: image }))
+    )(leoImages)
+
     return h(GroupedSelect, {
       ...props,
       maxMenuHeight: '25rem',
@@ -1153,16 +1164,15 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
       options: [
         {
           label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
-          options: _.map(({ label, image }) => ({ label, value: image }),
-            _.filter(({ isCommunity, isRStudio }) => (!isCommunity && !isRStudio), leoImages))
+          options: getImages(({ isCommunity, isRStudio }) => (!isCommunity && !isRStudio))
         },
         {
           label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
-          options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isCommunity }) => isCommunity, leoImages))
+          options: getImages(_.get(['isCommunity']))
         },
         {
           label: 'COMMUNITY-MAINTAINED RSTUDIO ENVIRONMENTS (verified partners)',
-          options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isRStudio }) => isRStudio, leoImages))
+          options: getImages(_.get(['isRStudio']))
         },
         ...(includeCustom ? [{
           label: 'OTHER ENVIRONMENTS',
