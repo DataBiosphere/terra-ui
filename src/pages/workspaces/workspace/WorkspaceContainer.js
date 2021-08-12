@@ -233,7 +233,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
       cachedWorkspace :
       undefined
-    const [googleProject, setGoogleProject] = useState(workspace ? workspace.workspace.googleProject : undefined)
+    const [googleProject, setGoogleProject] = useState(workspace?.workspace.googleProject)
     const prevGoogleProject = Utils.usePrevious(googleProject)
     const { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks } = useCloudEnvironmentPolling(googleProject)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
