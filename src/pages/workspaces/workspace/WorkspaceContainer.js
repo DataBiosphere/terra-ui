@@ -237,7 +237,10 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const prevGoogleProject = Utils.usePrevious(googleProject)
     const { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks } = useCloudEnvironmentPolling(googleProject)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
-    googleProject !== prevGoogleProject && refreshRuntimes() && refreshApps()
+    if (googleProject !== prevGoogleProject) {
+      refreshRuntimes()
+      refreshApps()
+    }
 
     const refreshWorkspace = _.flow(
       withErrorReporting('Error loading workspace'),
