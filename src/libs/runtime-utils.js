@@ -2,14 +2,20 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, input, label } from 'react-hyperscript-helpers'
 import { IdContainer } from 'src/components/common'
-import { cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, machineTypes, monthlyStoragePrice, storagePrice } from 'src/data/machines'
+import {
+  cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, monthlyStoragePrice, storagePrice
+} from 'src/data/machines'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-export const DEFAULT_DISK_SIZE = 50
-export const DEFAULT_BOOT_DISK_SIZE = 50
+export const DEFAULT_DATAPROC_DISK_SIZE = 60 // For both main and worker machine disks. Dataproc clusters don't have persistent disks.
+export const DEFAULT_GCE_BOOT_DISK_SIZE = 70 // GCE boot disk size is not customizable by users. We use this for cost estimate calculations only.
+export const DEFAULT_GCE_PERSISTENT_DISK_SIZE = 50
+
+export const DEFAULT_GPU_TYPE = 'nvidia-tesla-t4'
+export const DEFAULT_NUM_GPUS = 1
 
 export const usableStatuses = ['Updating', 'Running']
 
@@ -26,21 +32,28 @@ export const normalizeRuntimeConfig = ({
   return {
     cloudService: cloudService || cloudServices.GCE,
     masterMachineType: masterMachineType || machineType || getDefaultMachineType(isDataproc),
-    masterDiskSize: masterDiskSize || diskSize || DEFAULT_DISK_SIZE,
+    masterDiskSize: masterDiskSize || diskSize || (isDataproc ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE),
     numberOfWorkers: (isDataproc && numberOfWorkers) || 0,
     numberOfPreemptibleWorkers: (isDataproc && numberOfWorkers && numberOfPreemptibleWorkers) || 0,
     workerMachineType: (isDataproc && numberOfWorkers && workerMachineType) || defaultDataprocMachineType,
-    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || DEFAULT_DISK_SIZE,
-    // One caveact with using DEFAULT_BOOT_DISK_SIZE here is this over-estimates old GCE runtimes without PD by 1 cent
+    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || DEFAULT_DATAPROC_DISK_SIZE,
+    // One caveat with using DEFAULT_BOOT_DISK_SIZE here is this over-estimates old GCE runtimes without PD by 1 cent
     // because those runtimes do not have a separate boot disk. But those old GCE runtimes are more than 1 year old if they exist.
     // Hence, we're okay with this caveat.
-    bootDiskSize: bootDiskSize || DEFAULT_BOOT_DISK_SIZE
+    bootDiskSize: bootDiskSize || DEFAULT_GCE_BOOT_DISK_SIZE
   }
 }
 
 export const findMachineType = name => {
   return _.find({ name }, machineTypes) || { name, cpu: '?', memory: '?', price: NaN, preemptiblePrice: NaN }
 }
+
+export const getValidGpuTypes = (numCpus, mem) => {
+  const validGpuTypes = _.filter(({ maxNumCpus, maxMem }) => numCpus <= maxNumCpus && mem <= maxMem, gpuTypes)
+  return validGpuTypes || { name: '?', type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
+}
+
+const gpuCost = (gpuType, numGpus) => _.find({ type: gpuType, numGpus }, gpuTypes)?.price || NaN
 
 const dataprocCost = (machineType, numInstances) => {
   const { cpu: cpuPrice } = findMachineType(machineType)
@@ -51,13 +64,15 @@ const dataprocCost = (machineType, numInstances) => {
 export const runtimeConfigBaseCost = config => {
   const {
     cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize
-  } = normalizeRuntimeConfig(
-    config)
+  } = normalizeRuntimeConfig(config)
+
+  const isDataproc = cloudService === cloudServices.DATAPROC
 
   return _.sum([
     (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice,
-    cloudService === cloudServices.DATAPROC && (dataprocCost(masterMachineType, 1) + dataprocCost(workerMachineType, numberOfWorkers)),
-    bootDiskSize * storagePrice
+    isDataproc ?
+      (dataprocCost(masterMachineType, 1) + dataprocCost(workerMachineType, numberOfWorkers)) :
+      (bootDiskSize * storagePrice)
   ])
 }
 
@@ -67,6 +82,8 @@ export const runtimeConfigCost = config => {
   const { price: masterPrice } = findMachineType(masterMachineType)
   const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
   const numberOfStandardVms = 1 + numberOfWorkers // 1 is for the master VM
+  const gpuConfig = config?.gpuConfig
+  const gpuEnabled = cloudService === cloudServices.GCE && !!gpuConfig
 
   return _.sum([
     masterPrice,
@@ -74,6 +91,7 @@ export const runtimeConfigCost = config => {
     numberOfPreemptibleWorkers * preemptiblePrice,
     numberOfPreemptibleWorkers * workerDiskSize * storagePrice,
     cloudService === cloudServices.DATAPROC && dataprocCost(workerMachineType, numberOfPreemptibleWorkers),
+    gpuEnabled && gpuCost(gpuConfig.gpuType, gpuConfig.numOfGpus),
     ephemeralExternalIpAddressCost({ numStandardVms: numberOfStandardVms, numPreemptibleVms: numberOfPreemptibleWorkers }),
     runtimeConfigBaseCost(config)
   ])
@@ -153,7 +171,7 @@ export const trimRuntimesOldestFirst = _.flow(
   _.sortBy('auditInfo.createdDate')
 )
 
-export const currentRuntime = runtimes => {
+export const getCurrentRuntime = runtimes => {
   // Status note: undefined means still loading, null means no runtime
   return !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || null)
 }
@@ -167,7 +185,7 @@ export const machineCost = machineType => {
   return _.find(knownMachineType => knownMachineType.name === machineType, machineTypes).price
 }
 
-export const currentApp = _.flow(trimAppsOldestFirst, _.last)
+export const getCurrentApp = _.flow(trimAppsOldestFirst, _.last)
 
 export const currentAppIncludingDeleting = _.flow(_.sortBy('auditInfo.createdDate'), _.last)
 
@@ -196,18 +214,41 @@ export const isCurrentGalaxyDiskDetaching = apps => {
   return currentGalaxyApp && _.includes(currentGalaxyApp.status, ['DELETING', 'PREDELETING'])
 }
 
-export const collapsedRuntimeStatus = runtime => {
-  return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status) // NOTE: preserves null vs undefined
+export const getGalaxyCostTextChildren = (app, galaxyDataDisks) => {
+  const dataDisk = currentAttachedDataDisk(app, galaxyDataDisks)
+  return app ?
+    [getConvertedAppStatus(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``] : ['None']
 }
 
 export const isAppDeletable = app => _.includes(app?.status, ['RUNNING', 'ERROR'])
 
-export const convertedAppStatus = appStatus => {
+export const getConvertedRuntimeStatus = runtime => {
+  return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status) // NOTE: preserves null vs undefined
+}
+
+export const getDisplayRuntimeStatus = status => Utils.switchCase(status, ['Starting', () => 'Resuming'],
+  ['Stopping', () => 'Pausing'],
+  ['Stopped', () => 'Paused'],
+  [Utils.DEFAULT, () => status])
+
+
+export const getConvertedAppStatus = appStatus => {
   return Utils.switchCase(_.upperCase(appStatus),
-    ['STOPPED', () => _.capitalize('PAUSED')],
-    ['STOPPING', () => _.capitalize('PAUSING')],
-    ['STARTING', () => _.capitalize('RESUMING')],
+    ['STOPPED', () => 'Paused'],
+    ['STOPPING', () => 'Pausing'],
+    ['STARTING', () => 'Resuming'],
+    ['PRESTARTING', () => 'Resuming'],
+    ['PRESTOPPING', () => 'Pausing'],
     [Utils.DEFAULT, () => _.capitalize(appStatus)]
+  )
+}
+
+export const displayNameForGpuType = type => {
+  return Utils.switchCase(type,
+    ['nvidia-tesla-k80', () => 'NVIDIA Tesla K80'],
+    ['nvidia-tesla-p4', () => 'NVIDIA Tesla P4'],
+    ['nvidia-tesla-v100', () => 'NVIDIA Tesla V100'],
+    [Utils.DEFAULT, () => 'NVIDIA Tesla T4']
   )
 }
 
@@ -230,4 +271,7 @@ export const RadioBlock = ({ labelText, children, name, checked, onChange, style
     ])])
   ])
 }
+
+export const getIsAppBusy = app => app?.status !== 'RUNNING' && _.includes('ING', app?.status)
+export const getIsRuntimeBusy = runtime => runtime?.status !== 'Running' && _.includes('ing', runtime?.status)
 

@@ -1,9 +1,45 @@
 import { faClipboard, faClock, faClone, faEye, faFileAlt, faFolder, faFolderOpen, faListAlt, faTimesCircle } from '@fortawesome/free-regular-svg-icons'
 import {
-  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faClock as faClockSolid, faCloud, faCog, faCreditCard, faDownload,
-  faEllipsisV, faExclamationCircle, faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock, faLongArrowAltDown,
-  faLongArrowAltUp, faMinusCircle, faMoneyCheckAlt, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle, faSearch, faShareAlt, faSquare as faSquareSolid,
-  faTachometerAlt, faTasks, faTerminal, faTrashAlt, faVirus
+  faArrowLeft,
+  faArrowRight,
+  faBan,
+  faCaretDown,
+  faChalkboard,
+  faCheck,
+  faCheckCircle,
+  faCircle,
+  faClock as faClockSolid,
+  faCloud,
+  faCog,
+  faCreditCard,
+  faDownload,
+  faEllipsisV,
+  faExclamationCircle,
+  faExclamationTriangle,
+  faFileInvoiceDollar,
+  faGripHorizontal,
+  faInfoCircle,
+  faLock,
+  faLongArrowAltDown,
+  faLongArrowAltUp,
+  faMinusCircle,
+  faMoneyCheckAlt,
+  faPause,
+  faPen,
+  faPlay,
+  faPlus,
+  faPlusCircle,
+  faQuestion,
+  faQuestionCircle,
+  faRocket,
+  faSearch,
+  faShareAlt,
+  faSquare as faSquareSolid,
+  faTachometerAlt,
+  faTasks,
+  faTerminal,
+  faTrashAlt,
+  faVirus
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
@@ -14,6 +50,7 @@ import { ReactComponent as arrowLeftRegular } from 'src/icons/arrow-left-regular
 import { ReactComponent as bars } from 'src/icons/bars-light.svg'
 import { ReactComponent as books } from 'src/icons/books-solid.svg'
 import { ReactComponent as cardMenuIcon } from 'src/icons/card-menu-icon.svg'
+import { ReactComponent as faCloudBolt } from 'src/icons/cloud-compute.svg'
 import { ReactComponent as cloudUpload } from 'src/icons/cloud-upload-solid.svg'
 import { ReactComponent as columnGrabber } from 'src/icons/column_grabber.svg'
 import { ReactComponent as copySolid } from 'src/icons/copy-solid.svg'
@@ -52,9 +89,11 @@ const iconDict = {
   caretDown: fa(faCaretDown),
   chalkboard: fa(faChalkboard),
   check: fa(faCheck),
+  circle: fa(faCircle),
   clock: fa(faClock),
   clockSolid: fa(faClockSolid),
   cloud: fa(faCloud),
+  cloudBolt: custom(faCloudBolt),
   cog: fa(faCog),
   columnGrabber: custom(columnGrabber),
   copy: fa(faClone),
@@ -93,6 +132,7 @@ const iconDict = {
   purchaseOrder: fa(faFileInvoiceDollar),
   question: fa(faQuestion),
   renameIcon: custom(renameIcon),
+  rocket: fa(faRocket),
   search: fa(faSearch),
   share: fa(faShareAlt),
   squareLight: custom(squareLight),

@@ -9,7 +9,7 @@ import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { getLocalPref } from 'src/libs/prefs'
-import { collapsedRuntimeStatus, usableStatuses } from 'src/libs/runtime-utils'
+import { getConvertedRuntimeStatus, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -30,7 +30,7 @@ export const RuntimeKicker = ({ runtime, refreshRuntimes, onNullRuntime }) => {
     while (!signal.aborted) {
       const currentRuntime = getRuntime()
       const { googleProject, runtimeName } = currentRuntime || {}
-      const status = collapsedRuntimeStatus(currentRuntime)
+      const status = getConvertedRuntimeStatus(currentRuntime)
 
       if (status === 'Stopped') {
         setBusy(true)
@@ -79,7 +79,7 @@ export const PlaygroundHeader = ({ children }) => {
 }
 
 export const RuntimeStatusMonitor = ({ runtime, onRuntimeStoppedRunning = _.noop, onRuntimeStartedRunning = _.noop }) => {
-  const currentStatus = collapsedRuntimeStatus(runtime)
+  const currentStatus = getConvertedRuntimeStatus(runtime)
   const prevStatus = Utils.usePrevious(currentStatus)
 
   useEffect(() => {
@@ -145,10 +145,11 @@ export const GalaxyWarning = () => {
   ])
 }
 
-export const GalaxyLaunchButton = ({ app, onClick, ...props }) => {
+export const GalaxyLaunchButton = ({ app, key = app.status, onClick, ...props }) => {
   const cookieReady = Utils.useStore(cookieReadyStore)
   return h(ButtonPrimary, {
-    disabled: !cookieReady,
+    disabled: !cookieReady || _.lowerCase(app.status) !== 'running',
+    // toolTip: _.lowerCase(app.status) == 'running' ? 'Cannot launch galaxy that is not Running' : '',
     href: app.proxyUrls.galaxy,
     onClick: () => {
       onClick()

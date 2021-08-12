@@ -68,9 +68,13 @@ export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput,
   }
 })
 
-export const tools = { rstudio: { label: 'RStudio', ext: 'Rmd' }, jupyter: { label: 'Jupyter', ext: 'ipynb' } }
+export const tools = {
+  RStudio: { label: 'RStudio', ext: 'Rmd', imageIds: ['RStudio'], defaultImageId: 'RStudio' },
+  Jupyter: { label: 'Jupyter', ext: 'ipynb', imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk' },
+  galaxy: { label: 'galaxy' }
+}
 
-const toolToExtensionMap = { [tools.rstudio.label]: tools.rstudio.ext, [tools.jupyter.label]: tools.jupyter.ext }
+const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }
 
 export const getTool = fileName => _.invert(toolToExtensionMap)[getExtension(fileName)]
 
@@ -83,11 +87,6 @@ const baseNotebook = {
 }
 
 const notebookData = {
-  python2: _.merge({
-    metadata: {
-      kernelspec: { display_name: 'Python 2', language: 'python', name: 'python2' }
-    }
-  }, baseNotebook),
   python3: _.merge({
     metadata: {
       kernelspec: { display_name: 'Python 3', language: 'python', name: 'python3' }
@@ -160,7 +159,7 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, namespace, b
         getOptionLabel: ({ value }) => _.startCase(value),
         value: notebookKernel,
         onChange: ({ value: notebookKernel }) => setNotebookKernel(notebookKernel),
-        options: ['python2', 'python3', 'r']
+        options: ['python3', 'r']
       })
     ])]),
     creating && spinnerOverlay

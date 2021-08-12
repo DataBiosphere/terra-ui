@@ -141,8 +141,8 @@ const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
 
-const nbName = name => encodeURIComponent(`notebooks/${name}.${tools.jupyter.ext}`)
-const rName = name => encodeURIComponent(`notebooks/${name}.${tools.rstudio.ext}`)
+const nbName = name => encodeURIComponent(`notebooks/${name}.${tools.Jupyter.ext}`)
+const rName = name => encodeURIComponent(`notebooks/${name}.${tools.RStudio.ext}`)
 
 // %23 = '#', %2F = '/'
 const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ? '' : '%23workflow%2F'}${encodeURIComponent(path)}/versions`
@@ -448,6 +448,24 @@ const Billing = signal => ({
   createProject: async (projectName, billingAccount) => {
     const res = await fetchRawls('billing/v2',
       _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }]))
+    return res
+  },
+
+  changeBillingAccount: async ({ billingProjectName, newBillingAccountName }) => {
+    const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
+      _.mergeAll([
+        authOpts(), { signal, method: 'PUT' },
+        jsonBody({ billingAccount: newBillingAccountName })
+      ]))
+    return res
+  },
+
+  updateSpendConfiguration: async ({ billingProjectName, datasetGoogleProject, datasetName }) => {
+    const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/spendReportConfiguration`,
+      _.mergeAll([
+        authOpts(), { signal, method: 'PUT' },
+        jsonBody({ datasetGoogleProject, datasetName })
+      ]))
     return res
   },
 
@@ -918,16 +936,7 @@ const Buckets = signal => ({
       _.merge(authOpts(await saToken(namespace)), { signal })
     )
     const { items } = await res.json()
-    return _.filter(({ name }) => name.endsWith(`.${tools.jupyter.ext}`), items)
-  },
-
-  listRmds: async (namespace, name) => {
-    const res = await fetchBuckets(
-      `storage/v1/b/${name}/o?prefix=notebooks/`,
-      _.merge(authOpts(await saToken(namespace)), { signal })
-    )
-    const { items } = await res.json()
-    return _.filter(({ name }) => name.endsWith(`.${tools.rstudio.ext}`), items)
+    return _.filter(({ name }) => name.endsWith(`.${tools.Jupyter.ext}`), items)
   },
 
   listAnalyses: async (namespace, name) => {
@@ -936,7 +945,7 @@ const Buckets = signal => ({
       _.merge(authOpts(await saToken(namespace)), { signal })
     )
     const { items } = await res.json()
-    return _.filter(({ name }) => name.endsWith(`.${tools.rstudio.ext}`) || name.endsWith(`.${tools.jupyter.ext}`), items)
+    return _.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`) || name.endsWith(`.${tools.Jupyter.ext}`), items)
   },
 
   list: async (namespace, bucket, prefix) => {
@@ -1044,13 +1053,13 @@ const Buckets = signal => ({
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
     const calhounPath = Utils.switchCase(toolLabel,
-      [tools.jupyter.label, () => 'api/convert'], [tools.rstudio.label, () => 'api/convert/rmd'])
+      [tools.Jupyter.label, () => 'api/convert'], [tools.RStudio.label, () => 'api/convert/rmd'])
 
     const mimeType = Utils.switchCase(toolLabel,
-      [tools.jupyter.label, () => 'application/x-ipynb+json'], [tools.rstudio.label, () => 'text/plain'])
+      [tools.Jupyter.label, () => 'application/x-ipynb+json'], [tools.RStudio.label, () => 'text/plain'])
 
     const encodeFileName = n => Utils.switchCase(toolLabel,
-      [tools.jupyter.label, () => nbName(getDisplayName(n))], [tools.rstudio.label, () => rName(getDisplayName(n))])
+      [tools.Jupyter.label, () => nbName(getDisplayName(n))], [tools.RStudio.label, () => rName(getDisplayName(n))])
 
     const copy = async (newName, newBucket, clearMetadata) => {
       const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
