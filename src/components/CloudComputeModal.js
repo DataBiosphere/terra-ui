@@ -128,10 +128,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
   const shouldUsePersistentDisk = () => !sparkMode && (!currentRuntimeDetails?.runtimeConfig.diskSize || upgradeDiskSelected)
   const isDataproc = (sparkMode, runtimeConfig) => !sparkMode && !runtimeConfig?.diskSize
 
-  const googleProject = getWorkspaceObj()
-
   // State -- begin
-
   const [showDebugger, setShowDebugger] = useState(false)
   const [loading, setLoading] = useState(false)
   const [currentRuntimeDetails, setCurrentRuntimeDetails] = useState(() => getCurrentRuntime(runtimes))
@@ -165,7 +162,6 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
     gpuType: gpuConfig?.gpuType || DEFAULT_GPU_TYPE,
     numGpus: gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS
   })
-
   // State -- end
 
   const isPersistentDisk = shouldUsePersistentDisk()
@@ -192,7 +188,6 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
   )
 
   // Helper functions -- begin
-
   const updateComputeConfig = (key, value) => setComputeConfig(_.set(key, value))
 
   const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
@@ -1310,9 +1305,9 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
       ])
     ])
   }
-
   // Render functions -- end
 
+  // Render
   return h(Fragment, [
     Utils.switchCase(viewMode,
       ['packages', renderPackages],

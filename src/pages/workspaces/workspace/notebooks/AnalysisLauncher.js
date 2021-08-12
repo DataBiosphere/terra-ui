@@ -5,11 +5,11 @@ import { Fragment, useRef, useState } from 'react'
 import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
+import { CloudComputeModal } from 'src/components/CloudComputeModal'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NewRuntimeModal } from 'src/components/NewRuntimeModal'
-import { CloudComputeModal } from 'src/components/CloudComputeModal'
 import {
   AnalysisDuplicator,
   findPotentialNotebookLockers,
