@@ -4,6 +4,7 @@ import { h } from 'react-hyperscript-helpers'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { DelayedSearchInput } from 'src/components/input'
 import { libraryTopMatter } from 'src/components/library-common'
+import {textMatch} from "src/libs/utils";
 
 
 const DataBrowser = () => {
@@ -13,12 +14,8 @@ const DataBrowser = () => {
 
   const filterBySearch = items => {
     const lowerSearch = _.toLower(searchFilter)
-    return _.isEmpty(lowerSearch) ?
-      items :
-      _.filter(item => _.includes(lowerSearch, item), items)
+    return _.isEmpty(lowerSearch) ? items : _.filter(item => textMatch(searchFilter, item), items)
   }
-
-  const filteredItems = filterBySearch(items)
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('browse & explore'),
@@ -29,7 +26,7 @@ const DataBrowser = () => {
       value: searchFilter,
       onChange: setSearchFilter
     }),
-    h(Fragment, filteredItems)
+    h(Fragment, filterBySearch(items))
   ])
 }
 
