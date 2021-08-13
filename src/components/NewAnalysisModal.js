@@ -23,16 +23,16 @@ import validate from 'validate.js'
 
 
 const titleId = 'new-analysis-modal-title'
-const NEW_ANALYSIS_MODE = 'NEW_ARTIFACT'
-const NEW_ENVIRONMENT_MODE = 'NEW_ENVIRONMENT'
+const newAnalysisMode = Symbol('new-artifact')
+const newEnvironmentMode = Symbol('new-environment')
 
 export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
   ({ isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, refreshAnalyses, analyses, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
     const [viewMode, setViewMode] = useState(undefined)
     const [busy, setBusy] = useState()
     const [notebookKernel, setNotebookKernel] = useState('python3')
-    const [nameTouched, setNameTouched] = useState(false)
     const [analysisName, setAnalysisName] = useState('')
+    const prevAnalysisName = Utils.usePrevious(analysisName)
     const [currentTool, setCurrentTool] = useState(undefined)
 
 
@@ -47,43 +47,42 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       setNotebookKernel('python3')
     }
 
+    // The intended flow is to call this without a viewmode, and have it intelligently figure out the next step for you
+    // Passing a viewmode is a way to force your next modal
     const enterNextViewMode = (currentTool, baseViewMode = viewMode) => {
       const doesCloudEnvForToolExist = currentRuntimeTool === currentTool || (currentApp && currentTool === tools.galaxy.label)
 
       Utils.switchCase(baseViewMode,
-        [NEW_ANALYSIS_MODE, () => Utils.cond(
+        [newAnalysisMode, () => Utils.cond(
           [doesCloudEnvForToolExist, () => {
             resetView()
             onSuccess()
           }],
-          [!doesCloudEnvForToolExist && currentRuntime && isRuntimeDeletable(currentRuntime), () => setViewMode(NEW_ENVIRONMENT_MODE)],
-          [!doesCloudEnvForToolExist && !currentRuntime, () => setViewMode(NEW_ENVIRONMENT_MODE)],
+          [!doesCloudEnvForToolExist && currentRuntime && isRuntimeDeletable(currentRuntime), () => setViewMode(newEnvironmentMode)],
+          [!doesCloudEnvForToolExist && !currentRuntime, () => setViewMode(newEnvironmentMode)],
           [!doesCloudEnvForToolExist && currentRuntime && !isRuntimeDeletable(currentRuntime), () => {
             resetView()
             onSuccess()
           }]
         )],
-        [NEW_ENVIRONMENT_MODE, () => {
+        [newEnvironmentMode, () => {
           resetView()
           onSuccess()
         }],
         [Utils.DEFAULT, () => Utils.cond(
-          [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(NEW_ANALYSIS_MODE)],
-          [currentTool === tools.galaxy.label && !currentApp, () => setViewMode(NEW_ENVIRONMENT_MODE)],
-          [currentTool === tools.galaxy.label && currentApp, () => resetView()] //This shouldn't be possible, as the button is disabled in this case
+          [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(newAnalysisMode)],
+          [currentTool === tools.galaxy.label && !currentApp, () => setViewMode(newEnvironmentMode)],
+          [currentTool === tools.galaxy.label && currentApp, () => {
+            console.error('This shouldn\'t be possible, as you aren\'t allowed to create a galaxy analysis when one exists; the button should be disabled')
+            resetView()
+          }]
         )]
       )
     }
 
-    const setPreviousViewMode = () => Utils.switchCase(viewMode,
-      [NEW_ANALYSIS_MODE, () => resetView()],
-      [NEW_ENVIRONMENT_MODE, () => resetView()],
-      [Utils.DEFAULT, () => undefined]
-    )
-
     const getView = () => Utils.switchCase(viewMode,
-      [NEW_ANALYSIS_MODE, renderCreateAnalysis],
-      [NEW_ENVIRONMENT_MODE, getNewEnvironmentView],
+      [newAnalysisMode, renderCreateAnalysis],
+      [newEnvironmentMode, getNewEnvironmentView],
       [Utils.DEFAULT, renderSelectAnalysisBody])
 
     const getNewEnvironmentView = () => Utils.switchCase(currentTool,
@@ -155,7 +154,7 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
         onDropAccepted: files => {
           const tool = getTool(files.pop().path)
           setCurrentTool(tool)
-          currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== tool ? onSuccess() : enterNextViewMode(tool, NEW_ANALYSIS_MODE)
+          currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== tool ? onSuccess() : enterNextViewMode(tool, newAnalysisMode)
           uploadFiles()
         }
       }, [() => div({
@@ -194,12 +193,11 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
         h(IdContainer, [id => h(Fragment, [
           h(FormLabel, { htmlFor: id, required: true }, [`Name of the ${getArtifactLabel(toolLabel)}`]),
           analysisNameInput({
-            error: Utils.summarizeErrors(nameTouched && errors?.analysisName),
+            error: Utils.summarizeErrors(prevAnalysisName !== analysisName && errors?.analysisName),
             inputProps: {
               id, value: analysisName,
               onChange: v => {
                 setAnalysisName(v)
-                setNameTouched(true)
               }
             }
           })
@@ -246,8 +244,8 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
     }
 
     const width = Utils.switchCase(viewMode,
-      [NEW_ENVIRONMENT_MODE, () => 675],
-      [NEW_ANALYSIS_MODE, () => 450],
+      [newEnvironmentMode, () => 675],
+      [newAnalysisMode, () => 450],
       [Utils.DEFAULT, () => 450]
     )
 
@@ -261,7 +259,7 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
           resetView()
           onDismiss()
         },
-        onPrevious: () => setPreviousViewMode()
+        onPrevious: () => !!viewMode && resetView()
       }),
       viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
       getView(),
