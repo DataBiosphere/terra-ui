@@ -179,29 +179,26 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
             highlight: _.includes(section, selectedSections)
           })
         ]) :
-        h(SidebarCollapser,
-          {
-            key: section.name,
-            title: section.name,
-            onClick: () => setCollapsedSections(_.xor([section], collapsedSections)),
-            isOpened: !_.includes(section, collapsedSections)
-          },
-          [
-            ..._.map(label => {
-              const tag = _.toLower(label)
-              return h(Clickable, {
-                style: { display: 'flex', alignItems: 'baseline', margin: '0.5rem 0' },
-                onClick: () => onTagFilter(tag)
-              }, [
-                div({ style: { flex: 1 } }, [label]),
-                h(Pill, {
-                  count: _.size(workspacesByTag[tag]),
-                  highlight: _.includes(tag, selectedTags)
-                })
-              ])
-            }, section.labels)
-          ]
-        )
+        h(SidebarCollapser, {
+          key: section.name,
+          title: section.name,
+          onClick: () => setCollapsedSections(_.xor([section], collapsedSections)),
+          isOpened: !_.includes(section, collapsedSections)
+        }, [
+          ..._.map(label => {
+            const tag = _.toLower(label)
+            return h(Clickable, {
+              style: { display: 'flex', alignItems: 'baseline', margin: '0.5rem 0' },
+              onClick: () => onTagFilter(tag)
+            }, [
+              div({ style: { flex: 1 } }, [label]),
+              h(Pill, {
+                count: _.size(workspacesByTag[tag]),
+                highlight: _.includes(tag, selectedTags)
+              })
+            ])
+          }, section.labels)
+        ])
     }, sections)
   ])
 }

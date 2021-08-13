@@ -40,7 +40,6 @@ const DashboardPublic = ({ namespace, name }) => {
   })
 
   const workspace = _.find({ namespace, name }, showcaseList)
-  const description = !workspace ? '' : workspace['description']
 
   return h(FooterWrapper, [
     h(TopBar, [
@@ -55,7 +54,7 @@ const DashboardPublic = ({ namespace, name }) => {
         div({ style: Style.dashboard.header }, [
           'About the workspace'
         ]),
-        !!description && h(MarkdownViewer, [description])
+        workspace?.description && h(MarkdownViewer, [workspace.description])
       ]),
       div({ style: Style.dashboard.rightBox }, [
         div({ style: signInStyle }, [
