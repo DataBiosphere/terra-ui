@@ -4,7 +4,7 @@ import { h } from 'react-hyperscript-helpers'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { DelayedSearchInput } from 'src/components/input'
 import { libraryTopMatter } from 'src/components/library-common'
-import {textMatch} from "src/libs/utils";
+import { textMatch } from 'src/libs/utils'
 
 
 const DataBrowser = () => {
