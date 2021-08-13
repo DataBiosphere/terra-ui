@@ -21,7 +21,7 @@ const DataBrowser = () => {
     libraryTopMatter('browse & explore'),
     h(DelayedSearchInput, {
       style: { flex: 1, marginLeft: '1rem' },
-      'aria-label': 'Search Featured Data Collections',
+      'aria-label': 'Search Data Collections',
       placeholder: 'Search Name or Description',
       value: searchFilter,
       onChange: setSearchFilter
