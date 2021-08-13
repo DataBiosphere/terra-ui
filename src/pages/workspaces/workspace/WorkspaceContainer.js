@@ -56,10 +56,9 @@ const WorkspaceTabs = ({
       tabNames: _.map('name', tabs),
       getHref: currentTab => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name })
     }, [
-      h(WorkspaceMenuTrigger, { canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace },
-        [
-          h(Clickable, { 'aria-label': 'Workspace menu', ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
-        ]
+      h(WorkspaceMenuTrigger, { canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace }, [
+        h(Clickable, { 'aria-label': 'Workspace menu', ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
+      ]
       )
     ])
   ])
@@ -71,9 +70,6 @@ const WorkspaceContainer = ({
   const [deletingWorkspace, setDeletingWorkspace] = useState(false)
   const [cloningWorkspace, setCloningWorkspace] = useState(false)
   const [sharingWorkspace, setSharingWorkspace] = useState(false)
-
-  const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-  const canShare = !!workspace?.canShare
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -114,8 +110,7 @@ const WorkspaceContainer = ({
             children
           ]),
           workspace && h(ContextBar, {
-            workspace, isOwner, canShare, setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace,
-            canCompute: !!(workspace?.canCompute || runtimes?.length),
+            workspace, setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace,
             apps, galaxyDataDisks, refreshApps,
             runtimes, persistentDisks, refreshRuntimes
           })

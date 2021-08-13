@@ -32,14 +32,18 @@ const contextBarStyles = {
   hover: { backgroundColor: colors.accent(0.4) }
 }
 
-export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, isOwner, canShare, canCompute, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
+export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
+
+
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentApp = getCurrentApp(apps)
   const currentRuntimeTool = currentRuntime?.labels?.tool
-
   const isTerminalEnabled = currentRuntimeTool === tools.Jupyter.label && currentRuntime && currentRuntime.status !== 'Error'
   const terminalLaunchLink = Nav.getLink('workspace-application-launch', { namespace, name: workspaceName, application: 'terminal' })
+  const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
+  const canShare = !!workspace?.canShare
+  const canCompute = !!(workspace?.canCompute || runtimes?.length)
 
   const startCurrentRuntime = () => {
     const { googleProject, runtimeName } = currentRuntime
@@ -87,17 +91,16 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
     }),
     div({ style: Style.elements.contextBarContainer }, [
       div({ style: contextBarStyles.contextBarContainer }, [
-        h(WorkspaceMenuTrigger, { canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace },
-          [
-            h(Clickable, {
-              'aria-label': 'Menu',
-              style: contextBarStyles.contextBarButton,
-              hover: contextBarStyles.hover,
-              tooltipSide: 'left',
-              tooltip: 'Menu',
-              tooltipDelay: 100
-            }, [icon('ellipsis-v', { size: 24 })])
-          ]),
+        h(WorkspaceMenuTrigger, { canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace }, [
+          h(Clickable, {
+            'aria-label': 'Menu',
+            style: contextBarStyles.contextBarButton,
+            hover: contextBarStyles.hover,
+            tooltipSide: 'left',
+            tooltip: 'Menu',
+            tooltipDelay: 100
+          }, [icon('ellipsis-v', { size: 24 })])
+        ]),
         h(Clickable, {
           style: { ...contextBarStyles.contextBarButton, flexDirection: 'column', justifyContent: 'center', padding: '.75rem' },
           hover: contextBarStyles.hover,
