@@ -48,10 +48,10 @@ const sidebarSections = [{
   labels: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI']
 }]
 
-const uniqueSidebarTags = _.flow([
+const uniqueSidebarTags = _.flow(
   _.flatMap(s => _.map(_.toLower, s.labels)),
   _.uniq
-])(sidebarSections)
+)(sidebarSections)
 
 const styles = {
   column: { marginRight: '1.5rem', flex: '1 1 0px', maxWidth: 415 },
@@ -147,10 +147,10 @@ const SidebarCollapser = ({ title, isOpened, onClick, children }) => {
   ])
 }
 
-const groupByFeaturedTags = workspaces => _.flow([
+const groupByFeaturedTags = workspaces => _.flow(
   _.map(tag => [tag, _.filter(w => _.includes(tag, w.tags.items), workspaces)]),
   _.fromPairs
-])(uniqueSidebarTags)
+)(uniqueSidebarTags)
 
 const Pill = ({ count, highlight }) => {
   return div({
@@ -184,21 +184,20 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
           title: section.name,
           onClick: () => setCollapsedSections(_.xor([section], collapsedSections)),
           isOpened: !_.includes(section, collapsedSections)
-        }, [
-          ..._.map(label => {
-            const tag = _.toLower(label)
-            return h(Clickable, {
-              style: { display: 'flex', alignItems: 'baseline', margin: '0.5rem 0' },
-              onClick: () => onTagFilter(tag)
-            }, [
-              div({ style: { flex: 1 } }, [label]),
-              h(Pill, {
-                count: _.size(workspacesByTag[tag]),
-                highlight: _.includes(tag, selectedTags)
-              })
-            ])
-          }, section.labels)
-        ])
+        }, [_.map(label => {
+          const tag = _.toLower(label)
+          return h(Clickable, {
+            key: label,
+            style: { display: 'flex', alignItems: 'baseline', margin: '0.5rem 0' },
+            onClick: () => onTagFilter(tag)
+          }, [
+            div({ style: { flex: 1 } }, [label]),
+            h(Pill, {
+              count: _.size(workspacesByTag[tag]),
+              highlight: _.includes(tag, selectedTags)
+            })
+          ])
+        }, section.labels)])
     }, sections)
   ])
 }
@@ -214,10 +213,9 @@ const Showcase = () => {
   const [searchFilter, setSearchFilter] = useState()
   const [sort, setSort] = useState('most recent')
 
-  const sortWorkspaces = Utils.cond(
-    [sort === 'most recent', () => _.orderBy(['created'], ['desc'])],
-    [sort === 'alphabetical', () => _.orderBy(w => _.toLower(_.trim(w.name)), ['asc'])],
-    () => _.identity
+  const sortWorkspaces = Utils.switchCase(sort,
+    ['most recent', () => _.orderBy(['created'], ['desc'])],
+    ['alphabetical', () => _.orderBy(w => _.toLower(_.trim(w.name)), ['asc'])]
   )
 
   Utils.useOnMount(() => {
@@ -226,20 +224,27 @@ const Showcase = () => {
 
       // Immediately lowercase the workspace tags so we don't have to think about it again.
       // Also pre-compute lower name and description.
-      const featuredWorkspaces = _.flow([
-        _.map(_.update(['tags', 'items'], _.map(_.toLower))),
-        _.map(workspace => ({ ...workspace, lowerName: _.toLower(workspace.name), lowerDescription: _.toLower(workspace.description) }))
-      ])(showcase)
+      const featuredWorkspaces = _.map(workspace => ({
+        ...workspace,
+        tags: _.update(['items'], _.map(_.toLower), workspace.tags),
+        lowerName: _.toLower(workspace.name), lowerDescription: _.toLower(workspace.description)
+      }), showcase)
 
       const workspacesByTag = _.omitBy(_.isEmpty, groupByFeaturedTags(featuredWorkspaces))
 
       // Trim items from the sidebar for which there aren't any featured workspaces.
       const activeTags = _.keys(workspacesByTag)
-      const activeSections = _.flow([
-        _.map(_.update(['labels'], labels => _.intersectionBy(_.toLower, labels, activeTags))),
-        _.map(section => ({ ...section, tags: _.map(_.toLower, section.labels) })),
+      const activeSections = _.flow(
+        _.map(section => {
+          const activeLabels = _.intersectionBy(_.toLower, section.labels, activeTags)
+          return {
+            ...section,
+            labels: activeLabels,
+            tags: _.map(_.toLower, activeLabels)
+          }
+        }),
         _.remove(section => _.isEmpty(section.labels))
-      ])(sidebarSections)
+      )(sidebarSections)
 
       setFeaturedList(featuredWorkspaces)
       setWorkspacesByTag(workspacesByTag)
@@ -268,11 +273,11 @@ const Showcase = () => {
       workspaces :
       _.filter(workspace => _.includes(lowerSearch, workspace.lowerName) || _.includes(lowerSearch, workspace.lowerDescription), workspaces)
   }
-  const filteredWorkspaces = _.flow([
+  const filteredWorkspaces = _.flow(
     filterBySections,
     filterByTags,
     filterByText
-  ])(featuredList)
+  )(featuredList)
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('featured workspaces'),
@@ -291,7 +296,10 @@ const Showcase = () => {
             div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
               div({ style: { flex: 1 } }),
               h(Link, {
-                onClick: () => setSelectedTags([])
+                onClick: () => {
+                  setSelectedSections([])
+                  setSelectedTags([])
+                }
               }, ['clear'])
             ])
           ]),
