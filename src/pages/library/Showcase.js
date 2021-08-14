@@ -97,6 +97,7 @@ const makeCard = variant => workspace => {
   const { namespace, name, created, description } = workspace
   return a({
     href: Nav.getLink('workspace-dashboard', { namespace, name }),
+    key: `${namespace}:${name}`,
     style: {
       backgroundColor: 'white',
       height: 175,
@@ -337,7 +338,7 @@ const Showcase = () => {
             })
           ]),
           div({ style: { marginLeft: '1rem', minWidth: 0 } }, [
-            ..._.map(makeCard(), sortWorkspaces(filteredWorkspaces))
+            _.map(makeCard(), sortWorkspaces(filteredWorkspaces))
           ])
         ])
       ])
