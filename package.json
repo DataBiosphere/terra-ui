@@ -63,14 +63,15 @@
     "preinstall": "node .hooks/check-engine-light.js",
     "setenv": "echo REACT_APP_VERSION=$(git rev-parse HEAD) REACT_APP_BUILD_TIMESTAMP=$(date -u \"+%s000\")",
     "start": "env $(yarn setenv) react-app-rewired start",
-    "test": "react-app-rewired test"
+    "test": "react-app-rewired test",
+    "postinstall": "husky install"
   },
   "devDependencies": {
     "babel-plugin-prismjs": "^2.1.0",
     "customize-cra": "^1.0.0",
     "eslint-plugin-lodash-fp": "^2.2.0-a1",
     "eslint-plugin-simple-import-sort": "^7.0.0",
-    "husky": "^4.3.8",
+    "husky": "^7.0.0",
     "react-app-rewire-hot-loader": "^2.0.1",
     "react-app-rewired": "^2.1.8",
     "react-hot-loader": "^4.13.0",
@@ -85,10 +86,5 @@
     "not ie <= 11",
     "not op_mini all"
   ],
-  "husky": {
-    "hooks": {
-      "pre-commit": ".hooks/pre-commit"
-    }
-  },
   "packageManager": "yarn@3.0.1"
 }
