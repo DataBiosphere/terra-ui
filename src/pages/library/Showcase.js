@@ -20,11 +20,11 @@ import {
   groupByFeaturedTags,
   NavItem,
   Pill,
-  SearchAndFilterTopLevelComponent,
+  SearchAndFilterComponent,
   Sidebar,
   SidebarCollapser,
   styles
-} from "src/pages/library/common";
+} from 'src/pages/library/common'
 
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
@@ -61,9 +61,6 @@ const Showcase = () => {
   const stateHistory = StateHistory.get()
   const [featuredList, setFeaturedList] = useState(stateHistory.featuredList)
 
-  const [workspacesByTag, setWorkspacesByTag] = useState({})
-  const [sections, setSections] = useState([])
-
   Utils.useOnMount(() => {
     const loadData = async () => {
       const showcase = await Ajax().Buckets.getShowcaseWorkspaces()
@@ -76,25 +73,7 @@ const Showcase = () => {
         lowerName: _.toLower(workspace.name), lowerDescription: _.toLower(workspace.description)
       }), showcase)
 
-      const workspacesByTag = _.omitBy(_.isEmpty, groupByFeaturedTags(featuredWorkspaces, sidebarSections))
-
-      // Trim items from the sidebar for which there aren't any featured workspaces.
-      const activeTags = _.keys(workspacesByTag)
-      const activeSections = _.flow(
-        _.map(section => {
-          const activeLabels = _.intersectionBy(_.toLower, section.labels, activeTags)
-          return {
-            ...section,
-            labels: activeLabels,
-            tags: _.map(_.toLower, activeLabels)
-          }
-        }),
-        _.remove(section => _.isEmpty(section.labels))
-      )(sidebarSections)
-
       setFeaturedList(featuredWorkspaces)
-      setWorkspacesByTag(workspacesByTag)
-      setSections(activeSections)
 
       // TODO: is this actually doing anything for us?
       StateHistory.update({ featuredWorkspaces })
@@ -103,7 +82,7 @@ const Showcase = () => {
     loadData()
   })
 
-  return SearchAndFilterTopLevelComponent(featuredList, workspacesByTag, sections, sidebarSections)
+  return SearchAndFilterComponent(featuredList, sidebarSections)
 }
 
 export const navPaths = [
