@@ -6,29 +6,12 @@ import { a, div, h, img } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
-import {
-  ButtonOutline,
-  ButtonPrimary,
-  Clickable, HeaderRenderer,
-  Link,
-  PageBox,
-  spinnerOverlay
-} from 'src/components/common'
+import { ButtonOutline, Clickable, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { NewAnalysisModal } from 'src/components/NewAnalysisModal'
-import {
-  AnalysisDeleter,
-  AnalysisDuplicator,
-  findPotentialNotebookLockers,
-  getDisplayName,
-  getFileName,
-  getTool,
-  notebookLockHash,
-  stripExtension,
-  tools
-} from 'src/components/notebook-utils'
+import { AnalysisDeleter, AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, notebookLockHash, stripExtension, tools } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ariaSort } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -359,19 +342,6 @@ const Analyses = _.flow(
           icon('plus', { size: 14, style: { color: colors.accent() } }),
           div({ style: { marginLeft: '0.5rem' } }, ['Create'])
         ]),
-        h(ButtonPrimary, {
-          style: {
-            marginLeft: '1rem'
-          },
-          onClick: openUploader,
-          disabled: !Utils.canWrite(accessLevel),
-          tooltip: !Utils.canWrite(accessLevel) ? noWrite : undefined
-        }, [
-          div({ style: { marginBottom: '0.5rem' } }, [
-            icon('upload-cloud', { style: { marginTop: '0.5rem', marginRight: '0.5rem' }, size: 21 }),
-            'Upload'
-          ])
-        ]),
         div({ style: { flex: 2 } }),
         !_.isEmpty(analyses) && h(DelayedSearchInput, {
           'aria-label': 'Search analyses',
@@ -388,10 +358,19 @@ const Analyses = _.flow(
           persistentDisks,
           refreshRuntimes,
           galaxyDataDisks,
+          refreshAnalyses,
+          analyses,
           apps,
           refreshApps,
-          onDismiss: () => setCreating(false),
-          onSuccess: () => setCreating(false)
+          uploadFiles, openUploader,
+          onDismiss: () => {
+            refreshAnalyses()
+            setCreating(false)
+          },
+          onSuccess: () => {
+            refreshAnalyses()
+            setCreating(false)
+          }
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
           printName: getDisplayName(renamingAnalysisName),
