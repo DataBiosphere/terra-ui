@@ -144,12 +144,14 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
 
   const runtimeConfig = currentRuntimeDetails?.runtimeConfig
   const gpuConfig = runtimeConfig?.gpuConfig
-  const sparkMode = runtimeConfig?.cloudService === cloudServices.DATAPROC ? (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') : false
+
+  const [sparkMode, setSparkMode] = useState(runtimeConfig?.cloudService === cloudServices.DATAPROC ?
+    (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') :
+    false)
 
   // computeConfig is always defined so we don't guard against it throughout the rest of the code
   const [computeConfig, setComputeConfig] = useState({
     selectedPersistentDiskSize: currentPersistentDiskDetails?.size || DEFAULT_GCE_PERSISTENT_DISK_SIZE,
-    sparkMode,
     masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
     masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
       (isDataproc ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE),
@@ -570,8 +572,6 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
 
         setSelectedLeoImage(getSelectedImage())
         setLeoImages(filteredNewLeoImages)
-        console.log('useOnMount: filteredNewLeoImages:')
-        console.log(filteredNewLeoImages)
         setCurrentRuntimeDetails(currentRuntimeDetails)
         setCurrentPersistentDiskDetails(currentPersistentDiskDetails)
         setCustomEnvImage(!foundImage ? imageUrl : '')
@@ -661,8 +661,6 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
   }
 
   const renderApplicationConfigurationSection = () => {
-    console.log(`renderApplicationConfigurationSection: leoImages:`)
-    console.log(leoImages)
     return div({ style: styles.whiteBoxContainer }, [
       h(IdContainer, [
         id => h(Fragment, [
@@ -844,7 +842,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
                   id,
                   isSearchable: false,
                   value: sparkMode,
-                  onChange: v => updateComputeConfig('sparkMode', v),
+                  onChange: ({ value }) => setSparkMode(value),
                   options: [
                     { value: false, label: 'Standard VM', isDisabled: requiresSpark },
                     { value: 'master', label: 'Spark master node' },
@@ -1151,8 +1149,6 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
   }
 
   const renderImageSelect = ({ includeCustom, ...props }) => {
-    console.log(`renderImageSelect: leoImages:`)
-    console.log(leoImages)
     const getImages = predicate => _.flow(
       _.filter(predicate),
       _.map(({ label, image }) => ({ label, value: image }))
