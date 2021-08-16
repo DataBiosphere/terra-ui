@@ -1,10 +1,19 @@
 import colors from "src/libs/colors";
-import {div, h} from "react-hyperscript-helpers";
-import {icon} from "src/components/icons";
+import {a, div, h, label} from "react-hyperscript-helpers";
+import {centeredSpinner, icon} from "src/components/icons";
 import {UnmountClosed as RCollapse} from "react-collapse";
 import _ from "lodash/fp";
-import {useState} from "react";
-import {Clickable} from "src/components/common";
+import {Fragment, useState} from "react";
+import {Clickable, IdContainer, Link, Select} from "src/components/common";
+import FooterWrapper from "src/components/FooterWrapper";
+import {libraryTopMatter} from "src/components/library-common";
+import {DelayedSearchInput} from "src/components/input";
+import * as Utils from "src/libs/utils";
+import * as Nav from "src/libs/nav";
+import * as Style from "src/libs/style";
+import covidBg from "src/images/library/showcase/covid-19.jpg";
+import gatkLogo from "src/images/library/showcase/gatk-logo-light.svg";
+import featuredBg from "src/images/library/showcase/featured-workspace.svg";
 
 export const styles = {
     column: { marginRight: '1.5rem', flex: '1 1 0px', maxWidth: 415 },
@@ -41,7 +50,7 @@ export const styles = {
 }
 
 // collapsible section for sidebar categories
-export const SidebarCollapser = ({ title, isOpened, onClick, children }) => {
+const SidebarCollapser = ({ title, isOpened, onClick, children }) => {
     return div({
         role: 'group'
     }, [
@@ -59,7 +68,7 @@ export const SidebarCollapser = ({ title, isOpened, onClick, children }) => {
     ])
 }
 
-export const NavItem = ({ children, ...props }) => {
+const NavItem = ({ children, ...props }) => {
     return h(Clickable, _.merge({
         style: { display: 'flex', alignItems: 'center', outlineOffset: -4 }
     }, props), [children])
@@ -132,6 +141,139 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
         }, sections)
     ])
 }
+
+export const SearchAndFilterTopLevelComponent = (featuredList, workspacesByTag, sections, sidebarSections) => {
+
+    const [selectedSections, setSelectedSections] = useState([])
+    const [selectedTags, setSelectedTags] = useState([])
+    const [searchFilter, setSearchFilter] = useState()
+    const [sort, setSort] = useState('most recent')
+
+    const sortWorkspaces = Utils.cond(
+        [sort === 'most recent', () => _.orderBy(['created'], ['desc'])],
+        [sort === 'alphabetical', () => _.orderBy(w => _.toLower(_.trim(w.name)), ['asc'])],
+        () => _.identity
+    )
+
+    const filterBySections = workspaces => {
+        if (_.isEmpty(selectedSections)) {
+            return workspaces
+        } else {
+            const tags = _.uniq(_.flatMap(section => section.tags, selectedSections))
+            return _.uniq(_.flatMap(tag => workspacesByTag[tag], tags))
+        }
+    }
+    // eslint-disable-next-line lodash-fp/no-single-composition
+    const filterByTags = workspaces => _.flow(_.map(tag => _.intersection(workspacesByTag[tag]), selectedTags))(workspaces)
+    const filterByText = workspaces => {
+        const lowerSearch = _.toLower(searchFilter)
+        return _.isEmpty(lowerSearch) ?
+            workspaces :
+            _.filter(workspace => _.includes(lowerSearch, workspace.lowerName) || _.includes(lowerSearch, workspace.lowerDescription), workspaces)
+    }
+    const filteredWorkspaces = _.flow([
+        filterBySections,
+        filterByTags,
+        filterByText
+    ])(featuredList)
+
+    return h(FooterWrapper, { alwaysShow: true }, [
+        libraryTopMatter('featured workspaces'),
+        !featuredList ?
+            centeredSpinner() :
+            h(Fragment, [
+                div({ style: { display: 'flex', margin: '1rem 1rem 0', alignItems: 'baseline' } }, [
+                    div({ style: { width: '19rem', flex: 'none' } }, [
+                        div({ style: styles.sidebarRow }, [
+                            div({ style: styles.header }, 'Featured workspaces'),
+                            h(Pill, {
+                                count: _.size(filteredWorkspaces),
+                                highlight: _.isEmpty(selectedSections) && _.isEmpty(selectedTags)
+                            })
+                        ]),
+                        div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
+                            div({ style: { flex: 1 } }),
+                            h(Link, {
+                                onClick: () => setSelectedTags([])
+                            }, ['clear'])
+                        ])
+                    ]),
+                    h(DelayedSearchInput, {
+                        style: { flex: 1, marginLeft: '1rem' },
+                        'aria-label': 'Search Featured Workspaces',
+                        placeholder: 'Search Name or Description',
+                        value: searchFilter,
+                        onChange: setSearchFilter
+                    }),
+                    h(IdContainer, [
+                        id => h(Fragment, [
+                            label({ htmlFor: id, style: { margin: '0 0.5rem 0 1rem', whiteSpace: 'nowrap' } }, ['Sort by']),
+                            h(Select, {
+                                id,
+                                isClearable: false,
+                                isSearchable: false,
+                                styles: { container: old => ({ ...old, width: '10rem' }) },
+                                value: sort,
+                                onChange: v => setSort(v.value),
+                                options: ['most recent', 'alphabetical']
+                            })
+                        ])
+                    ])
+                ]),
+                div({ style: { display: 'flex', margin: '0 1rem' } }, [
+                    div({ style: { width: '19rem', flex: 'none' } }, [
+                        h(Sidebar, {
+                            onSectionFilter: section => setSelectedSections(_.xor([section], selectedSections)),
+                            onTagFilter: tag => setSelectedTags(_.xor([tag], selectedTags)),
+                            sections,
+                            selectedSections,
+                            selectedTags,
+                            workspacesByTag: groupByFeaturedTags(filteredWorkspaces, sidebarSections)
+                        })
+                    ]),
+                    div({ style: { marginLeft: '1rem', minWidth: 0 } }, [
+                        ..._.map(makeCard(), sortWorkspaces(filteredWorkspaces))
+                    ])
+                ])
+            ])
+    ])
+}
+
+const makeCard = variant => workspace => {
+    const { namespace, name, created, description } = workspace
+    return a({
+        href: Nav.getLink('workspace-dashboard', { namespace, name }),
+        style: {
+            backgroundColor: 'white',
+            height: 175,
+            borderRadius: 5,
+            display: 'flex',
+            marginBottom: '1rem',
+            boxShadow: Style.standardShadow
+        }
+    }, [
+        div({
+            style: {
+                backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: 'auto 100%', borderRadius: '5px 0 0 5px',
+                width: 87,
+                ...Utils.cond(
+                    [name.toLowerCase().includes('covid'), () => ({ backgroundImage: `url(${covidBg})` })],
+                    [variant === 'gatk', () => ({ backgroundColor: '#333', backgroundImage: `url(${gatkLogo})`, backgroundSize: undefined })],
+                    () => ({ backgroundImage: `url(${featuredBg})`, opacity: 0.75 })
+                )
+            }
+        }),
+        div({ style: { flex: 1, minWidth: 0, padding: '15px 20px', overflow: 'hidden' } }, [
+            div({ style: { display: 'flex' } }, [
+                div({ style: { flex: 1, color: colors.accent(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
+                created && div([Utils.makeStandardDate(created)])
+            ]),
+            div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [description])
+            // h(MarkdownViewer, [description]) // TODO: should we render this as markdown?
+        ])
+    ])
+}
+
 
 
 
