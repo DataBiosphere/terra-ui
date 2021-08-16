@@ -4,7 +4,7 @@ import { SearchAndFilterComponent } from 'src/pages/library/common'
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const sidebarSections = [{
   name: 'Test',
-  labels: ['test1', 'test2'],
+  labels: ['test1', 'test2']
 }]
 
 
