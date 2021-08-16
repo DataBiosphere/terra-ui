@@ -86,7 +86,7 @@ const baseNotebook = {
   ], nbformat: 4, nbformat_minor: 2
 }
 
-const notebookData = {
+export const notebookData = {
   python3: _.merge({
     metadata: {
       kernelspec: { display_name: 'Python 3', language: 'python', name: 'python3' }
