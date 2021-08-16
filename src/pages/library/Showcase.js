@@ -148,10 +148,10 @@ const SidebarCollapser = ({ title, isOpened, onClick, children }) => {
   ])
 }
 
-const groupByFeaturedTags = workspaces => _.flow(
+const groupByFeaturedTags = _.memoize(workspaces => _.flow(
   _.map(tag => [tag, _.filter(w => _.includes(tag, w.tags.items), workspaces)]),
   _.fromPairs
-)(uniqueSidebarTags)
+)(uniqueSidebarTags))
 
 const Pill = ({ count, highlight }) => {
   return div({
