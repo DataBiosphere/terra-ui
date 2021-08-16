@@ -1,8 +1,4 @@
 import { useState } from 'react'
-import { h } from 'react-hyperscript-helpers'
-import FooterWrapper from 'src/components/FooterWrapper'
-import { libraryTopMatter } from 'src/components/library-common'
-import * as StateHistory from 'src/libs/state-history'
 import { SearchAndFilterComponent } from 'src/pages/library/common'
 
 
