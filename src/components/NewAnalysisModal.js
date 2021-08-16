@@ -73,7 +73,7 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
           [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(newAnalysisMode)],
           [currentTool === tools.galaxy.label && !currentApp, () => setViewMode(newEnvironmentMode)],
           [currentTool === tools.galaxy.label && currentApp, () => {
-            console.error('This shouldn\'t be possible, as you aren\'t allowed to create a galaxy analysis when one exists; the button should be disabled')
+            console.error('This shouldn\'t be possible, as you aren\'t allowed to create a galaxy analysis when one exists; the button should be disabled.')
             resetView()
           }]
         )]
