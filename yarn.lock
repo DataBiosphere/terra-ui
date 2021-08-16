@@ -5865,10 +5865,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:^2.3.0":
-  version: 2.3.0
-  resolution: "dompurify@npm:2.3.0"
-  checksum: d6c6826db07e69346620b38329331f7172e23ba86033c3788757120a5a8d8feef84be40af3c75e250798df643ecbbafabbc4a3c02373a8504ccc88b3ad36b1c2
+"dompurify@npm:^2.3.1":
+  version: 2.3.1
+  resolution: "dompurify@npm:2.3.1"
+  checksum: 9c93cfaa9d1d0b31aa2e926ebfa0621287a63ebb16277c94ad4aad2bcf3ad12e609e699fc10f2eaf69e4698e29a31dec87a69f3c6725ce3f4c7a69ee93123d0c
   languageName: node
   linkType: hard
 
@@ -15024,7 +15024,7 @@ resolve@^2.0.0-next.3:
     customize-cra: ^1.0.0
     date-fns: ^2.23.0
     debounce-promise: ^3.1.2
-    dompurify: ^2.3.0
+    dompurify: ^2.3.1
     downshift: ^6.1.7
     easymde: ^2.15.0
     eslint-plugin-lodash-fp: ^2.2.0-a1

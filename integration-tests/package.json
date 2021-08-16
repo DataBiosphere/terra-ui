@@ -24,7 +24,7 @@
     "@google-cloud/secret-manager": "^3.9.0",
     "@google-cloud/storage": "^5.13.0",
     "express": "^4.17.1",
-    "google-auth-library": "^7.5.0",
+    "google-auth-library": "^7.6.1",
     "googleapis": "^84.0.0",
     "lodash": "^4.17.21",
     "nodemon": "^2.0.12",

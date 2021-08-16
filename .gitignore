@@ -31,10 +31,9 @@ saturn-ui.iml
 
 /integration-tests/failures
 
-.yarn/*
-!.yarn/patches
-!.yarn/releases
-!.yarn/plugins
-!.yarn/sdks
-!.yarn/versions
-/integration-tests/.yarn/cache/
+**/.yarn/*
+**/!.yarn/patches
+**/!.yarn/releases
+**/!.yarn/plugins
+**/!.yarn/sdks
+**/!.yarn/versions
