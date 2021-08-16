@@ -89,5 +89,6 @@
     "hooks": {
       "pre-commit": ".hooks/pre-commit"
     }
-  }
+  },
+  "packageManager": "yarn@3.0.1"
 }
