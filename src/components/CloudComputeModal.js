@@ -519,78 +519,87 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
   // Helper functions -- end
 
   // Lifecycle
-  Utils.useOnMount(() => _.flow(
-    withErrorReporting('Error loading cloud environment'),
-    Utils.withBusyState(setLoading)
-  )(async () => {
-    const { googleProject } = getWorkspaceObj()
-    const currentRuntime = getCurrentRuntime()
-    const currentPersistentDisk = getCurrentPersistentDisk()
+  Utils.useOnMount(() => {
+    // Can't pass an async function into useEffect so we define the function in the body and then call it
+    const doUseOnMount = _.flow(
+      withErrorReporting('Error loading cloud environment'),
+      Utils.withBusyState(setLoading)
+    )(async () => {
+      const { googleProject } = getWorkspaceObj()
+      const currentRuntime = getCurrentRuntime()
+      const currentPersistentDisk = getCurrentPersistentDisk()
 
-    Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
-      existingConfig: !!currentRuntime, ...extractWorkspaceDetails(getWorkspaceObj())
-    })
-    const [currentRuntimeDetails, newLeoImages, currentPersistentDiskDetails] = await Promise.all([
-      currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
-      Ajax().Buckets.getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', googleProject, true).then(res => res.json()),
-      currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
-    ])
+      Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
+        existingConfig: !!currentRuntime, ...extractWorkspaceDetails(getWorkspaceObj())
+      })
+      const [currentRuntimeDetails, newLeoImages, currentPersistentDiskDetails] = await Promise.all([
+        currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
+        Ajax()
+          .Buckets
+          .getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', googleProject, true)
+          .then(res => res.json()),
+        currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
+      ])
 
-    const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
+      const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
 
-    const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
-    const foundImage = _.find({ image: imageUrl }, newLeoImages)
+      const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
+      const foundImage = _.find({ image: imageUrl }, newLeoImages)
 
-    /* eslint-disable indent */
-    // TODO: open to feedback and still thinking about this...
-    // Selected Leo image uses the following logic (psuedoCode not written in same way as code for clarity)
-    // if found image (aka image associated with user's runtime) NOT in newLeoImages (the image dropdown list from bucket)
-    //   user is using custom image
-    // else if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection) and isAnalysisMode
-    //   use default image for selected tool
-    // else
-    //   use imageUrl derived from users current runtime
-    /* eslint-disable indent */
-    const getSelectedImage = () => {
-      if (foundImage) {
-        if (!_.includes(foundImage, filteredNewLeoImages) && isAnalysisMode) {
-          return _.find({ id: tools[tool].defaultImageId }, newLeoImages).image
-        } else {
-          return imageUrl
+      /* eslint-disable indent */
+        // TODO: open to feedback and still thinking about this...
+        // Selected Leo image uses the following logic (psuedoCode not written in same way as code for clarity)
+        // if found image (aka image associated with user's runtime) NOT in newLeoImages (the image dropdown list from bucket)
+        //   user is using custom image
+        // else if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection) and isAnalysisMode
+        //   use default image for selected tool
+        // else
+        //   use imageUrl derived from users current runtime
+        /* eslint-disable indent */
+        const getSelectedImage = () => {
+          if (foundImage) {
+            if (!_.includes(foundImage, filteredNewLeoImages) && isAnalysisMode) {
+              return _.find({ id: tools[tool].defaultImageId }, newLeoImages).image
+            } else {
+              return imageUrl
+            }
+          } else {
+            return customMode
+          }
         }
-      } else {
-        return customMode
-      }
+
+        setSelectedLeoImage(getSelectedImage())
+        setLeoImages(filteredNewLeoImages)
+        console.log('useOnMount: filteredNewLeoImages:')
+        console.log(filteredNewLeoImages)
+        setCurrentRuntimeDetails(currentRuntimeDetails)
+        setCurrentPersistentDiskDetails(currentPersistentDiskDetails)
+        setCustomEnvImage(!foundImage ? imageUrl : '')
+        setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
+
+        const runtimeConfig = currentRuntimeDetails?.runtimeConfig
+        const gpuConfig = runtimeConfig?.gpuConfig
+
+        setComputeConfig({
+          selectedPersistentDiskSize: currentPersistentDiskDetails?.size || DEFAULT_GCE_PERSISTENT_DISK_SIZE,
+          sparkMode,
+          masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
+          masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
+            (isDataproc ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE),
+          numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
+          numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
+          workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
+          workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DATAPROC_DISK_SIZE,
+          gpuEnabled: (!!gpuConfig && !sparkMode) || false,
+          hasGpu: !!gpuConfig,
+          gpuType: gpuConfig?.gpuType || DEFAULT_GPU_TYPE,
+          numGpus: gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS
+        })
+      })
+
+      doUseOnMount()
     }
-
-    setSelectedLeoImage(getSelectedImage())
-    setLeoImages(filteredNewLeoImages)
-    console.log('useOnMount: filteredNewLeoImages:')
-    console.log(filteredNewLeoImages)
-    setCurrentRuntimeDetails(currentRuntimeDetails)
-    setCurrentPersistentDiskDetails(currentPersistentDiskDetails)
-    setCustomEnvImage(!foundImage ? imageUrl : '')
-    setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
-
-    const runtimeConfig = currentRuntimeDetails?.runtimeConfig
-    const gpuConfig = runtimeConfig?.gpuConfig
-
-    setComputeConfig({
-      selectedPersistentDiskSize: currentPersistentDiskDetails?.size || DEFAULT_GCE_PERSISTENT_DISK_SIZE,
-      sparkMode,
-      masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
-      masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
-        (isDataproc ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE),
-      numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
-      numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
-      workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
-      workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DATAPROC_DISK_SIZE,
-      gpuEnabled: (!!gpuConfig && !sparkMode) || false,
-      hasGpu: !!gpuConfig,
-      gpuType: gpuConfig?.gpuType || DEFAULT_GPU_TYPE,
-      numGpus: gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS
-    })
-  }))
+  )
 
   // Render functions -- begin
   const renderAboutPersistentDisk = () => {
