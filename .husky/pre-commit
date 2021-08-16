@@ -3,8 +3,7 @@
 
 FORBIDDEN='private_key|sa_key_var|SA_KEY_JSON'
 
-git diff --cached -U0 | grep -E --color ${FORBIDDEN}
-if [ $? -eq 0 ]; then
+if git diff --cached -U0 | grep -E --color ${FORBIDDEN}; then
   echo
   echo 'COMMIT REJECTED: Found changes containing sensitive keywords.'
   echo 'Misuse of these keywords can potentially cause security vulnerabilities, even if they are pushed to a branch.'
