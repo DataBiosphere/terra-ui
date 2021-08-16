@@ -143,7 +143,7 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
   ])
 }
 
-export const SearchAndFilterComponent = (featuredList, sidebarSections) => {
+export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTab) => {
   const [selectedSections, setSelectedSections] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [searchFilter, setSearchFilter] = useState()
@@ -188,7 +188,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections) => {
   ])(featuredList)
 
   return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter('featured workspaces'),
+    libraryTopMatter(activeTab),
     !featuredList ?
       centeredSpinner() :
       h(Fragment, [

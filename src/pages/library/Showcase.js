@@ -61,7 +61,7 @@ const Showcase = () => {
     loadData()
   })
 
-  return SearchAndFilterComponent(featuredList, sidebarSections)
+  return SearchAndFilterComponent(featuredList, sidebarSections, 'featured workspaces')
 }
 
 export const navPaths = [

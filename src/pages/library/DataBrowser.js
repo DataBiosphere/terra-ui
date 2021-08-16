@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { SearchAndFilterComponent } from 'src/pages/library/common'
 
 
@@ -6,7 +5,6 @@ import { SearchAndFilterComponent } from 'src/pages/library/common'
 const sidebarSections = [{
   name: 'Test',
   labels: ['test1', 'test2'],
-  keepCollapsed: true
 }]
 
 
@@ -28,10 +26,7 @@ const DataBrowser = () => {
     keepCollapsed: true
   }]
 
-  const [workspacesByTag, setWorkspacesByTag] = useState({})
-  const [sections, setSections] = useState([])
-
-  return SearchAndFilterComponent(featuredList, workspacesByTag, sections, sidebarSections)
+  return SearchAndFilterComponent(featuredList, sidebarSections, 'browse & explore')
 }
 
 export const navPaths = [{
