@@ -25,7 +25,7 @@ import {
   collapsedRuntimeStatus,
   convertedAppStatus,
   currentApp,
-  currentRuntime,
+  getCurrentRuntime,
   persistentDiskCost,
   runtimeCost,
   trimRuntimesOldestFirst
@@ -252,7 +252,7 @@ export default class RuntimeManager extends PureComponent {
 
   getCurrentRuntime() {
     const { runtimes } = this.props
-    return currentRuntime(runtimes)
+    return getCurrentRuntime(runtimes)
   }
 
   async executeAndRefresh(promise) {

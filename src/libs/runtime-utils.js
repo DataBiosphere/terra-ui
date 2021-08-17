@@ -171,7 +171,7 @@ export const trimRuntimesOldestFirst = _.flow(
   _.sortBy('auditInfo.createdDate')
 )
 
-export const currentRuntime = runtimes => {
+export const getCurrentRuntime = runtimes => {
   // Status note: undefined means still loading, null means no runtime
   return !runtimes ? undefined : (_.flow(trimRuntimesOldestFirst, _.last)(runtimes) || null)
 }

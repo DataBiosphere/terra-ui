@@ -15,7 +15,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
-import { currentApp, currentRuntime, getGalaxyComputeCost, getGalaxyCost, persistentDiskCostMonthly, runtimeCost } from 'src/libs/runtime-utils'
+import { currentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, persistentDiskCostMonthly, runtimeCost } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import { cond, formatUSD, makeCompleteDate, switchCase, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
@@ -210,7 +210,7 @@ const Environments = ({ namespace }) => {
 
   const renderBillingProjectRuntime = runtime => {
     const inactive = !_.includes(runtime.status, ['Deleting', 'Error']) &&
-      currentRuntime(runtimesByProject[runtime.googleProject]) !== runtime
+      getCurrentRuntime(runtimesByProject[runtime.googleProject]) !== runtime
     return h(Fragment, [
       runtime.googleProject,
       inactive && h(TooltipTrigger, {

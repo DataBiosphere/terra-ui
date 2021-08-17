@@ -18,7 +18,7 @@ import { isAnalysisTabVisible, isTerra } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { collapsedRuntimeStatus, currentApp, currentRuntime } from 'src/libs/runtime-utils'
+import { collapsedRuntimeStatus, currentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -201,7 +201,7 @@ const useCloudEnvironmentPolling = namespace => {
       setGalaxyDataDisks(galaxyDisks)
       setPersistentDisks(_.remove(disk => _.includes(disk.name, galaxyDiskNames), newDisks))
 
-      const runtime = currentRuntime(newRuntimes)
+      const runtime = getCurrentRuntime(newRuntimes)
       reschedule(maybeStale || _.includes(collapsedRuntimeStatus(runtime), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
     } catch (error) {
       reschedule(30000)
