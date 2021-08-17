@@ -122,7 +122,6 @@ const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
 }
 
 export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, isAnalysisMode = false }) => {
-  // TODO Should be able to remove some of the block below before merging
   const getWorkspaceObj = () => workspace.workspace
   const shouldUsePersistentDisk = () => !sparkMode && (!currentRuntimeDetails?.runtimeConfig.diskSize || upgradeDiskSelected)
   const isDataproc = (sparkMode, runtimeConfig) => !sparkMode && !runtimeConfig?.diskSize

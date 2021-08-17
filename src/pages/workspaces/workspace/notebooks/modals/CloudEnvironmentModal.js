@@ -58,7 +58,7 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
       onDismiss()
     },
     onSuccess: _.flow(
-      withErrorReporting('Error creating runtime'),
+      withErrorReporting('Error creating cloud compute'),
       Utils.withBusyState(setBusy)
     )(async () => {
       setViewMode(undefined)

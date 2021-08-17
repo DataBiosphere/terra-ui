@@ -71,7 +71,7 @@ const NotebookLauncher = _.flow(
           setCreateOpen(false)
         },
         onSuccess: _.flow(
-          withErrorReporting('Error creating runtime'),
+          withErrorReporting('Error creating cloud compute'),
           Utils.withBusyState(setBusy)
         )(async () => {
           setCreateOpen(false)
