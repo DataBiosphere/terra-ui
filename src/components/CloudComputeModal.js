@@ -115,6 +115,7 @@ const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
   const currentRuntime = getCurrentRuntime(runtimes)
   const id = currentRuntime?.runtimeConfig.persistentDiskId
   const attachedIds = _.without([undefined], _.map(runtime => runtime.runtimeConfig.persistentDiskId, runtimes))
+
   return id ?
     _.find({ id }, persistentDisks) :
     _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id, status }) => status !== 'Deleting' && !_.includes(id, attachedIds), persistentDisks)))
@@ -290,6 +291,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
     const cloudService = runtimeConfig?.cloudService
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
     const gpuConfig = runtimeConfig?.gpuConfig
+
     return {
       hasGpu: computeConfig.hasGpu,
       runtime: currentRuntimeDetails ? {
@@ -324,6 +326,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
     const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = getExistingEnvironmentConfig()
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
     const desiredNumberOfWorkers = sparkMode === 'cluster' ? computeConfig.numberOfWorkers : 0
+
     return {
       hasGpu: computeConfig.hasGpu,
       runtime: Utils.cond(
@@ -527,7 +530,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
     )(async () => {
       const { googleProject } = getWorkspaceObj()
       const currentRuntime = getCurrentRuntime(runtimes)
-      const currentPersistentDisk = getCurrentPersistentDisk()
+      const currentPersistentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
 
       Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
         existingConfig: !!currentRuntime, ...extractWorkspaceDetails(getWorkspaceObj())
@@ -540,7 +543,6 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
           .then(res => res.json()),
         currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
       ])
-
       const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
 
       const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
@@ -633,6 +635,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
       { disabled: !hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) }
     const canShowCustomImageWarning = viewMode === undefined
     const canShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
+
     return Utils.cond(
       [canShowCustomImageWarning && isCustomImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage, () => {
         return h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('customImageWarning') }, ['Next'])
