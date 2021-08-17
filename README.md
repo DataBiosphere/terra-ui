@@ -72,7 +72,7 @@ Requests related to the funtionality or usability of the UI can be submitted as 
     * In an IDE other than IntelliJ (VS Code, etc): install the eslint plugin from your package manager, and there should be a command to fix issues at any time.
     * In IntelliJ: 
         * When you open the project, right-click [.eslintrc.js](.eslintrc.js), click `Apply Eslint Code Style Rules`, and select `Automatic ESLint Configuration`; then go to `Preferences -> Editor -> Code Style -> Javascript`, click the gear next to `Scheme` -> `Import Scheme` -> `Intellij IDEA code style XML`, then select [js-style.xml](js-style.xml).
-        * In order to correctly format a file at any time, run the IntelliJ `Reformat Code` action, and then right-click in a window and click `Fix ESLint Problems`. You could also create a macro to do this for you.
+        * In order to correctly format a file at any time, run the IntelliJ `Reformat Code` action, and then right-click in a window and click `Fix ESLint Problems`. You could also create an IntelliJ macro to do this for you as explained [here](https://www.jetbrains.com/help/idea/using-macros-in-the-editor.html#reformat_on_save), and map running of the macro to a keyboard shortcut for convenience. 
 
 
 ### Additional Documentation
