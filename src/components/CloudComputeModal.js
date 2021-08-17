@@ -286,7 +286,6 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
   }
 
   const getExistingEnvironmentConfig = () => {
-    console.log('currentRuntimeDetails: ', currentRuntimeDetails)
     const runtimeConfig = currentRuntimeDetails?.runtimeConfig
     const cloudService = runtimeConfig?.cloudService
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
@@ -710,7 +709,6 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
   }
 
   const renderCloudComputeProfileSection = computeExists => {
-    console.log('computeExists: ', computeExists)
     const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(mainMachineType)
     const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory)
     const validGpuNames = _.flow(_.map('name'), _.uniq, _.sortBy('price'))(validGpuOptions)
@@ -720,8 +718,6 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
     const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
     const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
     const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : sparkMode
-    console.log('computeConfig.gpuEnabled: ', computeConfig.gpuEnabled)
-    console.log('gpuCheckboxDisabled', gpuCheckboxDisabled)
     const enableGpusSpan = span(
       ['Enable GPUs ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })])
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
@@ -1164,7 +1160,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
         const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
         setSelectedLeoImage(value)
         setCustomEnvImage('')
-        updateComputeConfig('sparkMode', requiresSpark ? (sparkMode || 'master') : false)
+        setSparkMode(requiresSpark ? (sparkMode || 'master') : false)
       },
       isSearchable: true,
       isClearable: false,
@@ -1191,7 +1187,6 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
 
   const renderMainForm = () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
-    console.log(`existingRuntime: `, existingRuntime)
     const { cpu, memory } = findMachineType(mainMachineType)
     const renderTitleAndTagline = () => {
       return h(Fragment, [
