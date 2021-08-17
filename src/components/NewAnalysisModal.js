@@ -7,7 +7,6 @@ import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { NewGalaxyModalBase } from 'src/components/NewGalaxyModal'
-import { NewRuntimeModalBase } from 'src/components/NewRuntimeModal'
 import { analysisNameInput, analysisNameValidator, getDisplayName, getTool, notebookData, tools } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
 import galaxyLogo from 'src/images/galaxy-logo.png'
@@ -90,12 +89,12 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       [Utils.DEFAULT, renderSelectAnalysisBody])
 
     const getNewEnvironmentView = () => Utils.switchCase(currentTool,
-      [tools.Jupyter.label, renderNewRuntimeModal],
-      [tools.RStudio.label, renderNewRuntimeModal],
+      [tools.Jupyter.label, renderCloudComputeModal],
+      [tools.RStudio.label, renderCloudComputeModal],
       [tools.galaxy.label, renderNewGalaxyModal]
     )
 
-    const renderNewRuntimeModal = () => h(NewRuntimeModalBase, {
+    const renderCloudComputeModal = () => h(CloudComputeModalBase, {
       isOpen: currentTool === tools.Jupyter.label || currentTool === tools.RStudio.label,
       isAnalysisMode: true,
       workspace,
