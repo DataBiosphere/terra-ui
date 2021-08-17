@@ -9,7 +9,6 @@ import { CloudComputeModal } from 'src/components/CloudComputeModal'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { NewRuntimeModal } from 'src/components/NewRuntimeModal'
 import {
   AnalysisDuplicator,
   findPotentialNotebookLockers,
@@ -68,23 +67,6 @@ const AnalysisLauncher = _.flow(
         ]),
       mode && h(RuntimeKicker, { runtime, refreshRuntimes, onNullRuntime: () => setCreateOpen(true) }),
       mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
-      // h(NewRuntimeModal, {
-      //   isOpen: createOpen,
-      //   workspace,
-      //   runtimes,
-      //   persistentDisks,
-      //   onDismiss: () => {
-      //     chooseMode(undefined)
-      //     setCreateOpen(false)
-      //   },
-      //   onSuccess: _.flow(
-      //     withErrorReporting('Error creating runtime'),
-      //     Utils.withBusyState(setBusy)
-      //   )(async () => {
-      //     setCreateOpen(false)
-      //     await refreshRuntimes(true)
-      //   })
-      // }),
       h(CloudComputeModal, {
         isOpen: createOpen,
         tool: toolLabel,

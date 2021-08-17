@@ -4,7 +4,6 @@ import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { CloudComputeModal } from 'src/components/CloudComputeModal'
 import { spinnerOverlay } from 'src/components/common'
-import { NewRuntimeModal } from 'src/components/NewRuntimeModal'
 import { RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
@@ -67,20 +66,6 @@ const ApplicationLauncher = _.flow(
             () => 'Unknown cloud environment status. Please create a new cloud environment or contact support.'
           )
         ]),
-        // h(NewRuntimeModal, {
-        //   isOpen: showCreate,
-        //   workspace,
-        //   runtimes,
-        //   persistentDisks,
-        //   onDismiss: () => setShowCreate(false),
-        //   onSuccess: _.flow(
-        //     withErrorReporting('Error loading cloud environment'),
-        //     Utils.withBusyState(setBusy)
-        //   )(async () => {
-        //     setShowCreate(false)
-        //     await refreshRuntimes(true)
-        //   })
-        // }),
         h(CloudComputeModal, {
           isOpen: showCreate,
           workspace,
