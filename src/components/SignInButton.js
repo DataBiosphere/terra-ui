@@ -28,7 +28,7 @@ const SignInButton = ({ theme = 'light', ...props }) => {
   // For some reason, Google's rendered Sign-In button is not at all keyboard accessible.
   // To fix this, we wrap it as a button, and propagate the keyboard-accessible click event down to
   // the inner DOM node inside the button, then let it bubble up to whatever it is that catches it.
-  return !isGoogleAuthInitialized ? h(spinner) : h(Clickable, {
+  return !isGoogleAuthInitialized ? spinner() : h(Clickable, {
     ...props,
     id: 'signInButton',
     onClick: event => {
