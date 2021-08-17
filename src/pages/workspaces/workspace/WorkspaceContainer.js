@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
 import { br, div, h, h2, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, comingSoon, Link, spinnerOverlay } from 'src/components/common'
-import { ContextBarButtons } from 'src/components/ContextBar'
+import { ContextBar } from 'src/components/ContextBar'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -18,7 +18,7 @@ import { isAnalysisTabVisible, isTerra } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { collapsedRuntimeStatus, currentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
+import { getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -56,52 +56,20 @@ const WorkspaceTabs = ({
       tabNames: _.map('name', tabs),
       getHref: currentTab => Nav.getLink(_.find({ name: currentTab }, tabs).link, { namespace, name })
     }, [
-      h(MenuTrigger, {
-        closeOnClick: true,
-        content: h(Fragment, [
-          h(MenuButton, { onClick: () => setCloningWorkspace(true) }, [makeMenuIcon('copy'), 'Clone']),
-          h(MenuButton, {
-            disabled: !canShare,
-            tooltip: !canShare && 'You have not been granted permission to share this workspace',
-            tooltipSide: 'left',
-            onClick: () => setSharingWorkspace(true)
-          }, [makeMenuIcon('share'), 'Share']),
-          h(MenuButton, { disabled: true }, [makeMenuIcon('export'), 'Publish', comingSoon]),
-          h(MenuButton, {
-            disabled: !isOwner,
-            tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
-            tooltipSide: 'left',
-            onClick: () => setDeletingWorkspace(true)
-          }, [makeMenuIcon('trash'), 'Delete Workspace'])
-        ]),
-        side: 'bottom'
-      }, [
+      h(WorkspaceMenuTrigger, { canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace }, [
         h(Clickable, { 'aria-label': 'Workspace menu', ...navIconProps }, [icon('cardMenuIcon', { size: 27 })])
-      ])
-    ]),
-    deletingWorkspace && h(DeleteWorkspaceModal, {
-      workspace,
-      onDismiss: () => setDeletingWorkspace(false),
-      onSuccess: () => Nav.goToPath('workspaces')
-    }),
-    cloningWorkspace && h(NewWorkspaceModal, {
-      cloneWorkspace: workspace,
-      onDismiss: () => setCloningWorkspace(false),
-      onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
-    }),
-    sharingWorkspace && h(ShareWorkspaceModal, {
-      workspace,
-      onDismiss: () => setSharingWorkspace(false)
-    })
+      ]
+      )
+    ])
   ])
 }
 
-const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, children }) => {
+const WorkspaceContainer = ({
+  namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, children
+}) => {
   const [deletingWorkspace, setDeletingWorkspace] = useState(false)
   const [cloningWorkspace, setCloningWorkspace] = useState(false)
   const [sharingWorkspace, setSharingWorkspace] = useState(false)
-  const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
-  const canShare = !!workspace?.canShare
 
   return h(FooterWrapper, [
     h(TopBar, { title: 'Workspaces', href: Nav.getLink('workspaces') }, [
@@ -134,22 +102,33 @@ const WorkspaceContainer = ({ namespace, name, breadcrumbs, topBarContent, title
     ]),
     showTabBar && h(WorkspaceTabs, { namespace, name, activeTab, refresh, workspace, deletingWorkspace, setDeletingWorkspace, cloningWorkspace, setCloningWorkspace, sharingWorkspace, setSharingWorkspace }),
     div({ role: 'main', style: Style.elements.pageContentContainer },
-      // When we switch this over to all tabs, ensure other workspace tabs look the same when inside these divs
-      (isAnalysisTabVisible() && activeTab === 'analyses' ?
+
+      // TODO: When we switch this over to all tabs, ensure other workspace tabs look the same when inside these divs
+      (isAnalysisTabVisible() && (activeTab === 'analyses' || activeTab === undefined) ?
         [div({ style: { flex: 1, display: 'flex' } }, [
-          div({ style: { flex: 1 } }, [
+          div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
             children
           ]),
-          div({ style: Style.elements.contextBarContainer }, [
-            h(ContextBarButtons, {
-              setDeletingWorkspace,
-              setCloningWorkspace,
-              setSharingWorkspace,
-              isOwner,
-              canShare
-            })
-          ])
-        ])] : [children]))
+          workspace && h(ContextBar, {
+            workspace, setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace,
+            apps, galaxyDataDisks, refreshApps,
+            runtimes, persistentDisks, refreshRuntimes
+          })
+        ])] : [children])),
+    deletingWorkspace && h(DeleteWorkspaceModal, {
+      workspace,
+      onDismiss: () => setDeletingWorkspace(false),
+      onSuccess: () => Nav.goToPath('workspaces')
+    }),
+    cloningWorkspace && h(NewWorkspaceModal, {
+      cloneWorkspace: workspace,
+      onDismiss: () => setCloningWorkspace(false),
+      onSuccess: ({ namespace, name }) => Nav.goToPath('workspace-dashboard', { namespace, name })
+    }),
+    sharingWorkspace && h(ShareWorkspaceModal, {
+      workspace,
+      onDismiss: () => setSharingWorkspace(false)
+    })
   ])
 }
 
@@ -178,7 +157,7 @@ const WorkspaceAccessError = () => {
   ])
 }
 
-const useCloudEnvironmentPolling = namespace => {
+const useCloudEnvironmentPolling = googleProject => {
   const signal = Utils.useCancellation()
   const timeout = useRef()
   const [runtimes, setRuntimes] = useState()
@@ -191,18 +170,18 @@ const useCloudEnvironmentPolling = namespace => {
   }
   const load = async maybeStale => {
     try {
-      const [newDisks, newRuntimes, galaxyDisks] = await Promise.all([
-        Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email }),
-        Ajax(signal).Runtimes.list({ googleProject: namespace, creator: getUser().email }),
-        Ajax(signal).Disks.list({ googleProject: namespace, creator: getUser().email, saturnApplication: 'galaxy' })
-      ])
+      const [newDisks, newRuntimes, galaxyDisks] = googleProject ? await Promise.all([
+        Ajax(signal).Disks.list({ googleProject, creator: getUser().email }),
+        Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email }),
+        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: 'galaxy' })
+      ]) : [[], [], []]
       const galaxyDiskNames = _.map(disk => disk.name, galaxyDisks)
       setRuntimes(newRuntimes)
       setGalaxyDataDisks(galaxyDisks)
       setPersistentDisks(_.remove(disk => _.includes(disk.name, galaxyDiskNames), newDisks))
 
       const runtime = getCurrentRuntime(newRuntimes)
-      reschedule(maybeStale || _.includes(collapsedRuntimeStatus(runtime), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
+      reschedule(maybeStale || _.includes(getConvertedRuntimeStatus(runtime), ['Creating', 'Starting', 'Stopping', 'Updating', 'LeoReconfiguring']) ? 10000 : 120000)
     } catch (error) {
       reschedule(30000)
       throw error
@@ -217,7 +196,7 @@ const useCloudEnvironmentPolling = namespace => {
   return { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks }
 }
 
-const useAppPolling = (namespace, name) => {
+const useAppPolling = (googleProject, workspaceName) => {
   const signal = Utils.useCancellation()
   const timeout = useRef()
   const [apps, setApps] = useState()
@@ -227,9 +206,9 @@ const useAppPolling = (namespace, name) => {
   }
   const loadApps = async () => {
     try {
-      const newApps = await Ajax(signal).Apps.list(namespace, { creator: getUser().email, saturnWorkspaceName: name })
+      const newApps = googleProject ? await Ajax(signal).Apps.list(googleProject, { creator: getUser().email, saturnWorkspaceName: workspaceName }) : []
       setApps(newApps)
-      const app = currentApp(newApps)
+      const app = getCurrentApp(newApps)
       reschedule((app && _.includes(app.status, ['PROVISIONING', 'PREDELETING'])) ? 10000 : 120000)
     } catch (error) {
       reschedule(30000)
@@ -245,7 +224,7 @@ const useAppPolling = (namespace, name) => {
   return { apps, refreshApps }
 }
 
-export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true, queryparams }) => WrappedComponent => {
+export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, showTabBar = true }) => WrappedComponent => {
   const Wrapper = props => {
     const { namespace, name } = props
     const child = useRef()
@@ -254,11 +233,17 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
     const accessNotificationId = useRef()
     const cachedWorkspace = Utils.useStore(workspaceStore)
     const [loadingWorkspace, setLoadingWorkspace] = useState(false)
-    const { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks } = useCloudEnvironmentPolling(namespace)
-    const { apps, refreshApps } = useAppPolling(namespace, name)
     const workspace = cachedWorkspace && _.isEqual({ namespace, name }, _.pick(['namespace', 'name'], cachedWorkspace.workspace)) ?
       cachedWorkspace :
       undefined
+    const [googleProject, setGoogleProject] = useState(workspace?.workspace.googleProject)
+    const prevGoogleProject = Utils.usePrevious(googleProject)
+    const { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks } = useCloudEnvironmentPolling(googleProject)
+    const { apps, refreshApps } = useAppPolling(googleProject, name)
+    if (googleProject !== prevGoogleProject) {
+      refreshRuntimes()
+      refreshApps()
+    }
 
     const refreshWorkspace = _.flow(
       withErrorReporting('Error loading workspace'),
@@ -271,6 +256,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
           'workspaceSubmissionStats'
         ])
         workspaceStore.set(workspace)
+        setGoogleProject(workspace.workspace.googleProject)
 
         const { accessLevel, workspace: { createdBy, createdDate } } = workspace
 
@@ -326,8 +312,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, refreshApps, refreshRuntimes,
-          runtimes, persistentDisks, galaxyDataDisks, apps,
+          workspace, refreshWorkspace, refreshRuntimes, runtimes, persistentDisks, galaxyDataDisks,
           ...props
         }),
         loadingWorkspace && spinnerOverlay
@@ -336,3 +321,24 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
   }
   return Utils.withDisplayName('wrapWorkspace', Wrapper)
 }
+
+export const WorkspaceMenuTrigger = ({ children, canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace }) => h(MenuTrigger, {
+  closeOnClick: true,
+  content: h(Fragment, [
+    h(MenuButton, { onClick: () => setCloningWorkspace(true) }, [makeMenuIcon('copy'), 'Clone']),
+    h(MenuButton, {
+      disabled: !canShare,
+      tooltip: !canShare && 'You have not been granted permission to share this workspace',
+      tooltipSide: 'left',
+      onClick: () => setSharingWorkspace(true)
+    }, [makeMenuIcon('share'), 'Share']),
+    h(MenuButton, { disabled: true }, [makeMenuIcon('export'), 'Publish', comingSoon]),
+    h(MenuButton, {
+      disabled: !isOwner,
+      tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
+      tooltipSide: 'left',
+      onClick: () => setDeletingWorkspace(true)
+    }, [makeMenuIcon('trash'), 'Delete Workspace'])
+  ]),
+  side: 'bottom'
+}, [children])

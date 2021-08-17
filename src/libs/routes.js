@@ -10,6 +10,7 @@ import * as ImportData from 'src/pages/ImportData'
 import * as ImportWorkflow from 'src/pages/ImportWorkflow'
 import * as LandingPage from 'src/pages/LandingPage'
 import * as Code from 'src/pages/library/Code'
+import * as DataBrowser from 'src/pages/library/DataBrowser'
 import * as Datasets from 'src/pages/library/Datasets'
 import * as DataExplorer from 'src/pages/library/datasets/DataExplorer'
 import * as Showcase from 'src/pages/library/Showcase'
@@ -60,6 +61,7 @@ const routes = _.flatten([
   AppLauncher.navPaths,
   TermsOfService.navPaths,
   Code.navPaths,
+  DataBrowser.navPaths,
   DataExplorer.navPaths,
   Datasets.navPaths,
   Showcase.navPaths,

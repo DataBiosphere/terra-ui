@@ -6,36 +6,19 @@ import { a, div, h, img } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
-import {
-  ButtonOutline,
-  ButtonPrimary,
-  Clickable, HeaderRenderer,
-  Link,
-  PageBox,
-  spinnerOverlay
-} from 'src/components/common'
+import { ButtonOutline, Clickable, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { NewAnalysisModal } from 'src/components/NewAnalysisModal'
-import {
-  AnalysisDeleter,
-  AnalysisDuplicator,
-  findPotentialNotebookLockers,
-  getDisplayName,
-  getFileName,
-  getTool,
-  notebookLockHash,
-  stripExtension,
-  tools
-} from 'src/components/notebook-utils'
+import { AnalysisDeleter, AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, notebookLockHash, stripExtension, tools } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ariaSort } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
-import rLogo from 'src/images/r-logo.svg'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
+import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -158,10 +141,10 @@ const AnalysisCard = ({ namespace, name, lastModified, metadata, application, ws
 
   const toolIconSrc = Utils.switchCase(application,
     [tools.Jupyter.label, () => jupyterLogo],
-    [tools.RStudio.label, () => rLogo])
+    [tools.RStudio.label, () => rstudioSquareLogo])
 
   const toolIcon = div({ style: { marginRight: '1rem' } }, [
-    img({ src: toolIconSrc, style: { height: 40, width: 50 } })
+    img({ src: toolIconSrc, style: { height: 40, width: 40 } })
   ])
 
   const toolContainer = div({ style: { display: 'flex', flex: 1, flexDirection: 'row', alignItems: 'center' } }, [
@@ -351,28 +334,13 @@ const Analyses = _.flow(
       div({ style: { display: 'flex', marginBottom: '1rem' } }, [
         div({ style: { color: colors.dark(), fontSize: 24, fontWeight: 600 } }, ['Your Analyses']),
         h(ButtonOutline, {
-          style: {
-            marginLeft: '6.5rem'
-          },
+          style: { marginLeft: '1.5rem' },
           onClick: () => setCreating(true),
           disabled: !Utils.canWrite(accessLevel),
           tooltip: !Utils.canWrite(accessLevel) ? noWrite : undefined
         }, [
           icon('plus', { size: 14, style: { color: colors.accent() } }),
           div({ style: { marginLeft: '0.5rem' } }, ['Create'])
-        ]),
-        h(ButtonPrimary, {
-          style: {
-            marginLeft: '1rem'
-          },
-          onClick: openUploader,
-          disabled: !Utils.canWrite(accessLevel),
-          tooltip: !Utils.canWrite(accessLevel) ? noWrite : undefined
-        }, [
-          div({ style: { marginBottom: '0.5rem' } }, [
-            icon('upload-cloud', { style: { marginTop: '0.5rem', marginRight: '0.5rem' }, size: 21 }),
-            'Upload'
-          ])
         ]),
         div({ style: { flex: 2 } }),
         !_.isEmpty(analyses) && h(DelayedSearchInput, {
@@ -390,10 +358,19 @@ const Analyses = _.flow(
           persistentDisks,
           refreshRuntimes,
           galaxyDataDisks,
+          refreshAnalyses,
+          analyses,
           apps,
           refreshApps,
-          onDismiss: () => setCreating(false),
-          onSuccess: () => setCreating(false)
+          uploadFiles, openUploader,
+          onDismiss: () => {
+            refreshAnalyses()
+            setCreating(false)
+          },
+          onSuccess: () => {
+            refreshAnalyses()
+            setCreating(false)
+          }
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
           printName: getDisplayName(renamingAnalysisName),

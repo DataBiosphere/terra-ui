@@ -185,7 +185,7 @@ export const machineCost = machineType => {
   return _.find(knownMachineType => knownMachineType.name === machineType, machineTypes).price
 }
 
-export const currentApp = _.flow(trimAppsOldestFirst, _.last)
+export const getCurrentApp = _.flow(trimAppsOldestFirst, _.last)
 
 export const currentAppIncludingDeleting = _.flow(_.sortBy('auditInfo.createdDate'), _.last)
 
@@ -214,17 +214,33 @@ export const isCurrentGalaxyDiskDetaching = apps => {
   return currentGalaxyApp && _.includes(currentGalaxyApp.status, ['DELETING', 'PREDELETING'])
 }
 
-export const collapsedRuntimeStatus = runtime => {
-  return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status) // NOTE: preserves null vs undefined
+export const getGalaxyCostTextChildren = (app, galaxyDataDisks) => {
+  const dataDisk = currentAttachedDataDisk(app, galaxyDataDisks)
+  return app ?
+    [getConvertedAppStatus(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``] : ['None']
 }
 
 export const isAppDeletable = app => _.includes(app?.status, ['RUNNING', 'ERROR'])
 
-export const convertedAppStatus = appStatus => {
+export const isRuntimeDeletable = runtime => _.includes(runtime?.status, ['Unknown', 'Running', 'Updating', 'Error', 'Stopping', 'Stopped', 'Starting'])
+
+export const getConvertedRuntimeStatus = runtime => {
+  return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status) // NOTE: preserves null vs undefined
+}
+
+export const getDisplayRuntimeStatus = status => Utils.switchCase(status, ['Starting', () => 'Resuming'],
+  ['Stopping', () => 'Pausing'],
+  ['Stopped', () => 'Paused'],
+  [Utils.DEFAULT, () => status])
+
+
+export const getConvertedAppStatus = appStatus => {
   return Utils.switchCase(_.upperCase(appStatus),
-    ['STOPPED', () => _.capitalize('PAUSED')],
-    ['STOPPING', () => _.capitalize('PAUSING')],
-    ['STARTING', () => _.capitalize('RESUMING')],
+    ['STOPPED', () => 'Paused'],
+    ['STOPPING', () => 'Pausing'],
+    ['STARTING', () => 'Resuming'],
+    ['PRESTARTING', () => 'Resuming'],
+    ['PRESTOPPING', () => 'Pausing'],
     [Utils.DEFAULT, () => _.capitalize(appStatus)]
   )
 }
@@ -257,4 +273,7 @@ export const RadioBlock = ({ labelText, children, name, checked, onChange, style
     ])])
   ])
 }
+
+export const getIsAppBusy = app => app?.status !== 'RUNNING' && _.includes('ING', app?.status)
+export const getIsRuntimeBusy = runtime => runtime?.status !== 'Running' && _.includes('ing', runtime?.status)
 
