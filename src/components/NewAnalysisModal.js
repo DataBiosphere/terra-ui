@@ -28,7 +28,10 @@ const newAnalysisMode = Symbol('new-artifact')
 const newEnvironmentMode = Symbol('new-environment')
 
 export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
-  ({ isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, refreshAnalyses, analyses, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
+  ({
+    isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, refreshAnalyses,
+    analyses, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } }
+  }) => {
     const [viewMode, setViewMode] = useState(undefined)
     const [busy, setBusy] = useState()
     const [notebookKernel, setNotebookKernel] = useState('python3')
@@ -73,7 +76,8 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
           [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(newAnalysisMode)],
           [currentTool === tools.galaxy.label && !currentApp, () => setViewMode(newEnvironmentMode)],
           [currentTool === tools.galaxy.label && currentApp, () => {
-            console.error('This shouldn\'t be possible, as you aren\'t allowed to create a galaxy analysis when one exists; the button should be disabled.')
+            console.error(
+              'This shouldn\'t be possible, as you aren\'t allowed to create a galaxy analysis when one exists; the button should be disabled.')
             resetView()
           }]
         )]
@@ -133,41 +137,66 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
     })
 
     const styles = {
-      toolCard: { backgroundColor: 'white', borderRadius: 5, padding: '1rem', display: 'inline-block', verticalAlign: 'middle', marginBottom: '1rem', textAlign: 'center', width: '100%', height: 60 },
+      toolCard: {
+        backgroundColor: 'white', borderRadius: 5, padding: '1rem', display: 'inline-block', verticalAlign: 'middle', marginBottom: '1rem',
+        textAlign: 'center', width: '100%', height: 60
+      },
       image: { verticalAlign: 'middle', height: '100%', width: '40%' }
     }
 
-    const renderToolButtons = () => div({ style: { display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'space-between' } }, [
-      div({ style: styles.toolCard, onClick: () => { setCurrentTool(tools.Jupyter.label); enterNextViewMode(tools.Jupyter.label) } }, [img({ src: jupyterLogoLong, style: _.merge(styles.image, { width: '30%' }) })]),
-      div({ style: styles.toolCard, onClick: () => { setCurrentTool(tools.RStudio.label); enterNextViewMode(tools.RStudio.label) } }, [img({ src: rstudioLogo, style: styles.image })]),
-      div({ style: { opacity: currentApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => { setCurrentTool(tools.galaxy.label); enterNextViewMode(tools.galaxy.label) }, disabled: !currentApp, title: currentApp ? 'You already have a galaxy environment' : '' }, [img({ src: galaxyLogo, style: _.merge(styles.image, { width: '30%' }) })])
-    ])
+    const renderToolButtons = () => div(
+      { style: { display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'space-between' } }, [
+        div({
+          style: styles.toolCard, onClick: () => {
+            setCurrentTool(tools.Jupyter.label)
+            enterNextViewMode(tools.Jupyter.label)
+          }
+        }, [img({ src: jupyterLogoLong, style: _.merge(styles.image, { width: '30%' }) })]),
+        div({
+          style: styles.toolCard, onClick: () => {
+            setCurrentTool(tools.RStudio.label)
+            enterNextViewMode(tools.RStudio.label)
+          }
+        }, [img({ src: rstudioLogo, style: styles.image })]),
+        div({
+          style: { opacity: currentApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
+            setCurrentTool(tools.galaxy.label)
+            enterNextViewMode(tools.galaxy.label)
+          }, disabled: !currentApp, title: currentApp ? 'You already have a galaxy environment' : ''
+        }, [img({ src: galaxyLogo, style: _.merge(styles.image, { width: '30%' }) })])
+      ])
 
-    const renderSelectAnalysisBody = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '0.5rem 1.5rem 1.5rem 1.5rem' } }, [
-      renderToolButtons(),
-      h(Dropzone, {
-        accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext}`,
-        style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
-        activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
-        onDropRejected: () => reportError('Not a valid analysis file',
-          'The selected file is not a .ipynb otebook file or an .Rmd rstudio file. Ensure your file has the proper extension.'),
-        onDropAccepted: files => {
-          const tool = getTool(files.pop().path)
-          setCurrentTool(tool)
-          currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== tool ? onSuccess() : enterNextViewMode(tool, newAnalysisMode)
-          uploadFiles()
-        }
-      }, [() => div({
-        onClick: () => {
-          resetView()
-          onSuccess()
-          openUploader()
-        }, style: { marginTop: '1rem', fontSize: 16, lineHeight: '20px', ...Style.elements.card.container, alignItems: 'center', width: '100%', height: 150, backgroundColor: colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none' }
-      }, [
-        div(['Or Click / Drag to upload an analysis file']),
-        icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginTop: '0.5rem' } })
-      ])])
-    ])
+    const renderSelectAnalysisBody = () => div(
+      { style: { display: 'flex', flexDirection: 'column', flex: 1, padding: '0.5rem 1.5rem 1.5rem 1.5rem' } }, [
+        renderToolButtons(),
+        h(Dropzone, {
+          accept: `.${tools.Jupyter.ext}, .${tools.RStudio.ext}`,
+          style: { flexGrow: 1, backgroundColor: colors.light(), height: '100%' },
+          activeStyle: { backgroundColor: colors.accent(0.2), cursor: 'copy' },
+          onDropRejected: () => reportError('Not a valid analysis file',
+            'The selected file is not a .ipynb otebook file or an .Rmd rstudio file. Ensure your file has the proper extension.'),
+          onDropAccepted: files => {
+            const tool = getTool(files.pop().path)
+            setCurrentTool(tool)
+            currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== tool ?
+              onSuccess() :
+              enterNextViewMode(tool, newAnalysisMode)
+            uploadFiles()
+          }
+        }, [() => div({
+          onClick: () => {
+            resetView()
+            onSuccess()
+            openUploader()
+          }, style: {
+            marginTop: '1rem', fontSize: 16, lineHeight: '20px', ...Style.elements.card.container, alignItems: 'center', width: '100%', height: 150,
+            backgroundColor: colors.dark(0.1), border: `1px dashed ${colors.dark(0.7)}`, boxShadow: 'none'
+          }
+        }, [
+          div(['Or Click / Drag to upload an analysis file']),
+          icon('upload-cloud', { size: 25, style: { opacity: 0.4, marginTop: '0.5rem' } })
+        ])])
+      ])
 
     const getArtifactLabel = toolLabel => Utils.switchCase(toolLabel,
       [tools.RStudio.label, () => 'R markdown file'],
@@ -213,12 +242,16 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
             options: ['python3', 'r']
           })
         ])]),
-        (isJupyter || toolLabel === tools.RStudio.label) && (currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel) && div({ style: { backgroundColor: colors.warning(0.1), margin: '0.5rem', padding: '1rem' } }, [
+        (isJupyter || toolLabel === tools.RStudio.label) &&
+        (currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel) &&
+        div({ style: { backgroundColor: colors.warning(0.1), margin: '0.5rem', padding: '1rem' } }, [
           h(WarningTitle, { iconSize: 16 },
             [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]
           ),
-          div({ style: { marginBottom: '0.5rem', marginTop: '1rem' } }, ['You have a non-deletable environment associated with another application.']),
-          div(['You may create an analysis, but must wait for your current environment to finish processing and get a suitable environment to run it.'])
+          div({ style: { marginBottom: '0.5rem', marginTop: '1rem' } },
+            ['You have a non-deletable environment associated with another application.']),
+          div(
+            ['You may create an analysis, but must wait for your current environment to finish processing and get a suitable environment to run it.'])
         ]),
         div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
           h(ButtonPrimary, {
