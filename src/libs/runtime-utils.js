@@ -137,7 +137,8 @@ export const getGalaxyComputeCost = app => {
   const defaultNodepoolIpAddressCost = ephemeralExternalIpAddressCost({ numStandardVms: 1, numPreemptibleVms: 0 })
 
   const staticCost = defaultNodepoolComputeCost + defaultNodepoolIpAddressCost
-  const dynamicCost = app.kubernetesRuntimeConfig.numNodes * machineCost(app.kubernetesRuntimeConfig.machineType) + ephemeralExternalIpAddressCost({ numStandardVms: app.kubernetesRuntimeConfig.numNodes, numPreemptibleVms: 0 })
+  const dynamicCost = app.kubernetesRuntimeConfig.numNodes * machineCost(app.kubernetesRuntimeConfig.machineType) +
+    ephemeralExternalIpAddressCost({ numStandardVms: app.kubernetesRuntimeConfig.numNodes, numPreemptibleVms: 0 })
 
   switch (appStatus) {
     case 'STOPPED':
@@ -206,7 +207,8 @@ export const currentPersistentDisk = (apps, galaxyDataDisks) => {
   // return the newest galaxy disk that the user has unattached to an app
   return currentDataDiskName ?
     _.find({ name: currentDataDiskName }, galaxyDataDisks) :
-    _.last(_.sortBy('auditInfo.createdDate', _.filter(({ name, status }) => status !== 'Deleting' && !_.includes(name, attachedDataDiskNames), galaxyDataDisks)))
+    _.last(_.sortBy('auditInfo.createdDate',
+      _.filter(({ name, status }) => status !== 'Deleting' && !_.includes(name, attachedDataDiskNames), galaxyDataDisks)))
 }
 
 export const isCurrentGalaxyDiskDetaching = apps => {
@@ -222,7 +224,8 @@ export const getGalaxyCostTextChildren = (app, galaxyDataDisks) => {
 
 export const isAppDeletable = app => _.includes(app?.status, ['RUNNING', 'ERROR'])
 
-export const isRuntimeDeletable = runtime => _.includes(runtime?.status, ['Unknown', 'Running', 'Updating', 'Error', 'Stopping', 'Stopped', 'Starting'])
+export const isRuntimeDeletable = runtime => _.includes(runtime?.status,
+  ['Unknown', 'Running', 'Updating', 'Error', 'Stopping', 'Stopped', 'Starting'])
 
 export const getConvertedRuntimeStatus = runtime => {
   return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status) // NOTE: preserves null vs undefined

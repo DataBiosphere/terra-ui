@@ -39,8 +39,11 @@ const validMachineTypes = _.filter(({ cpu, memory }) => cpu >= 4 && memory >= 52
 const titleId = 'new-galaxy-modal-title'
 
 export const NewGalaxyModalBase = Utils.withDisplayName('NewGalaxyModal')(
-  ({ onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName } }, isAnalysisMode = false }) => {
-  // Assumption: If there is an app defined, there must be a data disk corresponding to it.
+  ({
+    onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName } },
+    isAnalysisMode = false
+  }) => {
+    // Assumption: If there is an app defined, there must be a data disk corresponding to it.
     const app = getCurrentApp(apps)
     const attachedDataDisk = currentAttachedDataDisk(app, galaxyDataDisks)
 
