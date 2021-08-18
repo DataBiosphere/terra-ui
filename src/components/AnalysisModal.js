@@ -23,7 +23,7 @@ import validate from 'validate.js'
 
 
 const titleId = 'analysis-modal-title'
-const analysisModal = Symbol('artifact')
+const analysisMode = Symbol('artifact')
 const environmentMode = Symbol('environment')
 
 export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
@@ -55,7 +55,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
       const doesCloudEnvForToolExist = currentRuntimeTool === currentTool || (currentApp && currentTool === tools.galaxy.label)
 
       Utils.switchCase(baseViewMode,
-        [analysisModal, () => Utils.cond(
+        [analysisMode, () => Utils.cond(
           [doesCloudEnvForToolExist, () => {
             resetView()
             onSuccess()
@@ -72,7 +72,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
           onSuccess()
         }],
         [Utils.DEFAULT, () => Utils.cond(
-          [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(analysisModal)],
+          [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(analysisMode)],
           [currentTool === tools.galaxy.label && !currentApp, () => setViewMode(environmentMode)],
           [currentTool === tools.galaxy.label && currentApp, () => {
             console.error(
@@ -84,7 +84,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
     }
 
     const getView = () => Utils.switchCase(viewMode,
-      [analysisModal, renderCreateAnalysis],
+      [analysisMode, renderCreateAnalysis],
       [environmentMode, getEnvironmentView],
       [Utils.DEFAULT, renderSelectAnalysisBody])
 
@@ -179,7 +179,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
             setCurrentTool(tool)
             currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== tool ?
               onSuccess() :
-              enterNextViewMode(tool, analysisModal)
+              enterNextViewMode(tool, analysisMode)
             uploadFiles()
           }
         }, [() => div({
@@ -277,7 +277,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
 
     const width = Utils.switchCase(viewMode,
       [environmentMode, () => 675],
-      [analysisModal, () => 450],
+      [analysisMode, () => 450],
       [Utils.DEFAULT, () => 450]
     )
 
