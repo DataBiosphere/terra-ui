@@ -10,17 +10,21 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-export const DEFAULT_DATAPROC_DISK_SIZE = 60 // For both main and worker machine disks. Dataproc clusters don't have persistent disks.
-export const DEFAULT_GCE_BOOT_DISK_SIZE = 70 // GCE boot disk size is not customizable by users. We use this for cost estimate calculations only.
-export const DEFAULT_GCE_PERSISTENT_DISK_SIZE = 50
+export const defaultDataprocDiskSize = 60 // For both main and worker machine disks. Dataproc clusters don't have persistent disks.
+export const defaultGceBootDiskSize = 70 // GCE boot disk size is not customizable by users. We use this for cost estimate calculations only.
+export const defaultGcePersistentDiskSize = 50
 
-export const DEFAULT_GPU_TYPE = 'nvidia-tesla-t4'
-export const DEFAULT_NUM_GPUS = 1
+export const defaultGceMachineType = 'n1-standard-1'
+export const defaultDataprocMachineType = 'n1-standard-2'
+export const defaultNumDataprocWorkers = 2
+export const defaultNumDataprocPreemptibleWorkers = 0
+
+export const defaultGpuType = 'nvidia-tesla-t4'
+export const defaultNumGpus = 1
 
 export const usableStatuses = ['Updating', 'Running']
 
-export const defaultDataprocMachineType = 'n1-standard-2'
-export const defaultGceMachineType = 'n1-standard-1'
+
 export const getDefaultMachineType = isDataproc => isDataproc ? defaultDataprocMachineType : defaultGceMachineType
 
 export const normalizeRuntimeConfig = ({
@@ -32,15 +36,15 @@ export const normalizeRuntimeConfig = ({
   return {
     cloudService: cloudService || cloudServices.GCE,
     masterMachineType: masterMachineType || machineType || getDefaultMachineType(isDataproc),
-    masterDiskSize: masterDiskSize || diskSize || (isDataproc ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE),
+    masterDiskSize: masterDiskSize || diskSize || (isDataproc ? defaultDataprocDiskSize : defaultGceBootDiskSize),
     numberOfWorkers: (isDataproc && numberOfWorkers) || 0,
     numberOfPreemptibleWorkers: (isDataproc && numberOfWorkers && numberOfPreemptibleWorkers) || 0,
     workerMachineType: (isDataproc && numberOfWorkers && workerMachineType) || defaultDataprocMachineType,
-    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || DEFAULT_DATAPROC_DISK_SIZE,
+    workerDiskSize: (isDataproc && numberOfWorkers && workerDiskSize) || defaultDataprocDiskSize,
     // One caveat with using DEFAULT_BOOT_DISK_SIZE here is this over-estimates old GCE runtimes without PD by 1 cent
     // because those runtimes do not have a separate boot disk. But those old GCE runtimes are more than 1 year old if they exist.
     // Hence, we're okay with this caveat.
-    bootDiskSize: bootDiskSize || DEFAULT_GCE_BOOT_DISK_SIZE
+    bootDiskSize: bootDiskSize || defaultGceBootDiskSize
   }
 }
 

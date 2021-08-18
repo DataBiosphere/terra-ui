@@ -21,9 +21,9 @@ import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { versionTag } from 'src/libs/logos'
 import {
-  DEFAULT_DATAPROC_DISK_SIZE, DEFAULT_GCE_BOOT_DISK_SIZE, DEFAULT_GCE_PERSISTENT_DISK_SIZE,
-  DEFAULT_GPU_TYPE, DEFAULT_NUM_GPUS, defaultDataprocMachineType, defaultGceMachineType,
-  displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType, getValidGpuTypes,
+  defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize, defaultGceMachineType,
+  defaultGcePersistentDiskSize,
+  defaultGpuType, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType, getValidGpuTypes,
   persistentDiskCostMonthly, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -140,18 +140,18 @@ export class NewRuntimeModalBase extends Component {
     const isDataproc = !sparkMode && !runtimeConfig?.diskSize
 
     return {
-      selectedPersistentDiskSize: disk?.size || DEFAULT_GCE_PERSISTENT_DISK_SIZE,
+      selectedPersistentDiskSize: disk?.size || defaultGcePersistentDiskSize,
       sparkMode,
       masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
-      masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || (isDataproc ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE),
+      masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize || (isDataproc ? defaultDataprocDiskSize : defaultGceBootDiskSize),
       numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
       numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
       workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
-      workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DATAPROC_DISK_SIZE,
+      workerDiskSize: runtimeConfig?.workerDiskSize || defaultDataprocDiskSize,
       gpuEnabled: (!!gpuConfig && !sparkMode) || false,
       hasGpu: !!gpuConfig,
-      gpuType: gpuConfig?.gpuType || DEFAULT_GPU_TYPE,
-      numGpus: gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS
+      gpuType: gpuConfig?.gpuType || defaultGpuType,
+      numGpus: gpuConfig?.numOfGpus || defaultNumGpus
     }
   }
 
@@ -215,8 +215,10 @@ export class NewRuntimeModalBase extends Component {
   sendCloudEnvironmentMetrics() {
     const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk } = this.getDesiredEnvironmentConfig()
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = this.getExistingEnvironmentConfig()
-    const desiredMachineType = desiredRuntime && (desiredRuntime.cloudService === cloudServices.GCE ? desiredRuntime.machineType : desiredRuntime.masterMachineType)
-    const existingMachineType = existingRuntime && (existingRuntime?.cloudService === cloudServices.GCE ? existingRuntime.machineType : existingRuntime.masterMachineType)
+    const desiredMachineType = desiredRuntime &&
+      (desiredRuntime.cloudService === cloudServices.GCE ? desiredRuntime.machineType : desiredRuntime.masterMachineType)
+    const existingMachineType = existingRuntime &&
+      (existingRuntime?.cloudService === cloudServices.GCE ? existingRuntime.machineType : existingRuntime.masterMachineType)
     const { cpu: desiredRuntimeCpus, memory: desiredRuntimeMemory } = findMachineType(desiredMachineType)
     const { cpu: existingRuntimeCpus, memory: existingRuntimeMemory } = findMachineType(existingMachineType)
     const metricsEvent = Utils.cond(
@@ -477,7 +479,9 @@ export class NewRuntimeModalBase extends Component {
     const rstudioMountPoint = '/home/rstudio'
     const jupyterMountPoint = '/home/jupyter/notebooks'
     const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
-    return currentRuntimeDetails?.labels.tool ? (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) : noMountDirectory
+    return currentRuntimeDetails?.labels.tool ?
+      (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) :
+      noMountDirectory
   }
 
   componentDidMount = _.flow(
@@ -507,19 +511,19 @@ export class NewRuntimeModalBase extends Component {
     //TODO: open to feedback and still thinking about this...
     //Selected Leo image uses the following logic (psuedoCode not written in same way as code for clarity)
     //if found image (aka image associated with users runtime) NOT in newLeoImages (the image dropdown list from bucket)
-      //user is using custom image
+    //user is using custom image
     //else
-      //if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection) and isAnalysisMode
-        //use default image for selected tool
-      //else
-        //use imageUrl derived from users current runtime
+    //if found Image NOT in filteredNewLeoImages (filtered based on analysis tool selection) and isAnalysisMode
+    //use default image for selected tool
+    //else
+    //use imageUrl derived from users current runtime
     /* eslint-disable indent */
     const getSelectedImage = () => {
       if (foundImage) {
         if (!_.includes(foundImage, filteredNewLeoImages) && this.props.isAnalysisMode) {
           return _.find({ id: tools[this.props.tool].defaultImageId }, newLeoImages).image
         } else {
-         return imageUrl
+          return imageUrl
         }
       } else {
         return CUSTOM_MODE
@@ -566,7 +570,8 @@ export class NewRuntimeModalBase extends Component {
         checked: !deleteDiskSelected,
         onChange: () => this.setState({ deleteDiskSelected: false })
       }, [
-        p(['Please save your analysis data in the directory ', code({ style: { fontWeight: 600 } }, [this.getCurrentMountDirectory(currentRuntimeDetails)]), ' to ensure it’s stored on your disk.']),
+        p(['Please save your analysis data in the directory ',
+          code({ style: { fontWeight: 600 } }, [this.getCurrentMountDirectory(currentRuntimeDetails)]), ' to ensure it’s stored on your disk.']),
         p([
           'Deletes your application configuration and cloud compute profile, but detaches your persistent disk and saves it for later. ',
           'The disk will be automatically reattached the next time you create a cloud environment using the standard VM compute type.'
@@ -636,7 +641,8 @@ export class NewRuntimeModalBase extends Component {
         [canShowCustomImageWarning && isCustomImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage, () => {
           return h(ButtonPrimary, { ...commonButtonProps, onClick: () => this.setState({ viewMode: 'customImageWarning' }) }, ['Next'])
         }],
-        [canShowEnvironmentWarning && (this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime() || this.willDetachPersistentDisk()), () => {
+        [canShowEnvironmentWarning &&
+        (this.willDeleteBuiltinDisk() || this.willDeletePersistentDisk() || this.willRequireDowntime() || this.willDetachPersistentDisk()), () => {
           return h(ButtonPrimary, { ...commonButtonProps, onClick: () => this.setState({ viewMode: 'environmentWarning' }) }, ['Next'])
         }],
         () => {
@@ -673,7 +679,8 @@ export class NewRuntimeModalBase extends Component {
         options: [
           {
             label: 'TERRA-MAINTAINED JUPYTER ENVIRONMENTS',
-            options: _.map(({ label, image }) => ({ label, value: image }), _.filter(({ isCommunity, isRStudio }) => (!isCommunity && !isRStudio), leoImages))
+            options: _.map(({ label, image }) => ({ label, value: image }),
+              _.filter(({ isCommunity, isRStudio }) => (!isCommunity && !isRStudio), leoImages))
           },
           {
             label: 'COMMUNITY-MAINTAINED JUPYTER ENVIRONMENTS (verified partners)',
@@ -712,7 +719,10 @@ export class NewRuntimeModalBase extends Component {
         }, [
           { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
           { label: 'Paused cloud compute cost', cost: Utils.formatUSD(runtimeConfigBaseCost(this.getPendingRuntimeConfig())), unitLabel: 'per hr' },
-          { label: 'Persistent disk cost', cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(this.getPendingDisk())) : 'N/A', unitLabel: isPersistentDisk ? 'per month' : '' }
+          {
+            label: 'Persistent disk cost', cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(this.getPendingDisk())) : 'N/A',
+            unitLabel: isPersistentDisk ? 'per month' : ''
+          }
         ])
       ])
     }
@@ -781,14 +791,15 @@ export class NewRuntimeModalBase extends Component {
       const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
       const validNumGpus = _.includes(numGpus, validNumGpusOptions) ? numGpus : _.head(validNumGpusOptions)
       const gpuCheckboxDisabled = computeExists ? !gpuEnabled : sparkMode
-      const enableGpusSpan = span(['Enable GPUs ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })])
+      const enableGpusSpan = span(
+        ['Enable GPUs ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })])
       const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
 
       return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: { fontSize: '0.875rem', fontWeight: 600 } }, ['Cloud compute profile']),
         div([
           div({ style: { ...gridStyle, gridTemplateColumns: '0.25fr 4.5rem 1fr 5.5rem 1fr 5rem' } }, [
-          // CPU & Memory Selection
+            // CPU & Memory Selection
             h(IdContainer, [
               id => h(Fragment, [
                 label({ htmlFor: id, style: styles.label }, ['CPUs']),
@@ -797,7 +808,8 @@ export class NewRuntimeModalBase extends Component {
                     id,
                     isSearchable: false,
                     value: currentNumCpus,
-                    onChange: option => this.setState({ masterMachineType: _.find({ cpu: option.value }, validMachineTypes)?.name || mainMachineType }),
+                    onChange: option => this.setState(
+                      { masterMachineType: _.find({ cpu: option.value }, validMachineTypes)?.name || mainMachineType }),
                     options: _.flow(_.map('cpu'), _.union([currentNumCpus]), _.sortBy(_.identity))(validMachineTypes)
                   })
                 ])
@@ -811,13 +823,15 @@ export class NewRuntimeModalBase extends Component {
                     id,
                     isSearchable: false,
                     value: currentMemory,
-                    onChange: option => this.setState({ masterMachineType: _.find({ cpu: currentNumCpus, memory: option.value }, validMachineTypes)?.name || mainMachineType }),
-                    options: _.flow(_.filter({ cpu: currentNumCpus }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(validMachineTypes)
+                    onChange: option => this.setState(
+                      { masterMachineType: _.find({ cpu: currentNumCpus, memory: option.value }, validMachineTypes)?.name || mainMachineType }),
+                    options: _.flow(_.filter({ cpu: currentNumCpus }), _.map('memory'), _.union([currentMemory]), _.sortBy(_.identity))(
+                      validMachineTypes)
                   })
                 ])
               ])
             ]),
-          // Disk Selection
+            // Disk Selection
             !isPersistentDisk ?
               h(DataprocDiskSelector, { value: masterDiskSize, onChange: v => this.setState({ masterDiskSize: v }) }) :
               div({ style: { gridColumnEnd: 'span 2' } })
@@ -831,10 +845,14 @@ export class NewRuntimeModalBase extends Component {
             }, [
               span({ style: { marginLeft: '0.5rem', ...styles.label, verticalAlign: 'top' } }, [
                 gpuCheckboxDisabled ?
-                  h(TooltipTrigger, { content: ['GPUs can be added only to Standard VM compute at creation time.'], side: 'right' }, [enableGpusSpan]) :
+                  h(TooltipTrigger, { content: ['GPUs can be added only to Standard VM compute at creation time.'], side: 'right' },
+                    [enableGpusSpan]) :
                   enableGpusSpan
               ]),
-              h(Link, { style: { marginLeft: '1rem', verticalAlign: 'top' }, href: 'https://support.terra.bio/hc/en-us/articles/4403006001947', ...Utils.newTabLinkProps }, [
+              h(Link, {
+                style: { marginLeft: '1rem', verticalAlign: 'top' },
+                href: 'https://support.terra.bio/hc/en-us/articles/4403006001947', ...Utils.newTabLinkProps
+              }, [
                 'Learn more about GPU cost and restrictions.',
                 icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
               ])
@@ -944,7 +962,8 @@ export class NewRuntimeModalBase extends Component {
               ])
             ]),
             div({ style: { gridColumnEnd: 'span 2' } }),
-            h(WorkerSelector, { value: workerMachineType, machineTypeOptions: validMachineTypes, onChange: v => this.setState({ workerMachineType: v }) }),
+            h(WorkerSelector,
+              { value: workerMachineType, machineTypeOptions: validMachineTypes, onChange: v => this.setState({ workerMachineType: v }) }),
             h(DataprocDiskSelector, { value: workerDiskSize, onChange: v => this.setState({ workerDiskSize: v }) })
           ])
         ])
@@ -1246,7 +1265,9 @@ export class NewRuntimeModalBase extends Component {
           onPrevious: () => this.setState({ viewMode: undefined })
         }),
         div({ style: { lineHeight: 1.5 } }, [
-          p(['Your persistent disk is mounted in the directory ', code({ style: { fontWeight: 600 } }, [this.getCurrentMountDirectory(currentRuntimeDetails)]), br(), 'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
+          p(['Your persistent disk is mounted in the directory ',
+            code({ style: { fontWeight: 600 } }, [this.getCurrentMountDirectory(currentRuntimeDetails)]), br(),
+            'Please save your analysis data in this directory to ensure it’s stored on your disk.']),
           p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
           p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
           p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),

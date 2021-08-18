@@ -20,15 +20,9 @@ import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { versionTag } from 'src/libs/logos'
 import {
-  DEFAULT_DATAPROC_DISK_SIZE, DEFAULT_GCE_BOOT_DISK_SIZE, DEFAULT_GCE_PERSISTENT_DISK_SIZE, DEFAULT_GPU_TYPE,
-  DEFAULT_NUM_GPUS,
-  defaultDataprocMachineType,
-  defaultGceMachineType, displayNameForGpuType,
-  findMachineType,
-  getCurrentRuntime, getDefaultMachineType, getValidGpuTypes,
-  persistentDiskCostMonthly,
-  RadioBlock,
-  runtimeConfigBaseCost, runtimeConfigCost
+  defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType,
+  defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime,
+  getDefaultMachineType, getValidGpuTypes, persistentDiskCostMonthly, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -121,11 +115,10 @@ const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
     _.last(_.sortBy('auditInfo.createdDate', _.filter(({ id, status }) => status !== 'Deleting' && !_.includes(id, attachedIds), persistentDisks)))
 }
 
-export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, isAnalysisMode = false }) => {
-  const getWorkspaceObj = () => workspace.workspace
-  const shouldUsePersistentDisk = () => !sparkMode && (!currentRuntimeDetails?.runtimeConfig.diskSize || upgradeDiskSelected)
-  const isDataproc = (sparkMode, runtimeConfig) => !sparkMode && !runtimeConfig?.diskSize
+const shouldUsePersistentDisk = (sparkMode, runtimeDetails, upgradeDiskSelected) => !sparkMode &&
+  (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected)
 
+export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, isAnalysisMode = false }) => {
   // State -- begin
   const [showDebugger, setShowDebugger] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -139,43 +132,35 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
   const [selectedLeoImage, setSelectedLeoImage] = useState(undefined)
   const [customEnvImage, setCustomEnvImage] = useState(undefined)
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState(undefined)
+  const [sparkMode, setSparkMode] = useState(false)
 
-  const runtimeConfig = currentRuntimeDetails?.runtimeConfig
-  const gpuConfig = runtimeConfig?.gpuConfig
-
-  const [sparkMode, setSparkMode] = useState(runtimeConfig?.cloudService === cloudServices.DATAPROC ?
-    (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') :
-    false)
-
-  // computeConfig is always defined so we don't guard against it throughout the rest of the code
   const [computeConfig, setComputeConfig] = useState({
-    selectedPersistentDiskSize: currentPersistentDiskDetails?.size || DEFAULT_GCE_PERSISTENT_DISK_SIZE,
-    masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
-    masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
-      (isDataproc ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE),
-    numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
-    numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
-    workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
-    workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DATAPROC_DISK_SIZE,
-    gpuEnabled: (!!gpuConfig && !sparkMode) || false,
-    hasGpu: !!gpuConfig,
-    gpuType: gpuConfig?.gpuType || DEFAULT_GPU_TYPE,
-    numGpus: gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS
+    selectedPersistentDiskSize: defaultGcePersistentDiskSize,
+    masterMachineType: defaultGceMachineType,
+    masterDiskSize: defaultGceBootDiskSize,
+    numberOfWorkers: defaultNumDataprocWorkers,
+    numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,
+    workerMachineType: defaultDataprocMachineType,
+    workerDiskSize: defaultDataprocDiskSize,
+    gpuEnabled: false,
+    hasGpu: false,
+    gpuType: defaultGpuType,
+    numGpus: defaultNumGpus
   })
   // State -- end
 
-  const isPersistentDisk = shouldUsePersistentDisk()
-
+  const isPersistentDisk = shouldUsePersistentDisk(sparkMode, currentRuntimeDetails, upgradeDiskSelected)
 
   const isCustomImage = selectedLeoImage === customMode
   const { version, updated, packages, requiresSpark, label: packageLabel } = _.find({ image: selectedLeoImage }, leoImages) || {}
 
   const minRequiredMemory = sparkMode ? 7.5 : 3.75
   const validMachineTypes = _.filter(({ memory }) => memory >= minRequiredMemory, machineTypes)
-  const mainMachineType = _.find({ name: computeConfig.masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(sparkMode)
+  const mainMachineType = _.find({ name: computeConfig?.masterMachineType }, validMachineTypes)?.name || getDefaultMachineType(sparkMode)
   const machineTypeConstraints = { inclusion: { within: _.map('name', validMachineTypes), message: 'is not supported' } }
+
   const errors = validate(
-    { mainMachineType, workerMachineType: computeConfig.workerMachineType, customEnvImage },
+    { mainMachineType, workerMachineType: computeConfig?.workerMachineType, customEnvImage },
     {
       masterMachineType: machineTypeConstraints,
       workerMachineType: machineTypeConstraints,
@@ -188,263 +173,6 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
   )
 
   // Helper functions -- begin
-  const updateComputeConfig = (key, value) => setComputeConfig(_.set(key, value))
-
-  const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
-    div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
-    div(['Version: ', version || null])
-  ])
-
-  const getCurrentMountDirectory = currentRuntimeDetails => {
-    const rstudioMountPoint = '/home/rstudio'
-    const jupyterMountPoint = '/home/jupyter/notebooks'
-    const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
-    return currentRuntimeDetails?.labels.tool ?
-      (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) :
-      noMountDirectory
-  }
-
-  const willDetachPersistentDisk = () => {
-    const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
-    return desiredRuntime.cloudService === cloudServices.DATAPROC && hasAttachedDisk()
-  }
-
-  const willDeletePersistentDisk = () => {
-    const { persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
-    return existingPersistentDisk && !canUpdatePersistentDisk()
-  }
-
-  const willDeleteBuiltinDisk = () => {
-    const { runtime: existingRuntime } = getExistingEnvironmentConfig()
-    return (existingRuntime?.diskSize || existingRuntime?.masterDiskSize) && !canUpdateRuntime()
-  }
-
-  const willRequireDowntime = () => {
-    const { runtime: existingRuntime } = getExistingEnvironmentConfig()
-    return existingRuntime && (!canUpdateRuntime() || isStopRequired())
-  }
-
-  const hasAttachedDisk = () => {
-    const { runtime: existingRuntime } = getExistingEnvironmentConfig()
-    return existingRuntime?.persistentDiskAttached
-  }
-
-  const canUpdateNumberOfWorkers = () => {
-    return !currentRuntimeDetails || currentRuntimeDetails.status === 'Running'
-  }
-
-  const canUpdateRuntime = () => {
-    const { runtime: existingRuntime } = getExistingEnvironmentConfig()
-    const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
-
-    return !(
-      !existingRuntime ||
-      !desiredRuntime ||
-      desiredRuntime.cloudService !== existingRuntime.cloudService ||
-      desiredRuntime.toolDockerImage !== existingRuntime.toolDockerImage ||
-      desiredRuntime.jupyterUserScriptUri !== existingRuntime.jupyterUserScriptUri ||
-      (desiredRuntime.cloudService === cloudServices.GCE ? (
-        desiredRuntime.persistentDiskAttached !== existingRuntime.persistentDiskAttached ||
-        (desiredRuntime.persistentDiskAttached ? !canUpdatePersistentDisk() : desiredRuntime.diskSize < existingRuntime.diskSize)
-      ) : (
-        desiredRuntime.masterDiskSize < existingRuntime.masterDiskSize ||
-        (desiredRuntime.numberOfWorkers > 0 && existingRuntime.numberOfWorkers === 0) ||
-        (desiredRuntime.numberOfWorkers === 0 && existingRuntime.numberOfWorkers > 0) ||
-        desiredRuntime.workerMachineType !== existingRuntime.workerMachineType ||
-        desiredRuntime.workerDiskSize !== existingRuntime.workerDiskSize
-      ))
-    )
-  }
-
-  const canUpdatePersistentDisk = () => {
-    const { persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
-    const { persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
-
-    return !(
-      !existingPersistentDisk ||
-      !desiredPersistentDisk ||
-      desiredPersistentDisk.size < existingPersistentDisk.size
-    )
-  }
-
-  const hasChanges = () => {
-    const existingConfig = getExistingEnvironmentConfig()
-    const desiredConfig = getDesiredEnvironmentConfig()
-
-    return !_.isEqual(existingConfig, desiredConfig)
-  }
-
-  // Original diagram (without PD) for update runtime logic: https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
-  const isStopRequired = () => {
-    const { runtime: existingRuntime } = getExistingEnvironmentConfig()
-    const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
-
-    return canUpdateRuntime() &&
-      (existingRuntime.cloudService === cloudServices.GCE ?
-        existingRuntime.machineType !== desiredRuntime.machineType :
-        existingRuntime.masterMachineType !== desiredRuntime.masterMachineType)
-  }
-
-  const getExistingEnvironmentConfig = () => {
-    const runtimeConfig = currentRuntimeDetails?.runtimeConfig
-    const cloudService = runtimeConfig?.cloudService
-    const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
-    const gpuConfig = runtimeConfig?.gpuConfig
-
-    return {
-      hasGpu: computeConfig.hasGpu,
-      runtime: currentRuntimeDetails ? {
-        cloudService,
-        toolDockerImage: getImageUrl(currentRuntimeDetails),
-        ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
-        ...(cloudService === cloudServices.GCE ? {
-          machineType: runtimeConfig.machineType || defaultGceMachineType,
-          ...(computeConfig.hasGpu && gpuConfig ? { gpuConfig } : {}),
-          bootDiskSize: runtimeConfig.bootDiskSize,
-          ...(runtimeConfig.persistentDiskId ? {
-            persistentDiskAttached: true
-          } : {
-            diskSize: runtimeConfig.diskSize
-          })
-        } : {
-          masterMachineType: runtimeConfig.masterMachineType || defaultDataprocMachineType,
-          masterDiskSize: runtimeConfig.masterDiskSize || 100,
-          numberOfWorkers,
-          ...(numberOfWorkers && {
-            numberOfPreemptibleWorkers: runtimeConfig.numberOfPreemptibleWorkers || 0,
-            workerMachineType: runtimeConfig.workerMachineType || defaultDataprocMachineType,
-            workerDiskSize: runtimeConfig.workerDiskSize || 100
-          })
-        })
-      } : undefined,
-      persistentDisk: currentPersistentDiskDetails ? { size: currentPersistentDiskDetails.size } : undefined
-    }
-  }
-
-  const getDesiredEnvironmentConfig = () => {
-    const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = getExistingEnvironmentConfig()
-    const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
-    const desiredNumberOfWorkers = sparkMode === 'cluster' ? computeConfig.numberOfWorkers : 0
-
-    return {
-      hasGpu: computeConfig.hasGpu,
-      runtime: Utils.cond(
-        [(viewMode !== 'deleteEnvironmentOptions'), () => {
-          return {
-            cloudService,
-            toolDockerImage: selectedLeoImage === customMode ? customEnvImage : selectedLeoImage,
-            ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
-            ...(cloudService === cloudServices.GCE ? {
-              machineType: computeConfig.masterMachineType || defaultGceMachineType,
-              ...(computeConfig.gpuEnabled ? { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } } : {}),
-              bootDiskSize: existingRuntime?.bootDiskSize,
-              ...(shouldUsePersistentDisk() ? {
-                persistentDiskAttached: true
-              } : {
-                diskSize: computeConfig.masterDiskSize
-              })
-            } : {
-              masterMachineType: computeConfig.masterMachineType || defaultDataprocMachineType,
-              masterDiskSize: computeConfig.masterDiskSize,
-              numberOfWorkers: desiredNumberOfWorkers,
-              ...(desiredNumberOfWorkers && {
-                numberOfPreemptibleWorkers: computeConfig.numberOfPreemptibleWorkers,
-                workerMachineType: computeConfig.workerMachineType || defaultDataprocMachineType,
-                workerDiskSize: computeConfig.workerDiskSize
-              })
-            })
-          }
-        }],
-        [!deleteDiskSelected || existingRuntime?.persistentDiskAttached, () => undefined],
-        () => existingRuntime
-      ),
-      persistentDisk: Utils.cond(
-        [deleteDiskSelected, () => undefined],
-        [viewMode !== 'deleteEnvironmentOptions' && shouldUsePersistentDisk(), () => ({ size: computeConfig.selectedPersistentDiskSize })],
-        () => existingPersistentDisk
-      )
-    }
-  }
-
-  /**
-   * Transforms the new environment config into the shape of runtime config
-   * returned from leonardo. The cost calculation functions expect that shape,
-   * so this is necessary to compute the cost for potential new configurations.
-   */
-  const getPendingRuntimeConfig = () => {
-    const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
-
-    return {
-      cloudService: desiredRuntime.cloudService,
-      ...(desiredRuntime.cloudService === cloudServices.GCE ? {
-        machineType: desiredRuntime.machineType || defaultGceMachineType,
-        bootDiskSize: desiredRuntime.bootDiskSize,
-        ...(desiredRuntime.gpuConfig ? { gpuConfig: desiredRuntime.gpuConfig } : {}),
-        ...(desiredRuntime.diskSize ? { diskSize: desiredRuntime.diskSize } : {})
-      } : {
-        masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
-        masterDiskSize: desiredRuntime.masterDiskSize,
-        numberOfWorkers: desiredRuntime.numberOfWorkers,
-        ...(desiredRuntime.numberOfWorkers && {
-          numberOfPreemptibleWorkers: desiredRuntime.numberOfPreemptibleWorkers,
-          workerMachineType: desiredRuntime.workerMachineType,
-          workerDiskSize: desiredRuntime.workerDiskSize
-        })
-      })
-    }
-  }
-
-  /**
-   * Transforms the new environment config into the shape of a disk returned
-   * from leonardo. The cost calculation functions expect that shape, so this
-   * is necessary to compute the cost for potential new disk configurations.
-   */
-  const getPendingDisk = () => {
-    const { persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
-    return { size: desiredPersistentDisk.size, status: 'Ready' }
-  }
-
-  const sendCloudEnvironmentMetrics = () => {
-    const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
-    const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
-    const desiredMachineType = desiredRuntime &&
-      (desiredRuntime.cloudService === cloudServices.GCE ? desiredRuntime.machineType : desiredRuntime.masterMachineType)
-    const existingMachineType = existingRuntime &&
-      (existingRuntime?.cloudService === cloudServices.GCE ? existingRuntime.machineType : existingRuntime.masterMachineType)
-    const { cpu: desiredRuntimeCpus, memory: desiredRuntimeMemory } = findMachineType(desiredMachineType)
-    const { cpu: existingRuntimeCpus, memory: existingRuntimeMemory } = findMachineType(existingMachineType)
-    const metricsEvent = Utils.cond(
-      [(viewMode === 'deleteEnvironmentOptions'), () => 'cloudEnvironmentDelete'],
-      [(!!existingRuntime), () => 'cloudEnvironmentUpdate'],
-      () => 'cloudEnvironmentCreate'
-    )
-
-    Ajax().Metrics.captureEvent(Events[metricsEvent], {
-      ...extractWorkspaceDetails(getWorkspaceObj()),
-      ..._.mapKeys(key => `desiredRuntime_${key}`, desiredRuntime),
-      desiredRuntime_exists: !!desiredRuntime,
-      desiredRuntime_cpus: desiredRuntime && desiredRuntimeCpus,
-      desiredRuntime_memory: desiredRuntime && desiredRuntimeMemory,
-      desiredRuntime_costPerHour: desiredRuntime && runtimeConfigCost(getPendingRuntimeConfig()),
-      desiredRuntime_pausedCostPerHour: desiredRuntime && runtimeConfigBaseCost(getPendingRuntimeConfig()),
-      ..._.mapKeys(key => `existingRuntime_${key}`, existingRuntime),
-      existingRuntime_exists: !!existingRuntime,
-      existingRuntime_cpus: existingRuntime && existingRuntimeCpus,
-      existingRuntime_memory: existingRuntime && existingRuntimeMemory,
-      ..._.mapKeys(key => `desiredPersistentDisk_${key}`, desiredPersistentDisk),
-      desiredPersistentDisk_costPerMonth: (desiredPersistentDisk && persistentDiskCostMonthly(getPendingDisk())),
-      ..._.mapKeys(key => `existingPersistentDisk_${key}`, existingPersistentDisk),
-      isDefaultConfig: !!simplifiedForm
-    })
-  }
-
-  const handleLearnMoreAboutPersistentDisk = () => {
-    setViewMode('aboutPersistentDisk')
-    Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
-      ...extractWorkspaceDetails(getWorkspaceObj()), currentlyHasAttachedDisk: !!hasAttachedDisk()
-    })
-  }
-
   const applyChanges = _.flow(
     Utils.withBusyState(setLoading),
     withErrorReporting('Error creating cloud environment')
@@ -456,7 +184,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
     const shouldUpdateRuntime = canUpdateRuntime() && !_.isEqual(desiredRuntime, existingRuntime)
     const shouldDeleteRuntime = existingRuntime && !canUpdateRuntime()
     const shouldCreateRuntime = !canUpdateRuntime() && desiredRuntime
-    const { name, bucketName, googleProject } = getWorkspaceObj()
+    const { name, bucketName, googleProject } = getWorkspaceObject()
 
     const runtimeConfig = desiredRuntime && {
       cloudService: desiredRuntime.cloudService,
@@ -473,7 +201,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
             labels: { saturnWorkspaceName: name }
           }
         }),
-        ...(computeConfig.gpuEnabled && { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } })
+        ...(computeConfig?.gpuEnabled && { gpuConfig: { gpuType: computeConfig?.gpuType, numOfGpus: computeConfig?.numGpus } })
       } : {
         masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
         masterDiskSize: desiredRuntime.masterDiskSize,
@@ -518,6 +246,269 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
 
     onSuccess()
   })
+
+  const canUpdateNumberOfWorkers = () => {
+    return !currentRuntimeDetails || currentRuntimeDetails.status === 'Running'
+  }
+
+  const canUpdateRuntime = () => {
+    const { runtime: existingRuntime } = getExistingEnvironmentConfig()
+    const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
+
+    return !(
+      !existingRuntime ||
+      !desiredRuntime ||
+      desiredRuntime.cloudService !== existingRuntime.cloudService ||
+      desiredRuntime.toolDockerImage !== existingRuntime.toolDockerImage ||
+      desiredRuntime.jupyterUserScriptUri !== existingRuntime.jupyterUserScriptUri ||
+      (desiredRuntime.cloudService === cloudServices.GCE ? (
+        desiredRuntime.persistentDiskAttached !== existingRuntime.persistentDiskAttached ||
+        (desiredRuntime.persistentDiskAttached ? !canUpdatePersistentDisk() : desiredRuntime.diskSize < existingRuntime.diskSize)
+      ) : (
+        desiredRuntime.masterDiskSize < existingRuntime.masterDiskSize ||
+        (desiredRuntime.numberOfWorkers > 0 && existingRuntime.numberOfWorkers === 0) ||
+        (desiredRuntime.numberOfWorkers === 0 && existingRuntime.numberOfWorkers > 0) ||
+        desiredRuntime.workerMachineType !== existingRuntime.workerMachineType ||
+        desiredRuntime.workerDiskSize !== existingRuntime.workerDiskSize
+      ))
+    )
+  }
+
+  const canUpdatePersistentDisk = () => {
+    const { persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
+    const { persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
+
+    return !(
+      !existingPersistentDisk ||
+      !desiredPersistentDisk ||
+      desiredPersistentDisk.size < existingPersistentDisk.size
+    )
+  }
+
+  const getCurrentMountDirectory = currentRuntimeDetails => {
+    const rstudioMountPoint = '/home/rstudio'
+    const jupyterMountPoint = '/home/jupyter/notebooks'
+    const noMountDirectory = `${jupyterMountPoint} for Jupyter environments and ${rstudioMountPoint} for RStudio environments`
+    return currentRuntimeDetails?.labels.tool ?
+      (currentRuntimeDetails?.labels.tool === 'RStudio' ? rstudioMountPoint : jupyterMountPoint) :
+      noMountDirectory
+  }
+
+  const getDesiredEnvironmentConfig = () => {
+    const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = getExistingEnvironmentConfig()
+    const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
+    const desiredNumberOfWorkers = sparkMode === 'cluster' ? computeConfig?.numberOfWorkers : 0
+
+    return {
+      hasGpu: computeConfig?.hasGpu,
+      runtime: Utils.cond(
+        [(viewMode !== 'deleteEnvironmentOptions'), () => {
+          return {
+            cloudService,
+            toolDockerImage: selectedLeoImage === customMode ? customEnvImage : selectedLeoImage,
+            ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
+            ...(cloudService === cloudServices.GCE ? {
+              machineType: computeConfig?.masterMachineType || defaultGceMachineType,
+              ...(computeConfig?.gpuEnabled ? { gpuConfig: { gpuType: computeConfig?.gpuType, numOfGpus: computeConfig?.numGpus } } : {}),
+              bootDiskSize: existingRuntime?.bootDiskSize,
+              ...(shouldUsePersistentDisk(sparkMode, currentRuntimeDetails, upgradeDiskSelected) ? {
+                persistentDiskAttached: true
+              } : {
+                diskSize: computeConfig?.masterDiskSize
+              })
+            } : {
+              masterMachineType: computeConfig?.masterMachineType || defaultDataprocMachineType,
+              masterDiskSize: computeConfig?.masterDiskSize,
+              numberOfWorkers: desiredNumberOfWorkers,
+              ...(desiredNumberOfWorkers && {
+                numberOfPreemptibleWorkers: computeConfig?.numberOfPreemptibleWorkers,
+                workerMachineType: computeConfig?.workerMachineType || defaultDataprocMachineType,
+                workerDiskSize: computeConfig?.workerDiskSize
+              })
+            })
+          }
+        }],
+        [!deleteDiskSelected || existingRuntime?.persistentDiskAttached, () => undefined],
+        () => existingRuntime
+      ),
+      persistentDisk: Utils.cond(
+        [deleteDiskSelected, () => undefined],
+        [viewMode !== 'deleteEnvironmentOptions' && shouldUsePersistentDisk(sparkMode, currentRuntimeDetails, upgradeDiskSelected),
+          () => ({ size: computeConfig?.selectedPersistentDiskSize })],
+        () => existingPersistentDisk
+      )
+    }
+  }
+
+  const getExistingEnvironmentConfig = () => {
+    const runtimeConfig = currentRuntimeDetails?.runtimeConfig
+    const cloudService = runtimeConfig?.cloudService
+    const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
+    const gpuConfig = runtimeConfig?.gpuConfig
+
+    return {
+      hasGpu: computeConfig?.hasGpu,
+      runtime: currentRuntimeDetails ? {
+        cloudService,
+        toolDockerImage: getImageUrl(currentRuntimeDetails),
+        ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
+        ...(cloudService === cloudServices.GCE ? {
+          machineType: runtimeConfig.machineType || defaultGceMachineType,
+          ...(computeConfig?.hasGpu && gpuConfig ? { gpuConfig } : {}),
+          bootDiskSize: runtimeConfig.bootDiskSize,
+          ...(runtimeConfig.persistentDiskId ? {
+            persistentDiskAttached: true
+          } : {
+            diskSize: runtimeConfig.diskSize
+          })
+        } : {
+          masterMachineType: runtimeConfig.masterMachineType || defaultDataprocMachineType,
+          masterDiskSize: runtimeConfig.masterDiskSize || 100,
+          numberOfWorkers,
+          ...(numberOfWorkers && {
+            numberOfPreemptibleWorkers: runtimeConfig.numberOfPreemptibleWorkers || 0,
+            workerMachineType: runtimeConfig.workerMachineType || defaultDataprocMachineType,
+            workerDiskSize: runtimeConfig.workerDiskSize || 100
+          })
+        })
+      } : undefined,
+      persistentDisk: currentPersistentDiskDetails ? { size: currentPersistentDiskDetails.size } : undefined
+    }
+  }
+
+  /**
+   * Transforms the new environment config into the shape of a disk returned
+   * from leonardo. The cost calculation functions expect that shape, so this
+   * is necessary to compute the cost for potential new disk configurations.
+   */
+  const getPendingDisk = () => {
+    const { persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
+    return { size: desiredPersistentDisk.size, status: 'Ready' }
+  }
+
+  /**
+   * Transforms the new environment config into the shape of runtime config
+   * returned from leonardo. The cost calculation functions expect that shape,
+   * so this is necessary to compute the cost for potential new configurations.
+   */
+  const getPendingRuntimeConfig = () => {
+    const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
+
+    return {
+      cloudService: desiredRuntime.cloudService,
+      ...(desiredRuntime.cloudService === cloudServices.GCE ? {
+        machineType: desiredRuntime.machineType || defaultGceMachineType,
+        bootDiskSize: desiredRuntime.bootDiskSize,
+        ...(desiredRuntime.gpuConfig ? { gpuConfig: desiredRuntime.gpuConfig } : {}),
+        ...(desiredRuntime.diskSize ? { diskSize: desiredRuntime.diskSize } : {})
+      } : {
+        masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
+        masterDiskSize: desiredRuntime.masterDiskSize,
+        numberOfWorkers: desiredRuntime.numberOfWorkers,
+        ...(desiredRuntime.numberOfWorkers && {
+          numberOfPreemptibleWorkers: desiredRuntime.numberOfPreemptibleWorkers,
+          workerMachineType: desiredRuntime.workerMachineType,
+          workerDiskSize: desiredRuntime.workerDiskSize
+        })
+      })
+    }
+  }
+
+  const getWorkspaceObject = () => workspace?.workspace
+
+  const handleLearnMoreAboutPersistentDisk = () => {
+    setViewMode('aboutPersistentDisk')
+    Ajax().Metrics.captureEvent(Events.aboutPersistentDiskView, {
+      ...extractWorkspaceDetails(getWorkspaceObject()), currentlyHasAttachedDisk: !!hasAttachedDisk()
+    })
+  }
+
+  const hasAttachedDisk = () => {
+    const { runtime: existingRuntime } = getExistingEnvironmentConfig()
+    return existingRuntime?.persistentDiskAttached
+  }
+
+  const hasChanges = () => {
+    const existingConfig = getExistingEnvironmentConfig()
+    const desiredConfig = getDesiredEnvironmentConfig()
+
+    return !_.isEqual(existingConfig, desiredConfig)
+  }
+
+  /**
+   * Original diagram (without PD) for update runtime logic:
+   * https://drive.google.com/file/d/1mtFFecpQTkGYWSgPlaHksYaIudWHa0dY/view
+   */
+  const isStopRequired = () => {
+    const { runtime: existingRuntime } = getExistingEnvironmentConfig()
+    const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
+
+    return canUpdateRuntime() &&
+      (existingRuntime.cloudService === cloudServices.GCE ?
+        existingRuntime.machineType !== desiredRuntime.machineType :
+        existingRuntime.masterMachineType !== desiredRuntime.masterMachineType)
+  }
+
+  const makeImageInfo = style => div({ style: { whiteSpace: 'pre', ...style } }, [
+    div({ style: Style.proportionalNumbers }, ['Updated: ', updated ? Utils.makeStandardDate(updated) : null]),
+    div(['Version: ', version || null])
+  ])
+
+  const sendCloudEnvironmentMetrics = () => {
+    const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
+    const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
+    const desiredMachineType = desiredRuntime &&
+      (desiredRuntime.cloudService === cloudServices.GCE ? desiredRuntime.machineType : desiredRuntime.masterMachineType)
+    const existingMachineType = existingRuntime &&
+      (existingRuntime?.cloudService === cloudServices.GCE ? existingRuntime.machineType : existingRuntime.masterMachineType)
+    const { cpu: desiredRuntimeCpus, memory: desiredRuntimeMemory } = findMachineType(desiredMachineType)
+    const { cpu: existingRuntimeCpus, memory: existingRuntimeMemory } = findMachineType(existingMachineType)
+    const metricsEvent = Utils.cond(
+      [(viewMode === 'deleteEnvironmentOptions'), () => 'cloudEnvironmentDelete'],
+      [(!!existingRuntime), () => 'cloudEnvironmentUpdate'],
+      () => 'cloudEnvironmentCreate'
+    )
+
+    Ajax().Metrics.captureEvent(Events[metricsEvent], {
+      ...extractWorkspaceDetails(getWorkspaceObject()),
+      ..._.mapKeys(key => `desiredRuntime_${key}`, desiredRuntime),
+      desiredRuntime_exists: !!desiredRuntime,
+      desiredRuntime_cpus: desiredRuntime && desiredRuntimeCpus,
+      desiredRuntime_memory: desiredRuntime && desiredRuntimeMemory,
+      desiredRuntime_costPerHour: desiredRuntime && runtimeConfigCost(getPendingRuntimeConfig()),
+      desiredRuntime_pausedCostPerHour: desiredRuntime && runtimeConfigBaseCost(getPendingRuntimeConfig()),
+      ..._.mapKeys(key => `existingRuntime_${key}`, existingRuntime),
+      existingRuntime_exists: !!existingRuntime,
+      existingRuntime_cpus: existingRuntime && existingRuntimeCpus,
+      existingRuntime_memory: existingRuntime && existingRuntimeMemory,
+      ..._.mapKeys(key => `desiredPersistentDisk_${key}`, desiredPersistentDisk),
+      desiredPersistentDisk_costPerMonth: (desiredPersistentDisk && persistentDiskCostMonthly(getPendingDisk())),
+      ..._.mapKeys(key => `existingPersistentDisk_${key}`, existingPersistentDisk),
+      isDefaultConfig: !!simplifiedForm
+    })
+  }
+
+  const updateComputeConfig = (key, value) => setComputeConfig(_.set(key, value))
+
+  const willDeleteBuiltinDisk = () => {
+    const { runtime: existingRuntime } = getExistingEnvironmentConfig()
+    return (existingRuntime?.diskSize || existingRuntime?.masterDiskSize) && !canUpdateRuntime()
+  }
+
+  const willDeletePersistentDisk = () => {
+    const { persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
+    return existingPersistentDisk && !canUpdatePersistentDisk()
+  }
+
+  const willDetachPersistentDisk = () => {
+    const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
+    return desiredRuntime.cloudService === cloudServices.DATAPROC && hasAttachedDisk()
+  }
+
+  const willRequireDowntime = () => {
+    const { runtime: existingRuntime } = getExistingEnvironmentConfig()
+    return existingRuntime && (!canUpdateRuntime() || isStopRequired())
+  }
   // Helper functions -- end
 
   // Lifecycle
@@ -527,12 +518,12 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
       withErrorReporting('Error loading cloud environment'),
       Utils.withBusyState(setLoading)
     )(async () => {
-      const { googleProject } = getWorkspaceObj()
+      const { googleProject } = getWorkspaceObject()
       const currentRuntime = getCurrentRuntime(runtimes)
       const currentPersistentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
 
       Ajax().Metrics.captureEvent(Events.cloudEnvironmentConfigOpen, {
-        existingConfig: !!currentRuntime, ...extractWorkspaceDetails(getWorkspaceObj())
+        existingConfig: !!currentRuntime, ...extractWorkspaceDetails(getWorkspaceObject())
       })
       const [currentRuntimeDetails, newLeoImages, currentPersistentDiskDetails] = await Promise.all([
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
@@ -576,23 +567,26 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
         setCustomEnvImage(!foundImage ? imageUrl : '')
         setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
 
+        const isDataproc = (sparkMode, runtimeConfig) => !sparkMode && !runtimeConfig?.diskSize
         const runtimeConfig = currentRuntimeDetails?.runtimeConfig
         const gpuConfig = runtimeConfig?.gpuConfig
 
+        setSparkMode(runtimeConfig?.cloudService === cloudServices.DATAPROC ?
+          (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') :
+          false)
         setComputeConfig({
-          selectedPersistentDiskSize: currentPersistentDiskDetails?.size || DEFAULT_GCE_PERSISTENT_DISK_SIZE,
-          sparkMode,
+          selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
           masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
           masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
-            (isDataproc ? DEFAULT_DATAPROC_DISK_SIZE : DEFAULT_GCE_BOOT_DISK_SIZE),
+            (isDataproc ? defaultDataprocDiskSize : defaultGceBootDiskSize),
           numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
           numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
           workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
-          workerDiskSize: runtimeConfig?.workerDiskSize || DEFAULT_DATAPROC_DISK_SIZE,
+          workerDiskSize: runtimeConfig?.workerDiskSize || defaultDataprocDiskSize,
           gpuEnabled: (!!gpuConfig && !sparkMode) || false,
           hasGpu: !!gpuConfig,
-          gpuType: gpuConfig?.gpuType || DEFAULT_GPU_TYPE,
-          numGpus: gpuConfig?.numOfGpus || DEFAULT_NUM_GPUS
+          gpuType: gpuConfig?.gpuType || defaultGpuType,
+          numGpus: gpuConfig?.numOfGpus || defaultNumGpus
         })
       })
 
@@ -714,12 +708,12 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
     const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(mainMachineType)
     const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory)
     const validGpuNames = _.flow(_.map('name'), _.uniq, _.sortBy('price'))(validGpuOptions)
-    const validGpuName = _.includes(displayNameForGpuType(computeConfig.gpuType), validGpuNames) ?
-      displayNameForGpuType(computeConfig.gpuType) :
+    const validGpuName = _.includes(displayNameForGpuType(computeConfig?.gpuType), validGpuNames) ?
+      displayNameForGpuType(computeConfig?.gpuType) :
       _.head(validGpuNames)
     const validNumGpusOptions = _.flow(_.filter({ name: validGpuName }), _.map('numGpus'))(validGpuOptions)
-    const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
-    const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : sparkMode
+    const validNumGpus = _.includes(computeConfig?.numGpus, validNumGpusOptions) ? computeConfig?.numGpus : _.head(validNumGpusOptions)
+    const gpuCheckboxDisabled = computeExists ? !computeConfig?.gpuEnabled : sparkMode
     const enableGpusSpan = span(
       ['Enable GPUs ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })])
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
@@ -762,15 +756,15 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
           ]),
           // Disk Selection
           !isPersistentDisk ?
-            h(DataprocDiskSelector, { value: computeConfig.masterDiskSize, onChange: v => updateComputeConfig('masterDiskSize', v) }) :
+            h(DataprocDiskSelector, { value: computeConfig?.masterDiskSize, onChange: v => updateComputeConfig('masterDiskSize', v) }) :
             div({ style: { gridColumnEnd: 'span 2' } })
         ]),
         // GPU Enabling
         !sparkMode && div({ style: { gridColumnEnd: 'span 6', marginTop: '1.5rem' } }, [
           h(LabeledCheckbox, {
-            checked: computeConfig.gpuEnabled,
+            checked: computeConfig?.gpuEnabled,
             disabled: gpuCheckboxDisabled,
-            onChange: v => updateComputeConfig('gpuEnabled', v || computeConfig.hasGpu)
+            onChange: v => updateComputeConfig('gpuEnabled', v || computeConfig?.hasGpu)
           }, [
             span({ style: { marginLeft: '0.5rem', ...styles.label, verticalAlign: 'top' } }, [
               gpuCheckboxDisabled ?
@@ -787,7 +781,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
           ])
         ]),
         // GPU Selection
-        computeConfig.gpuEnabled && !sparkMode && div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 12rem 1fr 5.5rem 1fr 5.5rem' } }, [
+        computeConfig?.gpuEnabled && !sparkMode && div({ style: { ...gridStyle, gridTemplateColumns: '0.75fr 12rem 1fr 5.5rem 1fr 5.5rem' } }, [
           h(Fragment, [
             h(IdContainer, [
               id => h(Fragment, [
@@ -812,7 +806,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
                     isSearchable: false,
                     value: validNumGpus,
                     onChange: option => updateComputeConfig('numGpus',
-                      _.find({ type: computeConfig.gpuType, numGpus: option.value }, validGpuOptions)?.numGpus),
+                      _.find({ type: computeConfig?.gpuType, numGpus: option.value }, validGpuOptions)?.numGpus),
                     options: validNumGpusOptions
                   })
                 ])
@@ -866,7 +860,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
                 min: 2,
                 isClearable: false,
                 onlyInteger: true,
-                value: computeConfig.numberOfWorkers,
+                value: computeConfig?.numberOfWorkers,
                 disabled: !canUpdateNumberOfWorkers(),
                 tooltip: !canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of workers.' : undefined,
                 onChange: v => updateComputeConfig('numberOfWorkers', v)
@@ -881,7 +875,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
                 min: 0,
                 isClearable: false,
                 onlyInteger: true,
-                value: computeConfig.numberOfPreemptibleWorkers,
+                value: computeConfig?.numberOfPreemptibleWorkers,
                 disabled: !canUpdateNumberOfWorkers(),
                 tooltip: !canUpdateNumberOfWorkers() ? 'Cloud Compute must be in Running status to change number of preemptibles' : undefined,
                 onChange: v => updateComputeConfig('numberOfPreemptibleWorkers', v)
@@ -890,9 +884,9 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
           ]),
           div({ style: { gridColumnEnd: 'span 2' } }),
           h(WorkerSelector, {
-            value: computeConfig.workerMachineType, machineTypeOptions: validMachineTypes, onChange: v => updateComputeConfig('workerMachineType', v)
+            value: computeConfig?.workerMachineType, machineTypeOptions: validMachineTypes, onChange: v => updateComputeConfig('workerMachineType', v)
           }),
-          h(DataprocDiskSelector, { value: computeConfig.workerDiskSize, onChange: v => updateComputeConfig('workerDiskSize', v) })
+          h(DataprocDiskSelector, { value: computeConfig?.workerDiskSize, onChange: v => updateComputeConfig('workerDiskSize', v) })
         ])
       ])
     ])
@@ -1218,7 +1212,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
       ])
     }
     const renderDiskText = () => {
-      return span({ style: { fontWeight: 600 } }, [computeConfig.selectedPersistentDiskSize, ' GB persistent disk'])
+      return span({ style: { fontWeight: 600 } }, [computeConfig?.selectedPersistentDiskSize, ' GB persistent disk'])
     }
     return simplifiedForm ?
       div({ style: styles.drawerContent }, [
@@ -1312,7 +1306,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
             max: 64000,
             isClearable: false,
             onlyInteger: true,
-            value: computeConfig.selectedPersistentDiskSize,
+            value: computeConfig?.selectedPersistentDiskSize,
             style: { marginTop: '0.5rem', width: '5rem' },
             onChange: v => updateComputeConfig('selectedPersistentDiskSize', v)
           })
