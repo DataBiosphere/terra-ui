@@ -133,7 +133,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const [customEnvImage, setCustomEnvImage] = useState(undefined)
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState(undefined)
   const [sparkMode, setSparkMode] = useState(false)
-
   const [computeConfig, setComputeConfig] = useState({
     selectedPersistentDiskSize: defaultGcePersistentDiskSize,
     masterMachineType: defaultGceMachineType,

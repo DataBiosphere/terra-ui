@@ -49,8 +49,10 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
       setNotebookKernel('python3')
     }
 
-    // The intended flow is to call this without a viewmode, and have it intelligently figure out the next step for you
-    // Passing a viewmode is a way to force your next modal
+    /**
+     * The intended flow is to call this without a viewMode, and have it intelligently figure out the next
+     * step for you. Passing a viewMode is a way to force your next modal.
+     */
     const enterNextViewMode = (currentTool, baseViewMode = viewMode) => {
       const doesCloudEnvForToolExist = currentRuntimeTool === currentTool || (currentApp && currentTool === tools.galaxy.label)
 
