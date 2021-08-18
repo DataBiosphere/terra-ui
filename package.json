@@ -62,7 +62,7 @@
     "setenv": "echo REACT_APP_VERSION=$(git rev-parse HEAD) REACT_APP_BUILD_TIMESTAMP=$(date -u \"+%s000\") EXTEND_ESLINT=true",
     "start": "env $(yarn -s setenv) react-app-rewired start",
     "build": "env $(yarn -s setenv) react-app-rewired build",
-    "postbuild": "rm build/config.json",
+    "postbuild": "rm build/config.json && echo && echo '*** Be sure to copy a config/xxx.json to build/config.json. ***'",
     "test": "react-app-rewired test",
     "eject": "react-app-rewired eject"
   },
