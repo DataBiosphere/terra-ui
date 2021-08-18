@@ -116,25 +116,25 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
             highlight: _.includes(section, selectedSections)
           })
         ]) :
-          h(SidebarCollapser, {
-            key: section.name,
-            title: section.name,
-            onClick: () => setCollapsedSections(_.xor([section], collapsedSections)),
-            isOpened: !_.includes(section, collapsedSections)
-          }, [_.map(label => {
-            const tag = _.toLower(label)
-            return h(Clickable, {
-              key: label,
-              style: { display: 'flex', alignItems: 'baseline', margin: '0.5rem 0' },
-              onClick: () => onTagFilter(tag)
-            }, [
-              div({ style: { flex: 1 } }, [label]),
-              h(Pill, {
-                count: _.size(workspacesByTag[tag]),
-                highlight: _.includes(tag, selectedTags)
-              })
-            ])
-          }, section.labels)])
+        h(SidebarCollapser, {
+          key: section.name,
+          title: section.name,
+          onClick: () => setCollapsedSections(_.xor([section], collapsedSections)),
+          isOpened: !_.includes(section, collapsedSections)
+        }, [_.map(label => {
+          const tag = _.toLower(label)
+          return h(Clickable, {
+            key: label,
+            style: { display: 'flex', alignItems: 'baseline', margin: '0.5rem 0' },
+            onClick: () => onTagFilter(tag)
+          }, [
+            div({ style: { flex: 1 } }, [label]),
+            h(Pill, {
+              count: _.size(workspacesByTag[tag]),
+              highlight: _.includes(tag, selectedTags)
+            })
+          ])
+        }, section.labels)])
     }, sections)
   ])
 }
@@ -150,16 +150,16 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
   // Trim items from the sidebar for which there aren't any featured workspaces.
   const activeTags = _.keys(workspacesByTag)
   const sections = _.flow(
-      _.map(section => {
-        const activeLabels = _.intersectionBy(_.toLower, section.labels, activeTags)
-        return {
-          ...section,
-          labels: activeLabels,
-          tags: _.map(_.toLower, activeLabels)
-        }
-      }),
-      _.remove(section => _.isEmpty(section.labels))
-      )(sidebarSections)
+    _.map(section => {
+      const activeLabels = _.intersectionBy(_.toLower, section.labels, activeTags)
+      return {
+        ...section,
+        labels: activeLabels,
+        tags: _.map(_.toLower, activeLabels)
+      }
+    }),
+    _.remove(section => _.isEmpty(section.labels))
+  )(sidebarSections)
 
   const sortWorkspaces = Utils.cond(
     [sort === 'most recent', () => _.orderBy(['created'], ['desc'])],
