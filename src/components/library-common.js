@@ -9,7 +9,7 @@ import * as Nav from 'src/libs/nav'
 
 const TAB_LINKS = {
   datasets: 'library-datasets',
-  'showcase & tutorials': 'library-showcase',
+  'featured workspaces': 'library-showcase',
   ...(isDataBrowserVisible() ? { 'browse & explore': 'library-browser' } : {}),
   'code & workflows': 'library-code'
 }
