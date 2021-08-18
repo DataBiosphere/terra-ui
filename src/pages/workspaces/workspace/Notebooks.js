@@ -8,9 +8,9 @@ import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/b
 import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
 import { Clickable, IdContainer, Link, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
+import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { NewGalaxyModal } from 'src/components/NewGalaxyModal'
 import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -77,7 +77,10 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
   ])
 ])
 
-const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite, currentUserHash, potentialLockers }) => {
+const NotebookCard = ({
+  namespace, name, updated, metadata, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite, currentUserHash,
+  potentialLockers
+}) => {
   const { lockExpiresAt, lastLockedBy } = metadata || {}
   const lockExpirationDate = new Date(parseInt(lockExpiresAt))
   const locked = currentUserHash && lastLockedBy && lastLockedBy !== currentUserHash && lockExpirationDate > Date.now()
@@ -359,7 +362,8 @@ const Notebooks = _.flow(
               ...Style.elements.card.container, height: 125, marginTop: 15
             },
             disabled: appIsSettingUp(app) || isCurrentGalaxyDiskDetaching(apps),
-            tooltip: (appIsSettingUp(app) && 'Galaxy app is being created') || (isCurrentGalaxyDiskDetaching(apps) && 'Your persistent disk is still attached to your previous app; you can create a new app once your previous app finishes deleting, which will take a few minutes.'),
+            tooltip: (appIsSettingUp(app) && 'Galaxy app is being created') || (isCurrentGalaxyDiskDetaching(apps) &&
+              'Your persistent disk is still attached to your previous app; you can create a new app once your previous app finishes deleting, which will take a few minutes.'),
             onClick: () => setOpenGalaxyConfigDrawer(true)
           }, [
             getGalaxyText(app, galaxyDataDisks)
@@ -461,7 +465,7 @@ const Notebooks = _.flow(
             refreshNotebooks()
           }
         }),
-        h(NewGalaxyModal, {
+        h(GalaxyModal, {
           isOpen: openGalaxyConfigDrawer,
           workspace,
           apps,

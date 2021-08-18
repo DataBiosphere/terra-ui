@@ -1,12 +1,12 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers'
-import { CloudComputeModalBase } from 'src/components/CloudComputeModal'
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
+import { ComputeModalBase } from 'src/components/ComputeModal'
 import Dropzone from 'src/components/Dropzone'
+import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
-import { NewGalaxyModalBase } from 'src/components/NewGalaxyModal'
 import { analysisNameInput, analysisNameValidator, getDisplayName, getTool, notebookData, tools } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
 import galaxyLogo from 'src/images/galaxy-logo.png'
@@ -22,11 +22,11 @@ import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
 
-const titleId = 'new-analysis-modal-title'
-const newAnalysisMode = Symbol('new-artifact')
-const newEnvironmentMode = Symbol('new-environment')
+const titleId = 'analysis-modal-title'
+const analysisModal = Symbol('artifact')
+const environmentMode = Symbol('environment')
 
-export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
+export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
   ({
     isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, refreshAnalyses,
     analyses, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } }
@@ -55,25 +55,25 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       const doesCloudEnvForToolExist = currentRuntimeTool === currentTool || (currentApp && currentTool === tools.galaxy.label)
 
       Utils.switchCase(baseViewMode,
-        [newAnalysisMode, () => Utils.cond(
+        [analysisModal, () => Utils.cond(
           [doesCloudEnvForToolExist, () => {
             resetView()
             onSuccess()
           }],
-          [!doesCloudEnvForToolExist && currentRuntime && isRuntimeDeletable(currentRuntime), () => setViewMode(newEnvironmentMode)],
-          [!doesCloudEnvForToolExist && !currentRuntime, () => setViewMode(newEnvironmentMode)],
+          [!doesCloudEnvForToolExist && currentRuntime && isRuntimeDeletable(currentRuntime), () => setViewMode(environmentMode)],
+          [!doesCloudEnvForToolExist && !currentRuntime, () => setViewMode(environmentMode)],
           [!doesCloudEnvForToolExist && currentRuntime && !isRuntimeDeletable(currentRuntime), () => {
             resetView()
             onSuccess()
           }]
         )],
-        [newEnvironmentMode, () => {
+        [environmentMode, () => {
           resetView()
           onSuccess()
         }],
         [Utils.DEFAULT, () => Utils.cond(
-          [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(newAnalysisMode)],
-          [currentTool === tools.galaxy.label && !currentApp, () => setViewMode(newEnvironmentMode)],
+          [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(analysisModal)],
+          [currentTool === tools.galaxy.label && !currentApp, () => setViewMode(environmentMode)],
           [currentTool === tools.galaxy.label && currentApp, () => {
             console.error(
               'This shouldn\'t be possible, as you aren\'t allowed to create a galaxy analysis when one exists; the button should be disabled.')
@@ -84,17 +84,17 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
     }
 
     const getView = () => Utils.switchCase(viewMode,
-      [newAnalysisMode, renderCreateAnalysis],
-      [newEnvironmentMode, getNewEnvironmentView],
+      [analysisModal, renderCreateAnalysis],
+      [environmentMode, getEnvironmentView],
       [Utils.DEFAULT, renderSelectAnalysisBody])
 
-    const getNewEnvironmentView = () => Utils.switchCase(currentTool,
-      [tools.Jupyter.label, renderCloudComputeModal],
-      [tools.RStudio.label, renderCloudComputeModal],
-      [tools.galaxy.label, renderNewGalaxyModal]
+    const getEnvironmentView = () => Utils.switchCase(currentTool,
+      [tools.Jupyter.label, renderComputeModal],
+      [tools.RStudio.label, renderComputeModal],
+      [tools.galaxy.label, renderGalaxyModal]
     )
 
-    const renderCloudComputeModal = () => h(CloudComputeModalBase, {
+    const renderComputeModal = () => h(ComputeModalBase, {
       isOpen: currentTool === tools.Jupyter.label || currentTool === tools.RStudio.label,
       isAnalysisMode: true,
       workspace,
@@ -106,7 +106,7 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
         onDismiss()
       },
       onSuccess: _.flow(
-        withErrorReporting('Error creating runtime'),
+        withErrorReporting('Error creating compute'),
         Utils.withBusyState(setBusy)
       )(async () => {
         setViewMode(undefined)
@@ -115,7 +115,7 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
       })
     })
 
-    const renderNewGalaxyModal = () => h(NewGalaxyModalBase, {
+    const renderGalaxyModal = () => h(GalaxyModalBase, {
       isOpen: viewMode === tools.galaxy.label,
       isAnalysisMode: true,
       workspace,
@@ -179,7 +179,7 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
             setCurrentTool(tool)
             currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== tool ?
               onSuccess() :
-              enterNextViewMode(tool, newAnalysisMode)
+              enterNextViewMode(tool, analysisModal)
             uploadFiles()
           }
         }, [() => div({
@@ -276,8 +276,8 @@ export const NewAnalysisModal = Utils.withDisplayName('NewAnalysisModal')(
     }
 
     const width = Utils.switchCase(viewMode,
-      [newEnvironmentMode, () => 675],
-      [newAnalysisMode, () => 450],
+      [environmentMode, () => 675],
+      [analysisModal, () => 450],
       [Utils.DEFAULT, () => 450]
     )
 

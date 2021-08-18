@@ -1,11 +1,11 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, hr, img, span } from 'react-hyperscript-helpers'
-import { CloudComputeModalBase } from 'src/components/CloudComputeModal'
 import { Clickable, spinnerOverlay } from 'src/components/common'
+import { ComputeModalBase } from 'src/components/ComputeModal'
+import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
-import { NewGalaxyModalBase } from 'src/components/NewGalaxyModal'
 import { tools } from 'src/components/notebook-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import TitleBar from 'src/components/TitleBar'
@@ -49,7 +49,7 @@ export const CloudEnvironmentModal = ({
 
   const noCompute = 'You do not have access to run analyses on this workspace.'
 
-  const renderCloudComputeModal = tool => h(CloudComputeModalBase, {
+  const renderComputeModal = tool => h(ComputeModalBase, {
     isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE,
     isAnalysisMode: true,
     workspace,
@@ -69,7 +69,7 @@ export const CloudEnvironmentModal = ({
     })
   })
 
-  const renderNewGalaxyModal = () => h(NewGalaxyModalBase, {
+  const renderGalaxyModal = () => h(GalaxyModalBase, {
     isOpen: viewMode === NEW_GALAXY_MODE,
     isAnalysisMode: true,
     workspace,
@@ -366,9 +366,9 @@ export const CloudEnvironmentModal = ({
   const NEW_GALAXY_MODE = tools.galaxy.label
 
   const getView = () => Utils.switchCase(viewMode,
-    [NEW_JUPYTER_MODE, () => renderCloudComputeModal(NEW_JUPYTER_MODE)],
-    [NEW_RSTUDIO_MODE, () => renderCloudComputeModal(NEW_RSTUDIO_MODE)],
-    [NEW_GALAXY_MODE, renderNewGalaxyModal],
+    [NEW_JUPYTER_MODE, () => renderComputeModal(NEW_JUPYTER_MODE)],
+    [NEW_RSTUDIO_MODE, () => renderComputeModal(NEW_RSTUDIO_MODE)],
+    [NEW_GALAXY_MODE, renderGalaxyModal],
     [Utils.DEFAULT, renderDefaultPage]
   )
 

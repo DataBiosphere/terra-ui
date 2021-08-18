@@ -33,7 +33,7 @@ import validate from 'validate.js'
 const showDebugPanel = false
 const titleId = 'cloud-compute-modal-title'
 
-// TODO Factor out common pieces with NewGalaxyModal.styles into runtime-utils
+// TODO Factor out common pieces with GalaxyModal.styles into runtime-utils
 const styles = {
   label: { fontWeight: 600, whiteSpace: 'pre' },
   titleBar: { marginBottom: '1rem' },
@@ -118,7 +118,7 @@ const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
 const shouldUsePersistentDisk = (sparkMode, runtimeDetails, upgradeDiskSelected) => !sparkMode &&
   (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected)
 
-export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, isAnalysisMode = false }) => {
+export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, isAnalysisMode = false }) => {
   // State -- begin
   const [showDebugger, setShowDebugger] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -704,7 +704,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
     ])
   }
 
-  const renderCloudComputeProfileSection = computeExists => {
+  const renderComputeProfileSection = computeExists => {
     const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(mainMachineType)
     const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory)
     const validGpuNames = _.flow(_.map('name'), _.uniq, _.sortBy('price'))(validGpuOptions)
@@ -1257,7 +1257,7 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
         ]),
         div({ style: { padding: '1.5rem', overflowY: 'auto', flex: 'auto' } }, [
           renderApplicationConfigurationSection(),
-          renderCloudComputeProfileSection(existingRuntime),
+          renderComputeProfileSection(existingRuntime),
           !!isPersistentDisk && renderPersistentDiskSection(),
           !sparkMode && !isPersistentDisk && div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
@@ -1331,6 +1331,6 @@ export const CloudComputeModalBase = ({ onDismiss, onSuccess, runtimes, persiste
   ])
 }
 
-export const CloudComputeModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(
-  CloudComputeModalBase
+export const ComputeModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(
+  ComputeModalBase
 )
