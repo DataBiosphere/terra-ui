@@ -82,10 +82,10 @@ export const Pill = ({ count, highlight }) => {
 }
 
 const uniqueSidebarTags = sidebarSections => {
-  return _.flow([
+  return _.flow(
     _.flatMap(s => _.map(_.toLower, s.labels)),
     _.uniq
-  ])(sidebarSections)
+  )(sidebarSections)
 }
 
 export const groupByFeaturedTags = (workspaces, sidebarSections) => {
@@ -116,29 +116,25 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
             highlight: _.includes(section, selectedSections)
           })
         ]) :
-        h(SidebarCollapser,
-          {
+          h(SidebarCollapser, {
             key: section.name,
             title: section.name,
             onClick: () => setCollapsedSections(_.xor([section], collapsedSections)),
             isOpened: !_.includes(section, collapsedSections)
-          },
-          [
-            ..._.map(label => {
-              const tag = _.toLower(label)
-              return h(Clickable, {
-                style: { display: 'flex', alignItems: 'baseline', margin: '0.5rem 0' },
-                onClick: () => onTagFilter(tag)
-              }, [
-                div({ style: { flex: 1 } }, [label]),
-                h(Pill, {
-                  count: _.size(workspacesByTag[tag]),
-                  highlight: _.includes(tag, selectedTags)
-                })
-              ])
-            }, section.labels)
-          ]
-        )
+          }, [_.map(label => {
+            const tag = _.toLower(label)
+            return h(Clickable, {
+              key: label,
+              style: { display: 'flex', alignItems: 'baseline', margin: '0.5rem 0' },
+              onClick: () => onTagFilter(tag)
+            }, [
+              div({ style: { flex: 1 } }, [label]),
+              h(Pill, {
+                count: _.size(workspacesByTag[tag]),
+                highlight: _.includes(tag, selectedTags)
+              })
+            ])
+          }, section.labels)])
     }, sections)
   ])
 }
@@ -153,11 +149,17 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
 
   // Trim items from the sidebar for which there aren't any featured workspaces.
   const activeTags = _.keys(workspacesByTag)
-  const sections = _.flow([
-    _.map(_.update(['labels'], labels => _.intersectionBy(_.toLower, labels, activeTags))),
-    _.map(section => ({ ...section, tags: _.map(_.toLower, section.labels) })),
-    _.remove(section => _.isEmpty(section.labels))
-  ])(sidebarSections)
+  const sections = _.flow(
+      _.map(section => {
+        const activeLabels = _.intersectionBy(_.toLower, section.labels, activeTags)
+        return {
+          ...section,
+          labels: activeLabels,
+          tags: _.map(_.toLower, activeLabels)
+        }
+      }),
+      _.remove(section => _.isEmpty(section.labels))
+      )(sidebarSections)
 
   const sortWorkspaces = Utils.cond(
     [sort === 'most recent', () => _.orderBy(['created'], ['desc'])],
@@ -181,11 +183,11 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
       workspaces :
       _.filter(workspace => _.includes(lowerSearch, workspace.lowerName) || _.includes(lowerSearch, workspace.lowerDescription), workspaces)
   }
-  const filteredWorkspaces = _.flow([
+  const filteredWorkspaces = _.flow(
     filterBySections,
     filterByTags,
     filterByText
-  ])(featuredList)
+  )(featuredList)
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter(activeTab),
@@ -204,7 +206,10 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
             div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
               div({ style: { flex: 1 } }),
               h(Link, {
-                onClick: () => setSelectedTags([])
+                onClick: () => {
+                  setSelectedSections([])
+                  setSelectedTags([])
+                }
               }, ['clear'])
             ])
           ]),
@@ -242,7 +247,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
             })
           ]),
           div({ style: { marginLeft: '1rem', minWidth: 0 } }, [
-            ..._.map(makeCard(), sortWorkspaces(filteredWorkspaces))
+            _.map(makeCard(), sortWorkspaces(filteredWorkspaces))
           ])
         ])
       ])
@@ -253,6 +258,7 @@ const makeCard = variant => workspace => {
   const { namespace, name, created, description } = workspace
   return a({
     href: Nav.getLink('workspace-dashboard', { namespace, name }),
+    key: `${namespace}:${name}`,
     style: {
       backgroundColor: 'white',
       height: 175,
