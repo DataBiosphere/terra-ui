@@ -57,7 +57,7 @@
   },
   "scripts": {
     "analyze": "yarn build; source-map-explorer 'build/static/js/*.js' --gzip",
-    "build": "env $(yarn setenv) react-app-rewired build; rm build/config.json",
+    "build": "env $(yarn setenv) react-app-rewired build; rm build/config.json && echo && echo '*** Be sure to copy a config/xxx.json to build/config.json. ***'",
     "lint": "eslint src --fix",
     "optimize-image-svgs": "svgo --enable=inlineStyles,prefixIds --config '{ \"plugins\": [ { \"inlineStyles\": { \"onlyMatchedOnce\": false } }] }' --pretty -f src/images -r -p 1 --multipass",
     "preinstall": "node .hooks/check-engine-light.js",

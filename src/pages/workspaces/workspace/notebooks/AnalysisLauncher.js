@@ -9,12 +9,7 @@ import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinn
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { NewRuntimeModal } from 'src/components/NewRuntimeModal'
-import {
-  AnalysisDuplicator,
-  findPotentialNotebookLockers,
-  getDisplayName,
-  getTool, notebookLockHash
-} from 'src/components/notebook-utils'
+import { AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getTool, notebookLockHash } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { dataSyncingDocUrl } from 'src/data/machines'
@@ -56,37 +51,43 @@ const AnalysisLauncher = _.flow(
     const [busy, setBusy] = useState()
     const { mode } = queryParams
     const toolLabel = getTool(analysisName)
+    const iframeStyles = { height: '100%', width: '100%' }
 
     return h(Fragment, [
-      (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && labels.tool === 'Jupyter') ?
-        h(labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : AnalysisEditorFrame,
-          { key: runtimeName, workspace, runtime, analysisName, mode, toolLabel }) :
-        h(Fragment, [
-          h(PreviewHeader, { queryParams, runtime, analysisName, toolLabel, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true) }),
-          h(AnalysisPreviewFrame, { analysisName, toolLabel, workspace })
+
+      div({ style: { flex: 1, display: 'flex' } }, [
+        div({ style: { flex: 1 } }, [
+          (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && labels.tool === 'Jupyter') ?
+            h(labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : AnalysisEditorFrame,
+              { key: runtimeName, workspace, runtime, analysisName, mode, toolLabel, styles: iframeStyles }) :
+            h(Fragment, [
+              h(PreviewHeader, { styles: iframeStyles, queryParams, runtime, analysisName, toolLabel, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true) }),
+              h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel, workspace })
+            ])
         ]),
-      mode && h(RuntimeKicker, { runtime, refreshRuntimes, onNullRuntime: () => setCreateOpen(true) }),
-      mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
-      h(NewRuntimeModal, {
-        isOpen: createOpen,
-        tool: toolLabel,
-        isAnalysisMode: true,
-        workspace,
-        runtimes,
-        persistentDisks,
-        onDismiss: () => {
-          chooseMode(undefined)
-          setCreateOpen(false)
-        },
-        onSuccess: _.flow(
-          withErrorReporting('Error creating runtime'),
-          Utils.withBusyState(setBusy)
-        )(async () => {
-          setCreateOpen(false)
-          await refreshRuntimes(true)
-        })
-      }),
-      busy && spinnerOverlay
+        mode && h(RuntimeKicker, { runtime, refreshRuntimes, onNullRuntime: () => setCreateOpen(true) }),
+        mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
+        h(NewRuntimeModal, {
+          isOpen: createOpen,
+          tool: toolLabel,
+          isAnalysisMode: true,
+          workspace,
+          runtimes,
+          persistentDisks,
+          onDismiss: () => {
+            chooseMode(undefined)
+            setCreateOpen(false)
+          },
+          onSuccess: _.flow(
+            withErrorReporting('Error creating runtime'),
+            Utils.withBusyState(setBusy)
+          )(async () => {
+            setCreateOpen(false)
+            await refreshRuntimes(true)
+          })
+        }),
+        busy && spinnerOverlay
+      ])
     ])
   })
 
@@ -329,7 +330,7 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
   ])
 }
 
-const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError }) => {
+const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, styles }) => {
   const signal = Utils.useCancellation()
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState()
@@ -356,7 +357,7 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
           doc.head.appendChild(Utils.createHtmlElement(doc, 'base', Utils.newTabLinkProps))
           doc.addEventListener('mousedown', () => window.document.dispatchEvent(new MouseEvent('mousedown')))
         },
-        style: { border: 'none', flex: 1 },
+        style: { border: 'none', flex: 1, ...styles },
         srcDoc: preview,
         title: 'Preview for analysis'
       })
@@ -411,7 +412,7 @@ const copyingAnalysisMessage = div({ style: { paddingTop: '2rem' } }, [
   h(StatusMessage, ['Copying analysis to cloud environment, almost ready...'])
 ])
 
-const AnalysisEditorFrame = ({ mode, analysisName, toolLabel, workspace: { workspace: { namespace, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
+const AnalysisEditorFrame = ({ styles, mode, analysisName, toolLabel, workspace: { workspace: { namespace, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
   console.assert(_.includes(status, usableStatuses), `Expected cloud environment to be one of: [${usableStatuses}]`)
   console.assert(!labels.welderInstallFailed, 'Expected cloud environment to have Welder')
   const frameRef = useRef()
@@ -458,7 +459,7 @@ const AnalysisEditorFrame = ({ mode, analysisName, toolLabel, workspace: { works
       iframe({
         //TODO: this may vary based on tool.
         src: `${proxyUrl}/notebooks/${mode === 'edit' ? localBaseDirectory : localSafeModeBaseDirectory}/${analysisName}`,
-        style: { border: 'none', flex: 1 },
+        style: { border: 'none', flex: 1, ...styles },
         ref: frameRef
       }),
       //TODO: this frame will most likely vary based on tool. See comment attached to `JupyterFrameManager`
@@ -475,7 +476,7 @@ const AnalysisEditorFrame = ({ mode, analysisName, toolLabel, workspace: { works
 //TODO: this originally was designed to handle VMs that didn't have welder deployed on them
 // do we need this anymore? (can be queried in prod DB to see if there are any VMs with welderEnabled=false with a `recent` dateAccessed
 // do we need to support this for rstudio? I don't think so because welder predates RStudio support, but not 100%
-const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
+const WelderDisabledNotebookEditorFrame = ({ styles, mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
   console.assert(status === 'Running', 'Expected cloud environment to be running')
   console.assert(!!labels.welderInstallFailed, 'Expected cloud environment to not have Welder')
   const frameRef = useRef()
@@ -524,7 +525,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
       iframe({
         //TODO: does this link need to change?
         src: `${proxyUrl}/notebooks/${name}/${notebookName}`,
-        style: { border: 'none', flex: 1 },
+        style: { border: 'none', flex: 1, ...styles },
         ref: frameRef
       }),
       h(JupyterFrameManager, {

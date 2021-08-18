@@ -222,6 +222,8 @@ export const getGalaxyCostTextChildren = (app, galaxyDataDisks) => {
 
 export const isAppDeletable = app => _.includes(app?.status, ['RUNNING', 'ERROR'])
 
+export const isRuntimeDeletable = runtime => _.includes(runtime?.status, ['Unknown', 'Running', 'Updating', 'Error', 'Stopping', 'Stopped', 'Starting'])
+
 export const getConvertedRuntimeStatus = runtime => {
   return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status) // NOTE: preserves null vs undefined
 }
