@@ -293,6 +293,42 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       noMountDirectory
   }
 
+  const getExistingEnvironmentConfig = () => {
+    const runtimeConfig = currentRuntimeDetails?.runtimeConfig
+    const cloudService = runtimeConfig?.cloudService
+    const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
+    const gpuConfig = runtimeConfig?.gpuConfig
+
+    return {
+      hasGpu: computeConfig.hasGpu,
+      runtime: currentRuntimeDetails ? {
+        cloudService,
+        toolDockerImage: getImageUrl(currentRuntimeDetails),
+        ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
+        ...(cloudService === cloudServices.GCE ? {
+          machineType: runtimeConfig.machineType || defaultGceMachineType,
+          ...(computeConfig.hasGpu && gpuConfig ? { gpuConfig } : {}),
+          bootDiskSize: runtimeConfig.bootDiskSize,
+          ...(runtimeConfig.persistentDiskId ? {
+            persistentDiskAttached: true
+          } : {
+            diskSize: runtimeConfig.diskSize
+          })
+        } : {
+          masterMachineType: runtimeConfig.masterMachineType || defaultDataprocMachineType,
+          masterDiskSize: runtimeConfig.masterDiskSize || 100,
+          numberOfWorkers,
+          ...(numberOfWorkers && {
+            numberOfPreemptibleWorkers: runtimeConfig.numberOfPreemptibleWorkers || 0,
+            workerMachineType: runtimeConfig.workerMachineType || defaultDataprocMachineType,
+            workerDiskSize: runtimeConfig.workerDiskSize || 100
+          })
+        })
+      } : undefined,
+      persistentDisk: currentPersistentDiskDetails ? { size: currentPersistentDiskDetails.size } : undefined
+    }
+  }
+
   const getDesiredEnvironmentConfig = () => {
     const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = getExistingEnvironmentConfig()
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
@@ -336,42 +372,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           () => ({ size: computeConfig.selectedPersistentDiskSize })],
         () => existingPersistentDisk
       )
-    }
-  }
-
-  const getExistingEnvironmentConfig = () => {
-    const runtimeConfig = currentRuntimeDetails?.runtimeConfig
-    const cloudService = runtimeConfig?.cloudService
-    const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
-    const gpuConfig = runtimeConfig?.gpuConfig
-
-    return {
-      hasGpu: computeConfig.hasGpu,
-      runtime: currentRuntimeDetails ? {
-        cloudService,
-        toolDockerImage: getImageUrl(currentRuntimeDetails),
-        ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
-        ...(cloudService === cloudServices.GCE ? {
-          machineType: runtimeConfig.machineType || defaultGceMachineType,
-          ...(computeConfig.hasGpu && gpuConfig ? { gpuConfig } : {}),
-          bootDiskSize: runtimeConfig.bootDiskSize,
-          ...(runtimeConfig.persistentDiskId ? {
-            persistentDiskAttached: true
-          } : {
-            diskSize: runtimeConfig.diskSize
-          })
-        } : {
-          masterMachineType: runtimeConfig.masterMachineType || defaultDataprocMachineType,
-          masterDiskSize: runtimeConfig.masterDiskSize || 100,
-          numberOfWorkers,
-          ...(numberOfWorkers && {
-            numberOfPreemptibleWorkers: runtimeConfig.numberOfPreemptibleWorkers || 0,
-            workerMachineType: runtimeConfig.workerMachineType || defaultDataprocMachineType,
-            workerDiskSize: runtimeConfig.workerDiskSize || 100
-          })
-        })
-      } : undefined,
-      persistentDisk: currentPersistentDiskDetails ? { size: currentPersistentDiskDetails.size } : undefined
     }
   }
 
