@@ -3,6 +3,7 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
 import { a, div, h, img } from 'react-hyperscript-helpers'
+import { AnalysisModal } from 'src/components/AnalysisModal'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
@@ -10,8 +11,9 @@ import { ButtonOutline, Clickable, HeaderRenderer, Link, PageBox, spinnerOverlay
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { NewAnalysisModal } from 'src/components/NewAnalysisModal'
-import { AnalysisDeleter, AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, notebookLockHash, stripExtension, tools } from 'src/components/notebook-utils'
+import {
+  AnalysisDeleter, AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, notebookLockHash, stripExtension, tools
+} from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ariaSort } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -60,7 +62,10 @@ const AnalysisCardHeaders = ({ sort, onSort }) => {
   ])
 }
 
-const AnalysisCard = ({ namespace, name, lastModified, metadata, application, wsName, onRename, onCopy, onDelete, onExport, canWrite, currentUserHash, potentialLockers }) => {
+const AnalysisCard = ({
+  namespace, name, lastModified, metadata, application, wsName, onRename, onCopy, onDelete, onExport, canWrite, currentUserHash,
+  potentialLockers
+}) => {
   const { lockExpiresAt, lastLockedBy } = metadata || {}
   const lockExpirationDate = new Date(parseInt(lockExpiresAt))
   const locked = currentUserHash && lastLockedBy && lastLockedBy !== currentUserHash && lockExpirationDate > Date.now()
@@ -350,7 +355,7 @@ const Analyses = _.flow(
           onChange: setFilter,
           value: filter
         }),
-        h(NewAnalysisModal, {
+        h(AnalysisModal, {
           isOpen: creating,
           namespace,
           workspace,

@@ -5,10 +5,10 @@ import PropTypes from 'prop-types'
 import { Fragment, PureComponent, useState } from 'react'
 import { div, h, img, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, Clickable, IdContainer, Link, spinnerOverlay } from 'src/components/common'
+import { ComputeModal } from 'src/components/ComputeModal'
+import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { NewGalaxyModal } from 'src/components/NewGalaxyModal'
-import { NewRuntimeModal } from 'src/components/NewRuntimeModal'
 import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/runtime-common'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import galaxyLogo from 'src/images/galaxy.svg'
@@ -402,7 +402,7 @@ export default class RuntimeManager extends PureComponent {
             icon('cog', { size: 22, style: { color: isDisabled ? colors.dark(0.7) : colors.accent() } })
           ])
         ])]),
-        h(NewRuntimeModal, {
+        h(ComputeModal, {
           isOpen: createModalDrawerOpen,
           workspace,
           runtimes,
@@ -416,7 +416,7 @@ export default class RuntimeManager extends PureComponent {
             await refreshRuntimes(true)
           })
         }),
-        h(NewGalaxyModal, {
+        h(GalaxyModal, {
           workspace,
           apps,
           galaxyDataDisks,
