@@ -2,10 +2,10 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, hr, img, span } from 'react-hyperscript-helpers'
 import { Clickable, spinnerOverlay } from 'src/components/common'
+import { ComputeModalBase } from 'src/components/ComputeModal'
+import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
-import { NewGalaxyModalBase } from 'src/components/NewGalaxyModal'
-import { NewRuntimeModalBase } from 'src/components/NewRuntimeModal'
 import { tools } from 'src/components/notebook-utils'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import TitleBar from 'src/components/TitleBar'
@@ -37,7 +37,10 @@ import * as Utils from 'src/libs/utils'
 
 const titleId = 'cloud-env-modal'
 
-export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
+export const CloudEnvironmentModal = ({
+  isOpen, onDismiss, onSuccess, canCompute, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps,
+  workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } }
+}) => {
   const [viewMode, setViewMode] = useState(undefined)
   const [busy, setBusy] = useState(false)
   const [errorRuntimeId, setErrorRuntimeId] = useState(undefined)
@@ -46,7 +49,7 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
 
   const noCompute = 'You do not have access to run analyses on this workspace.'
 
-  const renderNewRuntimeModal = tool => h(NewRuntimeModalBase, {
+  const renderComputeModal = tool => h(ComputeModalBase, {
     isOpen: viewMode === NEW_JUPYTER_MODE || viewMode === NEW_RSTUDIO_MODE,
     isAnalysisMode: true,
     workspace,
@@ -58,7 +61,7 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
       onDismiss()
     },
     onSuccess: _.flow(
-      withErrorReporting('Error creating runtime'),
+      withErrorReporting('Error creating cloud compute'),
       Utils.withBusyState(setBusy)
     )(async () => {
       setViewMode(undefined)
@@ -66,7 +69,7 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
     })
   })
 
-  const renderNewGalaxyModal = () => h(NewGalaxyModalBase, {
+  const renderGalaxyModal = () => h(GalaxyModalBase, {
     isOpen: viewMode === NEW_GALAXY_MODE,
     isAnalysisMode: true,
     workspace,
@@ -91,10 +94,15 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
     renderToolButtons(tools.galaxy.label)
   ])
 
-  const toolPanelStyles = { backgroundColor: 'white', margin: '0 1.5rem 1rem 1.5rem', padding: '0 1rem 1rem 1rem', display: 'flex', flexDirection: 'column' }
+  const toolPanelStyles = {
+    backgroundColor: 'white', margin: '0 1.5rem 1rem 1.5rem', padding: '0 1rem 1rem 1rem', display: 'flex', flexDirection: 'column'
+  }
   const toolLabelStyles = { margin: '1rem 0 0.5rem 0', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }
   const toolButtonDivStyles = { display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' }
-  const toolButtonStyles = { flex: '1 1 0%', maxWidth: 105, display: 'flex', flexDirection: 'column', border: '.5px solid grey', borderRadius: 16, padding: '.5rem .75rem', alignItems: 'center', fontWeight: 550, fontSize: 11, color: colors.accent() }
+  const toolButtonStyles = {
+    flex: '1 1 0%', maxWidth: 105, display: 'flex', flexDirection: 'column', border: '.5px solid grey', borderRadius: 16, padding: '.5rem .75rem',
+    alignItems: 'center', fontWeight: 550, fontSize: 11, color: colors.accent()
+  }
 
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeStatus = getConvertedRuntimeStatus(currentRuntime)
@@ -258,7 +266,9 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
   const getToolLaunchClickableProps = toolLabel => {
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || (currentApp && toolLabel === tools.galaxy.label)
     // TODO what does cookieReady do? Found it in the galaxy app launch code, is it needed here?
-    const isToolBusy = toolLabel === tools.galaxy.label ? getIsAppBusy(currentApp) || currentApp?.status === 'STOPPED' || currentApp?.status === 'ERROR' : currentRuntime?.status === 'Error'
+    const isToolBusy = toolLabel === tools.galaxy.label ?
+      getIsAppBusy(currentApp) || currentApp?.status === 'STOPPED' || currentApp?.status === 'ERROR' :
+      currentRuntime?.status === 'Error'
     const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || toolLabel === tools.Jupyter.label
     const baseProps = {
       'aria-label': `Launch ${toolLabel}`,
@@ -271,7 +281,8 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
       tooltip: Utils.cond(
         [doesCloudEnvForToolExist && !isDisabled, () => 'Launch'],
         [doesCloudEnvForToolExist && isDisabled && toolLabel !== tools.Jupyter.label, () => 'Please wait until Galaxy is running'],
-        [doesCloudEnvForToolExist && isDisabled && toolLabel === tools.Jupyter.label, () => 'Select or create a notebook in the analyses tab to launch Jupyter'],
+        [doesCloudEnvForToolExist && isDisabled && toolLabel === tools.Jupyter.label,
+          () => 'Select or create a notebook in the analyses tab to launch Jupyter'],
         [Utils.DEFAULT, () => 'No Environment found']
       )
     }
@@ -288,13 +299,15 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
           ...Utils.newTabLinkPropsWithReferrer
         }
       }], [Utils.DEFAULT, () => {
-      // TODO: Jupyter link isn't currently valid, and button will always be disabled for Jupyter because launching directly into tree view is problematic in terms of welder/nbextensions. We are investigating alternatives in https://broadworkbench.atlassian.net/browse/IA-2873
+        // TODO: Jupyter link isn't currently valid, and button will always be disabled for Jupyter because launching directly into tree view is problematic in terms of welder/nbextensions. We are investigating alternatives in https://broadworkbench.atlassian.net/browse/IA-2873
         const applicationLaunchLink = Nav.getLink('workspace-application-launch', { namespace, name: workspaceName, application: toolLabel })
         return {
           ...baseProps,
           href: applicationLaunchLink,
           onClick: () => {
-            ((toolLabel === tools.Jupyter.label || toolLabel === tools.RStudio.label) && currentRuntime?.status === 'Stopped' ? () => startApp(toolLabel) : () => {})()
+            ((toolLabel === tools.Jupyter.label || toolLabel === tools.RStudio.label) && currentRuntime?.status === 'Stopped' ?
+              () => startApp(toolLabel) :
+              () => {})()
             onDismiss()
           }
         }
@@ -353,9 +366,9 @@ export const CloudEnvironmentModal = ({ isOpen, onDismiss, onSuccess, canCompute
   const NEW_GALAXY_MODE = tools.galaxy.label
 
   const getView = () => Utils.switchCase(viewMode,
-    [NEW_JUPYTER_MODE, () => renderNewRuntimeModal(NEW_JUPYTER_MODE)],
-    [NEW_RSTUDIO_MODE, () => renderNewRuntimeModal(NEW_RSTUDIO_MODE)],
-    [NEW_GALAXY_MODE, renderNewGalaxyModal],
+    [NEW_JUPYTER_MODE, () => renderComputeModal(NEW_JUPYTER_MODE)],
+    [NEW_RSTUDIO_MODE, () => renderComputeModal(NEW_RSTUDIO_MODE)],
+    [NEW_GALAXY_MODE, renderGalaxyModal],
     [Utils.DEFAULT, renderDefaultPage]
   )
 

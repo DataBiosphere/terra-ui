@@ -3,7 +3,7 @@ import { Fragment, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinnerOverlay } from 'src/components/common'
-import { NewRuntimeModal } from 'src/components/NewRuntimeModal'
+import { ComputeModal } from 'src/components/ComputeModal'
 import { RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
@@ -66,7 +66,7 @@ const ApplicationLauncher = _.flow(
             () => 'Unknown cloud environment status. Please create a new cloud environment or contact support.'
           )
         ]),
-        h(NewRuntimeModal, {
+        h(ComputeModal, {
           isOpen: showCreate,
           workspace,
           runtimes,

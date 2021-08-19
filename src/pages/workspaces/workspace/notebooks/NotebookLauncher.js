@@ -6,9 +6,9 @@ import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
+import { ComputeModal } from 'src/components/ComputeModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { NewRuntimeModal } from 'src/components/NewRuntimeModal'
 import { findPotentialNotebookLockers, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
@@ -61,7 +61,7 @@ const NotebookLauncher = _.flow(
         ]),
       mode && h(RuntimeKicker, { runtime, refreshRuntimes, onNullRuntime: () => setCreateOpen(true) }),
       mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
-      h(NewRuntimeModal, {
+      h(ComputeModal, {
         isOpen: createOpen,
         workspace,
         runtimes,
@@ -71,7 +71,7 @@ const NotebookLauncher = _.flow(
           setCreateOpen(false)
         },
         onSuccess: _.flow(
-          withErrorReporting('Error creating runtime'),
+          withErrorReporting('Error creating cloud compute'),
           Utils.withBusyState(setBusy)
         )(async () => {
           setCreateOpen(false)

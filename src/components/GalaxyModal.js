@@ -20,7 +20,7 @@ import {
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
-// TODO Factor out common pieces with NewRuntimeModal.styles into runtime-utils
+// TODO Factor out common pieces with ComputeModal.styles into runtime-utils
 const styles = {
   label: { fontWeight: 600, whiteSpace: 'pre' },
   value: { fontWeight: 400, whiteSpace: 'pre' },
@@ -36,12 +36,14 @@ const maxNodepoolSize = 1000 // per zone according to https://cloud.google.com/k
 
 // Removing low cpu/memory options based on the Galaxy team's suggestions
 const validMachineTypes = _.filter(({ cpu, memory }) => cpu >= 4 && memory >= 52, machineTypes)
-const titleId = 'new-galaxy-modal-title'
+const titleId = 'galaxy-modal-title'
 
-
-export const NewGalaxyModalBase = Utils.withDisplayName('NewGalaxyModal')(
-  ({ onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName } }, isAnalysisMode = false }) => {
-  // Assumption: If there is an app defined, there must be a data disk corresponding to it.
+export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
+  ({
+    onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName } },
+    isAnalysisMode = false
+  }) => {
+    // Assumption: If there is an app defined, there must be a data disk corresponding to it.
     const app = getCurrentApp(apps)
     const attachedDataDisk = currentAttachedDataDisk(app, galaxyDataDisks)
 
@@ -244,7 +246,7 @@ export const NewGalaxyModalBase = Utils.withDisplayName('NewGalaxyModal')(
         )
     }
 
-    // TODO Refactor this and the duplicate in NewRuntimeModal.js
+    // TODO Refactor this and the duplicate in ComputeModal.js
     const renderGalaxyCostBreakdown = (kubernetesRuntimeConfig, dataDiskSize) => {
       const runningComputeCost = getGalaxyComputeCost({ status: 'RUNNING', kubernetesRuntimeConfig })
       const pausedComputeCost = getGalaxyComputeCost({ status: 'STOPPED', kubernetesRuntimeConfig })
@@ -274,7 +276,7 @@ export const NewGalaxyModalBase = Utils.withDisplayName('NewGalaxyModal')(
       ])
     }
 
-    const renderCloudComputeProfileSection = () => {
+    const renderComputeProfileSection = () => {
       const gridStyle = { display: 'grid', gridTemplateColumns: '0.75fr 4.5rem 1fr 5.5rem 1fr 5.5rem', gridGap: '2rem', alignItems: 'center' }
       return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
         div({ style: styles.headerText }, ['Cloud compute profile']),
@@ -415,7 +417,7 @@ export const NewGalaxyModalBase = Utils.withDisplayName('NewGalaxyModal')(
             ])
           ])
         ]),
-        renderCloudComputeProfileSection(),
+        renderComputeProfileSection(),
         renderPersistentDiskSection(),
         div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [
           renderActionButton()
@@ -486,4 +488,4 @@ const MachineSelector = ({ value, onChange }) => {
   ])
 }
 
-export const NewGalaxyModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(NewGalaxyModalBase)
+export const GalaxyModal = withModalDrawer({ width: 675, 'aria-labelledby': titleId })(GalaxyModalBase)
