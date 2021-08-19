@@ -8,8 +8,8 @@
     "start-dev": "nodemon"
   },
   "devDependencies": {
-    "jest": "^27.0.3",
-    "jest-junit": "^12.1.0",
+    "jest": "^27.0.6",
+    "jest-junit": "^12.2.0",
     "jest-puppeteer": "^5.0.4",
     "node-fetch": "^2.6.1",
     "prompts": "^2.4.1"
@@ -20,15 +20,15 @@
     "includeConsoleOutput": true
   },
   "dependencies": {
-    "@google-cloud/firestore": "^4.12.2",
-    "@google-cloud/secret-manager": "^3.7.1",
-    "@google-cloud/storage": "^5.8.5",
+    "@google-cloud/firestore": "^4.14.1",
+    "@google-cloud/secret-manager": "^3.9.0",
+    "@google-cloud/storage": "^5.13.0",
     "express": "^4.17.1",
-    "google-auth-library": "^7.1.0",
-    "googleapis": "^74.2.0",
+    "google-auth-library": "^7.6.1",
+    "googleapis": "^84.0.0",
     "lodash": "^4.17.21",
-    "nodemon": "^2.0.7",
-    "p-retry": "^4.5.0",
-    "puppeteer": "^10.0.0"
+    "nodemon": "^2.0.12",
+    "p-retry": "^4.6.1",
+    "puppeteer": "^10.2.0"
   }
 }
