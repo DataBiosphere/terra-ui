@@ -5,7 +5,7 @@ import { Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import PopupTrigger from 'src/components/PopupTrigger'
+import PopupTrigger, { makeMenuIcon } from 'src/components/PopupTrigger'
 import { SaveFilesHelp, SaveFilesHelpGalaxy } from 'src/components/runtime-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import { SimpleFlexTable, Sortable } from 'src/components/table'
@@ -256,7 +256,8 @@ const Environments = ({ namespace }) => {
       disabled: status === 'Creating',
       tooltip: status === 'Creating' ? 'Cannot delete a cloud environment while it is being created' : 'Delete cloud environment',
       onClick: () => setDeleteRuntimeId(id)
-    }, [icon('trash')])
+    // }, [icon('trash'), 'Delete', icon('pause'), 'Pause'])
+    }, [makeMenuIcon('trash'), 'Delete', makeMenuIcon('pause'), 'Pause'])
   }
 
   const renderErrorApps = app => {
@@ -375,8 +376,8 @@ const Environments = ({ namespace }) => {
             }
           },
           {
-            size: { basis: 50, grow: 0 },
-            headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
+            size: { basis: 180, grow: 0 },
+            headerRenderer: () => 'Actions',
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
               return cloudEnvironment.appName ? renderDeleteButtonApps(cloudEnvironment) : renderDeleteButtonRuntimes(cloudEnvironment)
@@ -477,8 +478,8 @@ const Environments = ({ namespace }) => {
             }
           },
           {
-            size: { basis: 50, grow: 0 },
-            headerRenderer: () => div({ className: 'sr-only' }, ['Actions']),
+            size: { basis: 150, grow: 0 },
+            headerRenderer: () => 'Action',
             cellRenderer: ({ rowIndex }) => {
               const { id, status, name } = filteredDisks[rowIndex]
               const error = cond(
@@ -489,7 +490,7 @@ const Environments = ({ namespace }) => {
                 disabled: !!error,
                 tooltip: error || 'Delete persistent disk',
                 onClick: () => setDeleteDiskId(id)
-              }, [icon('trash')])
+              }, [makeMenuIcon('trash'), 'Delete'])
             }
           }
         ]
