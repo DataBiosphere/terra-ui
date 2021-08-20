@@ -108,7 +108,7 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName }, onDismiss, 
   ])
 }
 
-const Environments = () => {
+const Environments = ({ namespace }) => {
   const signal = useCancellation()
   const [runtimes, setRuntimes] = useState()
   const [apps, setApps] = useState()
