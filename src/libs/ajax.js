@@ -677,13 +677,18 @@ const Workspaces = signal => ({
         return res.json()
       },
 
+      listSnapshotsV2: async (limit, offset) => {
+        const res = await fetchRawls(`${root}/snapshots/v2?offset=${offset}&limit=${limit}`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
       listSnapshots: async (limit, offset) => {
         const res = await fetchRawls(`${root}/snapshots?offset=${offset}&limit=${limit}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
       snapshot: snapshotId => {
-        const snapshotPath = `${root}/snapshots/${snapshotId}`
+        const snapshotPath = `${root}/snapshots/v2/${snapshotId}`
 
         return {
           details: async () => {
