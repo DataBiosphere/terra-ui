@@ -22,6 +22,7 @@ import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -41,6 +42,8 @@ const SubmissionDetails = _.flow(
   const [methodAccessible, setMethodAccessible] = useState()
   const [statusFilter, setStatusFilter] = useState([])
   const [textFilter, setTextFilter] = useState('')
+  const [updatingComment, setUpdatingComment] = useState(false)
+  const [userComment, setUserComment] = useState()
   const [sort, setSort] = useState({ field: 'workflowEntity', direction: 'asc' })
 
   const signal = Utils.useCancellation()
@@ -74,6 +77,7 @@ const SubmissionDetails = _.flow(
             await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).get())
 
           setSubmission(sub)
+          setUserComment(sub.userComment)
 
           if (_.isEmpty(submission)) {
             try {
@@ -152,7 +156,17 @@ const SubmissionDetails = _.flow(
           succeeded && makeStatusLine(successIcon, `Succeeded: ${succeeded.length}`, { marginTop: '0.5rem' }),
           failed && makeStatusLine(failedIcon, `Failed: ${failed.length}`, { marginTop: '0.5rem' }),
           running && makeStatusLine(runningIcon, `Running: ${running.length}`, { marginTop: '0.5rem' }),
-          submitted && makeStatusLine(submittedIcon, `Submitted: ${submitted.length}`, { marginTop: '0.5rem' })
+          submitted && makeStatusLine(submittedIcon, `Submitted: ${submitted.length}`, { marginTop: '0.5rem' }),
+          makeSection([
+            updatingComment && h(UpdateUserCommentModal, {
+              workspace: { name, namespace }, submissionId, userComment,
+              onDismiss: () => setUpdatingComment(false),
+              onSuccess: updatedComment => setUserComment(updatedComment)
+            }),
+            h(Link, {
+              onClick: () => setUpdatingComment(true)
+            }, [icon('commentDots', { size: 18, style: { marginRight: '0.5rem' } }), 'Comments'])
+          ])
         ]),
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
           makeSection('Workflow Configuration', [

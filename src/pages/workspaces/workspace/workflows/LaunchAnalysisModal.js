@@ -1,9 +1,10 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { b, div, h, p, span, wbr } from 'react-hyperscript-helpers'
-import { ButtonPrimary, CromwellVersionLink } from 'src/components/common'
+import { b, div, h, label, p, span, wbr } from 'react-hyperscript-helpers'
+import { ButtonPrimary, CromwellVersionLink, IdContainer } from 'src/components/common'
 import { warningBoxStyle } from 'src/components/data/data-utils'
 import { icon, spinner } from 'src/components/icons'
+import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { regionInfo } from 'src/components/region-common'
@@ -26,6 +27,7 @@ const LaunchAnalysisModal = ({
   const [message, setMessage] = useState(undefined)
   const [launchError, setLaunchError] = useState(undefined)
   const [bucketLocation, setBucketLocation] = useState({})
+  const [userComment, setUserComment] = useState(undefined)
   const signal = Utils.useCancellation()
 
   Utils.useOnMount(() => {
@@ -54,7 +56,7 @@ const LaunchAnalysisModal = ({
       const { submissionId } = await launch({
         isSnapshot: type === processSnapshotTable,
         workspace, config, selectedEntityType, selectedEntityNames, newSetName, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
-        memoryRetryMultiplier: retryWithMoreMemory ? retryMemoryFactor : undefined,
+        memoryRetryMultiplier: retryWithMoreMemory ? retryMemoryFactor : undefined, userComment: _.trim(userComment),
         onProgress: stage => {
           setMessage({ createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage])
         }
@@ -106,6 +108,18 @@ const LaunchAnalysisModal = ({
           p(['Note that metadata about this run will be stored in the US.'])
         ])]) : 'Loading...'
     ]),
+    h(IdContainer, [id => div({ style: { margin: '1rem 0' } }, [
+      label({ htmlFor: id, style: { display: 'block' } }, ['Add Comments:']),
+      div([
+        h(TextArea, {
+          id,
+          placeholder: 'Enter comment for the submission',
+          value: userComment,
+          onChange: v => setUserComment(v),
+          style: { height: 100 }
+        })
+      ])
+    ])]),
     warnDuplicateAnalyses ? div({
       style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' }
     }, [
