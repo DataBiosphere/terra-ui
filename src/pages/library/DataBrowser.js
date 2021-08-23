@@ -15,14 +15,11 @@ const DataBrowser = () => {
     created: '2020-01-13T18:25:28.340Z',
     tags: {
       itemsType: 'AttributeValue',
-      items: [
-        'test1'
-      ]
+      items: ['test1']
     },
     description: 'test desc',
     lowerName: 'test1',
     lowerDescription: 'test desc',
-
     keepCollapsed: true
   }]
 

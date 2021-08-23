@@ -38,7 +38,7 @@ const sidebarSections = [{
 
 const Showcase = () => {
   const stateHistory = StateHistory.get()
-  const [featuredList, setFeaturedList] = useState(stateHistory.featuredList)
+  const [featuredWorkspaces, setFeaturedWorkspaces] = useState(stateHistory.featuredWorkspaces)
 
   Utils.useOnMount(() => {
     const loadData = async () => {
@@ -52,16 +52,17 @@ const Showcase = () => {
         lowerName: _.toLower(workspace.name), lowerDescription: _.toLower(workspace.description)
       }), showcase)
 
-      setFeaturedList(featuredWorkspaces)
+      setFeaturedWorkspaces(featuredWorkspaces)
 
-      // TODO: is this actually doing anything for us?
+      // Saves in Session Storage so there is no loading spinner while awaiting fresh data
+      // when user returns via back button
       StateHistory.update({ featuredWorkspaces })
     }
 
     loadData()
   })
 
-  return SearchAndFilterComponent(featuredList, sidebarSections, 'featured workspaces')
+  return SearchAndFilterComponent(featuredWorkspaces, sidebarSections, 'featured workspaces')
 }
 
 export const navPaths = [
