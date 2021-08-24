@@ -2,30 +2,19 @@
 // import ButtonBar from '!babel-loader!@mdx-js/loader!../Components/ButtonBar.mdx'
 import { MDXProvider } from '@mdx-js/react'
 import { div, h, pre } from 'react-hyperscript-helpers'
-import { CodeBlock, Playground } from 'src/pages/CodeBlock'
 
 import Content from '!babel-loader!@mdx-js/loader!./Content.mdx'
 
 
-const components = {
-  pre: props => div(props, ['Stuff'])
-}
-
 const Doc = () => {
-  return div([
-    h(Content),
-    h(CodeBlock, ['console.log(\'test\')']),
-    h(Playground, [`      
-    () => div(['hello', div(['world'])])`])
+  return div({ style: { display: 'flex', width: '100%' } }, [
+    div({ style: { width: '10rem' } }, ['Menu']),
+    div({ style: { width: '100%' } }, [h(Content)])
   ])
 }
 
 const Provider = props => {
-  return pre({ className: 'line-numbers' }, [
-    h(MDXProvider, { className: '', components }, [
-      h(Doc, { })
-    ])
-  ])
+  return h(MDXProvider, [h(Doc)])
 }
 
 export const navPaths = [

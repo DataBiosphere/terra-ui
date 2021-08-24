@@ -1,22 +1,21 @@
 
 import ButtonBar from 'src/components/ButtonBar'
 import { h } from 'react-hyperscript-helpers'
-import { CodeBlock } from 'src/pages/CodeBlock'
+import { CodeBlock, Playground } from 'src/pages/CodeBlock'
 
 # Button Bar
 
 This is **markdown** with <span style={{color: "red"}}>JSX</span>: MDX!
 
-<div>
-  {h(ButtonBar, {onOk: () => console.log('This is a test')})}
-</div>
+# Component: ButtonBar
 
-# Hello, world!
+The `ButtonBar` allows you to set the `onOk` event
 
-<CodeBlock live={true}>{`
-  import React from 'react'
-  import Example from './place'
-  
-  export default () => <Example />
+<CodeBlock scopes={{ButtonBar}} live={true}>{`
+  () => h(ButtonBar, {onOk: () => console.log('Clicked!')})
 `}</CodeBlock>
 
+
+<CodeBlock scopes={{ButtonBar}} live={false}>{`
+  () => h(ButtonBar, {onOk: () => console.log('Clicked!')})
+`}</CodeBlock>
