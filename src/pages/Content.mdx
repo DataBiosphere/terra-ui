@@ -11,11 +11,10 @@ This is **markdown** with <span style={{color: "red"}}>JSX</span>: MDX!
 
 The `ButtonBar` allows you to set the `onOk` event
 
+<CodeBlock scopes={{ButtonBar}} live={false}>{`() => h(ButtonBar, {onOk: () => console.log('Clicked!')})`}</CodeBlock>
+
+<br/>
+
 <CodeBlock scopes={{ButtonBar}} live={true}>{`
-  () => h(ButtonBar, {onOk: () => console.log('Clicked!')})
-`}</CodeBlock>
-
-
-<CodeBlock scopes={{ButtonBar}} live={false}>{`
   () => h(ButtonBar, {onOk: () => console.log('Clicked!')})
 `}</CodeBlock>
