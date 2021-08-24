@@ -744,9 +744,7 @@ const WorkflowView = _.flow(
                     },
                     {
                       label: 'SNAPSHOTS',
-                      options: _.map(({ name }) => {
-                        console.log(name)
-                        return { value: name, source: 'snapshot' }}, availableSnapshots)
+                      options: _.map(({ name }) => ({ value: name, source: 'snapshot' }), availableSnapshots)
                     }
                   ]
                 })

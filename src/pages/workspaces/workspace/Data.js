@@ -423,9 +423,6 @@ const WorkspaceData = _.flow(
         _.pick(_.map('name', _.map('metadata', snapshotBody)), snapshotDetails) || {}, // retain entities if loaded from state history, but only for snapshots that exist
         snapshotBody)
 
-      console.log('SNAPSHOTS')
-      console.log(snapshots)
-
       setSnapshotDetails(snapshots)
     } catch (error) {
       reportError('Error loading workspace snapshot data', error)
