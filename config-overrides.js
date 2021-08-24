@@ -7,7 +7,7 @@ module.exports = {
   webpack(config, env) {
     const newConfig = addBabelPlugin([
       'prismjs', {
-        languages: ['bash', 'python'],
+        languages: ['bash', 'python', 'javascript'],
         plugins: ['line-numbers'],
         theme: 'default',
         css: true

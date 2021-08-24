@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { compile, pathToRegexp } from 'path-to-regexp'
 import { routeHandlersStore } from 'src/libs/state'
 import * as Projects from 'src/pages/billing/List'
+import * as Doc from 'src/pages/Doc'
 import * as Environments from 'src/pages/Environments'
 import * as Group from 'src/pages/groups/Group'
 import * as Groups from 'src/pages/groups/List'
@@ -71,6 +72,7 @@ const routes = _.flatten([
   WorkflowsList.navPaths,
   WorkflowDetails.navPaths,
   Upload.navPaths,
+  Doc.navPaths,
   NotFound.navPaths // must be last
 ])
 

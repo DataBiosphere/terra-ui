@@ -1,0 +1,22 @@
+
+import ButtonBar from 'src/components/ButtonBar'
+import { h } from 'react-hyperscript-helpers'
+import { CodeBlock } from 'src/pages/CodeBlock'
+
+# Button Bar
+
+This is **markdown** with <span style={{color: "red"}}>JSX</span>: MDX!
+
+<div>
+  {h(ButtonBar, {onOk: () => console.log('This is a test')})}
+</div>
+
+# Hello, world!
+
+<CodeBlock live={true}>{`
+  import React from 'react'
+  import Example from './place'
+  
+  export default () => <Example />
+`}</CodeBlock>
+
