@@ -1,6 +1,6 @@
 import Color from 'color'
 import _ from 'lodash/fp'
-import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra, isUKBiobank } from 'src/libs/config'
+import { isAnvil, isBaseline, isBioDataCatalyst, isDatastage, isFirecloud, isTerra } from 'src/libs/config'
 import * as Utils from 'src/libs/utils'
 
 

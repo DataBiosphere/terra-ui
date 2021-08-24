@@ -26,12 +26,6 @@ const datasets = [
   {
     name: 'Framingham Heart Study Teaching Dataset',
     origin: 'https://time-series-data-explorer.appspot.com'
-  },
-  {
-    name: 'UK Biobank',
-    origin: 'https://biobank-explorer.appspot.com',
-    authDomain: 'Kathiresan_UKBB',
-    partner: 'UKBB'
   }
 ]
 
