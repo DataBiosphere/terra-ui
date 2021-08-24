@@ -1,7 +1,7 @@
 /* eslint-disable import/no-webpack-loader-syntax */
 // import ButtonBar from '!babel-loader!@mdx-js/loader!../Components/ButtonBar.mdx'
 import { MDXProvider } from '@mdx-js/react'
-import { div, h, pre } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 
 import Content from '!babel-loader!@mdx-js/loader!./Content.mdx'
 
