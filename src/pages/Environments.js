@@ -256,8 +256,16 @@ const Environments = ({ namespace }) => {
       disabled: status === 'Creating',
       tooltip: status === 'Creating' ? 'Cannot delete a cloud environment while it is being created' : 'Delete cloud environment',
       onClick: () => setDeleteRuntimeId(id)
-    // }, [icon('trash'), 'Delete', icon('pause'), 'Pause'])
-    }, [makeMenuIcon('trash'), 'Delete', makeMenuIcon('pause'), 'Pause'])
+    }, [makeMenuIcon('trash'), 'Delete'])
+  }
+
+  const renderPauseButtonRuntimes = runtime => {
+    const { id, status } = runtime
+    return status !== 'Deleting' && h(Link, {
+      disabled: status === 'Creating',
+      tooltip: status === 'Creating' ? 'Cannot pause a cloud environment while it is being created' : 'Pause cloud environment',
+      onClick: () => setDeleteRuntimeId(id)
+    }, [makeMenuIcon('pause'), 'Pause'])
   }
 
   const renderErrorApps = app => {
@@ -376,11 +384,11 @@ const Environments = ({ namespace }) => {
             }
           },
           {
-            size: { basis: 180, grow: 0 },
+            size: { basis: 200, grow: 0 },
             headerRenderer: () => 'Actions',
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              return cloudEnvironment.appName ? renderDeleteButtonApps(cloudEnvironment) : renderDeleteButtonRuntimes(cloudEnvironment)
+              return cloudEnvironment.appName ? renderDeleteButtonApps(cloudEnvironment) : [span({ style: { marginRight: '1rem' } }, [renderDeleteButtonRuntimes(cloudEnvironment)]), renderPauseButtonRuntimes(cloudEnvironment)]
             }
           }
         ]
@@ -478,7 +486,7 @@ const Environments = ({ namespace }) => {
             }
           },
           {
-            size: { basis: 150, grow: 0 },
+            size: { basis: 200, grow: 0 },
             headerRenderer: () => 'Action',
             cellRenderer: ({ rowIndex }) => {
               const { id, status, name } = filteredDisks[rowIndex]
