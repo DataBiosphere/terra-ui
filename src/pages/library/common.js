@@ -47,7 +47,7 @@ export const styles = {
       textTransform: 'uppercase', textAlign: 'left',
       fontWeight: '600', fontSize: '.75rem',
       padding: '5px 15px', width: '100%',
-      flex: 1, flexShrink: 0
+      flex: 1
     },
     row: {
       backgroundColor: '#ffffff',
@@ -223,10 +223,17 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
     filterByText
   )(featuredList)
 
+  const toggleData = data => {
+    if (_.some(data, selectedData)) {
+      setSelectedData(_.filter(d => !_.isEqual(d, data), selectedData))
+    } else {
+      setSelectedData([...selectedData, data])
+    }
+  }
 
   const makeListDisplay = (listdataType, listdata) => {
     switch (listdataType) {
-      case 'datasets': return makeTable(listdata, sort, setSort, sortDir, setSortDir)
+      case 'datasets': return makeTable(listdata, sort, setSort, sortDir, setSortDir, selectedData, toggleData)
       case 'workspaces': return _.map(makeCard(), listdata)
       default: return div({}, '')
     }
@@ -297,7 +304,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
   ])
 }
 
-const makeTable = (listData, sort, setSort, sortDir, setSortDir) => {
+const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, toggleData) => {
   const makeTableHeader = (headerStyles, headerName, sortable = false) => {
     return div({ style: _.assignInAll([{}, styles.table.header, headerStyles]) }, [
       sortable ?
@@ -344,7 +351,6 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir) => {
 
     div({}, listData.map(listdatum => {
       const [isOpened, setIsOpened] = useState(false)
-      const [isChecked, setIsChecked] = useState(false)
 
       return div({ style: styles.table.row }, [
         div({ style: styles.table.flexTableRow, key: `${listdatum.namespace}:${listdatum.name}` },
@@ -352,11 +358,17 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir) => {
             div(
               { style: _.assignInAll([{}, styles.table.col, styles.table.firstElem, { alignSelf: 'flex-start' }]) },
               [
-                h(Checkbox, {
-                  checked: isChecked,
-                  onChange: console.log('changed checked'),
-                  'aria-label': `Select ${listdatum.name}`
-                })
+                label({
+                  style: { marginRight: '1rem' },
+                  onClick: () => toggleData(listdatum),
+                  htmlFor: `${listdatum.namespace}:${listdatum.name}-checkbox`
+                }, [
+                  h(Checkbox, {
+                    id: `${listdatum.namespace}:${listdatum.name}-checkbox`,
+                    checked: _.some(listdatum, selectedData),
+                    style: { marginRight: '0.2rem' }
+                  })
+                ])
               ]
             ),
             div({ style: _.assignInAll([{}, styles.table.col, { flex: 2.2 }]) }, listdatum.name),
