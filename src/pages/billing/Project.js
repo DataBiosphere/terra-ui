@@ -1,5 +1,4 @@
 import _ from 'lodash/fp'
-import { any } from 'prop-types'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
@@ -23,17 +22,18 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
 
+
 const workspaceStatusIconWidth = 16
 const workspaceLastModifiedWidth = 150
 const workspaceExpandIconSize = 20
 
-const paddingForWorkspaceStatusIcon = () =>
+const paddingForWorkspaceStatusIcon =
   div({ style: { width: workspaceStatusIconWidth } },
-  [div({ className: 'sr-only' }, ['Status'])])
+    [div({ className: 'sr-only' }, ['Status'])])
 
 const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
-    paddingForWorkspaceStatusIcon(),
+    paddingForWorkspaceStatusIcon,
     div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: '1rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'name' })
     ]),
@@ -66,20 +66,7 @@ const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details,
   ])
 })
 
-const statusIcon = () => {
-  const random = Math.floor(Math.random() * 2)
-  const size = {size: workspaceStatusIconWidth}
-  switch (random % 3) {
-    case 0:
-      return icon('angle-down', size)
-    case 1:
-      return icon('angle-left', size)
-    case 2:
-      return icon('angle-right', size)
-  }
-}
-
-const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, needsStatusIcon, isExpanded, onExpand }) => {
+const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, statusIcon, isExpanded, onExpand }) => {
   const { namespace, name, createdBy, lastModified, googleProject, billingAccountName } = workspace
   const workspaceCardStyles = {
     field: {
@@ -92,7 +79,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, needsSta
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' } }, [
     h(IdContainer, [id => h(Fragment, [
       div({ style: workspaceCardStyles.row }, [
-        needsStatusIcon ? statusIcon() : paddingForWorkspaceStatusIcon(),
+        statusIcon,
         div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
           h(Link, {
             style: Style.noWrapEllipsis,
@@ -168,11 +155,19 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   // TODO (Post PPW): Remove billing account name here, and move back to just returning workspace.
   // This is for a seamless transition to PPW, where `billingAccountName` should be a field on the workspace.
   const workspacesInProject = _.flow(
-    _.map(({ workspace }) => { return { billingAccountName, ...workspace } }),
+    _.map(({ workspace }) => workspace),
     _.filter({ namespace: projectName })
-  ) (workspaces)
+  )(workspaces)
 
-  const needsStatusIcon = !_.isEmpty(_.filter( workspace => billingAccountName !== workspace.billingAccountName,  workspacesInProject))
+  const getBillingAccountStatusIcon = (() => {
+    const allWorkspacesHaveCorrectBillingAccount =
+      _.isEmpty(_.remove({ billingAccount: billingAccountName }, workspacesInProject))
+    const getIcon = shape => icon(shape, { size: workspaceStatusIconWidth })
+    return workspace => allWorkspacesHaveCorrectBillingAccount ? paddingForWorkspaceStatusIcon :
+      billingAccountName === workspace.billingAccount ? getIcon('success-standard') :
+        'billingAccountErrorMessage' in workspace ? getIcon('error-standard') :
+          getIcon('loadingSpinner')
+  })()
 
   const tabToTable = {
     workspaces: h(Fragment, [
@@ -183,7 +178,10 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
           _.map(workspace => {
             const isExpanded = expandedWorkspaceName === workspace.name
             return h(WorkspaceCard, {
-              workspace, needsStatusIcon, key: workspace.workspaceId, isExpanded,
+              workspace,
+              statusIcon: getBillingAccountStatusIcon(workspace),
+              key: workspace.workspaceId,
+              isExpanded,
               onExpand: () => setExpandedWorkspaceName(isExpanded ? undefined : workspace.name)
             })
           })
