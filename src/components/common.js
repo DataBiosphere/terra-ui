@@ -92,7 +92,7 @@ export const Link = Utils.forwardRefWithName('Link', ({ disabled, variant, child
     style: {
       color: disabled ? colors.dark(0.7) : colors.accent(variant === 'light' ? 0.3 : 1),
       cursor: disabled ? 'not-allowed' : 'pointer',
-      fontWeight: 500, display: 'inline'
+      fontWeight: _.getOr(500, 'style.fontWeight', props), display: 'inline'
     },
     hover: disabled ? undefined : { color: colors.accent(variant === 'light' ? 0.1 : 0.8) },
     disabled

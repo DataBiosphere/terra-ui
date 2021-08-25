@@ -47,7 +47,7 @@ export const styles = {
       textTransform: 'uppercase', textAlign: 'left',
       fontWeight: '600', fontSize: '.75rem',
       padding: '5px 15px', width: '100%',
-      flex: 1
+      flex: 1, flexShrink: 0
     },
     row: {
       backgroundColor: '#ffffff',
@@ -62,7 +62,7 @@ export const styles = {
       padding: '15px 0px 15px 15px', textAlign: 'center'
     },
     lastElem: {
-      width: 'fit-content', flex: ''
+      width: 'fit-content', flex: '1'
     },
     flexTableRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' }
   },
@@ -170,6 +170,9 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
   const [selectedTags, setSelectedTags] = useState([])
   const [searchFilter, setSearchFilter] = useState()
   const [sort, setSort] = useState('most recent')
+  const [sortDir, setSortDir] = useState(1)
+
+  const [selectedData, setSelectedData] = useState([])
 
   const listdataByTag = _.omitBy(_.isEmpty, groupByFeaturedTags(featuredList, sidebarSections))
 
@@ -190,6 +193,11 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
   const sortData = Utils.cond(
     [sort === 'most recent', () => _.orderBy(['created'], ['desc'])],
     [sort === 'alphabetical', () => _.orderBy(w => _.toLower(_.trim(w.name)), ['asc'])],
+    [sort === 'Dataset Name', () => _.orderBy(w => _.toLower(_.trim(w.name)), [sortDir === 1 ? 'asc' : 'desc'])],
+    [sort === 'Project', () => _.orderBy(w => _.toLower(_.trim(w.project.name)), [sortDir === 1 ? 'asc' : 'desc'])],
+    [sort === 'No. of Subjects', () => _.orderBy(['subjects', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
+    [sort === 'Data Type', () => _.orderBy(['dataType', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
+    [sort === 'Last Updated', () => _.orderBy(['lastUpdated', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
     () => _.identity
   )
 
@@ -214,6 +222,15 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
     filterByTags,
     filterByText
   )(featuredList)
+
+
+  const makeListDisplay = (listdataType, listdata) => {
+    switch (listdataType) {
+      case 'datasets': return makeTable(listdata, sort, setSort, sortDir, setSortDir)
+      case 'workspaces': return _.map(makeCard(), listdata)
+      default: return div({}, '')
+    }
+  }
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter(activeTab),
@@ -280,26 +297,55 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
   ])
 }
 
-const makeListDisplay = (listdataType, listdata) => {
-  switch (listdataType) {
-    case 'datasets': return makeTable(listdata)
-    case 'workspaces': return _.map(makeCard(), listdata)
-    default: return div({}, '')
+const makeTable = (listData, sort, setSort, sortDir, setSortDir) => {
+  const makeTableHeader = (headerStyles, headerName, sortable = false) => {
+    return div({ style: _.assignInAll([{}, styles.table.header, headerStyles]) }, [
+      sortable ?
+        h(
+          Link,
+          {
+            onClick: () => {
+              if (sort === headerName) {
+                setSortDir(sortDir * -1)
+              } else {
+                setSort(headerName)
+                setSortDir(1)
+              }
+            },
+            style: { fontWeight: 600 }
+          },
+          [
+            headerName,
+            icon(
+              sortDir === 1 ? 'long-arrow-alt-up' : 'long-arrow-alt-down',
+              {
+                size: 12,
+                style: {
+                  visibility: `${sort === headerName ? 'visible' : 'hidden'}`,
+                  marginTop: '5px'
+                },
+                'aria-label': `Sorted by ${sortDir === 1 ? 'ascending' : 'descending'}`
+              }
+            )
+          ]
+        ) : div({ style: styles.table.header }, headerName)
+    ])
   }
-}
 
-const makeTable = listData => {
   return div({ style: styles.table.table }, [
     div({ style: _.assignInAll([styles.table.flexTableRow, { marginBottom: '-15px' }]) }, [
       div({ style: _.assignInAll([{}, styles.table.col, styles.table.firstElem]) }, ''),
-      div({ style: _.assignInAll([styles.table.header, { flex: 2.2 }]) }, 'Dataset Name'),
-      div({ style: styles.table.header }, 'Project'),
-      div({ style: styles.table.header }, 'No. of Subjects'),
-      div({ style: styles.table.header }, 'Data Type'),
-      div({ style: _.assignInAll([{}, styles.table.header, styles.table.lastElem]) }, 'Last Updated')
+      makeTableHeader({ flex: 2.2 }, 'Dataset Name', true),
+      makeTableHeader({}, 'Project', true),
+      makeTableHeader({}, 'No. of Subjects', true),
+      makeTableHeader({}, 'Data Type', true),
+      makeTableHeader(styles.table.lastElem, 'Last Updated', true)
     ]),
 
     div({}, listData.map(listdatum => {
+      const [isOpened, setIsOpened] = useState(false)
+      const [isChecked, setIsChecked] = useState(false)
+
       return div({ style: styles.table.row }, [
         div({ style: styles.table.flexTableRow, key: `${listdatum.namespace}:${listdatum.name}` },
           [
@@ -307,8 +353,8 @@ const makeTable = listData => {
               { style: _.assignInAll([{}, styles.table.col, styles.table.firstElem, { alignSelf: 'flex-start' }]) },
               [
                 h(Checkbox, {
-                  checked: false,
-                  onChange: console.log('changed'),
+                  checked: isChecked,
+                  onChange: console.log('changed checked'),
                   'aria-label': `Select ${listdatum.name}`
                 })
               ]
@@ -320,23 +366,20 @@ const makeTable = listData => {
             div({ style: _.assignInAll([{}, styles.table.col, styles.table.lastElem]) }, Utils.makeStandardDate(listdatum.lastUpdated))
           ]
         ),
-        div({ style: styles.table.flexTableRow }, [
+        div({ style: _.assignInAll([{}, styles.table.flexTableRow, { alignItems: 'flex-start' }]) }, [
           div({ style: _.assignInAll([{}, styles.table.col, styles.table.firstElem]) }, [
             icon(listdatum.locked ? 'lock' : 'lock-o', { size: 12, style: { flex: 'none', color: listdatum.locked ? colors.accent() : colors.primary() } })
           ]),
           div({ style: _.assignInAll([{}, styles.table.col, { width: '100%', fontSize: '12px' }]) }, [
             h(
               Link,
-              {
-                onClick: () => {
-                  console.log('clicked see more link')
-                }
-              },
+              { onClick: () => setIsOpened(!isOpened) },
               [
-                'See More',
-                icon(false ? 'angle-up' : 'angle-down', { size: 12, style: { flex: 'none', marginTop: '5px' } })
+                `See ${isOpened ? 'Less' : 'More'}`,
+                icon(isOpened ? 'angle-up' : 'angle-down', { size: 12, style: { flex: 'none', marginTop: '5px' } })
               ]
-            )
+            ),
+            div({ style: { display: isOpened ? 'block' : 'none', marginTop: '10px' } }, listdatum.description)
           ])
         ])
       ])
