@@ -10,7 +10,7 @@ import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl, getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import { isAppDeletable } from 'src/libs/runtime-utils'
+import { isAppDeletable, isResourceDeletable } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 
 
@@ -33,7 +33,7 @@ const DeleteWorkspaceModal = ({ workspace: { workspace: { namespace, name, bucke
     loadApps(name)
   })
 
-  const [deletableApps, nonDeletableApps] = _.partition(isAppDeletable, apps)
+  const [deletableApps, nonDeletableApps] = _.partition(isResourceDeletable('app'), apps)
 
   const getAppDeletionMessage = () => {
     return !_.isEmpty(nonDeletableApps) ?

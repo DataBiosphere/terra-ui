@@ -15,8 +15,11 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
-import { getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, persistentDiskCostMonthly, runtimeCost } from 'src/libs/runtime-utils'
+import {
+  getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, isComputePausable, isResourceDeletable, persistentDiskCostMonthly, runtimeCost
+} from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
+import * as Utils from 'src/libs/utils'
 import { cond, formatUSD, makeCompleteDate, switchCase, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
 
@@ -119,10 +122,13 @@ const Environments = ({ namespace }) => {
   const getErrorRuntimeId = useGetter(errorRuntimeId)
   const [deleteRuntimeId, setDeleteRuntimeId] = useState()
   const getDeleteRuntimeId = useGetter(deleteRuntimeId)
+  const [pauseRuntimeId, setPauseRuntimeId] = useState()
+  const getPauseRuntimeId = useGetter(pauseRuntimeId)
   const [deleteDiskId, setDeleteDiskId] = useState()
   const getDeleteDiskId = useGetter(deleteDiskId)
   const [errorAppId, setErrorAppId] = useState()
   const [deleteAppId, setDeleteAppId] = useState()
+  const [pauseAppId, setPauseAppId] = useState()
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' })
 
@@ -241,32 +247,91 @@ const Environments = ({ namespace }) => {
     }, [h(Link, ['details'])])
   }
 
-  const renderDeleteButtonApps = app => {
-    const { appName, status } = app
-    return status !== 'DELETING' && h(Link, {
-      disabled: status === 'CREATING',
-      tooltip: status === 'Creating' ? 'Cannot delete a cloud environment while it is being created' : 'Delete cloud environment',
-      onClick: () => setDeleteAppId(appName)
-    }, [icon('trash')])
-  }
+  // const renderDeleteButtonApp = app => {
+  //   const { appName } = app
+  //   const isDeletable = isResourceDeletable('app', app)
+  //   return h(Link, {
+  //     disabled: !isDeletable,
+  //     tooltip: isDeletable ? 'Delete cloud environment' : 'Cannot delete a cloud environment while it is being created',
+  //     onClick: () => setDeleteAppId(appName)
+  //   }, [makeMenuIcon('trash'), 'Delete'])
+  // }
+  //
+  // const renderDeleteButtonRuntime = runtime => {
+  //   const { id } = runtime
+  //   const isDeletable = isResourceDeletable('runtime', runtime)
+  //   return h(Link, {
+  //     disabled: !isDeletable,
+  //     tooltip: isDeletable ? 'Delete cloud environment' : 'Cannot delete a cloud environment while it is being created',
+  //     onClick: () => setDeleteRuntimeId(id)
+  //   }, [makeMenuIcon('trash'), 'Delete'])
+  // }
 
-  const renderDeleteButtonRuntimes = runtime => {
-    const { id, status } = runtime
-    return status !== 'Deleting' && h(Link, {
-      disabled: status === 'Creating',
-      tooltip: status === 'Creating' ? 'Cannot delete a cloud environment while it is being created' : 'Delete cloud environment',
-      onClick: () => setDeleteRuntimeId(id)
+  const renderDeleteButton = (resourceType, resource) => {
+    const { id } = resource
+    const isDeletable = isResourceDeletable(resourceType, resource)
+    const action = Utils.switchCase(resourceType,
+      ['runtime', setDeleteRuntimeId],
+      ['app', setDeleteAppId],
+      ['disk', setDeleteDiskId]
+    )
+    return h(Link, {
+      disabled: !isDeletable,
+      tooltip: isDeletable ? 'Delete cloud environment' : 'Cannot delete a cloud environment while in current status',
+      onClick: () => action(id)
     }, [makeMenuIcon('trash'), 'Delete'])
   }
 
-  const renderPauseButtonRuntimes = runtime => {
-    const { id, status } = runtime
-    return status !== 'Deleting' && h(Link, {
-      disabled: status === 'Creating',
-      tooltip: status === 'Creating' ? 'Cannot pause a cloud environment while it is being created' : 'Pause cloud environment',
-      onClick: () => setDeleteRuntimeId(id)
+  const renderPauseButton = (computeType, compute) => {
+    const { id } = compute
+    const isPausable = isComputePausable(computeType, compute)
+    const action = Utils.switchCase(computeType,
+      ['runtime', setPauseRuntimeId],
+      ['app', setPauseAppId]
+    )
+    return h(Link, {
+      disabled: !isPausable,
+      tooltip: isPausable ? 'Pause cloud environment' : 'Cannot pause a cloud environment while in current status',
+      onClick: () => action(id)
     }, [makeMenuIcon('pause'), 'Pause'])
   }
+
+  // const renderPauseButtonApp = app => {
+  //   const { appName } = app
+  //   const isPausable = isAppP
+  //   return status !== 'DELETING' && h(Link, {
+  //     disabled: isAppDeletable(app),
+  //     tooltip: status === 'Creating' ? 'Cannot delete a cloud environment while it is being created' : 'Delete cloud environment',
+  //     onClick: () => setDeleteAppId(appName)
+  //   }, [makeMenuIcon('pause'), 'Pause'])
+  // }
+  //
+  // const renderPauseButtonRuntime = runtime => {
+  //   const { id, status } = runtime
+  //   return status !== 'Deleting' && h(Link, {
+  //     disabled: status === 'Creating',
+  //     tooltip: status === 'Creating' ? 'Cannot pause a cloud environment while it is being created' : 'Pause cloud environment',
+  //     onClick: () => setDeleteRuntimeId(id)
+  //   }, [makeMenuIcon('pause'), 'Pause'])
+  // }
+
+  // const renderActionButton = (resource, action, canPerformAction, icon) => {
+  //   const { appName } = resource
+  //   const canPerform = canPerformAction(resource)
+  //   const canPerformMessage = `${_.capitalize(action)} cloud environment`
+  //   const cannotPerformMessage = `Cannot ${_.toLower(action)} a cloud environment while in its current status`
+  //   const resourceType = Utils.cond(
+  //     []
+  //   )
+  //   const setIdFunction = Utils.cond(
+  //     [action === 'delete'],
+  //   )
+  //   return h(Link, {
+  //     disabled: !canPerform,
+  //     tooltip: canPerform ? canPerformMessage : cannotPerformMessage,
+  //     onClick: () => setDeleteAppId(appName)
+  //   }, [makeMenuIcon(icon), _.capitalize(action)])
+  // }
 
   const renderErrorApps = app => {
     return h(Fragment, [
@@ -388,7 +453,11 @@ const Environments = ({ namespace }) => {
             headerRenderer: () => 'Actions',
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              return cloudEnvironment.appName ? renderDeleteButtonApps(cloudEnvironment) : [span({ style: { marginRight: '1rem' } }, [renderDeleteButtonRuntimes(cloudEnvironment)]), renderPauseButtonRuntimes(cloudEnvironment)]
+              const computeType = cloudEnvironment.appName ? 'app' : 'runtime'
+              return [
+                span({ style: { marginRight: '1rem' } }, [renderDeleteButton(computeType, cloudEnvironment)]),
+                renderPauseButton(computeType, cloudEnvironment)
+              ]
             }
           }
         ]

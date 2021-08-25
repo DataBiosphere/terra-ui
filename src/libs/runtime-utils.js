@@ -226,10 +226,28 @@ export const getGalaxyCostTextChildren = (app, galaxyDataDisks) => {
     [getConvertedAppStatus(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``] : ['None']
 }
 
-export const isAppDeletable = app => _.includes(app?.status, ['RUNNING', 'ERROR'])
-
-export const isRuntimeDeletable = runtime => _.includes(runtime?.status,
-  ['Unknown', 'Running', 'Updating', 'Error', 'Stopping', 'Stopped', 'Starting'])
+/**
+ * resourceType must be one of {'runtime', 'app', 'disk'}.
+ * 'Deletable' and 'Pausable' statuses are defined in a resource's respective Leonardo model:
+ * https://github.com/DataBiosphere/leonardo/blob/3339ae218b4258f704702475be1431b48a5e2932/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/runtimeModels.scala
+ * https://github.com/DataBiosphere/leonardo/blob/706a7504420ea4bec686d4f761455e8502b2ddf1/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
+ * https://github.com/DataBiosphere/leonardo/blob/e60c71a9e78b53196c2848cd22a752e22a2cf6f5/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/diskModels.scala
+ */
+export const isResourceDeletable = _.curry((resourceType, resource) => {
+  const deletableStatuses = Utils.switchCase(resourceType,
+    ['runtime', () => ['Unknown', 'Running', 'Updating', 'Error', 'Stopping', 'Stopped', 'Starting']],
+    ['app', () => ['Unspecified', 'Running', 'Error']],
+    ['disk', () => ['Failed', 'Ready']]
+  )
+  return _.includes(_.capitalize(resource?.status), deletableStatuses)
+})
+export const isComputePausable = _.curry((computeType, compute) => {
+  const pausableStatuses = Utils.switchCase(computeType,
+    ['runtime', () => ['Unknown', 'Running', 'Updating', 'Starting']],
+    ['app', () => ['Running', 'Starting']]
+  )
+  return _.includes(_.capitalize(compute?.status), pausableStatuses)
+})
 
 export const getConvertedRuntimeStatus = runtime => {
   return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status) // NOTE: preserves null vs undefined
