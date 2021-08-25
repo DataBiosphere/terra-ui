@@ -343,7 +343,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
 
 const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, toggleData) => {
   const makeTableHeader = (headerStyles, headerName, sortable = false) => {
-    return div({ style: { ...styles.table.header, headerStyles } }, [
+    return div({ style: { ...styles.table.header, ...headerStyles } }, [
       sortable ?
         h(
           Link,
