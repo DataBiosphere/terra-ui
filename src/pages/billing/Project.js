@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { any } from 'prop-types'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
@@ -26,13 +27,13 @@ const workspaceStatusIconWidth = 16
 const workspaceLastModifiedWidth = 150
 const workspaceExpandIconSize = 20
 
-const paddingForWorkspaceStatusIcon =
+const paddingForWorkspaceStatusIcon = () =>
   div({ style: { width: workspaceStatusIconWidth } },
   [div({ className: 'sr-only' }, ['Status'])])
 
 const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
-    paddingForWorkspaceStatusIcon,
+    paddingForWorkspaceStatusIcon(),
     div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: '1rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'name' })
     ]),
@@ -66,10 +67,19 @@ const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details,
 })
 
 const statusIcon = () => {
-  return paddingForWorkspaceStatusIcon
+  const random = Math.floor(Math.random() * 2)
+  const size = {size: workspaceStatusIconWidth}
+  switch (random % 3) {
+    case 0:
+      return icon('angle-down', size)
+    case 1:
+      return icon('angle-left', size)
+    case 2:
+      return icon('angle-right', size)
+  }
 }
 
-const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpanded, onExpand }) => {
+const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, needsStatusIcon, isExpanded, onExpand }) => {
   const { namespace, name, createdBy, lastModified, googleProject, billingAccountName } = workspace
   const workspaceCardStyles = {
     field: {
@@ -82,7 +92,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpand
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' } }, [
     h(IdContainer, [id => h(Fragment, [
       div({ style: workspaceCardStyles.row }, [
-        statusIcon(),
+        needsStatusIcon ? statusIcon() : paddingForWorkspaceStatusIcon(),
         div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
           h(Link, {
             style: Style.noWrapEllipsis,
@@ -155,23 +165,29 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
 
   const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
+  // TODO (Post PPW): Remove billing account name here, and move back to just returning workspace.
+  // This is for a seamless transition to PPW, where `billingAccountName` should be a field on the workspace.
+  const workspacesInProject = _.flow(
+    _.map(({ workspace }) => { return { billingAccountName, ...workspace } }),
+    _.filter({ namespace: projectName })
+  ) (workspaces)
+
+  const needsStatusIcon = !_.isEmpty(_.filter( workspace => billingAccountName !== workspace.billingAccountName,  workspacesInProject))
+
   const tabToTable = {
     workspaces: h(Fragment, [
       h(WorkspaceCardHeaders, { sort: workspaceSort, onSort: setWorkspaceSort }),
       div({ role: 'list', 'aria-label': `workspaces in billing project ${projectName}`, style: { flexGrow: 1, width: '100%' } }, [
         _.flow(
-          // TODO (Post PPW): Remove billing account name here, and move back to just returning workspace. This is for a seamless transition to PPW, where `billingAccountName` should be a field on the workspace.
-          _.map(({ workspace }) => { return { billingAccountName, ...workspace } }),
-          _.filter({ namespace: projectName }),
           _.orderBy([workspaceSort.field], [workspaceSort.direction]),
           _.map(workspace => {
             const isExpanded = expandedWorkspaceName === workspace.name
             return h(WorkspaceCard, {
-              workspace, key: workspace.workspaceId, isExpanded,
+              workspace, needsStatusIcon, key: workspace.workspaceId, isExpanded,
               onExpand: () => setExpandedWorkspaceName(isExpanded ? undefined : workspace.name)
             })
           })
-        )(workspaces)
+        )(workspacesInProject)
       ])
     ]),
     users: h(Fragment, [
