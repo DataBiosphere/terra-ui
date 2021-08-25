@@ -22,12 +22,17 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
 
-
+const workspaceStatusIconWidth = 16
 const workspaceLastModifiedWidth = 150
 const workspaceExpandIconSize = 20
 
+const paddingForWorkspaceStatusIcon =
+  div({ style: { width: workspaceStatusIconWidth } },
+  [div({ className: 'sr-only' }, ['Status'])])
+
 const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
+    paddingForWorkspaceStatusIcon,
     div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: '1rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'name' })
     ]),
@@ -60,6 +65,10 @@ const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details,
   ])
 })
 
+const statusIcon = () => {
+  return paddingForWorkspaceStatusIcon
+}
+
 const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpanded, onExpand }) => {
   const { namespace, name, createdBy, lastModified, googleProject, billingAccountName } = workspace
   const workspaceCardStyles = {
@@ -73,6 +82,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, isExpand
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' } }, [
     h(IdContainer, [id => h(Fragment, [
       div({ style: workspaceCardStyles.row }, [
+        statusIcon(),
         div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
           h(Link, {
             style: Style.noWrapEllipsis,
