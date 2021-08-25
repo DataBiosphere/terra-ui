@@ -73,7 +73,7 @@ const SnapshotLabeledInfo = ({ title, text }) => {
 }
 
 export const SnapshotInfo = ({
-  workspace: { workspace, workspace: { namespace, name } }, resource: { resourceId, description, snapshot } , snapshotName,
+  workspace: { workspace, workspace: { namespace, name } }, resource: { resourceId, description, snapshot: snapshotId } , snapshotName,
   onUpdate, onDelete
 }) => {
   // State
@@ -103,7 +103,7 @@ export const SnapshotInfo = ({
   // Lifecycle
   Utils.useOnMount(() => {
     const loadSnapshotInfo = async () => {
-      const snapshotInfo = await Ajax(signal).DataRepo.snapshot(snapshot).details()
+      const snapshotInfo = await Ajax(signal).DataRepo.snapshot(snapshotId).details()
       setSelectedSnapshotInfo(snapshotInfo)
     }
 
@@ -219,7 +219,7 @@ export const SnapshotInfo = ({
             Ajax().Metrics.captureEvent(Events.workspaceSnapshotDelete, {
               ...extractWorkspaceDetails(workspace),
               resourceId,
-              snapshot
+              snapshotId
             })
             onDelete()
           } catch (e) {
