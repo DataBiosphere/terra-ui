@@ -58,7 +58,7 @@ export const styles = {
       padding: '15px', flex: 1
     },
     firstElem: {
-      minWidth: '33px', flex: 'unset',
+      minWidth: '37px', flex: 'unset',
       padding: '15px 0px 15px 15px', textAlign: 'center'
     },
     lastElem: {
@@ -359,7 +359,6 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, t
               { style: _.assignInAll([{}, styles.table.col, styles.table.firstElem, { alignSelf: 'flex-start' }]) },
               [
                 label({
-                  style: { marginRight: '1rem' },
                   onClick: () => toggleData(listdatum),
                   htmlFor: `${listdatum.namespace}:${listdatum.name}-checkbox`
                 }, [
