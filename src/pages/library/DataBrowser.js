@@ -29,7 +29,9 @@ const DataBrowser = () => {
       subjects: 123,
       dataType: 'RNA Seq',
       keepCollapsed: true,
-      locked: true
+      locked: true,
+      files: 45,
+      fileSize: 120
     },
     {
       namespace: 'harry-potter',
@@ -50,7 +52,32 @@ const DataBrowser = () => {
       subjects: 10,
       dataType: 'RNA Seq',
       keepCollapsed: true,
-      locked: false
+      locked: false,
+      files: 15,
+      fileSize: 4432
+    },
+    {
+      namespace: 'star-wars',
+      name: 'Luke Skywalker',
+      created: '2020-01-07T18:25:28.340Z',
+      lastUpdated: '2020-01-07T18:25:28.340Z',
+      tags: {
+        itemsType: 'AttributeValue',
+        items: ['jedi']
+      },
+      description: 'force sensitive',
+      lowerName: 'luke skywalker',
+      lowerDescription: 'lower description',
+      project: {
+        id: '123',
+        name: 'CDC'
+      },
+      subjects: 10,
+      dataType: '',
+      keepCollapsed: true,
+      locked: false,
+      files: 10,
+      fileSize: 22
     }
   ]
 

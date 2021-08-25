@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, div, h, label } from 'react-hyperscript-helpers'
-import { Checkbox, Clickable, IdContainer, Link, Select } from 'src/components/common'
+import { ButtonPrimary, Checkbox, Clickable, IdContainer, Link, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -165,6 +165,41 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
   ])
 }
 
+export const selectionActionComponent = (selectedData, setSelectedData) => {
+  const length = selectedData.length
+  const files = _.sumBy('files', selectedData)
+  const fileSize = _.sumBy('fileSize', selectedData)
+
+  return div(
+    {
+      style: {
+        display: selectedData.length > 0 ? 'block' : 'none',
+        position: 'sticky', bottom: 0,
+        width: '100%', padding: '34px 60px',
+        backgroundColor: 'white', boxShadow: 'rgb(0 0 0 / 30%) 0px 0px 8px 3px',
+        fontSize: 17
+      }
+    },
+    [
+      div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
+        `${length} dataset${length > 1 ? 's' : ''} (${fileSize} MB - ${files} bam files) selected to be saved to a Terra Workspace`,
+        div({}, [
+          h(Link, {
+            style: { fontSize: 16, marginRight: 40 },
+            onClick: () => setSelectedData([])
+          }, 'Cancel'),
+          h(ButtonPrimary, {
+            style: { textTransform: 'none', fontSize: 14 },
+            onClick: () => {}
+          }, [
+            'Save to a workspace'
+          ])
+        ])
+      ])
+    ]
+  )
+}
+
 export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTab, listdataType = 'workspaces') => {
   const [selectedSections, setSelectedSections] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
@@ -300,13 +335,15 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
             makeListDisplay(listdataType, sortData(filteredData))
           ])
         ])
-      ])
+      ]),
+
+    selectionActionComponent(selectedData, setSelectedData)
   ])
 }
 
 const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, toggleData) => {
   const makeTableHeader = (headerStyles, headerName, sortable = false) => {
-    return div({ style: _.assignInAll([{}, styles.table.header, headerStyles]) }, [
+    return div({ style: { ...styles.table.header, headerStyles } }, [
       sortable ?
         h(
           Link,
@@ -340,8 +377,8 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, t
   }
 
   return div({ style: styles.table.table }, [
-    div({ style: _.assignInAll([styles.table.flexTableRow, { marginBottom: '-15px' }]) }, [
-      div({ style: _.assignInAll([{}, styles.table.col, styles.table.firstElem]) }, ''),
+    div({ style: { ...styles.table.flexTableRow, marginBottom: '-15px' } }, [
+      div({ style: { ...styles.table.col, ...styles.table.firstElem } }, ''),
       makeTableHeader({ flex: 2.2 }, 'Dataset Name', true),
       makeTableHeader({}, 'Project', true),
       makeTableHeader({}, 'No. of Subjects', true),
@@ -356,7 +393,7 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, t
         div({ style: styles.table.flexTableRow, key: `${listdatum.namespace}:${listdatum.name}` },
           [
             div(
-              { style: _.assignInAll([{}, styles.table.col, styles.table.firstElem, { alignSelf: 'flex-start' }]) },
+              { style: { ...styles.table.col, ...styles.table.firstElem, alignSelf: 'flex-start' } },
               [
                 label({
                   onClick: () => toggleData(listdatum),
@@ -370,18 +407,18 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, t
                 ])
               ]
             ),
-            div({ style: _.assignInAll([{}, styles.table.col, { flex: 2.2 }]) }, listdatum.name),
+            div({ style: { ...styles.table.col, flex: 2.2 } }, listdatum.name),
             div({ style: styles.table.col }, listdatum.project.name),
             div({ style: styles.table.col }, listdatum.subjects),
             div({ style: styles.table.col }, listdatum.dataType),
-            div({ style: _.assignInAll([{}, styles.table.col, styles.table.lastElem]) }, Utils.makeStandardDate(listdatum.lastUpdated))
+            div({ style: { ...styles.table.col, ...styles.table.lastElem } }, Utils.makeStandardDate(listdatum.lastUpdated))
           ]
         ),
-        div({ style: _.assignInAll([{}, styles.table.flexTableRow, { alignItems: 'flex-start' }]) }, [
-          div({ style: _.assignInAll([{}, styles.table.col, styles.table.firstElem]) }, [
+        div({ style: { ...styles.table.flexTableRow, alignItems: 'flex-start' } }, [
+          div({ style: { ...styles.table.col, ...styles.table.firstElem } }, [
             icon(listdatum.locked ? 'lock' : 'lock-o', { size: 12, style: { flex: 'none', color: listdatum.locked ? colors.accent() : colors.primary() } })
           ]),
-          div({ style: _.assignInAll([{}, styles.table.col, { width: '100%', fontSize: '12px' }]) }, [
+          div({ style: { ...styles.table.col, width: '100%', fontSize: '12px' } }, [
             h(
               Link,
               { onClick: () => setIsOpened(!isOpened) },
