@@ -78,6 +78,29 @@ const DataBrowser = () => {
       locked: false,
       files: 10,
       fileSize: 22
+    },
+    {
+      namespace: 'star-wars',
+      name: 'Darth Vader',
+      created: '2020-01-07T18:25:28.340Z',
+      lastUpdated: '2020-01-07T18:25:28.340Z',
+      tags: {
+        itemsType: 'AttributeValue',
+        items: ['jedi', 'darkside']
+      },
+      description: 'force sensitive',
+      lowerName: 'darth vader',
+      lowerDescription: 'lower description',
+      project: {
+        id: '123',
+        name: 'CDC2'
+      },
+      subjects: 10,
+      dataType: 'Data',
+      keepCollapsed: true,
+      locked: true,
+      files: 10,
+      fileSize: 22
     }
   ]
 
