@@ -2,7 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, div, h, label } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Checkbox, Clickable, IdContainer, Link, Select } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, IdContainer, Link, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
@@ -185,8 +185,8 @@ export const selectionActionComponent = (selectedData, setSelectedData) => {
       div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
         `${length} dataset${length > 1 ? 's' : ''} (${fileSizeFormatted} - ${files} bam files) selected to be saved to a Terra Workspace`,
         div({}, [
-          h(Link, {
-            style: { fontSize: 16, marginRight: 40 },
+          h(ButtonSecondary, {
+            style: { fontSize: 16, marginRight: 40, textTransform: 'none' },
             onClick: () => setSelectedData([])
           }, 'Cancel'),
           h(ButtonPrimary, {
