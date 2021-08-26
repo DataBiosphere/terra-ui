@@ -169,6 +169,7 @@ export const selectionActionComponent = (selectedData, setSelectedData) => {
   const length = selectedData.length
   const files = _.sumBy('files', selectedData)
   const fileSize = _.sumBy('fileSize', selectedData)
+  const fileSizeFormatted = Utils.formatBytes(fileSize)
 
   return div(
     {
@@ -182,7 +183,7 @@ export const selectionActionComponent = (selectedData, setSelectedData) => {
     },
     [
       div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
-        `${length} dataset${length > 1 ? 's' : ''} (${fileSize} MB - ${files} bam files) selected to be saved to a Terra Workspace`,
+        `${length} dataset${length > 1 ? 's' : ''} (${fileSizeFormatted} - ${files} bam files) selected to be saved to a Terra Workspace`,
         div({}, [
           h(Link, {
             style: { fontSize: 16, marginRight: 40 },

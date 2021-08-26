@@ -31,7 +31,7 @@ const DataBrowser = () => {
       keepCollapsed: true,
       locked: true,
       files: 45,
-      fileSize: 120
+      fileSize: 12345
     },
     {
       namespace: 'harry-potter',
@@ -77,7 +77,7 @@ const DataBrowser = () => {
       keepCollapsed: true,
       locked: false,
       files: 10,
-      fileSize: 22
+      fileSize: 550
     },
     {
       namespace: 'star-wars',
@@ -100,7 +100,7 @@ const DataBrowser = () => {
       keepCollapsed: true,
       locked: true,
       files: 10,
-      fileSize: 22
+      fileSize: 22000
     }
   ]
 
