@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
@@ -152,12 +152,10 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
 
   const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
-  // TODO (Post PPW): Remove billing account name here, and move back to just returning workspace.
-  // This is for a seamless transition to PPW, where `billingAccountName` should be a field on the workspace.
-  const workspacesInProject = _.flow(
+  const workspacesInProject = useMemo(() => _.flow(
     _.map(({ workspace }) => workspace),
     _.filter({ namespace: projectName })
-  )(workspaces)
+  )(workspaces), [workspaces, projectName])
 
   const getBillingAccountStatusIcon = (() => {
     const allWorkspacesHaveCorrectBillingAccount =
