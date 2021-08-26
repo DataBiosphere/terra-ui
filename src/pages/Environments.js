@@ -296,6 +296,7 @@ const Environments = ({ namespace }) => {
       ['app', setPauseAppId]
     )
     return h(Link, {
+      style: { marginLeft: '1rem' },
       disabled: !isPausable,
       tooltip: isPausable ? 'Pause cloud environment' : 'Cannot pause a cloud environment while in current status',
       onClick: () => action(id)
@@ -460,10 +461,10 @@ const Environments = ({ namespace }) => {
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
               const computeType = cloudEnvironment.appName ? 'app' : 'runtime'
-              return [
-                span({ style: { marginRight: '1rem' } }, [renderDeleteButton(computeType, cloudEnvironment)]),
+              return h(Fragment, [
+                renderDeleteButton(computeType, cloudEnvironment),
                 renderPauseButton(computeType, cloudEnvironment)
-              ]
+              ])
             }
           }
         ]

@@ -10,7 +10,7 @@ import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl, getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
-import { isAppDeletable, isResourceDeletable } from 'src/libs/runtime-utils'
+import { isResourceDeletable } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 
 
