@@ -175,7 +175,7 @@ export const selectionActionComponent = (selectedData, setSelectedData) => {
     {
       style: {
         display: selectedData.length > 0 ? 'block' : 'none',
-        position: 'sticky', bottom: 0, marginTop: '20px',
+        position: 'sticky', bottom: 0, marginTop: '25px',
         width: '100%', padding: '34px 60px',
         backgroundColor: 'white', boxShadow: 'rgb(0 0 0 / 30%) 0px 0px 8px 3px',
         fontSize: 17
