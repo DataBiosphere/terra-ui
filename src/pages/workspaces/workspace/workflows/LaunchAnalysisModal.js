@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { b, div, h, label, p, span, wbr } from 'react-hyperscript-helpers'
+import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, CromwellVersionLink, IdContainer } from 'src/components/common'
 import { warningBoxStyle } from 'src/components/data/data-utils'
 import { icon, spinner } from 'src/components/icons'
-import { TextArea } from 'src/components/input'
+import { ValidatedTextArea, wrappableOnPeriods } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { regionInfo } from 'src/components/region-common'
@@ -13,6 +13,7 @@ import { launch } from 'src/libs/analysis'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
+import { commentValidation } from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal'
 import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
@@ -28,6 +29,7 @@ const LaunchAnalysisModal = ({
   const [launchError, setLaunchError] = useState(undefined)
   const [bucketLocation, setBucketLocation] = useState({})
   const [userComment, setUserComment] = useState(undefined)
+  const [userCommentError, setUserCommentError] = useState(undefined)
   const signal = Utils.useCancellation()
 
   Utils.useOnMount(() => {
@@ -63,7 +65,7 @@ const LaunchAnalysisModal = ({
       })
       onSuccess(submissionId)
     } catch (error) {
-      setLaunchError(await (error instanceof Response ? error.text() : error.message))
+      setLaunchError(await (error instanceof Response ? error.json().then(data => data.message) : error.message))
       setMessage(undefined)
     }
   }
@@ -76,7 +78,6 @@ const LaunchAnalysisModal = ({
     [type === chooseBaseType, () => 1],
     [type === chooseSetType, () => _.flow(mergeSets, _.uniqBy('entityName'))(selectedEntities).length]
   )
-  const wrappableOnPeriods = _.flow(str => str?.split(/(\.)/), _.flatMap(sub => sub === '.' ? [wbr(), '.'] : sub))
   const { location, locationType } = bucketLocation
   const { flag, regionDescription } = regionInfo(location, locationType)
 
@@ -89,7 +90,7 @@ const LaunchAnalysisModal = ({
     showCancel: !launching,
     okButton: !launchError ?
       h(ButtonPrimary, {
-        disabled: launching,
+        disabled: launching || userCommentError,
         onClick: () => {
           setLaunching(true)
           doLaunch()
@@ -97,9 +98,9 @@ const LaunchAnalysisModal = ({
       }, ['Launch']) :
       h(ButtonPrimary, { onClick: onDismiss }, ['OK'])
   }, [
-    div({ style: { margin: '1rem 0' } }, ['This analysis will be run by ', h(CromwellVersionLink), '.']),
+    div({ style: { margin: '1rem 0 1.5rem' } }, ['This analysis will be run by ', h(CromwellVersionLink), '.']),
     div(['Output files will be saved as workspace data in:']),
-    div({ style: { margin: '1rem' } }, [
+    div({ style: { margin: '1rem 0 1.5rem' } }, [
       location ? h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [flag]),
         span({ style: { marginRight: '0.5rem' } }, [regionDescription]),
         h(InfoBox, [
@@ -109,16 +110,17 @@ const LaunchAnalysisModal = ({
         ])]) : 'Loading...'
     ]),
     h(IdContainer, [id => div({ style: { margin: '1rem 0' } }, [
-      label({ htmlFor: id, style: { display: 'block' } }, ['Add Comments:']),
-      div([
-        h(TextArea, {
+      label({ htmlFor: id, style: { display: 'block', margin: '1rem 0' } }, ['Add Comment:']),
+      ValidatedTextArea({
+        inputProps: {
           id,
-          placeholder: 'Enter comment for the submission',
           value: userComment,
-          onChange: v => setUserComment(v),
+          onChange: v => commentValidation(v, setUserComment, setUserCommentError),
+          placeholder: 'Enter comment for the submission',
           style: { height: 100 }
-        })
-      ])
+        },
+        error: userCommentError
+      })
     ])]),
     warnDuplicateAnalyses ? div({
       style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' }

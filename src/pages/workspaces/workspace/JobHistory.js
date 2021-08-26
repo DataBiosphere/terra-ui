@@ -3,13 +3,13 @@ import { Fragment, useImperativeHandle, useRef, useState } from 'react'
 import { div, h, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { Clickable, ClipboardButton, HeaderRenderer, Link, spinnerOverlay } from 'src/components/common'
+import { Clickable, HeaderRenderer, Link, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { collapseStatus, failedIcon, runningIcon, submittedIcon, successIcon } from 'src/components/job-common'
 import Modal from 'src/components/Modal'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
-import { FlexTable, HeaderCell, TextCell, TooltipCell } from 'src/components/table'
+import { FlexTable, TextCell, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import { bucketBrowserUrl } from 'src/libs/auth'
@@ -18,6 +18,7 @@ import { reportError } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal'
 import { rerunFailures } from 'src/pages/workspaces/workspace/workflows/FailureRerunner'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
@@ -121,6 +122,7 @@ const JobHistory = _.flow(
   const [abortingId, setAbortingId] = useState(undefined)
   const [textFilter, setTextFilter] = useState('')
   const [sort, setSort] = useState({ field: 'submissionDate', direction: 'desc' })
+  const [updatingComment, setUpdatingComment] = useState(undefined)
 
   const scheduledRefresh = useRef()
   const signal = Utils.useCancellation()
@@ -156,13 +158,14 @@ const JobHistory = _.flow(
     }
   })
 
-  const makeHeaderRenderer = (name, label, sortable = true) => {
+  const makeHeaderRenderer = (name, label, sortable = true, ariaLabel = label) => {
     return () => h(HeaderRenderer, {
       sort: sortable ? sort : undefined,
       name,
       label,
       onSort: setSort,
-      style: { fontWeight: 400 }
+      style: { fontWeight: 400 },
+      'aria-label': ariaLabel
     })
   }
 
@@ -186,13 +189,13 @@ const JobHistory = _.flow(
 
   const sortedSubmissions = _.orderBy(
     Utils.cond(
-      [sort.field === 'entityName', ['submissionEntity.entityName']],
-      [sort.field === 'numberOfWorkflows', [s => _.sum(_.values(s.workflowStatuses))]],
-      [sort.field === 'status', [s => {
+      [sort.field === 'entityName', () => 'submissionEntity.entityName'],
+      [sort.field === 'numberOfWorkflows', () => [s => _.sum(_.values(s.workflowStatuses))]],
+      [sort.field === 'status', () => [s => {
         const { succeeded, failed, running, submitted } = collapsedStatuses(s.workflowStatuses)
         return [submitted, running, failed, succeeded]
       }]],
-      sort.field
+      () => sort.field
     ),
     [sort.direction],
     filteredSubmissions)
@@ -223,7 +226,7 @@ const JobHistory = _.flow(
             {
               size: { basis: 500, grow: 0 },
               field: 'methodConfigurationName',
-              headerRenderer: makeHeaderRenderer('methodConfigurationName', 'Submission (click for details)'),
+              headerRenderer: makeHeaderRenderer('methodConfigurationName', 'Submission (click for details)', true, 'Submission'),
               cellRenderer: ({ rowIndex }) => {
                 const {
                   methodConfigurationNamespace, methodConfigurationName, submitter, submissionId, workflowStatuses
@@ -276,9 +279,11 @@ const JobHistory = _.flow(
               }
             },
             {
-              size: { basis: 170, grow: 0 },
+              size: { basis: 160, grow: 0 },
               field: 'numberOfWorkflomws',
-              headerRenderer: makeHeaderRenderer('numberOfWorkflows', 'No. of Workflows'),
+              headerRenderer: makeHeaderRenderer(
+                'numberOfWorkflows', 'No. of Workflows', true, 'Number of Workflows'
+              ),
               cellRenderer: ({ rowIndex }) => {
                 const { workflowStatuses } = sortedSubmissions[rowIndex]
                 return h(TextCell, Utils.formatNumber(_.sum(_.values(workflowStatuses))))
@@ -307,12 +312,13 @@ const JobHistory = _.flow(
               }
             },
             {
-              size: { basis: 210, grow: 1 },
+              // Disable shrinking so that the ID does not render outside of the cell
+              size: { basis: 170, grow: 1, shrink: 0 },
               field: 'submissionId',
               headerRenderer: makeHeaderRenderer('submissionId', 'Submission ID'),
               cellRenderer: ({ rowIndex }) => {
                 const { submissionId } = sortedSubmissions[rowIndex]
-                return h(TooltipCell, { tooltip: submissionId }, [
+                return h(TextCell, { style: { whiteSpace: 'normal' } }, [
                   h(Link, {
                     ...Utils.newTabLinkProps,
                     href: bucketBrowserUrl(`${bucketName}/${submissionId}`)
@@ -321,14 +327,11 @@ const JobHistory = _.flow(
               }
             },
             {
-              size: { basis: 150, grow: 1 },
-              headerRenderer: () => h(HeaderCell, ['Comments']),
+              size: { basis: 250, grow: 1 },
+              headerRenderer: makeHeaderRenderer('userComment', 'Comments'),
               cellRenderer: ({ rowIndex }) => {
-                const { userComment } = filteredSubmissions[rowIndex]
-                return userComment && h(Fragment, [
-                  h(TooltipCell, { tooltip: userComment }, [userComment]),
-                  h(ClipboardButton, { text: userComment, style: { marginLeft: '0.5rem' } })
-                ])
+                const { userComment } = sortedSubmissions[rowIndex]
+                return userComment && h(TooltipCell, { tooltip: userComment }, [userComment])
               }
             },
             {
@@ -337,15 +340,23 @@ const JobHistory = _.flow(
               cellRenderer: ({ rowIndex }) => {
                 const {
                   methodConfigurationNamespace, methodConfigurationName, methodConfigurationDeleted, submissionId, workflowStatuses,
-                  status, submissionEntity
+                  status, submissionEntity, userComment
                 } = sortedSubmissions[rowIndex]
                 const canAbort = !isTerminal(status) && status !== 'Aborting'
                 const canRelaunch = isTerminal(status) && (workflowStatuses['Failed'] || workflowStatuses['Aborted']) &&
                   submissionEntity && !methodConfigurationDeleted
                 return div({ style: { width: '100%', textAlign: 'center' } }, [
+                  updatingComment === submissionId && h(UpdateUserCommentModal, {
+                    workspace: { name, namespace }, submissionId, userComment,
+                    onDismiss: () => setUpdatingComment(undefined),
+                    onSuccess: refresh
+                  }),
                   h(MenuTrigger, {
                     closeOnClick: true,
                     content: h(Fragment, [
+                      h(MenuButton, {
+                        onClick: () => setUpdatingComment(submissionId)
+                      }, ['Edit Comment']),
                       h(MenuButton, {
                         disabled: !canAbort,
                         onClick: () => setAbortingId(submissionId)

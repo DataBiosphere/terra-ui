@@ -1,62 +1,72 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
-import { div, h, label, wbr } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer } from 'src/components/common'
-import { TextArea } from 'src/components/input'
+import { useState } from 'react'
+import { h } from 'react-hyperscript-helpers'
+import { ButtonPrimary } from 'src/components/common'
+import { ValidatedTextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
-import colors from 'src/libs/colors'
 
+/**
+ * Stores the new comment, validating its length.
+ *
+ * @param {String} newComment the user-supplied comment
+ * @param {Function} updateComment the method to store the comment
+ * @param {Function} updateError the method to display or clear an error message
+ */
+export const commentValidation = (newComment, updateComment, updateError) => {
+  // This is the server-side limit for the API. We are doing client-side validation also in order to present
+  // a friendlier user experience (in particular for the Launch Workflows dialog, where a server-side error can
+  // occur for a variety of reasons). If the server-side limit changes, it must also be updated here.
+  const maxCommentLength = 1000
+  updateComment(newComment)
+  updateError(newComment.length > maxCommentLength ?
+    `The comment can be at most ${maxCommentLength} characters` : undefined
+  )
+}
 
-const UpdateUserCommentModal = ({
-                                  onDismiss, onSuccess, workspace: { namespace, name }, submissionId, userComment
-                                }) => {
+/**
+ * A modal dialog for updating the Workspace Comment field.
+ */
+const UpdateUserCommentModal = ({ onDismiss, onSuccess, workspace: { namespace, name }, submissionId, userComment }) => {
   const [updating, setUpdating] = useState(undefined)
-  const [saveError, setSaveError] = useState(undefined)
   const [updateComment, setUpdateComment] = useState(userComment)
+  const [userCommentError, setUserCommentError] = useState(undefined)
 
   const doUpdate = async () => {
     try {
-      // TODO: How to remove whitespaces here?
-      await Ajax().Workspaces.workspace(namespace, name).submission(submissionId).updateUserComment(updateComment)
-      onSuccess(updateComment)
+      const trimComment = _.trim(updateComment)
+      await Ajax().Workspaces.workspace(namespace, name).submission(submissionId).updateUserComment(trimComment)
+      onSuccess(trimComment)
       onDismiss()
     } catch (error) {
-      setSaveError(await (error instanceof Response ? error.text() : error.message))
+      setUserCommentError(await (error instanceof Response ? error.json().then(data => data.message) : error.message))
+      setUpdating(false)
     }
   }
 
-  const wrappableOnPeriods = _.flow(str => str?.split(/(\.)/), _.flatMap(sub => sub === '.' ? [wbr(), '.'] : sub))
-
-  return h(Modal, {
-      title: !updating ? 'Comments' : 'Updating Comments',
+  return h(Modal,
+    {
+      title: !updating ? 'Comment' : 'Updating Comment',
       onDismiss,
       showCancel: !updating,
-      okButton: !saveError ?
+      okButton:
         h(ButtonPrimary, {
-          disabled: updating,
+          disabled: updating || userCommentError,
           onClick: () => {
             setUpdating(true)
             doUpdate()
           }
-        }, ['Save']) :
-        h(ButtonPrimary, { onClick: onDismiss }, ['OK'])
+        }, ['Save'])
     }, [
-      h(IdContainer, [id => div({ style: { margin: '1rem 0' } }, [
-        label({ htmlFor: id, style: { display: 'block' } }),
-        div([
-          h(TextArea, {
-            id,
-            placeholder: 'Enter comment for the submission',
-            value: updateComment,
-            onChange: v => setUpdateComment(v),
-            style: { height: 100 }
-          })
-        ])
-      ])]),
-      div({ style: { color: colors.danger(), overflowWrap: 'break-word' } }, [
-        h(Fragment, wrappableOnPeriods(saveError))
-      ])
+      ValidatedTextArea({
+        inputProps: {
+          value: updateComment,
+          onChange: v => commentValidation(v, setUpdateComment, setUserCommentError),
+          'aria-label': 'Enter comment for the submission',
+          placeholder: 'Enter comment for the submission',
+          style: { height: 100 }
+        }, error: userCommentError
+      })
     ]
   )
 }

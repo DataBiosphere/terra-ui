@@ -1,7 +1,7 @@
 import Downshift from 'downshift'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
-import { div, h, input, textarea } from 'react-hyperscript-helpers'
+import { div, h, input, textarea, wbr } from 'react-hyperscript-helpers'
 import TextAreaAutosize from 'react-textarea-autosize'
 import { ButtonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -299,6 +299,32 @@ export const TextArea = ({ onChange, autosize = false, nativeOnChange = false, .
     style: styles.textarea,
     onChange: onChange ? (e => onChange(nativeOnChange ? e : e.target.value)) : undefined
   }, props))
+}
+
+/**
+ * Utility function for wrapping text on periods.
+ */
+export const wrappableOnPeriods = _.flow(str => str?.split(/(\.)/), _.flatMap(sub => sub === '.' ? [wbr(), '.'] : sub))
+
+/**
+ * A TextArea that provides visual and textual indications when the content is invalid.
+ *
+ * @param {Object} inputProps input properties for the TextArea
+ * @param {String} error the message to display below the TextArea, or undefined if no error
+ */
+export const ValidatedTextArea = ({ inputProps, error }) => {
+  return h(Fragment, [
+    div([
+      h(TextArea,
+        _.merge({ className: error ? 'error-style' : 'focus-style' }, inputProps))
+    ]),
+    div(
+      {
+        style: { color: colors.danger(), overflowWrap: 'break-word', marginTop: '1rem' },
+        'aria-live': 'assertive',
+        'aria-relevant': 'all'
+      }, [h(Fragment, wrappableOnPeriods(error))])
+  ])
 }
 
 export const DelayedAutocompleteTextArea = withDebouncedChange(withAutocomplete(TextArea))
