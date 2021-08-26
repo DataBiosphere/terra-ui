@@ -160,6 +160,12 @@ const Environments = ({ namespace }) => {
     if (!_.some({ appName: deleteAppId }, newApps)) {
       setDeleteAppId(undefined)
     }
+    if (!_.some({ id: getPauseRuntimeId() }, newRuntimes)) {
+      setPauseRuntimeId(undefined)
+    }
+    if (!_.some({ id: pauseAppId }, newApps)) {
+      setPauseAppId(undefined)
+    }
   })
 
   const loadData = withErrorReporting('Error loading cloud environments', refreshData)
@@ -584,6 +590,14 @@ const Environments = ({ namespace }) => {
           loadData()
         }
       }),
+      // pauseRuntimeId && h(PauseRuntimeModal, {
+      //   runtime: _.find({ id: pauseRuntimeId }, runtimes),
+      //   onDismiss: () => setPauseRuntimeId(undefined),
+      //   onSuccess: () => {
+      //     setPauseRuntimeId(undefined)
+      //     loadData()
+      //   }
+      // }),
       deleteDiskId && renderDeleteDiskModal(_.find({ id: deleteDiskId }, disks)),
       deleteAppId && h(DeleteAppModal, {
         app: _.find({ appName: deleteAppId }, apps),
@@ -593,6 +607,14 @@ const Environments = ({ namespace }) => {
           loadData()
         }
       }),
+      // pauseAppId && h(PauseAppModal, {
+      //   app: _.find({ appName: pauseAppId }, apps),
+      //   onDismiss: () => setPauseAppId(undefined),
+      //   onSuccess: () => {
+      //     setPauseAppId(undefined)
+      //     loadData()
+      //   }
+      // }),
       errorAppId && h(AppErrorModal, {
         app: _.find({ appName: errorAppId }, apps),
         onDismiss: () => setErrorAppId(undefined),
