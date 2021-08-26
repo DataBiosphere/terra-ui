@@ -100,7 +100,7 @@ const DataBrowser = () => {
       keepCollapsed: true,
       locked: true,
       files: 10,
-      fileSize: 22000
+      fileSize: 22000000
     }
   ]
 

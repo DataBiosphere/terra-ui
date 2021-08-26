@@ -321,7 +321,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
             ])
           ])
         ]),
-        div({ style: { display: 'flex', margin: '0 1rem' } }, [
+        div({ style: { display: 'flex', margin: '0 1rem', height: '100%' } }, [
           div({ style: { width: '19rem', flex: 'none' } }, [
             h(Sidebar, {
               onSectionFilter: section => setSelectedSections(_.xor([section], selectedSections)),
@@ -332,7 +332,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
               listdataByTag: groupByFeaturedTags(filteredData, sidebarSections)
             })
           ]),
-          div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%' } }, [
+          div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
             makeListDisplay(listdataType, sortData(filteredData))
           ])
         ])
