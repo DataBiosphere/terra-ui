@@ -83,16 +83,6 @@ const PrivateDataExplorer = ({ dataset }) => {
         ])
       ])
     ], [
-      'UKBB', () => h(Fragment, [
-        standardErrorText,
-        p([
-          'If you do not have a Google account in that group, you will not be able to browse UKB data at this time. ',
-          'However, if you already have access to a copy of UKB data, you may upload it to a workspace, ',
-          'provided you add appropriate permissions and/or Authorization Domains to keep the data protected.'
-        ]),
-        p(['We are actively working with UK Biobank to improve the process of accessing and working with UKB data.'])
-      ])
-    ], [
       'baseline', () => h(Fragment, [
         p([
           `Thank you for your interest in the Baseline Health Study data. Baseline data is currently only being shared with our partner organizations at Duke and Stanford.

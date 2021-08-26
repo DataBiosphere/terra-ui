@@ -18,7 +18,6 @@ import nemoLogo from 'src/images/library/datasets/nemo-logo.svg'
 import targetLogo from 'src/images/library/datasets/target_logo.jpeg'
 import tcgaLogo from 'src/images/library/datasets/TCGALogo.jpg'
 import topMedLogo from 'src/images/library/datasets/TopMed@2x.png'
-import ukbLogo from 'src/images/library/datasets/UKB@2x.jpg'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import { returnParam } from 'src/libs/logos'
@@ -369,23 +368,6 @@ const topMed = () => h(Participant, {
   }, ['Browse Data'])
 ])
 
-const ukb = () => h(Participant, {
-  logo: { src: ukbLogo, alt: `UK Biobank logo`, height: '50%' },
-  title: `UK Biobank`,
-  description: h(Fragment, [
-    h(Link, { href: 'https://www.ukbiobank.ac.uk/', ...Utils.newTabLinkProps }, 'UK Biobank'),
-    ` is a national and international health resource with unparalleled research opportunities.
-    UK Biobank aims to improve the prevention, diagnosis and treatment of a wide range of serious and life-threatening
-    illnesses. This Data Explorer is only available to specific early-access users at this time.`
-  ]),
-  sizeText: 'Participants: > 500,000'
-}, [
-  h(ButtonPrimary, {
-    'aria-label': 'Browse UK BioBank data',
-    href: Nav.getLink('data-explorer-private', { dataset: 'UK Biobank' })
-  }, ['Browse Data'])
-])
-
 
 const Datasets = () => {
   return h(FooterWrapper, { alwaysShow: true }, [
@@ -393,7 +375,7 @@ const Datasets = () => {
     div({ role: 'main', style: styles.content }, [
       // Put datasets in alphabetical order
       thousandGenomesHighCoverage(), thousandGenomesLowCoverage(), amppd(), baseline(), ccdg(), cmg(), encode(), fcDataLib(), framingham(), hca(),
-      nemo(), target(), tcga(), topMed(), ukb()
+      nemo(), target(), tcga(), topMed()
     ])
   ])
 }

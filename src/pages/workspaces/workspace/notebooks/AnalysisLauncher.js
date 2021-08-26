@@ -6,9 +6,9 @@ import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
+import { ComputeModal } from 'src/components/ComputeModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { NewRuntimeModal } from 'src/components/NewRuntimeModal'
 import { AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getTool, notebookLockHash } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
@@ -42,8 +42,11 @@ const AnalysisLauncher = _.flow(
     showTabBar: false
   })
 )(
-  ({ queryParams, analysisName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks, refreshRuntimes },
-    ref) => {
+  ({
+    queryParams, analysisName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks,
+    refreshRuntimes
+  },
+  ref) => {
     const [createOpen, setCreateOpen] = useState(false)
     const runtime = getCurrentRuntime(runtimes)
     const { runtimeName, labels } = runtime || {}
@@ -61,13 +64,16 @@ const AnalysisLauncher = _.flow(
             h(labels.welderInstallFailed ? WelderDisabledNotebookEditorFrame : AnalysisEditorFrame,
               { key: runtimeName, workspace, runtime, analysisName, mode, toolLabel, styles: iframeStyles }) :
             h(Fragment, [
-              h(PreviewHeader, { styles: iframeStyles, queryParams, runtime, analysisName, toolLabel, workspace, readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true) }),
+              h(PreviewHeader, {
+                styles: iframeStyles, queryParams, runtime, analysisName, toolLabel, workspace,
+                readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true)
+              }),
               h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel, workspace })
             ])
         ]),
         mode && h(RuntimeKicker, { runtime, refreshRuntimes, onNullRuntime: () => setCreateOpen(true) }),
         mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
-        h(NewRuntimeModal, {
+        h(ComputeModal, {
           isOpen: createOpen,
           tool: toolLabel,
           isAnalysisMode: true,
@@ -79,7 +85,7 @@ const AnalysisLauncher = _.flow(
             setCreateOpen(false)
           },
           onSuccess: _.flow(
-            withErrorReporting('Error creating runtime'),
+            withErrorReporting('Error creating cloud compute'),
             Utils.withBusyState(setBusy)
           )(async () => {
             setCreateOpen(false)
@@ -109,7 +115,9 @@ const FileInUseModal = ({ onDismiss, onCopy, onPlayground, namespace, name, buck
     onDismiss,
     showButtons: false
   }, [
-    p(lockedByEmail ? `This notebook is currently being edited by ${lockedByEmail}.` : `This notebook is currently locked because another user is editing it.`),
+    p(lockedByEmail ?
+      `This notebook is currently being edited by ${lockedByEmail}.` :
+      `This notebook is currently locked because another user is editing it.`),
     p('You can make a copy, or run it in Playground Mode to explore and execute its contents without saving any changes.'),
     div({ style: { marginTop: '2rem' } }, [
       h(ButtonSecondary, {
@@ -172,7 +180,8 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
     'Continue')
   }, [
     p(['Playground mode allows you to explore, change, and run the code, but your edits will not be saved.']),
-    p(['To save your work, choose ', span({ style: { fontWeight: 600 } }, ['Download ']), 'from the ', span({ style: { fontWeight: 600 } }, ['File ']), 'menu.']),
+    p(['To save your work, choose ', span({ style: { fontWeight: 600 } }, ['Download ']), 'from the ',
+      span({ style: { fontWeight: 600 } }, ['File ']), 'menu.']),
     h(LabeledCheckbox, {
       checked: hidePlaygroundMessage,
       onChange: setHidePlaygroundMessage
@@ -184,7 +193,10 @@ const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
   style: { padding: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: 2 }, ...props
 }, [children])
 
-const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, toolLabel, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
+const PreviewHeader = ({
+  queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, toolLabel, workspace,
+  workspace: { canShare, workspace: { namespace, name, bucketName } }
+}) => {
   const signal = Utils.useCancellation()
   const { user: { email } } = Utils.useStore(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
@@ -200,7 +212,10 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
   const analysisLink = Nav.getLink('workspace-analysis-launch', { namespace, name, analysisName })
 
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
-    const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal).Buckets.analysis(namespace, bucketName, getDisplayName(analysisName), toolLabel).getObject()
+    const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
+      .Buckets
+      .analysis(namespace, bucketName, getDisplayName(analysisName), toolLabel)
+      .getObject()
     const hashedUser = await notebookLockHash(bucketName, email)
     const lockExpirationDate = new Date(parseInt(lockExpiresAt))
 
@@ -369,14 +384,20 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
 //TODO: this ensures that navigating away from the Jupyter iframe results in a save via a custom extension located in `jupyter-iframe-extension`
 const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
   Utils.useOnMount(() => {
-    Ajax().Metrics.captureEvent(Events.notebookLaunch, { 'Notebook Name': details.notebookName, 'Workspace Name': details.name, 'Workspace Namespace': details.namespace })
+    Ajax()
+      .Metrics
+      .captureEvent(Events.notebookLaunch,
+        { 'Notebook Name': details.notebookName, 'Workspace Name': details.name, 'Workspace Namespace': details.namespace })
 
     const isSaved = Utils.atom(true)
     const onMessage = e => {
       switch (e.data) {
-        case 'close': return onClose()
-        case 'saved': return isSaved.set(true)
-        case 'dirty': return isSaved.set(false)
+        case 'close':
+          return onClose()
+        case 'saved':
+          return isSaved.set(true)
+        case 'dirty':
+          return isSaved.set(false)
         default:
       }
     }
@@ -412,7 +433,10 @@ const copyingAnalysisMessage = div({ style: { paddingTop: '2rem' } }, [
   h(StatusMessage, ['Copying analysis to cloud environment, almost ready...'])
 ])
 
-const AnalysisEditorFrame = ({ styles, mode, analysisName, toolLabel, workspace: { workspace: { namespace, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
+const AnalysisEditorFrame = ({
+  styles, mode, analysisName, toolLabel, workspace: { workspace: { namespace, name, bucketName } },
+  runtime: { runtimeName, proxyUrl, status, labels }
+}) => {
   console.assert(_.includes(status, usableStatuses), `Expected cloud environment to be one of: [${usableStatuses}]`)
   console.assert(!labels.welderInstallFailed, 'Expected cloud environment to have Welder')
   const frameRef = useRef()
@@ -431,7 +455,7 @@ const AnalysisEditorFrame = ({ styles, mode, analysisName, toolLabel, workspace:
     withErrorReporting('Error setting up analysis')
   )(async () => {
     await Ajax()
-    //TODO: use proper welder calls
+      //TODO: use proper welder calls
       .Runtimes
       .notebooks(namespace, runtimeName)
       .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
@@ -476,7 +500,10 @@ const AnalysisEditorFrame = ({ styles, mode, analysisName, toolLabel, workspace:
 //TODO: this originally was designed to handle VMs that didn't have welder deployed on them
 // do we need this anymore? (can be queried in prod DB to see if there are any VMs with welderEnabled=false with a `recent` dateAccessed
 // do we need to support this for rstudio? I don't think so because welder predates RStudio support, but not 100%
-const WelderDisabledNotebookEditorFrame = ({ styles, mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
+const WelderDisabledNotebookEditorFrame = ({
+  styles, mode, notebookName, workspace: { workspace: { namespace, name, bucketName } },
+  runtime: { runtimeName, proxyUrl, status, labels }
+}) => {
   console.assert(status === 'Running', 'Expected cloud environment to be running')
   console.assert(!!labels.welderInstallFailed, 'Expected cloud environment to not have Welder')
   const frameRef = useRef()
