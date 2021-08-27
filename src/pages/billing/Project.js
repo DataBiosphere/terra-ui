@@ -144,7 +144,7 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
 
   const signal = Utils.useCancellation()
 
-  const adminCanEdit = _.some(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers)
+  const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
   const workspacesInProject = useMemo(() => _.flow(
     _.map(({ workspace }) => workspace),
