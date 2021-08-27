@@ -277,9 +277,9 @@ const Environments = ({ namespace }) => {
     const { id } = resource
     const isDeletable = isResourceDeletable(resourceType, resource)
     const action = Utils.switchCase(resourceType,
-      ['runtime', setDeleteRuntimeId],
-      ['app', setDeleteAppId],
-      ['disk', setDeleteDiskId]
+      ['runtime', () => setDeleteRuntimeId],
+      ['app', () => setDeleteAppId],
+      ['disk', () => setDeleteDiskId]
     )
     return h(Link, {
       disabled: !isDeletable,
