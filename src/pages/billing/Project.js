@@ -33,8 +33,7 @@ const paddingForWorkspaceStatusIcon =
 
 const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
-    paddingForWorkspaceStatusIcon,
-    div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: '1rem' } }, [
+    div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: '2rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'name' })
     ]),
     div({ 'aria-sort': ariaSort(sort, 'createdBy'), style: { flex: 1 } }, [
