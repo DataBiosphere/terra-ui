@@ -23,16 +23,12 @@ import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
 
 
-const workspaceStatusIconWidth = 16
 const workspaceLastModifiedWidth = 150
 const workspaceExpandIconSize = 20
 
-const paddingForWorkspaceStatusIcon =
-  div({ style: { width: workspaceStatusIconWidth } },
-    [div({ className: 'sr-only' }, ['Status'])])
-
 const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
+    // extra left-padding for workspace billing account status icons
     div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: '2rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'name' })
     ]),
@@ -158,12 +154,16 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
 
   const getBillingAccountStatusIcon = (() => {
     const allWorkspacesHaveCorrectBillingAccount =
-      _.isEmpty(_.remove({ billingAccount: billingAccountName }, workspacesInProject))
-    const getIcon = shape => icon(shape, { size: workspaceStatusIconWidth })
-    return workspace => allWorkspacesHaveCorrectBillingAccount ? paddingForWorkspaceStatusIcon :
-      billingAccountName === workspace.billingAccount ? getIcon('success-standard') :
-        'billingAccountErrorMessage' in workspace ? getIcon('error-standard') :
-          getIcon('loadingSpinner')
+      _.every({ billingAccount: billingAccountName }, workspacesInProject)
+    const iconWidth = 16
+    const noIcon = div({ style: { width: iconWidth } },
+      [div({ className: 'sr-only' }, ['Status'])])
+    const getIcon = shape => icon(shape, { size: iconWidth })
+    return workspace => Utils.cond(
+      [allWorkspacesHaveCorrectBillingAccount, () => noIcon],
+      [billingAccountName === workspace.billingAccount, () => getIcon('success-standard')],
+      ['billingAccountErrorMessage' in workspace, () => getIcon('error-standard')],
+      [Utils.DEFAULT, () => getIcon('loadingSpinner')])
   })()
 
   const tabToTable = {
