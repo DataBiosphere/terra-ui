@@ -61,7 +61,7 @@ const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details,
   ])
 })
 
-const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, statusIcon, isExpanded, onExpand }) => {
+const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingAccountStatusIcon, isExpanded, onExpand }) => {
   const { namespace, name, createdBy, lastModified, googleProject, billingAccountName } = workspace
   const workspaceCardStyles = {
     field: {
@@ -74,8 +74,8 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, statusIc
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' } }, [
     h(IdContainer, [id => h(Fragment, [
       div({ style: workspaceCardStyles.row }, [
-        statusIcon,
-        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
+        billingAccountStatusIcon && icon(billingAccountStatusIcon, { size: 16 }),
+        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: billingAccountStatusIcon ? '1rem' : '2rem' } }, [
           h(Link, {
             style: Style.noWrapEllipsis,
             href: Nav.getLink('workspace-dashboard', { namespace, name }),
@@ -155,15 +155,11 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   const getBillingAccountStatusIcon = (() => {
     const allWorkspacesHaveCorrectBillingAccount =
       _.every({ billingAccount: billingAccountName }, workspacesInProject)
-    const iconWidth = 16
-    const noIcon = div({ style: { width: iconWidth } },
-      [div({ className: 'sr-only' }, ['Status'])])
-    const getIcon = shape => icon(shape, { size: iconWidth })
     return workspace => Utils.cond(
-      [allWorkspacesHaveCorrectBillingAccount, () => noIcon],
-      [billingAccountName === workspace.billingAccount, () => getIcon('success-standard')],
-      ['billingAccountErrorMessage' in workspace, () => getIcon('error-standard')],
-      [Utils.DEFAULT, () => getIcon('loadingSpinner')])
+      [allWorkspacesHaveCorrectBillingAccount, () => null],
+      [billingAccountName === workspace.billingAccount, () => 'success-standard'],
+      ['billingAccountErrorMessage' in workspace, () => 'error-standard'],
+      [Utils.DEFAULT, () => 'loadingSpinner'])
   })()
 
   const tabToTable = {
@@ -176,7 +172,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
             const isExpanded = expandedWorkspaceName === workspace.name
             return h(WorkspaceCard, {
               workspace,
-              statusIcon: getBillingAccountStatusIcon(workspace),
+              billingAccountStatusIcon: getBillingAccountStatusIcon(workspace),
               key: workspace.workspaceId,
               isExpanded,
               onExpand: () => setExpandedWorkspaceName(isExpanded ? undefined : workspace.name)
