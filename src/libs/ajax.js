@@ -89,9 +89,10 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
   const { workspace, canCompute } = workspaceStore.get() || {}
   const workspaceProject = workspace?.namespace
 
-  const canUseWorkspaceProject = async () => {
-    return canCompute || _.some({ projectName: workspaceProject, role: 'Owner' }, await Ajax().Billing.listProjects())
-  }
+  const canUseWorkspaceProject = async () => canCompute || _.some(
+    p => p.projectName === workspaceProject && _.includes('Owner', p.roles),
+    await Ajax().Billing.listProjects()
+  )
 
   const getUserProject = async () => {
     if (!requesterPaysProjectStore.get() && workspaceProject && await canUseWorkspaceProject()) {
@@ -435,10 +436,7 @@ const Groups = signal => ({
 
 
 const Billing = signal => ({
-  listProjects: async () => {
-    const res = await fetchRawls('user/billing', _.merge(authOpts(), { signal }))
-    return res.json()
-  },
+  listProjects: async () => (await fetchRawls('billing/v2', _.merge(authOpts(), { signal }))).json(),
 
   listAccounts: async () => {
     const res = await fetchRawls('user/billingAccounts', _.merge(authOpts(), { signal }))

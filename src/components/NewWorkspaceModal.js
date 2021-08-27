@@ -100,10 +100,9 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
       Ajax(signal).Billing.listProjects(),
       Ajax(signal).Groups.list()
     ])
-    const usableProjects = _.filter({ creationStatus: 'Ready' }, billingProjects)
-    setBillingProjects(usableProjects)
+    setBillingProjects(billingProjects)
     setAllGroups(allGroups)
-    setNamespace(_.some({ projectName: namespace }, usableProjects) ? namespace : undefined)
+    setNamespace(_.some({ projectName: namespace }, billingProjects) ? namespace : undefined)
   })
 
 
