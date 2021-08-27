@@ -5,10 +5,9 @@ import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { icon, spinner } from 'src/components/icons'
+import { icon } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
@@ -40,26 +39,26 @@ const styles = {
   }
 }
 
-const ProjectListItem = ({ project: { projectName, role, creationStatus, message }, isActive }) => {
-  const projectReady = creationStatus === 'Ready'
-  const statusIcon = creationStatus === 'Creating' ?
-    spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
-    h(InfoBox, {
-      style: { color: colors.danger(), margin: '0 1rem 0 0.5rem' }, side: 'right'
-    }, [div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [message || 'Error during project creation.'])])
-  const selectableProject = h(Clickable, {
-    style: { ...styles.projectListItem(isActive), color: isActive ? colors.dark() : colors.accent() },
-    href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
-    onClick: () => {
-      Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, {
-        billingProjectName: projectName
-      })
-    },
-    hover: Style.navList.itemHover(isActive),
-    'aria-current': isActive ? 'location' : false
-  }, [projectName, !projectReady && statusIcon])
-  const unselectableProject = div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [projectName, !projectReady && statusIcon])
-  return div({ role: 'listitem' }, [_.includes(billingRoles.owner, role) && projectReady ? selectableProject : unselectableProject])
+const ProjectListItem = ({ project: { projectName, roles }, isActive }) => {
+  return div({ role: 'listitem' }, [
+    _.includes(billingRoles.owner, roles) && h(Clickable, {
+      style: {
+        ...styles.projectListItem(isActive),
+        color: isActive ? colors.dark() : colors.accent()
+      },
+      href: `${Nav.getLink('billing')}?${qs.stringify({
+        selectedName: projectName,
+        type: 'project'
+      })}`,
+      onClick: () => {
+        Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, {
+          billingProjectName: projectName
+        })
+      },
+      hover: Style.navList.itemHover(isActive),
+      'aria-current': isActive ? 'location' : false
+    }, [projectName])
+  ])
 }
 
 const billingProjectNameValidator = existing => ({
@@ -220,15 +219,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const loadProjects = _.flow(
     withErrorReporting('Error loading billing projects list'),
     Utils.withBusyState(setIsLoadingProjects)
-  )(async () => {
-    const rawBillingProjects = await Ajax(signal).Billing.listProjects()
-    const billingProjects = _.flow(
-      _.groupBy('projectName'),
-      _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
-      _.sortBy('projectName')
-    )(rawBillingProjects)
-    setBillingProjects(billingProjects)
-  })
+  )(async () => setBillingProjects(_.sortBy('projectName', await Ajax(signal).Billing.listProjects())))
 
   const authorizeAndLoadAccounts = _.flow(
     withErrorReporting('Error setting up authorization'),
@@ -326,7 +317,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             _.map(project => h(ProjectListItem, {
               project, key: project.projectName,
               isActive: !!selectedName && project.projectName === selectedName
-            }), _.filter(project => _.includes(billingRoles.owner, project.role), billingProjects))
+            }), _.filter(project => _.includes(billingRoles.owner, project.roles), billingProjects))
           ])
         ]),
 
@@ -335,7 +326,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             _.map(project => h(ProjectListItem, {
               project, key: project.projectName,
               isActive: !!selectedName && project.projectName === selectedName
-            }), _.filter(project => !_.includes(billingRoles.owner, project.role), billingProjects))
+            }), _.filter(project => !_.includes(billingRoles.owner, project.roles), billingProjects))
           ])
         ])
       ]),

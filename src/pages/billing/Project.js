@@ -4,7 +4,7 @@ import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
-import { icon, spinner } from 'src/components/icons'
+import { icon } from 'src/components/icons'
 import { TextInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { SimpleTabBar } from 'src/components/tabBars'
@@ -125,7 +125,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingA
   ])
 })
 
-const ProjectDetail = ({ project, project: { projectName, creationStatus }, billingAccounts, authorizeAndLoadAccounts }) => {
+const ProjectDetail = ({ project, project: { projectName }, billingAccounts, authorizeAndLoadAccounts }) => {
   // State
   const { query } = Nav.useRoute()
   // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
@@ -138,8 +138,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
   const [updating, setUpdating] = useState(false)
   const [updatingAccount, setUpdatingAccount] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
-  const [loadingBillingInfo, setLoadingBillingInfo] = useState(false)
-  const [billingAccountName, setBillingAccountName] = useState(null)
+  const [billingAccountName, setBillingAccountName] = useState(project.billingAccount)
   const [showBillingModal, setShowBillingModal] = useState(false)
   const [showSpendReportConfigurationModal, setShowSpendReportConfigurationModal] = useState(false)
   const [selectedBilling, setSelectedBilling] = useState()
@@ -152,7 +151,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
 
   const signal = Utils.useCancellation()
 
-  const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
+  const adminCanEdit = _.some(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers)
 
   const workspacesInProject = useMemo(() => _.flow(
     _.map(({ workspace }) => workspace),
@@ -245,16 +244,6 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
     setBillingAccountName(newAccountName)
   })
 
-  const loadBillingInfo = _.flow(
-    withErrorReporting('Error loading current billing account'),
-    Utils.withBusyState(setLoadingBillingInfo)
-  )(async () => {
-    if (Auth.hasBillingScope()) {
-      const { billingAccountName } = await Ajax(signal).GoogleBilling.getBillingInfo(projectName)
-      setBillingAccountName(billingAccountName)
-    }
-  })
-
   const updateSpendConfiguration = _.flow(
     withErrorReporting('Error updating workflow spend report configuration'),
     Utils.withBusyState(setUpdating)
@@ -282,32 +271,17 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
     setProjectUsers(projectUsers)
   })
 
-
   // Lifecycle
-  Utils.useOnMount(() => {
-    refresh()
-    loadBillingInfo()
-  })
+  Utils.useOnMount(refresh)
 
-  useEffect(() => {
-    StateHistory.update({ projectUsers })
-  }, [projectUsers])
-
+  useEffect(() => StateHistory.update({ projectUsers }), [projectUsers])
 
   // Render
   const { displayName = null } = _.find({ accountName: billingAccountName }, billingAccounts) || { displayName: 'No Access' }
 
   return h(Fragment, [
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [
-        projectName,
-        span({ style: { fontWeight: 500, fontSize: 14, margin: '0 1.5rem 0 3rem' } }, creationStatus),
-        Utils.cond(
-          [creationStatus === 'Ready', () => icon('check', { style: { color: colors.success() } })],
-          [creationStatus === 'Creating', () => spinner({ size: 16 })],
-          () => icon('error-standard', { style: { color: colors.danger() } })
-        )
-      ]),
+      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [projectName]),
       div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
         !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
         !!displayName && span({ style: { flexShrink: 0 } }, displayName),
@@ -319,7 +293,6 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
               setShowBillingModal(true)
             } else {
               await authorizeAndLoadAccounts()
-              await loadBillingInfo()
               setShowBillingModal(Auth.hasBillingScope())
             }
           }
@@ -450,7 +423,7 @@ const ProjectDetail = ({ project, project: { projectName, creationStatus }, bill
         refresh()
       })
     }),
-    (refreshing || loadingBillingInfo || updatingAccount || updating) && spinnerOverlay
+    (refreshing || updatingAccount || updating) && spinnerOverlay
   ])
 }
 
