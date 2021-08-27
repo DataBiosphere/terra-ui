@@ -311,12 +311,6 @@ export const WorkspaceTagSelect = props => {
   })
 }
 
-export const canUseWorkspaceProject =
-  async ({ canCompute, workspace: { namespace } }) => canCompute || _.some(
-    p => p.projectName === namespace && _.includes('Owner', p.roles),
-    await Ajax().Billing.listProjects()
-  )
-
 export const NoWorkspacesMessage = ({ onClick }) => {
   return div({ style: { fontSize: 20, margin: '1rem' } }, [
     div([

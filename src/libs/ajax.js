@@ -80,23 +80,23 @@ const checkRequesterPaysError = async response => {
   }
 }
 
+export const canUseWorkspaceProject =
+  async ({ canCompute, workspace: { namespace } }) => canCompute || _.some(
+    p => p.projectName === namespace && _.includes('Owner', p.roles),
+    await Ajax().Billing.listProjects()
+  )
+
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing
  * project if the user has access, retrying the request once if necessary.
  */
 const withRequesterPays = wrappedFetch => (url, ...args) => {
   const bucket = /\/b\/([^/?]+)[/?]/.exec(url)[1]
-  const { workspace, canCompute } = workspaceStore.get() || {}
-  const workspaceProject = workspace?.namespace
-
-  const canUseWorkspaceProject = async () => canCompute || _.some(
-    p => p.projectName === workspaceProject && _.includes('Owner', p.roles),
-    await Ajax().Billing.listProjects()
-  )
+  const workspace = workspaceStore.get()
 
   const getUserProject = async () => {
-    if (!requesterPaysProjectStore.get() && workspaceProject && await canUseWorkspaceProject()) {
-      requesterPaysProjectStore.set(workspaceProject)
+    if (!requesterPaysProjectStore.get() && workspace && await canUseWorkspaceProject(workspace)) {
+      requesterPaysProjectStore.set(workspace.workspace.namespace)
     }
     return requesterPaysProjectStore.get()
   }
