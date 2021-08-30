@@ -68,7 +68,7 @@ const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProje
   const [preview, setPreview] = useState()
   const loadPreview = async () => {
     try {
-      const res = await Ajax(signal).Buckets.getObjectPreview(bucket, name, googleProject, isImage(metadata))
+      const res = await Ajax(signal).Buckets.getObjectPreview(googleProject, bucket, name, isImage(metadata))
       if (isImage(metadata)) {
         setPreview(URL.createObjectURL(await res.blob()))
       } else {
