@@ -207,7 +207,11 @@ export const ValidatedInput = ({ inputProps, width, error }) => {
         }
       })
     ]),
-    error && div({ style: styles.validationError }, [error])
+    error && div({
+      style: styles.validationError,
+      'aria-live': 'assertive',
+      'aria-relevant': 'all'
+    }, [error])
   ])
 }
 

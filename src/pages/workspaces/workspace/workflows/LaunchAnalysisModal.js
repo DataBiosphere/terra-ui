@@ -146,7 +146,11 @@ const LaunchAnalysisModal = ({
       spinner({ style: { marginRight: '0.5rem' } }),
       message
     ]),
-    div({ style: { color: colors.danger(), overflowWrap: 'break-word' } }, [
+    div({
+      style: { color: colors.danger(), overflowWrap: 'break-word' },
+      'aria-live': 'assertive',
+      'aria-relevant': 'all'
+    }, [
       h(Fragment, wrappableOnPeriods(launchError))
     ])
   ])
