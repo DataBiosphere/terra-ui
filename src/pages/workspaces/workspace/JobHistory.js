@@ -328,7 +328,7 @@ const JobHistory = _.flow(
             },
             {
               size: { basis: 250, grow: 1 },
-              headerRenderer: makeHeaderRenderer('userComment', 'Comments'),
+              headerRenderer: makeHeaderRenderer('userComment', 'Comment'),
               cellRenderer: ({ rowIndex }) => {
                 const { userComment } = sortedSubmissions[rowIndex]
                 return userComment && h(TooltipCell, { tooltip: userComment }, [userComment])

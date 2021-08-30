@@ -159,9 +159,8 @@ const SubmissionDetails = _.flow(
           ]),
           div({
             style: {
-              flex: '0 0 33%', padding: '0 0.5rem 0.5rem', marginTop: '1rem',
-              whiteSpace: 'pre', textOverflow: 'ellipsis', overflow: 'hidden',
-              gridRow: '2 / 4'
+              padding: '0 0.5rem 0.5rem', marginTop: '1rem',
+              whiteSpace: 'pre', overflow: 'hidden', gridRow: '2 / 4'
             }
           }, [
             h4({ style: Style.elements.sectionHeader }, [
@@ -170,11 +169,9 @@ const SubmissionDetails = _.flow(
                 style: { marginLeft: '0.50em' },
                 tooltip: 'Edit Comment',
                 onClick: () => setUpdatingComment(true)
-              }, [icon('edit')]
-              )
+              }, [icon('edit')])
             ]),
             div({ style: { textOverflow: 'ellipsis', overflow: 'hidden' } }, [userComment])
-
           ]),
           updatingComment && h(UpdateUserCommentModal, {
             workspace: { name, namespace }, submissionId, userComment,
