@@ -528,7 +528,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         currentRuntime ? Ajax().Runtimes.runtime(currentRuntime.googleProject, currentRuntime.runtimeName).details() : null,
         Ajax()
           .Buckets
-          .getObjectPreview('terra-docker-image-documentation', 'terra-docker-versions.json', googleProject, true)
+          .getObjectPreview(googleProject, 'terra-docker-image-documentation', 'terra-docker-versions.json', true)
           .then(res => res.json()),
         currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
       ])
