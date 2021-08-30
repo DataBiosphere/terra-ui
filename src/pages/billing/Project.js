@@ -125,7 +125,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingA
   ])
 })
 
-const ProjectDetail = ({ project, project: { projectName }, billingAccounts, authorizeAndLoadAccounts }) => {
+const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) => {
   // State
   const { query } = Nav.useRoute()
   // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
@@ -138,7 +138,7 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
   const [updating, setUpdating] = useState(false)
   const [updatingAccount, setUpdatingAccount] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
-  const [billingAccountName, setBillingAccountName] = useState(project.billingAccount)
+  const [billingProject, setBillingProject] = useState(project)
   const [showBillingModal, setShowBillingModal] = useState(false)
   const [showSpendReportConfigurationModal, setShowSpendReportConfigurationModal] = useState(false)
   const [selectedBilling, setSelectedBilling] = useState()
@@ -154,8 +154,8 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
   const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
   const getBillingAccountStatusIcon = workspace => Utils.cond(
-    [_.isEmpty(project.workspacesWithIncorrectBillingAccount), () => null],
-    [billingAccountName === workspace.billingAccount, () => 'success-standard'],
+    [_.isEmpty(billingProject.workspacesWithIncorrectBillingAccount), () => null],
+    [billingProject.billingAccount === workspace.billingAccount, () => 'success-standard'],
     ['billingAccountErrorMessage' in workspace, () => 'error-standard'],
     [Utils.DEFAULT, () => 'loadingSpinner']
   )
@@ -163,10 +163,10 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
   const tabToTable = {
     workspaces: h(Fragment, [
       h(WorkspaceCardHeaders, { sort: workspaceSort, onSort: setWorkspaceSort }),
-      div({ role: 'list', 'aria-label': `workspaces in billing project ${projectName}`, style: { flexGrow: 1, width: '100%' } }, [
+      div({ role: 'list', 'aria-label': `workspaces in billing project ${billingProject.projectName}`, style: { flexGrow: 1, width: '100%' } }, [
         _.flow(
           _.map(({ workspace }) => workspace),
-          _.filter({ namespace: projectName }),
+          _.filter({ namespace: billingProject.projectName }),
           _.orderBy([workspaceSort.field], [workspaceSort.direction]),
           _.map(workspace => {
             const isExpanded = expandedWorkspaceName === workspace.name
@@ -188,7 +188,7 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
         icon('plus-circle', { size: 14 }),
         div({ style: { marginLeft: '0.5rem' } }, ['Add User'])
       ]),
-      div({ role: 'table', 'aria-label': `users in billing project ${projectName}` }, [
+      div({ role: 'table', 'aria-label': `users in billing project ${billingProject.projectName}` }, [
         h(MemberCardHeaders, { sort, onSort: setSort }),
         div(_.map(member => {
           return h(MemberCard, {
@@ -230,19 +230,19 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
     Utils.withBusyState(setUpdatingAccount)
   )(async newAccountName => {
     Ajax().Metrics.captureEvent(Events.changeBillingAccount, {
-      oldName: billingAccountName,
+      oldName: billingProject.billingAccount,
       newName: newAccountName,
-      billingProjectName: projectName
+      billingProjectName: billingProject.projectName
     })
-    await Ajax(signal).Billing.changeBillingAccount({ billingProjectName: projectName, newBillingAccountName: newAccountName })
-    setBillingAccountName(newAccountName)
+    await Ajax(signal).Billing.changeBillingAccount({ billingProjectName: billingProject.projectName, newBillingAccountName: newAccountName })
+    setBillingProject({ ...billingProject, billingAccount: newAccountName })
   })
 
   const updateSpendConfiguration = _.flow(
     withErrorReporting('Error updating workflow spend report configuration'),
     Utils.withBusyState(setUpdating)
   )(async () => {
-    await Ajax(signal).Billing.updateSpendConfiguration({ billingProjectName: projectName, datasetGoogleProject: selectedDatasetProjectName, datasetName: selectedDatasetName })
+    await Ajax(signal).Billing.updateSpendConfiguration({ billingProjectName: billingProject.projectName, datasetGoogleProject: selectedDatasetProjectName, datasetName: selectedDatasetName })
   })
 
   const refresh = _.flow(
@@ -256,7 +256,7 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
     // const rawWorkspaces = await Ajax(signal).Workspaces.list()
     // setWorkspaces(_.map(response => response.workspace, _.filter(response => response.workspace.namespace === projectName, rawWorkspaces)))
     refreshWorkspaces()
-    const rawProjectUsers = await Ajax(signal).Billing.project(project.projectName).listUsers()
+    const rawProjectUsers = await Ajax(signal).Billing.project(billingProject.projectName).listUsers()
     const projectUsers = _.flow(
       _.groupBy('email'),
       _.map(gs => ({ ..._.omit('role', gs[0]), roles: _.map('role', gs) })),
@@ -271,11 +271,11 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
   useEffect(() => StateHistory.update({ projectUsers }), [projectUsers])
 
   // Render
-  const { displayName = null } = _.find({ accountName: billingAccountName }, billingAccounts) || { displayName: 'No Access' }
+  const { displayName = null } = _.find({ accountName: billingProject.billingAccount }, billingAccounts) || { displayName: 'No Access' }
 
   return h(Fragment, [
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
-      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [projectName]),
+      div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
       div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
         !!displayName && span({ style: { flexShrink: 0, fontWeight: 600, fontSize: 14, margin: '0 0.75rem 0 0' } }, 'Billing Account:'),
         !!displayName && span({ style: { flexShrink: 0 } }, displayName),
@@ -295,7 +295,7 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
           title: 'Change Billing Account',
           onDismiss: () => setShowBillingModal(false),
           okButton: h(ButtonPrimary, {
-            disabled: !selectedBilling || billingAccountName === selectedBilling,
+            disabled: !selectedBilling || billingProject.billingAccount === selectedBilling,
             onClick: async () => {
               setShowBillingModal(false)
               await updateBillingAccount(selectedBilling)
@@ -306,7 +306,7 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
             h(FormLabel, { htmlFor: id, required: true }, ['Select billing account']),
             h(Select, {
               id,
-              value: selectedBilling || billingAccountName,
+              value: selectedBilling || billingProject.billingAccount,
               isClearable: false,
               options: _.map(({ displayName, accountName }) => ({ label: displayName, value: accountName }), billingAccounts),
               onChange: ({ value: newAccountName }) => setSelectedBilling(newAccountName)
@@ -338,7 +338,7 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
             disabled: !selectedDatasetProjectName || !selectedDatasetName,
             onClick: async () => {
               setShowSpendReportConfigurationModal(false)
-              await updateSpendConfiguration(projectName, selectedDatasetProjectName, selectedDatasetName)
+              await updateSpendConfiguration(billingProject.projectName, selectedDatasetProjectName, selectedDatasetName)
             }
           }, ['Ok'])
         }, [
@@ -393,7 +393,7 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
       userLabel: billingRoles.user,
       title: 'Add user to Billing Project',
       footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
-      addFunction: Ajax().Billing.project(projectName).addUser,
+      addFunction: Ajax().Billing.project(billingProject.projectName).addUser,
       onDismiss: () => setAddingUser(false),
       onSuccess: refresh
     }),
@@ -401,7 +401,7 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
       adminLabel: billingRoles.owner,
       userLabel: billingRoles.user,
       user: editingUser,
-      saveFunction: Ajax().Billing.project(projectName).changeUserRoles,
+      saveFunction: Ajax().Billing.project(billingProject.projectName).changeUserRoles,
       onDismiss: () => setEditingUser(false),
       onSuccess: refresh
     }),
@@ -413,7 +413,7 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
         Utils.withBusyState(setUpdating)
       )(async () => {
         setDeletingUser(false)
-        await Ajax().Billing.project(projectName).removeUser(deletingUser.roles, deletingUser.email)
+        await Ajax().Billing.project(billingProject.projectName).removeUser(deletingUser.roles, deletingUser.email)
         refresh()
       })
     }),
