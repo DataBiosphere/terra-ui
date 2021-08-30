@@ -318,10 +318,9 @@ export const wrappableOnPeriods = _.flow(str => str?.split(/(\.)/), _.flatMap(su
  */
 export const ValidatedTextArea = ({ inputProps, error }) => {
   return h(Fragment, [
-    div([
-      h(TextArea,
-        _.merge({ className: error ? 'error-style' : 'focus-style' }, inputProps))
-    ]),
+    h(TextArea,
+      _.merge({ className: error ? 'error-style' : 'focus-style' }, inputProps)
+    ),
     div(
       {
         style: { color: colors.danger(), overflowWrap: 'break-word', marginTop: '1rem' },
