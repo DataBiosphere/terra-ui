@@ -1,10 +1,23 @@
+import _ from 'lodash/fp'
 import { SearchAndFilterComponent } from 'src/pages/library/common'
 
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const sidebarSections = [{
-  name: 'Test',
-  labels: ['test1', 'test2']
+  name: 'Access Type',
+  labels: ['Controlled Access', 'Open Access']
+}, {
+  name: 'Consortium',
+  labels: [
+    '1000 Genomes',
+    'CCDG',
+    'CMG',
+    'Convergent Neuro',
+    'GTEx (v8)',
+    'HPRC',
+    'PAGE',
+    'WGSPD1'
+  ]
 }]
 
 
@@ -15,15 +28,34 @@ const DataBrowser = () => {
     created: '2020-01-13T18:25:28.340Z',
     tags: {
       itemsType: 'AttributeValue',
-      items: ['test1']
+      items: ['1000 Genomes', 'CMG', 'Open Access']
     },
-    description: 'test desc',
+    description: 'test1 desc',
     lowerName: 'test1',
-    lowerDescription: 'test desc',
+    lowerDescription: 'test1 desc',
+    keepCollapsed: true
+  }, {
+    namespace: 'test-test',
+    name: 'test2',
+    created: '2020-01-13T18:25:28.340Z',
+    tags: {
+      itemsType: 'AttributeValue',
+      items: ['1000 Genomes', 'CCDG', 'Controlled Access']
+    },
+    description: 'test2 desc',
+    lowerName: 'test2',
+    lowerDescription: 'test2 desc',
     keepCollapsed: true
   }]
 
-  return SearchAndFilterComponent(featuredList, sidebarSections, 'browse & explore')
+  // lowercase
+  const snapshots = _.map(snapshot => ({
+    ...snapshot,
+    tags: _.update(['items'], _.map(_.toLower), snapshot.tags),
+    lowerName: _.toLower(snapshot.name), lowerDescription: _.toLower(snapshot.description)
+  }), featuredList)
+
+  return SearchAndFilterComponent(snapshots, sidebarSections, 'browse & explore')
 }
 
 export const navPaths = [{
