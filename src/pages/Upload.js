@@ -317,7 +317,7 @@ const CollectionSelectorPanel = _.flow(
   Utils.withDisplayName('CollectionSelectorPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
 )(({
-  workspace, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, selectedCollection, setCollection, children, ...props
+  workspace, workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError, selectedCollection, setCollection, children, ...props
 }) => {
   // State
   const [collections, setCollections] = useState(undefined)
@@ -338,7 +338,7 @@ const CollectionSelectorPanel = _.flow(
     withErrorReporting('Error loading bucket data'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const { prefixes } = await Ajax(signal).Buckets.list(namespace, bucketName, rootPrefix)
+    const { prefixes } = await Ajax(signal).Buckets.list(googleProject, bucketName, rootPrefix)
     setCollections(_.flow(
       // Slice off the root and the trailing slash
       _.map(p => p.slice(rootPrefix.length, p.length - 1)),
@@ -446,7 +446,7 @@ const MetadataUploadPanel = _.flow(
   Utils.withDisplayName('MetadataUploadPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
 )(({
-  workspace, workspace: { workspace: { namespace, bucketName, name } },
+  workspace, workspace: { workspace: { namespace, googleProject, bucketName, name } },
   onRequesterPaysError, onSuccess, collection, children
 }) => {
   const basePrefix = `${rootPrefix}${collection}/`
@@ -481,7 +481,7 @@ const MetadataUploadPanel = _.flow(
     )(async () => {
       // Fetch every object in the entire bucket so we don't have to do it recursively, but
       // filter out any that aren't in our base prefix
-      const items = await Ajax(signal).Buckets.listAll(namespace, bucketName, basePrefix)
+      const items = await Ajax(signal).Buckets.listAll(googleProject, bucketName, basePrefix)
 
       // Hash the filenames without any prefixes for easy lookup
       setFilenames(_.flow(

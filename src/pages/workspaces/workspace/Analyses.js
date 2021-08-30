@@ -192,7 +192,7 @@ const Analyses = _.flow(
   }),
   withViewToggle('analysesTab')
 )(({
-  apps, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { bucketName } },
+  apps, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
   refreshApps, onRequesterPaysError, runtimes, persistentDisks, refreshRuntimes, galaxyDataDisks
 }, ref) => {
   // State
@@ -221,7 +221,7 @@ const Analyses = _.flow(
     withErrorReporting('Error loading analyses'),
     Utils.withBusyState(setBusy)
   )(async () => {
-    const rawAnalyses = await Ajax(signal).Buckets.listAnalyses(namespace, bucketName)
+    const rawAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
     const notebooks = _.filter(({ name }) => _.endsWith(`.${tools.Jupyter.ext}`, name), rawAnalyses)
     const rmds = _.filter(({ name }) => _.endsWith(`.${tools.RStudio.ext}`, name), rawAnalyses)
 
@@ -244,7 +244,7 @@ const Analyses = _.flow(
           resolvedName = `${name} ${++c}`
         }
         const contents = await Utils.readFileAsText(file)
-        return Ajax().Buckets.analysis(namespace, bucketName, resolvedName, toolLabel).create(contents)
+        return Ajax().Buckets.analysis(googleProject, bucketName, resolvedName, toolLabel).create(contents)
       }, files))
       refreshAnalyses()
     } catch (error) {
@@ -379,7 +379,7 @@ const Analyses = _.flow(
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
           printName: getDisplayName(renamingAnalysisName),
-          toolLabel: getTool(renamingAnalysisName),
+          toolLabel: getTool(renamingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: true,
           onDismiss: () => setRenamingAnalysisName(undefined),
           onSuccess: () => {
@@ -389,7 +389,7 @@ const Analyses = _.flow(
         }),
         copyingAnalysisName && h(AnalysisDuplicator, {
           printName: getDisplayName(copyingAnalysisName),
-          toolLabel: getTool(copyingAnalysisName),
+          toolLabel: getTool(copyingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: false,
           onDismiss: () => setCopyingAnalysisName(undefined),
           onSuccess: () => {
@@ -404,7 +404,7 @@ const Analyses = _.flow(
           onDismiss: () => setExportingAnalysisName(undefined)
         }),
         deletingAnalysisName && h(AnalysisDeleter, {
-          printName: getDisplayName(deletingAnalysisName), namespace, bucketName,
+          printName: getDisplayName(deletingAnalysisName), googleProject, bucketName,
           toolLabel: getTool(deletingAnalysisName),
           onDismiss: () => setDeletingAnalysisName(undefined),
           onSuccess: () => {

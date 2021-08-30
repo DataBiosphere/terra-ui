@@ -195,7 +195,7 @@ const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
 
 const PreviewHeader = ({
   queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, toolLabel, workspace,
-  workspace: { canShare, workspace: { namespace, name, bucketName } }
+  workspace: { canShare, workspace: { namespace, name, bucketName, googleProject } }
 }) => {
   const signal = Utils.useCancellation()
   const { user: { email } } = Utils.useStore(authStore)
@@ -214,7 +214,7 @@ const PreviewHeader = ({
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
       .Buckets
-      .analysis(namespace, bucketName, getDisplayName(analysisName), toolLabel)
+      .analysis(googleProject, bucketName, getDisplayName(analysisName), toolLabel)
       .getObject()
     const hashedUser = await notebookLockHash(bucketName, email)
     const lockExpirationDate = new Date(parseInt(lockExpiresAt))
@@ -325,7 +325,7 @@ const PreviewHeader = ({
       printName: getDisplayName(analysisName),
       toolLabel: getTool(analysisName),
       fromLauncher: true,
-      wsName: name, namespace, bucketName, destroyOld: false,
+      wsName: name, googleProject, namespace, bucketName, destroyOld: false,
       onDismiss: () => setCopyingAnalysis(false),
       onSuccess: () => setCopyingAnalysis(false)
     }),
@@ -345,7 +345,7 @@ const PreviewHeader = ({
   ])
 }
 
-const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, styles }) => {
+const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError, styles }) => {
   const signal = Utils.useCancellation()
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState()
@@ -357,7 +357,7 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
     withErrorReporting('Error previewing analysis')
   )(async () => {
     //TODO: this call may not be right, ensure file extension/toolLabel is correct
-    setPreview(await Ajax(signal).Buckets.analysis(namespace, bucketName, analysisName, toolLabel).preview())
+    setPreview(await Ajax(signal).Buckets.analysis(googleProject, bucketName, analysisName, toolLabel).preview())
   })
   Utils.useOnMount(() => {
     loadPreview()

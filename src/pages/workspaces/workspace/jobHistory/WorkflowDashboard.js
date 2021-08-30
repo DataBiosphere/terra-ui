@@ -58,7 +58,7 @@ const WorkflowDashboard = _.flow(
     title: 'Job History', activeTab: 'job history'
   })
 )((props, ref) => {
-  const { namespace, name, submissionId, workflowId, workspace: { workspace: { bucketName } } } = props
+  const { namespace, name, submissionId, workflowId, workspace: { workspace: { googleProject, bucketName } } } = props
 
   /*
    * State setup
@@ -220,7 +220,7 @@ const WorkflowDashboard = _.flow(
         wdl && h(Collapse, {
           title: div({ style: Style.elements.sectionHeader }, ['Submitted workflow script'])
         }, [h(WDLViewer, { wdl })]),
-        showLog && h(UriViewer, { googleProject: namespace, uri: workflowLog, onDismiss: () => setShowLog(false) })
+        showLog && h(UriViewer, { googleProject, uri: workflowLog, onDismiss: () => setShowLog(false) })
       ])
     )
   ])

@@ -99,7 +99,7 @@ const getReferenceData = _.flow(
   _.groupBy('datum')
 )
 
-const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes } }, referenceKey, firstRender }) => {
+const ReferenceDataContent = ({ workspace: { workspace: { googleProject, attributes } }, referenceKey, firstRender }) => {
   const [textFilter, setTextFilter] = useState('')
 
   const selectedData = _.flow(
@@ -128,12 +128,12 @@ const ReferenceDataContent = ({ workspace: { workspace: { namespace, attributes 
             {
               size: { basis: 400, grow: 0 },
               headerRenderer: () => h(HeaderCell, ['Key']),
-              cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].key, namespace)
+              cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].key, googleProject)
             },
             {
               size: { grow: 1 },
               headerRenderer: () => h(HeaderCell, ['Value']),
-              cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, namespace)
+              cellRenderer: ({ rowIndex }) => renderDataCell(selectedData[rowIndex].value, googleProject)
             }
           ]
         })
@@ -156,14 +156,14 @@ const SnapshotContent = ({ workspace, snapshotDetails, loadMetadata, onUpdate, o
   )
 }
 
-export const DeleteObjectModal = ({ name, workspace: { workspace: { namespace, bucketName } }, onSuccess, onDismiss }) => {
+export const DeleteObjectModal = ({ name, workspace: { workspace: { googleProject, bucketName } }, onSuccess, onDismiss }) => {
   const [deleting, setDeleting] = useState(false)
 
   const doDelete = _.flow(
     withErrorReporting('Error deleting object'),
     Utils.withBusyState(setDeleting)
   )(async () => {
-    await Ajax().Buckets.delete(namespace, bucketName, name)
+    await Ajax().Buckets.delete(googleProject, bucketName, name)
     onSuccess()
   })
 
@@ -182,7 +182,7 @@ const BucketContent = _.flow(
   Utils.withDisplayName('BucketContent'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
 )(({
-  workspace, workspace: { workspace: { namespace, bucketName } }, firstRender, refreshKey,
+  workspace, workspace: { workspace: { namespace, googleProject, bucketName, name: workspaceName } }, firstRender, refreshKey,
   onRequesterPaysError
 }) => {
   // State
@@ -203,7 +203,7 @@ const BucketContent = _.flow(
     withErrorReporting('Error loading bucket data'),
     Utils.withBusyState(setLoading)
   )(async (targetPrefix = prefix) => {
-    const { items, prefixes } = await Ajax(signal).Buckets.list(namespace, bucketName, targetPrefix)
+    const { items, prefixes } = await Ajax(signal).Buckets.list(googleProject, bucketName, targetPrefix)
     setPrefix(targetPrefix)
     setPrefixes(prefixes)
     setObjects(items)
@@ -213,7 +213,7 @@ const BucketContent = _.flow(
     withErrorReporting('Error uploading file'),
     Utils.withBusyState(setUploading)
   )(async ([file]) => {
-    await Ajax().Buckets.upload(namespace, bucketName, prefix, file)
+    await Ajax().Buckets.upload(googleProject, bucketName, prefix, file)
     load()
   })
 
@@ -271,7 +271,7 @@ const BucketContent = _.flow(
           })
         )(prefixBreadcrumbs)
       ]),
-      h(Link, { href: `https://seqr.broadinstitute.org/workspace/${namespace}/${workspace.workspace.name}` },
+      h(Link, { href: `https://seqr.broadinstitute.org/workspace/${namespace}/${workspaceName}` },
         ['Analyze in Seqr ', icon('pop-out', { size: 14 })]
       )
     ]),
@@ -332,7 +332,7 @@ const BucketContent = _.flow(
       }
     }),
     viewingName && h(UriViewer, {
-      googleProject: namespace, uri: `gs://${bucketName}/${viewingName}`,
+      googleProject, uri: `gs://${bucketName}/${viewingName}`,
       onDismiss: () => setViewingName(undefined)
     }),
     !Utils.editWorkspaceError(workspace) && h(FloatingActionButton, {
