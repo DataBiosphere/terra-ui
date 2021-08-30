@@ -868,6 +868,7 @@ const Workspaces = signal => ({
         return res.json()
       },
 
+
       addTag: async tag => {
         const res = await fetchOrchestration(`api/workspaces/${namespace}/${name}/tags`,
           _.mergeAll([authOpts(), jsonBody([tag]), { signal, method: 'PATCH' }]))
