@@ -104,7 +104,7 @@ export const notebookData = {
 }
 
 
-export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, namespace, bucketName, existingNames }) => {
+export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, googleProject, bucketName, existingNames }) => {
   const [notebookName, setNotebookName] = useState('')
   const [notebookKernel, setNotebookKernel] = useState(undefined)
   const [creating, setCreating] = useState(false)
@@ -128,7 +128,7 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, namespace, b
       onClick: async () => {
         setCreating(true)
         try {
-          await Ajax().Buckets.notebook(namespace, bucketName, notebookName).create(notebookData[notebookKernel])
+          await Ajax().Buckets.notebook(googleProject, bucketName, notebookName).create(notebookData[notebookKernel])
           reloadList()
           onSuccess(notebookName, notebookKernel)
         } catch (error) {
@@ -166,7 +166,7 @@ export const NotebookCreator = ({ reloadList, onSuccess, onDismiss, namespace, b
   ])
 }
 
-export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, printName, toolLabel, wsName, namespace, bucketName, onDismiss, onSuccess }) => {
+export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, printName, toolLabel, wsName, googleProject, namespace, bucketName, onDismiss, onSuccess }) => {
   const [newName, setNewName] = useState('')
   const [existingNames, setExistingNames] = useState([])
   const [nameTouched, setNameTouched] = useState(false)
@@ -175,7 +175,7 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
 
   Utils.useOnMount(() => {
     const loadNames = async () => {
-      const existingAnalyses = await Ajax(signal).Buckets.listAnalyses(namespace, bucketName)
+      const existingAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
       const existingNames = _.map(({ name }) => getDisplayName(name), existingAnalyses)
       setExistingNames(existingNames)
     }
@@ -199,8 +199,8 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
         setProcessing(true)
         try {
           await (destroyOld ?
-            Ajax().Buckets.analysis(namespace, bucketName, printName, toolLabel).rename(newName) :
-            Ajax().Buckets.analysis(namespace, bucketName, printName, toolLabel).copy(newName, bucketName, !destroyOld)
+            Ajax().Buckets.analysis(googleProject, bucketName, printName, toolLabel).rename(newName) :
+            Ajax().Buckets.analysis(googleProject, bucketName, printName, toolLabel).copy(newName, bucketName, !destroyOld)
           )
           onSuccess()
           if (fromLauncher) {
@@ -252,7 +252,7 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
 }
 
 //TODO: deprecate once notebooks tab is removed
-export const NotebookDuplicator = ({ destroyOld = false, fromLauncher = false, printName, wsName, namespace, bucketName, onDismiss, onSuccess }) => {
+export const NotebookDuplicator = ({ destroyOld = false, fromLauncher = false, printName, wsName, googleProject, namespace, bucketName, onDismiss, onSuccess }) => {
   const [newName, setNewName] = useState('')
   const [existingNames, setExistingNames] = useState([])
   const [nameTouched, setNameTouched] = useState(false)
@@ -262,7 +262,7 @@ export const NotebookDuplicator = ({ destroyOld = false, fromLauncher = false, p
 
   Utils.useOnMount(() => {
     const loadNames = async () => {
-      const existingNotebooks = await Ajax(signal).Buckets.listNotebooks(namespace, bucketName)
+      const existingNotebooks = await Ajax(signal).Buckets.listNotebooks(googleProject, bucketName)
       const existingNames = _.map(({ name }) => name.slice(10, -6), existingNotebooks)
       setExistingNames(existingNames)
     }
@@ -286,8 +286,8 @@ export const NotebookDuplicator = ({ destroyOld = false, fromLauncher = false, p
         setProcessing(true)
         try {
           await (destroyOld ?
-            Ajax().Buckets.notebook(namespace, bucketName, printName).rename(newName) :
-            Ajax().Buckets.notebook(namespace, bucketName, printName).copy(newName, bucketName, !destroyOld)
+            Ajax().Buckets.notebook(googleProject, bucketName, printName).rename(newName) :
+            Ajax().Buckets.notebook(googleProject, bucketName, printName).copy(newName, bucketName, !destroyOld)
           )
           onSuccess()
           if (fromLauncher) {
@@ -338,7 +338,7 @@ export const NotebookDuplicator = ({ destroyOld = false, fromLauncher = false, p
   ))
 }
 
-export const AnalysisDeleter = ({ printName, toolLabel, namespace, bucketName, onDismiss, onSuccess }) => {
+export const AnalysisDeleter = ({ printName, toolLabel, googleProject, bucketName, onDismiss, onSuccess }) => {
   const [processing, setProcessing] = useState(false)
 
   return h(Modal, {
@@ -348,7 +348,7 @@ export const AnalysisDeleter = ({ printName, toolLabel, namespace, bucketName, o
       disabled: processing,
       onClick: () => {
         setProcessing(true)
-        Ajax().Buckets.analysis(namespace, bucketName, printName, toolLabel).delete().then(
+        Ajax().Buckets.analysis(googleProject, bucketName, printName, toolLabel).delete().then(
           onSuccess,
           error => reportError('Error deleting analysis', error)
         )
@@ -369,7 +369,7 @@ export const AnalysisDeleter = ({ printName, toolLabel, namespace, bucketName, o
 }
 
 //TODO: deprecate once notebooks tab is removed
-export const NotebookDeleter = ({ printName, namespace, bucketName, onDismiss, onSuccess }) => {
+export const NotebookDeleter = ({ printName, googleProject, bucketName, onDismiss, onSuccess }) => {
   const [processing, setProcessing] = useState(false)
 
   return h(Modal, {
@@ -379,7 +379,7 @@ export const NotebookDeleter = ({ printName, namespace, bucketName, onDismiss, o
       disabled: processing,
       onClick: () => {
         setProcessing(true)
-        Ajax().Buckets.notebook(namespace, bucketName, printName).delete().then(
+        Ajax().Buckets.notebook(googleProject, bucketName, printName).delete().then(
           onSuccess,
           error => reportError('Error deleting notebook', error)
         )

@@ -18,7 +18,7 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 
 
-const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace, name } }, firstRender, refreshKey }) => {
+const LocalVariablesContent = ({ workspace, workspace: { workspace: { googleProject, namespace, name } }, firstRender, refreshKey }) => {
   const signal = Utils.useCancellation()
 
   const [editIndex, setEditIndex] = useState()
@@ -150,7 +150,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
               value: editKey,
               onChange: setEditKey
             }) :
-            renderDataCell(amendedAttributes[rowIndex][0], namespace)
+            renderDataCell(amendedAttributes[rowIndex][0], googleProject)
         }, {
           size: { grow: 1 },
           headerRenderer: () => h(HeaderCell, ['Value']),
@@ -165,7 +165,7 @@ const LocalVariablesContent = ({ workspace, workspace: { workspace: { namespace,
                     value: editValue,
                     onChange: setEditValue
                   }) :
-                  renderDataCell(originalValue, namespace)
+                  renderDataCell(originalValue, googleProject)
               ]),
               editIndex === rowIndex ?
                 h(Fragment, [

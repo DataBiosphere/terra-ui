@@ -71,7 +71,7 @@ export const useUploader = () => {
   }, null, init)
 }
 
-export const uploadFiles = async ({ namespace, bucketName, prefix, files, status, setStatus, signal }) => {
+export const uploadFiles = async ({ googleProject, bucketName, prefix, files, status, setStatus, signal }) => {
   // Only one instance of this should be running at a time, so exit out if we're not the one
   if (status.active) {
     return
@@ -96,7 +96,7 @@ export const uploadFiles = async ({ namespace, bucketName, prefix, files, status
 
     setStatus({ action: 'startFile', file, fileNum: i++ })
     try {
-      await Ajax(signal).Buckets.upload(namespace, bucketName, prefix, file)
+      await Ajax(signal).Buckets.upload(googleProject, bucketName, prefix, file)
       if (aborted) {
         return
       }

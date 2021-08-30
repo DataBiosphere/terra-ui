@@ -5,7 +5,7 @@ import * as Utils from 'src/libs/utils'
 
 export const launch = async ({
   isSnapshot,
-  workspace: { workspace: { namespace, name, bucketName }, accessLevel },
+  workspace: { workspace: { namespace, name, googleProject, bucketName }, accessLevel },
   config: { namespace: configNamespace, name: configName, rootEntityType },
   selectedEntityType, selectedEntityNames, newSetName, useCallCache = true, deleteIntermediateOutputFiles, useReferenceDisks,
   memoryRetryMultiplier, onProgress
@@ -25,7 +25,7 @@ export const launch = async ({
   }
   onProgress('checkBucketAccess')
   try {
-    await Ajax().Workspaces.workspace(namespace, name).checkBucketAccess(bucketName, accessLevel)
+    await Ajax().Workspaces.workspace(namespace, name).checkBucketAccess(googleProject, bucketName, accessLevel)
   } catch (error) {
     throw new Error('Error confirming workspace bucket access. This may be a transient problem. Please try again in a few minutes. If the problem persists, please contact support.')
   }

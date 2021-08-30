@@ -17,7 +17,7 @@ import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } f
 
 const LaunchAnalysisModal = ({
   onDismiss, entityMetadata,
-  workspace, workspace: { workspace: { namespace, name: workspaceName, bucketName } }, processSingle,
+  workspace, workspace: { workspace: { namespace, name: workspaceName, bucketName, googleProject } }, processSingle,
   entitySelectionModel: { type, selectedEntities, newSetName },
   config, config: { rootEntityType }, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
   retryWithMoreMemory, retryMemoryFactor, onSuccess
@@ -30,7 +30,7 @@ const LaunchAnalysisModal = ({
 
   Utils.useOnMount(() => {
     const loadBucketLocation = withErrorReporting('Error loading bucket location', async () => {
-      const { location, locationType } = await Ajax(signal).Workspaces.workspace(namespace, workspaceName).checkBucketLocation(bucketName)
+      const { location, locationType } = await Ajax(signal).Workspaces.workspace(namespace, workspaceName).checkBucketLocation(googleProject, bucketName)
       setBucketLocation({ location, locationType })
     })
 
