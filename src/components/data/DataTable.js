@@ -48,7 +48,7 @@ const displayData = ({ itemsType, items }) => {
 
 const DataTable = props => {
   const {
-    entityType, entityMetadata, workspaceId, workspaceId: { namespace, name },
+    entityType, entityMetadata, workspaceId, googleProject, workspaceId: { namespace, name },
     onScroll, initialX, initialY,
     selectionModel: { selected, setSelected },
     childrenBefore,
@@ -250,7 +250,7 @@ const DataTable = props => {
                   cellRenderer: ({ rowIndex }) => {
                     const { name: entityName } = entities[rowIndex]
                     return h(Fragment, [
-                      renderDataCell(entityName, namespace),
+                      renderDataCell(entityName, googleProject),
                       div({ style: { flexGrow: 1 } }),
                       editable && h(EditDataLink, {
                         'aria-label': 'Rename entity',
@@ -278,7 +278,7 @@ const DataTable = props => {
                     ]),
                     cellRenderer: ({ rowIndex }) => {
                       const { attributes: { [name]: dataInfo }, name: entityName } = entities[rowIndex]
-                      const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), namespace)
+                      const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), googleProject)
                       return h(Fragment, [
                         (!!dataInfo && _.isArray(dataInfo.items)) ?
                           h(Link, {

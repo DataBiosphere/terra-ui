@@ -3,31 +3,16 @@ import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
 import { a, div, h, img } from 'react-hyperscript-helpers'
+import { AnalysisModal } from 'src/components/AnalysisModal'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { withViewToggle } from 'src/components/CardsListToggle'
-import {
-  ButtonOutline,
-  ButtonPrimary,
-  Clickable, HeaderRenderer,
-  Link,
-  PageBox,
-  spinnerOverlay
-} from 'src/components/common'
+import { ButtonOutline, Clickable, HeaderRenderer, Link, PageBox, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { NewAnalysisModal } from 'src/components/NewAnalysisModal'
 import {
-  AnalysisDeleter,
-  AnalysisDuplicator,
-  findPotentialNotebookLockers,
-  getDisplayName,
-  getFileName,
-  getTool,
-  notebookLockHash,
-  stripExtension,
-  tools
+  AnalysisDeleter, AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, notebookLockHash, stripExtension, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ariaSort } from 'src/components/table'
@@ -77,7 +62,10 @@ const AnalysisCardHeaders = ({ sort, onSort }) => {
   ])
 }
 
-const AnalysisCard = ({ namespace, name, lastModified, metadata, application, wsName, onRename, onCopy, onDelete, onExport, canWrite, currentUserHash, potentialLockers }) => {
+const AnalysisCard = ({
+  namespace, name, lastModified, metadata, application, wsName, onRename, onCopy, onDelete, onExport, canWrite, currentUserHash,
+  potentialLockers
+}) => {
   const { lockExpiresAt, lastLockedBy } = metadata || {}
   const lockExpirationDate = new Date(parseInt(lockExpiresAt))
   const locked = currentUserHash && lastLockedBy && lastLockedBy !== currentUserHash && lockExpirationDate > Date.now()
@@ -204,7 +192,7 @@ const Analyses = _.flow(
   }),
   withViewToggle('analysesTab')
 )(({
-  apps, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { bucketName } },
+  apps, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
   refreshApps, onRequesterPaysError, runtimes, persistentDisks, refreshRuntimes, galaxyDataDisks
 }, ref) => {
   // State
@@ -233,7 +221,7 @@ const Analyses = _.flow(
     withErrorReporting('Error loading analyses'),
     Utils.withBusyState(setBusy)
   )(async () => {
-    const rawAnalyses = await Ajax(signal).Buckets.listAnalyses(namespace, bucketName)
+    const rawAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
     const notebooks = _.filter(({ name }) => _.endsWith(`.${tools.Jupyter.ext}`, name), rawAnalyses)
     const rmds = _.filter(({ name }) => _.endsWith(`.${tools.RStudio.ext}`, name), rawAnalyses)
 
@@ -256,7 +244,7 @@ const Analyses = _.flow(
           resolvedName = `${name} ${++c}`
         }
         const contents = await Utils.readFileAsText(file)
-        return Ajax().Buckets.analysis(namespace, bucketName, resolvedName, toolLabel).create(contents)
+        return Ajax().Buckets.analysis(googleProject, bucketName, resolvedName, toolLabel).create(contents)
       }, files))
       refreshAnalyses()
     } catch (error) {
@@ -359,19 +347,6 @@ const Analyses = _.flow(
           icon('plus', { size: 14, style: { color: colors.accent() } }),
           div({ style: { marginLeft: '0.5rem' } }, ['Create'])
         ]),
-        h(ButtonPrimary, {
-          style: {
-            marginLeft: '1rem'
-          },
-          onClick: openUploader,
-          disabled: !Utils.canWrite(accessLevel),
-          tooltip: !Utils.canWrite(accessLevel) ? noWrite : undefined
-        }, [
-          div({ style: { marginBottom: '0.5rem' } }, [
-            icon('upload-cloud', { style: { marginTop: '0.5rem', marginRight: '0.5rem' }, size: 21 }),
-            'Upload'
-          ])
-        ]),
         div({ style: { flex: 2 } }),
         !_.isEmpty(analyses) && h(DelayedSearchInput, {
           'aria-label': 'Search analyses',
@@ -380,7 +355,7 @@ const Analyses = _.flow(
           onChange: setFilter,
           value: filter
         }),
-        h(NewAnalysisModal, {
+        h(AnalysisModal, {
           isOpen: creating,
           namespace,
           workspace,
@@ -388,14 +363,23 @@ const Analyses = _.flow(
           persistentDisks,
           refreshRuntimes,
           galaxyDataDisks,
+          refreshAnalyses,
+          analyses,
           apps,
           refreshApps,
-          onDismiss: () => setCreating(false),
-          onSuccess: () => setCreating(false)
+          uploadFiles, openUploader,
+          onDismiss: () => {
+            refreshAnalyses()
+            setCreating(false)
+          },
+          onSuccess: () => {
+            refreshAnalyses()
+            setCreating(false)
+          }
         }),
         renamingAnalysisName && h(AnalysisDuplicator, {
           printName: getDisplayName(renamingAnalysisName),
-          toolLabel: getTool(renamingAnalysisName),
+          toolLabel: getTool(renamingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: true,
           onDismiss: () => setRenamingAnalysisName(undefined),
           onSuccess: () => {
@@ -405,7 +389,7 @@ const Analyses = _.flow(
         }),
         copyingAnalysisName && h(AnalysisDuplicator, {
           printName: getDisplayName(copyingAnalysisName),
-          toolLabel: getTool(copyingAnalysisName),
+          toolLabel: getTool(copyingAnalysisName), googleProject,
           namespace, wsName, bucketName, destroyOld: false,
           onDismiss: () => setCopyingAnalysisName(undefined),
           onSuccess: () => {
@@ -420,7 +404,7 @@ const Analyses = _.flow(
           onDismiss: () => setExportingAnalysisName(undefined)
         }),
         deletingAnalysisName && h(AnalysisDeleter, {
-          printName: getDisplayName(deletingAnalysisName), namespace, bucketName,
+          printName: getDisplayName(deletingAnalysisName), googleProject, bucketName,
           toolLabel: getTool(deletingAnalysisName),
           onDismiss: () => setDeletingAnalysisName(undefined),
           onSuccess: () => {

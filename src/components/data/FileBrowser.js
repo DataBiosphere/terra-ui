@@ -25,7 +25,7 @@ import { DeleteObjectModal } from 'src/pages/workspaces/workspace/Data'
 export const FileBrowserPanel = _.flow(
   Utils.withDisplayName('DataUploadPanel'),
   requesterPaysWrapper({ onDismiss: ({ onClose }) => onClose() })
-)(({ workspace, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError, basePrefix, setNumFiles, collection, allowNewFolders = true, style, children }) => {
+)(({ workspace, workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError, basePrefix, setNumFiles, collection, allowNewFolders = true, style, children }) => {
   const [prefix, setPrefix] = useState('')
   const [prefixes, setPrefixes] = useState([])
   const [objects, setObjects] = useState([])
@@ -59,7 +59,7 @@ export const FileBrowserPanel = _.flow(
     withErrorReporting('Error loading bucket data'),
     Utils.withBusyState(setLoading)
   )(async (targetPrefix = prefix) => {
-    const { items, prefixes } = await Ajax(signal).Buckets.list(namespace, bucketName, getFullPrefix(targetPrefix))
+    const { items, prefixes } = await Ajax(signal).Buckets.list(googleProject, bucketName, getFullPrefix(targetPrefix))
     setPrefixes(_.flow(
       // Slice off the root
       _.map(p => p.slice(basePrefix.length)),
@@ -73,7 +73,7 @@ export const FileBrowserPanel = _.flow(
     withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error counting bucket objects')
   )(async () => {
-    const items = await Ajax(signal).Buckets.listAll(namespace, bucketName, basePrefix)
+    const items = await Ajax(signal).Buckets.listAll(googleProject, bucketName, basePrefix)
     setNumFiles(items.length)
   })
 
@@ -103,7 +103,7 @@ export const FileBrowserPanel = _.flow(
   useEffect(() => {
     if (uploadingFiles.length > 0) {
       uploadFiles({
-        namespace, bucketName,
+        googleProject, bucketName,
         prefix: getFullPrefix(prefix),
         files: uploadingFiles,
         status: uploadStatus,
@@ -291,7 +291,7 @@ export const FileBrowserPanel = _.flow(
         }
       }),
       viewingName && h(UriViewer, {
-        googleProject: namespace, uri: `gs://${bucketName}/${viewingName}`,
+        googleProject, uri: `gs://${bucketName}/${viewingName}`,
         onDismiss: () => setViewingName(undefined)
       }),
       isCreating && h(NameModal, {

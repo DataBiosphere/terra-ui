@@ -196,7 +196,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
   })
 }
 
-const BucketContentModal = ({ workspace: { workspace: { namespace, bucketName } }, onSelect, onDismiss }) => {
+const BucketContentModal = ({ workspace: { workspace: { googleProject, bucketName } }, onSelect, onDismiss }) => {
   const [prefix, setPrefix] = useState('')
   const [prefixes, setPrefixes] = useState()
   const [objects, setObjects] = useState(undefined)
@@ -208,7 +208,7 @@ const BucketContentModal = ({ workspace: { workspace: { namespace, bucketName } 
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading bucket data')
   )(async (newPrefix = prefix) => {
-    const { items, prefixes: newPrefixes } = await Ajax(signal).Buckets.list(namespace, bucketName, newPrefix)
+    const { items, prefixes: newPrefixes } = await Ajax(signal).Buckets.list(googleProject, bucketName, newPrefix)
     setObjects(items)
     setPrefixes(newPrefixes)
     setPrefix(newPrefix)
@@ -924,8 +924,7 @@ const WorkflowView = _.flow(
         },
         onSuccess: model => this.setState({ entitySelectionModel: model, selectingData: false }),
         workspace,
-        rootEntityType: modifiedConfig.rootEntityType,
-        workspaceId: { namespace, name: workspaceName }
+        rootEntityType: modifiedConfig.rootEntityType
       })
     ])
   }

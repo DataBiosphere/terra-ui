@@ -177,9 +177,9 @@ const UriViewer = _.flow(
       if (isGs(uri)) {
         const [bucket, name] = parseGsUri(uri)
         const loadObject = withRequesterPaysHandler(onRequesterPaysError, () => {
-          return Ajax(signal).Buckets.getObject(bucket, name, googleProject)
+          return Ajax(signal).Buckets.getObject(googleProject, bucket, name)
         })
-        const metadata = await loadObject(bucket, name, googleProject)
+        const metadata = await loadObject(googleProject, bucket, name)
         setMetadata(metadata)
       } else {
         // Fields are mapped from the martha_v3 fields to those used by google

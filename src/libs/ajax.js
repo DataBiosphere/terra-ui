@@ -151,16 +151,16 @@ const dockstoreMethodPath = ({ path, isTool }) => `api/ga4gh/v1/tools/${isTool ?
  * Only use this if the user has write access to the workspace to avoid proliferation of service accounts in projects containing public workspaces.
  * If we want to fetch a SA token for read access, we must use a "default" SA instead (api/google/user/petServiceAccount/token).
  */
-const getServiceAccountToken = Utils.memoizeAsync(async (namespace, token) => {
+const getServiceAccountToken = Utils.memoizeAsync(async (googleProject, token) => {
   const scopes = ['https://www.googleapis.com/auth/devstorage.full_control']
   const res = await fetchSam(
-    `api/google/user/petServiceAccount/${namespace}/token`,
+    `api/google/user/petServiceAccount/${googleProject}/token`,
     _.mergeAll([authOpts(token), jsonBody(scopes), { method: 'POST' }])
   )
   return res.json()
 }, { expires: 1000 * 60 * 30, keyFn: (...args) => JSON.stringify(args) })
 
-export const saToken = namespace => getServiceAccountToken(namespace, getUser().token)
+export const saToken = googleProject => getServiceAccountToken(googleProject, getUser().token)
 
 const getFirstTimeStamp = Utils.memoizeAsync(async token => {
   const res = await fetchRex('firstTimestamps/record', _.mergeAll([authOpts(token), { method: 'POST' }]))
@@ -582,20 +582,20 @@ const Workspaces = signal => ({
         return fetchRawls(`${root}/checkBucketReadAccess`, _.merge(authOpts(), { signal }))
       },
 
-      checkBucketAccess: async (bucket, accessLevel) => {
+      checkBucketAccess: async (googleProject, bucket, accessLevel) => {
         // Protect against asking for a project-specific pet service account token if user cannot write to the workspace
         if (!Utils.canWrite(accessLevel)) {
           return false
         }
 
         const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=billing`,
-          _.merge(authOpts(await saToken(namespace)), { signal }))
+          _.merge(authOpts(await saToken(googleProject)), { signal }))
         return res.json()
       },
 
-      checkBucketLocation: async bucket => {
+      checkBucketLocation: async (googleProject, bucket) => {
         const res = await fetchBuckets(`storage/v1/b/${bucket}?fields=location%2ClocationType`,
-          _.merge(authOpts(await saToken(namespace)), { signal }))
+          _.merge(authOpts(await saToken(googleProject)), { signal }))
 
         return res.json()
       },
@@ -902,18 +902,18 @@ const DataRepo = signal => ({
 
 
 const Buckets = signal => ({
-  getObject: async (bucket, object, namespace, params = {}) => {
+  getObject: async (googleProject, bucket, object, params = {}) => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}${qs.stringify(params, { addQueryPrefix: true })}`,
-      _.merge(authOpts(await saToken(namespace)), { signal })
+      _.merge(authOpts(await saToken(googleProject)), { signal })
     ).then(
       res => res.json()
     )
   },
 
-  getObjectPreview: async (bucket, object, namespace, previewFull = false) => {
+  getObjectPreview: async (googleProject, bucket, object, previewFull = false) => {
     return fetchBuckets(`storage/v1/b/${bucket}/o/${encodeURIComponent(object)}?alt=media`,
       _.mergeAll([
-        authOpts(await saToken(namespace)),
+        authOpts(await saToken(googleProject)),
         { signal },
         previewFull ? {} : { headers: { Range: 'bytes=0-20000' } }
       ])
@@ -930,59 +930,64 @@ const Buckets = signal => ({
     return res.json()
   },
 
-  listNotebooks: async (namespace, name) => {
+  getShowcaseWorkspaces: async () => {
+    const res = await fetchOk(`${getConfig().firecloudBucketRoot}/showcase.json`, { signal })
+    return res.json()
+  },
+
+  listNotebooks: async (googleProject, name) => {
     const res = await fetchBuckets(
       `storage/v1/b/${name}/o?prefix=notebooks/`,
-      _.merge(authOpts(await saToken(namespace)), { signal })
+      _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const { items } = await res.json()
     return _.filter(({ name }) => name.endsWith(`.${tools.Jupyter.ext}`), items)
   },
 
-  listAnalyses: async (namespace, name) => {
+  listAnalyses: async (googleProject, name) => {
     const res = await fetchBuckets(
       `storage/v1/b/${name}/o?prefix=notebooks/`,
-      _.merge(authOpts(await saToken(namespace)), { signal })
+      _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const { items } = await res.json()
     return _.filter(({ name }) => name.endsWith(`.${tools.RStudio.ext}`) || name.endsWith(`.${tools.Jupyter.ext}`), items)
   },
 
-  list: async (namespace, bucket, prefix) => {
+  list: async (googleProject, bucket, prefix) => {
     const res = await fetchBuckets(
       `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, delimiter: '/' })}`,
-      _.merge(authOpts(await saToken(namespace)), { signal })
+      _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     return res.json()
   },
 
-  listAll: async (namespace, bucket, prefix = null, pageToken = null) => {
+  listAll: async (googleProject, bucket, prefix = null, pageToken = null) => {
     const res = await fetchBuckets(
       `storage/v1/b/${bucket}/o?${qs.stringify({ prefix, pageToken })}`,
-      _.merge(authOpts(await saToken(namespace)), { signal })
+      _.merge(authOpts(await saToken(googleProject)), { signal })
     )
     const body = await res.json()
     const items = body.items || []
 
     // Get the next page recursively if there is one
     if (body.nextPageToken) {
-      const next = await Buckets(signal).listAll(namespace, bucket, prefix, body.nextPageToken)
+      const next = await Buckets(signal).listAll(googleProject, bucket, prefix, body.nextPageToken)
       return _.concat(items, next)
     }
     return items
   },
 
-  delete: async (namespace, bucket, name) => {
+  delete: async (googleProject, bucket, name) => {
     return fetchBuckets(
       `storage/v1/b/${bucket}/o/${encodeURIComponent(name)}`,
-      _.merge(authOpts(await saToken(namespace)), { signal, method: 'DELETE' })
+      _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
     )
   },
 
-  upload: async (namespace, bucket, prefix, file) => {
+  upload: async (googleProject, bucket, prefix, file) => {
     return fetchBuckets(
       `upload/storage/v1/b/${bucket}/o?uploadType=media&name=${encodeURIComponent(prefix + file.name)}`,
-      _.merge(authOpts(await saToken(namespace)), {
+      _.merge(authOpts(await saToken(googleProject)), {
         signal, method: 'POST', body: file,
         headers: { 'Content-Type': file.type, 'Content-Length': file.size }
       })
@@ -990,27 +995,27 @@ const Buckets = signal => ({
   },
 
   //TODO: this should be deprecated in favor of the smarter `analysis` set of functions
-  notebook: (namespace, bucket, name) => {
+  notebook: (googleProject, bucket, name) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
     const copy = async (newName, newBucket, clearMetadata) => {
       const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
       return fetchBuckets(
         `${bucketUrl}/${nbName(name)}/copyTo/b/${newBucket}/o/${nbName(newName)}`,
-        _.mergeAll([authOpts(await saToken(namespace)), jsonBody(body), { signal, method: 'POST' }])
+        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
       )
     }
     const doDelete = async () => {
       return fetchBuckets(
         `${bucketUrl}/${nbName(name)}`,
-        _.merge(authOpts(await saToken(namespace)), { signal, method: 'DELETE' })
+        _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
       )
     }
 
     const getObject = async () => {
       const res = await fetchBuckets(
         `${bucketUrl}/${nbName(name)}`,
-        _.merge(authOpts(await saToken(namespace)), { signal, method: 'GET' })
+        _.merge(authOpts(await saToken(googleProject)), { signal, method: 'GET' })
       )
       return await res.json()
     }
@@ -1019,7 +1024,7 @@ const Buckets = signal => ({
       preview: async () => {
         const nb = await fetchBuckets(
           `${bucketUrl}/${encodeURIComponent(`notebooks/${name}`)}?alt=media`,
-          _.merge(authOpts(await saToken(namespace)), { signal })
+          _.merge(authOpts(await saToken(googleProject)), { signal })
         ).then(res => res.text())
         return fetchOk(`${getConfig().calhounUrlRoot}/api/convert`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
@@ -1031,7 +1036,7 @@ const Buckets = signal => ({
       create: async contents => {
         return fetchBuckets(
           `upload/${bucketUrl}?uploadType=media&name=${nbName(name)}`,
-          _.merge(authOpts(await saToken(namespace)), {
+          _.merge(authOpts(await saToken(googleProject)), {
             signal, method: 'POST', body: JSON.stringify(contents),
             headers: { 'Content-Type': 'application/x-ipynb+json' }
           })
@@ -1049,7 +1054,7 @@ const Buckets = signal => ({
     }
   },
 
-  analysis: (namespace, bucket, name, toolLabel) => {
+  analysis: (googleProject, bucket, name, toolLabel) => {
     const bucketUrl = `storage/v1/b/${bucket}/o`
 
     const calhounPath = Utils.switchCase(toolLabel,
@@ -1065,21 +1070,21 @@ const Buckets = signal => ({
       const body = clearMetadata ? { metadata: { lastLockedBy: '' } } : {}
       return fetchBuckets(
         `${bucketUrl}/${encodeFileName(name)}/copyTo/b/${newBucket}/o/${encodeFileName(newName)}`,
-        _.mergeAll([authOpts(await saToken(namespace)), jsonBody(body), { signal, method: 'POST' }])
+        _.mergeAll([authOpts(await saToken(googleProject)), jsonBody(body), { signal, method: 'POST' }])
       )
     }
 
     const doDelete = async () => {
       return fetchBuckets(
         `${bucketUrl}/${encodeFileName(name)}`,
-        _.merge(authOpts(await saToken(namespace)), { signal, method: 'DELETE' })
+        _.merge(authOpts(await saToken(googleProject)), { signal, method: 'DELETE' })
       )
     }
 
     const getObject = async () => {
       const res = await fetchBuckets(
         `${bucketUrl}/${encodeFileName(name)}`,
-        _.merge(authOpts(await saToken(namespace)), { signal, method: 'GET' })
+        _.merge(authOpts(await saToken(googleProject)), { signal, method: 'GET' })
       )
       return await res.json()
     }
@@ -1088,7 +1093,7 @@ const Buckets = signal => ({
       preview: async () => {
         const nb = await fetchBuckets(
           `${bucketUrl}/${encodeFileName(name)}?alt=media`,
-          _.merge(authOpts(await saToken(namespace)), { signal })
+          _.merge(authOpts(await saToken(googleProject)), { signal })
         ).then(res => res.text())
         return fetchOk(`${getConfig().calhounUrlRoot}/${calhounPath}`,
           _.mergeAll([authOpts(), { signal, method: 'POST', body: nb }])
@@ -1100,7 +1105,7 @@ const Buckets = signal => ({
       create: async textContents => {
         return fetchBuckets(
           `upload/${bucketUrl}?uploadType=media&name=${encodeFileName(name)}`,
-          _.merge(authOpts(await saToken(namespace)), {
+          _.merge(authOpts(await saToken(googleProject)), {
             signal, method: 'POST', body: textContents,
             headers: { 'Content-Type': mimeType }
           })

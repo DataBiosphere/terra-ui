@@ -8,9 +8,9 @@ import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/b
 import { ViewToggleButtons, withViewToggle } from 'src/components/CardsListToggle'
 import { Clickable, IdContainer, Link, PageBox, Select, spinnerOverlay } from 'src/components/common'
 import Dropzone from 'src/components/Dropzone'
+import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { NewGalaxyModal } from 'src/components/NewGalaxyModal'
 import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -77,7 +77,10 @@ const noNotebooksMessage = div({ style: { fontSize: 20 } }, [
   ])
 ])
 
-const NotebookCard = ({ namespace, name, updated, metadata, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite, currentUserHash, potentialLockers }) => {
+const NotebookCard = ({
+  namespace, name, updated, metadata, listView, wsName, onRename, onCopy, onDelete, onExport, canWrite, currentUserHash,
+  potentialLockers
+}) => {
   const { lockExpiresAt, lastLockedBy } = metadata || {}
   const lockExpirationDate = new Date(parseInt(lockExpiresAt))
   const locked = currentUserHash && lastLockedBy && lastLockedBy !== currentUserHash && lockExpirationDate > Date.now()
@@ -217,7 +220,7 @@ const Notebooks = _.flow(
   }),
   withViewToggle('notebooksTab')
 )(({
-  apps, galaxyDataDisks, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { bucketName } },
+  apps, galaxyDataDisks, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
   refreshApps, onRequesterPaysError, listView, setListView
 }, ref) => {
   // State
@@ -246,7 +249,7 @@ const Notebooks = _.flow(
     withErrorReporting('Error loading notebooks'),
     Utils.withBusyState(setBusy)
   )(async () => {
-    const notebooks = await Ajax(signal).Buckets.listNotebooks(namespace, bucketName)
+    const notebooks = await Ajax(signal).Buckets.listNotebooks(googleProject, bucketName)
     setNotebooks(_.reverse(_.sortBy('updated', notebooks)))
   })
 
@@ -265,7 +268,7 @@ const Notebooks = _.flow(
           resolvedName = `${name} ${++c}`
         }
         const contents = await Utils.readFileAsText(file)
-        return Ajax().Buckets.notebook(namespace, bucketName, resolvedName).create(JSON.parse(contents))
+        return Ajax().Buckets.notebook(googleProject, bucketName, resolvedName).create(JSON.parse(contents))
       }, files))
       refreshNotebooks()
     } catch (error) {
@@ -293,7 +296,6 @@ const Notebooks = _.flow(
   useEffect(() => {
     StateHistory.update({ notebooks, sortOrder, filter })
   }, [notebooks, sortOrder, filter])
-
 
   // Render helpers
   const renderNotebooks = openUploader => {
@@ -360,7 +362,8 @@ const Notebooks = _.flow(
               ...Style.elements.card.container, height: 125, marginTop: 15
             },
             disabled: appIsSettingUp(app) || isCurrentGalaxyDiskDetaching(apps),
-            tooltip: (appIsSettingUp(app) && 'Galaxy app is being created') || (isCurrentGalaxyDiskDetaching(apps) && 'Your persistent disk is still attached to your previous app; you can create a new app once your previous app finishes deleting, which will take a few minutes.'),
+            tooltip: (appIsSettingUp(app) && 'Galaxy app is being created') || (isCurrentGalaxyDiskDetaching(apps) &&
+              'Your persistent disk is still attached to your previous app; you can create a new app once your previous app finishes deleting, which will take a few minutes.'),
             onClick: () => setOpenGalaxyConfigDrawer(true)
           }, [
             getGalaxyText(app, galaxyDataDisks)
@@ -427,13 +430,13 @@ const Notebooks = _.flow(
         ])]),
         h(ViewToggleButtons, { listView, setListView }),
         creating && h(NotebookCreator, {
-          namespace, bucketName, existingNames,
+          googleProject, bucketName, existingNames,
           reloadList: refreshNotebooks,
           onDismiss: () => setCreating(false),
           onSuccess: () => setCreating(false)
         }),
         renamingNotebookName && h(NotebookDuplicator, {
-          printName: printName(renamingNotebookName),
+          printName: printName(renamingNotebookName), googleProject,
           namespace, wsName, bucketName, destroyOld: true,
           onDismiss: () => setRenamingNotebookName(undefined),
           onSuccess: () => {
@@ -442,7 +445,7 @@ const Notebooks = _.flow(
           }
         }),
         copyingNotebookName && h(NotebookDuplicator, {
-          printName: printName(copyingNotebookName),
+          printName: printName(copyingNotebookName), googleProject,
           namespace, wsName, bucketName, destroyOld: false,
           onDismiss: () => setCopyingNotebookName(undefined),
           onSuccess: () => {
@@ -455,14 +458,14 @@ const Notebooks = _.flow(
           onDismiss: () => setExportingNotebookName(undefined)
         }),
         deletingNotebookName && h(NotebookDeleter, {
-          printName: printName(deletingNotebookName), namespace, bucketName,
+          printName: printName(deletingNotebookName), googleProject, bucketName,
           onDismiss: () => setDeletingNotebookName(undefined),
           onSuccess: () => {
             setDeletingNotebookName(undefined)
             refreshNotebooks()
           }
         }),
-        h(NewGalaxyModal, {
+        h(GalaxyModal, {
           isOpen: openGalaxyConfigDrawer,
           workspace,
           apps,

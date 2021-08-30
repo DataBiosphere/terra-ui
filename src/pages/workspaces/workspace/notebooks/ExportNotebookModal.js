@@ -42,7 +42,7 @@ const ExportNotebookModal = ({ fromLauncher, onDismiss, printName, workspace }) 
 
   const findNotebooks = async v => {
     const tempChosenWorkspace = _.find({ workspace: { workspaceId: v } }, workspaces).workspace
-    const selectedNotebooks = await Ajax(signal).Buckets.listNotebooks(tempChosenWorkspace.namespace, tempChosenWorkspace.bucketName)
+    const selectedNotebooks = await Ajax(signal).Buckets.listNotebooks(tempChosenWorkspace.googleProject, tempChosenWorkspace.bucketName)
     setExistingNames(_.map(({ name }) => cutName(name), selectedNotebooks))
   }
 
@@ -50,7 +50,7 @@ const ExportNotebookModal = ({ fromLauncher, onDismiss, printName, workspace }) 
     try {
       await Ajax()
         .Buckets
-        .notebook(workspace.workspace.namespace, workspace.workspace.bucketName, printName)
+        .notebook(workspace.workspace.googleProject, workspace.workspace.bucketName, printName)
         .copy(newName, selectedWorkspace.workspace.bucketName)
       setCopied(true)
       Ajax().Metrics.captureEvent(Events.notebookCopy, { oldName: printName, newName, ...extractCrossWorkspaceDetails(workspace, selectedWorkspace) })
@@ -141,7 +141,7 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
 
   const findAnalysis = async v => {
     const tempChosenWorkspace = _.find({ workspace: { workspaceId: v } }, workspaces).workspace
-    const selectedAnalyses = await Ajax(signal).Buckets.listAnalyses(tempChosenWorkspace.namespace, tempChosenWorkspace.bucketName)
+    const selectedAnalyses = await Ajax(signal).Buckets.listAnalyses(tempChosenWorkspace.googleProject, tempChosenWorkspace.bucketName)
     setExistingNames(_.map(({ name }) => getDisplayName(name), selectedAnalyses))
   }
 
@@ -149,7 +149,7 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
     try {
       await Ajax()
         .Buckets
-        .analysis(workspace.workspace.namespace, workspace.workspace.bucketName, printName, toolLabel)
+        .analysis(workspace.workspace.googleProject, workspace.workspace.bucketName, printName, toolLabel)
         .copy(newName, selectedWorkspace.workspace.bucketName)
       setCopied(true)
       Ajax().Metrics.captureEvent(Events.notebookCopy, { oldName: printName, newName, ...extractCrossWorkspaceDetails(workspace, selectedWorkspace) })

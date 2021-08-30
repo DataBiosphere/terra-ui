@@ -54,16 +54,17 @@ export const ensureBillingScope = async () => {
   }
 }
 
+export const isAuthSettled = ({ isSignedIn, registrationStatus }) => {
+  return isSignedIn !== undefined && (!isSignedIn || registrationStatus !== undefined)
+}
+
 export const ensureAuthSettled = () => {
-  const authSettled = ({ isSignedIn, registrationStatus }) => {
-    return isSignedIn !== undefined && (!isSignedIn || registrationStatus !== undefined)
-  }
-  if (authSettled(authStore.get())) {
+  if (isAuthSettled(authStore.get())) {
     return
   }
   return new Promise(resolve => {
     const subscription = authStore.subscribe(state => {
-      if (authSettled(state)) {
+      if (isAuthSettled(state)) {
         resolve()
         subscription.unsubscribe()
       }

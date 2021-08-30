@@ -6,9 +6,9 @@ import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
 import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
+import { ComputeModal } from 'src/components/ComputeModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { NewRuntimeModal } from 'src/components/NewRuntimeModal'
 import { findPotentialNotebookLockers, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
@@ -61,7 +61,7 @@ const NotebookLauncher = _.flow(
         ]),
       mode && h(RuntimeKicker, { runtime, refreshRuntimes, onNullRuntime: () => setCreateOpen(true) }),
       mode && h(RuntimeStatusMonitor, { runtime, onRuntimeStoppedRunning: () => chooseMode(undefined) }),
-      h(NewRuntimeModal, {
+      h(ComputeModal, {
         isOpen: createOpen,
         workspace,
         runtimes,
@@ -71,7 +71,7 @@ const NotebookLauncher = _.flow(
           setCreateOpen(false)
         },
         onSuccess: _.flow(
-          withErrorReporting('Error creating runtime'),
+          withErrorReporting('Error creating cloud compute'),
           Utils.withBusyState(setBusy)
         )(async () => {
           setCreateOpen(false)
@@ -175,7 +175,7 @@ const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
   style: { padding: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: 2 }, ...props
 }, [children])
 
-const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
+const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, googleProject, bucketName } } }) => {
   const signal = Utils.useCancellation()
   const { user: { email } } = Utils.useStore(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
@@ -191,7 +191,7 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
 
   const checkIfLocked = withErrorReporting('Error checking notebook lock status', async () => {
-    const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
+    const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal).Buckets.notebook(googleProject, bucketName, notebookName.slice(0, -6)).getObject()
     const hashedUser = await notebookLockHash(bucketName, email)
     const lockExpirationDate = new Date(parseInt(lockExpiresAt))
 
@@ -297,7 +297,7 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
       }
     }),
     copyingNotebook && h(NotebookDuplicator, {
-      printName: notebookName.slice(0, -6), fromLauncher: true,
+      printName: notebookName.slice(0, -6), fromLauncher: true, googleProject,
       wsName: name, namespace, bucketName, destroyOld: false,
       onDismiss: () => setCopyingNotebook(false),
       onSuccess: () => setCopyingNotebook(false)
@@ -317,7 +317,7 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
   ])
 }
 
-const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError }) => {
+const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError }) => {
   const signal = Utils.useCancellation()
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState()
@@ -328,7 +328,7 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
     withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error previewing notebook')
   )(async () => {
-    setPreview(await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName).preview())
+    setPreview(await Ajax(signal).Buckets.notebook(googleProject, bucketName, notebookName).preview())
   })
   Utils.useOnMount(() => {
     loadPreview()

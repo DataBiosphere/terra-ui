@@ -1,9 +1,9 @@
 import _ from 'lodash/fp'
-import { Fragment, useImperativeHandle, useState } from 'react'
+import { Fragment, useEffect, useImperativeHandle, useState } from 'react'
 import { div, h, i, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link, spinnerOverlay } from 'src/components/common'
-import { icon, spinner } from 'src/components/icons'
+import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { regionInfo } from 'src/components/region-common'
@@ -17,8 +17,11 @@ import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { getAppName } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
+import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import SignIn from 'src/pages/SignIn'
+import DashboardPublic from 'src/pages/workspaces/workspace/DashboardPublic'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -69,6 +72,32 @@ const DataUseLimitations = ({ attributes }) => {
       displayAttributeValue(attributes[key])
     ])
   }, _.filter(({ key }) => _.has(key, attributes), displayConsentCodes))
+}
+
+const DashboardAuthContainer = props => {
+  const { namespace, name } = props
+  const { isSignedIn } = Utils.useStore(authStore)
+  const [featuredWorkspaces, setFeaturedWorkspaces] = useState()
+
+  const isGoogleAuthInitialized = isSignedIn !== undefined
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setFeaturedWorkspaces(await Ajax().Buckets.getFeaturedWorkspaces())
+    }
+    if (isSignedIn === false) {
+      fetchData()
+    }
+  }, [isSignedIn])
+
+  const isFeaturedWorkspace = () => _.some(ws => ws.namespace === namespace && ws.name === name, featuredWorkspaces)
+
+  return Utils.cond(
+    [!isGoogleAuthInitialized || (isSignedIn === false && featuredWorkspaces === undefined), () => h(centeredSpinner, { style: { position: 'fixed' } })],
+    [isSignedIn === false && isFeaturedWorkspace(), () => h(DashboardPublic, props)],
+    [isSignedIn === false, () => h(SignIn)],
+    () => h(WorkspaceDashboard, props)
+  )
 }
 
 const WorkspaceDashboard = _.flow(
@@ -127,7 +156,7 @@ const WorkspaceDashboard = _.flow(
   })
 
   const loadBucketLocation = withErrorReporting('Error loading bucket location data', async () => {
-    const { location, locationType } = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(bucketName)
+    const { location, locationType } = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
     setBucketLocation(location)
     setBucketLocationType(locationType)
   })
@@ -333,7 +362,8 @@ export const navPaths = [
   {
     name: 'workspace-dashboard',
     path: '/workspaces/:namespace/:name',
-    component: WorkspaceDashboard,
-    title: ({ name }) => `${name} - Dashboard`
+    component: DashboardAuthContainer,
+    title: ({ name }) => `${name} - Dashboard`,
+    public: true
   }
 ]
