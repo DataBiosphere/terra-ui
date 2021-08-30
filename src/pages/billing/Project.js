@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
@@ -153,26 +153,20 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
 
   const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
-  const workspacesInProject = useMemo(() => _.flow(
-    _.map(({ workspace }) => workspace),
-    _.filter({ namespace: projectName })
-  )(workspaces), [workspaces, projectName])
-
-  const getBillingAccountStatusIcon = (() => {
-    const allWorkspacesHaveCorrectBillingAccount =
-      _.every({ billingAccount: billingAccountName }, workspacesInProject)
-    return workspace => Utils.cond(
-      [allWorkspacesHaveCorrectBillingAccount, () => null],
-      [billingAccountName === workspace.billingAccount, () => 'success-standard'],
-      ['billingAccountErrorMessage' in workspace, () => 'error-standard'],
-      [Utils.DEFAULT, () => 'loadingSpinner'])
-  })()
+  const getBillingAccountStatusIcon = workspace => Utils.cond(
+    [_.isEmpty(project.workspacesWithIncorrectBillingAccount), () => null],
+    [billingAccountName === workspace.billingAccount, () => 'success-standard'],
+    ['billingAccountErrorMessage' in workspace, () => 'error-standard'],
+    [Utils.DEFAULT, () => 'loadingSpinner']
+  )
 
   const tabToTable = {
     workspaces: h(Fragment, [
       h(WorkspaceCardHeaders, { sort: workspaceSort, onSort: setWorkspaceSort }),
       div({ role: 'list', 'aria-label': `workspaces in billing project ${projectName}`, style: { flexGrow: 1, width: '100%' } }, [
         _.flow(
+          _.map(({ workspace }) => workspace),
+          _.filter({ namespace: projectName }),
           _.orderBy([workspaceSort.field], [workspaceSort.direction]),
           _.map(workspace => {
             const isExpanded = expandedWorkspaceName === workspace.name
@@ -184,7 +178,7 @@ const ProjectDetail = ({ project, project: { projectName }, billingAccounts, aut
               onExpand: () => setExpandedWorkspaceName(isExpanded ? undefined : workspace.name)
             })
           })
-        )(workspacesInProject)
+        )(workspaces)
       ])
     ]),
     users: h(Fragment, [
