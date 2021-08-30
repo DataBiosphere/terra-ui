@@ -26,10 +26,17 @@ import { billingRoles } from 'src/pages/billing/List'
 const workspaceLastModifiedWidth = 150
 const workspaceExpandIconSize = 20
 
+const workspaceBillingStatusIcon = (() => {
+  const size = 16
+  const blank = div({ style: { width: size } },
+    [div({ className: 'sr-only' }, ['Status'])])
+  return shape => shape ? icon(shape, { size }) : blank
+})()
+
 const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
-    // extra left-padding for workspace billing account status icons
-    div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: '2rem' } }, [
+    workspaceBillingStatusIcon(null),
+    div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: '1rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'name' })
     ]),
     div({ 'aria-sort': ariaSort(sort, 'createdBy'), style: { flex: 1 } }, [
@@ -74,8 +81,8 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingA
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' } }, [
     h(IdContainer, [id => h(Fragment, [
       div({ style: workspaceCardStyles.row }, [
-        billingAccountStatusIcon && icon(billingAccountStatusIcon, { size: 16 }),
-        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: billingAccountStatusIcon ? '1rem' : '2rem' } }, [
+        workspaceBillingStatusIcon(billingAccountStatusIcon),
+        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
           h(Link, {
             style: Style.noWrapEllipsis,
             href: Nav.getLink('workspace-dashboard', { namespace, name }),
