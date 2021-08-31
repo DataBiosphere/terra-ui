@@ -293,8 +293,8 @@ const Environments = ({ namespace }) => {
     const { id } = compute
     const isPausable = isComputePausable(computeType, compute)
     const action = Utils.switchCase(computeType,
-      ['runtime', setPauseRuntimeId],
-      ['app', setPauseAppId]
+      ['runtime', () => setPauseRuntimeId],
+      ['app', () => setPauseAppId]
     )
     return h(Link, {
       disabled: !isPausable,
