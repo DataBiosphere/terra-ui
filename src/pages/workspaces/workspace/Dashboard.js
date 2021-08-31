@@ -156,7 +156,7 @@ const WorkspaceDashboard = _.flow(
   })
 
   const loadBucketLocation = withErrorReporting('Error loading bucket location data', async () => {
-    const { location, locationType } = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(bucketName)
+    const { location, locationType } = await Ajax(signal).Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
     setBucketLocation(location)
     setBucketLocationType(locationType)
   })

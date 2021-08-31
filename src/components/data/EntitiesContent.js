@@ -58,7 +58,7 @@ const ToolDrawer = _.flow(
   }),
   withModalDrawer({ 'aria-labelledby': toolDrawerId })
 )(({
-  workspace, workspace: { workspace: { bucketName, name: wsName, namespace, workspaceId } },
+  workspace, workspace: { workspace: { bucketName, name: wsName, namespace, googleProject, workspaceId } },
   onDismiss, onIgvSuccess, onRequesterPaysError, entityMetadata, entityKey, selectedEntities
 }) => {
   const [toolMode, setToolMode] = useState()
@@ -72,7 +72,7 @@ const ToolDrawer = _.flow(
       withRequesterPaysHandler(onRequesterPaysError),
       withErrorReporting('Error loading notebooks')
     )(async () => {
-      const notebooks = await Buckets.listNotebooks(namespace, bucketName)
+      const notebooks = await Buckets.listNotebooks(googleProject, bucketName)
       // slice removes 'notebooks/' and the .ipynb suffix
       setNotebookNames(notebooks.map(notebook => notebook.name.slice(10, -6)))
     })
@@ -113,12 +113,12 @@ const ToolDrawer = _.flow(
     //TODO: Does this need to change with analysis tab migration? Need PO input
     'Notebook', () => ({
       drawerContent: h(NotebookCreator, {
-        bucketName, namespace,
+        bucketName, googleProject,
         existingNames: notebookNames,
         onSuccess: async (notebookName, notebookKernel) => {
           const cohortName = _.values(selectedEntities)[0].name
           const contents = notebookKernel === 'r' ? cohortRNotebook(cohortName) : cohortNotebook(cohortName)
-          await Buckets.notebook(namespace, bucketName, notebookName).create(JSON.parse(contents))
+          await Buckets.notebook(googleProject, bucketName, notebookName).create(JSON.parse(contents))
           Nav.goToPath('workspace-notebook-launch', { namespace, name: wsName, notebookName: `${notebookName}.ipynb` })
         },
         onDismiss: () => setToolMode(undefined),
@@ -204,7 +204,7 @@ const ToolDrawer = _.flow(
 
 const EntitiesContent = ({
   workspace, workspace: {
-    workspace: { namespace, name, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount }
+    workspace: { namespace, name, googleProject, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount }
   },
   entityKey, entityMetadata, loadMetadata, firstRender, snapshotName
 }) => {
@@ -364,7 +364,7 @@ const EntitiesContent = ({
     h(Fragment, [
       h(DataTable, {
         persist: true, firstRender, refreshKey, editable: !snapshotName && !Utils.editWorkspaceError(workspace),
-        entityType: entityKey, entityMetadata, columnDefaults, workspaceId: { namespace, name },
+        entityType: entityKey, entityMetadata, columnDefaults, googleProject, workspaceId: { namespace, name },
         onScroll: saveScroll, initialX, initialY,
         snapshotName,
         selectionModel: {

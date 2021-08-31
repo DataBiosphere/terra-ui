@@ -220,7 +220,7 @@ const Notebooks = _.flow(
   }),
   withViewToggle('notebooksTab')
 )(({
-  apps, galaxyDataDisks, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { bucketName } },
+  apps, galaxyDataDisks, name: wsName, namespace, workspace, workspace: { accessLevel, canShare, workspace: { googleProject, bucketName } },
   refreshApps, onRequesterPaysError, listView, setListView
 }, ref) => {
   // State
@@ -249,7 +249,7 @@ const Notebooks = _.flow(
     withErrorReporting('Error loading notebooks'),
     Utils.withBusyState(setBusy)
   )(async () => {
-    const notebooks = await Ajax(signal).Buckets.listNotebooks(namespace, bucketName)
+    const notebooks = await Ajax(signal).Buckets.listNotebooks(googleProject, bucketName)
     setNotebooks(_.reverse(_.sortBy('updated', notebooks)))
   })
 
@@ -268,7 +268,7 @@ const Notebooks = _.flow(
           resolvedName = `${name} ${++c}`
         }
         const contents = await Utils.readFileAsText(file)
-        return Ajax().Buckets.notebook(namespace, bucketName, resolvedName).create(JSON.parse(contents))
+        return Ajax().Buckets.notebook(googleProject, bucketName, resolvedName).create(JSON.parse(contents))
       }, files))
       refreshNotebooks()
     } catch (error) {
@@ -430,13 +430,13 @@ const Notebooks = _.flow(
         ])]),
         h(ViewToggleButtons, { listView, setListView }),
         creating && h(NotebookCreator, {
-          namespace, bucketName, existingNames,
+          googleProject, bucketName, existingNames,
           reloadList: refreshNotebooks,
           onDismiss: () => setCreating(false),
           onSuccess: () => setCreating(false)
         }),
         renamingNotebookName && h(NotebookDuplicator, {
-          printName: printName(renamingNotebookName),
+          printName: printName(renamingNotebookName), googleProject,
           namespace, wsName, bucketName, destroyOld: true,
           onDismiss: () => setRenamingNotebookName(undefined),
           onSuccess: () => {
@@ -445,7 +445,7 @@ const Notebooks = _.flow(
           }
         }),
         copyingNotebookName && h(NotebookDuplicator, {
-          printName: printName(copyingNotebookName),
+          printName: printName(copyingNotebookName), googleProject,
           namespace, wsName, bucketName, destroyOld: false,
           onDismiss: () => setCopyingNotebookName(undefined),
           onSuccess: () => {
@@ -458,7 +458,7 @@ const Notebooks = _.flow(
           onDismiss: () => setExportingNotebookName(undefined)
         }),
         deletingNotebookName && h(NotebookDeleter, {
-          printName: printName(deletingNotebookName), namespace, bucketName,
+          printName: printName(deletingNotebookName), googleProject, bucketName,
           onDismiss: () => setDeletingNotebookName(undefined),
           onSuccess: () => {
             setDeletingNotebookName(undefined)

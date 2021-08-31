@@ -18,7 +18,7 @@ import * as Utils from 'src/libs/utils'
 
 const UploadDataTable = props => {
   const {
-    workspace: { workspace: { namespace, name } },
+    workspace: { workspace: { googleProject, namespace, name } },
     metadataTable, metadataTable: { entityType, rows, columns, idName },
     onConfirm, onCancel, onRename, refreshKey
   } = props
@@ -231,7 +231,7 @@ const UploadDataTable = props => {
                     ]),
                     cellRenderer: ({ rowIndex, columnIndex }) => {
                       const value = sortedRows[rowIndex][columnIndex]
-                      return renderDataCell(value, namespace)
+                      return renderDataCell(value, googleProject)
                     }
                   }
                 }, columns)
