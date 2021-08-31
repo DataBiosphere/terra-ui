@@ -18,7 +18,21 @@ const sidebarSections = [{
     'PAGE',
     'WGSPD1'
   ]
-}]
+}, {
+  name: 'Disease',
+  labels: [
+    'Alzheimer\'s disease',
+    'asthma',
+    'autism spectrum disorder',
+  ]},
+  {
+    name: 'Data Type',
+    labels: [
+        'Exome',
+        'Whole Genome'
+    ]
+  }
+]
 
 
 const DataBrowser = () => {
@@ -28,7 +42,7 @@ const DataBrowser = () => {
     created: '2020-01-13T18:25:28.340Z',
     tags: {
       itemsType: 'AttributeValue',
-      items: ['1000 Genomes', 'CMG', 'Open Access']
+      items: ['1000 Genomes', 'CMG', 'Open Access', 'Exome']
     },
     description: 'test1 desc',
     lowerName: 'test1',
@@ -40,7 +54,7 @@ const DataBrowser = () => {
     created: '2020-01-13T18:25:28.340Z',
     tags: {
       itemsType: 'AttributeValue',
-      items: ['1000 Genomes', 'CCDG', 'Controlled Access']
+      items: ['1000 Genomes', 'CCDG', 'Controlled Access', 'Whole Genome', 'asthma']
     },
     description: 'test2 desc',
     lowerName: 'test2',
