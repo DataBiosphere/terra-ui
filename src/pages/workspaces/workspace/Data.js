@@ -415,13 +415,13 @@ const WorkspaceData = _.flow(
   const loadSnapshotMetadata = async () => {
     try {
       setSnapshotMetadataError(false)
-      const { resources: snapshotMetadata } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshots(1000, 0)
+      const { gcpDataRepoSnapshots: snapshotBody } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshots(1000, 0)
 
-      const snapshots = _.reduce((acc, { name, ...resource }) => {
-        return _.set([name, 'resource'], resource, acc)
+      const snapshots = _.reduce((acc, { metadata : { name, ...metadata }, attributes } ) => {
+        return _.set([name, 'resource'], _.merge(metadata, attributes), acc)
       },
-      _.pick(_.map('name', snapshotMetadata), snapshotDetails) || {}, // retain entities if loaded from state history, but only for snapshots that exist
-      snapshotMetadata)
+      _.pick(_.map('name', _.map('metadata', snapshotBody)), snapshotDetails) || {}, // retain entities if loaded from state history, but only for snapshots that exist
+      snapshotBody)
 
       setSnapshotDetails(snapshots)
     } catch (error) {
@@ -505,7 +505,7 @@ const WorkspaceData = _.flow(
             error: snapshotMetadataError,
             retryFunction: loadSnapshotMetadata
           }, [
-            _.map(([snapshotName, { resource: { referenceId, reference: { snapshot } }, entityMetadata: snapshotTables, error: snapshotTablesError }]) => {
+            _.map(([snapshotName, { resource: { resourceId, snapshotId }, entityMetadata: snapshotTables, error: snapshotTablesError }]) => {
               const snapshotTablePairs = toSortedPairs(snapshotTables)
               return h(Collapse, {
                 key: snapshotName,
@@ -553,8 +553,8 @@ const WorkspaceData = _.flow(
                         setSelectedDataType([snapshotName, tableName])
                         Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {
                           ...extractWorkspaceDetails(workspace.workspace),
-                          referenceId,
-                          snapshotId: snapshot,
+                          resourceId,
+                          snapshotId,
                           entityType: tableName
                         })
                         forceRefresh()
