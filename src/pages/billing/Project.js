@@ -225,7 +225,11 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
   })
 
   // Helpers
-  const updateBillingAccount = _.flow(
+  const updateBillingProject = withErrorReporting('Error updating billing project')(
+    () => Ajax(signal).Billing.billingProject(billingProject.projectName).then(setBillingProject)
+  )
+
+  const setBillingAccount = _.flow(
     withErrorReporting('Error updating billing account'),
     Utils.withBusyState(setUpdatingAccount)
   )(async newAccountName => {
@@ -234,16 +238,21 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
       newName: newAccountName,
       billingProjectName: billingProject.projectName
     })
-    await Ajax(signal).Billing.changeBillingAccount({ billingProjectName: billingProject.projectName, newBillingAccountName: newAccountName })
-    setBillingProject({ ...billingProject, billingAccount: newAccountName })
+    await Ajax(signal).Billing.changeBillingAccount({
+      billingProjectName: billingProject.projectName,
+      newBillingAccountName: newAccountName
+    })
+    await updateBillingProject()
   })
 
   const updateSpendConfiguration = _.flow(
     withErrorReporting('Error updating workflow spend report configuration'),
     Utils.withBusyState(setUpdating)
-  )(async () => {
-    await Ajax(signal).Billing.updateSpendConfiguration({ billingProjectName: billingProject.projectName, datasetGoogleProject: selectedDatasetProjectName, datasetName: selectedDatasetName })
-  })
+  )(() => Ajax(signal).Billing.updateSpendConfiguration({
+    billingProjectName: billingProject.projectName,
+    datasetGoogleProject: selectedDatasetProjectName,
+    datasetName: selectedDatasetName
+  }))
 
   const refresh = _.flow(
     withErrorReporting('Error loading billing project users list'),
@@ -255,7 +264,8 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
     setEditingUser(false)
     // const rawWorkspaces = await Ajax(signal).Workspaces.list()
     // setWorkspaces(_.map(response => response.workspace, _.filter(response => response.workspace.namespace === projectName, rawWorkspaces)))
-    refreshWorkspaces()
+    // await updateBillingProject()
+    // await refreshWorkspaces()
     const rawProjectUsers = await Ajax(signal).Billing.project(billingProject.projectName).listUsers()
     const projectUsers = _.flow(
       _.groupBy('email'),
@@ -270,7 +280,12 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
 
   useEffect(() => StateHistory.update({ projectUsers }), [projectUsers])
 
-  // Render
+  Utils.usePollingEffect(
+    async () => _.isEmpty(billingProject.workspacesWithIncorrectBillingAccount) ||
+      await Promise.all([updateBillingProject(), refreshWorkspaces()]),
+    { ms: 5000 }
+  )
+
   const { displayName = null } = _.find({ accountName: billingProject.billingAccount }, billingAccounts) || { displayName: 'No Access' }
 
   return h(Fragment, [
@@ -298,7 +313,7 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
             disabled: !selectedBilling || billingProject.billingAccount === selectedBilling,
             onClick: async () => {
               setShowBillingModal(false)
-              await updateBillingAccount(selectedBilling)
+              await setBillingAccount(selectedBilling)
             }
           }, ['Ok'])
         }, [

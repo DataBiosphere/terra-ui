@@ -467,6 +467,12 @@ const Billing = signal => ({
     return res
   },
 
+  billingProject: async projectName => {
+    const route = `billing/v2/${projectName}`
+    const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: 'GET' }))
+    return res.json()
+  },
+
   project: projectName => {
     const root = `billing/v2/${projectName}/members`
 
