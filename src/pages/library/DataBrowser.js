@@ -23,16 +23,16 @@ const sidebarSections = [{
   labels: [
     'Alzheimer\'s disease',
     'asthma',
-    'autism spectrum disorder',
-  ]},
-  {
-    name: 'Data Type',
-    labels: [
-        'Exome',
-        'Whole Genome'
-    ]
-  }
-]
+    'autism spectrum disorder'
+  ]
+},
+{
+  name: 'Data Type',
+  labels: [
+    'Exome',
+    'Whole Genome'
+  ]
+}]
 
 
 const DataBrowser = () => {
