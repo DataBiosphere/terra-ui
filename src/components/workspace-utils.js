@@ -73,7 +73,7 @@ const SnapshotLabeledInfo = ({ title, text }) => {
 }
 
 export const SnapshotInfo = ({
-  workspace: { workspace, workspace: { namespace, name } }, resource: { resourceId, description, snapshot: snapshotId } , snapshotName,
+  workspace: { workspace, workspace: { namespace, name } }, resource: { resourceId, description, snapshotId } , snapshotName,
   onUpdate, onDelete
 }) => {
   // State

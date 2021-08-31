@@ -505,7 +505,7 @@ const WorkspaceData = _.flow(
             error: snapshotMetadataError,
             retryFunction: loadSnapshotMetadata
           }, [
-            _.map(([snapshotName, { resource: { resourceId, snapshot }, entityMetadata: snapshotTables, error: snapshotTablesError }]) => {
+            _.map(([snapshotName, { resource: { resourceId, snapshotId }, entityMetadata: snapshotTables, error: snapshotTablesError }]) => {
               const snapshotTablePairs = toSortedPairs(snapshotTables)
               return h(Collapse, {
                 key: snapshotName,
@@ -554,7 +554,7 @@ const WorkspaceData = _.flow(
                         Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {
                           ...extractWorkspaceDetails(workspace.workspace),
                           resourceId,
-                          snapshotId: snapshot,
+                          snapshotId,
                           entityType: tableName
                         })
                         forceRefresh()
