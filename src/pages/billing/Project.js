@@ -26,7 +26,7 @@ import { billingRoles } from 'src/pages/billing/List'
 const workspaceLastModifiedWidth = 150
 const workspaceExpandIconSize = 20
 
-const workspaceBillingStatusIcon = (() => {
+const workspaceBillingStatusIconOrEmpty = (() => {
   const size = 16
   const blank = div({ style: { width: size } },
     [div({ className: 'sr-only' }, ['Status'])])
@@ -35,7 +35,7 @@ const workspaceBillingStatusIcon = (() => {
 
 const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
-    workspaceBillingStatusIcon(null),
+    workspaceBillingStatusIconOrEmpty(null),
     div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: '1rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'name' })
     ]),
@@ -81,7 +81,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingA
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' } }, [
     h(IdContainer, [id => h(Fragment, [
       div({ style: workspaceCardStyles.row }, [
-        workspaceBillingStatusIcon(billingAccountStatusIcon),
+        workspaceBillingStatusIconOrEmpty(billingAccountStatusIcon),
         div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
           h(Link, {
             style: Style.noWrapEllipsis,
