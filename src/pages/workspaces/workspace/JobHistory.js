@@ -188,14 +188,14 @@ const JobHistory = _.flow(
   const filteredSubmissions = _.filter(({ asText }) => _.every(term => asText.includes(term.toLowerCase()), textFilter.split(/\s+/)), submissions)
 
   const sortedSubmissions = _.orderBy(
-    Utils.cond(
-      [sort.field === 'entityName', () => 'submissionEntity.entityName'],
-      [sort.field === 'numberOfWorkflows', () => [s => _.sum(_.values(s.workflowStatuses))]],
-      [sort.field === 'status', () => [s => {
+    Utils.switchCase(sort.field,
+      ['entityName', () => 'submissionEntity.entityName'],
+      ['numberOfWorkflows', () => [s => _.sum(_.values(s.workflowStatuses))]],
+      ['status', () => [s => {
         const { succeeded, failed, running, submitted } = collapsedStatuses(s.workflowStatuses)
         return [submitted, running, failed, succeeded]
       }]],
-      () => sort.field
+      [Utils.DEFAULT, () => sort.field]
     ),
     [sort.direction],
     filteredSubmissions)
