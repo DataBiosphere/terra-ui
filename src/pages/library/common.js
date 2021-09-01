@@ -1,3 +1,4 @@
+import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
@@ -116,7 +117,7 @@ const uniqueSidebarTags = sidebarSections => {
 
 export const groupByFeaturedTags = (workspaces, sidebarSections) => {
   return _.flow([
-    _.map(tag => [tag, _.filter(w => _.includes(tag, w.tags.items), workspaces)]),
+    _.map(tag => [tag, _.filter(w => _.includes(tag, w.tags?.items), workspaces)]),
     _.fromPairs
   ])(uniqueSidebarTags(sidebarSections))
 }
@@ -168,8 +169,8 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
 export const selectionActionComponent = (selectedData, setSelectedData) => {
   const length = selectedData.length
   const files = _.sumBy('files', selectedData)
-  const fileSize = _.sumBy('fileSize', selectedData)
-  const fileSizeFormatted = Utils.formatBytes(fileSize)
+  const totalBytes = _.sumBy('fileSize', selectedData)
+  const fileSizeFormatted = filesize(totalBytes)
 
   return div(
     {
@@ -184,7 +185,7 @@ export const selectionActionComponent = (selectedData, setSelectedData) => {
     [
       div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
         `${length} dataset${length > 1 ? 's' : ''} (${fileSizeFormatted} - ${files} bam files) selected to be saved to a Terra Workspace`,
-        div({}, [
+        div([
           h(ButtonSecondary, {
             style: { fontSize: 16, marginRight: 40, textTransform: 'none' },
             onClick: () => setSelectedData([])
@@ -192,9 +193,7 @@ export const selectionActionComponent = (selectedData, setSelectedData) => {
           h(ButtonPrimary, {
             style: { textTransform: 'none', fontSize: 14 },
             onClick: () => {}
-          }, [
-            'Save to a workspace'
-          ])
+          }, ['Save to a workspace'])
         ])
       ])
     ]
@@ -271,7 +270,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
     switch (listdataType) {
       case 'datasets': return makeTable(listdata, sort, setSort, sortDir, setSortDir, selectedData, toggleData)
       case 'workspaces': return _.map(makeCard(), listdata)
-      default: return div({}, '')
+      default: return null
     }
   }
 
@@ -346,39 +345,35 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, t
   const makeTableHeader = (headerStyles, headerName, sortable = false) => {
     return div({ style: { ...styles.table.header, ...headerStyles } }, [
       sortable ?
-        h(
-          Link,
-          {
-            onClick: () => {
-              if (sort === headerName) {
-                setSortDir(sortDir * -1)
-              } else {
-                setSort(headerName)
-                setSortDir(1)
-              }
-            },
-            style: { fontWeight: 600 }
+        h(Link, {
+          onClick: () => {
+            if (sort === headerName) {
+              setSortDir(sortDir * -1)
+            } else {
+              setSort(headerName)
+              setSortDir(1)
+            }
           },
-          [
-            headerName,
-            icon(
-              sortDir === 1 ? 'long-arrow-alt-up' : 'long-arrow-alt-down',
-              {
-                size: 12,
-                style: {
-                  visibility: `${sort === headerName ? 'visible' : 'hidden'}`,
-                  marginTop: '5px'
-                },
-                'aria-label': `Sorted by ${sortDir === 1 ? 'ascending' : 'descending'}`
-              }
-            )
-          ]
-        ) : div({ style: styles.table.header }, headerName)
+          style: { fontWeight: 600 }
+        }, [
+          headerName,
+          icon(
+            sortDir === 1 ? 'long-arrow-alt-up' : 'long-arrow-alt-down',
+            {
+              size: 12,
+              style: {
+                visibility: `${sort === headerName ? 'visible' : 'hidden'}`,
+                marginTop: '5'
+              },
+              'aria-label': `Sorted by ${sortDir === 1 ? 'ascending' : 'descending'}`
+            }
+          )
+        ]) : div({ style: styles.table.header }, [headerName])
     ])
   }
 
   return div({ style: styles.table.table }, [
-    div({ style: { ...styles.table.flexTableRow, marginBottom: '-15px' } }, [
+    div({ style: { ...styles.table.flexTableRow, marginBottom: -15 } }, [
       div({ style: { ...styles.table.col, ...styles.table.firstElem } }, ''),
       makeTableHeader({ flex: 2.2 }, 'Dataset Name', true),
       makeTableHeader({}, 'Project', true),
@@ -387,7 +382,7 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, t
       makeTableHeader(styles.table.lastElem, 'Last Updated', true)
     ]),
 
-    div({}, listData.map(listdatum => {
+    div(listData.map(listdatum => {
       const [isOpened, setIsOpened] = useState(false)
 
       return div({ style: styles.table.row }, [
@@ -419,16 +414,15 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, t
           div({ style: { ...styles.table.col, ...styles.table.firstElem } }, [
             icon(listdatum.locked ? 'lock' : 'lock-o', { size: 12, style: { flex: 'none', color: listdatum.locked ? colors.accent() : colors.primary() } })
           ]),
-          div({ style: { ...styles.table.col, width: '100%', fontSize: '12px' } }, [
-            h(
-              Link,
+          div({ style: { ...styles.table.col, width: '100%', fontSize: 12 } }, [
+            h(Link,
               { onClick: () => setIsOpened(!isOpened) },
               [
                 `See ${isOpened ? 'Less' : 'More'}`,
-                icon(isOpened ? 'angle-up' : 'angle-down', { size: 12, style: { flex: 'none', marginTop: '5px' } })
+                icon(isOpened ? 'angle-up' : 'angle-down', { size: 12, style: { flex: 'none', marginTop: 5 } })
               ]
             ),
-            div({ style: { display: isOpened ? 'block' : 'none', marginTop: '10px' } }, listdatum.description)
+            div({ style: { display: isOpened ? 'block' : 'none', marginTop: 10 } }, listdatum.description)
           ])
         ])
       ])
