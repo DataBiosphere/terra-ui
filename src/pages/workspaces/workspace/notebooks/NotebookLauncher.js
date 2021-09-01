@@ -354,7 +354,7 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { googlePr
 
 const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
   Utils.useOnMount(() => {
-    Ajax().Metrics.captureEvent(Events.notebookLaunch, { 'Notebook Name': details.notebookName, 'Workspace Name': details.name, 'Workspace Namespace': details.namespace })
+    Ajax().Metrics.captureEvent(Events.notebookLaunch, { 'Notebook Name': details.notebookName, 'Workspace Name': details.name, 'Workspace Namespace': details.googleProject })
 
     const isSaved = Utils.atom(true)
     const onMessage = e => {
@@ -397,7 +397,7 @@ const copyingNotebookMessage = div({ style: { paddingTop: '2rem' } }, [
   h(StatusMessage, ['Copying notebook to cloud environment, almost ready...'])
 ])
 
-const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
+const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { googleProject, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
   console.assert(_.includes(status, usableStatuses), `Expected cloud environment to be one of: [${usableStatuses}]`)
   console.assert(!labels.welderInstallFailed, 'Expected cloud environment to have Welder')
   const frameRef = useRef()
@@ -415,15 +415,15 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   )(async () => {
     await Ajax()
       .Runtimes
-      .notebooks(namespace, runtimeName)
+      .notebooks(googleProject, runtimeName)
       .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
-    if (mode === 'edit' && !(await Ajax().Runtimes.notebooks(namespace, runtimeName).lock(`${localBaseDirectory}/${notebookName}`))) {
+    if (mode === 'edit' && !(await Ajax().Runtimes.notebooks(googleProject, runtimeName).lock(`${localBaseDirectory}/${notebookName}`))) {
       notify('error', 'Unable to Edit Notebook', {
         message: 'Another user is currently editing this notebook. You can run it in Playground Mode or make a copy.'
       })
       chooseMode(undefined)
     } else {
-      await Ajax().Runtimes.notebooks(namespace, runtimeName).localize([{
+      await Ajax().Runtimes.notebooks(googleProject, runtimeName).localize([{
         sourceUri: `${cloudStorageDirectory}/${notebookName}`,
         localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${notebookName}` : `${localSafeModeBaseDirectory}/${notebookName}`
       }])
@@ -444,15 +444,15 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
       }),
       h(JupyterFrameManager, {
         frameRef,
-        onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name }),
-        details: { notebookName, name, namespace }
+        onClose: () => Nav.goToPath('workspace-notebooks', { googleProject, name }),
+        details: { notebookName, name, googleProject }
       })
     ]),
     busy && copyingNotebookMessage
   ])
 }
 
-const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
+const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { googleProject, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
   console.assert(status === 'Running', 'Expected cloud environment to be running')
   console.assert(!!labels.welderInstallFailed, 'Expected cloud environment to not have Welder')
   const frameRef = useRef()
@@ -474,7 +474,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
       })
       chooseMode(undefined)
     } else {
-      await Ajax(signal).Runtimes.notebooks(namespace, runtimeName).oldLocalize({
+      await Ajax(signal).Runtimes.notebooks(googleProject, runtimeName).oldLocalize({
         [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
       })
       setLocalized(true)
@@ -504,8 +504,8 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
       }),
       h(JupyterFrameManager, {
         frameRef,
-        onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name }),
-        details: { notebookName, name, namespace }
+        onClose: () => Nav.goToPath('workspace-notebooks', { googleProject, name }),
+        details: { notebookName, name, googleProject }
       })
     ]),
     busy && copyingNotebookMessage
