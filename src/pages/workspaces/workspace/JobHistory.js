@@ -122,7 +122,7 @@ const JobHistory = _.flow(
   const [abortingId, setAbortingId] = useState(undefined)
   const [textFilter, setTextFilter] = useState('')
   const [sort, setSort] = useState({ field: 'submissionDate', direction: 'desc' })
-  const [updatingComment, setUpdatingComment] = useState(undefined)
+  const [updatingCommentId, setUpdatingCommentId] = useState(undefined)
 
   const scheduledRefresh = useRef()
   const signal = Utils.useCancellation()
@@ -313,17 +313,16 @@ const JobHistory = _.flow(
             },
             {
               // Disable shrinking so that the ID does not render outside of the cell
-              size: { basis: 170, grow: 1, shrink: 0 },
+              size: { basis: 150, grow: 1, shrink: 0 },
               field: 'submissionId',
               headerRenderer: makeHeaderRenderer('submissionId', 'Submission ID'),
               cellRenderer: ({ rowIndex }) => {
                 const { submissionId } = sortedSubmissions[rowIndex]
-                return h(TextCell, { style: { whiteSpace: 'normal' } }, [
-                  h(Link, {
-                    ...Utils.newTabLinkProps,
-                    href: bucketBrowserUrl(`${bucketName}/${submissionId}`)
-                  }, [submissionId])
-                ])
+                return h(Link, {
+                  style: { fontSize: 12 },
+                  ...Utils.newTabLinkProps,
+                  href: bucketBrowserUrl(`${bucketName}/${submissionId}`)
+                }, [submissionId])
               }
             },
             {
@@ -331,7 +330,7 @@ const JobHistory = _.flow(
               headerRenderer: makeHeaderRenderer('userComment', 'Comment'),
               cellRenderer: ({ rowIndex }) => {
                 const { userComment } = sortedSubmissions[rowIndex]
-                return userComment && h(TooltipCell, { tooltip: userComment }, [userComment])
+                return h(TooltipCell, [userComment])
               }
             },
             {
@@ -346,16 +345,16 @@ const JobHistory = _.flow(
                 const canRelaunch = isTerminal(status) && (workflowStatuses['Failed'] || workflowStatuses['Aborted']) &&
                   submissionEntity && !methodConfigurationDeleted
                 return div({ style: { width: '100%', textAlign: 'center' } }, [
-                  updatingComment === submissionId && h(UpdateUserCommentModal, {
+                  updatingCommentId === submissionId && h(UpdateUserCommentModal, {
                     workspace: { name, namespace }, submissionId, userComment,
-                    onDismiss: () => setUpdatingComment(undefined),
+                    onDismiss: () => setUpdatingCommentId(undefined),
                     onSuccess: refresh
                   }),
                   h(MenuTrigger, {
                     closeOnClick: true,
                     content: h(Fragment, [
                       h(MenuButton, {
-                        onClick: () => setUpdatingComment(submissionId)
+                        onClick: () => setUpdatingCommentId(submissionId)
                       }, ['Edit Comment']),
                       h(MenuButton, {
                         disabled: !canAbort,

@@ -1,7 +1,7 @@
 import Downshift from 'downshift'
 import _ from 'lodash/fp'
 import { Fragment, useRef, useState } from 'react'
-import { div, h, input, textarea, wbr } from 'react-hyperscript-helpers'
+import { div, h, input, textarea } from 'react-hyperscript-helpers'
 import TextAreaAutosize from 'react-textarea-autosize'
 import { ButtonPrimary } from 'src/components/common'
 import { icon } from 'src/components/icons'
@@ -306,11 +306,6 @@ export const TextArea = ({ onChange, autosize = false, nativeOnChange = false, .
 }
 
 /**
- * Utility function for wrapping text on periods.
- */
-export const wrappableOnPeriods = _.flow(str => str?.split(/(\.)/), _.flatMap(sub => sub === '.' ? [wbr(), '.'] : sub))
-
-/**
  * A TextArea that provides visual and textual indications when the content is invalid.
  *
  * @param {Object} inputProps input properties for the TextArea
@@ -318,15 +313,12 @@ export const wrappableOnPeriods = _.flow(str => str?.split(/(\.)/), _.flatMap(su
  */
 export const ValidatedTextArea = ({ inputProps, error }) => {
   return h(Fragment, [
-    h(TextArea,
-      _.merge({ className: error ? 'error-style' : 'focus-style' }, inputProps)
-    ),
-    div(
-      {
-        style: { color: colors.danger(), overflowWrap: 'break-word', marginTop: '.75rem' },
-        'aria-live': 'assertive',
-        'aria-relevant': 'all'
-      }, [h(Fragment, wrappableOnPeriods(error))])
+    h(TextArea, { className: error ? 'error-style' : 'focus-style', ...inputProps }),
+    div({
+      style: { color: colors.danger(), overflowWrap: 'break-word', marginTop: '0.75rem' },
+      'aria-live': 'assertive',
+      'aria-relevant': 'all'
+    }, [error])
   ])
 }
 

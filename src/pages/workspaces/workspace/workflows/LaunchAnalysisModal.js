@@ -4,7 +4,7 @@ import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, CromwellVersionLink, IdContainer } from 'src/components/common'
 import { warningBoxStyle } from 'src/components/data/data-utils'
 import { icon, spinner } from 'src/components/icons'
-import { ValidatedTextArea, wrappableOnPeriods } from 'src/components/input'
+import { ValidatedTextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { regionInfo } from 'src/components/region-common'
@@ -91,6 +91,7 @@ const LaunchAnalysisModal = ({
     okButton: !launchError ?
       h(ButtonPrimary, {
         disabled: launching || userCommentError,
+        tooltip: userCommentError,
         onClick: () => {
           setLaunching(true)
           doLaunch()
@@ -150,9 +151,7 @@ const LaunchAnalysisModal = ({
       style: { color: colors.danger(), overflowWrap: 'break-word' },
       'aria-live': 'assertive',
       'aria-relevant': 'all'
-    }, [
-      h(Fragment, wrappableOnPeriods(launchError))
-    ])
+    }, [launchError])
   ])
 }
 

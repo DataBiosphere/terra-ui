@@ -52,6 +52,7 @@ const UpdateUserCommentModal = ({ onDismiss, onSuccess, workspace: { namespace, 
       okButton:
         h(ButtonPrimary, {
           disabled: updating || userCommentError,
+          tooltip: userCommentError,
           onClick: () => {
             setUpdating(true)
             doUpdate()
