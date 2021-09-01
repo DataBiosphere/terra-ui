@@ -62,7 +62,6 @@ const DataBrowser = () => {
     keepCollapsed: true
   }]
 
-  // lowercase
   const snapshots = _.map(snapshot => ({
     ...snapshot,
     tags: _.update(['items'], _.map(_.toLower), snapshot.tags),
