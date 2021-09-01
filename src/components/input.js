@@ -323,7 +323,7 @@ export const ValidatedTextArea = ({ inputProps, error }) => {
     ),
     div(
       {
-        style: { color: colors.danger(), overflowWrap: 'break-word', marginTop: '1rem' },
+        style: { color: colors.danger(), overflowWrap: 'break-word', marginTop: '.75rem' },
         'aria-live': 'assertive',
         'aria-relevant': 'all'
       }, [h(Fragment, wrappableOnPeriods(error))])

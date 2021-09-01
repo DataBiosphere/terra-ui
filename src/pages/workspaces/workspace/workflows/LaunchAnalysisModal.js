@@ -110,7 +110,7 @@ const LaunchAnalysisModal = ({
         ])]) : 'Loading...'
     ]),
     h(IdContainer, [id => div({ style: { margin: '1rem 0' } }, [
-      label({ htmlFor: id, style: { display: 'block', margin: '1rem 0' } }, ['Add Comment:']),
+      label({ htmlFor: id, style: { display: 'block', margin: '1rem 0' } }, ['Describe your submission (optional):']),
       ValidatedTextArea({
         inputProps: {
           id,
