@@ -354,7 +354,7 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { googlePr
 
 const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
   Utils.useOnMount(() => {
-    Ajax().Metrics.captureEvent(Events.notebookLaunch, { 'Notebook Name': details.notebookName, 'Workspace Name': details.name, 'Workspace Namespace': details.googleProject })
+    Ajax().Metrics.captureEvent(Events.notebookLaunch, { 'Notebook Name': details.notebookName, 'Workspace Name': details.name, 'Workspace Namespace': details.namespace })
 
     const isSaved = Utils.atom(true)
     const onMessage = e => {
@@ -397,7 +397,7 @@ const copyingNotebookMessage = div({ style: { paddingTop: '2rem' } }, [
   h(StatusMessage, ['Copying notebook to cloud environment, almost ready...'])
 ])
 
-const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { googleProject, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
+const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, googleProject, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
   console.assert(_.includes(status, usableStatuses), `Expected cloud environment to be one of: [${usableStatuses}]`)
   console.assert(!labels.welderInstallFailed, 'Expected cloud environment to have Welder')
   const frameRef = useRef()
@@ -445,14 +445,14 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { goo
       h(JupyterFrameManager, {
         frameRef,
         onClose: () => Nav.goToPath('workspace-notebooks', { googleProject, name }),
-        details: { notebookName, name, googleProject }
+        details: { notebookName, name, namespace, googleProject }
       })
     ]),
     busy && copyingNotebookMessage
   ])
 }
 
-const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { googleProject, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
+const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, googleProject, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
   console.assert(status === 'Running', 'Expected cloud environment to be running')
   console.assert(!!labels.welderInstallFailed, 'Expected cloud environment to not have Welder')
   const frameRef = useRef()
@@ -505,7 +505,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
       h(JupyterFrameManager, {
         frameRef,
         onClose: () => Nav.goToPath('workspace-notebooks', { googleProject, name }),
-        details: { notebookName, name, googleProject }
+        details: { notebookName, name, namespace, googleProject }
       })
     ]),
     busy && copyingNotebookMessage
