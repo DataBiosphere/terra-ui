@@ -20,7 +20,7 @@ export const commentValidation = (newComment, updateComment, updateError) => {
   const maxCommentLength = 1000
   updateComment(newComment)
   updateError(newComment.length > maxCommentLength ?
-    `The comment can be at most ${maxCommentLength} characters` : undefined
+    `The comment can be at most ${maxCommentLength} characters.` : undefined
   )
 }
 
