@@ -444,7 +444,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
       }),
       h(JupyterFrameManager, {
         frameRef,
-        onClose: () => Nav.goToPath('workspace-notebooks', { googleProject, name }),
+        onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name }),
         details: { notebookName, name, namespace, googleProject }
       })
     ]),
@@ -504,7 +504,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
       }),
       h(JupyterFrameManager, {
         frameRef,
-        onClose: () => Nav.goToPath('workspace-notebooks', { googleProject, name }),
+        onClose: () => Nav.goToPath('workspace-notebooks', { namespace, name }),
         details: { notebookName, name, namespace, googleProject }
       })
     ]),
