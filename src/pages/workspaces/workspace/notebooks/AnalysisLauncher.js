@@ -1,3 +1,4 @@
+
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
@@ -434,7 +435,7 @@ const copyingAnalysisMessage = div({ style: { paddingTop: '2rem' } }, [
 ])
 
 const AnalysisEditorFrame = ({
-  styles, mode, analysisName, toolLabel, workspace: { workspace: { namespace, name, bucketName } },
+  styles, mode, analysisName, toolLabel, workspace: { workspace: { googleProject, namespace, name, bucketName } },
   runtime: { runtimeName, proxyUrl, status, labels }
 }) => {
   console.assert(_.includes(status, usableStatuses), `Expected cloud environment to be one of: [${usableStatuses}]`)
@@ -457,16 +458,16 @@ const AnalysisEditorFrame = ({
     await Ajax()
       //TODO: use proper welder calls
       .Runtimes
-      .notebooks(namespace, runtimeName)
+      .notebooks(googleProject, runtimeName)
       .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
-    if (mode === 'edit' && !(await Ajax().Runtimes.notebooks(namespace, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
+    if (mode === 'edit' && !(await Ajax().Runtimes.notebooks(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
       notify('error', 'Unable to Edit Analysis', {
         message: 'Another user is currently editing this analysis. You can run it in Playground Mode or make a copy.'
       })
       chooseMode(undefined)
     } else {
       //TODO use proper welder calls
-      await Ajax().Runtimes.notebooks(namespace, runtimeName).localize([{
+      await Ajax().Runtimes.notebooks(googleProject, runtimeName).localize([{
         sourceUri: `${cloudStorageDirectory}/${analysisName}`,
         localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${analysisName}` : `${localSafeModeBaseDirectory}/${analysisName}`
       }])
@@ -501,7 +502,7 @@ const AnalysisEditorFrame = ({
 // do we need this anymore? (can be queried in prod DB to see if there are any VMs with welderEnabled=false with a `recent` dateAccessed
 // do we need to support this for rstudio? I don't think so because welder predates RStudio support, but not 100%
 const WelderDisabledNotebookEditorFrame = ({
-  styles, mode, notebookName, workspace: { workspace: { namespace, name, bucketName } },
+  styles, mode, notebookName, workspace: { workspace: { googleProject, namespace, name, bucketName } },
   runtime: { runtimeName, proxyUrl, status, labels }
 }) => {
   console.assert(status === 'Running', 'Expected cloud environment to be running')
@@ -526,7 +527,7 @@ const WelderDisabledNotebookEditorFrame = ({
       chooseMode(undefined)
     } else {
       //TODO: does this link need to change?
-      await Ajax(signal).Runtimes.notebooks(namespace, runtimeName).oldLocalize({
+      await Ajax(signal).Runtimes.notebooks(googleProject, runtimeName).oldLocalize({
         [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
       })
       setLocalized(true)
