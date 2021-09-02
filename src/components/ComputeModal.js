@@ -498,14 +498,14 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const willDeletePersistentDisk = () => {
-    const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = getExistingEnvironmentConfig()
-    return existingPersistentDisk && !canUpdatePersistentDisk() && existingRuntime.tool !== 'RStudio'
+    const { persistentDisk: existingPersistentDisk} = getExistingEnvironmentConfig()
+    return existingPersistentDisk && !canUpdatePersistentDisk()
   }
 
-  const willDeletePersistentDiskForRstudio = () => {
-    const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = getExistingEnvironmentConfig()
+  const isToolRStudio = () => {
+    const { runtime: existingRuntime } = getExistingEnvironmentConfig()
 
-    return existingPersistentDisk && ! canUpdatePersistentDisk() && existingRuntime.tool === 'RStudio'
+    return existingRuntime.tool === 'RStudio'
   }
 
   const willDetachPersistentDisk = () => {
@@ -641,7 +641,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         canShowCustomImageWarning && isCustomImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage,
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('customImageWarning') }, ['Next'])
       ], [
-        canShowEnvironmentWarning && (willDeleteBuiltinDisk() || willDeletePersistentDisk() || willDeletePersistentDiskForRstudio() || willRequireDowntime() || willDetachPersistentDisk()),
+        canShowEnvironmentWarning && (willDeleteBuiltinDisk() || willDeletePersistentDisk() || willRequireDowntime() || willDetachPersistentDisk()),
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('environmentWarning') }, ['Next'])
       ],
       () => h(ButtonPrimary, {
@@ -967,7 +967,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           canUpdateRuntime: !!canUpdateRuntime(),
           willDeleteBuiltinDisk: !!willDeleteBuiltinDisk(),
           willDeletePersistentDisk: !!willDeletePersistentDisk(),
-          willDeletePersistentDisk: !!willDeletePersistentDiskForRstudio(),
           willRequireDowntime: !!willRequireDowntime()
         })
       ]) :
@@ -1102,7 +1101,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         title: h(WarningTitle, [
           Utils.cond(
             [willDetachPersistentDisk(), () => 'Replace application configuration and cloud compute profile for Spark'],
-            [willDeleteBuiltinDisk() || willDeletePersistentDisk() || willDeletePersistentDiskForRstudio(), () => 'Data will be deleted'],
+            [willDeleteBuiltinDisk() || willDeletePersistentDisk(), () => 'Data will be deleted'],
             [willRequireDowntime(), () => 'Downtime required']
           )
         ]),
@@ -1131,17 +1130,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           ])],
           [willDeletePersistentDisk(), () => h(Fragment, [
             p([
-              'Reducing the size of a persistent disk requires it to be deleted and recreated. This will ',
+              'To reduce the size of the PD, the existing PD will be deleted and a new one will be created and attached to your virtual machine instance. This will ',
               span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
             ]),
-            h(SaveFilesHelp)
-          ])],
-          [willDeletePersistentDiskForRstudio(), () => h(Fragment, [
-            p([
-              'Reducing the size of a persistent disk requires it to be deleted and recreated. This will ',
-              span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
-            ]),
-            h(SaveFilesHelpRStudio)
+            isToolRStudio() ? h(SaveFilesHelp) : h(SaveFilesHelpRStudio)
           ])],
           [willRequireDowntime(), () => h(Fragment, [
             p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
