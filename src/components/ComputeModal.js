@@ -11,6 +11,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer'
 import { tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { SaveFilesHelp } from 'src/components/runtime-common'
+import { SaveFilesHelpRStudio } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { cloudServices, machineTypes } from 'src/data/machines'
@@ -298,12 +299,14 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const cloudService = runtimeConfig?.cloudService
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
     const gpuConfig = runtimeConfig?.gpuConfig
+    const tool = currentRuntimeDetails?.labels.tool
 
     return {
       hasGpu: computeConfig.hasGpu,
       runtime: currentRuntimeDetails ? {
         cloudService,
         toolDockerImage: getImageUrl(currentRuntimeDetails),
+        tool,
         ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
         ...(cloudService === cloudServices.GCE ? {
           machineType: runtimeConfig.machineType || defaultGceMachineType,
@@ -495,8 +498,14 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const willDeletePersistentDisk = () => {
-    const { persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
-    return existingPersistentDisk && !canUpdatePersistentDisk()
+    const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = getExistingEnvironmentConfig()
+    return existingPersistentDisk && !canUpdatePersistentDisk() && existingRuntime.tool !== 'RStudio'
+  }
+
+  const willDeletePersistentDiskForRstudio = () => {
+    const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = getExistingEnvironmentConfig()
+
+    return existingPersistentDisk && ! canUpdatePersistentDisk() && existingRuntime.tool === 'RStudio'
   }
 
   const willDetachPersistentDisk = () => {
@@ -632,7 +641,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         canShowCustomImageWarning && isCustomImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage,
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('customImageWarning') }, ['Next'])
       ], [
-        canShowEnvironmentWarning && (willDeleteBuiltinDisk() || willDeletePersistentDisk() || willRequireDowntime() || willDetachPersistentDisk()),
+        canShowEnvironmentWarning && (willDeleteBuiltinDisk() || willDeletePersistentDisk() || willDeletePersistentDiskForRstudio() || willRequireDowntime() || willDetachPersistentDisk()),
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('environmentWarning') }, ['Next'])
       ],
       () => h(ButtonPrimary, {
@@ -958,6 +967,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           canUpdateRuntime: !!canUpdateRuntime(),
           willDeleteBuiltinDisk: !!willDeleteBuiltinDisk(),
           willDeletePersistentDisk: !!willDeletePersistentDisk(),
+          willDeletePersistentDisk: !!willDeletePersistentDiskForRstudio(),
           willRequireDowntime: !!willRequireDowntime()
         })
       ]) :
@@ -1092,7 +1102,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         title: h(WarningTitle, [
           Utils.cond(
             [willDetachPersistentDisk(), () => 'Replace application configuration and cloud compute profile for Spark'],
-            [willDeleteBuiltinDisk() || willDeletePersistentDisk(), () => 'Data will be deleted'],
+            [willDeleteBuiltinDisk() || willDeletePersistentDisk() || willDeletePersistentDiskForRstudio(), () => 'Data will be deleted'],
             [willRequireDowntime(), () => 'Downtime required']
           )
         ]),
@@ -1125,6 +1135,13 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
               span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
             ]),
             h(SaveFilesHelp)
+          ])],
+          [willDeletePersistentDiskForRstudio(), () => h(Fragment, [
+            p([
+              'Reducing the size of a persistent disk requires it to be deleted and recreated. This will ',
+              span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
+            ]),
+            h(SaveFilesHelpRStudio)
           ])],
           [willRequireDowntime(), () => h(Fragment, [
             p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
