@@ -720,6 +720,11 @@ const Workspaces = signal => ({
             return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }))
           },
 
+          updateUserComment: userComment => {
+            const payload = { userComment }
+            return fetchRawls(submissionPath, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
+          },
+
           // NB: This could one day perhaps redirect to CromIAM's 'workflow' like:
           // workflow: workflowId => Ajax(signal).CromIAM.workflow(workflowId)
           // But: Because of the slowness of asking via CromIAM, that's probably a non-starter for right now.
