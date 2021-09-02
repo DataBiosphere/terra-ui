@@ -1352,20 +1352,25 @@ const Apps = signal => ({
       },
       create: ({ kubernetesRuntimeConfig, diskName, diskSize, appType, namespace, bucketName, workspaceName }) => {
         const body = {
-          labels: { saturnWorkspaceName: workspaceName },
+          labels: {
+            saturnWorkspaceNamespace: namespace,
+            saturnWorkspaceName: workspaceName
+          },
           kubernetesRuntimeConfig,
           diskConfig: {
             name: diskName,
             size: diskSize,
             labels: {
               saturnApplication: 'galaxy',
+              saturnWorkspaceNamespace: namespace,
               saturnWorkspaceName: workspaceName
             }
           },
           customEnvironmentVariables: {
             WORKSPACE_NAME: workspaceName,
+            WORKSPACE_NAMESPACE: namespace,
             WORKSPACE_BUCKET: `gs://${bucketName}`,
-            GOOGLE_PROJECT: namespace
+            GOOGLE_PROJECT: project
           },
           appType
         }

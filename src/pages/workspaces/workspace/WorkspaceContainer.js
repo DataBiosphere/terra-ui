@@ -320,7 +320,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, refreshRuntimes, runtimes, persistentDisks, galaxyDataDisks,
+          workspace, refreshWorkspace, refreshRuntimes, refreshApps, runtimes, persistentDisks, galaxyDataDisks,
           ...props
         }),
         loadingWorkspace && spinnerOverlay
