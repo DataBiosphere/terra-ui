@@ -8,7 +8,7 @@ export const launch = async ({
   workspace: { workspace: { namespace, name, googleProject, bucketName }, accessLevel },
   config: { namespace: configNamespace, name: configName, rootEntityType },
   selectedEntityType, selectedEntityNames, newSetName, useCallCache = true, deleteIntermediateOutputFiles, useReferenceDisks,
-  memoryRetryMultiplier, onProgress
+  memoryRetryMultiplier, userComment, onProgress
 }) => {
   const createSet = () => {
     onProgress('createSet')
@@ -59,6 +59,6 @@ export const launch = async ({
     ),
     entityName,
     expression: processSet ? `this.${rootEntityType}s` : undefined,
-    useCallCache, deleteIntermediateOutputFiles, useReferenceDisks, memoryRetryMultiplier
+    useCallCache, deleteIntermediateOutputFiles, useReferenceDisks, memoryRetryMultiplier, userComment
   })
 }

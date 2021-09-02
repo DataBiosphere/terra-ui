@@ -720,6 +720,11 @@ const Workspaces = signal => ({
             return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }))
           },
 
+          updateUserComment: userComment => {
+            const payload = { userComment }
+            return fetchRawls(submissionPath, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
+          },
+
           // NB: This could one day perhaps redirect to CromIAM's 'workflow' like:
           // workflow: workflowId => Ajax(signal).CromIAM.workflow(workflowId)
           // But: Because of the slowness of asking via CromIAM, that's probably a non-starter for right now.
@@ -1352,20 +1357,25 @@ const Apps = signal => ({
       },
       create: ({ kubernetesRuntimeConfig, diskName, diskSize, appType, namespace, bucketName, workspaceName }) => {
         const body = {
-          labels: { saturnWorkspaceName: workspaceName },
+          labels: {
+            saturnWorkspaceNamespace: namespace,
+            saturnWorkspaceName: workspaceName
+          },
           kubernetesRuntimeConfig,
           diskConfig: {
             name: diskName,
             size: diskSize,
             labels: {
               saturnApplication: 'galaxy',
+              saturnWorkspaceNamespace: namespace,
               saturnWorkspaceName: workspaceName
             }
           },
           customEnvironmentVariables: {
             WORKSPACE_NAME: workspaceName,
+            WORKSPACE_NAMESPACE: namespace,
             WORKSPACE_BUCKET: `gs://${bucketName}`,
-            GOOGLE_PROJECT: namespace
+            GOOGLE_PROJECT: project
           },
           appType
         }

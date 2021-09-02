@@ -259,6 +259,7 @@ const Environments = ({ namespace }) => {
       ['app', () => setDeleteAppId],
       ['disk', () => setDeleteDiskId]
     )
+
     return h(Link, {
       style: { marginLeft: '1rem' },
       disabled: !isDeletable,
