@@ -290,7 +290,8 @@ const JobHistory = _.flow(
               }
             },
             {
-              size: { basis: 150, grow: 0 },
+              // Disable shrinking so that "Submitted" and "Aborted" do not render outside of the cell
+              size: { basis: 150, grow: 0, shrink: 0 },
               field: 'status',
               headerRenderer: makeHeaderRenderer('status'),
               cellRenderer: ({ rowIndex }) => {
