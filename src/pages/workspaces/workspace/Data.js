@@ -417,7 +417,7 @@ const WorkspaceData = _.flow(
       setSnapshotMetadataError(false)
       const { gcpDataRepoSnapshots: snapshotBody } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshots(1000, 0)
 
-      const snapshots = _.reduce((acc, { metadata : { name, ...metadata }, attributes } ) => {
+      const snapshots = _.reduce((acc, { metadata: { name, ...metadata }, attributes }) => {
         return _.set([name, 'resource'], _.merge(metadata, attributes), acc)
       },
       _.pick(_.map('name', _.map('metadata', snapshotBody)), snapshotDetails) || {}, // retain entities if loaded from state history, but only for snapshots that exist

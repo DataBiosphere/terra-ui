@@ -170,6 +170,13 @@ const Environments = ({ namespace }) => {
 
   const loadData = withErrorReporting('Error loading cloud environments', refreshData)
 
+  const pauseComputeAndRefresh = withErrorReporting('Error loading cloud environments', async (computeType, compute) => {
+    computeType === 'runtime' ?
+      await Ajax().Runtimes.runtime(compute.googleProject, compute.runtimeName).stop() :
+      await Ajax().Apps.app(compute.googleProject, compute.appName).pause()
+    refreshData()
+  })
+
   useOnMount(() => { loadData() })
   usePollingEffect(withErrorIgnoring(refreshData), { ms: 30000 })
 
@@ -290,16 +297,13 @@ const Environments = ({ namespace }) => {
   }
 
   const renderPauseButton = (computeType, compute) => {
-    const { id } = compute
+    const { status } = compute
     const isPausable = isComputePausable(computeType, compute)
-    const action = Utils.switchCase(computeType,
-      ['runtime', () => setPauseRuntimeId],
-      ['app', () => setPauseAppId]
-    )
+
     return h(Link, {
       disabled: !isPausable,
-      tooltip: isPausable ? 'Pause cloud environment' : 'Cannot pause a cloud environment while in current status',
-      onClick: () => action(id)
+      tooltip: isPausable ? 'Pause cloud environment' : `Cannot pause compute while in status ${status}`,
+      onClick: () => pauseComputeAndRefresh(computeType, compute)
     }, [makeMenuIcon('pause'), 'Pause'])
   }
 
