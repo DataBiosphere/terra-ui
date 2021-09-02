@@ -175,7 +175,7 @@ const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
   style: { padding: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: 2 }, ...props
 }, [children])
 
-const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, bucketName } } }) => {
+const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, notebookName, workspace, workspace: { canShare, workspace: { namespace, name, googleProject, bucketName } } }) => {
   const signal = Utils.useCancellation()
   const { user: { email } } = Utils.useStore(authStore)
   const [fileInUseOpen, setFileInUseOpen] = useState(false)
@@ -191,7 +191,7 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
   const notebookLink = Nav.getLink('workspace-notebook-launch', { namespace, name, notebookName })
 
   const checkIfLocked = withErrorReporting('Error checking notebook lock status', async () => {
-    const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName.slice(0, -6)).getObject()
+    const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal).Buckets.notebook(googleProject, bucketName, notebookName.slice(0, -6)).getObject()
     const hashedUser = await notebookLockHash(bucketName, email)
     const lockExpirationDate = new Date(parseInt(lockExpiresAt))
 
@@ -297,7 +297,7 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
       }
     }),
     copyingNotebook && h(NotebookDuplicator, {
-      printName: notebookName.slice(0, -6), fromLauncher: true,
+      printName: notebookName.slice(0, -6), fromLauncher: true, googleProject,
       wsName: name, namespace, bucketName, destroyOld: false,
       onDismiss: () => setCopyingNotebook(false),
       onSuccess: () => setCopyingNotebook(false)
@@ -317,7 +317,7 @@ const PreviewHeader = ({ queryParams, runtime, readOnlyAccess, onCreateRuntime, 
   ])
 }
 
-const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespace, bucketName } }, onRequesterPaysError }) => {
+const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { googleProject, bucketName } }, onRequesterPaysError }) => {
   const signal = Utils.useCancellation()
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState()
@@ -328,7 +328,7 @@ const NotebookPreviewFrame = ({ notebookName, workspace: { workspace: { namespac
     withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error previewing notebook')
   )(async () => {
-    setPreview(await Ajax(signal).Buckets.notebook(namespace, bucketName, notebookName).preview())
+    setPreview(await Ajax(signal).Buckets.notebook(googleProject, bucketName, notebookName).preview())
   })
   Utils.useOnMount(() => {
     loadPreview()
@@ -397,7 +397,7 @@ const copyingNotebookMessage = div({ style: { paddingTop: '2rem' } }, [
   h(StatusMessage, ['Copying notebook to cloud environment, almost ready...'])
 ])
 
-const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
+const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, googleProject, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
   console.assert(_.includes(status, usableStatuses), `Expected cloud environment to be one of: [${usableStatuses}]`)
   console.assert(!labels.welderInstallFailed, 'Expected cloud environment to have Welder')
   const frameRef = useRef()
@@ -415,15 +415,15 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   )(async () => {
     await Ajax()
       .Runtimes
-      .notebooks(namespace, runtimeName)
+      .notebooks(googleProject, runtimeName)
       .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
-    if (mode === 'edit' && !(await Ajax().Runtimes.notebooks(namespace, runtimeName).lock(`${localBaseDirectory}/${notebookName}`))) {
+    if (mode === 'edit' && !(await Ajax().Runtimes.notebooks(googleProject, runtimeName).lock(`${localBaseDirectory}/${notebookName}`))) {
       notify('error', 'Unable to Edit Notebook', {
         message: 'Another user is currently editing this notebook. You can run it in Playground Mode or make a copy.'
       })
       chooseMode(undefined)
     } else {
-      await Ajax().Runtimes.notebooks(namespace, runtimeName).localize([{
+      await Ajax().Runtimes.notebooks(googleProject, runtimeName).localize([{
         sourceUri: `${cloudStorageDirectory}/${notebookName}`,
         localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${notebookName}` : `${localSafeModeBaseDirectory}/${notebookName}`
       }])
@@ -452,7 +452,7 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   ])
 }
 
-const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
+const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { namespace, googleProject, name, bucketName } }, runtime: { runtimeName, proxyUrl, status, labels } }) => {
   console.assert(status === 'Running', 'Expected cloud environment to be running')
   console.assert(!!labels.welderInstallFailed, 'Expected cloud environment to not have Welder')
   const frameRef = useRef()
@@ -474,7 +474,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
       })
       chooseMode(undefined)
     } else {
-      await Ajax(signal).Runtimes.notebooks(namespace, runtimeName).oldLocalize({
+      await Ajax(signal).Runtimes.notebooks(googleProject, runtimeName).oldLocalize({
         [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
       })
       setLocalized(true)

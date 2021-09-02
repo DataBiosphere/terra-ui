@@ -78,7 +78,7 @@ export const RuntimeErrorModal = ({ runtime, onDismiss }) => {
       setError(
         await Ajax()
           .Buckets
-          .getObjectPreview(runtime.asyncRuntimeFields.stagingBucket, `userscript_output.txt`, runtime.googleProject, true)
+          .getObjectPreview(runtime.googleProject, runtime.asyncRuntimeFields.stagingBucket, `userscript_output.txt`, true)
           .then(res => res.text()))
       setUserscriptError(true)
     } else {

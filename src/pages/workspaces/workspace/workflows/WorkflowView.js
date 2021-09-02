@@ -196,7 +196,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
   })
 }
 
-const BucketContentModal = ({ workspace: { workspace: { namespace, bucketName } }, onSelect, onDismiss }) => {
+const BucketContentModal = ({ workspace: { workspace: { googleProject, bucketName } }, onSelect, onDismiss }) => {
   const [prefix, setPrefix] = useState('')
   const [prefixes, setPrefixes] = useState()
   const [objects, setObjects] = useState(undefined)
@@ -208,7 +208,7 @@ const BucketContentModal = ({ workspace: { workspace: { namespace, bucketName } 
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading bucket data')
   )(async (newPrefix = prefix) => {
-    const { items, prefixes: newPrefixes } = await Ajax(signal).Buckets.list(namespace, bucketName, newPrefix)
+    const { items, prefixes: newPrefixes } = await Ajax(signal).Buckets.list(googleProject, bucketName, newPrefix)
     setObjects(items)
     setPrefixes(newPrefixes)
     setPrefix(newPrefix)
@@ -391,7 +391,7 @@ const WorkflowView = _.flow(
           onSuccess: submissionId => {
             const { methodRepoMethod: { methodVersion, methodNamespace, methodName, methodPath, sourceRepo } } = modifiedConfig
             // will only match if the current root entity type comes from a snapshot
-            const snapshot = _.find({ name: modifiedConfig.dataReferenceName }, availableSnapshots)
+            const snapshot = _.find({ metadata: { name: modifiedConfig.dataReferenceName } }, availableSnapshots)
             Ajax().Metrics.captureEvent(Events.workflowLaunch, {
               ...extractWorkspaceDetails(workspace),
               snapshotId: snapshot?.reference.snapshot,
@@ -452,7 +452,8 @@ const WorkflowView = _.flow(
       const selection = workflowSelectionStore.get()
       const readSelection = selectionKey && selection.key === selectionKey
 
-      const { resources: snapshots } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshots(1000, 0)
+      const { gcpDataRepoSnapshots: snapshots } = await Ajax(signal).Workspaces.workspace(namespace, name).listSnapshots(1000, 0)
+      const snapshotMetadata = _.map('metadata', snapshots)
 
       // Dockstore users who target floating tags can change their WDL via Github without explicitly selecting a new version in Terra.
       // Before letting the user edit the config we retrieved from the DB, drop any keys that are no longer valid. [WA-291]
@@ -471,7 +472,7 @@ const WorkflowView = _.flow(
         savedConfig: config, modifiedConfig,
         currentSnapRedacted: isRedacted, savedSnapRedacted: isRedacted,
         entityMetadata,
-        availableSnapshots: _.sortBy(_.lowerCase, snapshots),
+        availableSnapshots: _.sortBy(_.lowerCase, snapshotMetadata),
         selectedSnapshotEntityMetadata,
         savedInputsOutputs: inputsOutputs,
         modifiedInputsOutputs: inputsOutputs,
@@ -924,8 +925,7 @@ const WorkflowView = _.flow(
         },
         onSuccess: model => this.setState({ entitySelectionModel: model, selectingData: false }),
         workspace,
-        rootEntityType: modifiedConfig.rootEntityType,
-        workspaceId: { namespace, name: workspaceName }
+        rootEntityType: modifiedConfig.rootEntityType
       })
     ])
   }

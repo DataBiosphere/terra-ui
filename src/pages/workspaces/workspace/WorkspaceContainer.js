@@ -266,12 +266,12 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         workspaceStore.set(workspace)
         setGoogleProject(workspace.workspace.googleProject)
 
-        const { accessLevel, workspace: { createdBy, createdDate } } = workspace
+        const { accessLevel, workspace: { createdBy, createdDate, googleProject } } = workspace
 
         // Request a service account token. If this is the first time, it could take some time before everything is in sync.
         // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
         if (Utils.canWrite(accessLevel)) {
-          saToken(namespace)
+          saToken(googleProject)
         }
 
         if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceInSeconds(Date.now(), parseJSON(createdDate)) < 60)) {
@@ -320,7 +320,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, refreshRuntimes, runtimes, persistentDisks, galaxyDataDisks,
+          workspace, refreshWorkspace, refreshRuntimes, refreshApps, runtimes, persistentDisks, galaxyDataDisks,
           ...props
         }),
         loadingWorkspace && spinnerOverlay

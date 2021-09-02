@@ -68,7 +68,7 @@ const PreviewContent = ({ uri, metadata, metadata: { bucket, name }, googleProje
   const [preview, setPreview] = useState()
   const loadPreview = async () => {
     try {
-      const res = await Ajax(signal).Buckets.getObjectPreview(bucket, name, googleProject, isImage(metadata))
+      const res = await Ajax(signal).Buckets.getObjectPreview(googleProject, bucket, name, isImage(metadata))
       if (isImage(metadata)) {
         setPreview(URL.createObjectURL(await res.blob()))
       } else {
@@ -177,9 +177,9 @@ const UriViewer = _.flow(
       if (isGs(uri)) {
         const [bucket, name] = parseGsUri(uri)
         const loadObject = withRequesterPaysHandler(onRequesterPaysError, () => {
-          return Ajax(signal).Buckets.getObject(bucket, name, googleProject)
+          return Ajax(signal).Buckets.getObject(googleProject, bucket, name)
         })
-        const metadata = await loadObject(bucket, name, googleProject)
+        const metadata = await loadObject(googleProject, bucket, name)
         setMetadata(metadata)
       } else {
         // Fields are mapped from the martha_v3 fields to those used by google

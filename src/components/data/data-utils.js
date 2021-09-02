@@ -58,14 +58,14 @@ export const getUserProjectForWorkspace = async workspace => (workspace && await
   workspace.workspace.namespace :
   requesterPaysProjectStore.get()
 
-export const renderDataCell = (data, namespace) => {
+export const renderDataCell = (data, googleProject) => {
   const isUri = datum => _.startsWith('gs://', datum) || _.startsWith('dos://', datum) || _.startsWith('drs://', datum)
 
   const renderCell = datum => {
     const stringDatum = Utils.convertValue('string', datum)
 
     return h(TextCell, { title: stringDatum },
-      [isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject: namespace }) : stringDatum])
+      [isUri(datum) ? h(UriViewerLink, { uri: datum, googleProject }) : stringDatum])
   }
 
   const renderArray = items => {

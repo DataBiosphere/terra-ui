@@ -8,6 +8,7 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { libraryTopMatter } from 'src/components/library-common'
+import datasets from 'src/data/datasets'
 import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
 import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
@@ -208,6 +209,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
   const [sortDir, setSortDir] = useState(1)
 
   const [selectedData, setSelectedData] = useState([])
+  const [openedData, setOpenedData] = useState([])
 
   const listdataByTag = _.omitBy(_.isEmpty, groupByFeaturedTags(featuredList, sidebarSections))
 
@@ -244,8 +246,16 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
       return _.uniq(_.flatMap(tag => listdataByTag[tag], tags))
     }
   }
-  // eslint-disable-next-line lodash-fp/no-single-composition
-  const filterByTags = listdata => _.flow(_.map(tag => _.intersection(listdataByTag[tag]), selectedTags))(listdata)
+  const filterByTags = listdata => {
+    if (_.isEmpty(selectedTags)) {
+      return listdata
+    } else {
+      let ret = listdata
+      const datasets = _.map(tag => listdataByTag[tag], selectedTags)
+      datasets.forEach(datasetsForTag => ret = _.intersection(datasetsForTag, ret))
+      return ret
+    }
+  }
   const filterByText = listdata => {
     const lowerSearch = _.toLower(searchFilter)
     return _.isEmpty(lowerSearch) ?
@@ -258,7 +268,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
     filterByText
   )(featuredList)
 
-  const toggleData = data => {
+  const toggleSelectedData = data => {
     if (_.some(data, selectedData)) {
       setSelectedData(_.filter(d => !_.isEqual(d, data), selectedData))
     } else {
@@ -266,9 +276,17 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
     }
   }
 
+  const toggleOpenedData = data => {
+    if (_.some(data, openedData)) {
+      setOpenedData(_.filter(d => !_.isEqual(d, data), openedData))
+    } else {
+      setOpenedData([...openedData, data])
+    }
+  }
+
   const makeListDisplay = (listdataType, listdata) => {
     switch (listdataType) {
-      case 'datasets': return makeTable(listdata, sort, setSort, sortDir, setSortDir, selectedData, toggleData)
+      case 'datasets': return makeTable(listdata, sort, setSort, sortDir, setSortDir, selectedData, toggleSelectedData, openedData, toggleOpenedData)
       case 'workspaces': return _.map(makeCard(), listdata)
       default: return null
     }
@@ -341,7 +359,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
   ])
 }
 
-const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, toggleData) => {
+const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, toggleSelectedData, openedData, toggleOpenedData) => {
   const makeTableHeader = (headerStyles, headerName, sortable = false) => {
     return div({ style: { ...styles.table.header, ...headerStyles } }, [
       sortable ?
@@ -383,8 +401,6 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, t
     ]),
 
     div(listData.map(listdatum => {
-      const [isOpened, setIsOpened] = useState(false)
-
       return div({ style: styles.table.row }, [
         div({ style: styles.table.flexTableRow, key: `${listdatum.namespace}:${listdatum.name}` },
           [
@@ -392,7 +408,7 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, t
               { style: { ...styles.table.col, ...styles.table.firstElem, alignSelf: 'flex-start' } },
               [
                 label({
-                  onClick: () => toggleData(listdatum),
+                  onClick: () => toggleSelectedData(listdatum),
                   htmlFor: `${listdatum.namespace}:${listdatum.name}-checkbox`
                 }, [
                   h(Checkbox, {
@@ -416,13 +432,13 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, t
           ]),
           div({ style: { ...styles.table.col, width: '100%', fontSize: 12 } }, [
             h(Link,
-              { onClick: () => setIsOpened(!isOpened) },
+              { onClick: () => toggleOpenedData(listdatum) },
               [
-                `See ${isOpened ? 'Less' : 'More'}`,
-                icon(isOpened ? 'angle-up' : 'angle-down', { size: 12, style: { flex: 'none', marginTop: 5 } })
+                `See ${_.some(listdatum, openedData) ? 'Less' : 'More'}`,
+                icon(_.some(listdatum, openedData) ? 'angle-up' : 'angle-down', { size: 12, style: { flex: 'none', marginTop: 5 } })
               ]
             ),
-            div({ style: { display: isOpened ? 'block' : 'none', marginTop: 10 } }, listdatum.description)
+            div({ style: { display: _.some(listdatum, openedData) ? 'block' : 'none', marginTop: 10 } }, listdatum.description)
           ])
         ])
       ])

@@ -1,10 +1,37 @@
+import _ from 'lodash/fp'
 import { SearchAndFilterComponent } from 'src/pages/library/common'
 
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const sidebarSections = [{
-  name: 'Test',
-  labels: ['test1', 'test2']
+  name: 'Access Type',
+  labels: ['Controlled Access', 'Open Access']
+}, {
+  name: 'Consortium',
+  labels: [
+    '1000 Genomes',
+    'CCDG',
+    'CMG',
+    'Convergent Neuro',
+    'GTEx (v8)',
+    'HPRC',
+    'PAGE',
+    'WGSPD1'
+  ]
+}, {
+  name: 'Disease',
+  labels: [
+    'Alzheimer\'s disease',
+    'asthma',
+    'autism spectrum disorder'
+  ]
+},
+{
+  name: 'Data Type',
+  labels: [
+    'Exome',
+    'Whole Genome'
+  ]
 }]
 
 
@@ -17,7 +44,7 @@ const DataBrowser = () => {
       lastUpdated: '2020-01-13T18:25:28.340Z',
       tags: {
         itemsType: 'AttributeValue',
-        items: ['test1']
+        items: ['1000 Genomes', 'CMG', 'Open Access', 'Exome']
       },
       description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
       lowerName: 'this is a really really long name that should wrap onto another line',
@@ -40,7 +67,7 @@ const DataBrowser = () => {
       lastUpdated: '2020-01-07T18:25:28.340Z',
       tags: {
         itemsType: 'AttributeValue',
-        items: ['wizarding']
+        items: ['1000 Genomes', 'CMG', 'Open Access', 'Exome']
       },
       description: 'The boy who lived',
       lowerName: 'harry potter',
@@ -63,7 +90,7 @@ const DataBrowser = () => {
       lastUpdated: '2020-01-07T18:25:28.340Z',
       tags: {
         itemsType: 'AttributeValue',
-        items: ['jedi']
+        items: ['1000 Genomes', 'CMG', 'Open Access', 'Exome']
       },
       description: 'force sensitive',
       lowerName: 'luke skywalker',
@@ -86,7 +113,7 @@ const DataBrowser = () => {
       lastUpdated: '2020-01-07T18:25:28.340Z',
       tags: {
         itemsType: 'AttributeValue',
-        items: ['jedi', 'darkside']
+        items: ['1000 Genomes', 'CCDG', 'Controlled Access', 'Whole Genome', 'asthma']
       },
       description: 'force sensitive',
       lowerName: 'darth vader',
@@ -104,7 +131,13 @@ const DataBrowser = () => {
     }
   ]
 
-  return SearchAndFilterComponent(featuredList, sidebarSections, 'browse & explore', 'datasets')
+  const snapshots = _.map(snapshot => ({
+    ...snapshot,
+    tags: _.update(['items'], _.map(_.toLower), snapshot.tags),
+    lowerName: _.toLower(snapshot.name), lowerDescription: _.toLower(snapshot.description)
+  }), featuredList)
+
+  return SearchAndFilterComponent(snapshots, sidebarSections, 'browse & explore', 'datasets')
 }
 
 export const navPaths = [{

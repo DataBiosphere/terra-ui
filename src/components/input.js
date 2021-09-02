@@ -207,7 +207,11 @@ export const ValidatedInput = ({ inputProps, width, error }) => {
         }
       })
     ]),
-    error && div({ style: styles.validationError }, [error])
+    error && div({
+      style: styles.validationError,
+      'aria-live': 'assertive',
+      'aria-relevant': 'all'
+    }, [error])
   ])
 }
 
@@ -299,6 +303,23 @@ export const TextArea = ({ onChange, autosize = false, nativeOnChange = false, .
     style: styles.textarea,
     onChange: onChange ? (e => onChange(nativeOnChange ? e : e.target.value)) : undefined
   }, props))
+}
+
+/**
+ * A TextArea that provides visual and textual indications when the content is invalid.
+ *
+ * @param {Object} inputProps input properties for the TextArea
+ * @param {String} error the message to display below the TextArea, or undefined if no error
+ */
+export const ValidatedTextArea = ({ inputProps, error }) => {
+  return h(Fragment, [
+    h(TextArea, { className: error ? 'error-style' : 'focus-style', ...inputProps }),
+    div({
+      style: { color: colors.danger(), overflowWrap: 'break-word', marginTop: '0.75rem' },
+      'aria-live': 'assertive',
+      'aria-relevant': 'all'
+    }, [error])
+  ])
 }
 
 export const DelayedAutocompleteTextArea = withDebouncedChange(withAutocomplete(TextArea))
