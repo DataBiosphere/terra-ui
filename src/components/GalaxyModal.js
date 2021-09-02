@@ -43,7 +43,6 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
     onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
     isAnalysisMode = false
   }) => {
-
     // Assumption: If there is an app defined, there must be a data disk corresponding to it.
     const app = getCurrentApp(apps)
     const attachedDataDisk = currentAttachedDataDisk(app, galaxyDataDisks)
