@@ -498,7 +498,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const willDeletePersistentDisk = () => {
-    const { persistentDisk: existingPersistentDisk} = getExistingEnvironmentConfig()
+    const { persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
     return existingPersistentDisk && !canUpdatePersistentDisk()
   }
 
