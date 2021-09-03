@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h, span } from 'react-hyperscript-helpers'
+import { div, h, p, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
@@ -26,16 +26,22 @@ import { billingRoles } from 'src/pages/billing/List'
 const workspaceLastModifiedWidth = 150
 const workspaceExpandIconSize = 20
 
-const workspaceBillingStatusIconOrEmpty = (() => {
+const BillingAccountStatusIcon = {
+  Updating: 'loadingSpinner',
+  Done: 'success-standard',
+  Error: 'error-standard'
+}
+
+const getBillingAccountStatusIconOrEmpty = (() => {
   const size = 16
   const blank = div({ style: { width: size } },
     [div({ className: 'sr-only' }, ['Status'])])
-  return shape => shape ? icon(shape, { size }) : blank
+  return shape => icon(shape, { size }) || blank
 })()
 
 const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
-    workspaceBillingStatusIconOrEmpty(null),
+    getBillingAccountStatusIconOrEmpty(null),
     div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: '1rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'name' })
     ]),
@@ -81,7 +87,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingA
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' } }, [
     h(IdContainer, [id => h(Fragment, [
       div({ style: workspaceCardStyles.row }, [
-        workspaceBillingStatusIconOrEmpty(billingAccountStatusIcon),
+        getBillingAccountStatusIconOrEmpty(billingAccountStatusIcon),
         div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
           h(Link, {
             style: Style.noWrapEllipsis,
@@ -125,6 +131,42 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingA
   ])
 })
 
+const BillingAccountSummaryPanel = (() => {
+
+  const StatusAndCount = ({ icon, status, count }) => h(Fragment, [
+    div({ style: { marginLeft: '0.5rem', float: 'left' } }, [getBillingAccountStatusIconOrEmpty(icon)]),
+    div({ style: { marginLeft: '1rem', float: 'left' } }, [`${status} (${count})`])
+  ])
+
+  const maybeSummarize = (icon, status, count) => count > 0 &&
+    div({ style: { float: 'left', marginLeft: '1rem' } },
+      [h(StatusAndCount, { icon, status, count })])
+
+  return Utils.memoWithName('BillingAccountSummaryPanel', ({
+    billingProject: {
+        workspacesWithCorrectBillingAccount,
+        workspacesWithIncorrectBillingAccount
+      }
+    }) => {
+      const [done, errors, updating] = _.flow(
+        _.partition(_.has('billingAccountErrorMessage')),
+        _.concat([workspacesWithCorrectBillingAccount]),
+        _.map(_.size)
+      )(workspacesWithIncorrectBillingAccount)
+
+      return div({ style: { padding: '1rem' } }, [
+        p('Your billing account is updating...'),
+        h(Fragment, [
+          maybeSummarize(BillingAccountStatusIcon.Error, 'error', errors),
+          maybeSummarize(BillingAccountStatusIcon.Updating, 'updating', updating),
+          maybeSummarize(BillingAccountStatusIcon.Done, 'done', done)
+        ]),
+        p('Try again or '),
+      ])
+    }
+  )
+})()
+
 const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) => {
   // State
   const { query } = Nav.useRoute()
@@ -155,9 +197,9 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
 
   const getBillingAccountStatusIcon = workspace => Utils.cond(
     [_.isEmpty(billingProject.workspacesWithIncorrectBillingAccount), () => null],
-    [billingProject.billingAccount === workspace.billingAccount, () => 'success-standard'],
-    ['billingAccountErrorMessage' in workspace, () => 'error-standard'],
-    [Utils.DEFAULT, () => 'loadingSpinner']
+    [billingProject.billingAccount === workspace.billingAccount, () => BillingAccountStatusIcon.Done],
+    ['billingAccountErrorMessage' in workspace, () => BillingAccountStatusIcon.Error],
+    [Utils.DEFAULT, () => BillingAccountStatusIcon.Updating]
   )
 
   const tabToTable = {
@@ -291,6 +333,8 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
   const { displayName = null } = _.find({ accountName: billingProject.billingAccount }, billingAccounts) || { displayName: 'No Access' }
 
   return h(Fragment, [
+    _.size(billingProject.workspacesWithIncorrectBillingAccount) > 0 &&
+    div({}, [h(BillingAccountSummaryPanel, { billingProject })]),
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
       div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
