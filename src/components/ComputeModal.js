@@ -298,7 +298,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const cloudService = runtimeConfig?.cloudService
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
     const gpuConfig = runtimeConfig?.gpuConfig
-    const tool = currentRuntimeDetails?.labels.tool
+    const tool = currentRuntimeDetails?.labels?.tool
 
     return {
       hasGpu: computeConfig.hasGpu,
