@@ -502,11 +502,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     return existingPersistentDisk && !canUpdatePersistentDisk()
   }
 
-  const isToolRStudio = () => {
-    const { runtime: existingRuntime } = getExistingEnvironmentConfig()
-    return existingRuntime.tool === 'RStudio'
-  }
-
   const willDetachPersistentDisk = () => {
     const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
     return desiredRuntime.cloudService === cloudServices.DATAPROC && hasAttachedDisk()
@@ -1132,7 +1127,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
               'To reduce the size of the PD, the existing PD will be deleted and a new one will be created and attached to your virtual machine instance. This will ',
               span({ style: { fontWeight: 600 } }, ['delete all files on the disk.'])
             ]),
-            isToolRStudio() ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp) 
+            getExistingEnvironmentConfig().runtime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp) 
           ])],
           [willRequireDowntime(), () => h(Fragment, [
             p(['This change will require temporarily shutting down your cloud environment. You will be unable to perform analysis for a few minutes.']),
