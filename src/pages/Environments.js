@@ -127,6 +127,8 @@ const Environments = ({ namespace }) => {
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' })
 
+  const disabledButtonColorDarkness = colors.dark(0.4)
+
   const refreshData = withBusyState(setLoading, async () => {
     const creator = getUser().email
     const [newRuntimes, newDisks, galaxyDisks, newApps] = await Promise.all([
@@ -160,9 +162,9 @@ const Environments = ({ namespace }) => {
   const loadData = withErrorReporting('Error loading cloud environments', refreshData)
 
   const pauseComputeAndRefresh = withErrorReporting('Error loading cloud environments', async (computeType, compute) => {
-    computeType === 'runtime' ?
-      await Ajax().Runtimes.runtime(compute.googleProject, compute.runtimeName).stop() :
-      await Ajax().Apps.app(compute.googleProject, compute.appName).pause()
+    await computeType === 'runtime' ?
+      Ajax().Runtimes.runtime(compute.googleProject, compute.runtimeName).stop() :
+      Ajax().Apps.app(compute.googleProject, compute.appName).pause()
     refreshData()
   })
 
@@ -259,9 +261,9 @@ const Environments = ({ namespace }) => {
     )
 
     return h(Link, {
-      style: { marginLeft: '1rem' },
+      style: { marginLeft: '1rem', ...(isDeletable ? {} : { color: disabledButtonColorDarkness }) },
       disabled: !isDeletable,
-      tooltip: isDeletable ? 'Delete cloud environment' : `Cannot delete a cloud environment while in status ${resource.status}`,
+      tooltip: isDeletable ? 'Delete cloud environment' : `Cannot delete a cloud environment while in status ${_.upperCase(resource.status)}`,
       onClick: () => action(resourceId)
     }, [makeMenuIcon('trash'), 'Delete'])
   }
@@ -271,8 +273,9 @@ const Environments = ({ namespace }) => {
     const isPausable = isComputePausable(computeType, compute)
 
     return h(Link, {
+      style: isPausable ? {} : { color: disabledButtonColorDarkness },
       disabled: !isPausable,
-      tooltip: isPausable ? 'Pause cloud environment' : `Cannot pause a cloud environment while in status ${status}`,
+      tooltip: isPausable ? 'Pause cloud environment' : `Cannot pause a cloud environment while in status ${_.upperCase(status)}`,
       onClick: () => pauseComputeAndRefresh(computeType, compute)
     }, [makeMenuIcon('pause'), 'Pause'])
   }
@@ -508,6 +511,7 @@ const Environments = ({ namespace }) => {
                 [_.some({ runtimeConfig: { persistentDiskId: id } }, runtimes) || _.some({ diskName: name }, apps), () => 'Cannot delete this disk because it is attached. You must delete the cloud environment first.']
               )
               return status !== 'Deleting' && h(Link, {
+                style: !!error ? { color: disabledButtonColorDarkness } : {},
                 disabled: !!error,
                 tooltip: error || 'Delete persistent disk',
                 onClick: () => setDeleteDiskId(id)
