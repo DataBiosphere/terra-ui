@@ -73,7 +73,7 @@ const SnapshotLabeledInfo = ({ title, text }) => {
 }
 
 export const SnapshotInfo = ({
-  workspace: { workspace, workspace: { namespace, name } }, resource: { referenceId, description, reference: { snapshot: snapshotId } }, snapshotName,
+  workspace: { workspace, workspace: { namespace, name } }, resource: { resourceId, description, snapshotId }, snapshotName,
   onUpdate, onDelete
 }) => {
   // State
@@ -91,7 +91,7 @@ export const SnapshotInfo = ({
   const save = async () => {
     try {
       setSaving(true) // this will be unmounted in the reload, so no need to reset this
-      await Ajax().Workspaces.workspace(namespace, name).snapshot(referenceId).update({ name: newName, description: newDescription })
+      await Ajax().Workspaces.workspace(namespace, name).snapshot(resourceId).update({ name: newName, description: newDescription })
       onUpdate(newName)
     } catch (e) {
       setSaving(false)
@@ -215,10 +215,10 @@ export const SnapshotInfo = ({
           try {
             setSaving(true) // this will be unmounted in the reload, so no need to reset this
             setDeleting(false)
-            await Ajax().Workspaces.workspace(namespace, name).snapshot(referenceId).delete()
+            await Ajax().Workspaces.workspace(namespace, name).snapshot(resourceId).delete()
             Ajax().Metrics.captureEvent(Events.workspaceSnapshotDelete, {
               ...extractWorkspaceDetails(workspace),
-              referenceId,
+              resourceId,
               snapshotId
             })
             onDelete()

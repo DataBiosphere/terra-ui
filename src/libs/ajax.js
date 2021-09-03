@@ -676,12 +676,14 @@ const Workspaces = signal => ({
       },
 
       listSnapshots: async (limit, offset) => {
-        const res = await fetchRawls(`${root}/snapshots?offset=${offset}&limit=${limit}`, _.merge(authOpts(), { signal }))
-        return res.json()
+        const res = await fetchRawls(`${root}/snapshots/v2?offset=${offset}&limit=${limit}`, _.merge(authOpts(), { signal }))
+        // The list snapshots endpoint returns a "snapshot" field that should really be named "snapshotId". Ideally, this should be fixed in the
+        // backend, but we've sequestered it here for now.
+        return _.update('gcpDataRepoSnapshots', _.map(_.update('attributes', a => ({ ...a, snapshotId: a.snapshot }))), await res.json())
       },
 
       snapshot: snapshotId => {
-        const snapshotPath = `${root}/snapshots/${snapshotId}`
+        const snapshotPath = `${root}/snapshots/v2/${snapshotId}`
 
         return {
           details: async () => {
@@ -714,6 +716,11 @@ const Workspaces = signal => ({
 
           abort: () => {
             return fetchRawls(submissionPath, _.merge(authOpts(), { signal, method: 'DELETE' }))
+          },
+
+          updateUserComment: userComment => {
+            const payload = { userComment }
+            return fetchRawls(submissionPath, _.mergeAll([authOpts(), jsonBody(payload), { signal, method: 'PATCH' }]))
           },
 
           // NB: This could one day perhaps redirect to CromIAM's 'workflow' like:
@@ -1348,20 +1355,25 @@ const Apps = signal => ({
       },
       create: ({ kubernetesRuntimeConfig, diskName, diskSize, appType, namespace, bucketName, workspaceName }) => {
         const body = {
-          labels: { saturnWorkspaceName: workspaceName },
+          labels: {
+            saturnWorkspaceNamespace: namespace,
+            saturnWorkspaceName: workspaceName
+          },
           kubernetesRuntimeConfig,
           diskConfig: {
             name: diskName,
             size: diskSize,
             labels: {
               saturnApplication: 'galaxy',
+              saturnWorkspaceNamespace: namespace,
               saturnWorkspaceName: workspaceName
             }
           },
           customEnvironmentVariables: {
             WORKSPACE_NAME: workspaceName,
+            WORKSPACE_NAMESPACE: namespace,
             WORKSPACE_BUCKET: `gs://${bucketName}`,
-            GOOGLE_PROJECT: namespace
+            GOOGLE_PROJECT: project
           },
           appType
         }
