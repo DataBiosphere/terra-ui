@@ -1,9 +1,10 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { b, div, h, p, span, wbr } from 'react-hyperscript-helpers'
-import { ButtonPrimary, CromwellVersionLink } from 'src/components/common'
+import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
+import { ButtonPrimary, CromwellVersionLink, IdContainer } from 'src/components/common'
 import { warningBoxStyle } from 'src/components/data/data-utils'
 import { icon, spinner } from 'src/components/icons'
+import { ValidatedTextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { regionInfo } from 'src/components/region-common'
@@ -12,6 +13,7 @@ import { launch } from 'src/libs/analysis'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import * as Utils from 'src/libs/utils'
+import { commentValidation } from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal'
 import { chooseBaseType, chooseRootType, chooseSetType, processSnapshotTable } from 'src/pages/workspaces/workspace/workflows/EntitySelectionType'
 
 
@@ -26,6 +28,8 @@ const LaunchAnalysisModal = ({
   const [message, setMessage] = useState(undefined)
   const [launchError, setLaunchError] = useState(undefined)
   const [bucketLocation, setBucketLocation] = useState({})
+  const [userComment, setUserComment] = useState(undefined)
+  const [userCommentError, setUserCommentError] = useState(undefined)
   const signal = Utils.useCancellation()
 
   Utils.useOnMount(() => {
@@ -54,14 +58,14 @@ const LaunchAnalysisModal = ({
       const { submissionId } = await launch({
         isSnapshot: type === processSnapshotTable,
         workspace, config, selectedEntityType, selectedEntityNames, newSetName, useCallCache, deleteIntermediateOutputFiles, useReferenceDisks,
-        memoryRetryMultiplier: retryWithMoreMemory ? retryMemoryFactor : undefined,
+        memoryRetryMultiplier: retryWithMoreMemory ? retryMemoryFactor : undefined, userComment: _.trim(userComment),
         onProgress: stage => {
           setMessage({ createSet: 'Creating set...', launch: 'Launching analysis...', checkBucketAccess: 'Checking bucket access...' }[stage])
         }
       })
       onSuccess(submissionId)
     } catch (error) {
-      setLaunchError(await (error instanceof Response ? error.text() : error.message))
+      setLaunchError(await (error instanceof Response ? error.json().then(data => data.message) : error.message))
       setMessage(undefined)
     }
   }
@@ -74,7 +78,6 @@ const LaunchAnalysisModal = ({
     [type === chooseBaseType, () => 1],
     [type === chooseSetType, () => _.flow(mergeSets, _.uniqBy('entityName'))(selectedEntities).length]
   )
-  const wrappableOnPeriods = _.flow(str => str?.split(/(\.)/), _.flatMap(sub => sub === '.' ? [wbr(), '.'] : sub))
   const { location, locationType } = bucketLocation
   const { flag, regionDescription } = regionInfo(location, locationType)
 
@@ -87,7 +90,8 @@ const LaunchAnalysisModal = ({
     showCancel: !launching,
     okButton: !launchError ?
       h(ButtonPrimary, {
-        disabled: launching,
+        disabled: launching || userCommentError,
+        tooltip: userCommentError,
         onClick: () => {
           setLaunching(true)
           doLaunch()
@@ -95,9 +99,9 @@ const LaunchAnalysisModal = ({
       }, ['Launch']) :
       h(ButtonPrimary, { onClick: onDismiss }, ['OK'])
   }, [
-    div({ style: { margin: '1rem 0' } }, ['This analysis will be run by ', h(CromwellVersionLink), '.']),
+    div({ style: { margin: '1rem 0 1.5rem' } }, ['This analysis will be run by ', h(CromwellVersionLink), '.']),
     div(['Output files will be saved as workspace data in:']),
-    div({ style: { margin: '1rem' } }, [
+    div({ style: { margin: '1rem 0 1.5rem' } }, [
       location ? h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [flag]),
         span({ style: { marginRight: '0.5rem' } }, [regionDescription]),
         h(InfoBox, [
@@ -106,6 +110,19 @@ const LaunchAnalysisModal = ({
           p(['Note that metadata about this run will be stored in the US.'])
         ])]) : 'Loading...'
     ]),
+    h(IdContainer, [id => div({ style: { margin: '1rem 0' } }, [
+      label({ htmlFor: id, style: { display: 'block', margin: '1rem 0' } }, ['Describe your submission (optional):']),
+      ValidatedTextArea({
+        inputProps: {
+          id,
+          value: userComment,
+          onChange: v => commentValidation(v, setUserComment, setUserCommentError),
+          placeholder: 'Enter comment for the submission',
+          style: { height: 100 }
+        },
+        error: userCommentError
+      })
+    ])]),
     warnDuplicateAnalyses ? div({
       style: { ...warningBoxStyle, fontSize: 14, display: 'flex', flexDirection: 'column' }
     }, [
@@ -130,9 +147,11 @@ const LaunchAnalysisModal = ({
       spinner({ style: { marginRight: '0.5rem' } }),
       message
     ]),
-    div({ style: { color: colors.danger(), overflowWrap: 'break-word' } }, [
-      h(Fragment, wrappableOnPeriods(launchError))
-    ])
+    div({
+      style: { color: colors.danger(), overflowWrap: 'break-word' },
+      'aria-live': 'assertive',
+      'aria-relevant': 'all'
+    }, [launchError])
   ])
 }
 

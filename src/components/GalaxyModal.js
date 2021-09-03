@@ -40,7 +40,7 @@ const titleId = 'galaxy-modal-title'
 
 export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
   ({
-    onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName } },
+    onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
     isAnalysisMode = false
   }) => {
     // Assumption: If there is an app defined, there must be a data disk corresponding to it.
@@ -59,7 +59,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
       Utils.withBusyState(setLoading),
       withErrorReporting('Error creating app')
     )(async () => {
-      await Ajax().Apps.app(namespace, Utils.generateGalaxyAppName()).create({
+      await Ajax().Apps.app(googleProject, Utils.generateGalaxyAppName()).create({
         kubernetesRuntimeConfig, diskName: currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDiskSize,
         appType: 'GALAXY', namespace, bucketName, workspaceName
       })

@@ -4,7 +4,7 @@ import { Fragment, useEffect, useState } from 'react'
 import { div, h, h4 } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import * as breadcrumbs from 'src/components/breadcrumbs'
-import { ClipboardButton, Link, Select } from 'src/components/common'
+import { ButtonSecondary, ClipboardButton, Link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
@@ -22,6 +22,7 @@ import { withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import UpdateUserCommentModal from 'src/pages/workspaces/workspace/jobHistory/UpdateUserCommentModal'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
@@ -41,6 +42,8 @@ const SubmissionDetails = _.flow(
   const [methodAccessible, setMethodAccessible] = useState()
   const [statusFilter, setStatusFilter] = useState([])
   const [textFilter, setTextFilter] = useState('')
+  const [updatingComment, setUpdatingComment] = useState(false)
+  const [userComment, setUserComment] = useState()
   const [sort, setSort] = useState({ field: 'workflowEntity', direction: 'asc' })
 
   const signal = Utils.useCancellation()
@@ -74,6 +77,7 @@ const SubmissionDetails = _.flow(
             await Ajax(signal).Workspaces.workspace(namespace, name).submission(submissionId).get())
 
           setSubmission(sub)
+          setUserComment(sub.userComment)
 
           if (_.isEmpty(submission)) {
             try {
@@ -139,20 +143,41 @@ const SubmissionDetails = _.flow(
     ])
   }
 
-
   /*
    * Page render
    */
   return div({ style: { padding: '1rem 2rem 2rem', flex: 1, display: 'flex', flexDirection: 'column' } }, [
     submissionDetailsBreadcrumbSubtitle(namespace, name, submissionId),
     _.isEmpty(submission) ? centeredSpinner() : h(Fragment, [
-      div({ style: { display: 'flex' } }, [
-        div({ style: { flex: '0 0 200px', marginRight: '2rem', lineHeight: '24px' } }, [
-          h4({ style: Style.elements.sectionHeader }, 'Workflow Statuses'),
-          succeeded && makeStatusLine(successIcon, `Succeeded: ${succeeded.length}`, { marginTop: '0.5rem' }),
-          failed && makeStatusLine(failedIcon, `Failed: ${failed.length}`, { marginTop: '0.5rem' }),
-          running && makeStatusLine(runningIcon, `Running: ${running.length}`, { marginTop: '0.5rem' }),
-          submitted && makeStatusLine(submittedIcon, `Submitted: ${submitted.length}`, { marginTop: '0.5rem' })
+      div({ style: { display: 'grid', gridTemplateColumns: '1fr 4fr' } }, [
+        div({ style: { display: 'grid', gridTemplateRows: 'repeat(3, 33%)' } }, [
+          makeSection('Workflow Statuses', [
+            succeeded && makeStatusLine(successIcon, `Succeeded: ${succeeded.length}`, { marginTop: '0.5rem' }),
+            failed && makeStatusLine(failedIcon, `Failed: ${failed.length}`, { marginTop: '0.5rem', marginBottom: '0.5rem' }),
+            running && makeStatusLine(runningIcon, `Running: ${running.length}`, { marginTop: '0.5rem' }),
+            submitted && makeStatusLine(submittedIcon, `Submitted: ${submitted.length}`, { marginTop: '0.5rem' })
+          ]),
+          div({
+            style: {
+              padding: '0 0.5rem 0.5rem', marginTop: '1rem',
+              whiteSpace: 'pre', overflow: 'hidden', gridRow: '2 / 4'
+            }
+          }, [
+            h4({ style: Style.elements.sectionHeader }, [
+              'Comment',
+              h(ButtonSecondary, {
+                style: { marginLeft: '0.50em' },
+                tooltip: 'Edit Comment',
+                onClick: () => setUpdatingComment(true)
+              }, [icon('edit')])
+            ]),
+            div({ style: { textOverflow: 'ellipsis', overflow: 'hidden' } }, [userComment])
+          ]),
+          updatingComment && h(UpdateUserCommentModal, {
+            workspace: { name, namespace }, submissionId, userComment,
+            onDismiss: () => setUpdatingComment(false),
+            onSuccess: updatedComment => setUserComment(updatedComment)
+          })
         ]),
         div({ style: { display: 'flex', flexWrap: 'wrap' } }, [
           makeSection('Workflow Configuration', [

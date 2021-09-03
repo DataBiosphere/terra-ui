@@ -183,7 +183,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const shouldUpdateRuntime = canUpdateRuntime() && !_.isEqual(desiredRuntime, existingRuntime)
     const shouldDeleteRuntime = existingRuntime && !canUpdateRuntime()
     const shouldCreateRuntime = !canUpdateRuntime() && desiredRuntime
-    const { name, bucketName, googleProject } = getWorkspaceObject()
+    const { namespace, name, bucketName, googleProject } = getWorkspaceObject()
 
     const runtimeConfig = desiredRuntime && {
       cloudService: desiredRuntime.cloudService,
@@ -215,6 +215,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
     const customEnvVars = {
       WORKSPACE_NAME: name,
+      WORKSPACE_NAMESPACE: namespace,
       WORKSPACE_BUCKET: `gs://${bucketName}`,
       GOOGLE_PROJECT: googleProject
     }

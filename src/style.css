@@ -88,6 +88,12 @@ a {
   outline: none !important;
 }
 
+.error-style {
+  /* Must use important to override default react-interactive focus style */
+  border: 1px solid #db3214 !important;
+  outline: none !important;
+}
+
 /* See https://github.com/nkbt/react-collapse#1-change-in-behaviour */
 .ReactCollapse--collapse {
   transition: height 500ms;
