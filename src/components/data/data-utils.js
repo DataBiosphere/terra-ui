@@ -52,7 +52,7 @@ export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
     return `gsutil cp ${gsUri} ${fileName || '.'}`
   }
 }
-
+// should this one change?
 export const getUserProjectForWorkspace = async workspace => (workspace && await canUseWorkspaceProject(workspace)) ?
   workspace.workspace.namespace :
   requesterPaysProjectStore.get()
