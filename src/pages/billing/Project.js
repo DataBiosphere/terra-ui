@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useEffect, useState } from 'react'
-import { div, h, p, span } from 'react-hyperscript-helpers'
+import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
 import { icon } from 'src/components/icons'
@@ -17,7 +17,9 @@ import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { contactUsActive } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
+import { topBarHeight } from 'src/libs/style'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
@@ -132,15 +134,10 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingA
 })
 
 const BillingAccountSummaryPanel = (() => {
-
-  const StatusAndCount = ({ icon, status, count }) => h(Fragment, [
-    div({ style: { marginLeft: '0.5rem', float: 'left' } }, [getBillingAccountStatusIconOrEmpty(icon)]),
-    div({ style: { marginLeft: '1rem', float: 'left' } }, [`${status} (${count})`])
+  const StatusAndCount = ({ icon, status, count }) => div({ style: { display: 'float' } }, [
+    div({ style: { float: 'left' } }, [getBillingAccountStatusIconOrEmpty(icon)]),
+    div({ style: { float: 'left', marginLeft: '0.5rem' } }, [`${status} (${count})`])
   ])
-
-  const maybeSummarize = (icon, status, count) => count > 0 &&
-    div({ style: { float: 'left', marginLeft: '1rem' } },
-      [h(StatusAndCount, { icon, status, count })])
 
   return Utils.memoWithName('BillingAccountSummaryPanel', ({
     billingProject: {
@@ -154,14 +151,32 @@ const BillingAccountSummaryPanel = (() => {
         _.map(_.size)
       )(workspacesWithIncorrectBillingAccount)
 
-      return div({ style: { padding: '1rem' } }, [
-        p('Your billing account is updating...'),
-        h(Fragment, [
-          maybeSummarize(BillingAccountStatusIcon.Error, 'error', errors),
-          maybeSummarize(BillingAccountStatusIcon.Updating, 'updating', updating),
-          maybeSummarize(BillingAccountStatusIcon.Done, 'done', done)
+    const maybeAddFlex = (icon, status, count) => count > 0 && div({ style: { marginRight: '2rem' } },
+      [h(StatusAndCount, { icon, status, count })])
+
+      return div({
+        style: {
+          padding: '0.5rem 2rem',
+          position: 'fixed',
+          top: topBarHeight,
+          right: '3rem',
+          width: '30rem',
+          backgroundColor: colors.light(0.5),
+          boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
+        }
+      }, [
+        div({ style: { padding: '1rem 0' } }, 'Your billing account is updating...'),
+        div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
+          maybeAddFlex(BillingAccountStatusIcon.Updating, 'updating', updating),
+          maybeAddFlex(BillingAccountStatusIcon.Done, 'done', done),
+          maybeAddFlex(BillingAccountStatusIcon.Error, 'error', errors)
         ]),
-        p('Try again or '),
+        div({ style: { padding: '1rem 0' } }, [
+          'Try again or ',
+          h(Link, { onClick: () => contactUsActive.set(true) },
+            ['contact us regarding unresolved errors']),
+          '.'
+        ])
       ])
     }
   )
