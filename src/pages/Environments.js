@@ -15,7 +15,10 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
-import { getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, isComputePausable, isResourceDeletable, persistentDiskCostMonthly, runtimeCost } from 'src/libs/runtime-utils'
+import {
+  getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, isComputePausable, isResourceDeletable, persistentDiskCostMonthly,
+  runtimeCost
+} from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { cond, formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
@@ -332,7 +335,9 @@ const Environments = () => {
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
               // TODO: update return logic once we support more app types (will need a backend change to return appType in list apps endpoint as well)
-              return cloudEnvironment.appName ? 'Galaxy' : (cloudEnvironment.runtimeConfig.cloudService === 'DATAPROC' ? 'Dataproc' : cloudEnvironment.runtimeConfig.cloudService)
+              return cloudEnvironment.appName ?
+                'Galaxy' :
+                (cloudEnvironment.runtimeConfig.cloudService === 'DATAPROC' ? 'Dataproc' : cloudEnvironment.runtimeConfig.cloudService)
             }
           },
           {
@@ -417,11 +422,14 @@ const Environments = () => {
               const galaxyDiskNames = _.map(disk => disk.name, galaxyDisks)
               const runtimeDisks = _.remove(disk => _.includes(disk.name, galaxyDiskNames), disks)
               const runtimeDiskNames = _.map(disk => disk.name, runtimeDisks)
-              const multipleRuntimeDisks = _.remove(disk => _.includes(disk.name, galaxyDiskNames) || disk.status === 'Deleting', disksByProject[disk.googleProject]).length > 1
-              const multipleGalaxyDisks = _.remove(disk => _.includes(disk.name, runtimeDiskNames) || disk.status === 'DELETING', disksByProject[disk.googleProject]).length > 1
+              const multipleRuntimeDisks = _.remove(disk => _.includes(disk.name, galaxyDiskNames) || disk.status === 'Deleting',
+                disksByProject[disk.googleProject]).length > 1
+              const multipleGalaxyDisks = _.remove(disk => _.includes(disk.name, runtimeDiskNames) || disk.status === 'DELETING',
+                disksByProject[disk.googleProject]).length > 1
               return h(Fragment, [
                 disk.googleProject,
-                disk.status !== 'Deleting' && (_.includes(disk.name, galaxyDiskNames) ? multipleGalaxyDisks : multipleRuntimeDisks) && h(TooltipTrigger, {
+                disk.status !== 'Deleting' && (_.includes(disk.name, galaxyDiskNames) ? multipleGalaxyDisks : multipleRuntimeDisks) &&
+                h(TooltipTrigger, {
                   content: 'This billing project has multiple active persistent disks. Only one will be used.'
                 }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.warning() } })])
               ])
@@ -502,7 +510,8 @@ const Environments = () => {
               const { id, status, name } = filteredDisks[rowIndex]
               const error = cond(
                 [status === 'Creating', () => 'Cannot delete this disk because it is still being created'],
-                [_.some({ runtimeConfig: { persistentDiskId: id } }, runtimes) || _.some({ diskName: name }, apps), () => 'Cannot delete this disk because it is attached. You must delete the cloud environment first.']
+                [_.some({ runtimeConfig: { persistentDiskId: id } }, runtimes) || _.some({ diskName: name }, apps),
+                  () => 'Cannot delete this disk because it is attached. You must delete the cloud environment first.']
               )
               return status !== 'Deleting' && h(Link, {
                 style: !!error ? { color: disabledButtonColorDarkness } : {},
