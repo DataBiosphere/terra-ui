@@ -15,9 +15,7 @@ import { Ajax } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
-import {
-  getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, isComputePausable, isResourceDeletable, persistentDiskCostMonthly, runtimeCost
-} from 'src/libs/runtime-utils'
+import { getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, isComputePausable, isResourceDeletable, persistentDiskCostMonthly, runtimeCost } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { cond, formatUSD, makeCompleteDate, switchCase, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
@@ -252,8 +250,8 @@ const Environments = ({ namespace }) => {
   }
 
   const renderDeleteButton = (resourceType, resource) => {
-    const { id } = resource
     const isDeletable = isResourceDeletable(resourceType, resource)
+    const resourceId = resourceType === 'app' ? resource.appName : resource.id
     const action = Utils.switchCase(resourceType,
       ['runtime', () => setDeleteRuntimeId],
       ['app', () => setDeleteAppId],
@@ -263,8 +261,8 @@ const Environments = ({ namespace }) => {
     return h(Link, {
       style: { marginLeft: '1rem' },
       disabled: !isDeletable,
-      tooltip: isDeletable ? 'Delete cloud environment' : 'Cannot delete a cloud environment while in current status',
-      onClick: () => action(id)
+      tooltip: isDeletable ? 'Delete cloud environment' : `Cannot delete a cloud environment while in status ${resource.status}`,
+      onClick: () => action(resourceId)
     }, [makeMenuIcon('trash'), 'Delete'])
   }
 
@@ -274,7 +272,7 @@ const Environments = ({ namespace }) => {
 
     return h(Link, {
       disabled: !isPausable,
-      tooltip: isPausable ? 'Pause cloud environment' : `Cannot pause compute while in status ${status}`,
+      tooltip: isPausable ? 'Pause cloud environment' : `Cannot pause a cloud environment while in status ${status}`,
       onClick: () => pauseComputeAndRefresh(computeType, compute)
     }, [makeMenuIcon('pause'), 'Pause'])
   }
