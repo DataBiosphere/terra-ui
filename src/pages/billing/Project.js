@@ -165,7 +165,7 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
       h(WorkspaceCardHeaders, { sort: workspaceSort, onSort: setWorkspaceSort }),
       div({ role: 'list', 'aria-label': `workspaces in billing project ${billingProject.projectName}`, style: { flexGrow: 1, width: '100%' } }, [
         _.flow(
-          _.map(({ workspace }) => workspace),
+          _.map('workspace'),
           _.filter({ namespace: billingProject.projectName }),
           _.orderBy([workspaceSort.field], [workspaceSort.direction]),
           _.map(workspace => {
