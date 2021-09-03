@@ -29,7 +29,7 @@ const environmentMode = Symbol('environment')
 export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
   ({
     isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, refreshAnalyses,
-    analyses, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } }
+    analyses, workspace, persistentDisks, workspace: { workspace: { googleProject, bucketName } }
   }) => {
     const [viewMode, setViewMode] = useState(undefined)
     const [busy, setBusy] = useState()
@@ -264,8 +264,8 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
               try {
                 const contents = isJupyter ? notebookData[notebookKernel] : '# Starter Rmd file'
                 isJupyter ?
-                  await Ajax().Buckets.notebook(namespace, bucketName, analysisName).create(contents) :
-                  await Ajax().Buckets.analysis(namespace, bucketName, analysisName, toolLabel).create(contents)
+                  await Ajax().Buckets.notebook(googleProject, bucketName, analysisName).create(contents) :
+                  await Ajax().Buckets.analysis(googleProject, bucketName, analysisName, toolLabel).create(contents)
                 refreshAnalyses()
                 setAnalysisName('')
                 enterNextViewMode(toolLabel)
