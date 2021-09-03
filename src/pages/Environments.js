@@ -18,7 +18,7 @@ import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import { getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, isComputePausable, isResourceDeletable, persistentDiskCostMonthly, runtimeCost } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { cond, formatUSD, makeCompleteDate, switchCase, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
+import { cond, formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
 
 const DeleteRuntimeModal = ({ runtime: { googleProject, runtimeName, runtimeConfig: { persistentDiskId } }, onDismiss, onSuccess }) => {
@@ -71,11 +71,7 @@ const DeleteDiskModal = ({ disk: { googleProject, name }, isGalaxyDisk, onDismis
     p([
       'Deleting the persistent disk will ', span({ style: { fontWeight: 600 } }, ['delete all files on it.'])
     ]),
-    switchCase(isGalaxyDisk,
-      [false, () => {
-        return h(SaveFilesHelp)
-      }]
-    ),
+    isGalaxyDisk && h(SaveFilesHelp, [false]),
     busy && spinnerOverlay
   ])
 }
@@ -109,7 +105,7 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName }, onDismiss, 
   ])
 }
 
-const Environments = ({ namespace }) => {
+const Environments = () => {
   const signal = useCancellation()
   const [runtimes, setRuntimes] = useState()
   const [apps, setApps] = useState()
@@ -387,9 +383,7 @@ const Environments = ({ namespace }) => {
           {
             size: { basis: 240, grow: 0 },
             field: 'cost',
-            headerRenderer: () => {
-              return h(Sortable, { sort, field: 'cost', onSort: setSort }, [`Cost / hr (${formatUSD(totalCost)} total)`])
-            },
+            headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, [`Cost / hr (${formatUSD(totalCost)} total)`]),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
               return cloudEnvironment.appName ? formatUSD(getGalaxyComputeCost(cloudEnvironment)) : formatUSD(runtimeCost(cloudEnvironment))
