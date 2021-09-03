@@ -1000,7 +1000,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           'Also deletes your application configuration and cloud compute profile.'
         ])
       ]),
-      h(SaveFilesHelp)
+      getExistingEnvironmentConfig().runtime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
     ])
   }
 
@@ -1047,7 +1047,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   'Since the persistent disk is not attached, the application configuration and cloud compute profile will remain.'
                 ])
               ]),
-              h(SaveFilesHelp)
+              getExistingEnvironmentConfig().runtime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
             ])
           }],
           [existingRuntime && existingPersistentDisk, () => renderDeleteDiskChoices()],
@@ -1066,7 +1066,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   'If you want to permanently save some files from the disk before deleting it, you will need to create a new cloud environment to access it.'
                 ])
               ]),
-              h(SaveFilesHelp)
+              getExistingEnvironmentConfig().runtime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
             ])
           }],
           () => {
@@ -1120,7 +1120,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
               'This change requires rebuilding your cloud environment, which will ',
               span({ style: { fontWeight: 600 } }, ['delete all files on built-in hard disk.'])
             ]),
-            h(SaveFilesHelp)
+            getExistingEnvironmentConfig().runtime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
           ])],
           [willDeletePersistentDisk(), () => h(Fragment, [
             p([
