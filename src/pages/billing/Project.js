@@ -141,45 +141,44 @@ const BillingAccountSummaryPanel = (() => {
 
   return Utils.memoWithName('BillingAccountSummaryPanel', ({
     billingProject: {
-        workspacesWithCorrectBillingAccount,
-        workspacesWithIncorrectBillingAccount
-      }
-    }) => {
-      const [done, errors, updating] = _.flow(
-        _.partition(_.has('billingAccountErrorMessage')),
-        _.concat([workspacesWithCorrectBillingAccount]),
-        _.map(_.size)
-      )(workspacesWithIncorrectBillingAccount)
+      workspacesWithCorrectBillingAccount,
+      workspacesWithIncorrectBillingAccount
+    }
+  }) => {
+    const [done, errors, updating] = _.flow(
+      _.partition(_.has('billingAccountErrorMessage')),
+      _.concat([workspacesWithCorrectBillingAccount]),
+      _.map(_.size)
+    )(workspacesWithIncorrectBillingAccount)
 
     const maybeAddFlex = (icon, status, count) => count > 0 && div({ style: { marginRight: '2rem' } },
       [h(StatusAndCount, { icon, status, count })])
 
-      return div({
-        style: {
-          padding: '0.5rem 2rem',
-          position: 'fixed',
-          top: topBarHeight,
-          right: '3rem',
-          width: '30rem',
-          backgroundColor: colors.light(0.5),
-          boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
-        }
-      }, [
-        div({ style: { padding: '1rem 0' } }, 'Your billing account is updating...'),
-        div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
-          maybeAddFlex(BillingAccountStatusIcon.Updating, 'updating', updating),
-          maybeAddFlex(BillingAccountStatusIcon.Done, 'done', done),
-          maybeAddFlex(BillingAccountStatusIcon.Error, 'error', errors)
-        ]),
-        div({ style: { padding: '1rem 0' } }, [
-          'Try again or ',
-          h(Link, { onClick: () => contactUsActive.set(true) },
-            ['contact us regarding unresolved errors']),
-          '.'
-        ])
+    return div({
+      style: {
+        padding: '0.5rem 2rem',
+        position: 'fixed',
+        top: topBarHeight,
+        right: '3rem',
+        width: '30rem',
+        backgroundColor: colors.light(0.5),
+        boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
+      }
+    }, [
+      div({ style: { padding: '1rem 0' } }, 'Your billing account is updating...'),
+      div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
+        maybeAddFlex(BillingAccountStatusIcon.Updating, 'updating', updating),
+        maybeAddFlex(BillingAccountStatusIcon.Done, 'done', done),
+        maybeAddFlex(BillingAccountStatusIcon.Error, 'error', errors)
+      ]),
+      div({ style: { padding: '1rem 0' } }, [
+        'Try again or ',
+        h(Link, { onClick: () => contactUsActive.set(true) },
+          ['contact us regarding unresolved errors']),
+        '.'
       ])
-    }
-  )
+    ])
+  })
 })()
 
 const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) => {
