@@ -39,6 +39,7 @@ import {
   faTasks,
   faTerminal,
   faTrashAlt,
+  faUnlock,
   faVirus
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -119,6 +120,7 @@ const iconDict = {
   listAlt: fa(faListAlt),
   loadingSpinner: custom(loadingSpinner),
   lock: fa(faLock),
+  'lock-o': fa(faUnlock),
   'long-arrow-alt-down': fa(faLongArrowAltDown),
   'long-arrow-alt-up': fa(faLongArrowAltUp),
   'minus-circle': fa(faMinusCircle),
