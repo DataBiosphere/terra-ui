@@ -145,7 +145,7 @@ const BillingAccountSummaryPanel = (() => {
     'BillingAccountSummaryPanel',
     ({ counts: { done, error, updating } }) => div({
       style: {
-        padding: '0.5rem 2rem',
+        padding: '0.5rem 2rem 1rem',
         position: 'fixed',
         top: topBarHeight,
         right: '3rem',
@@ -160,7 +160,7 @@ const BillingAccountSummaryPanel = (() => {
         maybeAddStatus('done', done),
         maybeAddStatus('error', error)
       ]),
-      div({ style: { padding: '1rem 0' } }, [
+      error > 0 && div({ style: { padding: '1rem 0 0' } }, [
         'Try again or ',
         h(Link, { onClick: () => contactUsActive.set(true) },
           ['contact us regarding unresolved errors']),
