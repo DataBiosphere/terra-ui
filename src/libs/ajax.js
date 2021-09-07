@@ -895,7 +895,6 @@ const Workspaces = signal => ({
   }
 })
 
-
 const DataRepo = signal => ({
   snapshot: snapshotId => {
     return {
@@ -904,6 +903,11 @@ const DataRepo = signal => ({
         return res.json()
       }
     }
+  },
+
+  requestAccess: async id => {
+    const res = await fetchRawls(`dunno/what/this/is/${id}/requestAccess`, _.merge(authOpts(), { signal }))
+    return res.json()
   }
 })
 
