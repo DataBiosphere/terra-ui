@@ -94,10 +94,9 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
   const bucket = /\/b\/([^/?]+)[/?]/.exec(url)[1]
   const workspace = workspaceStore.get()
 
-  // Should hthis here change?
   const getUserProject = async () => {
     if (!requesterPaysProjectStore.get() && workspace && await canUseWorkspaceProject(workspace)) {
-      requesterPaysProjectStore.set(workspace.workspace.namespace)
+      requesterPaysProjectStore.set(workspace.workspace.googleProject)
     }
     return requesterPaysProjectStore.get()
   }

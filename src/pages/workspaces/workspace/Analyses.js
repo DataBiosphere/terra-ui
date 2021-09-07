@@ -357,7 +357,6 @@ const Analyses = _.flow(
         }),
         h(AnalysisModal, {
           isOpen: creating,
-          // I believe this prop can go, but its not hurting anything
           namespace,
           workspace,
           runtimes,

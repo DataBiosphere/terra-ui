@@ -12,27 +12,28 @@ import { requesterPaysProjectStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
-const billingHelpInfo = div({ style: { paddingTop: '1rem' } }, [
+const requesterPaysHelpInfo = div({ style: { paddingTop: '1rem' } }, [
   h(Link, {
     href: 'https://support.terra.bio/hc/en-us/articles/360029801491',
     ...Utils.newTabLinkProps
-  }, ['Why is billing required to access this data?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])
+  }, ['Why is a workspace required to access this data?', icon('pop-out', { style: { marginLeft: '0.25rem' }, size: 12 })])
 ])
 
 const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
   const [loading, setLoading] = useState(false)
-  const [billingList, setBillingList] = useState([])
-  const [selectedBilling, setSelectedBilling] = useState(requesterPaysProjectStore.get())
+  const [workspaceList, setWorkspaceList] = useState([])
+  const [selectedGoogleProject, setSelectedGoogleProject] = useState(requesterPaysProjectStore.get())
   const signal = Utils.useCancellation()
 
   Utils.useOnMount(() => {
-    const loadBillingProjects = _.flow(
+    const loadWorkspaces = _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReporting('Error loading billing projects')
+      withErrorReporting('Error loading workspaces')
     )(async () => {
-      setBillingList(await Ajax(signal).Billing.listProjects())
+      const workspaces = await Ajax(signal).Workspaces.list()
+      setWorkspaceList(_.filter(workspace => workspace.accessLevel === 'OWNER' || workspace.accessLevel === 'PROJECT_OWNER', workspaces))
     })
-    loadBillingProjects()
+    loadWorkspaces()
   })
 
   return Utils.cond(
@@ -44,29 +45,33 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
     }, [
       spinnerOverlay
     ])],
-    [billingList.length > 0, () => h(Modal, {
-      title: 'Choose a billing project',
+    [workspaceList.length > 0, () => h(Modal, {
+      title: 'Choose a workspace to bill to',
       onDismiss,
       shouldCloseOnOverlayClick: false,
       okButton: h(ButtonPrimary, {
-        disabled: !selectedBilling,
+        disabled: !selectedGoogleProject,
         onClick: () => {
-          onSuccess(selectedBilling)
+          onSuccess(selectedGoogleProject)
         }
       }, ['Ok'])
     }, [
-      'This data is in a requester pays bucket. Choose a billing project to continue:',
+      'This data is in a requester pays bucket. Choose a workspace to bill to in order to continue:',
       h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id, required: true }, ['Billing Project']),
+        h(FormLabel, { htmlFor: id, required: true }, ['Workspace']),
         h(Select, {
           id,
           isClearable: false,
-          value: selectedBilling,
-          placeholder: 'Select a billing project',
-          onChange: ({ value }) => setSelectedBilling(value),
-          options: _.uniq(_.map('projectName', billingList)).sort()
+          value: selectedGoogleProject,
+          placeholder: 'Select a workspace',
+          onChange: ({ value }) => setSelectedGoogleProject(value),
+          options: _.uniq(_.map(workspace => {
+            return {
+              value: workspace.workspace.googleProject, label: `${workspace.workspace.namespace}/${workspace.workspace.name}`
+            }
+          }, workspaceList)).sort()
         }),
-        billingHelpInfo
+        requesterPaysHelpInfo
       ])])
     ])],
     () => h(Modal, {
@@ -74,12 +79,12 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
       onDismiss,
       okButton: h(ButtonPrimary, {
         onClick: () => {
-          Nav.goToPath('billing')
+          Nav.goToPath('workspaces')
         }
-      }, 'Go to Billing')
+      }, 'Go to Workspaces')
     }, [
-      div('To view or download data in this workspace, please set up a billing project.'),
-      billingHelpInfo
+      div('To view or download data in this workspace, please ensure you have at least one workspace with owner or project owner permissions in order to bill to.'),
+      requesterPaysHelpInfo
     ])
   )
 }
