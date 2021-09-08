@@ -222,6 +222,13 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
 
 const supportsFireCloudDataModel = entityType => _.includes(entityType, ['pair', 'participant', 'sample'])
 
+export const notifyDataImportProgress = (jobId) => {
+  notify('info', 'Data import in progress.', {
+    id: jobId,
+    message: 'Data will show up incrementally as the job progresses.'
+  })
+}
+
 export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTypes }) => {
   const [useFireCloudDataModel, setUseFireCloudDataModel] = useState(false)
   const [isFileImportCurrMode, setIsFileImportCurrMode] = useState(true)
@@ -237,10 +244,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
       const workspace = Ajax().Workspaces.workspace(namespace, name)
       const { jobId } = await (useFireCloudDataModel ? workspace.importEntitiesFile : workspace.importFlexibleEntitiesFile)(true, file)
       asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
-      notify('info', 'Data import in progress.', {
-        id: jobId,
-        message: 'Data will show up incrementally as the job progresses.'
-      })
+      notifyDataImportProgress(jobId)
       onSuccess()
       Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
         workspaceNamespace: namespace, workspaceName: name
