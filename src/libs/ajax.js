@@ -848,8 +848,8 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      importPFBStatus: async jobId => {
-        const res = await fetchOrchestration(`api/${root}/importPFB/${jobId}`, _.merge(authOpts(), { signal }))
+      getImportJobStatus: async jobId => {
+        const res = await fetchOrchestration(`api/${root}/importJob/${jobId}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
