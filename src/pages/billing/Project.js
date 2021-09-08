@@ -65,7 +65,7 @@ const rowBase = { display: 'flex', alignItems: 'center', width: '100%' }
 const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details, additionalInfo }) => {
   const expandedInfoStyles = {
     row: { ...rowBase, marginTop: '0.5rem', height: '1rem' },
-    title: { fontWeight: 600, width: '20%', paddingRight: '1rem', height: '1rem' },
+    title: { fontWeight: 600, width: '20%', paddingLeft: '2rem', paddingRight: '1rem', height: '1rem' },
     details: { flexGrow: 1, width: '20%', paddingRight: '1rem', height: '1rem', ...Style.noWrapEllipsis },
     additionalInfo: { flexGrow: 1 }
   }
