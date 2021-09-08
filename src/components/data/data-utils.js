@@ -275,7 +275,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           disabled: !currentFile || isInvalid || uploading,
           tooltip: !currentFile || isInvalid ? 'Please select valid data to upload' : 'Upload selected data',
           onClick: doUpload
-        }, ['Upload async']) // TODO: wording/UX
+        }, ['Start Import Job'])
       }, [
         div({ style: { padding: '0 0 1rem' } },
           ['Choose the data import option below. ',
