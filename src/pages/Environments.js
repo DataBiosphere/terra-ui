@@ -161,9 +161,10 @@ const Environments = () => {
   const loadData = withErrorReporting('Error loading cloud environments', refreshData)
 
   const pauseComputeAndRefresh = withErrorReporting('Error loading cloud environments', async (computeType, compute) => {
-    await computeType === 'runtime' ?
+    const wrappedPauseCompute = withBusyState(setLoading, () => computeType === 'runtime' ?
       Ajax().Runtimes.runtime(compute.googleProject, compute.runtimeName).stop() :
-      Ajax().Apps.app(compute.googleProject, compute.appName).pause()
+      Ajax().Apps.app(compute.googleProject, compute.appName).pause())
+    await wrappedPauseCompute()
     refreshData()
   })
 
@@ -397,6 +398,7 @@ const Environments = () => {
           {
             size: { basis: 200, grow: 0 },
             headerRenderer: () => 'Actions',
+            field: 'actions',
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
               const computeType = cloudEnvironment.appName ? 'app' : 'runtime'
@@ -505,15 +507,17 @@ const Environments = () => {
           },
           {
             size: { basis: 200, grow: 0 },
+            field: 'action',
             headerRenderer: () => 'Action',
             cellRenderer: ({ rowIndex }) => {
               const { id, status, name } = filteredDisks[rowIndex]
               const error = cond(
                 [status === 'Creating', () => 'Cannot delete this disk because it is still being created'],
+                [status === 'Deleting', () => 'The disk is being deleted'],
                 [_.some({ runtimeConfig: { persistentDiskId: id } }, runtimes) || _.some({ diskName: name }, apps),
                   () => 'Cannot delete this disk because it is attached. You must delete the cloud environment first.']
               )
-              return status !== 'Deleting' && h(Link, {
+              return h(Link, {
                 style: !!error ? { color: disabledButtonColorDarkness } : {},
                 disabled: !!error,
                 tooltip: error || 'Delete persistent disk',
