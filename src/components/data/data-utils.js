@@ -235,7 +235,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
     setUploading(true)
     try {
       const workspace = Ajax().Workspaces.workspace(namespace, name)
-      const { jobId } = await (useFireCloudDataModel ? workspace.importEntitiesFile : workspace.importFlexibleEntitiesFile)(file)
+      const { jobId } = await (useFireCloudDataModel ? workspace.importEntitiesFile : workspace.importFlexibleEntitiesFile)(true, file)
       pfbImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
       notify('info', 'Data import in progress.', {
         id: jobId,
