@@ -21,7 +21,7 @@ import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { notify } from 'src/libs/notifications'
-import { pfbImportJobStore, requesterPaysProjectStore } from 'src/libs/state'
+import { asyncImportJobStore, requesterPaysProjectStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -236,7 +236,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
     try {
       const workspace = Ajax().Workspaces.workspace(namespace, name)
       const { jobId } = await (useFireCloudDataModel ? workspace.importEntitiesFile : workspace.importFlexibleEntitiesFile)(true, file)
-      pfbImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
+      asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
       notify('info', 'Data import in progress.', {
         id: jobId,
         message: 'Data will show up incrementally as the job progresses.'

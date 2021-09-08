@@ -17,7 +17,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
-import { pfbImportJobStore } from 'src/libs/state'
+import { asyncImportJobStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -97,7 +97,7 @@ const ImportData = () => {
     await Utils.switchCase(format,
       ['PFB', async () => {
         const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importPFB(url)
-        pfbImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
+        asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
         notify('info', 'Data import in progress.', {
           id: jobId,
           message: 'Data will show up incrementally as the job progresses.'

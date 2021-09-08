@@ -23,7 +23,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import { pfbImportJobStore } from 'src/libs/state'
+import { asyncImportJobStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -381,7 +381,7 @@ const WorkspaceData = _.flow(
   const [snapshotMetadataError, setSnapshotMetadataError] = useState()
 
   const signal = Utils.useCancellation()
-  const pfbImportJobs = Utils.useStore(pfbImportJobStore)
+  const asyncImportJobs = Utils.useStore(asyncImportJobStore)
 
 
   // Helpers
@@ -452,7 +452,7 @@ const WorkspaceData = _.flow(
       const runningJobs = await Ajax(signal).Workspaces.workspace(namespace, name).listImportJobs(true)
       _.map(job => {
         if (!(_.lowerCase(job.status) === "success" || _.lowerCase(job.status) === "error" || _.lowerCase(job.status) === "done"))
-          pfbImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId: job.jobId }))
+          asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId: job.jobId }))
       }, runningJobs)
     } catch (error) {
       reportError('Error loading running import jobs in this workspace')
@@ -497,7 +497,7 @@ const WorkspaceData = _.flow(
             error: entityMetadataError,
             retryFunction: loadEntityMetadata
           }, [
-            _.some({ targetWorkspace: { namespace, name } }, pfbImportJobs) && h(DataImportPlaceholder),
+            _.some({ targetWorkspace: { namespace, name } }, asyncImportJobs) && h(DataImportPlaceholder),
             _.map(([type, typeDetails]) => {
               return h(DataTypeButton, {
                 key: type,

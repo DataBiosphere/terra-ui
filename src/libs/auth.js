@@ -13,7 +13,7 @@ import * as Nav from 'src/libs/nav'
 import { clearNotification, notify, sessionTimeoutProps } from 'src/libs/notifications'
 import { getLocalPref, getLocalPrefForUserId, setLocalPref } from 'src/libs/prefs'
 import allProviders from 'src/libs/providers'
-import { authStore, cookieReadyStore, pfbImportJobStore, requesterPaysProjectStore, workspacesStore, workspaceStore } from 'src/libs/state'
+import { authStore, cookieReadyStore, asyncImportJobStore, requesterPaysProjectStore, workspacesStore, workspaceStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
@@ -313,7 +313,7 @@ authStore.subscribe((state, oldState) => {
   if (oldState.isSignedIn && !state.isSignedIn) {
     workspaceStore.reset()
     workspacesStore.reset()
-    pfbImportJobStore.reset()
+    asyncImportJobStore.reset()
   }
 })
 
