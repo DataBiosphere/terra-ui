@@ -78,7 +78,7 @@ const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details,
 })
 
 const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingAccountStatus, isExpanded, onExpand }) => {
-  const { namespace, name, createdBy, lastModified, googleProject, billingAccountName } = workspace
+  const { namespace, name, createdBy, lastModified, googleProject, billingAccount } = workspace
   const workspaceCardStyles = {
     field: {
       ...Style.noWrapEllipsis, flex: 1, height: '1rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`, paddingRight: '1rem'
@@ -127,7 +127,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingA
       isExpanded && div({ id, style: workspaceCardStyles.row }, [
         div({ style: workspaceCardStyles.expandedInfoContainer }, [
           h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
-          h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountName })
+          h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccount })
         ])
       ])
     ])])
