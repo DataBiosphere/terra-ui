@@ -596,7 +596,7 @@ const MetadataUploadPanel = _.flow(
       // Convert the table data structure back into a TSV, in case the user made changes
       const file = Utils.makeTSV([metadata.table.columns, ...metadata.table.rows])
       const workspace = Ajax().Workspaces.workspace(namespace, name)
-      await workspace.importFlexibleEntitiesFile(true, file)
+      await workspace.importFlexibleEntitiesFile(false, file)
       onSuccess && onSuccess({ file, metadata })
     } catch (error) {
       await reportError('Failed to upload entity metadata', error)
