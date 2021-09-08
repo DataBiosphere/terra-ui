@@ -16,19 +16,18 @@ import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import {
-  getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, isComputePausable, isResourceDeletable, persistentDiskCostMonthly,
-  runtimeCost
+  getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, isComputePausable,
+  isResourceDeletable, persistentDiskCostMonthly, runtimeCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { cond, formatUSD, makeCompleteDate, useCancellation, useGetter, useOnMount, usePollingEffect, withBusyState } from 'src/libs/utils'
 
 
 const DeleteRuntimeModal = ({ runtime: { googleProject, runtimeName, runtimeConfig: { persistentDiskId } }, onDismiss, onSuccess }) => {
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
   const deleteRuntime = _.flow(
-    withBusyState(setDeleting),
+    Utils.withBusyState(setDeleting),
     withErrorReporting('Error deleting cloud environment')
   )(async () => {
     await Ajax().Runtimes.runtime(googleProject, runtimeName).delete(deleteDisk)
@@ -60,7 +59,7 @@ const DeleteRuntimeModal = ({ runtime: { googleProject, runtimeName, runtimeConf
 const DeleteDiskModal = ({ disk: { googleProject, name }, isGalaxyDisk, onDismiss, onSuccess }) => {
   const [busy, setBusy] = useState(false)
   const deleteDisk = _.flow(
-    withBusyState(setBusy),
+    Utils.withBusyState(setBusy),
     withErrorReporting('Error deleting persistent disk')
   )(async () => {
     await Ajax().Disks.disk(googleProject, name).delete()
@@ -83,7 +82,7 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName }, onDismiss, 
   const [deleteDisk, setDeleteDisk] = useState(false)
   const [deleting, setDeleting] = useState()
   const deleteApp = _.flow(
-    withBusyState(setDeleting),
+    Utils.withBusyState(setDeleting),
     withErrorReporting('Error deleting cloud environment')
   )(async () => {
     await Ajax().Apps.app(googleProject, appName).delete(deleteDisk)
@@ -109,26 +108,24 @@ const DeleteAppModal = ({ app: { googleProject, appName, diskName }, onDismiss, 
 }
 
 const Environments = () => {
-  const signal = useCancellation()
+  const signal = Utils.useCancellation()
   const [runtimes, setRuntimes] = useState()
   const [apps, setApps] = useState()
   const [disks, setDisks] = useState()
   const [galaxyDisks, setGalaxyDisks] = useState()
   const [loading, setLoading] = useState(false)
   const [errorRuntimeId, setErrorRuntimeId] = useState()
-  const getErrorRuntimeId = useGetter(errorRuntimeId)
+  const getErrorRuntimeId = Utils.useGetter(errorRuntimeId)
   const [deleteRuntimeId, setDeleteRuntimeId] = useState()
-  const getDeleteRuntimeId = useGetter(deleteRuntimeId)
+  const getDeleteRuntimeId = Utils.useGetter(deleteRuntimeId)
   const [deleteDiskId, setDeleteDiskId] = useState()
-  const getDeleteDiskId = useGetter(deleteDiskId)
+  const getDeleteDiskId = Utils.useGetter(deleteDiskId)
   const [errorAppId, setErrorAppId] = useState()
   const [deleteAppId, setDeleteAppId] = useState()
   const [sort, setSort] = useState({ field: 'project', direction: 'asc' })
   const [diskSort, setDiskSort] = useState({ field: 'project', direction: 'asc' })
 
-  const disabledButtonColorDarkness = colors.dark(0.4)
-
-  const refreshData = withBusyState(setLoading, async () => {
+  const refreshData = Utils.withBusyState(setLoading, async () => {
     const creator = getUser().email
     const [newRuntimes, newDisks, galaxyDisks, newApps] = await Promise.all([
       Ajax(signal).Runtimes.list({ creator }),
@@ -160,16 +157,16 @@ const Environments = () => {
 
   const loadData = withErrorReporting('Error loading cloud environments', refreshData)
 
-  const pauseComputeAndRefresh = withErrorReporting('Error loading cloud environments', async (computeType, compute) => {
-    const wrappedPauseCompute = withBusyState(setLoading, () => computeType === 'runtime' ?
+  const pauseComputeAndRefresh = Utils.withBusyState(setLoading, async (computeType, compute) => {
+    const wrappedPauseCompute = withErrorReporting('Error pausing compute', () => computeType === 'runtime' ?
       Ajax().Runtimes.runtime(compute.googleProject, compute.runtimeName).stop() :
       Ajax().Apps.app(compute.googleProject, compute.appName).pause())
     await wrappedPauseCompute()
-    refreshData()
+    await loadData()
   })
 
-  useOnMount(() => { loadData() })
-  usePollingEffect(withErrorIgnoring(refreshData), { ms: 30000 })
+  Utils.useOnMount(() => { loadData() })
+  Utils.usePollingEffect(withErrorIgnoring(refreshData), { ms: 30000 })
 
   const filteredRuntimes = _.orderBy([{
     project: 'googleProject',
@@ -261,9 +258,11 @@ const Environments = () => {
     )
 
     return h(Link, {
-      style: { marginLeft: '1rem', ...(isDeletable ? {} : { color: disabledButtonColorDarkness }) },
+      style: { marginLeft: '1rem' },
       disabled: !isDeletable,
-      tooltip: isDeletable ? 'Delete cloud environment' : `Cannot delete a cloud environment while in status ${_.upperCase(resource.status)}`,
+      tooltip: isDeletable ?
+        'Delete cloud environment' :
+        `Cannot delete a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(resource.status))}.`,
       onClick: () => action(resourceId)
     }, [makeMenuIcon('trash'), 'Delete'])
   }
@@ -273,17 +272,19 @@ const Environments = () => {
     const isPausable = isComputePausable(computeType, compute)
 
     return h(Link, {
-      style: isPausable ? {} : { color: disabledButtonColorDarkness },
       disabled: !isPausable,
-      tooltip: isPausable ? 'Pause cloud environment' : `Cannot pause a cloud environment while in status ${_.upperCase(status)}`,
+      tooltip: isPausable ?
+        'Pause cloud environment' :
+        `Cannot pause a cloud environment while in status ${_.upperCase(getComputeStatusForDisplay(status))}.`,
       onClick: () => pauseComputeAndRefresh(computeType, compute)
     }, [makeMenuIcon('pause'), 'Pause'])
   }
 
   const renderErrorApps = app => {
+    const convertedAppStatus = getComputeStatusForDisplay(app.status)
     return h(Fragment, [
-      app.status[0] + app.status.substring(1).toLowerCase(),
-      app.status === 'ERROR' && h(Clickable, {
+      convertedAppStatus,
+      convertedAppStatus === 'Error' && h(Clickable, {
         tooltip: 'View error',
         onClick: () => setErrorAppId(app.appName)
       }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
@@ -291,9 +292,10 @@ const Environments = () => {
   }
 
   const renderErrorRuntimes = runtime => {
+    const convertedRuntimeStatus = getComputeStatusForDisplay(runtime.status)
     return h(Fragment, [
-      runtime.status,
-      runtime.status === 'Error' && h(Clickable, {
+      convertedRuntimeStatus,
+      convertedRuntimeStatus === 'Error' && h(Clickable, {
         tooltip: 'View error',
         onClick: () => setErrorRuntimeId(runtime.id)
       }, [icon('warning-standard', { style: { marginLeft: '0.25rem', color: colors.danger() } })])
@@ -375,7 +377,7 @@ const Environments = () => {
             field: 'created',
             headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Created']),
             cellRenderer: ({ rowIndex }) => {
-              return makeCompleteDate(filteredCloudEnvironments[rowIndex].auditInfo.createdDate)
+              return Utils.makeCompleteDate(filteredCloudEnvironments[rowIndex].auditInfo.createdDate)
             }
           },
           {
@@ -383,25 +385,26 @@ const Environments = () => {
             field: 'accessed',
             headerRenderer: () => h(Sortable, { sort, field: 'accessed', onSort: setSort }, ['Last accessed']),
             cellRenderer: ({ rowIndex }) => {
-              return makeCompleteDate(filteredCloudEnvironments[rowIndex].auditInfo.dateAccessed)
+              return Utils.makeCompleteDate(filteredCloudEnvironments[rowIndex].auditInfo.dateAccessed)
             }
           },
           {
             size: { basis: 240, grow: 0 },
             field: 'cost',
-            headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, [`Cost / hr (${formatUSD(totalCost)} total)`]),
+            headerRenderer: () => h(Sortable, { sort, field: 'cost', onSort: setSort }, [`Cost / hr (${Utils.formatUSD(totalCost)} total)`]),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              return cloudEnvironment.appName ? formatUSD(getGalaxyComputeCost(cloudEnvironment)) : formatUSD(runtimeCost(cloudEnvironment))
+              return cloudEnvironment.appName ?
+                Utils.formatUSD(getGalaxyComputeCost(cloudEnvironment)) :
+                Utils.formatUSD(runtimeCost(cloudEnvironment))
             }
           },
           {
             size: { basis: 200, grow: 0 },
             headerRenderer: () => 'Actions',
-            field: 'actions',
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              const computeType = cloudEnvironment.appName ? 'app' : 'runtime'
+              const computeType = !!cloudEnvironment.appName ? 'app' : 'runtime'
               return h(Fragment, [
                 renderPauseButton(computeType, cloudEnvironment),
                 renderDeleteButton(computeType, cloudEnvironment)
@@ -484,7 +487,7 @@ const Environments = () => {
             field: 'created',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'created', onSort: setDiskSort }, ['Created']),
             cellRenderer: ({ rowIndex }) => {
-              return makeCompleteDate(filteredDisks[rowIndex].auditInfo.createdDate)
+              return Utils.makeCompleteDate(filteredDisks[rowIndex].auditInfo.createdDate)
             }
           },
           {
@@ -492,33 +495,31 @@ const Environments = () => {
             field: 'accessed',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'accessed', onSort: setDiskSort }, ['Last accessed']),
             cellRenderer: ({ rowIndex }) => {
-              return makeCompleteDate(filteredDisks[rowIndex].auditInfo.dateAccessed)
+              return Utils.makeCompleteDate(filteredDisks[rowIndex].auditInfo.dateAccessed)
             }
           },
           {
             size: { basis: 250, grow: 0 },
             field: 'cost',
             headerRenderer: () => {
-              return h(Sortable, { sort: diskSort, field: 'cost', onSort: setDiskSort }, [`Cost / month (${formatUSD(totalDiskCost)} total)`])
+              return h(Sortable, { sort: diskSort, field: 'cost', onSort: setDiskSort }, [`Cost / month (${Utils.formatUSD(totalDiskCost)} total)`])
             },
             cellRenderer: ({ rowIndex }) => {
-              return formatUSD(persistentDiskCostMonthly(filteredDisks[rowIndex]))
+              return Utils.formatUSD(persistentDiskCostMonthly(filteredDisks[rowIndex]))
             }
           },
           {
             size: { basis: 200, grow: 0 },
-            field: 'action',
             headerRenderer: () => 'Action',
             cellRenderer: ({ rowIndex }) => {
               const { id, status, name } = filteredDisks[rowIndex]
-              const error = cond(
-                [status === 'Creating', () => 'Cannot delete this disk because it is still being created'],
-                [status === 'Deleting', () => 'The disk is being deleted'],
+              const error = Utils.cond(
+                [status === 'Creating', () => 'Cannot delete this disk because it is still being created.'],
+                [status === 'Deleting', () => 'The disk is being deleted.'],
                 [_.some({ runtimeConfig: { persistentDiskId: id } }, runtimes) || _.some({ diskName: name }, apps),
                   () => 'Cannot delete this disk because it is attached. You must delete the cloud environment first.']
               )
               return h(Link, {
-                style: !!error ? { color: disabledButtonColorDarkness } : {},
                 disabled: !!error,
                 tooltip: error || 'Delete persistent disk',
                 onClick: () => setDeleteDiskId(id)
