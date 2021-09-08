@@ -56,7 +56,7 @@ const ImportStatusItem = ({ job: { targetWorkspace, jobId }, onDone }) => {
       e.g. "this.pfb:consent_codes" instead of "this.consent_codes."`
       })
 
-    const errorNotify = () => notify('error', 'Error importing PFB data.', message)
+    const errorNotify = () => notify('error', 'Error importing data.', { message: message })
 
     if (!_.includes(status, ['PENDING', 'RUNNING', 'Pending', 'Translating', 'ReadyForUpsert', 'Upserting'])) {
       Utils.switchCase(status,
