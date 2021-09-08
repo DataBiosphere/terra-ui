@@ -1,13 +1,14 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { UnmountClosed as RCollapse } from 'react-collapse'
 import { a, div, h, label } from 'react-hyperscript-helpers'
+import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, IdContainer, Link, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { libraryTopMatter } from 'src/components/library-common'
+import { MiniSortable, SimpleTable } from 'src/components/table'
 import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
 import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
@@ -18,54 +19,30 @@ import * as Utils from 'src/libs/utils'
 
 
 export const styles = {
-  column: { marginRight: '1.5rem', flex: '1 1 0px', maxWidth: 415 },
   header: {
-    fontSize: 19, color: colors.dark(), fontWeight: 'bold', textTransform: 'capitalize',
-    marginBottom: '1rem'
+    fontSize: 19, color: colors.dark(), fontWeight: 'bold', marginBottom: '1rem'
   },
   sidebarRow: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'baseline'
   },
   nav: {
-    background: {
-      position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
-      overflow: 'auto', cursor: 'pointer'
-    },
-    container: state => ({
-      ...(state === 'entered' ? {} : { opacity: 0, transform: 'translate(-2rem)' }),
-      transition: 'opacity 0.2s ease-out, transform 0.2s ease-out',
-      display: 'flex', flexDirection: 'column'
-    }),
     navSection: {
-      alignItems: 'center', flex: 'none', padding: '1.2rem 0', fontWeight: 700,
+      alignItems: 'center', flex: 'none', padding: '1.2rem 0',
       borderTop: `1px solid ${colors.dark(0.35)}`
-    }
+    },
+    title: { fontWeight: 700 }
   },
   table: {
-    table: { width: '100%' },
     header: {
       color: colors.accent(),
-      textTransform: 'uppercase', textAlign: 'left',
-      fontWeight: '600', fontSize: '.75rem',
-      padding: '5px 15px', width: '100%',
-      flex: 1
+      height: 16,
+      textTransform: 'uppercase', fontWeight: 600, fontSize: '0.75rem'
     },
     row: {
       backgroundColor: '#ffffff',
-      borderRadius: '5px', border: '1px solid rgba(0,0,0,.15)',
-      margin: '15px 0'
-    },
-    col: {
-      padding: '15px', flex: 1
-    },
-    firstElem: {
-      minWidth: '37px', flex: 'unset',
-      padding: '15px 0px 15px 15px', textAlign: 'center'
-    },
-    lastElem: {
-      width: 'fit-content', flex: '1'
-    },
-    flexTableRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' }
+      borderRadius: 5, border: '1px solid rgba(0,0,0,.15)',
+      margin: '0 -15px 15px', padding: 15
+    }
   },
   pill: {
     width: '4.5rem', padding: '0.25rem', fontWeight: 500, textAlign: 'center',
@@ -73,61 +50,28 @@ export const styles = {
     backgroundColor: 'white'
   },
   pillHighlight: {
-    color: 'white', backgroundColor: colors.primary(1), borderColor: colors.primary(1)
+    color: 'white', backgroundColor: colors.primary(), borderColor: colors.primary()
   }
-}
-
-// collapsible section for sidebar categories
-const SidebarCollapser = ({ title, isOpened, onClick, children }) => {
-  return div({
-    role: 'group'
-  }, [
-    h(NavItem, {
-      onClick,
-      style: { ...styles.sidebarRow, ...styles.nav.navSection }
-    }, [
-      title,
-      div({ style: { flexGrow: 1 } }),
-      icon(isOpened ? 'angle-up' : 'angle-down', { size: 18, style: { flex: 'none' } })
-    ]),
-    div({
-      style: { flex: 'none' }
-    }, [h(RCollapse, { isOpened }, [children])])
-  ])
-}
-
-const NavItem = ({ children, ...props }) => {
-  return h(Clickable, _.merge({
-    style: { display: 'flex', alignItems: 'center', outlineOffset: -4 }
-  }, props), [children])
 }
 
 export const Pill = ({ count, highlight }) => {
   return div({
-    style: _.merge(styles.pill, highlight ? styles.pillHighlight : {})
+    style: { ...styles.pill, ...(highlight ? styles.pillHighlight : {}) }
   }, [count])
 }
 
-const uniqueSidebarTags = sidebarSections => {
-  return _.flow(
-    _.flatMap(s => _.map(_.toLower, s.labels)),
-    _.uniq
-  )(sidebarSections)
-}
-
-export const groupByFeaturedTags = (workspaces, sidebarSections) => {
-  return _.flow([
-    _.map(tag => [tag, _.filter(w => _.includes(tag, w.tags?.items), workspaces)]),
-    _.fromPairs
-  ])(uniqueSidebarTags(sidebarSections))
-}
+export const groupByFeaturedTags = (workspaces, sidebarSections) => _.flow(
+  _.flatMap(s => _.map(_.toLower, s.labels)),
+  _.uniq,
+  _.map(tag => [tag, _.filter(w => _.includes(tag, w.tags?.items), workspaces)]),
+  _.fromPairs
+)(sidebarSections)
 
 export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, listdataByTag }) => {
-  const [collapsedSections, setCollapsedSections] = useState([])
-
-  const unionSectionWorkspaces = section => {
-    return _.uniq(_.flatMap(tag => listdataByTag[tag], section.tags))
-  }
+  const unionSectionWorkspaces = ({ tags }) => _.flow(
+    _.flatMap(tag => listdataByTag[tag]),
+    _.uniq
+  )(tags)
 
   return div({ style: { display: 'flex', flexDirection: 'column' } }, [
     _.map(section => {
@@ -135,7 +79,7 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
         h(Clickable, {
           key: section.name,
           onClick: () => onSectionFilter(section),
-          style: { ...styles.sidebarRow, ...styles.nav.navSection }
+          style: { ...styles.sidebarRow, ...styles.nav.navSection, ...styles.nav.title }
         }, [
           div({ style: { flex: 1 } }, [section.name]),
           h(Pill, {
@@ -143,11 +87,12 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
             highlight: _.includes(section, selectedSections)
           })
         ]) :
-        h(SidebarCollapser, {
+        h(Collapse, {
           key: section.name,
-          title: section.name,
-          onClick: () => setCollapsedSections(_.xor([section], collapsedSections)),
-          isOpened: !_.includes(section, collapsedSections)
+          style: styles.nav.navSection,
+          buttonStyle: styles.nav.title,
+          titleFirst: true, initialOpenState: true,
+          title: section.name
         }, [_.map(label => {
           const tag = _.toLower(label)
           return h(Clickable, {
@@ -166,49 +111,13 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
   ])
 }
 
-export const selectionActionComponent = (selectedData, setSelectedData) => {
-  const length = selectedData.length
-  const files = _.sumBy('files', selectedData)
-  const totalBytes = _.sumBy('fileSize', selectedData)
-  const fileSizeFormatted = filesize(totalBytes)
-
-  return div(
-    {
-      style: {
-        display: selectedData.length > 0 ? 'block' : 'none',
-        position: 'sticky', bottom: 0, marginTop: '20px',
-        width: '100%', padding: '34px 60px',
-        backgroundColor: 'white', boxShadow: 'rgb(0 0 0 / 30%) 0px 0px 8px 3px',
-        fontSize: 17
-      }
-    },
-    [
-      div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
-        `${length} dataset${length > 1 ? 's' : ''} (${fileSizeFormatted} - ${files} bam files) selected to be saved to a Terra Workspace`,
-        div([
-          h(ButtonSecondary, {
-            style: { fontSize: 16, marginRight: 40, textTransform: 'none' },
-            onClick: () => setSelectedData([])
-          }, 'Cancel'),
-          h(ButtonPrimary, {
-            style: { textTransform: 'none', fontSize: 14 },
-            onClick: () => {}
-          }, ['Save to a workspace'])
-        ])
-      ])
-    ]
-  )
-}
-
-export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTab, listdataType = 'workspaces') => {
+export const SearchAndFilterComponent = ({ featuredList, sidebarSections, activeTab, listdataType }) => {
   const [selectedSections, setSelectedSections] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
-  const [searchFilter, setSearchFilter] = useState()
-  const [sort, setSort] = useState('most recent')
-  const [sortDir, setSortDir] = useState(1)
+  const [searchFilter, setSearchFilter] = useState('')
+  const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
 
   const [selectedData, setSelectedData] = useState([])
-  const [openedData, setOpenedData] = useState([])
 
   const listdataByTag = _.omitBy(_.isEmpty, groupByFeaturedTags(featuredList, sidebarSections))
 
@@ -226,22 +135,11 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
     _.remove(section => _.isEmpty(section.labels))
   )(sidebarSections)
 
-  const sortData = Utils.cond(
-    [sort === 'most recent', () => _.orderBy(['created'], ['desc'])],
-    [sort === 'alphabetical', () => _.orderBy(w => _.toLower(_.trim(w.name)), ['asc'])],
-    [sort === 'Dataset Name', () => _.orderBy(w => _.toLower(_.trim(w.name)), [sortDir === 1 ? 'asc' : 'desc'])],
-    [sort === 'Project', () => _.orderBy(w => _.toLower(_.trim(w.project.name)), [sortDir === 1 ? 'asc' : 'desc'])],
-    [sort === 'No. of Subjects', () => _.orderBy(['subjects', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
-    [sort === 'Data Type', () => _.orderBy(['dataType', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
-    [sort === 'Last Updated', () => _.orderBy(['lastUpdated', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
-    () => _.identity
-  )
-
   const filterBySections = listdata => {
     if (_.isEmpty(selectedSections)) {
       return listdata
     } else {
-      const tags = _.uniq(_.flatMap(section => section.tags, selectedSections))
+      const tags = _.uniq(_.flatMap('tags', selectedSections))
       return _.uniq(_.flatMap(tag => listdataByTag[tag], tags))
     }
   }
@@ -255,41 +153,16 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
       return ret
     }
   }
-  const filterByText = listdata => {
-    const lowerSearch = _.toLower(searchFilter)
-    return _.isEmpty(lowerSearch) ?
-      listdata :
-      _.filter(listdatum => _.includes(lowerSearch, listdatum.lowerName) || _.includes(lowerSearch, listdatum.lowerDescription), listdata)
-  }
+  const filterByText = _.filter(({ lowerName, lowerDescription }) => _.includes(searchFilter, `${lowerName} ${lowerDescription}`))
+
   const filteredData = _.flow(
     filterBySections,
     filterByTags,
-    filterByText
+    filterByText,
+    _.orderBy([sort.field], [sort.direction])
   )(featuredList)
 
-  const toggleSelectedData = data => {
-    if (_.some(data, selectedData)) {
-      setSelectedData(_.filter(d => !_.isEqual(d, data), selectedData))
-    } else {
-      setSelectedData([...selectedData, data])
-    }
-  }
-
-  const toggleOpenedData = data => {
-    if (_.some(data, openedData)) {
-      setOpenedData(_.filter(d => !_.isEqual(d, data), openedData))
-    } else {
-      setOpenedData([...openedData, data])
-    }
-  }
-
-  const makeListDisplay = (listdataType, listdata) => {
-    switch (listdataType) {
-      case 'datasets': return makeTable(listdata, sort, setSort, sortDir, setSortDir, selectedData, toggleSelectedData, openedData, toggleOpenedData)
-      case 'workspaces': return _.map(makeCard(), listdata)
-      default: return null
-    }
-  }
+  const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter(activeTab),
@@ -331,8 +204,9 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
                 isSearchable: false,
                 styles: { container: old => ({ ...old, width: '10rem' }) },
                 value: sort,
-                onChange: v => setSort(v.value),
-                options: ['most recent', 'alphabetical']
+                onChange: ({ value }) => setSort(value),
+                options: [{ value: { field: 'created', direction: 'desc' }, label: 'most recent' },
+                  { value: { field: 'name', direction: 'asc' }, label: 'alphabetical' }]
               })
             ])
           ])
@@ -340,8 +214,8 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
         div({ style: { display: 'flex', margin: '0 1rem', height: '100%' } }, [
           div({ style: { width: '19rem', flex: 'none' } }, [
             h(Sidebar, {
-              onSectionFilter: section => setSelectedSections(_.xor([section], selectedSections)),
-              onTagFilter: tag => setSelectedTags(_.xor([tag], selectedTags)),
+              onSectionFilter: section => setSelectedSections(_.xor([section])),
+              onTagFilter: tag => setSelectedTags(_.xor([tag])),
               sections,
               selectedSections,
               selectedTags,
@@ -349,100 +223,92 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
             })
           ]),
           div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
-            makeListDisplay(listdataType, sortData(filteredData))
+            Utils.switchCase(listdataType,
+              ['Datasets', () => makeTable({ listData: filteredData, sort, setSort, selectedData, toggleSelectedData })],
+              ['Workspaces', () => _.map(makeCard(), filteredData)])
           ])
         ])
       ]),
-
-    selectionActionComponent(selectedData, setSelectedData)
+    !_.isEmpty(selectedData) && div({
+      style: {
+        position: 'sticky', bottom: 0, marginTop: 20,
+        width: '100%', padding: '34px 60px',
+        backgroundColor: 'white', boxShadow: 'rgb(0 0 0 / 30%) 0 0 8px 3px',
+        fontSize: 17
+      }
+    }, [
+      div({ style: { display: 'flex', alignItems: 'center' } }, [
+        div({ style: { flexGrow: 1 } }, [
+          `${_.size(selectedData)} dataset${_.size(selectedData) !== 1 ? 's' : ''} `,
+          `(${filesize(_.sumBy('fileSize', selectedData))} - ${(_.sumBy('files', selectedData))} bam files) `,
+          'selected to be saved to a Terra Workspace'
+        ]),
+        h(ButtonSecondary, {
+          style: { fontSize: 16, marginRight: 40, textTransform: 'none' },
+          onClick: () => setSelectedData([])
+        }, 'Cancel'),
+        h(ButtonPrimary, {
+          style: { textTransform: 'none', fontSize: 14 },
+          onClick: () => {}
+        }, ['Save to a workspace'])
+      ])
+    ])
   ])
 }
 
-const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, toggleSelectedData, openedData, toggleOpenedData) => {
-  const makeTableHeader = (headerStyles, headerName, sortable = false) => {
-    return div({ style: { ...styles.table.header, ...headerStyles } }, [
-      sortable ?
-        h(Link, {
-          onClick: () => {
-            if (sort === headerName) {
-              setSortDir(sortDir * -1)
-            } else {
-              setSort(headerName)
-              setSortDir(1)
-            }
-          },
-          style: { fontWeight: 600 }
-        }, [
-          headerName,
-          icon(
-            sortDir === 1 ? 'long-arrow-alt-up' : 'long-arrow-alt-down',
-            {
-              size: 12,
-              style: {
-                visibility: `${sort === headerName ? 'visible' : 'hidden'}`,
-                marginTop: '5'
-              },
-              'aria-label': `Sorted by ${sortDir === 1 ? 'ascending' : 'descending'}`
-            }
-          )
-        ]) : div({ style: styles.table.header }, [headerName])
-    ])
-  }
+const makeTable = ({ listData, sort, setSort, selectedData, toggleSelectedData }) => {
+  return div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
+    'aria-label': 'dataset list',
+    columns: [
+      { size: { basis: 37, grow: 0 }, key: 'checkbox' },
+      {
+        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'name', onSort: setSort }, ['Dataset Name'])]),
+        size: { grow: 2.2 }, key: 'name'
+      }, {
+        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'project.name', onSort: setSort }, ['Project'])]),
+        size: { grow: 1 }, key: 'project'
+      }, {
+        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'subjects', onSort: setSort }, ['No. of Subjects'])]),
+        size: { grow: 1 }, key: 'subjects'
+      }, {
+        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dataType', onSort: setSort }, ['Data Type'])]),
+        size: { grow: 1 }, key: 'dataType'
+      }, {
+        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'lastUpdated', onSort: setSort }, ['Last Updated'])]),
+        size: { grow: 1 }, key: 'lastUpdated'
+      }
+    ],
+    rowStyle: styles.table.row,
+    cellStyle: { border: 'none', paddingRight: 15 },
+    useHover: false,
+    underRowKey: 'underRow',
+    rows: _.map(datum => {
+      const { name, project: { name: projectName }, subjects, dataType, lastUpdated, locked, description } = datum
 
-  return div({ style: styles.table.table }, [
-    div({ style: { ...styles.table.flexTableRow, marginBottom: -15 } }, [
-      div({ style: { ...styles.table.col, ...styles.table.firstElem } }, ''),
-      makeTableHeader({ flex: 2.2 }, 'Dataset Name', true),
-      makeTableHeader({}, 'Project', true),
-      makeTableHeader({}, 'No. of Subjects', true),
-      makeTableHeader({}, 'Data Type', true),
-      makeTableHeader(styles.table.lastElem, 'Last Updated', true)
-    ]),
-
-    div(listData.map(listdatum => {
-      return div({ style: styles.table.row }, [
-        div({ style: styles.table.flexTableRow, key: `${listdatum.namespace}:${listdatum.name}` },
-          [
-            div(
-              { style: { ...styles.table.col, ...styles.table.firstElem, alignSelf: 'flex-start' } },
-              [
-                label({
-                  onClick: () => toggleSelectedData(listdatum),
-                  htmlFor: `${listdatum.namespace}:${listdatum.name}-checkbox`
-                }, [
-                  h(Checkbox, {
-                    id: `${listdatum.namespace}:${listdatum.name}-checkbox`,
-                    checked: _.some(listdatum, selectedData),
-                    style: { marginRight: '0.2rem' }
-                  })
-                ])
-              ]
-            ),
-            div({ style: { ...styles.table.col, flex: 2.2 } }, listdatum.name),
-            div({ style: styles.table.col }, listdatum.project.name),
-            div({ style: styles.table.col }, listdatum.subjects),
-            div({ style: styles.table.col }, listdatum.dataType),
-            div({ style: { ...styles.table.col, ...styles.table.lastElem } }, Utils.makeStandardDate(listdatum.lastUpdated))
-          ]
-        ),
-        div({ style: { ...styles.table.flexTableRow, alignItems: 'flex-start' } }, [
-          div({ style: { ...styles.table.col, ...styles.table.firstElem } }, [
-            icon(listdatum.locked ? 'lock' : 'lock-o', { size: 12, style: { flex: 'none', color: listdatum.locked ? colors.accent() : colors.primary() } })
+      return {
+        checkbox: h(Checkbox, {
+          'aria-label': name,
+          checked: _.includes(datum, selectedData),
+          onChange: () => toggleSelectedData(datum)
+        }),
+        name,
+        project: projectName,
+        subjects,
+        dataType,
+        lastUpdated: Utils.makeStandardDate(lastUpdated),
+        underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
+          div({ style: { flex: '0 1 37px' } }, [
+            icon(locked ? 'lock' : 'unlock', {
+              size: 12, style: { color: datum.locked ? colors.accent() : colors.primary() }
+            })
           ]),
-          div({ style: { ...styles.table.col, width: '100%', fontSize: 12 } }, [
-            h(Link,
-              { onClick: () => toggleOpenedData(listdatum) },
-              [
-                `See ${_.some(listdatum, openedData) ? 'Less' : 'More'}`,
-                icon(_.some(listdatum, openedData) ? 'angle-up' : 'angle-down', { size: 12, style: { flex: 'none', marginTop: 5 } })
-              ]
-            ),
-            div({ style: { display: _.some(listdatum, openedData) ? 'block' : 'none', marginTop: 10 } }, listdatum.description)
+          div({ style: { flex: 1, fontSize: 12 } }, [
+            h(Collapse, { titleFirst: true, title: 'See More', buttonStyle: { flex: 'none' } }, [description])
           ])
         ])
-      ])
-    }))
-  ])
+      }
+    }, listData)
+  })])
 }
 
 const makeCard = variant => workspace => {
