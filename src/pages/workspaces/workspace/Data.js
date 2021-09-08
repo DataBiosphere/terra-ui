@@ -81,7 +81,7 @@ const DataTypeButton = ({ selected, entityName, children, entityCount, iconName 
 }
 
 const DataImportPlaceholder = () => {
-  return div({ style: { ...Style.navList.item(false), color: colors.dark(0.7) } }, [
+  return div({ style: { ...Style.navList.item(false), color: colors.dark(0.7), marginLeft: '0.5rem' } }, [
     div({ style: { flex: 'none', display: 'flex', width: '1.5rem' } }, [
       icon('downloadRegular', { size: 14 })
     ]),
