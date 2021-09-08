@@ -432,7 +432,7 @@ const WorkspaceData = _.flow(
     }
   }
 
-  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata()])
+  const loadMetadata = () => Promise.all([loadEntityMetadata(), loadSnapshotMetadata(), getRunningImportJobs()])
 
   const loadSnapshotEntities = async snapshotName => {
     try {
@@ -447,6 +447,17 @@ const WorkspaceData = _.flow(
 
   const toSortedPairs = _.flow(_.toPairs, _.sortBy(_.first))
 
+  const getRunningImportJobs = async () => {
+    try {
+      const runningJobs = await Ajax(signal).Workspaces.workspace(namespace, name).listImportJobs(true)
+      _.map(job => {
+        if (!(_.lowerCase(job.status) === "success" || _.lowerCase(job.status) === "error" || _.lowerCase(job.status) === "done"))
+          pfbImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId: job.jobId }))
+      }, runningJobs)
+    } catch (error) {
+      reportError('Error loading running import jobs in this workspace')
+    }
+  }
 
   // Lifecycle
   Utils.useOnMount(() => {
