@@ -344,10 +344,10 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
   // never updates (i.e. it's bound to the value that the component was first mounted with).
   // `useGetter` works around this and I have no idea why.
   const getShowBillingModal = Utils.useGetter(showBillingModal)
-  const getWorkspacesUpToDate = Utils.useGetter(billingAccountsOutOfDate)
+  const getBillingAccountsOutOfDate = Utils.useGetter(billingAccountsOutOfDate)
   Utils.usePollingEffect(
-    async () => getShowBillingModal() && getWorkspacesUpToDate() &&
-      await Promise.all([updateBillingProject(), refreshWorkspaces()]),
+    async () => getShowBillingModal() || (getBillingAccountsOutOfDate() &&
+      await Promise.all([updateBillingProject(), refreshWorkspaces()])),
     { ms: 5000 }
   )
 
