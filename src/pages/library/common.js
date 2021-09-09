@@ -358,7 +358,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
       ]),
 
     selectionActionComponent(selectedData, setSelectedData),
-    (requestDatasetAccessList || []).length > 0 && h(RequestDatasetAccessModal, {
+    !_.isEmpty(requestDatasetAccessList) && h(RequestDatasetAccessModal, {
       datasets: requestDatasetAccessList,
       onDismiss: () => setRequestDatasetAccessList([])
     })
@@ -433,22 +433,21 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, t
           ]
         ),
         div({ style: { ...styles.table.flexTableRow, alignItems: 'flex-start' } }, [
-          div({ style: { ...styles.table.col, ...styles.table.firstElem }, tooltip: 'Testing' }, [
+          div({ style: { ...styles.table.col, ...styles.table.firstElem } }, [
             listdatum.locked ?
               h(ButtonSecondary, {
-                'aria-label': 'Request Dataset Access',
-                tooltip: 'Request Dataset Access',
-                style: { marginTop: -7, marginBottom: -7 },
+                tooltip: 'Request Dataset Access', useTooltipAsLabel: true,
+                style: { margin: '-7px 0' },
                 onClick: () => setRequestDatasetAccessList([listdatum])
-              }, [icon('lock', { size: 12, style: { flex: 'none', color: colors.accent() } })]) :
-              h(TooltipTrigger, { content: 'Open Access' }, [icon('lock-o', { size: 12, tooltip: 'Testing', style: { flex: 'none', color: colors.primary() } })])
+              }, [icon('lock', { size: 12 })]) :
+              h(TooltipTrigger, { content: 'Open Access' }, [icon('lock-o', { size: 12, style: { marginTop: 5, color: colors.primary() } })])
           ]),
           div({ style: { ...styles.table.col, width: '100%', fontSize: 12 } }, [
             h(Link,
               { onClick: () => toggleOpenedData(listdatum) },
               [
                 `See ${_.some(listdatum, openedData) ? 'Less' : 'More'}`,
-                icon(_.some(listdatum, openedData) ? 'angle-up' : 'angle-down', { size: 12, style: { flex: 'none', marginTop: 5 } })
+                icon(_.some(listdatum, openedData) ? 'angle-up' : 'angle-down', { size: 12, style: { marginTop: 5 } })
               ]
             ),
             div({ style: { display: _.some(listdatum, openedData) ? 'block' : 'none', marginTop: 10 } }, listdatum.description)

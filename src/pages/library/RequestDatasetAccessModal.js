@@ -7,7 +7,7 @@ import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
-import { cond, useCancellation, withBusyState } from 'src/libs/utils'
+import * as Utils from 'src/libs/utils'
 
 
 export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
@@ -19,10 +19,11 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
     showCancel: false,
     onDismiss
   }, [
-    div([`
-      You cannot access this dataset because it is protected by an Authorization Domain.
-      You need to obtain permission from the owner(s) of this dataset in order to get access.
-      Clicking the "Request Access" button below will send an email to the admins of that dataset.`]),
+    div([
+      'You cannot access this dataset because it is protected by an Authorization Domain. ',
+      'You need to obtain permission from the owner(s) of this dataset in order to get access. ',
+      'Clicking the "Request Access" button below will send an email to the admins of that dataset.'
+    ]),
     h(IdContainer, [id => div([
       h(FormLabel, { htmlFor: id }, ['Please tell us why']),
       h(TextArea, {
@@ -56,25 +57,21 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
 const RequestDatasetAccessButton = ({ dataset }) => {
   const [requesting, setRequesting] = useState(false)
   const [requested, setRequested] = useState(false)
-  const signal = useCancellation()
-
-  const { DataRepo } = Ajax(signal)
+  const signal = Utils.useCancellation()
 
   const requestAccess = _.flow(
-    withBusyState(setRequesting),
+    Utils.withBusyState(setRequesting),
     withErrorReporting('Error requesting group access')
   )(async () => {
-    await DataRepo.requestAccess(dataset.id)
+    await Ajax(signal).requestAccess(dataset.id)
     setRequested(true)
   })
 
   return h(ButtonPrimary, {
     disabled: requesting || requested,
-    onClick: async () => {
-      await requestAccess()
-    }
+    onClick: requestAccess
   }, [
-    cond(
+    Utils.cond(
       [requested, () => 'Request Sent'],
       [requesting, () => 'Sending Request...'],
       () => 'Request Access'
