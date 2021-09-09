@@ -66,8 +66,8 @@ const RequesterPaysModal = ({ onDismiss, onSuccess }) => {
           placeholder: 'Select a workspace',
           onChange: ({ value }) => setSelectedGoogleProject(value),
           options: _.flow(
-            _.map(({ workspace: { workspace: { googleProject, namespace, name } } }) => ({
-                value: googleProject, label: `${namespace}/${name}`
+            _.map(({ workspace: { googleProject, namespace, name } }) => ({
+              value: googleProject, label: `${namespace}/${name}`
             })),
             _.uniq,
             _.sortBy('label')
