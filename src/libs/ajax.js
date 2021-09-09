@@ -833,18 +833,10 @@ const Workspaces = signal => ({
         return fetchOrchestration(`api/${root}/importEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
       },
 
-      importFlexibleEntitiesFileSynchronous: async file => {
+      importFlexibleEntitiesFile: file => {
         const formData = new FormData()
         formData.set('entities', file)
-        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?async=false`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
-        return res
-      },
-
-      importFlexibleEntitiesFileAsync: async file => {
-        const formData = new FormData()
-        formData.set('entities', file)
-        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?async=true`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
-        return res.json()
+        return fetchOrchestration(`api/${root}/flexibleImportEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
       },
 
       importPFB: async url => {
@@ -852,14 +844,8 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      getImportJobStatus: async jobId => {
-        const res = await fetchOrchestration(`api/${root}/importJob/${jobId}`, _.merge(authOpts(), { signal }))
-        return res.json()
-      },
-
-      listImportJobs: async isRunning => {
-        // ToDo: This endpoint should be deprecated in favor of more generic "importJob" endpoint
-        const res = await fetchOrchestration(`api/${root}/importPFB?running_only=${isRunning}`, _.merge(authOpts(), { signal }))
+      importPFBStatus: async jobId => {
+        const res = await fetchOrchestration(`api/${root}/importPFB/${jobId}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
