@@ -833,11 +833,11 @@ const Workspaces = signal => ({
         return fetchOrchestration(`api/${root}/importEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
       },
 
-      importFlexibleEntitiesFile: async (isAsync, file) => {
+      importFlexibleEntitiesFile: async (isAsyncImport, file) => {
         const formData = new FormData()
         formData.set('entities', file)
-        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?async=${isAsync}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
-        if (isAsync)
+        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?async=${isAsyncImport}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+        if (isAsyncImport)
           return res.json()
         else
           return res
