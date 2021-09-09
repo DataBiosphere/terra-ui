@@ -222,7 +222,7 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
 
 const supportsFireCloudDataModel = entityType => _.includes(entityType, ['pair', 'participant', 'sample'])
 
-export const notifyDataImportProgress = (jobId) => {
+export const notifyDataImportProgress = jobId => {
   notify('info', 'Data import in progress.', {
     id: jobId,
     message: 'Data will show up incrementally as the job progresses.'
