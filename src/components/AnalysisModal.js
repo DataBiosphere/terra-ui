@@ -16,7 +16,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
-import { getCurrentApp, getCurrentRuntime, isRuntimeDeletable } from 'src/libs/runtime-utils'
+import { getCurrentApp, getCurrentRuntime, isResourceDeletable } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -62,9 +62,9 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
             resetView()
             onSuccess()
           }],
-          [!doesCloudEnvForToolExist && currentRuntime && isRuntimeDeletable(currentRuntime), () => setViewMode(environmentMode)],
+          [!doesCloudEnvForToolExist && currentRuntime && isResourceDeletable('runtime', currentRuntime), () => setViewMode(environmentMode)],
           [!doesCloudEnvForToolExist && !currentRuntime, () => setViewMode(environmentMode)],
-          [!doesCloudEnvForToolExist && currentRuntime && !isRuntimeDeletable(currentRuntime), () => {
+          [!doesCloudEnvForToolExist && currentRuntime && !isResourceDeletable('runtime', currentRuntime), () => {
             resetView()
             onSuccess()
           }]
@@ -181,7 +181,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
         onDropAccepted: files => {
           const tool = getTool(files.pop().path)
           setCurrentTool(tool)
-          currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== tool ?
+          currentRuntime && !isResourceDeletable('runtime', currentRuntime) && currentRuntimeTool !== tool ?
             onSuccess() :
             enterNextViewMode(tool, analysisMode)
           uploadFiles()
@@ -246,7 +246,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
           })
         ])]),
         (isJupyter || toolLabel === tools.RStudio.label) &&
-        (currentRuntime && !isRuntimeDeletable(currentRuntime) && currentRuntimeTool !== toolLabel) &&
+        (currentRuntime && !isResourceDeletable('runtime', currentRuntime) && currentRuntimeTool !== toolLabel) &&
         div({ style: { backgroundColor: colors.warning(0.1), margin: '0.5rem', padding: '1rem' } }, [
           h(WarningTitle, { iconSize: 16 }, [span({ style: { fontWeight: 600 } }, ['Environment Creation'])]),
           div({ style: { marginBottom: '0.5rem', marginTop: '1rem' } }, [
