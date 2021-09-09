@@ -16,8 +16,7 @@ import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-
-import { RequestDatasetAccessModal } from './RequestDatasetAccessModal'
+import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
 export const styles = {
