@@ -96,7 +96,7 @@ const withRequesterPays = wrappedFetch => (url, ...args) => {
 
   const getUserProject = async () => {
     if (!requesterPaysProjectStore.get() && workspace && await canUseWorkspaceProject(workspace)) {
-      requesterPaysProjectStore.set(workspace.workspace.namespace)
+      requesterPaysProjectStore.set(workspace.workspace.googleProject)
     }
     return requesterPaysProjectStore.get()
   }
