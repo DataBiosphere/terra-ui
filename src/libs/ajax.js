@@ -837,10 +837,11 @@ const Workspaces = signal => ({
         const formData = new FormData()
         formData.set('entities', file)
         const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?async=${isAsyncImport}`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
-        if (isAsyncImport)
+        if (isAsyncImport) {
           return res.json()
-        else
+        } else {
           return res
+        }
       },
 
       importPFB: async url => {
