@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, HeaderRenderer, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { DeleteUserModal, EditUserModal, MemberCard, MemberCardHeaders, NewUserCard, NewUserModal } from 'src/components/group-common'
@@ -17,7 +17,9 @@ import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { contactUsActive } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
+import { topBarHeight } from 'src/libs/style'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { billingRoles } from 'src/pages/billing/List'
@@ -25,18 +27,25 @@ import { billingRoles } from 'src/pages/billing/List'
 
 const workspaceLastModifiedWidth = 150
 const workspaceExpandIconSize = 20
+const billingAccountIconSize = 16
 
-const workspaceBillingStatusIconOrEmpty = (() => {
-  const size = 16
-  const blank = div({ style: { width: size } },
-    [div({ className: 'sr-only' }, ['Status'])])
-  return shape => shape ? icon(shape, { size }) : blank
-})()
+const BillingAccountIcon = {
+  updating: { shape: 'sync', color: colors.warning() },
+  done: { shape: 'check', color: colors.accent() },
+  error: { shape: 'warning-standard', color: colors.danger() }
+}
 
-const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ sort, onSort }) => {
+const getBillingAccountIcon = status => {
+  const { shape, color } = BillingAccountIcon[status]
+  return icon(shape, { size: billingAccountIconSize, color })
+}
+
+const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ needsStatusColumn, sort, onSort }) => {
   return div({ style: { display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem', padding: '0 1rem', marginBottom: '0.5rem' } }, [
-    workspaceBillingStatusIconOrEmpty(null),
-    div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: '1rem' } }, [
+    needsStatusColumn && div({ style: { width: billingAccountIconSize } }, [
+      div({ className: 'sr-only' }, ['Status'])
+    ]),
+    div({ 'aria-sort': ariaSort(sort, 'name'), style: { flex: 1, paddingLeft: needsStatusColumn ? '1rem' : '2rem' } }, [
       h(HeaderRenderer, { sort, onSort, name: 'name' })
     ]),
     div({ 'aria-sort': ariaSort(sort, 'createdBy'), style: { flex: 1 } }, [
@@ -68,7 +77,7 @@ const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details,
   ])
 })
 
-const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingAccountStatusIcon, isExpanded, onExpand }) => {
+const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingAccountStatus, isExpanded, onExpand }) => {
   const { namespace, name, createdBy, lastModified, googleProject, billingAccountName } = workspace
   const workspaceCardStyles = {
     field: {
@@ -81,8 +90,8 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingA
   return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' } }, [
     h(IdContainer, [id => h(Fragment, [
       div({ style: workspaceCardStyles.row }, [
-        workspaceBillingStatusIconOrEmpty(billingAccountStatusIcon),
-        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: '1rem' } }, [
+        billingAccountStatus && getBillingAccountIcon(billingAccountStatus),
+        div({ style: { ...workspaceCardStyles.field, display: 'flex', alignItems: 'center', paddingLeft: billingAccountStatus ? '1rem' : '2rem' } }, [
           h(Link, {
             style: Style.noWrapEllipsis,
             href: Nav.getLink('workspace-dashboard', { namespace, name }),
@@ -125,6 +134,54 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingA
   ])
 })
 
+const BillingAccountSummaryPanel = (() => {
+  const StatusAndCount = ({ status, count }) => div({ style: { display: 'float' } }, [
+    div({ style: { float: 'left' } }, [getBillingAccountIcon(status)]),
+    div({ style: { float: 'left', marginLeft: '0.5rem' } }, [`${status} (${count})`])
+  ])
+
+  const maybeAddStatus = (status, count) => count > 0 && div({ style: { marginRight: '2rem' } }, [
+    h(StatusAndCount, { status, count })
+  ])
+
+  return Utils.memoWithName(
+    'BillingAccountSummaryPanel',
+    ({ counts: { done, error, updating } }) => div({
+      style: {
+        padding: '0.5rem 2rem 1rem',
+        position: 'fixed',
+        top: topBarHeight,
+        right: '3rem',
+        width: '30rem',
+        backgroundColor: colors.light(0.5),
+        boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
+      }
+    }, [
+      div({ style: { padding: '1rem 0' } }, 'Your billing account is updating...'),
+      div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
+        maybeAddStatus('updating', updating),
+        maybeAddStatus('done', done),
+        maybeAddStatus('error', error)
+      ]),
+      error > 0 && div({ style: { padding: '1rem 0 0' } }, [
+        'Try again or ',
+        h(Link, { onClick: () => contactUsActive.set(true) },
+          ['contact us regarding unresolved errors']),
+        '.'
+      ])
+    ]))
+})()
+
+const groupByBillingAccountStatus = (billingProject, workspaces) => {
+  const group = workspace => Utils.cond(
+    [billingProject.billingAccount === workspace.billingAccount, () => 'done'],
+    ['billingAccountErrorMessage' in workspace, () => 'error'],
+    [Utils.DEFAULT, () => 'updating']
+  )
+
+  return _.mapValues(ws => new Set(ws), _.groupBy(group, workspaces))
+}
+
 const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) => {
   // State
   const { query } = Nav.useRoute()
@@ -153,32 +210,36 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
 
   const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
-  const getBillingAccountStatusIcon = workspace => Utils.cond(
-    [_.isEmpty(billingProject.workspacesWithIncorrectBillingAccount), () => null],
-    [billingProject.billingAccount === workspace.billingAccount, () => 'success-standard'],
-    ['billingAccountErrorMessage' in workspace, () => 'error-standard'],
-    [Utils.DEFAULT, () => 'loadingSpinner']
-  )
+  const workspacesInProject = useMemo(() => _.flow(
+    _.map('workspace'),
+    _.filter({ namespace: billingProject.projectName })
+  )(workspaces), [billingProject, workspaces])
+
+  const groups = groupByBillingAccountStatus(billingProject, workspacesInProject)
+  const billingAccountsOutOfDate = !_.every(_.isEmpty, [groups.error, groups.updating])
+  const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
 
   const tabToTable = {
     workspaces: h(Fragment, [
-      h(WorkspaceCardHeaders, { sort: workspaceSort, onSort: setWorkspaceSort }),
+      h(WorkspaceCardHeaders, {
+        needsStatusColumn: billingAccountsOutOfDate,
+        sort: workspaceSort,
+        onSort: setWorkspaceSort
+      }),
       div({ role: 'list', 'aria-label': `workspaces in billing project ${billingProject.projectName}`, style: { flexGrow: 1, width: '100%' } }, [
         _.flow(
-          _.map('workspace'),
-          _.filter({ namespace: billingProject.projectName }),
           _.orderBy([workspaceSort.field], [workspaceSort.direction]),
           _.map(workspace => {
             const isExpanded = expandedWorkspaceName === workspace.name
             return h(WorkspaceCard, {
               workspace,
-              billingAccountStatusIcon: getBillingAccountStatusIcon(workspace),
+              billingAccountStatus: billingAccountsOutOfDate && getBillingAccountStatus(workspace),
               key: workspace.workspaceId,
               isExpanded,
               onExpand: () => setExpandedWorkspaceName(isExpanded ? undefined : workspace.name)
             })
           })
-        )(workspaces)
+        )(workspacesInProject)
       ])
     ]),
     users: h(Fragment, [
@@ -280,10 +341,9 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
   // never updates (i.e. it's bound to the value that the component was first mounted with).
   // `useGetter` works around this and I have no idea why.
   const getShowBillingModal = Utils.useGetter(showBillingModal)
-  const getBillingProject = Utils.useGetter(billingProject)
+  const getWorkspacesUpToDate = Utils.useGetter(billingAccountsOutOfDate)
   Utils.usePollingEffect(
-    async () => getShowBillingModal() ||
-      _.isEmpty(getBillingProject().workspacesWithIncorrectBillingAccount) ||
+    async () => getShowBillingModal() && getWorkspacesUpToDate() &&
       await Promise.all([updateBillingProject(), refreshWorkspaces()]),
     { ms: 5000 }
   )
@@ -291,6 +351,7 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
   const { displayName = null } = _.find({ accountName: billingProject.billingAccount }, billingAccounts) || { displayName: 'No Access' }
 
   return h(Fragment, [
+    billingAccountsOutOfDate && div({}, [h(BillingAccountSummaryPanel, { counts: _.mapValues(_.size, groups) })]),
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
       div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
