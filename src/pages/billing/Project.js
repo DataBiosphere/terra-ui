@@ -60,34 +60,35 @@ const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ needs
   ])
 })
 
-const rowBase = { display: 'flex', alignItems: 'center', width: '100%' }
-
-const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details, additionalInfo }) => {
+const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details, errorMessage }) => {
   const expandedInfoStyles = {
-    row: { ...rowBase, marginTop: '0.5rem', height: '1rem' },
-    title: { fontWeight: 600, width: '20%', paddingRight: '1rem', height: '1rem' },
-    details: { flexGrow: 1, width: '20%', paddingRight: '1rem', height: '1rem', ...Style.noWrapEllipsis },
-    additionalInfo: { flexGrow: 1 }
+    row: { display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' },
+    title: { fontWeight: 600, width: '20%', padding: '0.5rem 1rem 0 2rem', height: '1rem' },
+    details: { width: '20%', marginTop: '0.5rem', height: '1rem', ...Style.noWrapEllipsis },
+    errorMessage: {
+      padding: '0.5rem', width: '55%', backgroundColor: colors.light(0.3),
+      border: `solid 2px ${colors.danger(0.3)}`, borderRadius: 5
+    }
   }
 
   return div({ style: expandedInfoStyles.row }, [
     div({ style: expandedInfoStyles.title }, [title]),
     div({ style: expandedInfoStyles.details }, [details]),
-    div({ style: expandedInfoStyles.additionalInfo }, [additionalInfo])
+    errorMessage && div({ style: expandedInfoStyles.errorMessage }, [errorMessage])
   ])
 })
 
 const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingAccountStatus, isExpanded, onExpand }) => {
-  const { namespace, name, createdBy, lastModified, googleProject, billingAccountName } = workspace
+  const { namespace, name, createdBy, lastModified, googleProject, billingAccount, billingAccountErrorMessage } = workspace
   const workspaceCardStyles = {
     field: {
       ...Style.noWrapEllipsis, flex: 1, height: '1rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`, paddingRight: '1rem'
     },
-    row: rowBase,
+    row: { display: 'flex', alignItems: 'center', width: '100%', padding: '1rem' },
     expandedInfoContainer: { display: 'flex', flexDirection: 'column', width: '100%' }
   }
 
-  return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, flexDirection: 'column' } }, [
+  return div({ role: 'listitem', style: { ...Style.cardList.longCardShadowless, padding: 0, flexDirection: 'column' } }, [
     h(IdContainer, [id => h(Fragment, [
       div({ style: workspaceCardStyles.row }, [
         billingAccountStatus && getBillingAccountIcon(billingAccountStatus),
@@ -104,7 +105,9 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingA
           }, [name])
         ]),
         div({ style: workspaceCardStyles.field }, [createdBy]),
-        div({ style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [Utils.makeStandardDate(lastModified)]),
+        div({ style: { height: '1rem', flex: `0 0 ${workspaceLastModifiedWidth}px` } }, [
+          Utils.makeStandardDate(lastModified)
+        ]),
         div({ style: { flex: `0 0 ${workspaceExpandIconSize}px` } }, [
           h(Link, {
             'aria-label': 'expand workspace',
@@ -124,10 +127,10 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingA
           ])
         ])
       ]),
-      isExpanded && div({ id, style: workspaceCardStyles.row }, [
+      isExpanded && div({ id, style: { ...workspaceCardStyles.row, padding: '0.5rem', border: `1px solid ${colors.light()}` } }, [
         div({ style: workspaceCardStyles.expandedInfoContainer }, [
           h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
-          h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountName })
+          h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccount, errorMessage: billingAccountErrorMessage })
         ])
       ])
     ])])
@@ -341,10 +344,10 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
   // never updates (i.e. it's bound to the value that the component was first mounted with).
   // `useGetter` works around this and I have no idea why.
   const getShowBillingModal = Utils.useGetter(showBillingModal)
-  const getWorkspacesUpToDate = Utils.useGetter(billingAccountsOutOfDate)
+  const getBillingAccountsOutOfDate = Utils.useGetter(billingAccountsOutOfDate)
   Utils.usePollingEffect(
-    async () => getShowBillingModal() && getWorkspacesUpToDate() &&
-      await Promise.all([updateBillingProject(), refreshWorkspaces()]),
+    async () => getShowBillingModal() || (getBillingAccountsOutOfDate() &&
+      await Promise.all([updateBillingProject(), refreshWorkspaces()])),
     { ms: 5000 }
   )
 
