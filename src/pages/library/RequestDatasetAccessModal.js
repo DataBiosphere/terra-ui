@@ -61,7 +61,7 @@ const RequestDatasetAccessButton = ({ dataset }) => {
 
   const requestAccess = _.flow(
     Utils.withBusyState(setRequesting),
-    withErrorReporting('Error requesting group access')
+    withErrorReporting('Error requesting dataset access')
   )(async () => {
     await Ajax(signal).requestAccess(dataset.id)
     setRequested(true)
