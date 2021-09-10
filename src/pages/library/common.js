@@ -175,8 +175,6 @@ export const SelectionActionComponent = (selectedData, setSelectedData) => {
   const totalBytes = _.sumBy('fileSize', selectedData)
   const fileSizeFormatted = filesize(totalBytes)
 
-  // `${terraUrl}/#import-data?url=${window.location.origin}&snapshotId=${of.id}&snapshotName=${of.name}&format=snapshot`
-
   return div(
     {
       style: {
