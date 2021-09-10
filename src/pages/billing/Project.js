@@ -67,7 +67,7 @@ const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details,
     details: { width: '20%', marginTop: '0.5rem', height: '1rem', ...Style.noWrapEllipsis },
     errorMessage: {
       padding: '0.5rem', width: '55%', backgroundColor: colors.light(0.3),
-      border: `solid 2px ${colors.danger(0.3)}`, borderRadius: '5px'
+      border: `solid 2px ${colors.danger(0.3)}`, borderRadius: 5
     }
   }
 
