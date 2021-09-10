@@ -6,8 +6,9 @@ import { a, div, h, label } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, IdContainer, Link, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { DelayedSearchInput } from 'src/components/input'
+import { DelayedSearchInput, TextInput } from 'src/components/input'
 import { libraryTopMatter } from 'src/components/library-common'
+import Modal from 'src/components/Modal'
 import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
 import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
@@ -166,11 +167,15 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
   ])
 }
 
-export const selectionActionComponent = (selectedData, setSelectedData) => {
+export const SelectionActionComponent = (selectedData, setSelectedData) => {
+  const [showExportModal, setShowExportModal] = useState(false)
+  const [datasetName, setDatasetName] = useState('')
   const length = selectedData.length
   const files = _.sumBy('files', selectedData)
   const totalBytes = _.sumBy('fileSize', selectedData)
   const fileSizeFormatted = filesize(totalBytes)
+
+  // `${terraUrl}/#import-data?url=${window.location.origin}&snapshotId=${of.id}&snapshotName=${of.name}&format=snapshot`
 
   return div(
     {
@@ -192,8 +197,32 @@ export const selectionActionComponent = (selectedData, setSelectedData) => {
           }, 'Cancel'),
           h(ButtonPrimary, {
             style: { textTransform: 'none', fontSize: 14 },
-            onClick: () => {}
+            onClick: () => {
+              setShowExportModal(true)
+            }
           }, ['Save to a workspace'])
+        ]),
+        showExportModal &&
+        h(Modal, {
+          title: 'Save to a Terra workspace',
+          onDismiss: () => setShowExportModal(false),
+          okButton: () => {
+            Nav.history.push({
+              pathname: Nav.getPath('import-data'),
+              search: `?url=https://jade.datarepo-dev.broadinstitute.org/&snapshotId=idid&snapshotName=${datasetName}&format=snapshot`
+            })
+          }
+        }, [
+          div([
+            div('Data with this name will be saved in Terra. If this name already exists, it will be overwritten.', []),
+            div({ style: { marginTop: '1rem' } }, [
+              h(TextInput, {
+                placeholder: 'Name of data',
+                value: datasetName,
+                onChange: setDatasetName
+              })
+            ])
+          ])
         ])
       ])
     ]
@@ -285,9 +314,12 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
 
   const makeListDisplay = (listdataType, listdata) => {
     switch (listdataType) {
-      case 'datasets': return makeTable(listdata, sort, setSort, sortDir, setSortDir, selectedData, toggleSelectedData, openedData, toggleOpenedData)
-      case 'workspaces': return _.map(makeCard(), listdata)
-      default: return null
+      case 'datasets':
+        return makeTable(listdata, sort, setSort, sortDir, setSortDir, selectedData, toggleSelectedData, openedData, toggleOpenedData)
+      case 'workspaces':
+        return _.map(makeCard(), listdata)
+      default:
+        return null
     }
   }
 
@@ -354,7 +386,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
         ])
       ]),
 
-    selectionActionComponent(selectedData, setSelectedData)
+    SelectionActionComponent(selectedData, setSelectedData)
   ])
 }
 
@@ -427,7 +459,8 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, t
         ),
         div({ style: { ...styles.table.flexTableRow, alignItems: 'flex-start' } }, [
           div({ style: { ...styles.table.col, ...styles.table.firstElem } }, [
-            icon(listdatum.locked ? 'lock' : 'lock-o', { size: 12, style: { flex: 'none', color: listdatum.locked ? colors.accent() : colors.primary() } })
+            icon(listdatum.locked ? 'lock' : 'lock-o',
+              { size: 12, style: { flex: 'none', color: listdatum.locked ? colors.accent() : colors.primary() } })
           ]),
           div({ style: { ...styles.table.col, width: '100%', fontSize: 12 } }, [
             h(Link,
