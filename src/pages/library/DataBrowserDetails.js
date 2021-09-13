@@ -1,4 +1,3 @@
-import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, h1 } from 'react-hyperscript-helpers'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -8,7 +7,7 @@ import { libraryTopMatter } from 'src/components/library-common'
 
 const activeTab = 'browse & explore'
 const styles = {
-  page: { padding: 20 }
+  page: { padding: 20, marginTop: 15 }
 }
 
 const getSnapshot = id => {
@@ -47,15 +46,26 @@ const DataBrowserDetails = routeParams => {
       centeredSpinner() :
       h(Fragment, [
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%' } }, [
-          icon('angle-left', { size: 35 }),
-          div({ style: { ...styles.page, width: '100%' } }, [
-            'Main Content Area'
+          div({ style: styles.page }, [
+            icon('angle-left', { size: 35 })
           ]),
-          div({ style: { ...styles.page, width: 400, flexShrink: 0 } }, [
-            'Sidebar Content Area'
-          ])
+          getMainContent(snapshot),
+          getSidebar(snapshot)
         ])
       ])
+  ])
+}
+
+const getMainContent = snapshot => {
+  return div({ style: { ...styles.page, width: '100%', marginTop: 0 } }, [
+    h1(snapshot.name, { style: { marginTop: 0 } }),
+    div([JSON.stringify(snapshot)])
+  ])
+}
+
+const getSidebar = snapshot => {
+  return div({ style: { ...styles.page, width: 400, flexShrink: 0 } }, [
+    'Sidebar Content Area'
   ])
 }
 
