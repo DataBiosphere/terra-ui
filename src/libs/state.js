@@ -47,7 +47,7 @@ export const workflowSelectionStore = Utils.atom({
   entities: undefined
 })
 
-export const pfbImportJobStore = Utils.atom([])
+export const asyncImportJobStore = Utils.atom([])
 
 export const snapshotsListStore = Utils.atom()
 

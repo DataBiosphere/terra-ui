@@ -309,7 +309,8 @@ export const isValidWsExportTarget = _.curry((sourceWs, destWs) => {
 
 export const append = _.curry((value, arr) => _.concat(arr, [value]))
 
-// Transforms an async function so that it updates a busy flag via the provided callback
+// Transforms an async function so that it updates a busy flag via the provided callback 'setBusy'
+// Note that 'fn' does not get called during the transformation.
 export const withBusyState = _.curry((setBusy, fn) => async (...args) => {
   try {
     setBusy(true)

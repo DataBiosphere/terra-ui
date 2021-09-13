@@ -21,7 +21,7 @@ import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
 import {
   appIsSettingUp,
-  getConvertedAppStatus,
+  getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
   getCurrentApp,
   getCurrentRuntime,
@@ -360,7 +360,7 @@ export default class RuntimeManager extends PureComponent {
           img({ src: galaxyLogo, alt: '', style: { marginRight: '0.25rem' } }),
           div([
             div({ style: { fontSize: 12, fontWeight: 'bold' } }, ['Galaxy']),
-            div({ style: { fontSize: 10 } }, [getConvertedAppStatus(app.status)])
+            div({ style: { fontSize: 10 } }, [getComputeStatusForDisplay(app.status)])
           ])
         ])
       ]),
