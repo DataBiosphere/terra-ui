@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, h1, h2, h3, table, td, tr } from 'react-hyperscript-helpers'
-import { ButtonOutline, ButtonPrimary, ButtonSecondary } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -11,7 +11,8 @@ import colors from 'src/libs/colors'
 const activeTab = 'browse & explore'
 const styles = {
   page: { padding: 20, marginTop: 15 },
-  headers: { margin: '20px 0 0' }
+  headers: { margin: '20px 0 0' },
+  attributesColumn: { width: '22%', marginRight: 20, marginTop: 30 }
 }
 
 const getSnapshot = id => {
@@ -51,7 +52,11 @@ const getSnapshot = id => {
         vcf: 20,
         tar: 1
       }
-    }
+    },
+    releasePolicy: 'GRU',
+    region: 'Multi-region - US',
+    cloudProvider: 'Azure',
+    contributors: ['Erin Dogra', 'Jinzhou Zuanoh', 'Donna Bechard', 'Yim Lang Ching', 'David Smith', 'Peter Hanna', 'Pupsa Shape', 'Joel Szabo']
   }
 }
 
@@ -77,8 +82,40 @@ const DataBrowserDetails = routeParams => {
 
 const getMainContent = snapshot => {
   return div({ style: { ...styles.page, width: '100%', marginTop: 0 } }, [
-    h1(snapshot.name, { style: { marginTop: 0 } }),
-    div([JSON.stringify(snapshot)])
+    h1([snapshot.name]),
+    div([
+      div([snapshot.description]),
+      div({ style: { marginTop: 30 } }, [JSON.stringify(snapshot)]),
+      h2({ className: 'sr-only' }, ['Snapshot Sources']),
+      div({ style: { display: 'flex', width: '100%' } }, [
+        div({ style: styles.attributesColumn }, [
+          h3({ style: styles.headers }, ['Data release policy']),
+          div([snapshot.releasePolicy])
+        ]), div({ style: styles.attributesColumn }, [
+          h3({ style: styles.headers }, ['Region']),
+          div([snapshot.region])
+        ]), div({ style: styles.attributesColumn }, [
+          h3({ style: styles.headers }, ['Cloud provider']),
+          div([snapshot.cloudProvider])
+        ])
+      ]), div({ style: { display: 'flex', width: '100%' } }, [
+        div({ style: styles.attributesColumn }, [
+          h3({ style: styles.headers }, ['Contact']),
+          div(['Eric Miron']),
+          div(['University of Chicago Medical Center']),
+          h(Link, { href: `mailto:fakeemail@fake.org` }, ['fakeemail@fake.org'])
+        ]), div({ style: styles.attributesColumn }, [
+          h3({ style: styles.headers }, ['Data curator']),
+          div(['Will add later, after data structure is added'])
+        ]), div({ style: styles.attributesColumn }, [
+          h3({ style: styles.headers }, ['Contributors']),
+          ..._.map(contributor => div(contributor), snapshot.contributors)
+        ]), div({ style: styles.attributesColumn }, [
+          h3({ style: styles.headers }, ['Publications']),
+          div(['Will add later, after data structure is added'])
+        ])
+      ])
+    ])
   ])
 }
 
