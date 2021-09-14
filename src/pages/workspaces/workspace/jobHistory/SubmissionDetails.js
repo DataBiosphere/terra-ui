@@ -143,6 +143,14 @@ const SubmissionDetails = _.flow(
     ])
   }
 
+  /**
+   * If the text has multiple lines, return just the first line of text with ellipses to indicate truncation.
+   */
+  const firstLine = text => {
+    const lines = text ? text.split('\n') : []
+    return lines.length > 1 ? `${lines[0]} ...` : lines.length > 0 ? lines[0] : undefined
+  }
+
   /*
    * Page render
    */
@@ -150,25 +158,25 @@ const SubmissionDetails = _.flow(
     submissionDetailsBreadcrumbSubtitle(namespace, name, submissionId),
     _.isEmpty(submission) ? centeredSpinner() : h(Fragment, [
       div({ style: { display: 'grid', gridTemplateColumns: '1fr 4fr' } }, [
-        div({ style: { display: 'grid', gridAutoRows: 'min-content'} }, [
+        div({ style: { display: 'grid', gridAutoRows: 'min-content' } }, [
           makeSection('Workflow Statuses', [
             succeeded && makeStatusLine(successIcon, `Succeeded: ${succeeded.length}`, { marginTop: '0.5rem' }),
-            failed && makeStatusLine(failedIcon, `Failed: ${failed.length}`, { marginTop: '0.5rem', marginBottom: '0.5rem' }),
+            failed && makeStatusLine(failedIcon, `Failed: ${failed.length}`, { marginTop: '0.5rem' }),
             running && makeStatusLine(runningIcon, `Running: ${running.length}`, { marginTop: '0.5rem' }),
             submitted && makeStatusLine(submittedIcon, `Submitted: ${submitted.length}`, { marginTop: '0.5rem' })
           ]),
           div({
-            style: { padding: '0 0.5rem 0.5rem', whiteSpace: 'pre', overflow: 'hidden' }
+            style: { padding: '0 0.5rem 0.5rem', marginTop: '0.5rem', whiteSpace: 'pre', overflow: 'hidden' }
           }, [
             h4({ style: Style.elements.sectionHeader }, [
               'Comment',
               h(ButtonSecondary, {
-                style: { marginLeft: '0.50em' },
+                style: { marginLeft: '0.50em', height: '1.0em' },
                 tooltip: 'Edit Comment',
                 onClick: () => setUpdatingComment(true)
               }, [icon('edit')])
             ]),
-            div({ style: { textOverflow: 'ellipsis', overflow: 'hidden' } }, [userComment])
+            div({ style: { textOverflow: 'ellipsis', overflow: 'hidden' } }, [firstLine(userComment)])
           ]),
           updatingComment && h(UpdateUserCommentModal, {
             workspace: { name, namespace }, submissionId, userComment,
