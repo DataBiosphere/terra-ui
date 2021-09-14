@@ -100,24 +100,19 @@ const getSidebar = snapshot => {
             ]) :
             div([icon('lock-o', { size: 18, style: { marginRight: 10, color: colors.primary() } }), 'Access Granted'])
         ])
-      ]),
-      div([
+      ]), div([
         h3({ style: styles.headers }, ['Donor size']),
         div([(snapshot.donor.size || 0).toLocaleString()])
-      ]),
-      div([
+      ]), div([
         h3({ style: styles.headers }, ['Sample size']),
         div([(snapshot.sample.size || 0).toLocaleString()])
-      ]),
-      div([
+      ]), div([
         h3({ style: styles.headers }, ['Donor modality']),
         div([snapshot.donor.modality])
-      ]),
-      div([
+      ]), div([
         h3({ style: styles.headers }, ['Data type']),
         div([snapshot.dataType])
-      ]),
-      div([
+      ]), div([
         h3({ style: styles.headers }, ['File counts']),
         table(
           [..._.map(filetype => {
@@ -133,7 +128,7 @@ const getSidebar = snapshot => {
       ])
     ]),
     h(ButtonOutline, {
-      style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 250, marginTop: 20 },
+      style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => console.log('clicked')
     }, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [
@@ -141,7 +136,7 @@ const getSidebar = snapshot => {
       ])
     ]),
     h(ButtonPrimary, {
-      style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 250, marginTop: 20 },
+      style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => console.log('clicked')
     }, ['Save to a workspace'])
   ])
