@@ -918,6 +918,12 @@ const DataRepo = signal => ({
         return res.json()
       }
     }
+  },
+
+  requestAccess: async id => {
+    //TODO: Update this link to hit the real endpoint
+    const res = await fetchRawls(`dunno/what/this/is/${id}/requestAccess`, _.merge(authOpts(), { signal }))
+    return res.json()
   }
 })
 
