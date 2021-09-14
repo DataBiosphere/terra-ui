@@ -154,13 +154,20 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
       ])]),
       h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id, required: true }, ['Billing project']),
+        div({ style: { margin: '0.5rem 0' } }, ['A billing project must have a billing account which Terra has access to in order to be used.']),
         h(Select, {
           id,
           isClearable: false,
           placeholder: 'Select a billing project',
           value: namespace,
           onChange: ({ value }) => setNamespace(value),
-          options: _.uniq(_.map('projectName', billingProjects)).sort()
+          options: _.uniq(_.map(({ projectName, invalidBillingAccount }) => {
+            return {
+              label: projectName,
+              value: projectName,
+              isDisabled: invalidBillingAccount
+            }
+          }, billingProjects)).sort()
         })
       ])]),
       h(IdContainer, [id => h(Fragment, [
