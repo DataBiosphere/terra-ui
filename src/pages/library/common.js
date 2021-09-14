@@ -168,8 +168,8 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
 
 export const selectionActionComponent = (selectedData, setSelectedData) => {
   const length = selectedData.length
-  const files = _.sumBy('files', selectedData)
-  const totalBytes = _.sumBy('fileSize', selectedData)
+  const files = _.sumBy('files.count', selectedData)
+  const totalBytes = _.sumBy('files.size', selectedData)
   const fileSizeFormatted = filesize(totalBytes)
 
   return div(

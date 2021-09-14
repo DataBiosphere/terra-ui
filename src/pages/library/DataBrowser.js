@@ -57,8 +57,23 @@ const DataBrowser = () => {
       dataType: 'RNA Seq',
       keepCollapsed: true,
       locked: true,
-      files: 45,
-      fileSize: 12345
+      files: {
+        count: 34,
+        size: 12345,
+        types: {
+          bam: 42,
+          cram: 11,
+          vcf: 20,
+          tar: 1
+        }
+      },
+      donor: {
+        size: 1202,
+        modality: 'Exome'
+      },
+      sample: {
+        size: 10593
+      }
     },
     {
       namespace: 'harry-potter',
@@ -80,8 +95,23 @@ const DataBrowser = () => {
       dataType: 'RNA Seq',
       keepCollapsed: true,
       locked: false,
-      files: 15,
-      fileSize: 4432
+      files: {
+        count: 15,
+        size: 4432,
+        types: {
+          bam: 42,
+          cram: 11,
+          vcf: 20,
+          tar: 1
+        }
+      },
+      donor: {
+        size: 1202,
+        modality: 'Exome'
+      },
+      sample: {
+        size: 10593
+      }
     },
     {
       namespace: 'star-wars',
@@ -103,8 +133,23 @@ const DataBrowser = () => {
       dataType: '',
       keepCollapsed: true,
       locked: false,
-      files: 10,
-      fileSize: 550
+      files: {
+        count: 19,
+        size: 550,
+        types: {
+          bam: 42,
+          cram: 11,
+          vcf: 20,
+          tar: 1
+        }
+      },
+      donor: {
+        size: 1202,
+        modality: 'Exome'
+      },
+      sample: {
+        size: 10593
+      }
     },
     {
       namespace: 'star-wars',
@@ -126,8 +171,23 @@ const DataBrowser = () => {
       dataType: 'Data',
       keepCollapsed: true,
       locked: true,
-      files: 10,
-      fileSize: 2200000000
+      files: {
+        count: 10,
+        size: 2200000000,
+        types: {
+          bam: 42,
+          cram: 11,
+          vcf: 20,
+          tar: 1
+        }
+      },
+      donor: {
+        size: 1202,
+        modality: 'Exome'
+      },
+      sample: {
+        size: 10593
+      }
     }
   ]
 
