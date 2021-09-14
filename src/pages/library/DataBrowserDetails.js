@@ -85,7 +85,7 @@ const getSidebar = snapshot => {
   return div({ style: { ...styles.page, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
     div({ style: { backgroundColor: 'white', padding: '15px 20px', width: '100%', border: '2px solid #D6D7D7', borderRadius: 5, lineHeight: '26px' } }, [
       div([
-        b('Access type'),
+        b(['Access type']),
         div([
           snapshot.locked ?
             h(ButtonSecondary, {
@@ -100,33 +100,33 @@ const getSidebar = snapshot => {
         ])
       ]),
       div({ style: { marginTop: 10 } }, [
-        b('Donor size'),
+        b(['Donor size']),
         div([(snapshot.donor.size || 0).toLocaleString()])
       ]),
       div({ style: { marginTop: 10 } }, [
-        b('Sample size'),
+        b(['Sample size']),
         div([(snapshot.sample.size || 0).toLocaleString()])
       ]),
       div({ style: { marginTop: 10 } }, [
-        b('Donor modality'),
+        b(['Donor modality']),
         div([snapshot.donor.modality])
       ]),
       div({ style: { marginTop: 10 } }, [
-        b('Data type'),
+        b(['Data type']),
         div([snapshot.dataType])
       ]),
       div({ style: { marginTop: 10 } }, [
-        b('File counts'),
+        b(['File counts']),
         table(
           [..._.map(filetype => {
             return tr([
-              td({ style: { paddingRight: 30 } }, filetype),
-              td(snapshot.files.types[filetype].toLocaleString())
+              td({ style: { paddingRight: 30 } }, [filetype]),
+              td([snapshot.files.types[filetype].toLocaleString()])
             ])
           }, Object.keys(snapshot.files.types)),
           tr({ style: { fontWeight: 'bold', borderTop: '2px solid rgba(0,0,0,.3)' } }, [
-            td('Total'),
-            td(snapshot.files.count.toLocaleString())
+            td(['Total']),
+            td([snapshot.files.count.toLocaleString()])
           ])])
       ])
     ]),
@@ -141,7 +141,7 @@ const getSidebar = snapshot => {
     h(ButtonPrimary, {
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 250, marginTop: 20 },
       onClick: () => console.log('clicked')
-    }, 'Save to a workspace')
+    }, ['Save to a workspace'])
   ])
 }
 
