@@ -415,15 +415,15 @@ const NotebookEditorFrame = ({ mode, notebookName, workspace: { workspace: { nam
   )(async () => {
     await Ajax()
       .Runtimes
-      .notebooks(googleProject, runtimeName)
+      .fileSyncing(googleProject, runtimeName)
       .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
-    if (mode === 'edit' && !(await Ajax().Runtimes.notebooks(googleProject, runtimeName).lock(`${localBaseDirectory}/${notebookName}`))) {
+    if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${notebookName}`))) {
       notify('error', 'Unable to Edit Notebook', {
         message: 'Another user is currently editing this notebook. You can run it in Playground Mode or make a copy.'
       })
       chooseMode(undefined)
     } else {
-      await Ajax().Runtimes.notebooks(googleProject, runtimeName).localize([{
+      await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).localize([{
         sourceUri: `${cloudStorageDirectory}/${notebookName}`,
         localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${notebookName}` : `${localSafeModeBaseDirectory}/${notebookName}`
       }])
@@ -474,7 +474,7 @@ const WelderDisabledNotebookEditorFrame = ({ mode, notebookName, workspace: { wo
       })
       chooseMode(undefined)
     } else {
-      await Ajax(signal).Runtimes.notebooks(googleProject, runtimeName).oldLocalize({
+      await Ajax(signal).Runtimes.fileSyncing(googleProject, runtimeName).oldLocalize({
         [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
       })
       setLocalized(true)

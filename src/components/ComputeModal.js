@@ -614,7 +614,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         p(['Terra attaches a persistent disk (PD) to your cloud compute in order to provide an option to keep the data on the disk after you delete your compute. PDs also act as a safeguard to protect your data in the case that something goes wrong with the compute.']),
         p(['A minimal cost per hour is associated with maintaining the disk even when the cloud compute is paused or deleted.']),
         p(['If you delete your cloud compute, but keep your PD, the PD will be reattached when creating the next cloud compute.']),
-        h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360047318551', ...Utils.newTabLinkProps }, [
+        h(Link, { 'aria-label': `Disk doc`, href: 'https://support.terra.bio/hc/en-us/articles/360047318551', ...Utils.newTabLinkProps }, [
           'Learn more about persistent disks',
           icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ])
@@ -687,14 +687,14 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             ]),
             div([
               'Custom environments ', b(['must ']), 'be based off one of the ',
-              h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images'])
+              h(Link, { 'aria-label': `Terra base images`, href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images'])
             ])
           ])
         }],
         [Utils.DEFAULT, () => {
           return h(Fragment, [
             div({ style: { display: 'flex' } }, [
-              h(Link, { onClick: () => setViewMode('packages') }, ['What’s installed on this environment?']),
+              h(Link, { 'aria-label': `Image packages`, onClick: () => setViewMode('packages') }, ['What’s installed on this environment?']),
               makeImageInfo({ marginLeft: 'auto' })
             ])
           ])
@@ -771,6 +771,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 enableGpusSpan
             ]),
             h(Link, {
+              'aria-label': `GPU doc`,
               style: { marginLeft: '1rem', verticalAlign: 'top' },
               href: 'https://support.terra.bio/hc/en-us/articles/4403006001947', ...Utils.newTabLinkProps
             }, [
@@ -934,10 +935,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         p([
           'You are about to create a virtual machine using an unverified Docker image. ',
           'Please make sure that it was created by you or someone you trust, using one of our ',
-          h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
+          h(Link, { 'aria-label': `Terra base images`, href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
           ' Custom Docker images could potentially cause serious security issues.'
         ]),
-        h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
+        h(Link, { 'aria-label': `Safe image doc`, href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
         p(['If you\'re confident that your image is safe, you may continue using it. Otherwise, go back to select another image.'])
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
@@ -951,7 +952,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const makeJSON = value => div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace' } }, [JSON.stringify(value, null, 2)])
     return showDebugger ?
       div({ style: { position: 'fixed', top: 0, left: 0, bottom: 0, right: '50vw', backgroundColor: 'white', padding: '1rem', overflowY: 'auto' } }, [
-        h(Link, { onClick: () => setShowDebugger(false), style: { position: 'absolute', top: 0, right: 0 } }, ['x']),
+        h(Link, { 'aria-label': `Show debugger`, onClick: () => setShowDebugger(false), style: { position: 'absolute', top: 0, right: 0 } }, ['x']),
         makeHeader('Old Environment Config'),
         makeJSON(getExistingEnvironmentConfig()),
         makeHeader('New Environment Config'),
@@ -964,7 +965,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           willRequireDowntime: !!willRequireDowntime()
         })
       ]) :
-      h(Link, { onClick: () => setShowDebugger(true), style: { position: 'fixed', top: 0, left: 0, color: 'white' } }, ['D'])
+      h(Link, { 'aria-label': `Show debugger`, onClick: () => setShowDebugger(true), style: { position: 'fixed', top: 0, left: 0, color: 'white' } }, ['D'])
   }
 
   const renderDeleteDiskChoices = () => {
@@ -1227,7 +1228,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
               ul({ style: { paddingLeft: '1rem', marginBottom: 0, lineHeight: 1.5 } }, [
                 li([
                   div([packageLabel]),
-                  h(Link, { onClick: () => setViewMode('packages') }, ['What’s installed on this environment?'])
+                  h(Link, { 'aria-label': `Packages`, onClick: () => setViewMode('packages') }, ['What’s installed on this environment?'])
                 ]),
                 li({ style: { marginTop: '1rem' } }, [
                   'Default compute size of ', span({ style: { fontWeight: 600 } }, [cpu, ' CPU(s)']), ', ',
@@ -1237,7 +1238,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     h(Fragment, ['a ', renderDiskText(), ' to keep your data even after you delete your compute'])
                 ]),
                 li({ style: { marginTop: '1rem' } }, [
-                  h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
+                  h(Link, { 'aria-label': `Disk doc`, onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
                 ])
               ])
             ]),
@@ -1265,7 +1266,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           !sparkMode && !isPersistentDisk && div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
             div([
               'Time to upgrade your cloud environment. Terra’s new persistent disk feature will safeguard your work and data. ',
-              h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
+              h(Link, { 'aria-label': `Disk doc`, onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
             ]),
             h(ButtonOutline, {
               style: { marginTop: '1rem' },
@@ -1301,7 +1302,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
           div({ style: { marginTop: '0.5rem' } }, [
             'Persistent disks store analysis data. ',
-            h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
+            h(Link, { 'aria-label': `Disk doc`, onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
           ]),
           h(NumberInput, {
             id,
