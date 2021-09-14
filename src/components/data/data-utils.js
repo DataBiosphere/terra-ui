@@ -259,7 +259,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           notifyDataImportProgress(jobId)
         }
       }
-
+      
       onSuccess()
       Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
         workspaceNamespace: namespace, workspaceName: name
