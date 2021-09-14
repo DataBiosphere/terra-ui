@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment } from 'react'
-import { b, div, h, h1, table, td, tr } from 'react-hyperscript-helpers'
+import { div, h, h1, h2, h3, table, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -10,7 +10,8 @@ import colors from 'src/libs/colors'
 
 const activeTab = 'browse & explore'
 const styles = {
-  page: { padding: 20, marginTop: 15 }
+  page: { padding: 20, marginTop: 15 },
+  headers: { margin: '20px 0 0' }
 }
 
 const getSnapshot = id => {
@@ -63,7 +64,7 @@ const DataBrowserDetails = routeParams => {
     !snapshot ?
       centeredSpinner() :
       h(Fragment, [
-        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%' } }, [
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: '26px' } }, [
           div({ style: styles.page }, [
             icon('angle-left', { size: 35 })
           ]),
@@ -83,9 +84,10 @@ const getMainContent = snapshot => {
 
 const getSidebar = snapshot => {
   return div({ style: { ...styles.page, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
-    div({ style: { backgroundColor: 'white', padding: '15px 20px', width: '100%', border: '2px solid #D6D7D7', borderRadius: 5, lineHeight: '26px' } }, [
+    h2({ className: 'sr-only' }, ['Snapshot Data Details']),
+    div({ style: { backgroundColor: 'white', padding: 20, paddingTop: 0, width: '100%', border: '2px solid #D6D7D7', borderRadius: 5 } }, [
       div([
-        b(['Access type']),
+        h3(['Access type']),
         div([
           snapshot.locked ?
             h(ButtonSecondary, {
@@ -99,24 +101,24 @@ const getSidebar = snapshot => {
             div([icon('lock-o', { size: 18, style: { marginRight: 10, color: colors.primary() } }), 'Access Granted'])
         ])
       ]),
-      div({ style: { marginTop: 10 } }, [
-        b(['Donor size']),
+      div([
+        h3({ style: styles.headers }, ['Donor size']),
         div([(snapshot.donor.size || 0).toLocaleString()])
       ]),
-      div({ style: { marginTop: 10 } }, [
-        b(['Sample size']),
+      div([
+        h3({ style: styles.headers }, ['Sample size']),
         div([(snapshot.sample.size || 0).toLocaleString()])
       ]),
-      div({ style: { marginTop: 10 } }, [
-        b(['Donor modality']),
+      div([
+        h3({ style: styles.headers }, ['Donor modality']),
         div([snapshot.donor.modality])
       ]),
-      div({ style: { marginTop: 10 } }, [
-        b(['Data type']),
+      div([
+        h3({ style: styles.headers }, ['Data type']),
         div([snapshot.dataType])
       ]),
-      div({ style: { marginTop: 10 } }, [
-        b(['File counts']),
+      div([
+        h3({ style: styles.headers }, ['File counts']),
         table(
           [..._.map(filetype => {
             return tr([
