@@ -52,8 +52,7 @@ const getSidebar = snapshot => {
   ])
 }
 
-const DataBrowserDetails = routeParams => {
-  const id = routeParams.id
+const DataBrowserDetails = ({ id }) => {
   const [snapshot, setSnapshot] = useState()
 
   Utils.useOnMount(() => {
