@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Children } from 'react'
-import { div, img } from 'react-hyperscript-helpers'
+import { div, img, span } from 'react-hyperscript-helpers'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import iconDict from 'src/libs/icon-dict'
@@ -45,6 +45,16 @@ export const icon = (shape, { size = 16, ...props } = {}) => {
   props['aria-hidden'] = !props['aria-label'] && !props['aria-labelledby']
 
   return _.invokeArgs(shape, [{ size, 'data-icon': shape, ...props }], iconDict)
+}
+
+export const stackedIcon = (topShape, botShape, { size = 16, ...props } = {}) => {
+  // Unless we have a label, we need to hide the icon from screen readers
+  props['aria-hidden'] = !props['aria-label'] && !props['aria-labelledby']
+
+  return span({ style: { display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }, ...props }, [
+    icon(botShape, { size: size * 1.3, color: 'black', ...props.bot }),
+    icon(topShape, { size, color: 'white', style: { position: 'absolute' }, ...props.top })
+  ])
 }
 
 export const spinner = props => icon('loadingSpinner', _.merge({ size: 24, style: { color: colors.primary() } }, props))

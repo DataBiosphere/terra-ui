@@ -3,9 +3,10 @@ import { Fragment, useState } from 'react'
 import { div, h, h1, h2, h3, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner, icon } from 'src/components/icons'
+import { centeredSpinner, icon, stackedIcon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import colors from 'src/libs/colors'
+import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 
 
@@ -178,7 +179,14 @@ const DataBrowserDetails = ({ id }) => {
       h(Fragment, [
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: '26px' } }, [
           div({ style: styles.page }, [
-            icon('angle-left', { size: 35 })
+            h(Link, { onClick: Nav.history.goBack }, [
+              stackedIcon('angle-left', 'circle', {
+                size: 30,
+                'aria-label': 'Back',
+                top: { color: colors.primary('light') },
+                bot: { color: colors.primary('light'), style: { opacity: 0.2 } }
+              })
+            ])
           ]),
           MainContent(snapshot),
           Sidebar(snapshot)
