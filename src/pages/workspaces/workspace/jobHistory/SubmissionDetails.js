@@ -146,10 +146,10 @@ const SubmissionDetails = _.flow(
   /**
    * If the text has multiple lines, return just the first line of text with ellipses to indicate truncation.
    */
-  const firstLine = text => {
-    const lines = text ? text.split('\n') : []
-    return lines.length > 1 ? `${lines[0]} ...` : lines.length > 0 ? lines[0] : undefined
-  }
+  const firstLine = _.flow(
+    _.split('\n'),
+    lines => lines.length > 1 ? `${lines[0]} ...` : lines[0]
+  )
 
   /*
    * Page render
