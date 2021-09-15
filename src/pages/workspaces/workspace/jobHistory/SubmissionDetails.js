@@ -158,7 +158,7 @@ const SubmissionDetails = _.flow(
     submissionDetailsBreadcrumbSubtitle(namespace, name, submissionId),
     _.isEmpty(submission) ? centeredSpinner() : h(Fragment, [
       div({ style: { display: 'grid', gridTemplateColumns: '1fr 4fr' } }, [
-        div({ style: { display: 'grid', gridAutoRows: 'min-content' } }, [
+        div({ style: { display: 'grid', gridTemplateRows: '1fr auto' } }, [
           makeSection('Workflow Statuses', [
             succeeded && makeStatusLine(successIcon, `Succeeded: ${succeeded.length}`, { marginTop: '0.5rem' }),
             failed && makeStatusLine(failedIcon, `Failed: ${failed.length}`, { marginTop: '0.5rem' }),
@@ -166,17 +166,19 @@ const SubmissionDetails = _.flow(
             submitted && makeStatusLine(submittedIcon, `Submitted: ${submitted.length}`, { marginTop: '0.5rem' })
           ]),
           div({
-            style: { padding: '0 0.5rem 0.5rem', marginTop: '0.5rem', whiteSpace: 'pre', overflow: 'hidden' }
+            style: { padding: '0 0.5rem 0.5rem', marginTop: '1.0rem', whiteSpace: 'pre', overflow: 'hidden' }
           }, [
             h4({ style: Style.elements.sectionHeader }, [
               'Comment',
               h(ButtonSecondary, {
-                style: { marginLeft: '0.50em', height: '1.0em' },
+                style: { marginLeft: '0.50rem', height: '1.0rem' },
                 tooltip: 'Edit Comment',
                 onClick: () => setUpdatingComment(true)
               }, [icon('edit')])
             ]),
-            div({ style: { textOverflow: 'ellipsis', overflow: 'hidden' } }, [firstLine(userComment)])
+            div({ style: { height: '1.0rem', textOverflow: 'ellipsis', overflow: 'hidden' } },
+              [firstLine(userComment)]
+            )
           ]),
           updatingComment && h(UpdateUserCommentModal, {
             workspace: { name, namespace }, submissionId, userComment,
