@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h1, h2, h3, table, td, tr } from 'react-hyperscript-helpers'
+import { div, h, h1, h2, h3, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -132,17 +132,20 @@ const Sidebar = snapshot => {
         div([snapshot.dataType])
       ]), div([
         h3({ style: styles.headers }, ['File counts']),
-        table(
-          [..._.map(filetype => {
-            return tr([
-              td({ style: { paddingRight: 30 } }, [filetype]),
-              td([snapshot.files.types[filetype].toLocaleString()])
-            ])
-          }, Object.keys(snapshot.files.types)),
-          tr({ style: { fontWeight: 'bold', borderTop: '2px solid rgba(0,0,0,.3)' } }, [
-            td(['Total']),
-            td([snapshot.files.count.toLocaleString()])
-          ])])
+        table([
+          tbody(
+            [..._.map(filetype => {
+              return tr([
+                td({ style: { paddingRight: 30 } }, [filetype]),
+                td([snapshot.files.types[filetype].toLocaleString()])
+              ])
+            }, Object.keys(snapshot.files.types)),
+            tr({ style: { fontWeight: 'bold', borderTop: '2px solid rgba(0,0,0,.3)' } }, [
+              td(['Total']),
+              td([snapshot.files.count.toLocaleString()])
+            ])]
+          )
+        ])
       ])
     ]),
     h(ButtonOutline, {
