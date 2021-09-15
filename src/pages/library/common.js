@@ -8,6 +8,7 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { libraryTopMatter } from 'src/components/library-common'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
 import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
@@ -15,6 +16,7 @@ import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
 export const styles = {
@@ -206,6 +208,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
   const [searchFilter, setSearchFilter] = useState()
   const [sort, setSort] = useState('most recent')
   const [sortDir, setSortDir] = useState(1)
+  const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
 
   const [selectedData, setSelectedData] = useState([])
   const [openedData, setOpenedData] = useState([])
@@ -285,7 +288,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
 
   const makeListDisplay = (listdataType, listdata) => {
     switch (listdataType) {
-      case 'datasets': return makeTable(listdata, sort, setSort, sortDir, setSortDir, selectedData, toggleSelectedData, openedData, toggleOpenedData)
+      case 'datasets': return makeTable(listdata, sort, setSort, sortDir, setSortDir, selectedData, toggleSelectedData, openedData, toggleOpenedData, setRequestDatasetAccessList)
       case 'workspaces': return _.map(makeCard(), listdata)
       default: return null
     }
@@ -354,11 +357,15 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
         ])
       ]),
 
-    selectionActionComponent(selectedData, setSelectedData)
+    selectionActionComponent(selectedData, setSelectedData),
+    !_.isEmpty(requestDatasetAccessList) && h(RequestDatasetAccessModal, {
+      datasets: requestDatasetAccessList,
+      onDismiss: () => setRequestDatasetAccessList([])
+    })
   ])
 }
 
-const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, toggleSelectedData, openedData, toggleOpenedData) => {
+const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, toggleSelectedData, openedData, toggleOpenedData, setRequestDatasetAccessList) => {
   const makeTableHeader = (headerStyles, headerName, sortable = false) => {
     return div({ style: { ...styles.table.header, ...headerStyles } }, [
       sortable ?
@@ -431,14 +438,20 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, t
         ),
         div({ style: { ...styles.table.flexTableRow, alignItems: 'flex-start' } }, [
           div({ style: { ...styles.table.col, ...styles.table.firstElem } }, [
-            icon(listdatum.locked ? 'lock' : 'lock-o', { size: 12, style: { flex: 'none', color: listdatum.locked ? colors.accent() : colors.primary() } })
+            listdatum.locked ?
+              h(ButtonSecondary, {
+                tooltip: 'Request Dataset Access', useTooltipAsLabel: true,
+                style: { margin: '-7px 0' },
+                onClick: () => setRequestDatasetAccessList([listdatum])
+              }, [icon('lock', { size: 12 })]) :
+              h(TooltipTrigger, { content: 'Open Access' }, [icon('lock-o', { size: 12, style: { marginTop: 5, color: colors.primary() } })])
           ]),
           div({ style: { ...styles.table.col, width: '100%', fontSize: 12 } }, [
             h(Link,
               { onClick: () => toggleOpenedData(listdatum) },
               [
                 `See ${_.some(listdatum, openedData) ? 'Less' : 'More'}`,
-                icon(_.some(listdatum, openedData) ? 'angle-up' : 'angle-down', { size: 12, style: { flex: 'none', marginTop: 5 } })
+                icon(_.some(listdatum, openedData) ? 'angle-up' : 'angle-down', { size: 12, style: { marginTop: 5 } })
               ]
             ),
             div({ style: { display: _.some(listdatum, openedData) ? 'block' : 'none', marginTop: 10 } }, listdatum.description)
