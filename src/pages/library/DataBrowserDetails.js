@@ -12,7 +12,7 @@ import * as Utils from 'src/libs/utils'
 
 const activeTab = 'browse & explore'
 const styles = {
-  page: { padding: 20, marginTop: 15 },
+  content: { padding: 20, marginTop: 15 },
   headers: { margin: '20px 0 0' },
   attributesColumn: { width: '22%', marginRight: 20, marginTop: 30 }
 }
@@ -63,7 +63,7 @@ const getSnapshot = id => new Promise(resolve => setTimeout(() => {
 }))
 
 const MainContent = snapshot => {
-  return div({ style: { ...styles.page, width: '100%', marginTop: 0 } }, [
+  return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
     h1([snapshot.name]),
     div([
       div([snapshot.description]),
@@ -102,7 +102,7 @@ const MainContent = snapshot => {
 }
 
 const Sidebar = snapshot => {
-  return div({ style: { ...styles.page, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
+  return div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
     h2({ className: 'sr-only' }, ['Snapshot Data Details']),
     div({ style: { backgroundColor: 'white', padding: 20, paddingTop: 0, width: '100%', border: '2px solid #D6D7D7', borderRadius: 5 } }, [
       div([
@@ -178,7 +178,7 @@ const DataBrowserDetails = ({ id }) => {
       centeredSpinner() :
       h(Fragment, [
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: '26px' } }, [
-          div({ style: styles.page }, [
+          div({ style: styles.content }, [
             h(Link, { onClick: Nav.history.goBack }, [
               stackedIcon('angle-left', 'circle', {
                 size: 30,

@@ -33,6 +33,9 @@ const styles = {
   statusDetailCell: {
     align: 'center',
     style: { padding: '0.5rem' }
+  },
+  multiLineCellText: {
+    fontSize: 12
   }
 }
 
@@ -300,13 +303,13 @@ const JobHistory = _.flow(
               }
             },
             {
-              size: { basis: 170, grow: 0 },
+              size: { basis: 150, grow: 0 },
               field: 'submissionDate',
               headerRenderer: makeHeaderRenderer('submissionDate', 'Submitted'),
               cellRenderer: ({ rowIndex }) => {
                 const { submissionDate } = sortedSubmissions[rowIndex]
                 const dateParts = Utils.makeCompleteDateParts(submissionDate)
-                return div([
+                return div({ style: styles.multiLineCellText }, [
                   div([dateParts[0]]),
                   div([dateParts[1]])
                 ])
@@ -320,7 +323,7 @@ const JobHistory = _.flow(
               cellRenderer: ({ rowIndex }) => {
                 const { submissionId } = sortedSubmissions[rowIndex]
                 return h(Link, {
-                  style: { fontSize: 12 },
+                  style: styles.multiLineCellText,
                   ...Utils.newTabLinkProps,
                   href: bucketBrowserUrl(`${bucketName}/${submissionId}`)
                 }, [submissionId])
