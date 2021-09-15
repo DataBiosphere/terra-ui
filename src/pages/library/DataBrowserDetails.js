@@ -1,11 +1,12 @@
 import _ from 'lodash/fp'
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { div, h, h1, h2, h3, table, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import colors from 'src/libs/colors'
+import * as Utils from 'src/libs/utils'
 
 
 const activeTab = 'browse & explore'
@@ -15,8 +16,8 @@ const styles = {
   attributesColumn: { width: '22%', marginRight: 20, marginTop: 30 }
 }
 
-const getSnapshot = id => {
-  return {
+const getSnapshot = id => new Promise(resolve => setTimeout(() => {
+  resolve({
     namespace: 'harry-potter',
     name: 'Harry Potter',
     created: '2020-01-07T18:25:28.340Z',
@@ -57,30 +58,10 @@ const getSnapshot = id => {
     region: 'Multi-region - US',
     cloudProvider: 'Azure',
     contributors: ['Erin Dogra', 'Jinzhou Zuanoh', 'Donna Bechard', 'Yim Lang Ching', 'David Smith', 'Peter Hanna', 'Pupsa Shape', 'Joel Szabo']
-  }
-}
+  })
+}))
 
-const DataBrowserDetails = routeParams => {
-  const id = routeParams.id
-  const snapshot = getSnapshot(id)
-
-  return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter(activeTab),
-    !snapshot ?
-      centeredSpinner() :
-      h(Fragment, [
-        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: '26px' } }, [
-          div({ style: styles.page }, [
-            icon('angle-left', { size: 35 })
-          ]),
-          getMainContent(snapshot),
-          getSidebar(snapshot)
-        ])
-      ])
-  ])
-}
-
-const getMainContent = snapshot => {
+const MainContent = snapshot => {
   return div({ style: { ...styles.page, width: '100%', marginTop: 0 } }, [
     h1([snapshot.name]),
     div([
@@ -119,7 +100,7 @@ const getMainContent = snapshot => {
   ])
 }
 
-const getSidebar = snapshot => {
+const Sidebar = snapshot => {
   return div({ style: { ...styles.page, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
     h2({ className: 'sr-only' }, ['Snapshot Data Details']),
     div({ style: { backgroundColor: 'white', padding: 20, paddingTop: 0, width: '100%', border: '2px solid #D6D7D7', borderRadius: 5 } }, [
@@ -176,6 +157,30 @@ const getSidebar = snapshot => {
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => console.log('clicked')
     }, ['Save to a workspace'])
+  ])
+}
+
+const DataBrowserDetails = ({ id }) => {
+  const [snapshot, setSnapshot] = useState()
+
+  Utils.useOnMount(() => {
+    const loadData = async () => setSnapshot(await getSnapshot(id))
+    loadData()
+  })
+
+  return h(FooterWrapper, { alwaysShow: true }, [
+    libraryTopMatter(activeTab),
+    !snapshot ?
+      centeredSpinner() :
+      h(Fragment, [
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: '26px' } }, [
+          div({ style: styles.page }, [
+            icon('angle-left', { size: 35 })
+          ]),
+          MainContent(snapshot),
+          Sidebar(snapshot)
+        ])
+      ])
   ])
 }
 
