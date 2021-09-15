@@ -8,7 +8,7 @@ import * as Utils from 'src/libs/utils'
 
 const activeTab = 'browse & explore'
 const styles = {
-  page: { padding: 20, marginTop: 15 }
+  content: { padding: 20, marginTop: 15 }
 }
 
 const getSnapshot = id => new Promise(resolve => setTimeout(() => {
@@ -38,14 +38,14 @@ const getSnapshot = id => new Promise(resolve => setTimeout(() => {
 }, 2000))
 
 const MainContent = snapshot => {
-  return div({ style: { ...styles.page, width: '100%', marginTop: 0 } }, [
+  return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
     h1({ style: { marginTop: 0 } }, [snapshot.name]),
     div({ style: { whiteSpace: 'pre-wrap' } }, [JSON.stringify(snapshot, null, 2)])
   ])
 }
 
 const Sidebar = () => {
-  return div({ style: { ...styles.page, width: 400, flexShrink: 0 } }, [
+  return div({ style: { ...styles.content, width: 400, flexShrink: 0 } }, [
     'Sidebar Content Area'
   ])
 }
@@ -64,7 +64,7 @@ const DataBrowserDetails = ({ id }) => {
       centeredSpinner() :
       h(Fragment, [
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%' } }, [
-          div({ style: styles.page }, [
+          div({ style: styles.content }, [
             icon('angle-left', { size: 35 })
           ]),
           MainContent(snapshot),
