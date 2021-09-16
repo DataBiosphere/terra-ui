@@ -22,6 +22,9 @@ export const defaultNumDataprocPreemptibleWorkers = 0
 export const defaultGpuType = 'nvidia-tesla-t4'
 export const defaultNumGpus = 1
 
+export const defaultLocation = 'US'
+export const defaultLocationType = 'multi-region'
+
 export const usableStatuses = ['Updating', 'Running']
 
 export const getDefaultMachineType = isDataproc => isDataproc ? defaultDataprocMachineType : defaultGceMachineType

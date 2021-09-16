@@ -10,6 +10,7 @@ import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
+import { regionInfo } from 'src/components/region-common'
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -21,8 +22,9 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { versionTag } from 'src/libs/logos'
 import {
   defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType,
-  defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime,
-  getDefaultMachineType, getValidGpuTypes, persistentDiskCostMonthly, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
+  defaultLocation, defaultLocationType, defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType,
+  findMachineType, getCurrentRuntime, getDefaultMachineType, getValidGpuTypes, persistentDiskCostMonthly, RadioBlock, runtimeConfigBaseCost,
+  runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -133,6 +135,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const [customEnvImage, setCustomEnvImage] = useState('')
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('')
   const [sparkMode, setSparkMode] = useState(false)
+  const [bucketLocation, setBucketLocation] = useState(defaultLocation)
+  const [bucketLocationType, setBucketLocationType] = useState(defaultLocationType)
   const [computeConfig, setComputeConfig] = useState({
     selectedPersistentDiskSize: defaultGcePersistentDiskSize,
     masterMachineType: defaultGceMachineType,
@@ -184,10 +188,12 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const shouldDeleteRuntime = existingRuntime && !canUpdateRuntime()
     const shouldCreateRuntime = !canUpdateRuntime() && desiredRuntime
     const { namespace, name, bucketName, googleProject } = getWorkspaceObject()
+    const { computeZone, computeRegion } = regionInfo(bucketLocation, bucketLocationType)
 
     const runtimeConfig = desiredRuntime && {
       cloudService: desiredRuntime.cloudService,
       ...(desiredRuntime.cloudService === cloudServices.GCE ? {
+        zone: computeZone,
         machineType: desiredRuntime.machineType || defaultGceMachineType,
         ...(desiredRuntime.diskSize ? {
           diskSize: desiredRuntime.diskSize
@@ -202,6 +208,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         }),
         ...(computeConfig.gpuEnabled && { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } })
       } : {
+        region: computeRegion,
         masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
         masterDiskSize: desiredRuntime.masterDiskSize,
         numberOfWorkers: desiredRuntime.numberOfWorkers,
@@ -300,6 +307,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
     const gpuConfig = runtimeConfig?.gpuConfig
     const tool = currentRuntimeDetails?.labels?.tool
+    const { computeZone, computeRegion } = regionInfo(bucketLocation, bucketLocationType)
 
     return {
       hasGpu: computeConfig.hasGpu,
@@ -309,6 +317,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         tool,
         ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
         ...(cloudService === cloudServices.GCE ? {
+          zone: computeZone,
           machineType: runtimeConfig.machineType || defaultGceMachineType,
           ...(computeConfig.hasGpu && gpuConfig ? { gpuConfig } : {}),
           bootDiskSize: runtimeConfig.bootDiskSize,
@@ -318,6 +327,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             diskSize: runtimeConfig.diskSize
           })
         } : {
+          region: computeRegion,
           masterMachineType: runtimeConfig.masterMachineType || defaultDataprocMachineType,
           masterDiskSize: runtimeConfig.masterDiskSize || 100,
           numberOfWorkers,
@@ -336,6 +346,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = getExistingEnvironmentConfig()
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
     const desiredNumberOfWorkers = sparkMode === 'cluster' ? computeConfig.numberOfWorkers : 0
+    const { computeZone, computeRegion } = regionInfo(bucketLocation, bucketLocationType)
 
     return {
       hasGpu: computeConfig.hasGpu,
@@ -346,6 +357,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             toolDockerImage: selectedLeoImage === customMode ? customEnvImage : selectedLeoImage,
             ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
             ...(cloudService === cloudServices.GCE ? {
+              zone: computeZone,
               machineType: computeConfig.masterMachineType || defaultGceMachineType,
               ...(computeConfig.gpuEnabled ? { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } } : {}),
               bootDiskSize: existingRuntime?.bootDiskSize,
@@ -355,6 +367,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 diskSize: computeConfig.masterDiskSize
               })
             } : {
+              region: computeRegion,
               masterMachineType: computeConfig.masterMachineType || defaultDataprocMachineType,
               masterDiskSize: computeConfig.masterDiskSize,
               numberOfWorkers: desiredNumberOfWorkers,
@@ -401,9 +414,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ...(desiredRuntime.cloudService === cloudServices.GCE ? {
         machineType: desiredRuntime.machineType || defaultGceMachineType,
         bootDiskSize: desiredRuntime.bootDiskSize,
+        zone: desiredRuntime.zone,
         ...(desiredRuntime.gpuConfig ? { gpuConfig: desiredRuntime.gpuConfig } : {}),
         ...(desiredRuntime.diskSize ? { diskSize: desiredRuntime.diskSize } : {})
       } : {
+        region: desiredRuntime.region,
         masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
         masterDiskSize: desiredRuntime.masterDiskSize,
         numberOfWorkers: desiredRuntime.numberOfWorkers,
@@ -520,7 +535,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       withErrorReporting('Error loading cloud environment'),
       Utils.withBusyState(setLoading)
     )(async () => {
-      const { googleProject } = getWorkspaceObject()
+      const { bucketName, namespace, googleProject, name } = getWorkspaceObject()
       const currentRuntime = getCurrentRuntime(runtimes)
       const currentPersistentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
 
@@ -536,6 +551,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
       ])
       const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
+
+      // TODO: Provide default here in case remote call fails
+      const { location, locationType } = await Ajax().Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
 
       const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
       const foundImage = _.find({ image: imageUrl }, newLeoImages)
@@ -568,6 +586,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         setCurrentPersistentDiskDetails(currentPersistentDiskDetails)
         setCustomEnvImage(!foundImage ? imageUrl : '')
         setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
+        setBucketLocation(location || defaultLocation)
+        setBucketLocationType(locationType || defaultLocationType)
 
         const isDataproc = (sparkMode, runtimeConfig) => !sparkMode && !runtimeConfig?.diskSize
         const runtimeConfig = currentRuntimeDetails?.runtimeConfig
@@ -1068,7 +1088,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   'If you want to permanently save some files from the disk before deleting it, you will need to create a new cloud environment to access it.'
                 ])
               ]),
-              existingRuntime.tool === 'RStudio' ? h(SaveFilesHelpRStudio) : h(SaveFilesHelp)
+              // At this point there is no runtime to check the tool
+              h(SaveFilesHelpRStudio)
             ])
           }],
           () => {
