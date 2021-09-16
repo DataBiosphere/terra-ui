@@ -172,7 +172,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           options: _.uniq(_.map(({ projectName, invalidBillingAccount }) => {
             return {
               label: h(Fragment, [
-                invalidBillingAccount ? h(TooltipTrigger, { content: ['Billing project must have a valid billing account to be used.'], side: 'left' }, [div({ style: { padding: optionPadding } }, [projectName])]) : div({ style: { padding: optionPadding } }, [projectName])
+                invalidBillingAccount ? h(TooltipTrigger, { content: ['Workspaces may only be created in billing projects that have a Google billing account accessible in Terra'], side: 'left' }, [div({ style: { padding: optionPadding } }, [projectName])]) : div({ style: { padding: optionPadding } }, [projectName])
               ]),
               value: projectName,
               isDisabled: invalidBillingAccount
