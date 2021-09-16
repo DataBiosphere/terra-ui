@@ -67,8 +67,8 @@ const DataBrowserDetails = ({ id }) => {
           div({ style: styles.content }, [
             icon('angle-left', { size: 35 })
           ]),
-          MainContent(snapshot),
-          Sidebar(snapshot)
+          h(MainContent, { snapshot }),
+          h(Sidebar)
         ])
       ])
   ])
