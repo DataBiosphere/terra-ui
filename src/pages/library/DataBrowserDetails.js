@@ -62,7 +62,7 @@ const getSnapshot = id => new Promise(resolve => setTimeout(() => {
   })
 }))
 
-const MainContent = snapshot => {
+const MainContent = ({ snapshot }) => {
   return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
     h1([snapshot.name]),
     div([
@@ -101,7 +101,7 @@ const MainContent = snapshot => {
   ])
 }
 
-const Sidebar = snapshot => {
+const Sidebar = ({ snapshot }) => {
   return div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
     h2({ className: 'sr-only' }, ['Snapshot Data Details']),
     div({ style: { backgroundColor: 'white', padding: 20, paddingTop: 0, width: '100%', border: '2px solid #D6D7D7', borderRadius: 5 } }, [
@@ -189,7 +189,7 @@ const DataBrowserDetails = ({ id }) => {
             ])
           ]),
           h(MainContent, { snapshot }),
-          h(Sidebar)
+          h(Sidebar, { snapshot })
         ])
       ])
   ])
