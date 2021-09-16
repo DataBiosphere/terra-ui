@@ -6,6 +6,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -116,6 +117,8 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   const errors = validate({ namespace, name }, constraints, {
     prettify: v => ({ namespace: 'Billing project', name: 'Name' }[v] || validate.prettify(v))
   })
+  // We define option padding here in order to put the padding inside of the tooltip trigger, for more consistent tooltips
+  const optionPadding = 10
 
   return Utils.cond(
     [loading, () => spinnerOverlay],
@@ -154,16 +157,23 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
       ])]),
       h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id, required: true }, ['Billing project']),
-        div({ style: { margin: '0.5rem 0' } }, ['A billing project must have a billing account which Terra has access to in order to be used.']),
         h(Select, {
           id,
           isClearable: false,
           placeholder: 'Select a billing project',
           value: namespace,
           onChange: ({ value }) => setNamespace(value),
+          styles: {
+            option: provided => ({
+              ...provided,
+              padding: 0
+            })
+          },
           options: _.uniq(_.map(({ projectName, invalidBillingAccount }) => {
             return {
-              label: projectName,
+              label: h(Fragment, [
+                invalidBillingAccount ? h(TooltipTrigger, { content: ['Billing project must have a valid billing account to be used.'], side: 'left' }, [div({ style: { padding: optionPadding } }, [projectName])]) : div({ style: { padding: optionPadding } }, [projectName])
+              ]),
               value: projectName,
               isDisabled: invalidBillingAccount
             }
