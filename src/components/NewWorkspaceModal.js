@@ -117,8 +117,6 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   const errors = validate({ namespace, name }, constraints, {
     prettify: v => ({ namespace: 'Billing project', name: 'Name' }[v] || validate.prettify(v))
   })
-  // We define option padding here in order to put the padding inside of the tooltip trigger, for more consistent tooltips
-  const optionPadding = 10
 
   return Utils.cond(
     [loading, () => spinnerOverlay],
@@ -164,15 +162,17 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           value: namespace,
           onChange: ({ value }) => setNamespace(value),
           styles: { option: provided => ({ ...provided, padding: 0 }) },
-          options: _.uniq(_.map(({ projectName, invalidBillingAccount }) => {
-            return {
-              label: h(Fragment, [
-                invalidBillingAccount ? h(TooltipTrigger, { content: ['Workspaces may only be created in billing projects that have a Google billing account accessible in Terra'], side: 'left' }, [div({ style: { padding: optionPadding } }, [projectName])]) : div({ style: { padding: optionPadding } }, [projectName])
-              ]),
-              value: projectName,
-              isDisabled: invalidBillingAccount
-            }
-          }, billingProjects)).sort()
+          options: _.uniq(_.map(({ projectName, invalidBillingAccount }) => ({
+            label: h(Fragment, [
+              invalidBillingAccount ?
+                h(TooltipTrigger, {
+                  content: ['Workspaces may only be created in billing projects that have a Google billing account accessible in Terra'], side: 'left'
+                }, [div({ style: { padding: 10 } }, [projectName])]) :
+                div({ style: { padding: 10 } }, [projectName])
+            ]),
+            value: projectName,
+            isDisabled: invalidBillingAccount
+          }), billingProjects)).sort()
         })
       ])]),
       h(IdContainer, [id => h(Fragment, [
