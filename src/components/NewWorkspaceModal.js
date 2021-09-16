@@ -163,12 +163,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           placeholder: 'Select a billing project',
           value: namespace,
           onChange: ({ value }) => setNamespace(value),
-          styles: {
-            option: provided => ({
-              ...provided,
-              padding: 0
-            })
-          },
+          styles: { option: provided => ({ ...provided, padding: 0 }) },
           options: _.uniq(_.map(({ projectName, invalidBillingAccount }) => {
             return {
               label: h(Fragment, [
