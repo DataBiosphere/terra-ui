@@ -51,9 +51,9 @@ export const stackedIcon = (topShape, botShape, { size = 16, ...props } = {}) =>
   // Unless we have a label, we need to hide the icon from screen readers
   props['aria-hidden'] = !props['aria-label'] && !props['aria-labelledby']
 
-  return span({ style: { display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }, ...props }, [
-    icon(botShape, { size: size * 1.3, color: 'black', ...props.bot }),
-    icon(topShape, { size, color: 'white', style: { position: 'absolute' }, ...props.top })
+  return span({ className: 'fa-stack fa-2x', ...props }, [
+    icon(botShape, { size: size * 1.3, color: 'black', className: 'fa-stack-2x', ...props.bot }),
+    icon(topShape, { size, color: 'white', className: 'fa-stack-1x', style: { position: 'absolute' }, ...props.top })
   ])
 }
 
