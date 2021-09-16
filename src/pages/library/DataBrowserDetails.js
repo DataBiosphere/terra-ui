@@ -62,7 +62,7 @@ const getSnapshot = id => new Promise(resolve => setTimeout(() => {
   })
 }))
 
-const MainContent = snapshot => {
+const MainContent = ({ snapshot }) => {
   return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
     h1([snapshot.name]),
     div([
@@ -101,7 +101,7 @@ const MainContent = snapshot => {
   ])
 }
 
-const Sidebar = (snapshot, setShowRequestAccessModal) => {
+const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
   return div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
     h2({ className: 'sr-only' }, ['Snapshot Data Details']),
     div({ style: { backgroundColor: 'white', padding: 20, paddingTop: 0, width: '100%', border: '2px solid #D6D7D7', borderRadius: 5 } }, [
@@ -121,7 +121,7 @@ const Sidebar = (snapshot, setShowRequestAccessModal) => {
         ])
       ]), div([
         h3({ style: styles.headers }, ['Donor size']),
-        div([(snapshot.donor.size || 0).toLocaleString()])
+        div([(snapshot.donor?.size || 0).toLocaleString()])
       ]), div([
         h3({ style: styles.headers }, ['Sample size']),
         div([(snapshot.sample.size || 0).toLocaleString()])
@@ -182,8 +182,8 @@ const DataBrowserDetails = ({ id }) => {
           div({ style: styles.content }, [
             icon('angle-left', { size: 35 })
           ]),
-          MainContent(snapshot),
-          Sidebar(snapshot, setShowRequestAccessModal),
+          h(MainContent, { snapshot }),
+          h(Sidebar, { snapshot, setShowRequestAccessModal }),
           showRequestAccessModal && h(RequestDatasetAccessModal, {
             datasets: [snapshot],
             onDismiss: () => setShowRequestAccessModal(false)
