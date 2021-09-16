@@ -188,8 +188,8 @@ const DataBrowserDetails = ({ id }) => {
               })
             ])
           ]),
-          MainContent(snapshot),
-          Sidebar(snapshot)
+          h(MainContent, { snapshot }),
+          h(Sidebar)
         ])
       ])
   ])
