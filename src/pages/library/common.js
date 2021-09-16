@@ -13,6 +13,7 @@ import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
 import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -167,8 +168,7 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
   ])
 }
 
-export const SelectionActionComponent = (selectedData, setSelectedData) => {
-  const [showExportModal, setShowExportModal] = useState(false)
+const SelectionActionComponent = ({ selectedData, setSelectedData }) => {
   const [datasetName, setDatasetName] = useState('')
   const length = selectedData.length
   const files = _.sumBy('files', selectedData)
@@ -196,31 +196,12 @@ export const SelectionActionComponent = (selectedData, setSelectedData) => {
           h(ButtonPrimary, {
             style: { textTransform: 'none', fontSize: 14 },
             onClick: () => {
-              setShowExportModal(true)
+              Nav.history.push({
+                pathname: Nav.getPath('import-data'),
+                search: `?url=${getConfig().dataRepoUrlRoot}&snapshotId=REPLACE_ME&snapshotName=${datasetName}&format=snapshot`
+              })
             }
           }, ['Save to a workspace'])
-        ]),
-        showExportModal &&
-        h(Modal, {
-          title: 'Save to a Terra workspace',
-          onDismiss: () => setShowExportModal(false),
-          okButton: () => {
-            Nav.history.push({
-              pathname: Nav.getPath('import-data'),
-              search: `?url=https://jade.datarepo-dev.broadinstitute.org/&snapshotId=idid&snapshotName=${datasetName}&format=snapshot`
-            })
-          }
-        }, [
-          div([
-            div('Data with this name will be saved in Terra. If this name already exists, it will be overwritten.', []),
-            div({ style: { marginTop: '1rem' } }, [
-              h(TextInput, {
-                placeholder: 'Name of data',
-                value: datasetName,
-                onChange: setDatasetName
-              })
-            ])
-          ])
         ])
       ])
     ]
@@ -384,7 +365,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
         ])
       ]),
 
-    SelectionActionComponent(selectedData, setSelectedData)
+    h(SelectionActionComponent, { selectedData, setSelectedData })
   ])
 }
 
