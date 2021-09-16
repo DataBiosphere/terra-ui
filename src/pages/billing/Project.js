@@ -152,7 +152,7 @@ const BillingAccountSummaryPanel = (() => {
     ({ counts: { done, error, updating } }) => div({
       style: {
         padding: '0.5rem 2rem 1rem',
-        position: 'fixed',
+        position: 'absolute',
         top: topBarHeight,
         right: '3rem',
         width: '30rem',
@@ -354,7 +354,7 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
   const { displayName = null } = _.find({ accountName: billingProject.billingAccount }, billingAccounts) || { displayName: 'No Access' }
 
   return h(Fragment, [
-    billingAccountsOutOfDate && div({}, [h(BillingAccountSummaryPanel, { counts: _.mapValues(_.size, groups) })]),
+    billingAccountsOutOfDate && h(BillingAccountSummaryPanel, { counts: _.mapValues(_.size, groups) }),
     div({ style: { padding: '1.5rem 0 0', flexGrow: 1, display: 'flex', flexDirection: 'column' } }, [
       div({ style: { color: colors.dark(), fontSize: 18, fontWeight: 600, display: 'flex', alignItems: 'center', marginLeft: '1rem' } }, [billingProject.projectName]),
       div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', marginTop: '0.5rem', marginLeft: '1rem' } }, [
