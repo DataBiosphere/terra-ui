@@ -8,6 +8,7 @@ import { libraryTopMatter } from 'src/components/library-common'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
+import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
 const activeTab = 'browse & explore'
@@ -101,7 +102,7 @@ const MainContent = ({ snapshot }) => {
   ])
 }
 
-const Sidebar = ({ snapshot }) => {
+const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
   return div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
     h2({ className: 'sr-only' }, ['Snapshot Data Details']),
     div({ style: { backgroundColor: 'white', padding: 20, paddingTop: 0, width: '100%', border: '2px solid #D6D7D7', borderRadius: 5 } }, [
@@ -111,7 +112,7 @@ const Sidebar = ({ snapshot }) => {
           snapshot.locked ?
             h(ButtonSecondary, {
               style: { fontSize: 16, textTransform: 'none', height: 'unset' },
-              onClick: () => console.log('clicked')
+              onClick: () => setShowRequestAccessModal(true)
             }, [
               div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [
                 icon('lock', { size: 18, style: { marginRight: 10, color: colors.accent() } }), 'Request Access'
@@ -121,7 +122,7 @@ const Sidebar = ({ snapshot }) => {
         ])
       ]), div([
         h3({ style: styles.headers }, ['Donor size']),
-        div([(snapshot.donor.size || 0).toLocaleString()])
+        div([(snapshot.donor?.size || 0).toLocaleString()])
       ]), div([
         h3({ style: styles.headers }, ['Sample size']),
         div([(snapshot.sample.size || 0).toLocaleString()])
@@ -166,6 +167,7 @@ const Sidebar = ({ snapshot }) => {
 
 const DataBrowserDetails = ({ id }) => {
   const [snapshot, setSnapshot] = useState()
+  const [showRequestAccessModal, setShowRequestAccessModal] = useState()
 
   Utils.useOnMount(() => {
     const loadData = async () => setSnapshot(await getSnapshot(id))
@@ -189,7 +191,11 @@ const DataBrowserDetails = ({ id }) => {
             ])
           ]),
           h(MainContent, { snapshot }),
-          h(Sidebar, { snapshot })
+          h(Sidebar, { snapshot, setShowRequestAccessModal }),
+          showRequestAccessModal && h(RequestDatasetAccessModal, {
+            datasets: [snapshot],
+            onDismiss: () => setShowRequestAccessModal(false)
+          })
         ])
       ])
   ])
