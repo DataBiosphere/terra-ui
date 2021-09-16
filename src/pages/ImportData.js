@@ -3,6 +3,7 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, img, p } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common'
+import { notifyDataImportProgress } from 'src/components/data/data-utils'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon, wdlIcon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
@@ -17,7 +18,7 @@ import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
-import { pfbImportJobStore } from 'src/libs/state'
+import { asyncImportJobStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
@@ -97,11 +98,8 @@ const ImportData = () => {
     await Utils.switchCase(format,
       ['PFB', async () => {
         const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importPFB(url)
-        pfbImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
-        notify('info', 'Data import in progress.', {
-          id: jobId,
-          message: 'Data will show up incrementally as the job progresses.'
-        })
+        asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
+        notifyDataImportProgress(jobId)
       }],
       ['entitiesJson', async () => {
         await Ajax().Workspaces.workspace(namespace, name).importJSON(url)
