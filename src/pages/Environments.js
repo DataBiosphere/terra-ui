@@ -466,20 +466,20 @@ const Environments = () => {
             }
           },
           {
-            size: { basis: 120, grow: 0.2 },
-            headerRenderer: () => 'Location',
-            cellRenderer: ({ rowIndex }) => {
-              const disk = filteredDisks[rowIndex]
-              return disk.zone
-            }
-          },
-          {
             size: { basis: 130, grow: 0 },
             field: 'status',
             headerRenderer: () => h(Sortable, { sort: diskSort, field: 'status', onSort: setDiskSort }, ['Status']),
             cellRenderer: ({ rowIndex }) => {
               const disk = filteredDisks[rowIndex]
               return disk.status
+            }
+          },
+          {
+            size: { basis: 120, grow: 0.2 },
+            headerRenderer: () => 'Location',
+            cellRenderer: ({ rowIndex }) => {
+              const disk = filteredDisks[rowIndex]
+              return disk.zone
             }
           },
           {

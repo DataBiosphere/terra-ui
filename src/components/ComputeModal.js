@@ -197,7 +197,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           } : {
             name: Utils.generatePersistentDiskName(),
             size: desiredPersistentDisk.size,
-            labels: { saturnWorkspaceName: name }
+            labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name }
           }
         }),
         ...(computeConfig.gpuEnabled && { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } })
@@ -238,7 +238,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
         runtimeConfig,
         toolDockerImage: desiredRuntime.toolDockerImage,
-        labels: { saturnWorkspaceName: name },
+        labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name },
         customEnvironmentVariables: customEnvVars,
         ...(desiredRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: desiredRuntime.jupyterUserScriptUri } : {})
       })
