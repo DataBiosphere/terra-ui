@@ -9,6 +9,7 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import { libraryTopMatter } from 'src/components/library-common'
 import { MiniSortable, SimpleTable } from 'src/components/table'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
 import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
@@ -16,6 +17,7 @@ import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
 export const styles = {
@@ -50,7 +52,7 @@ export const styles = {
     backgroundColor: 'white'
   },
   pillHighlight: {
-    color: 'white', backgroundColor: colors.primary(), borderColor: colors.primary()
+    color: 'white', backgroundColor: colors.accent(), borderColor: colors.accent()
   }
 }
 
@@ -116,6 +118,7 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
   const [selectedTags, setSelectedTags] = useState([])
   const [searchFilter, setSearchFilter] = useState('')
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
+  const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
 
   const [selectedData, setSelectedData] = useState([])
 
@@ -224,7 +227,7 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
           ]),
           div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
             Utils.switchCase(listdataType,
-              ['Datasets', () => makeTable({ listData: filteredData, sort, setSort, selectedData, toggleSelectedData })],
+              ['Datasets', () => makeTable({ listData: filteredData, sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList })],
               ['Workspaces', () => _.map(makeCard(), filteredData)])
           ])
         ])
@@ -252,16 +255,22 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
           onClick: () => {}
         }, ['Save to a workspace'])
       ])
-    ])
+    ]),
+    !!requestDatasetAccessList && h(RequestDatasetAccessModal, {
+      datasets: requestDatasetAccessList,
+      onDismiss: () => setRequestDatasetAccessList()
+    })
   ])
 }
 
-const makeTable = ({ listData, sort, setSort, selectedData, toggleSelectedData }) => {
+const makeTable = ({ listData, sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList }) => {
   return div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
     'aria-label': 'dataset list',
     columns: [
-      { size: { basis: 37, grow: 0 }, key: 'checkbox' },
       {
+        header: div({ className: 'sr-only'}, ['Select dataset']),
+        size: { basis: 37, grow: 0 }, key: 'checkbox'
+      }, {
         header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'name', onSort: setSort }, ['Dataset Name'])]),
         size: { grow: 2.2 }, key: 'name'
       }, {
@@ -298,9 +307,13 @@ const makeTable = ({ listData, sort, setSort, selectedData, toggleSelectedData }
         lastUpdated: Utils.makeStandardDate(lastUpdated),
         underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
           div({ style: { flex: '0 1 37px' } }, [
-            icon(locked ? 'lock' : 'unlock', {
-              size: 12, style: { color: datum.locked ? colors.accent() : colors.primary() }
-            })
+            locked ?
+              h(ButtonSecondary, {
+                tooltip: 'Request Dataset Access', useTooltipAsLabel: true,
+                style: { height: 'unset' },
+                onClick: () => setRequestDatasetAccessList([datum])
+              }, [icon('lock')]) :
+              h(TooltipTrigger, { content: 'Open Access' }, [icon('unlock', { style: { color: colors.success() } })])
           ]),
           div({ style: { flex: 1, fontSize: 12 } }, [
             h(Collapse, { titleFirst: true, title: 'See More', buttonStyle: { flex: 'none' } }, [description])

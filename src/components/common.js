@@ -89,8 +89,8 @@ export const Clickable = Utils.forwardRefWithName('Clickable', ({ href, as = (!!
 export const Link = Utils.forwardRefWithName('Link', ({ disabled, variant, children, ...props }, ref) => {
   return h(Clickable, _.merge({
     ref,
-    style: {
-      color: disabled ? colors.dark(0.7) : colors.accent(variant === 'light' ? 0.3 : 1),
+    style: { // 0.72 is the min to meet ANDI's contrast requirement
+      color: disabled ? colors.dark(0.72) : colors.accent(variant === 'light' ? 0.3 : 1),
       cursor: disabled ? 'not-allowed' : 'pointer',
       fontWeight: 500, display: 'inline'
     },
