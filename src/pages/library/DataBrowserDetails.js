@@ -79,19 +79,22 @@ const MainContent = snapshot => {
           h3({ style: styles.headers }, ['Cloud provider']),
           div([snapshot.cloudProvider])
         ])
-      ]), div({ style: { display: 'flex', width: '100%' } }, [
+      div({ style: { display: 'flex', width: '100%' } }, [
         div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Contact']),
           div(['Eric Miron']),
           div(['University of Chicago Medical Center']),
           h(Link, { href: `mailto:fakeemail@fake.org` }, ['fakeemail@fake.org'])
-        ]), div({ style: styles.attributesColumn }, [
+        ]),
+        div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Data curator']),
           div(['Will add later, after data structure is added'])
-        ]), div({ style: styles.attributesColumn }, [
+        ]),
+        div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Contributors']),
-          ..._.map(contributor => div(contributor), snapshot.contributors)
-        ]), div({ style: styles.attributesColumn }, [
+          _.map(contributor => div([contributor]), snapshot.contributors)
+        ]),
+        div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Publications']),
           div(['Will add later, after data structure is added'])
         ])
