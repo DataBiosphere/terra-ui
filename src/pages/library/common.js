@@ -233,7 +233,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
     [sort === 'most recent', () => _.orderBy(['created'], ['desc'])],
     [sort === 'alphabetical', () => _.orderBy(w => _.toLower(_.trim(w.name)), ['asc'])],
     [sort === 'Dataset Name', () => _.orderBy(w => _.toLower(_.trim(w.name)), [sortDir === 1 ? 'asc' : 'desc'])],
-    [sort === 'Project', () => _.orderBy(w => _.toLower(_.trim(w.project.name)), [sortDir === 1 ? 'asc' : 'desc'])],
+    [sort === 'Project', () => _.orderBy(w => _.toLower(_.trim(w.project)), [sortDir === 1 ? 'asc' : 'desc'])],
     [sort === 'No. of Subjects', () => _.orderBy(['subjects', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
     [sort === 'Data Type', () => _.orderBy(['dataType', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
     [sort === 'Last Updated', () => _.orderBy(['lastUpdated', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
@@ -430,7 +430,7 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, t
                 href: Nav.getLink(`library-details`, { id: listdatum.name })
               }, [listdatum.name])
             ]),
-            div({ style: styles.table.col }, listdatum.project.name),
+            div({ style: styles.table.col }, listdatum.project),
             div({ style: styles.table.col }, listdatum.subjects),
             div({ style: styles.table.col }, listdatum.dataType),
             div({ style: { ...styles.table.col, ...styles.table.lastElem } }, Utils.makeStandardDate(listdatum.lastUpdated))

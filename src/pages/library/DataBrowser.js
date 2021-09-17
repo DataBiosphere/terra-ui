@@ -1,5 +1,9 @@
 import _ from 'lodash/fp'
+import { useState } from 'react'
+import * as StateHistory from 'src/libs/state-history'
+import * as Utils from 'src/libs/utils'
 import { SearchAndFilterComponent } from 'src/pages/library/common'
+import * as tempData from 'src/pages/library/hca-sample.json'
 
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
@@ -34,170 +38,34 @@ const sidebarSections = [{
   ]
 }]
 
+const getRawList = () => new Promise(resolve => setTimeout(() => {
+  resolve(tempData.default.data)
+}, 2000))
 
 const DataBrowser = () => {
-  const featuredList = [
-    {
-      namespace: 'test-test',
-      name: 'This is a really really long name that should wrap onto another line',
-      created: '2020-01-13T18:25:28.340Z',
-      lastUpdated: '2020-01-13T18:25:28.340Z',
-      tags: {
-        itemsType: 'AttributeValue',
-        items: ['1000 Genomes', 'CMG', 'Open Access', 'Exome']
-      },
-      description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-      lowerName: 'this is a really really long name that should wrap onto another line',
-      lowerDescription: 'test desc',
-      project: {
-        id: '112',
-        name: 'NIH'
-      },
-      subjects: 123,
-      dataType: 'RNA Seq',
-      keepCollapsed: true,
-      locked: true,
-      files: {
-        count: 34,
-        size: 12345,
-        types: {
-          bam: 42,
-          cram: 11,
-          vcf: 20,
-          tar: 1
-        }
-      },
-      donor: {
-        size: 1202,
-        modality: 'Exome'
-      },
-      sample: {
-        size: 10593
-      }
-    },
-    {
-      namespace: 'harry-potter',
-      name: 'Harry Potter',
-      created: '2020-01-07T18:25:28.340Z',
-      lastUpdated: '2020-01-07T18:25:28.340Z',
-      tags: {
-        itemsType: 'AttributeValue',
-        items: ['1000 Genomes', 'CMG', 'Open Access', 'Exome']
-      },
-      description: 'The boy who lived',
-      lowerName: 'harry potter',
-      lowerDescription: 'lower description',
-      project: {
-        id: '112',
-        name: 'CDC'
-      },
-      subjects: 10,
-      dataType: 'RNA Seq',
-      keepCollapsed: true,
-      locked: false,
-      files: {
-        count: 15,
-        size: 4432,
-        types: {
-          bam: 42,
-          cram: 11,
-          vcf: 20,
-          tar: 1
-        }
-      },
-      donor: {
-        size: 1202,
-        modality: 'Exome'
-      },
-      sample: {
-        size: 10593
-      }
-    },
-    {
-      namespace: 'star-wars',
-      name: 'Luke Skywalker',
-      created: '2020-01-07T18:25:28.340Z',
-      lastUpdated: '2020-01-07T18:25:28.340Z',
-      tags: {
-        itemsType: 'AttributeValue',
-        items: ['1000 Genomes', 'CMG', 'Open Access', 'Exome']
-      },
-      description: 'force sensitive',
-      lowerName: 'luke skywalker',
-      lowerDescription: 'lower description',
-      project: {
-        id: '123',
-        name: 'CDC'
-      },
-      subjects: 10,
-      dataType: '',
-      keepCollapsed: true,
-      locked: false,
-      files: {
-        count: 19,
-        size: 550,
-        types: {
-          bam: 42,
-          cram: 11,
-          vcf: 20,
-          tar: 1
-        }
-      },
-      donor: {
-        size: 1202,
-        modality: 'Exome'
-      },
-      sample: {
-        size: 10593
-      }
-    },
-    {
-      namespace: 'star-wars',
-      name: 'Darth Vader',
-      created: '2020-01-07T18:25:28.340Z',
-      lastUpdated: '2020-01-07T18:25:28.340Z',
-      tags: {
-        itemsType: 'AttributeValue',
-        items: ['1000 Genomes', 'CCDG', 'Controlled Access', 'Whole Genome', 'asthma']
-      },
-      description: 'force sensitive',
-      lowerName: 'darth vader',
-      lowerDescription: 'lower description',
-      project: {
-        id: '123',
-        name: 'CDC2'
-      },
-      subjects: 10,
-      dataType: 'Data',
-      keepCollapsed: true,
-      locked: true,
-      files: {
-        count: 10,
-        size: 2200000000,
-        types: {
-          bam: 42,
-          cram: 11,
-          vcf: 20,
-          tar: 1
-        }
-      },
-      donor: {
-        size: 1202,
-        modality: 'Exome'
-      },
-      sample: {
-        size: 10593
-      }
+  const stateHistory = StateHistory.get()
+  const [catalogSnapshots, setCatalogSnapshots] = useState(stateHistory.catalogSnapshots)
+
+  Utils.useOnMount(() => {
+    const loadData = async () => {
+      const rawList = await getRawList()
+      const normList = _.map(snapshot => ({
+        ...snapshot,
+        tags: _.update(['items'], _.map(_.toLower), snapshot.tags),
+        name: snapshot['dct:title'],
+        description: snapshot['dct:description'],
+        project: _.get('0.dct:title', snapshot['TerraDCAT_ap:hasDataCollection']),
+        lastUpdated: snapshot['dct:modified'],
+        lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description'])
+      }), rawList)
+
+      setCatalogSnapshots(normList)
+      StateHistory.update({ catalogSnapshots })
     }
-  ]
+    loadData()
+  })
 
-  const snapshots = _.map(snapshot => ({
-    ...snapshot,
-    tags: _.update(['items'], _.map(_.toLower), snapshot.tags),
-    lowerName: _.toLower(snapshot.name), lowerDescription: _.toLower(snapshot.description)
-  }), featuredList)
-
-  return SearchAndFilterComponent(snapshots, sidebarSections, 'browse & explore', 'datasets')
+  return SearchAndFilterComponent(catalogSnapshots, sidebarSections, 'browse & explore', 'datasets')
 }
 
 export const navPaths = [{
