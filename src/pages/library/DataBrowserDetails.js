@@ -61,7 +61,7 @@ const getSnapshot = id => new Promise(resolve => setTimeout(() => {
   })
 }))
 
-const MainContent = snapshot => {
+const MainContent = ({ snapshot }) => {
   return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
     h1([snapshot.name]),
     div([
@@ -90,7 +90,7 @@ const MainContent = snapshot => {
           div(['Will add later, after data structure is added'])
         ]), div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Contributors']),
-          ..._.map(contributor => div(contributor), snapshot.contributors)
+          ..._.map(contributor => div({ key: `contributor-list__${contributor}` }, [contributor]), snapshot.contributors)
         ]), div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Publications']),
           div(['Will add later, after data structure is added'])
@@ -100,7 +100,7 @@ const MainContent = snapshot => {
   ])
 }
 
-const Sidebar = snapshot => {
+const Sidebar = ({ snapshot }) => {
   return div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
     h2({ className: 'sr-only' }, ['Snapshot Data Details']),
     div({ style: { backgroundColor: 'white', padding: 20, paddingTop: 0, width: '100%', border: '2px solid #D6D7D7', borderRadius: 5 } }, [
@@ -135,11 +135,11 @@ const Sidebar = snapshot => {
         table([
           tbody(
             [..._.map(filetype => {
-              return tr([
+              return tr({ key: `filetype-table-row_${filetype}` }, [
                 td({ style: { paddingRight: 30 } }, [filetype]),
                 td([snapshot.files.types[filetype].toLocaleString()])
               ])
-            }, Object.keys(snapshot.files.types)),
+            }, _.keys(snapshot.files.types)),
             tr({ style: { fontWeight: 'bold', borderTop: '2px solid rgba(0,0,0,.3)' } }, [
               td(['Total']),
               td([snapshot.files.count.toLocaleString()])
@@ -181,7 +181,7 @@ const DataBrowserDetails = ({ id }) => {
             icon('angle-left', { size: 35 })
           ]),
           h(MainContent, { snapshot }),
-          h(Sidebar)
+          h(Sidebar, { snapshot })
         ])
       ])
   ])
