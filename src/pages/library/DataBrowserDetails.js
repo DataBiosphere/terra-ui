@@ -121,32 +121,38 @@ const Sidebar = snapshot => {
             ]) :
             div([icon('lock-o', { size: 18, style: { marginRight: 10, color: colors.primary() } }), 'Access Granted'])
         ])
-      ]), div([
+      ]),
+      div([
         h3({ style: styles.headers }, ['Donor size']),
         div([(snapshot.donor.size || 0).toLocaleString()])
-      ]), div([
+      ]),
+      div([
         h3({ style: styles.headers }, ['Sample size']),
         div([(snapshot.sample.size || 0).toLocaleString()])
-      ]), div([
+      ]),
+      div([
         h3({ style: styles.headers }, ['Donor modality']),
         div([snapshot.donor.modality])
-      ]), div([
+      ]),
+      div([
         h3({ style: styles.headers }, ['Data type']),
         div([snapshot.dataType])
-      ]), div([
+      ]),
+      div([
         h3({ style: styles.headers }, ['File counts']),
         table([
-          tbody(
-            [..._.map(filetype => {
+          tbody([
+            ..._.map(filetype => {
               return tr([
                 td({ style: { paddingRight: 30 } }, [filetype]),
                 td([snapshot.files.types[filetype].toLocaleString()])
               ])
-            }, Object.keys(snapshot.files.types)),
+            }, _.keys(snapshot.files.types)),
             tr({ style: { fontWeight: 'bold', borderTop: '2px solid rgba(0,0,0,.3)' } }, [
               td(['Total']),
               td([snapshot.files.count.toLocaleString()])
-            ])]
+            ])
+          ])
           )
         ])
       ])
