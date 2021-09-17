@@ -6,6 +6,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -160,7 +161,18 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           placeholder: 'Select a billing project',
           value: namespace,
           onChange: ({ value }) => setNamespace(value),
-          options: _.uniq(_.map('projectName', billingProjects)).sort()
+          styles: { option: provided => ({ ...provided, padding: 0 }) },
+          options: _.uniq(_.map(({ projectName, invalidBillingAccount }) => ({
+            label: h(Fragment, [
+              invalidBillingAccount ?
+                h(TooltipTrigger, {
+                  content: ['Workspaces may only be created in billing projects that have a Google billing account accessible in Terra'], side: 'left'
+                }, [div({ style: { padding: 10 } }, [projectName])]) :
+                div({ style: { padding: 10 } }, [projectName])
+            ]),
+            value: projectName,
+            isDisabled: invalidBillingAccount
+          }), billingProjects)).sort()
         })
       ])]),
       h(IdContainer, [id => h(Fragment, [
