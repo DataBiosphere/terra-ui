@@ -63,7 +63,7 @@ const Showcase = () => {
   })
 
   return h(SearchAndFilterComponent, {
-    featuredList: featuredWorkspaces, sidebarSections, activeTab: 'featured workspaces', listdataType: 'Workspaces'
+    featuredList: featuredWorkspaces, sidebarSections, activeTab: 'featured workspaces', listDataType: 'Workspaces'
   })
 }
 

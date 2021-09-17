@@ -46,21 +46,14 @@ export const styles = {
       margin: '0 -15px 15px', padding: 15
     }
   },
-  pill: {
+  pill: highlight => ({
     width: '4.5rem', padding: '0.25rem', fontWeight: 500, textAlign: 'center',
     border: '1px solid', borderColor: colors.dark(0.25), borderRadius: '1rem',
-    backgroundColor: 'white'
-  },
-  pillHighlight: {
-    color: 'white', backgroundColor: colors.accent(), borderColor: colors.accent()
-  }
+    backgroundColor: 'white',
+    ...(highlight ? { color: 'white', backgroundColor: colors.accent(), borderColor: colors.accent() } : {})
+  })
 }
 
-export const Pill = ({ count, highlight }) => {
-  return div({
-    style: { ...styles.pill, ...(highlight ? styles.pillHighlight : {}) }
-  }, [count])
-}
 
 export const groupByFeaturedTags = (workspaces, sidebarSections) => _.flow(
   _.flatMap(s => _.map(_.toLower, s.labels)),
@@ -69,32 +62,32 @@ export const groupByFeaturedTags = (workspaces, sidebarSections) => _.flow(
   _.fromPairs
 )(sidebarSections)
 
-export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, listdataByTag }) => {
-  const unionSectionWorkspaces = ({ tags }) => _.flow(
-    _.flatMap(tag => listdataByTag[tag]),
-    _.uniq
+export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, listDataByTag }) => {
+  const unionSectionWorkspacesCount = ({ tags }) => _.flow(
+    _.flatMap(tag => listDataByTag[tag]),
+    _.uniq,
+    _.size
   )(tags)
 
   return div({ style: { display: 'flex', flexDirection: 'column' } }, [
     _.map(section => {
-      return section.keepCollapsed ?
+      const { keepCollapsed, name, labels } = section
+
+      return keepCollapsed ?
         h(Clickable, {
-          key: section.name,
+          key: name,
           onClick: () => onSectionFilter(section),
           style: { ...styles.sidebarRow, ...styles.nav.navSection, ...styles.nav.title }
         }, [
-          div({ style: { flex: 1 } }, [section.name]),
-          h(Pill, {
-            count: _.size(unionSectionWorkspaces(section)),
-            highlight: _.includes(section, selectedSections)
-          })
+          div({ style: { flex: 1 } }, [name]),
+          div({ style: styles.pill(_.includes(section, selectedSections)) }, [unionSectionWorkspacesCount(section)])
         ]) :
         h(Collapse, {
-          key: section.name,
+          key: name,
           style: styles.nav.navSection,
           buttonStyle: styles.nav.title,
           titleFirst: true, initialOpenState: true,
-          title: section.name
+          title: name
         }, [_.map(label => {
           const tag = _.toLower(label)
           return h(Clickable, {
@@ -103,17 +96,14 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
             onClick: () => onTagFilter(tag)
           }, [
             div({ style: { flex: 1 } }, [label]),
-            h(Pill, {
-              count: _.size(listdataByTag[tag]),
-              highlight: _.includes(tag, selectedTags)
-            })
+            div({ style: styles.pill(_.includes(tag, selectedTags)) }, [_.size(listDataByTag[tag])])
           ])
-        }, section.labels)])
+        }, labels)])
     }, sections)
   ])
 }
 
-export const SearchAndFilterComponent = ({ featuredList, sidebarSections, activeTab, listdataType }) => {
+export const SearchAndFilterComponent = ({ featuredList, sidebarSections, activeTab, listDataType }) => {
   const [selectedSections, setSelectedSections] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [searchFilter, setSearchFilter] = useState('')
@@ -122,13 +112,12 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
 
   const [selectedData, setSelectedData] = useState([])
 
-  const listdataByTag = _.omitBy(_.isEmpty, groupByFeaturedTags(featuredList, sidebarSections))
+  const listDataByTag = _.omitBy(_.isEmpty, groupByFeaturedTags(featuredList, sidebarSections))
 
   // Trim items from the sidebar facets for which there aren't any search results
-  const activeTags = _.keys(listdataByTag)
   const sections = _.flow(
     _.map(section => {
-      const activeLabels = _.intersectionBy(_.toLower, section.labels, activeTags)
+      const activeLabels = _.intersectionBy(_.toLower, section.labels, _.keys(listDataByTag))
       return {
         ...section,
         labels: activeLabels,
@@ -138,22 +127,23 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
     _.remove(section => _.isEmpty(section.labels))
   )(sidebarSections)
 
-  const filterBySections = listdata => {
+  const filterBySections = listData => {
     if (_.isEmpty(selectedSections)) {
-      return listdata
+      return listData
     } else {
-      const tags = _.uniq(_.flatMap('tags', selectedSections))
-      return _.uniq(_.flatMap(tag => listdataByTag[tag], tags))
+      const tags = _.uniqBy(_.flatMap('tags', selectedSections))
+      return _.uniq(_.flatMap(tag => listDataByTag[tag], tags))
     }
   }
-  const filterByTags = listdata => {
+  const filterByTags = listData => {
     if (_.isEmpty(selectedTags)) {
-      return listdata
+      return listData
     } else {
-      let ret = listdata
-      const datasets = _.map(tag => listdataByTag[tag], selectedTags)
-      datasets.forEach(datasetsForTag => ret = _.intersection(datasetsForTag, ret))
-      return ret
+      return _.reduce(
+        (acc, tag) => _.intersection(listDataByTag[tag], acc),
+        listDataByTag[_.head(selectedTags)],
+        _.tail(selectedTags)
+      )
     }
   }
   const filterByText = _.filter(({ lowerName, lowerDescription }) => _.includes(searchFilter, `${lowerName} ${lowerDescription}`))
@@ -175,11 +165,8 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
         div({ style: { display: 'flex', margin: '1rem 1rem 0', alignItems: 'baseline' } }, [
           div({ style: { width: '19rem', flex: 'none' } }, [
             div({ style: styles.sidebarRow }, [
-              div({ style: styles.header }, `Featured ${listdataType}`),
-              h(Pill, {
-                count: _.size(filteredData),
-                highlight: _.isEmpty(selectedSections) && _.isEmpty(selectedTags)
-              })
+              div({ style: styles.header }, `Featured ${listDataType}`),
+              div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredData)])
             ]),
             div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
               div({ style: { flex: 1 } }),
@@ -193,7 +180,7 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
           ]),
           h(DelayedSearchInput, {
             style: { flex: 1, marginLeft: '1rem' },
-            'aria-label': `Search Featured ${listdataType}`,
+            'aria-label': `Search Featured ${listDataType}`,
             placeholder: 'Search Name or Description',
             value: searchFilter,
             onChange: setSearchFilter
@@ -222,13 +209,13 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
               sections,
               selectedSections,
               selectedTags,
-              listdataByTag: groupByFeaturedTags(filteredData, sidebarSections)
+              listDataByTag: groupByFeaturedTags(filteredData, sidebarSections)
             })
           ]),
           div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
-            Utils.switchCase(listdataType,
+            Utils.switchCase(listDataType,
               ['Datasets', () => makeTable({ listData: filteredData, sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList })],
-              ['Workspaces', () => _.map(makeCard(), filteredData)])
+              ['Workspaces', () => _.map(makeCard, filteredData)])
           ])
         ])
       ]),
@@ -268,7 +255,7 @@ const makeTable = ({ listData, sort, setSort, selectedData, toggleSelectedData, 
     'aria-label': 'dataset list',
     columns: [
       {
-        header: div({ className: 'sr-only'}, ['Select dataset']),
+        header: div({ className: 'sr-only' }, ['Select dataset']),
         size: { basis: 37, grow: 0 }, key: 'checkbox'
       }, {
         header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'name', onSort: setSort }, ['Dataset Name'])]),
@@ -324,7 +311,7 @@ const makeTable = ({ listData, sort, setSort, selectedData, toggleSelectedData, 
   })])
 }
 
-const makeCard = variant => workspace => {
+const makeCard = workspace => {
   const { namespace, name, created, description } = workspace
   return a({
     href: Nav.getLink('workspace-dashboard', { namespace, name }),
@@ -344,7 +331,7 @@ const makeCard = variant => workspace => {
         width: 87,
         ...Utils.cond(
           [name.toLowerCase().includes('covid'), () => ({ backgroundImage: `url(${covidBg})` })],
-          [variant === 'gatk', () => ({ backgroundColor: '#333', backgroundImage: `url(${gatkLogo})`, backgroundSize: undefined })],
+          [namespace === 'help-gatk', () => ({ backgroundColor: '#333', backgroundImage: `url(${gatkLogo})`, backgroundSize: undefined })],
           () => ({ backgroundImage: `url(${featuredBg})`, opacity: 0.75 })
         )
       }

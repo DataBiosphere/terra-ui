@@ -138,7 +138,7 @@ const DataBrowser = () => {
     lowerName: _.toLower(snapshot.name), lowerDescription: _.toLower(snapshot.description)
   }), featuredList)
 
-  return h(SearchAndFilterComponent, { featuredList: snapshots, sidebarSections, activeTab: 'browse & explore', listdataType: 'Datasets' })
+  return h(SearchAndFilterComponent, { featuredList: snapshots, sidebarSections, activeTab: 'browse & explore', listDataType: 'Datasets' })
 }
 
 export const navPaths = [{
