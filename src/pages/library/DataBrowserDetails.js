@@ -8,6 +8,7 @@ import { libraryTopMatter } from 'src/components/library-common'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
+import * as tempData from 'src/pages/library/hca-sample.json'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -19,81 +20,47 @@ const styles = {
 }
 
 const getSnapshot = id => new Promise(resolve => setTimeout(() => {
-  resolve({
-    namespace: 'harry-potter',
-    name: 'Harry Potter',
-    created: '2020-01-07T18:25:28.340Z',
-    lastUpdated: '2020-01-07T18:25:28.340Z',
-    tags: {
-      itemsType: 'AttributeValue',
-      items: ['1000 Genomes', 'CMG', 'Open Access', 'Exome']
-    },
-    description: 'The boy who lived',
-    lowerName: 'harry potter',
-    lowerDescription: 'lower description',
-    project: {
-      id: '112',
-      name: 'CDC'
-    },
-    subjects: 10,
-    dataType: 'RNA Seq',
-    keepCollapsed: true,
-    locked: true,
-    donor: {
-      size: 1202,
-      modality: 'Exome'
-    },
-    sample: {
-      size: 10593
-    },
-    files: {
-      count: 15,
-      size: 4432,
-      types: {
-        bam: 42,
-        cram: 11,
-        vcf: 20,
-        tar: 1
-      }
-    },
-    releasePolicy: 'GRU',
-    region: 'Multi-region - US',
-    cloudProvider: 'Azure',
-    contributors: ['Erin Dogra', 'Jinzhou Zuanoh', 'Donna Bechard', 'Yim Lang Ching', 'David Smith', 'Peter Hanna', 'Pupsa Shape', 'Joel Szabo']
-  })
+  const dataMap = _.groupBy('dct:identifier', tempData.default.data)
+  resolve(_.get(`${id}.0`, dataMap))
 }))
 
 const MainContent = ({ snapshot }) => {
+  console.log('snapshot', snapshot)
   return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
-    h1([snapshot.name]),
+    h1([_.get('dct:title', snapshot)]),
     div([
-      div([snapshot.description]),
-      div({ style: { marginTop: 30 } }, [JSON.stringify(snapshot)]),
+      div([_.get('dct:description', snapshot)]),
       h2({ className: 'sr-only' }, ['Snapshot Sources']),
       div({ style: { display: 'flex', width: '100%' } }, [
         div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Data release policy']),
-          div([snapshot.releasePolicy])
-        ]), div({ style: styles.attributesColumn }, [
+          div([_.get('releasePolicy', snapshot)])
+        ]),
+        div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Region']),
-          div([snapshot.region])
-        ]), div({ style: styles.attributesColumn }, [
+          div([_.get('storage.0.region', snapshot)])
+        ]),
+        div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Cloud provider']),
-          div([snapshot.cloudProvider])
+          div([_.get('storage.0.cloudPlatform', snapshot)])
         ])
-      ]), div({ style: { display: 'flex', width: '100%' } }, [
+      ]),
+      div({ style: { display: 'flex', width: '100%' } }, [
         div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Contact']),
           div(['Eric Miron']),
           div(['University of Chicago Medical Center']),
           h(Link, { href: `mailto:fakeemail@fake.org` }, ['fakeemail@fake.org'])
-        ]), div({ style: styles.attributesColumn }, [
+        ]),
+        div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Data curator']),
           div(['Will add later, after data structure is added'])
-        ]), div({ style: styles.attributesColumn }, [
+        ]),
+        div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Contributors']),
-          ..._.map(contributor => div(contributor), snapshot.contributors)
-        ]), div({ style: styles.attributesColumn }, [
+          _.map(contributor => div({ key: `contributor-list_${contributor}}` }, [contributor]), _.get('contributors', snapshot))
+        ]),
+        div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Publications']),
           div(['Will add later, after data structure is added'])
         ])
@@ -109,7 +76,7 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
       div([
         h3(['Access type']),
         div([
-          snapshot.locked ?
+          _.get('locked', snapshot) ?
             h(ButtonSecondary, {
               style: { fontSize: 16, textTransform: 'none', height: 'unset' },
               onClick: () => setShowRequestAccessModal(true)
@@ -120,33 +87,39 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
             ]) :
             div([icon('lock-o', { size: 18, style: { marginRight: 10, color: colors.primary() } }), 'Access Granted'])
         ])
-      ]), div([
+      ]),
+      div([
         h3({ style: styles.headers }, ['Donor size']),
-        div([(snapshot.donor?.size || 0).toLocaleString()])
-      ]), div([
+        div([_.getOr(0, 'counts.donors', snapshot).toLocaleString()])
+      ]),
+      div([
         h3({ style: styles.headers }, ['Sample size']),
-        div([(snapshot.sample.size || 0).toLocaleString()])
-      ]), div([
+        div([_.getOr(0, 'counts.samples', snapshot).toLocaleString()])
+      ]),
+      div([
         h3({ style: styles.headers }, ['Donor modality']),
-        div([snapshot.donor.modality])
-      ]), div([
+        div([_.get('donor.modality', snapshot)])
+      ]),
+      div([
         h3({ style: styles.headers }, ['Data type']),
-        div([snapshot.dataType])
-      ]), div([
+        div([_.get('dataType', snapshot)])
+      ]),
+      div([
         h3({ style: styles.headers }, ['File counts']),
         table([
           tbody(
-            [..._.map(filetype => {
-              return tr([
-                td({ style: { paddingRight: 30 } }, [filetype]),
-                td([snapshot.files.types[filetype].toLocaleString()])
+            [
+              ..._.map(file => {
+                return tr({}, [
+                  td({ style: { paddingRight: 30 } }, [file['dcat:mediaType']]),
+                  td([(file.count || 0).toLocaleString()])
+                ])
+              }, _.get('files', snapshot)),
+              tr({ style: { fontWeight: 'bold', borderTop: '2px solid rgba(0,0,0,.3)' } }, [
+                td(['Total']),
+                td([_.sumBy('count', snapshot.files).toLocaleString()])
               ])
-            }, Object.keys(snapshot.files.types)),
-            tr({ style: { fontWeight: 'bold', borderTop: '2px solid rgba(0,0,0,.3)' } }, [
-              td(['Total']),
-              td([snapshot.files.count.toLocaleString()])
-            ])]
-          )
+            ])
         ])
       ])
     ]),

@@ -427,7 +427,7 @@ const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, t
             ),
             div({ style: { ...styles.table.col, flex: 2.2 } }, [
               h(Link, {
-                href: Nav.getLink(`library-details`, { id: listdatum.name })
+                href: Nav.getLink(`library-details`, { id: listdatum['dct:identifier'] })
               }, [listdatum.name])
             ]),
             div({ style: styles.table.col }, listdatum.project),
