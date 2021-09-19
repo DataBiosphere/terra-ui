@@ -38,11 +38,21 @@ const MainContent = ({ snapshot }) => {
         ]),
         div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Region']),
-          div([_.get('storage.0.region', snapshot)])
+          div([
+            _.map(
+              storage => div({ key: `region-table-${storage.region}` }, [storage.region]),
+              _.uniqBy('region', snapshot.storage || [])
+            )
+          ])
         ]),
         div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Cloud provider']),
-          div([_.get('storage.0.cloudPlatform', snapshot)])
+          div([
+            _.map(
+              storage => div({ key: `cloud-platform-table-${storage.cloudPlatform}` }, [storage.cloudPlatform]),
+              _.uniqBy('cloudPlatform', snapshot.storage || [])
+            )
+          ])
         ])
       ]),
       div({ style: { display: 'flex', width: '100%' } }, [
