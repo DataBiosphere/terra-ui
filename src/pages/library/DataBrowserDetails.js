@@ -107,7 +107,9 @@ const MainContent = ({ snapshot }) => {
   ])
 }
 
-const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
+const Sidebar = ({ snapshot }) => {
+  const [showRequestAccessModal, setShowRequestAccessModal] = useState()
+
   return div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
     h2({ className: 'sr-only' }, ['Snapshot Data Details']),
     div({ style: { backgroundColor: 'white', padding: 20, paddingTop: 0, width: '100%', border: '2px solid #D6D7D7', borderRadius: 5 } }, [
@@ -171,13 +173,16 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
     h(ButtonPrimary, {
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => console.log('clicked')
-    }, ['Save to a workspace'])
+    }, ['Save to a workspace']),
+    showRequestAccessModal && h(RequestDatasetAccessModal, {
+      datasets: [snapshot],
+      onDismiss: () => setShowRequestAccessModal(false)
+    })
   ])
 }
 
 const DataBrowserDetails = ({ id }) => {
   const [snapshot, setSnapshot] = useState()
-  const [showRequestAccessModal, setShowRequestAccessModal] = useState()
 
   Utils.useOnMount(() => {
     const loadData = async () => setSnapshot(await getSnapshot(id))
@@ -194,11 +199,7 @@ const DataBrowserDetails = ({ id }) => {
             icon('angle-left', { size: 35 })
           ]),
           h(MainContent, { snapshot }),
-          h(Sidebar, { snapshot, setShowRequestAccessModal }),
-          showRequestAccessModal && h(RequestDatasetAccessModal, {
-            datasets: [snapshot],
-            onDismiss: () => setShowRequestAccessModal(false)
-          })
+          h(Sidebar, { snapshot })
         ])
       ])
   ])
