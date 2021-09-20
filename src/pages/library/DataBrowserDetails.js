@@ -37,7 +37,7 @@ const getSnapshot = id => new Promise(resolve => setTimeout(() => {
   })
 }, 2000))
 
-const MainContent = snapshot => {
+const MainContent = ({ snapshot }) => {
   return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
     h1({ style: { marginTop: 0 } }, [snapshot.name]),
     div({ style: { whiteSpace: 'pre-wrap' } }, [JSON.stringify(snapshot, null, 2)])
