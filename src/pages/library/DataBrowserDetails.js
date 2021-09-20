@@ -72,10 +72,12 @@ const MainContent = ({ snapshot }) => {
         div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Data release policy']),
           div([snapshot.releasePolicy])
-        ]), div({ style: styles.attributesColumn }, [
+        ]), 
+        div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Region']),
           div([snapshot.region])
-        ]), div({ style: styles.attributesColumn }, [
+        ]), 
+        div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Cloud provider']),
           div([snapshot.cloudProvider])
         ])
