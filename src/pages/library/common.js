@@ -20,7 +20,7 @@ import * as Utils from 'src/libs/utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
-export const styles = {
+const styles = {
   header: {
     fontSize: 19, color: colors.dark(), fontWeight: 'bold', marginBottom: '1rem'
   },
@@ -55,14 +55,14 @@ export const styles = {
 }
 
 
-export const groupByFeaturedTags = (workspaces, sidebarSections) => _.flow(
+const groupByFeaturedTags = (workspaces, sidebarSections) => _.flow(
   _.flatMap(s => _.map(_.toLower, s.labels)),
   _.uniq,
   _.map(tag => [tag, _.filter(w => _.includes(tag, w.tags?.items), workspaces)]),
   _.fromPairs
 )(sidebarSections)
 
-export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, listDataByTag }) => {
+const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, selectedTags, listDataByTag }) => {
   const unionSectionWorkspacesCount = ({ tags }) => _.flow(
     _.flatMap(tag => listDataByTag[tag]),
     _.uniq,
@@ -100,6 +100,102 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
           ])
         }, labels)])
     }, sections)
+  ])
+}
+
+const DatasetTable = ({ listData, sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList }) => {
+  return div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
+    'aria-label': 'dataset list',
+    columns: [
+      {
+        header: div({ className: 'sr-only' }, ['Select dataset']),
+        size: { basis: 37, grow: 0 }, key: 'checkbox'
+      }, {
+        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'name', onSort: setSort }, ['Dataset Name'])]),
+        size: { grow: 2.2 }, key: 'name'
+      }, {
+        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'project.name', onSort: setSort }, ['Project'])]),
+        size: { grow: 1 }, key: 'project'
+      }, {
+        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'subjects', onSort: setSort }, ['No. of Subjects'])]),
+        size: { grow: 1 }, key: 'subjects'
+      }, {
+        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dataType', onSort: setSort }, ['Data Type'])]),
+        size: { grow: 1 }, key: 'dataType'
+      }, {
+        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'lastUpdated', onSort: setSort }, ['Last Updated'])]),
+        size: { grow: 1 }, key: 'lastUpdated'
+      }
+    ],
+    rowStyle: styles.table.row,
+    cellStyle: { border: 'none', paddingRight: 15 },
+    useHover: false,
+    underRowKey: 'underRow',
+    rows: _.map(datum => {
+      const { name, project: { name: projectName }, subjects, dataType, lastUpdated, locked, description } = datum
+
+      return {
+        checkbox: h(Checkbox, {
+          'aria-label': name,
+          checked: _.includes(datum, selectedData),
+          onChange: () => toggleSelectedData(datum)
+        }),
+        name,
+        project: projectName,
+        subjects,
+        dataType,
+        lastUpdated: Utils.makeStandardDate(lastUpdated),
+        underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
+          div({ style: { flex: '0 1 37px' } }, [
+            locked ?
+              h(ButtonSecondary, {
+                tooltip: 'Request Dataset Access', useTooltipAsLabel: true,
+                style: { height: 'unset' },
+                onClick: () => setRequestDatasetAccessList([datum])
+              }, [icon('lock')]) :
+              h(TooltipTrigger, { content: 'Open Access' }, [icon('unlock', { style: { color: colors.success() } })])
+          ]),
+          div({ style: { flex: 1, fontSize: 12 } }, [
+            h(Collapse, { titleFirst: true, title: 'See More', buttonStyle: { flex: 'none' } }, [description])
+          ])
+        ])
+      }
+    }, listData)
+  })])
+}
+
+const WorkspaceCard = ({ workspace }) => {
+  const { namespace, name, created, description } = workspace
+  return a({
+    href: Nav.getLink('workspace-dashboard', { namespace, name }),
+    style: {
+      backgroundColor: 'white',
+      height: 175,
+      borderRadius: 5,
+      display: 'flex',
+      marginBottom: '1rem',
+      boxShadow: Style.standardShadow
+    }
+  }, [
+    div({
+      style: {
+        backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: 'auto 100%', borderRadius: '5px 0 0 5px',
+        width: 87,
+        ...Utils.cond(
+          [name.toLowerCase().includes('covid'), () => ({ backgroundImage: `url(${covidBg})` })],
+          [namespace === 'help-gatk', () => ({ backgroundColor: '#333', backgroundImage: `url(${gatkLogo})`, backgroundSize: undefined })],
+          () => ({ backgroundImage: `url(${featuredBg})`, opacity: 0.75 })
+        )
+      }
+    }),
+    div({ style: { flex: 1, minWidth: 0, padding: '15px 20px', overflow: 'hidden' } }, [
+      div({ style: { display: 'flex' } }, [
+        div({ style: { flex: 1, color: colors.accent(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
+        created && div([Utils.makeStandardDate(created)])
+      ]),
+      div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [description])
+      // h(MarkdownViewer, [description]) // TODO: should we render this as markdown?
+    ])
   ])
 }
 
@@ -216,8 +312,14 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
           ]),
           div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
             Utils.switchCase(listDataType,
-              ['Datasets', () => makeTable({ listData: filteredData, sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList })],
-              ['Workspaces', () => _.map(makeCard, filteredData)])
+              ['Datasets', () => {
+                return h(DatasetTable, { listData: filteredData, sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList })
+              }],
+              ['Workspaces', () => _.map(workspace => {
+                const { namespace, name } = workspace
+                return h(WorkspaceCard, { key: `${namespace}:${name}`, workspace })
+              }, filteredData)]
+            )
           ])
         ])
       ]),
@@ -251,102 +353,3 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
     })
   ])
 }
-
-const makeTable = ({ listData, sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList }) => {
-  return div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
-    'aria-label': 'dataset list',
-    columns: [
-      {
-        header: div({ className: 'sr-only' }, ['Select dataset']),
-        size: { basis: 37, grow: 0 }, key: 'checkbox'
-      }, {
-        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'name', onSort: setSort }, ['Dataset Name'])]),
-        size: { grow: 2.2 }, key: 'name'
-      }, {
-        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'project.name', onSort: setSort }, ['Project'])]),
-        size: { grow: 1 }, key: 'project'
-      }, {
-        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'subjects', onSort: setSort }, ['No. of Subjects'])]),
-        size: { grow: 1 }, key: 'subjects'
-      }, {
-        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dataType', onSort: setSort }, ['Data Type'])]),
-        size: { grow: 1 }, key: 'dataType'
-      }, {
-        header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'lastUpdated', onSort: setSort }, ['Last Updated'])]),
-        size: { grow: 1 }, key: 'lastUpdated'
-      }
-    ],
-    rowStyle: styles.table.row,
-    cellStyle: { border: 'none', paddingRight: 15 },
-    useHover: false,
-    underRowKey: 'underRow',
-    rows: _.map(datum => {
-      const { name, project: { name: projectName }, subjects, dataType, lastUpdated, locked, description } = datum
-
-      return {
-        checkbox: h(Checkbox, {
-          'aria-label': name,
-          checked: _.includes(datum, selectedData),
-          onChange: () => toggleSelectedData(datum)
-        }),
-        name,
-        project: projectName,
-        subjects,
-        dataType,
-        lastUpdated: Utils.makeStandardDate(lastUpdated),
-        underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
-          div({ style: { flex: '0 1 37px' } }, [
-            locked ?
-              h(ButtonSecondary, {
-                tooltip: 'Request Dataset Access', useTooltipAsLabel: true,
-                style: { height: 'unset' },
-                onClick: () => setRequestDatasetAccessList([datum])
-              }, [icon('lock')]) :
-              h(TooltipTrigger, { content: 'Open Access' }, [icon('unlock', { style: { color: colors.success() } })])
-          ]),
-          div({ style: { flex: 1, fontSize: 12 } }, [
-            h(Collapse, { titleFirst: true, title: 'See More', buttonStyle: { flex: 'none' } }, [description])
-          ])
-        ])
-      }
-    }, listData)
-  })])
-}
-
-const makeCard = workspace => {
-  const { namespace, name, created, description } = workspace
-  return a({
-    href: Nav.getLink('workspace-dashboard', { namespace, name }),
-    key: `${namespace}:${name}`,
-    style: {
-      backgroundColor: 'white',
-      height: 175,
-      borderRadius: 5,
-      display: 'flex',
-      marginBottom: '1rem',
-      boxShadow: Style.standardShadow
-    }
-  }, [
-    div({
-      style: {
-        backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: 'auto 100%', borderRadius: '5px 0 0 5px',
-        width: 87,
-        ...Utils.cond(
-          [name.toLowerCase().includes('covid'), () => ({ backgroundImage: `url(${covidBg})` })],
-          [namespace === 'help-gatk', () => ({ backgroundColor: '#333', backgroundImage: `url(${gatkLogo})`, backgroundSize: undefined })],
-          () => ({ backgroundImage: `url(${featuredBg})`, opacity: 0.75 })
-        )
-      }
-    }),
-    div({ style: { flex: 1, minWidth: 0, padding: '15px 20px', overflow: 'hidden' } }, [
-      div({ style: { display: 'flex' } }, [
-        div({ style: { flex: 1, color: colors.accent(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
-        created && div([Utils.makeStandardDate(created)])
-      ]),
-      div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [description])
-      // h(MarkdownViewer, [description]) // TODO: should we render this as markdown?
-    ])
-  ])
-}
-
-
