@@ -45,7 +45,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
 import { h } from 'react-hyperscript-helpers'
 import { ReactComponent as angleDoubleUp } from 'src/icons/angle-double-up-regular.svg'
-import { ReactComponent as angleDown } from 'src/icons/angle-down-regular.svg'
 import { ReactComponent as angleUp } from 'src/icons/angle-up-regular.svg'
 import { ReactComponent as arrowLeftRegular } from 'src/icons/arrow-left-regular.svg'
 import { ReactComponent as bars } from 'src/icons/bars-light.svg'
@@ -75,7 +74,7 @@ const custom = _.curry((shape, { size, ...props }) => h(shape,
 const rotate = _.curry((rotation, shape, props) => shape(_.merge({ style: { transform: `rotate(${rotation}deg)` } }, props)))
 
 const iconDict = {
-  'angle-down': custom(angleDown),
+  'angle-down': rotate(180, custom(angleUp)),
   'angle-left': rotate(-90, custom(angleUp)),
   'angle-right': rotate(90, custom(angleUp)),
   'angle-up': custom(angleUp),
