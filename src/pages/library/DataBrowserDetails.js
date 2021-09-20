@@ -188,5 +188,5 @@ export const navPaths = [{
   name: 'library-details',
   path: '/library/browser/:id',
   component: DataBrowserDetails,
-  title: ({ id }) => `${id} - Details`
+  title: ({ id }) => `Catalog - Dataset Details`
 }]
