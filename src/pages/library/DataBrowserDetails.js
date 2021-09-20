@@ -94,7 +94,7 @@ const MainContent = ({ snapshot }) => {
         ]),
         div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Contributors']),
-          _.map(contributor => div({ key: `contributor-list_${contributor}}` }, [contributor]), snapshot.contributors)
+          ..._.map(contributor => div({ key: `contributor-list_${contributor}}` }, [contributor]), snapshot.contributors)
         ]),
         div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Publications']),
