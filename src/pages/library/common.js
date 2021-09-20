@@ -165,7 +165,7 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
         div({ style: { display: 'flex', margin: '1rem 1rem 0', alignItems: 'baseline' } }, [
           div({ style: { width: '19rem', flex: 'none' } }, [
             div({ style: styles.sidebarRow }, [
-              div({ style: styles.header }, `Featured ${listDataType}`),
+              div({ style: styles.header }, [`Featured ${listDataType}`]),
               div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredData)])
             ]),
             div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
@@ -195,8 +195,10 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
                 styles: { container: old => ({ ...old, width: '10rem' }) },
                 value: sort,
                 onChange: ({ value }) => setSort(value),
-                options: [{ value: { field: 'created', direction: 'desc' }, label: 'most recent' },
-                  { value: { field: 'name', direction: 'asc' }, label: 'alphabetical' }]
+                options: [
+                  { value: { field: 'created', direction: 'desc' }, label: 'most recent' },
+                  { value: { field: 'name', direction: 'asc' }, label: 'alphabetical' }
+                ]
               })
             ])
           ])
