@@ -110,7 +110,7 @@ const Showcase = () => {
     libraryTopMatter('featured workspaces'),
     SearchAndFilterComponent({
       featuredList, sidebarSections,
-      searchType: 'workspaces',
+      searchType: 'Featured Workspaces',
       children: list => _.map(WorkspaceCard(), list)
     })
   ])

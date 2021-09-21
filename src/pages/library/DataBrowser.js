@@ -98,7 +98,8 @@ const Browser = () => {
         ...snapshot,
         tags: _.update(['items'], _.map(_.toLower), snapshot.tags),
         project: _.get('0.dct:title', snapshot['TerraDCAT_ap:hasDataCollection']),
-        lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description'])
+        lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description']),
+        locked: true
       }), rawList)
 
       setCatalogSnapshots(normList)
@@ -183,7 +184,7 @@ const Browser = () => {
       useHover: false,
       underRowKey: 'underRow',
       rows: _.map(datum => {
-        const { name, project: { name: projectName }, subjects, dataType, lastUpdated, locked, description } = datum
+        const { project: { name: projectName }, dataType, locked } = datum
 
         return {
           checkbox: h(Checkbox, {
@@ -207,7 +208,7 @@ const Browser = () => {
                 h(TooltipTrigger, { content: 'Open Access' }, [icon('unlock', { style: { color: colors.success() } })])
             ]),
             div({ style: { flex: 1, fontSize: 12 } }, [
-              h(Collapse, { titleFirst: true, title: 'See More', buttonStyle: { flex: 'none' } }, [description])
+              h(Collapse, { titleFirst: true, title: 'See More', buttonStyle: { flex: 'none' } }, [datum['dct:description']])
             ])
           ])
         }
@@ -219,10 +220,14 @@ const Browser = () => {
     libraryTopMatter('browse & explore'),
     SearchAndFilterComponent({
       featuredList: catalogSnapshots, sidebarSections,
-      searchType: 'featured workspaces',
+      searchType: 'Datasets',
       children: DataTable
     }),
-    SelectedItemsDisplay()
+    SelectedItemsDisplay(),
+    !!requestDatasetAccessList && h(RequestDatasetAccessModal, {
+      datasets: requestDatasetAccessList,
+      onDismiss: () => setRequestDatasetAccessList()
+    })
   ])
 }
 
