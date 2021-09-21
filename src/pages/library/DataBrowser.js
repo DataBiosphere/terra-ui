@@ -83,6 +83,7 @@ const Browser = () => {
         tags: _.update(['items'], _.map(_.toLower), snapshot.tags),
         project: _.get('0.dct:title', snapshot['TerraDCAT_ap:hasDataCollection']),
         lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description']),
+        lastUpdated: new Date(snapshot['dct:modified']),
         locked: true
       }), rawList)
 

@@ -128,61 +128,61 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
   )(featuredList)
 
   return h(Fragment, [
-      div({ style: { display: 'flex', margin: '1rem 1rem 0', alignItems: 'baseline' } }, [
-        div({ style: { width: '19rem', flex: 'none' } }, [
-          div({ style: styles.sidebarRow }, [
-            div({ style: styles.header }, [`${searchType}`]),
-            div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredData)])
-          ]),
-          div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
-            div({ style: { flex: 1 } }),
-            h(Link, {
-              onClick: () => {
-                setSelectedSections([])
-                setSelectedTags([])
-              }
-            }, ['clear'])
-          ])
+    div({ style: { display: 'flex', margin: '1rem 1rem 0', alignItems: 'baseline' } }, [
+      div({ style: { width: '19rem', flex: 'none' } }, [
+        div({ style: styles.sidebarRow }, [
+          div({ style: styles.header }, [`${searchType}`]),
+          div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredData)])
         ]),
-        h(DelayedSearchInput, {
-          style: { flex: 1, marginLeft: '1rem' },
-          'aria-label': `Search ${searchType}`,
-          placeholder: 'Search Name or Description',
-          value: searchFilter,
-          onChange: setSearchFilter
-        }),
-        h(IdContainer, [
-          id => h(Fragment, [
-            label({ htmlFor: id, style: { margin: '0 0.5rem 0 1rem', whiteSpace: 'nowrap' } }, ['Sort by']),
-            h(Select, {
-              id,
-              isClearable: false,
-              isSearchable: false,
-              styles: { container: old => ({ ...old, width: '10rem' }) },
-              value: sort,
-              onChange: ({ value }) => setSort(value),
-              options: [
-                { value: { field: 'created', direction: 'desc' }, label: 'most recent' },
-                { value: { field: 'name', direction: 'asc' }, label: 'alphabetical' }
-              ]
-            })
-          ])
+        div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
+          div({ style: { flex: 1 } }),
+          h(Link, {
+            onClick: () => {
+              setSelectedSections([])
+              setSelectedTags([])
+            }
+          }, ['clear'])
         ])
       ]),
-      div({ style: { display: 'flex', margin: '0 1rem', height: '100%' } }, [
-        div({ style: { width: '19rem', flex: 'none' } }, [
-          h(Sidebar, {
-            onSectionFilter: section => setSelectedSections(_.xor([section])),
-            onTagFilter: tag => setSelectedTags(_.xor([tag])),
-            sections,
-            selectedSections,
-            selectedTags,
-            listDataByTag: groupByFeaturedTags(filteredData, sidebarSections)
+      h(DelayedSearchInput, {
+        style: { flex: 1, marginLeft: '1rem' },
+        'aria-label': `Search ${searchType}`,
+        placeholder: 'Search Name or Description',
+        value: searchFilter,
+        onChange: setSearchFilter
+      }),
+      h(IdContainer, [
+        id => h(Fragment, [
+          label({ htmlFor: id, style: { margin: '0 0.5rem 0 1rem', whiteSpace: 'nowrap' } }, ['Sort by']),
+          h(Select, {
+            id,
+            isClearable: false,
+            isSearchable: false,
+            styles: { container: old => ({ ...old, width: '10rem' }) },
+            value: sort,
+            onChange: ({ value }) => setSort(value),
+            options: [
+              { value: { field: 'created', direction: 'desc' }, label: 'most recent' },
+              { value: { field: 'name', direction: 'asc' }, label: 'alphabetical' }
+            ]
           })
-        ]),
-        div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
-          children(filteredData)
         ])
       ])
+    ]),
+    div({ style: { display: 'flex', margin: '0 1rem', height: '100%' } }, [
+      div({ style: { width: '19rem', flex: 'none' } }, [
+        h(Sidebar, {
+          onSectionFilter: section => setSelectedSections(_.xor([section])),
+          onTagFilter: tag => setSelectedTags(_.xor([tag])),
+          sections,
+          selectedSections,
+          selectedTags,
+          listDataByTag: groupByFeaturedTags(filteredData, sidebarSections)
+        })
+      ]),
+      div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
+        children(filteredData)
+      ])
     ])
+  ])
 }
