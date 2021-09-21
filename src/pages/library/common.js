@@ -1,22 +1,12 @@
-import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { UnmountClosed as RCollapse } from 'react-collapse'
-import { a, div, h, label } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, IdContainer, Link, Select } from 'src/components/common'
-import FooterWrapper from 'src/components/FooterWrapper'
+import { div, h, label } from 'react-hyperscript-helpers'
+import { Clickable, IdContainer, Link, Select } from 'src/components/common'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { libraryTopMatter } from 'src/components/library-common'
-import TooltipTrigger from 'src/components/TooltipTrigger'
-import covidBg from 'src/images/library/showcase/covid-19.jpg'
-import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
-import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
 import colors from 'src/libs/colors'
-import * as Nav from 'src/libs/nav'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
-import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
 export const styles = {
@@ -168,50 +158,11 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
   ])
 }
 
-export const selectionActionComponent = (selectedData, setSelectedData) => {
-  const length = selectedData.length
-  const files = _.sumBy('files.count', selectedData)
-  const totalBytes = _.sumBy('files.size', selectedData)
-  const fileSizeFormatted = filesize(totalBytes)
-
-  return div(
-    {
-      style: {
-        display: selectedData.length > 0 ? 'block' : 'none',
-        position: 'sticky', bottom: 0, marginTop: '20px',
-        width: '100%', padding: '34px 60px',
-        backgroundColor: 'white', boxShadow: 'rgb(0 0 0 / 30%) 0px 0px 8px 3px',
-        fontSize: 17
-      }
-    },
-    [
-      div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
-        `${length} dataset${length > 1 ? 's' : ''} (${fileSizeFormatted} - ${files} bam files) selected to be saved to a Terra Workspace`,
-        div([
-          h(ButtonSecondary, {
-            style: { fontSize: 16, marginRight: 40, textTransform: 'none' },
-            onClick: () => setSelectedData([])
-          }, 'Cancel'),
-          h(ButtonPrimary, {
-            style: { textTransform: 'none', fontSize: 14 },
-            onClick: () => {}
-          }, ['Save to a workspace'])
-        ])
-      ])
-    ]
-  )
-}
-
-export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTab, listdataType = 'workspaces') => {
+export const SearchAndFilterComponent = ({ featuredList, sidebarSections, searchType, children }) => {
   const [selectedSections, setSelectedSections] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [searchFilter, setSearchFilter] = useState()
   const [sort, setSort] = useState('most recent')
-  const [sortDir, setSortDir] = useState(1)
-  const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
-
-  const [selectedData, setSelectedData] = useState([])
-  const [openedData, setOpenedData] = useState([])
 
   const listdataByTag = _.omitBy(_.isEmpty, groupByFeaturedTags(featuredList, sidebarSections))
 
@@ -232,11 +183,6 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
   const sortData = Utils.cond(
     [sort === 'most recent', () => _.orderBy(['created'], ['desc'])],
     [sort === 'alphabetical', () => _.orderBy(w => _.toLower(_.trim(w.name)), ['asc'])],
-    [sort === 'Dataset Name', () => _.orderBy(w => _.toLower(_.trim(w.name)), [sortDir === 1 ? 'asc' : 'desc'])],
-    [sort === 'Project', () => _.orderBy(w => _.toLower(_.trim(w.project)), [sortDir === 1 ? 'asc' : 'desc'])],
-    [sort === 'No. of Subjects', () => _.orderBy(['subjects', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
-    [sort === 'Data Type', () => _.orderBy(['dataType', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
-    [sort === 'Last Updated', () => _.orderBy(['lastUpdated', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
     () => _.identity
   )
 
@@ -270,39 +216,16 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
     filterByText
   )(featuredList)
 
-  const toggleSelectedData = data => {
-    if (_.some(data, selectedData)) {
-      setSelectedData(_.filter(d => !_.isEqual(d, data), selectedData))
-    } else {
-      setSelectedData([...selectedData, data])
-    }
-  }
+  // setFilteredList(filteredData)
 
-  const toggleOpenedData = data => {
-    if (_.some(data, openedData)) {
-      setOpenedData(_.filter(d => !_.isEqual(d, data), openedData))
-    } else {
-      setOpenedData([...openedData, data])
-    }
-  }
-
-  const makeListDisplay = (listdataType, listdata) => {
-    switch (listdataType) {
-      case 'datasets': return makeTable(listdata, sort, setSort, sortDir, setSortDir, selectedData, toggleSelectedData, openedData, toggleOpenedData, setRequestDatasetAccessList)
-      case 'workspaces': return _.map(makeCard(), listdata)
-      default: return null
-    }
-  }
-
-  return h(FooterWrapper, { alwaysShow: true }, [
-    libraryTopMatter(activeTab),
+  return h(Fragment, [
     !featuredList ?
       centeredSpinner() :
       h(Fragment, [
         div({ style: { display: 'flex', margin: '1rem 1rem 0', alignItems: 'baseline' } }, [
           div({ style: { width: '19rem', flex: 'none' } }, [
             div({ style: styles.sidebarRow }, [
-              div({ style: styles.header }, `Featured ${listdataType}`),
+              div({ style: styles.header }, `${searchType}`),
               h(Pill, {
                 count: _.size(filteredData),
                 highlight: _.isEmpty(selectedSections) && _.isEmpty(selectedTags)
@@ -320,7 +243,7 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
           ]),
           h(DelayedSearchInput, {
             style: { flex: 1, marginLeft: '1rem' },
-            'aria-label': `Search Featured ${listdataType}`,
+            'aria-label': `Search ${searchType}`,
             placeholder: 'Search Name or Description',
             value: searchFilter,
             onChange: setSearchFilter
@@ -351,151 +274,8 @@ export const SearchAndFilterComponent = (featuredList, sidebarSections, activeTa
               listdataByTag: groupByFeaturedTags(filteredData, sidebarSections)
             })
           ]),
-          div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
-            makeListDisplay(listdataType, sortData(filteredData))
-          ])
-        ])
-      ]),
-
-    selectionActionComponent(selectedData, setSelectedData),
-    !_.isEmpty(requestDatasetAccessList) && h(RequestDatasetAccessModal, {
-      datasets: requestDatasetAccessList,
-      onDismiss: () => setRequestDatasetAccessList([])
-    })
-  ])
-}
-
-const makeTable = (listData, sort, setSort, sortDir, setSortDir, selectedData, toggleSelectedData, openedData, toggleOpenedData, setRequestDatasetAccessList) => {
-  const makeTableHeader = (headerStyles, headerName, sortable = false) => {
-    return div({ style: { ...styles.table.header, ...headerStyles } }, [
-      sortable ?
-        h(Link, {
-          onClick: () => {
-            if (sort === headerName) {
-              setSortDir(sortDir * -1)
-            } else {
-              setSort(headerName)
-              setSortDir(1)
-            }
-          },
-          style: { fontWeight: 600 }
-        }, [
-          headerName,
-          icon(
-            sortDir === 1 ? 'long-arrow-alt-up' : 'long-arrow-alt-down',
-            {
-              size: 12,
-              style: {
-                visibility: `${sort === headerName ? 'visible' : 'hidden'}`,
-                marginTop: '5'
-              },
-              'aria-label': `Sorted by ${sortDir === 1 ? 'ascending' : 'descending'}`
-            }
-          )
-        ]) : div({ style: styles.table.header }, [headerName])
-    ])
-  }
-
-  return div({ style: styles.table.table }, [
-    div({ style: { ...styles.table.flexTableRow, marginBottom: -15 } }, [
-      div({ style: { ...styles.table.col, ...styles.table.firstElem } }, ''),
-      makeTableHeader({ flex: 2.2 }, 'Dataset Name', true),
-      makeTableHeader({}, 'Project', true),
-      makeTableHeader({}, 'No. of Subjects', true),
-      makeTableHeader({}, 'Data Type', true),
-      makeTableHeader(styles.table.lastElem, 'Last Updated', true)
-    ]),
-
-    div(listData.map(listdatum => {
-      return div({ style: styles.table.row }, [
-        div({ style: styles.table.flexTableRow, key: `${listdatum.namespace}:${listdatum.name}` },
-          [
-            div(
-              { style: { ...styles.table.col, ...styles.table.firstElem, alignSelf: 'flex-start' } },
-              [
-                label({
-                  onClick: () => toggleSelectedData(listdatum),
-                  htmlFor: `${listdatum.namespace}:${listdatum.name}-checkbox`
-                }, [
-                  h(Checkbox, {
-                    id: `${listdatum.namespace}:${listdatum.name}-checkbox`,
-                    checked: _.some(listdatum, selectedData),
-                    style: { marginRight: '0.2rem' }
-                  })
-                ])
-              ]
-            ),
-            div({ style: { ...styles.table.col, flex: 2.2 } }, [
-              h(Link, {
-                href: Nav.getLink(`library-details`, { id: listdatum['dct:identifier'] })
-              }, [listdatum.name])
-            ]),
-            div({ style: styles.table.col }, listdatum.project),
-            div({ style: styles.table.col }, listdatum.subjects),
-            div({ style: styles.table.col }, listdatum.dataType),
-            div({ style: { ...styles.table.col, ...styles.table.lastElem } }, Utils.makeStandardDate(listdatum.lastUpdated))
-          ]
-        ),
-        div({ style: { ...styles.table.flexTableRow, alignItems: 'flex-start' } }, [
-          div({ style: { ...styles.table.col, ...styles.table.firstElem } }, [
-            listdatum.locked ?
-              h(ButtonSecondary, {
-                tooltip: 'Request Dataset Access', useTooltipAsLabel: true,
-                style: { margin: '-7px 0' },
-                onClick: () => setRequestDatasetAccessList([listdatum])
-              }, [icon('lock', { size: 12 })]) :
-              h(TooltipTrigger, { content: 'Open Access' }, [icon('lock-o', { size: 12, style: { marginTop: 5, color: colors.primary() } })])
-          ]),
-          div({ style: { ...styles.table.col, width: '100%', fontSize: 12 } }, [
-            h(Link,
-              { onClick: () => toggleOpenedData(listdatum) },
-              [
-                `See ${_.some(listdatum, openedData) ? 'Less' : 'More'}`,
-                icon(_.some(listdatum, openedData) ? 'angle-up' : 'angle-down', { size: 12, style: { marginTop: 5 } })
-              ]
-            ),
-            div({ style: { display: _.some(listdatum, openedData) ? 'block' : 'none', marginTop: 10 } }, listdatum.description)
-          ])
+          div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [children(filteredData)])
         ])
       ])
-    }))
   ])
 }
-
-const makeCard = variant => workspace => {
-  const { namespace, name, created, description } = workspace
-  return a({
-    href: Nav.getLink('workspace-dashboard', { namespace, name }),
-    key: `${namespace}:${name}`,
-    style: {
-      backgroundColor: 'white',
-      height: 175,
-      borderRadius: 5,
-      display: 'flex',
-      marginBottom: '1rem',
-      boxShadow: Style.standardShadow
-    }
-  }, [
-    div({
-      style: {
-        backgroundRepeat: 'no-repeat', backgroundPosition: 'center', backgroundSize: 'auto 100%', borderRadius: '5px 0 0 5px',
-        width: 87,
-        ...Utils.cond(
-          [name.toLowerCase().includes('covid'), () => ({ backgroundImage: `url(${covidBg})` })],
-          [variant === 'gatk', () => ({ backgroundColor: '#333', backgroundImage: `url(${gatkLogo})`, backgroundSize: undefined })],
-          () => ({ backgroundImage: `url(${featuredBg})`, opacity: 0.75 })
-        )
-      }
-    }),
-    div({ style: { flex: 1, minWidth: 0, padding: '15px 20px', overflow: 'hidden' } }, [
-      div({ style: { display: 'flex' } }, [
-        div({ style: { flex: 1, color: colors.accent(), fontSize: 16, lineHeight: '20px', height: 40, marginBottom: 7 } }, [name]),
-        created && div([Utils.makeStandardDate(created)])
-      ]),
-      div({ style: { lineHeight: '20px', height: 100, whiteSpace: 'pre-wrap', overflow: 'hidden' } }, [description])
-      // h(MarkdownViewer, [description]) // TODO: should we render this as markdown?
-    ])
-  ])
-}
-
-

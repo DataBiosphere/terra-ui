@@ -22,10 +22,9 @@ const styles = {
 const getSnapshot = id => new Promise(resolve => setTimeout(() => {
   const dataMap = _.groupBy('dct:identifier', tempData.default.data)
   resolve(_.get(`${id}.0`, dataMap))
-}))
+}, 1000))
 
 const MainContent = ({ snapshot }) => {
-  console.log('snapshot', snapshot)
   return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
     h1([_.get('dct:title', snapshot)]),
     div([
