@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { h } from 'react-hyperscript-helpers'
 import { SearchAndFilterComponent } from 'src/pages/library/common'
 
 
@@ -197,7 +198,7 @@ const DataBrowser = () => {
     lowerName: _.toLower(snapshot.name), lowerDescription: _.toLower(snapshot.description)
   }), featuredList)
 
-  return SearchAndFilterComponent(snapshots, sidebarSections, 'browse & explore', 'datasets')
+  return h(SearchAndFilterComponent, { featuredList: snapshots, sidebarSections, activeTab: 'browse & explore', listDataType: 'Datasets' })
 }
 
 export const navPaths = [{
