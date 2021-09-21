@@ -216,8 +216,6 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, search
     filterByText
   )(featuredList)
 
-  // setFilteredList(filteredData)
-
   return h(Fragment, [
     !featuredList ?
       centeredSpinner() :
@@ -274,7 +272,7 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, search
               listdataByTag: groupByFeaturedTags(filteredData, sidebarSections)
             })
           ]),
-          div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [children(filteredData)])
+          div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [children(sortData(filteredData))])
         ])
       ])
   ])

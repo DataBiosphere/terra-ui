@@ -2,9 +2,9 @@ import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, IdContainer, Link, Select } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Checkbox, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner, icon } from 'src/components/icons'
+import { icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
@@ -14,7 +14,6 @@ import * as Utils from 'src/libs/utils'
 import { SearchAndFilterComponent } from 'src/pages/library/common'
 import * as tempData from 'src/pages/library/hca-sample.json'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
-
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const sidebarSections = [{
@@ -81,7 +80,7 @@ const getRawList = () => new Promise(resolve => setTimeout(() => {
   resolve(tempData.default.data)
 }, 1000))
 
-const DataBrowser = () => {
+const Browser = () => {
   const stateHistory = StateHistory.get()
   const [catalogSnapshots, setCatalogSnapshots] = useState(stateHistory.catalogSnapshots)
   const [sort, setSort] = useState('most recent')
@@ -267,27 +266,27 @@ const DataBrowser = () => {
       !_.isEmpty(requestDatasetAccessList) && h(RequestDatasetAccessModal, {
         datasets: requestDatasetAccessList,
         onDismiss: () => setRequestDatasetAccessList([])
-      }),
-      SelectedItemsDisplay()
+      })
     ])
   }
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('browse & explore'),
-    !catalogSnapshots ?
-      centeredSpinner() :
-      SearchAndFilterComponent({
-        featuredList: catalogSnapshots,
-        sidebarSections,
-        searchType: 'datasets',
-        children: list => DatasetTable(list)
-      })
+    SearchAndFilterComponent({
+      featuredList: catalogSnapshots, sidebarSections,
+      searchType: 'featured workspaces',
+      children: DatasetTable
+    }),
+    SelectedItemsDisplay()
   ])
 }
 
-export const navPaths = [{
-  name: 'library-browser',
-  path: '/library/browser',
-  component: DataBrowser,
-  title: 'Browse & Explore'
-}]
+export const navPaths = [
+  {
+    name: 'library-browser',
+    path: '/library/browser',
+    component: Browser,
+    title: 'Datasets',
+    public: true
+  }
+]
