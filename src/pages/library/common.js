@@ -6,7 +6,7 @@ import { a, div, h, label } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Checkbox, Clickable, IdContainer, Link, Select } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
-import { DelayedSearchInput, TextInput } from 'src/components/input'
+import { DelayedSearchInput } from 'src/components/input'
 import { libraryTopMatter } from 'src/components/library-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import covidBg from 'src/images/library/showcase/covid-19.jpg'
@@ -170,7 +170,7 @@ export const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSectio
 }
 
 const SelectionActionComponent = ({ selectedData, setSelectedData }) => {
-  const [datasetName, setDatasetName] = useState('')
+  const [datasetName] = useState('')
   const length = selectedData.length
   const files = _.sumBy('files', selectedData)
   const totalBytes = _.sumBy('fileSize', selectedData)
