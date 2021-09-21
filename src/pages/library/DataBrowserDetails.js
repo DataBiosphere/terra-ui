@@ -96,7 +96,7 @@ const MainContent = ({ snapshot }) => {
         ]),
         div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Contributors']),
-          _.map(contributor => div({ key: `contributor-list_${contributor}}` }, [contributor]), snapshot.contributors)
+          ..._.map(contributor => div({ key: `contributor-list_${contributor}}` }, [contributor]), snapshot.contributors)
         ]),
         div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Publications']),
@@ -147,8 +147,8 @@ const Sidebar = ({ snapshot }) => {
       div([
         h3({ style: styles.headers }, ['File counts']),
         table([
-          tbody(
-            [..._.map(filetype => {
+          tbody([
+            ..._.map(filetype => {
               return tr({ key: `filetype-table-row_${filetype}` }, [
                 td({ style: { paddingRight: 30 } }, [filetype]),
                 td([snapshot.files.types[filetype].toLocaleString()])
@@ -157,8 +157,8 @@ const Sidebar = ({ snapshot }) => {
             tr({ style: { fontWeight: 'bold', borderTop: '2px solid rgba(0,0,0,.3)' } }, [
               td(['Total']),
               td([snapshot.files.count.toLocaleString()])
-            ])]
-          )
+            ])
+          ])
         ])
       ])
     ]),
