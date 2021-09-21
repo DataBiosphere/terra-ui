@@ -46,6 +46,15 @@ const sidebarSections = [{
     'Exome',
     'Whole Genome'
   ]
+}, {
+  name: 'File type',
+  labels: [
+    'Rds', 'Robj',
+    'bam', 'csv', 'csv.gz', 'fastq', 'fastq.gz',
+    'h5', 'h5ad', 'loom', 'mtx', 'mtx.gz', 'pdf',
+    'rds', 'rds.gz', 'tar', 'tar.gz', 'tsv',
+    'tsv.gz', 'txt', 'txt.gz', 'xlsx', 'zip'
+  ]
 }]
 
 const styles = {
@@ -72,7 +81,8 @@ const extractTags = snapshot => {
     itemsType: 'AttributeValue',
     items: [
       snapshot.locked ? 'controlled access' : 'open access',
-      snapshot.project.toLowerCase()
+      snapshot.project.toLowerCase(),
+      ..._.map('dcat:mediaType', snapshot.files)
     ]
   }
 }
