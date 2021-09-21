@@ -245,12 +245,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
       if (useFireCloudDataModel) {
         await workspace.importEntitiesFile(file)
       } else {
-        let filesize = Number.MAX_SAFE_INTEGER
-        try {
-          filesize = file.size
-        } catch (err) {
-          // noop
-        }
+        const filesize = file?.size || Number.MAX_SAFE_INTEGER
         if (filesize < 524288) { // 512k
           await workspace.importFlexibleEntitiesFileSynchronous(file)
         } else {
@@ -259,7 +254,6 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           notifyDataImportProgress(jobId)
         }
       }
-      
       onSuccess()
       Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
         workspaceNamespace: namespace, workspaceName: name
