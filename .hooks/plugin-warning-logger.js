@@ -16,7 +16,7 @@ module.exports = {
         }
       },
       wrapScriptExecution(executor, project, locator, scriptName) {
-        if (scriptName === 'build') {
+        if (scriptName === 'build' && !process.env.CI) {
           return async () => {
             await executor()
             console.warn('\x1b[1m' /* bold */ + '╔'.padEnd(79, '═') + '╗')
