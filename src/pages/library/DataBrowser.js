@@ -18,7 +18,24 @@ import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAcces
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const sidebarSections = [{
   name: 'Access Type',
-  labels: ['Controlled Access', 'Open Access']
+  labels: [
+    'Controlled Access',
+    'Open Access'
+  ],
+  labelDisplays: {
+    'Controlled Access': [
+      div({ style: { display: 'flex' } }, [
+        icon('lock', { style: { color: colors.accent(), marginRight: 5 } }),
+        div(['Controlled Access'])
+      ])
+    ],
+    'Open Access': [
+      div({ style: { display: 'flex' } }, [
+        icon('unlock', { style: { color: colors.success(), marginRight: 5 } }),
+        div(['Open Access'])
+      ])
+    ]
+  }
 }, {
   name: 'Consortium',
   labels: [
@@ -81,7 +98,7 @@ const extractTags = snapshot => {
     itemsType: 'AttributeValue',
     items: [
       snapshot.locked ? 'controlled access' : 'open access',
-      snapshot.project.toLowerCase(),
+      _.toLower(snapshot.project),
       ..._.map('dcat:mediaType', snapshot.files)
     ]
   }
@@ -162,7 +179,7 @@ const Browser = () => {
   }
 
   const DataTable = listData => {
-    return !listData ?
+    return _.isEmpty(listData) ?
       centeredSpinner() :
       div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
         'aria-label': 'dataset list',
@@ -211,10 +228,10 @@ const Browser = () => {
               div({ style: { display: 'flex', alignItems: 'center' } }, [
                 locked ?
                   h(ButtonSecondary, {
-                    style: { height: 'unset', textTransform: 'none' },
+                    style: { height: 'unset', textTransform: 'none', fontWeight: 'bold' },
                     onClick: () => setRequestDatasetAccessList([datum])
                   }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 5, fontSize: 12 } }, ['Request Access'])]) :
-                  div({ style: { color: colors.success(), display: 'flex' } }, [icon('unlock', { style: { color: colors.success() } }), div({ style: { paddingLeft: 10, paddingTop: 5, fontSize: 12 } }, ['Open Access'])])
+                  div({ style: { color: colors.success(), display: 'flex', fontWeight: 'bold' } }, [icon('unlock'), div({ style: { paddingLeft: 10, paddingTop: 5, fontSize: 12 } }, ['Open Access'])])
               ])
             ])
           }

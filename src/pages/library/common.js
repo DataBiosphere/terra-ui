@@ -45,7 +45,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
 
   return div({ style: { display: 'flex', flexDirection: 'column' } }, [
     _.map(section => {
-      const { keepCollapsed, name, labels } = section
+      const { keepCollapsed, name, labels, labelDisplays } = section
 
       return keepCollapsed ?
         h(Clickable, {
@@ -69,7 +69,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
             style: { display: 'flex', alignItems: 'baseline', margin: '0.5rem 0' },
             onClick: () => onTagFilter(tag)
           }, [
-            div({ style: { flex: 1 } }, [label]),
+            div({ style: { flex: 1 } }, [...(labelDisplays && labelDisplays[label] ? labelDisplays[label] : label)]),
             div({ style: styles.pill(_.includes(tag, selectedTags)) }, [_.size(listDataByTag[tag])])
           ])
         }, labels)])
