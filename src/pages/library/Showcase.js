@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import FooterWrapper from 'src/components/FooterWrapper'
+import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
@@ -111,7 +112,7 @@ const Showcase = () => {
     SearchAndFilterComponent({
       featuredList, sidebarSections,
       searchType: 'Featured Workspaces',
-      children: list => _.map(WorkspaceCard(), list)
+      children: list => _.isEmpty(list) ? centeredSpinner() : _.map(WorkspaceCard(), list)
     })
   ])
 }
