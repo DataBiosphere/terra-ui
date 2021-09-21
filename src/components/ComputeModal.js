@@ -141,6 +141,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,
     workerMachineType: defaultDataprocMachineType,
     workerDiskSize: defaultDataprocDiskSize,
+    componentGatewayEnabled: !!sparkMode, // We enable Spark console for all new Dataproc clusters.
     gpuEnabled: false,
     hasGpu: false,
     gpuType: defaultGpuType,
@@ -205,6 +206,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
         masterDiskSize: desiredRuntime.masterDiskSize,
         numberOfWorkers: desiredRuntime.numberOfWorkers,
+        componentGatewayEnabled: desiredRuntime.componentGatewayEnabled,
         ...(desiredRuntime.numberOfWorkers && {
           numberOfPreemptibleWorkers: desiredRuntime.numberOfPreemptibleWorkers,
           workerMachineType: desiredRuntime.workerMachineType,
@@ -358,6 +360,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
               masterMachineType: computeConfig.masterMachineType || defaultDataprocMachineType,
               masterDiskSize: computeConfig.masterDiskSize,
               numberOfWorkers: desiredNumberOfWorkers,
+              componentGatewayEnabled: computeConfig.componentGatewayEnabled,
               ...(desiredNumberOfWorkers && {
                 numberOfPreemptibleWorkers: computeConfig.numberOfPreemptibleWorkers,
                 workerMachineType: computeConfig.workerMachineType || defaultDataprocMachineType,
@@ -582,6 +585,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
             (isDataproc ? defaultDataprocDiskSize : defaultGceBootDiskSize),
           numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
+          componentGatewayEnabled: runtimeConfig?.componentGatewayEnabled || !!sparkMode,
           numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
           workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
           workerDiskSize: runtimeConfig?.workerDiskSize || defaultDataprocDiskSize,
