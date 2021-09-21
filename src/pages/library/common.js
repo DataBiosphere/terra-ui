@@ -78,7 +78,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
   ])
 }
 
-export const SearchAndFilterComponent = ({ featuredList, sidebarSections, activeTab, searchType, children }) => {
+export const SearchAndFilterComponent = ({ featuredList, sidebarSections, customSort, searchType, children }) => {
   const [selectedSections, setSelectedSections] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [searchFilter, setSearchFilter] = useState('')
@@ -151,7 +151,7 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
         value: searchFilter,
         onChange: setSearchFilter
       }),
-      h(IdContainer, [
+      !customSort && h(IdContainer, [
         id => h(Fragment, [
           label({ htmlFor: id, style: { margin: '0 0.5rem 0 1rem', whiteSpace: 'nowrap' } }, ['Sort by']),
           h(Select, {

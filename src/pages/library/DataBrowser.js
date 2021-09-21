@@ -185,17 +185,14 @@ const Browser = () => {
           dataType,
           lastUpdated: Utils.makeStandardDate(datum['dct:modified']),
           underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
-            div({ style: { flex: '0 1 37px' } }, [
+            div({ style: { display: 'flex', alignItems: 'center' } }, [
               locked ?
                 h(ButtonSecondary, {
                   tooltip: 'Request Dataset Access', useTooltipAsLabel: true,
-                  style: { height: 'unset' },
+                  style: { height: 'unset', textTransform: 'none' },
                   onClick: () => setRequestDatasetAccessList([datum])
-                }, [icon('lock')]) :
-                h(TooltipTrigger, { content: 'Open Access' }, [icon('unlock', { style: { color: colors.success() } })])
-            ]),
-            div({ style: { flex: 1, fontSize: 12 } }, [
-              h(Collapse, { titleFirst: true, title: 'See More', buttonStyle: { flex: 'none', marginBottom: 0, marginTop: 3 } }, [datum['dct:description']])
+                }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 5, fontSize: 12 } }, ['Request Access'])]) :
+                h(TooltipTrigger, { content: 'Open Access', textTransform: 'none' }, [icon('unlock', { style: { color: colors.success() } }), div(['Open Access'])])
             ])
           ])
         }
@@ -207,6 +204,7 @@ const Browser = () => {
     libraryTopMatter('browse & explore'),
     SearchAndFilterComponent({
       featuredList: catalogSnapshots, sidebarSections,
+      customSort: true,
       searchType: 'Datasets',
       children: DataTable
     }),

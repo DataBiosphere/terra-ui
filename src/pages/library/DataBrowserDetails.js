@@ -30,10 +30,18 @@ const MainContent = ({ snapshot }) => {
     div([
       div([_.get('dct:description', snapshot)]),
       h2({ className: 'sr-only' }, ['Snapshot Sources']),
-      div({ style: { display: 'flex', width: '100%' } }, [
+      div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
         div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Data release policy']),
           div([_.get('releasePolicy', snapshot)])
+        ]),
+        div({ style: styles.attributesColumn }, [
+          h3({ style: styles.headers }, ['Last Updated']),
+          div([Utils.makeStandardDate(snapshot['dct:modified']),])
+        ]),
+        div({ style: styles.attributesColumn }, [
+          h3({ style: styles.headers }, ['Version']),
+          div([_.get('', snapshot)])
         ]),
         div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Region']),
@@ -45,6 +53,18 @@ const MainContent = ({ snapshot }) => {
           ])
         ]),
         div({ style: styles.attributesColumn }, [
+          h3({ style: styles.headers }, ['Contact'])
+        // h(Link, { href: `mailto:fakeemail@fake.org` }, ['fakeemail@fake.org'])
+        ]),
+        div({ style: styles.attributesColumn }, [
+          h3({ style: styles.headers }, ['Data curator'])
+        // div(['Will add later, after data structure is added'])
+        ]),
+        div({ style: styles.attributesColumn }, [
+          h3({ style: styles.headers }, ['Contributors']),
+          _.map(contributor => div({ key: `contributor-list_${contributor}}` }, [contributor]), _.get('contributors', snapshot))
+        ]),
+        div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Cloud provider']),
           div([
             _.map(
@@ -52,26 +72,6 @@ const MainContent = ({ snapshot }) => {
               _.uniqBy('cloudPlatform', snapshot.storage || [])
             )
           ])
-        ])
-      ]),
-      div({ style: { display: 'flex', width: '100%' } }, [
-        div({ style: styles.attributesColumn }, [
-          h3({ style: styles.headers }, ['Contact']),
-          div(['Eric Miron']),
-          div(['University of Chicago Medical Center']),
-          h(Link, { href: `mailto:fakeemail@fake.org` }, ['fakeemail@fake.org'])
-        ]),
-        div({ style: styles.attributesColumn }, [
-          h3({ style: styles.headers }, ['Data curator']),
-          div(['Will add later, after data structure is added'])
-        ]),
-        div({ style: styles.attributesColumn }, [
-          h3({ style: styles.headers }, ['Contributors']),
-          _.map(contributor => div({ key: `contributor-list_${contributor}}` }, [contributor]), _.get('contributors', snapshot))
-        ]),
-        div({ style: styles.attributesColumn }, [
-          h3({ style: styles.headers }, ['Publications']),
-          div(['Will add later, after data structure is added'])
         ])
       ])
     ])
@@ -91,10 +91,14 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
               onClick: () => setShowRequestAccessModal(true)
             }, [
               div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [
-                icon('lock', { size: 18, style: { marginRight: 10, color: colors.accent() } }), 'Request Access'
+                icon('lock', { size: 18, style: { marginRight: 10, color: colors.accent() } }),
+                'Request Access'
               ])
             ]) :
-            div([icon('lock-o', { size: 18, style: { marginRight: 10, color: colors.primary() } }), 'Access Granted'])
+            div({ style: { color: colors.primary() } }, [
+              icon('unlock', { size: 18, style: { marginRight: 10 } }),
+              'Open Access'
+            ])
         ])
       ]),
       div([
