@@ -95,10 +95,7 @@ const Browser = () => {
       const normList = _.map(snapshot => ({
         ...snapshot,
         tags: _.update(['items'], _.map(_.toLower), snapshot.tags),
-        name: snapshot['dct:title'],
-        description: snapshot['dct:description'],
         project: _.get('0.dct:title', snapshot['TerraDCAT_ap:hasDataCollection']),
-        lastUpdated: snapshot['dct:modified'],
         lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description'])
       }), rawList)
 
@@ -110,10 +107,10 @@ const Browser = () => {
 
   const sortData = Utils.cond(
     [sort === 'most recent', () => _.orderBy(['created'], ['desc'])],
-    [sort === 'alphabetical', () => _.orderBy(w => _.toLower(_.trim(w.name)), ['asc'])],
-    [sort === 'Dataset Name', () => _.orderBy(w => _.toLower(_.trim(w.name)), [sortDir === 1 ? 'asc' : 'desc'])],
+    [sort === 'alphabetical', () => _.orderBy(w => _.toLower(_.trim(w['dct:title'])), ['asc'])],
+    [sort === 'Dataset Name', () => _.orderBy(w => _.toLower(_.trim(w['dct:title'])), [sortDir === 1 ? 'asc' : 'desc'])],
     [sort === 'Project', () => _.orderBy(w => _.toLower(_.trim(w.project)), [sortDir === 1 ? 'asc' : 'desc'])],
-    [sort === 'No. of Subjects', () => _.orderBy(['subjects', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
+    [sort === 'No. of Subjects', () => _.orderBy(['counts.donors', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
     [sort === 'Data Type', () => _.orderBy(['dataType', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
     [sort === 'Last Updated', () => _.orderBy(['lastUpdated', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
     () => _.identity
@@ -212,17 +209,17 @@ const Browser = () => {
 
       div(sortData(filteredList).map(listdatum => {
         return div({ style: styles.table.row }, [
-          div({ style: styles.table.flexTableRow, key: `${listdatum.namespace}:${listdatum.name}` },
+          div({ style: styles.table.flexTableRow, key: `${listdatum.id}` },
             [
               div(
                 { style: { ...styles.table.col, ...styles.table.firstElem, alignSelf: 'flex-start' } },
                 [
                   label({
                     onClick: () => toggleSelectedData(listdatum),
-                    htmlFor: `${listdatum.namespace}:${listdatum.name}-checkbox`
+                    htmlFor: `${listdatum.id}:${listdatum['dct:title']}-checkbox`
                   }, [
                     h(Checkbox, {
-                      id: `${listdatum.namespace}:${listdatum.name}-checkbox`,
+                      id: `${listdatum.id}:${listdatum['dct:title']}-checkbox`,
                       checked: _.some(listdatum, selectedData),
                       style: { marginRight: '0.2rem' }
                     })
@@ -232,12 +229,12 @@ const Browser = () => {
               div({ style: { ...styles.table.col, flex: 2.2 } }, [
                 h(Link, {
                   href: Nav.getLink(`library-details`, { id: listdatum['dct:identifier'] })
-                }, [listdatum.name])
+                }, [listdatum['dct:title']])
               ]),
               div({ style: styles.table.col }, listdatum.project),
-              div({ style: styles.table.col }, listdatum.subjects),
+              div({ style: styles.table.col }, listdatum.counts.donors),
               div({ style: styles.table.col }, listdatum.dataType),
-              div({ style: { ...styles.table.col, ...styles.table.lastElem } }, Utils.makeStandardDate(listdatum.lastUpdated))
+              div({ style: { ...styles.table.col, ...styles.table.lastElem } }, Utils.makeStandardDate(listdatum['dct:modified']))
             ]
           ),
           div({ style: { ...styles.table.flexTableRow, alignItems: 'flex-start' } }, [
@@ -258,7 +255,7 @@ const Browser = () => {
                   icon(_.some(listdatum, openedData) ? 'angle-up' : 'angle-down', { size: 12, style: { marginTop: 5 } })
                 ]
               ),
-              div({ style: { display: _.some(listdatum, openedData) ? 'block' : 'none', marginTop: 10 } }, listdatum.description)
+              div({ style: { display: _.some(listdatum, openedData) ? 'block' : 'none', marginTop: 10 } }, listdatum['dct:description'])
             ])
           ])
         ])
