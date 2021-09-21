@@ -37,7 +37,7 @@ const MainContent = ({ snapshot }) => {
         ]),
         div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Last Updated']),
-          div([Utils.makeStandardDate(snapshot['dct:modified']),])
+          div([Utils.makeStandardDate(snapshot['dct:modified'])])
         ]),
         div({ style: styles.attributesColumn }, [
           h3({ style: styles.headers }, ['Version']),

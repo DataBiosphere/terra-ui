@@ -2,13 +2,11 @@ import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, ButtonSecondary, Checkbox, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { icon } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { MiniSortable, SimpleTable } from 'src/components/table'
-import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
@@ -31,7 +29,8 @@ const sidebarSections = [{
     'GTEx (v8)',
     'HPRC',
     'PAGE',
-    'WGSPD1'
+    'WGSPD1',
+    'HCA'
   ]
 }, {
   name: 'Disease',
@@ -68,6 +67,16 @@ const getRawList = () => new Promise(resolve => setTimeout(() => {
   resolve(tempData.default.data)
 }, 1000))
 
+const extractTags = snapshot => {
+  return {
+    itemsType: 'AttributeValue',
+    items: [
+      snapshot.locked ? 'controlled access' : 'open access',
+      snapshot.project.toLowerCase()
+    ]
+  }
+}
+
 const Browser = () => {
   const stateHistory = StateHistory.get()
   const [catalogSnapshots, setCatalogSnapshots] = useState(stateHistory.catalogSnapshots)
@@ -78,14 +87,16 @@ const Browser = () => {
   Utils.useOnMount(() => {
     const loadData = async () => {
       const rawList = await getRawList()
-      const normList = _.map(snapshot => ({
-        ...snapshot,
-        tags: _.update(['items'], _.map(_.toLower), snapshot.tags),
-        project: _.get('0.dct:title', snapshot['TerraDCAT_ap:hasDataCollection']),
-        lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description']),
-        lastUpdated: new Date(snapshot['dct:modified']),
-        locked: true
-      }), rawList)
+      rawList[1].locked = true
+      const normList = _.map(
+        snapshot => ({ ...snapshot, tags: extractTags(snapshot) }),
+        _.map(snapshot => ({
+          ...snapshot,
+          project: _.get('0.dct:title', snapshot['TerraDCAT_ap:hasDataCollection']),
+          lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description']),
+          lastUpdated: new Date(snapshot['dct:modified'])
+        }), rawList)
+      )
 
       setCatalogSnapshots(normList)
       StateHistory.update({ catalogSnapshots })
@@ -141,63 +152,64 @@ const Browser = () => {
   }
 
   const DataTable = listData => {
-    return div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
-      'aria-label': 'dataset list',
-      columns: [
-        {
-          header: div({ className: 'sr-only' }, ['Select dataset']),
-          size: { basis: 37, grow: 0 }, key: 'checkbox'
-        }, {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Dataset Name', onSort: setSort }, ['Dataset Name'])]),
-          size: { grow: 2.2 }, key: 'name'
-        }, {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Project', onSort: setSort }, ['Project'])]),
-          size: { grow: 1 }, key: 'project'
-        }, {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'No. of Subjects', onSort: setSort }, ['No. of Subjects'])]),
-          size: { grow: 1 }, key: 'subjects'
-        }, {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Data Type', onSort: setSort }, ['Data Type'])]),
-          size: { grow: 1 }, key: 'dataType'
-        }, {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Last Updated', onSort: setSort }, ['Last Updated'])]),
-          size: { grow: 1 }, key: 'lastUpdated'
-        }
-      ],
-      rowStyle: styles.table.row,
-      cellStyle: { border: 'none', paddingRight: 15 },
-      useHover: false,
-      underRowKey: 'underRow',
-      rows: _.map(datum => {
-        const { project, dataType, locked } = datum
-        return {
-          checkbox: h(Checkbox, {
-            'aria-label': datum['dct:title'],
-            checked: _.includes(datum, selectedData),
-            onChange: () => toggleSelectedData(datum)
-          }),
-          name: h(Link,
-            { onClick: () => Nav.goToPath('library-details', { id: datum['dct:identifier'] }) },
-            [datum['dct:title']]
-          ),
-          project,
-          subjects: datum?.counts?.donors,
-          dataType,
-          lastUpdated: Utils.makeStandardDate(datum['dct:modified']),
-          underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
-            div({ style: { display: 'flex', alignItems: 'center' } }, [
-              locked ?
-                h(ButtonSecondary, {
-                  tooltip: 'Request Dataset Access', useTooltipAsLabel: true,
-                  style: { height: 'unset', textTransform: 'none' },
-                  onClick: () => setRequestDatasetAccessList([datum])
-                }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 5, fontSize: 12 } }, ['Request Access'])]) :
-                h(TooltipTrigger, { content: 'Open Access', textTransform: 'none' }, [icon('unlock', { style: { color: colors.success() } }), div(['Open Access'])])
+    return !listData ?
+      centeredSpinner() :
+      div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
+        'aria-label': 'dataset list',
+        columns: [
+          {
+            header: div({ className: 'sr-only' }, ['Select dataset']),
+            size: { basis: 37, grow: 0 }, key: 'checkbox'
+          }, {
+            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Dataset Name', onSort: setSort }, ['Dataset Name'])]),
+            size: { grow: 2.2 }, key: 'name'
+          }, {
+            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Project', onSort: setSort }, ['Project'])]),
+            size: { grow: 1 }, key: 'project'
+          }, {
+            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'No. of Subjects', onSort: setSort }, ['No. of Subjects'])]),
+            size: { grow: 1 }, key: 'subjects'
+          }, {
+            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Data Type', onSort: setSort }, ['Data Type'])]),
+            size: { grow: 1 }, key: 'dataType'
+          }, {
+            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Last Updated', onSort: setSort }, ['Last Updated'])]),
+            size: { grow: 1 }, key: 'lastUpdated'
+          }
+        ],
+        rowStyle: styles.table.row,
+        cellStyle: { border: 'none', paddingRight: 15 },
+        useHover: false,
+        underRowKey: 'underRow',
+        rows: _.map(datum => {
+          const { project, dataType, locked } = datum
+          return {
+            checkbox: h(Checkbox, {
+              'aria-label': datum['dct:title'],
+              checked: _.includes(datum, selectedData),
+              onChange: () => toggleSelectedData(datum)
+            }),
+            name: h(Link,
+              { onClick: () => Nav.goToPath('library-details', { id: datum['dct:identifier'] }) },
+              [datum['dct:title']]
+            ),
+            project,
+            subjects: datum?.counts?.donors,
+            dataType,
+            lastUpdated: Utils.makeStandardDate(datum['dct:modified']),
+            underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
+              div({ style: { display: 'flex', alignItems: 'center' } }, [
+                locked ?
+                  h(ButtonSecondary, {
+                    style: { height: 'unset', textTransform: 'none' },
+                    onClick: () => setRequestDatasetAccessList([datum])
+                  }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 5, fontSize: 12 } }, ['Request Access'])]) :
+                  div({ style: { color: colors.success(), display: 'flex' } }, [icon('unlock', { style: { color: colors.success() } }), div({ style: { paddingLeft: 10, paddingTop: 5, fontSize: 12 } }, ['Open Access'])])
+              ])
             ])
-          ])
-        }
-      }, sortData(listData))
-    })])
+          }
+        }, sortData(listData))
+      })])
   }
 
   return h(FooterWrapper, { alwaysShow: true }, [

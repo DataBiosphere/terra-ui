@@ -29,7 +29,6 @@ const styles = {
   })
 }
 
-
 const groupByFeaturedTags = (workspaces, sidebarSections) => _.flow(
   _.flatMap(s => _.map(_.toLower, s.labels)),
   _.uniq,
@@ -124,7 +123,7 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, custom
     filterBySections,
     filterByTags,
     filterByText,
-    _.orderBy([sort.field], [sort.direction])
+    customSort ? _.identity : _.orderBy([sort.field], [sort.direction])
   )(featuredList)
 
   return h(Fragment, [
