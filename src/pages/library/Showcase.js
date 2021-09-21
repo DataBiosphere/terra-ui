@@ -44,7 +44,7 @@ const sidebarSections = [{
 }]
 
 
-const makeCard = variant => workspace => {
+const WorkspaceCard = variant => workspace => {
   const { namespace, name, created, description } = workspace
   return a({
     href: Nav.getLink('workspace-dashboard', { namespace, name }),
@@ -110,8 +110,8 @@ const Showcase = () => {
     libraryTopMatter('featured workspaces'),
     SearchAndFilterComponent({
       featuredList, sidebarSections,
-      searchType: 'featured workspaces',
-      children: list => _.map(makeCard(), list)
+      searchType: 'workspaces',
+      children: list => _.map(WorkspaceCard(), list)
     })
   ])
 }

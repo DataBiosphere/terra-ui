@@ -2,10 +2,12 @@ import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
+import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, ButtonSecondary, Checkbox, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
+import { MiniSortable, SimpleTable } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
@@ -116,21 +118,7 @@ const Browser = () => {
     () => _.identity
   )
 
-  const toggleSelectedData = data => {
-    if (_.some(data, selectedData)) {
-      setSelectedData(_.filter(d => !_.isEqual(d, data), selectedData))
-    } else {
-      setSelectedData([...selectedData, data])
-    }
-  }
-
-  const toggleOpenedData = data => {
-    if (_.some(data, openedData)) {
-      setOpenedData(_.filter(d => !_.isEqual(d, data), openedData))
-    } else {
-      setOpenedData([...openedData, data])
-    }
-  }
+  const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
   const SelectedItemsDisplay = () => {
     const length = selectedData.length
@@ -166,105 +154,65 @@ const Browser = () => {
     )
   }
 
-  const DatasetTableHeader = (headerStyles, headerName, sortable = false) => {
-    return div({ style: { ...styles.table.header, ...headerStyles } }, [
-      sortable ?
-        h(Link, {
-          onClick: () => {
-            if (sort === headerName) {
-              setSortDir(sortDir * -1)
-            } else {
-              setSort(headerName)
-              setSortDir(1)
-            }
-          },
-          style: { fontWeight: 600 }
-        }, [
-          headerName,
-          icon(
-            sortDir === 1 ? 'long-arrow-alt-up' : 'long-arrow-alt-down',
-            {
-              size: 12,
-              style: {
-                visibility: `${sort === headerName ? 'visible' : 'hidden'}`,
-                marginTop: '5'
-              },
-              'aria-label': `Sorted by ${sortDir === 1 ? 'ascending' : 'descending'}`
-            }
-          )
-        ]) : div({ style: styles.table.header }, [headerName])
-    ])
-  }
+  const DataTable = listData => {
+    return div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
+      'aria-label': 'dataset list',
+      columns: [
+        {
+          header: div({ className: 'sr-only' }, ['Select dataset']),
+          size: { basis: 37, grow: 0 }, key: 'checkbox'
+        }, {
+          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dct:title', onSort: setSort }, ['Dataset Name'])]),
+          size: { grow: 2.2 }, key: 'name'
+        }, {
+          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'project.name', onSort: setSort }, ['Project'])]),
+          size: { grow: 1 }, key: 'project'
+        }, {
+          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'counts.donors', onSort: setSort }, ['No. of Subjects'])]),
+          size: { grow: 1 }, key: 'subjects'
+        }, {
+          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dataType', onSort: setSort }, ['Data Type'])]),
+          size: { grow: 1 }, key: 'dataType'
+        }, {
+          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dct:modified', onSort: setSort }, ['Last Updated'])]),
+          size: { grow: 1 }, key: 'lastUpdated'
+        }
+      ],
+      rowStyle: styles.table.row,
+      cellStyle: { border: 'none', paddingRight: 15 },
+      useHover: false,
+      underRowKey: 'underRow',
+      rows: _.map(datum => {
+        const { name, project: { name: projectName }, subjects, dataType, lastUpdated, locked, description } = datum
 
-  const DatasetTable = filteredList => {
-    return div({ style: styles.table.table }, [
-      div({ style: { ...styles.table.flexTableRow, marginBottom: -15 } }, [
-        div({ style: { ...styles.table.col, ...styles.table.firstElem } }, ''),
-        DatasetTableHeader({ flex: 2.2 }, 'Dataset Name', true),
-        DatasetTableHeader({}, 'Project', true),
-        DatasetTableHeader({}, 'No. of Subjects', true),
-        DatasetTableHeader({}, 'Data Type', true),
-        DatasetTableHeader(styles.table.lastElem, 'Last Updated', true)
-      ]),
-
-      div(sortData(filteredList).map(listdatum => {
-        return div({ style: styles.table.row }, [
-          div({ style: styles.table.flexTableRow, key: `${listdatum.id}` },
-            [
-              div(
-                { style: { ...styles.table.col, ...styles.table.firstElem, alignSelf: 'flex-start' } },
-                [
-                  label({
-                    onClick: () => toggleSelectedData(listdatum),
-                    htmlFor: `${listdatum.id}:${listdatum['dct:title']}-checkbox`
-                  }, [
-                    h(Checkbox, {
-                      id: `${listdatum.id}:${listdatum['dct:title']}-checkbox`,
-                      checked: _.some(listdatum, selectedData),
-                      style: { marginRight: '0.2rem' }
-                    })
-                  ])
-                ]
-              ),
-              div({ style: { ...styles.table.col, flex: 2.2 } }, [
-                h(Link, {
-                  href: Nav.getLink(`library-details`, { id: listdatum['dct:identifier'] })
-                }, [listdatum['dct:title']])
-              ]),
-              div({ style: styles.table.col }, listdatum.project),
-              div({ style: styles.table.col }, listdatum.counts.donors),
-              div({ style: styles.table.col }, listdatum.dataType),
-              div({ style: { ...styles.table.col, ...styles.table.lastElem } }, Utils.makeStandardDate(listdatum['dct:modified']))
-            ]
-          ),
-          div({ style: { ...styles.table.flexTableRow, alignItems: 'flex-start' } }, [
-            div({ style: { ...styles.table.col, ...styles.table.firstElem } }, [
-              listdatum.locked ?
+        return {
+          checkbox: h(Checkbox, {
+            'aria-label': datum['dct:title'],
+            checked: _.includes(datum, selectedData),
+            onChange: () => toggleSelectedData(datum)
+          }),
+          name: datum['dct:title'],
+          project: projectName,
+          subjects: datum.counts.donors,
+          dataType,
+          lastUpdated: Utils.makeStandardDate(datum['dct:modified']),
+          underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
+            div({ style: { flex: '0 1 37px' } }, [
+              locked ?
                 h(ButtonSecondary, {
                   tooltip: 'Request Dataset Access', useTooltipAsLabel: true,
-                  style: { margin: '-7px 0' },
-                  onClick: () => setRequestDatasetAccessList([listdatum])
-                }, [icon('lock', { size: 12 })]) :
-                h(TooltipTrigger, { content: 'Open Access' }, [icon('lock-o', { size: 12, style: { marginTop: 5, color: colors.primary() } })])
+                  style: { height: 'unset' },
+                  onClick: () => setRequestDatasetAccessList([datum])
+                }, [icon('lock')]) :
+                h(TooltipTrigger, { content: 'Open Access' }, [icon('unlock', { style: { color: colors.success() } })])
             ]),
-            div({ style: { ...styles.table.col, width: '100%', fontSize: 12 } }, [
-              h(Link,
-                { onClick: () => toggleOpenedData(listdatum) },
-                [
-                  `See ${_.some(listdatum, openedData) ? 'Less' : 'More'}`,
-                  icon(_.some(listdatum, openedData) ? 'angle-up' : 'angle-down', { size: 12, style: { marginTop: 5 } })
-                ]
-              ),
-              div({ style: { display: _.some(listdatum, openedData) ? 'block' : 'none', marginTop: 10 } }, listdatum['dct:description'])
+            div({ style: { flex: 1, fontSize: 12 } }, [
+              h(Collapse, { titleFirst: true, title: 'See More', buttonStyle: { flex: 'none' } }, [description])
             ])
           ])
-        ])
-      })),
-      !_.isEmpty(requestDatasetAccessList) && h(RequestDatasetAccessModal, {
-        datasets: requestDatasetAccessList,
-        onDismiss: () => setRequestDatasetAccessList([])
-      })
-    ])
+        }
+      }, listData)
+    })])
   }
 
   return h(FooterWrapper, { alwaysShow: true }, [
@@ -272,7 +220,7 @@ const Browser = () => {
     SearchAndFilterComponent({
       featuredList: catalogSnapshots, sidebarSections,
       searchType: 'featured workspaces',
-      children: DatasetTable
+      children: DataTable
     }),
     SelectedItemsDisplay()
   ])
