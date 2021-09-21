@@ -334,7 +334,7 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
       div({ style: { display: 'flex', alignItems: 'center' } }, [
         div({ style: { flexGrow: 1 } }, [
           `${_.size(selectedData)} dataset${_.size(selectedData) !== 1 ? 's' : ''} `,
-          `(${filesize(_.sumBy('fileSize', selectedData))} - ${(_.sumBy('files', selectedData))} bam files) `,
+          `(${filesize(_.sumBy('files.size', selectedData))} - ${(_.sumBy('files.count', selectedData))} bam files) `,
           'selected to be saved to a Terra Workspace'
         ]),
         h(ButtonSecondary, {
