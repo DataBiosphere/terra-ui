@@ -3,7 +3,6 @@ import { Fragment, useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, IdContainer, Link, Select } from 'src/components/common'
-import FooterWrapper from 'src/components/FooterWrapper'
 import { DelayedSearchInput } from 'src/components/input'
 import colors from 'src/libs/colors'
 
@@ -21,18 +20,6 @@ const styles = {
       borderTop: `1px solid ${colors.dark(0.35)}`
     },
     title: { fontWeight: 700 }
-  },
-  table: {
-    header: {
-      color: colors.accent(),
-      height: 16,
-      textTransform: 'uppercase', fontWeight: 600, fontSize: '0.75rem'
-    },
-    row: {
-      backgroundColor: '#ffffff',
-      borderRadius: 5, border: '1px solid rgba(0,0,0,.15)',
-      margin: '0 -15px 15px', padding: 15
-    }
   },
   pill: highlight => ({
     width: '4.5rem', padding: '0.25rem', fontWeight: 500, textAlign: 'center',
@@ -140,8 +127,7 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
     _.orderBy([sort.field], [sort.direction])
   )(featuredList)
 
-  return h(FooterWrapper, { alwaysShow: true }, [
-    h(Fragment, [
+  return h(Fragment, [
       div({ style: { display: 'flex', margin: '1rem 1rem 0', alignItems: 'baseline' } }, [
         div({ style: { width: '19rem', flex: 'none' } }, [
           div({ style: styles.sidebarRow }, [
@@ -199,5 +185,4 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
         ])
       ])
     ])
-  ])
 }

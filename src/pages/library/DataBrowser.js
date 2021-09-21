@@ -1,7 +1,7 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { div, h, label } from 'react-hyperscript-helpers'
+import { div, h } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { ButtonPrimary, ButtonSecondary, Checkbox, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
@@ -51,30 +51,16 @@ const sidebarSections = [{
 
 const styles = {
   table: {
-    table: { width: '100%' },
     header: {
       color: colors.accent(),
-      textTransform: 'uppercase', textAlign: 'left',
-      fontWeight: '600', fontSize: '.75rem',
-      padding: '5px 15px', width: '100%',
-      flex: 1
+      height: 16,
+      textTransform: 'uppercase', fontWeight: 600, fontSize: '0.75rem'
     },
     row: {
       backgroundColor: '#ffffff',
-      borderRadius: '5px', border: '1px solid rgba(0,0,0,.15)',
-      margin: '15px 0'
-    },
-    col: {
-      padding: '15px', flex: 1
-    },
-    firstElem: {
-      minWidth: '37px', flex: 'unset',
-      padding: '15px 0px 15px 15px', textAlign: 'center'
-    },
-    lastElem: {
-      width: 'fit-content', flex: '1'
-    },
-    flexTableRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' }
+      borderRadius: 5, border: '1px solid rgba(0,0,0,.15)',
+      margin: '0 -15px 15px', padding: 15
+    }
   }
 }
 
@@ -85,10 +71,8 @@ const getRawList = () => new Promise(resolve => setTimeout(() => {
 const Browser = () => {
   const stateHistory = StateHistory.get()
   const [catalogSnapshots, setCatalogSnapshots] = useState(stateHistory.catalogSnapshots)
-  const [sort, setSort] = useState('most recent')
-  const [sortDir, setSortDir] = useState()
+  const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const [selectedData, setSelectedData] = useState([])
-  const [openedData, setOpenedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
 
   Utils.useOnMount(() => {
@@ -109,13 +93,13 @@ const Browser = () => {
   })
 
   const sortData = Utils.cond(
-    [sort === 'most recent', () => _.orderBy(['created'], ['desc'])],
-    [sort === 'alphabetical', () => _.orderBy(w => _.toLower(_.trim(w['dct:title'])), ['asc'])],
-    [sort === 'Dataset Name', () => _.orderBy(w => _.toLower(_.trim(w['dct:title'])), [sortDir === 1 ? 'asc' : 'desc'])],
-    [sort === 'Project', () => _.orderBy(w => _.toLower(_.trim(w.project)), [sortDir === 1 ? 'asc' : 'desc'])],
-    [sort === 'No. of Subjects', () => _.orderBy(['counts.donors', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
-    [sort === 'Data Type', () => _.orderBy(['dataType', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
-    [sort === 'Last Updated', () => _.orderBy(['lastUpdated', 'lowerName'], [sortDir === 1 ? 'asc' : 'desc'])],
+    [sort.field === 'most recent', () => _.orderBy(['created'], ['desc'])],
+    [sort.field === 'alphabetical', () => _.orderBy(w => _.toLower(_.trim(w['dct:title'])), ['asc'])],
+    [sort.field === 'Dataset Name', () => _.orderBy(w => _.toLower(_.trim(w['dct:title'])), [sort.direction])],
+    [sort.field === 'Project', () => _.orderBy(w => _.toLower(_.trim(w.project)), [sort.direction])],
+    [sort.field === 'No. of Subjects', () => _.orderBy(['counts.donors', 'lowerName'], [sort.direction])],
+    [sort.field === 'Data Type', () => _.orderBy(['dataType', 'lowerName'], [sort.direction])],
+    [sort.field === 'Last Updated', () => _.orderBy(['lastUpdated', 'lowerName'], [sort.direction])],
     () => _.identity
   )
 
@@ -163,19 +147,19 @@ const Browser = () => {
           header: div({ className: 'sr-only' }, ['Select dataset']),
           size: { basis: 37, grow: 0 }, key: 'checkbox'
         }, {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dct:title', onSort: setSort }, ['Dataset Name'])]),
+          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Dataset Name', onSort: setSort }, ['Dataset Name'])]),
           size: { grow: 2.2 }, key: 'name'
         }, {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'project.name', onSort: setSort }, ['Project'])]),
+          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Project', onSort: setSort }, ['Project'])]),
           size: { grow: 1 }, key: 'project'
         }, {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'counts.donors', onSort: setSort }, ['No. of Subjects'])]),
+          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'No. of Subjects', onSort: setSort }, ['No. of Subjects'])]),
           size: { grow: 1 }, key: 'subjects'
         }, {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dataType', onSort: setSort }, ['Data Type'])]),
+          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Data Type', onSort: setSort }, ['Data Type'])]),
           size: { grow: 1 }, key: 'dataType'
         }, {
-          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dct:modified', onSort: setSort }, ['Last Updated'])]),
+          header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Last Updated', onSort: setSort }, ['Last Updated'])]),
           size: { grow: 1 }, key: 'lastUpdated'
         }
       ],
@@ -184,17 +168,19 @@ const Browser = () => {
       useHover: false,
       underRowKey: 'underRow',
       rows: _.map(datum => {
-        const { project: { name: projectName }, dataType, locked } = datum
-
+        const { project, dataType, locked } = datum
         return {
           checkbox: h(Checkbox, {
             'aria-label': datum['dct:title'],
             checked: _.includes(datum, selectedData),
             onChange: () => toggleSelectedData(datum)
           }),
-          name: datum['dct:title'],
-          project: projectName,
-          subjects: datum.counts.donors,
+          name: h(Link,
+            { onClick: () => Nav.goToPath('library-details', { id: datum['dct:identifier'] }) },
+            [datum['dct:title']]
+          ),
+          project,
+          subjects: datum?.counts?.donors,
           dataType,
           lastUpdated: Utils.makeStandardDate(datum['dct:modified']),
           underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
@@ -208,11 +194,11 @@ const Browser = () => {
                 h(TooltipTrigger, { content: 'Open Access' }, [icon('unlock', { style: { color: colors.success() } })])
             ]),
             div({ style: { flex: 1, fontSize: 12 } }, [
-              h(Collapse, { titleFirst: true, title: 'See More', buttonStyle: { flex: 'none' } }, [datum['dct:description']])
+              h(Collapse, { titleFirst: true, title: 'See More', buttonStyle: { flex: 'none', marginBottom: 0, marginTop: 3 } }, [datum['dct:description']])
             ])
           ])
         }
-      }, listData)
+      }, sortData(listData))
     })])
   }
 
