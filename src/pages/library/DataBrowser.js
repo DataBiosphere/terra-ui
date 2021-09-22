@@ -122,7 +122,6 @@ const Browser = () => {
   Utils.useOnMount(() => {
     const loadData = async () => {
       const rawList = await getRawList()
-      rawList[1].locked = true
       const normList = _.map(
         snapshot => ({ ...snapshot, tags: extractTags(snapshot) }),
         _.map(snapshot => ({
@@ -142,7 +141,7 @@ const Browser = () => {
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
   const SelectedItemsDisplay = () => {
-    const length = selectedData.length
+    const length = _.size(selectedData)
     const files = _.sumBy(data => _.sumBy('count', data.files), selectedData)
     const totalBytes = _.sumBy(data => _.sumBy('dcat:byteSize', data.files), selectedData)
     const fileSizeFormatted = filesize(totalBytes)

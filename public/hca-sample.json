@@ -89,6 +89,7 @@
           "cloudPlatform": "gcp"
         }
       ],
+      "locked": true,
       "counts": {
         "donors": 3,
         "samples": 6,
