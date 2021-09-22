@@ -112,7 +112,7 @@ const Showcase = () => {
     SearchAndFilterComponent({
       featuredList, sidebarSections,
       searchType: 'Featured Workspaces',
-      children: list => _.isEmpty(list) ? centeredSpinner() : _.map(WorkspaceCard(), list)
+      listContent: list => _.isEmpty(list) ? centeredSpinner() : _.map(WorkspaceCard(), list)
     })
   ])
 }

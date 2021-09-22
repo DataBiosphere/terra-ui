@@ -1,9 +1,9 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h1, h2, h3, table, tbody, td, tr } from 'react-hyperscript-helpers'
+import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner, icon, stackedIcon } from 'src/components/icons'
+import { centeredSpinner, icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
@@ -16,65 +16,66 @@ const activeTab = 'browse & explore'
 const styles = {
   content: { padding: 20, marginTop: 15 },
   headers: { margin: '20px 0 0' },
-  attributesColumn: { width: '22%', marginRight: 20, marginTop: 30 }
+  attributesColumn: { width: '22%', marginRight: 20, marginTop: 30 },
+  access: {
+    open: colors.success(1.8),
+    controlled: colors.accent()
+  }
 }
 
 const getSnapshot = id => new Promise(resolve => setTimeout(() => {
   const dataMap = _.groupBy('dct:identifier', tempData.default.data)
-  resolve(_.get(`${id}.0`, dataMap))
+  resolve(_.get([id, 0], dataMap))
 }, 1000))
 
 const MainContent = ({ snapshot }) => {
   return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
     h1([_.get('dct:title', snapshot)]),
-    div([
-      div([_.get('dct:description', snapshot)]),
-      h2({ className: 'sr-only' }, ['Snapshot Sources']),
-      div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
-        div({ style: styles.attributesColumn }, [
-          h3({ style: styles.headers }, ['Data release policy']),
-          div([_.get('releasePolicy', snapshot)])
-        ]),
-        div({ style: styles.attributesColumn }, [
-          h3({ style: styles.headers }, ['Last Updated']),
-          div([Utils.makeStandardDate(snapshot['dct:modified'])])
-        ]),
-        div({ style: styles.attributesColumn }, [
-          h3({ style: styles.headers }, ['Version']),
-          div([_.get('', snapshot)])
-        ]),
-        div({ style: styles.attributesColumn }, [
-          h3({ style: styles.headers }, ['Region']),
-          div([
-            _.map(
-              storage => div({ key: `region-table-${storage.region}` }, [storage.region]),
-              _.uniqBy('region', snapshot.storage || [])
-            )
-          ])
-        ]),
-        div({ style: styles.attributesColumn }, [
-          h3({ style: styles.headers }, ['Contact'])
+    div([_.get('dct:description', snapshot)]),
+    h2({ className: 'sr-only' }, ['Snapshot Sources']),
+    div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Data release policy']),
+        div([_.get('releasePolicy', snapshot)])
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Last Updated']),
+        div([Utils.makeStandardDate(_.get('dct:modified', snapshot))])
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Version']),
+        div([_.get('', snapshot)])
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Region']),
+        _.map(
+          storage => div({ key: `region-table-${storage.region}` }, [storage.region]),
+          _.uniqBy('region', snapshot.storage)
+        )
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Contact'])
         // h(Link, { href: `mailto:fakeemail@fake.org` }, ['fakeemail@fake.org'])
-        ]),
-        div({ style: styles.attributesColumn }, [
-          h3({ style: styles.headers }, ['Data curator'])
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Data curator'])
         // div(['Will add later, after data structure is added'])
-        ]),
-        div({ style: styles.attributesColumn }, [
-          h3({ style: styles.headers }, ['Contributors']),
-          _.map(contributor => div({ key: `contributor-list_${contributor}}` }, [contributor]), _.get('contributors', snapshot))
-        ]),
-        div({ style: styles.attributesColumn }, [
-          h3({ style: styles.headers }, ['Cloud provider']),
-          div([
-            _.map(
-              storage => div({ key: `cloud-platform-table-${storage.cloudPlatform}` }, [storage.cloudPlatform]),
-              _.uniqBy('cloudPlatform', snapshot.storage || [])
-            )
-          ])
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Contributors']),
+        _.map(contributor => div({ key: `contributor-list_${contributor}}` }, [contributor]), _.get('contributors', snapshot))
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Cloud provider']),
+        div([
+          _.map(
+            storage => div({ key: `cloud-platform-table-${storage.cloudPlatform}` }, [storage.cloudPlatform]),
+            _.uniqBy('cloudPlatform', snapshot.storage)
+          )
         ])
       ])
     ])
+
   ])
 }
 
@@ -90,12 +91,10 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
               style: { fontSize: 16, textTransform: 'none', height: 'unset' },
               onClick: () => setShowRequestAccessModal(true)
             }, [
-              div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [
-                icon('lock', { size: 18, style: { marginRight: 10, color: colors.accent() } }),
-                'Request Access'
-              ])
+              icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
+              'Request Access'
             ]) :
-            div({ style: { color: colors.primary() } }, [
+            div({ style: { color: styles.access.open } }, [
               icon('unlock', { size: 18, style: { marginRight: 10 } }),
               'Open Access'
             ])
@@ -120,28 +119,28 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
       div([
         h3({ style: styles.headers }, ['File counts']),
         table([
-          tbody(
-            [
-              ..._.map(file => {
-                return tr({}, [
-                  td({ style: { paddingRight: 30 } }, [file['dcat:mediaType']]),
-                  td([(file.count || 0).toLocaleString()])
-                ])
-              }, _.get('files', snapshot)),
-              tr({ style: { fontWeight: 'bold', borderTop: '2px solid rgba(0,0,0,.3)' } }, [
-                td(['Total']),
-                td([_.sumBy('count', snapshot.files).toLocaleString()])
+          tbody([
+            _.map(file => {
+              return tr({ key: `filetype_${file['dcat:mediaType']}_${file.count}` }, [
+                td({ style: { paddingRight: 30 } }, [file['dcat:mediaType']]),
+                td([(file.count || 0).toLocaleString()])
               ])
+            }, _.get('files', snapshot)),
+            tr({ style: { fontWeight: 'bold', borderTop: '2px solid rgba(0,0,0,.3)' } }, [
+              td(['Total']),
+              td([_.sumBy('count', _.get('files', snapshot)).toLocaleString()])
             ])
+          ])
         ])
       ])
     ]),
     h(ButtonOutline, {
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
-      onClick: () => console.log('clicked')
+      onClick: () => Nav.goToPath('library-catalog-preview', { id: _.get('dct:identifier', snapshot) })
     }, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [
-        icon('eye', { size: 22, style: { marginRight: 10 } }), 'Preview data'
+        icon('eye', { size: 22, style: { marginRight: 10 } }),
+        'Preview data'
       ])
     ]),
     h(ButtonPrimary, {
@@ -167,13 +166,11 @@ const DataBrowserDetails = ({ id }) => {
       h(Fragment, [
         div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: '26px' } }, [
           div({ style: styles.content }, [
-            h(Link, { onClick: Nav.history.goBack }, [
-              stackedIcon('angle-left', 'circle', {
-                size: 30,
-                'aria-label': 'Back',
-                top: { color: colors.primary('light') },
-                bot: { color: colors.primary('light'), style: { opacity: 0.2 } }
-              })
+            h(Link, { onClick: Nav.history.goBack, 'aria-label': 'Back' }, [
+              span({ className: 'fa-stack fa-2x' }, [
+                icon('circle', { size: 40, className: 'fa-stack-2x', style: { color: colors.primary('light'), opacity: 0.2 } }),
+                icon('angle-left', { size: 30, className: 'fa-stack-1x', style: { color: colors.primary('light') } })
+              ])
             ])
           ]),
           h(MainContent, { snapshot }),

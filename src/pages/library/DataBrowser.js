@@ -15,6 +15,26 @@ import { SearchAndFilterComponent } from 'src/pages/library/common'
 import * as tempData from 'src/pages/library/hca-sample.json'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
+
+const styles = {
+  access: {
+    open: colors.success(1.8),
+    controlled: colors.accent()
+  },
+  table: {
+    header: {
+      color: colors.accent(),
+      height: 16,
+      textTransform: 'uppercase', fontWeight: 600, fontSize: '0.75rem'
+    },
+    row: {
+      backgroundColor: '#ffffff',
+      borderRadius: 5, border: '1px solid rgba(0,0,0,.15)',
+      margin: '0 -15px 15px', padding: 15
+    }
+  }
+}
+
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const sidebarSections = [{
   name: 'Access Type',
@@ -25,13 +45,13 @@ const sidebarSections = [{
   labelDisplays: {
     'Controlled Access': [
       div({ style: { display: 'flex' } }, [
-        icon('lock', { style: { color: colors.accent(), marginRight: 5 } }),
+        icon('lock', { style: { color: styles.access.controlled, marginRight: 5 } }),
         div(['Controlled Access'])
       ])
     ],
     'Open Access': [
       div({ style: { display: 'flex' } }, [
-        icon('unlock', { style: { color: colors.success(), marginRight: 5 } }),
+        icon('unlock', { style: { color: styles.access.open, marginRight: 5 } }),
         div(['Open Access'])
       ])
     ]
@@ -73,21 +93,6 @@ const sidebarSections = [{
     'tsv.gz', 'txt', 'txt.gz', 'xlsx', 'zip'
   ]
 }]
-
-const styles = {
-  table: {
-    header: {
-      color: colors.accent(),
-      height: 16,
-      textTransform: 'uppercase', fontWeight: 600, fontSize: '0.75rem'
-    },
-    row: {
-      backgroundColor: '#ffffff',
-      borderRadius: 5, border: '1px solid rgba(0,0,0,.15)',
-      margin: '0 -15px 15px', padding: 15
-    }
-  }
-}
 
 const getRawList = () => new Promise(resolve => setTimeout(() => {
   resolve(tempData.default.data)
@@ -131,17 +136,6 @@ const Browser = () => {
     loadData()
   })
 
-  const sortData = Utils.cond(
-    [sort.field === 'most recent', () => _.orderBy(['created'], ['desc'])],
-    [sort.field === 'alphabetical', () => _.orderBy(w => _.toLower(_.trim(w['dct:title'])), ['asc'])],
-    [sort.field === 'Dataset Name', () => _.orderBy(w => _.toLower(_.trim(w['dct:title'])), [sort.direction])],
-    [sort.field === 'Project', () => _.orderBy(w => _.toLower(_.trim(w.project)), [sort.direction])],
-    [sort.field === 'No. of Subjects', () => _.orderBy(['counts.donors', 'lowerName'], [sort.direction])],
-    [sort.field === 'Data Type', () => _.orderBy(['dataType', 'lowerName'], [sort.direction])],
-    [sort.field === 'Last Updated', () => _.orderBy(['lastUpdated', 'lowerName'], [sort.direction])],
-    () => _.identity
-  )
-
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
   const SelectedItemsDisplay = () => {
@@ -150,32 +144,29 @@ const Browser = () => {
     const totalBytes = _.sumBy(data => _.sumBy('dcat:byteSize', data.files), selectedData)
     const fileSizeFormatted = filesize(totalBytes)
 
-    return div(
-      {
-        style: {
-          display: selectedData.length > 0 ? 'block' : 'none',
-          position: 'sticky', bottom: 0, marginTop: '20px',
-          width: '100%', padding: '34px 60px',
-          backgroundColor: 'white', boxShadow: 'rgb(0 0 0 / 30%) 0px 0px 8px 3px',
-          fontSize: 17
-        }
-      },
-      [
-        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
-          `${length} dataset${length > 1 ? 's' : ''} (${fileSizeFormatted} - ${files} bam files) selected to be saved to a Terra Workspace`,
-          div([
-            h(ButtonSecondary, {
-              style: { fontSize: 16, marginRight: 40, textTransform: 'none' },
-              onClick: () => setSelectedData([])
-            }, 'Cancel'),
-            h(ButtonPrimary, {
-              style: { textTransform: 'none', fontSize: 14 },
-              onClick: () => {}
-            }, ['Save to a workspace'])
-          ])
+    return div({
+      style: {
+        display: selectedData.length > 0 ? 'block' : 'none',
+        position: 'sticky', bottom: 0, marginTop: '20px',
+        width: '100%', padding: '34px 60px',
+        backgroundColor: 'white', boxShadow: 'rgb(0 0 0 / 30%) 0px 0px 8px 3px',
+        fontSize: 17
+      }
+    }, [
+      div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
+        `${length} dataset${length > 1 ? 's' : ''} (${fileSizeFormatted} - ${files} bam files) selected to be saved to a Terra Workspace`,
+        div([
+          h(ButtonSecondary, {
+            style: { fontSize: 16, marginRight: 40, textTransform: 'none' },
+            onClick: () => setSelectedData([])
+          }, 'Cancel'),
+          h(ButtonPrimary, {
+            style: { textTransform: 'none', fontSize: 14 },
+            onClick: () => {}
+          }, ['Save to a workspace'])
         ])
-      ]
-    )
+      ])
+    ])
   }
 
   const DataTable = listData => {
@@ -188,19 +179,19 @@ const Browser = () => {
             header: div({ className: 'sr-only' }, ['Select dataset']),
             size: { basis: 37, grow: 0 }, key: 'checkbox'
           }, {
-            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Dataset Name', onSort: setSort }, ['Dataset Name'])]),
+            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dct:title', onSort: setSort }, ['Dataset Name'])]),
             size: { grow: 2.2 }, key: 'name'
           }, {
-            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Project', onSort: setSort }, ['Project'])]),
+            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'project', onSort: setSort }, ['Project'])]),
             size: { grow: 1 }, key: 'project'
           }, {
-            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'No. of Subjects', onSort: setSort }, ['No. of Subjects'])]),
+            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'counts.donors', onSort: setSort }, ['No. of Subjects'])]),
             size: { grow: 1 }, key: 'subjects'
           }, {
-            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Data Type', onSort: setSort }, ['Data Type'])]),
+            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dataType', onSort: setSort }, ['Data Type'])]),
             size: { grow: 1 }, key: 'dataType'
           }, {
-            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'Last Updated', onSort: setSort }, ['Last Updated'])]),
+            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'lastUpdated', onSort: setSort }, ['Last Updated'])]),
             size: { grow: 1 }, key: 'lastUpdated'
           }
         ],
@@ -228,14 +219,17 @@ const Browser = () => {
               div({ style: { display: 'flex', alignItems: 'center' } }, [
                 locked ?
                   h(ButtonSecondary, {
-                    style: { height: 'unset', textTransform: 'none', fontWeight: 'bold' },
+                    style: { height: 'unset', textTransform: 'none' },
                     onClick: () => setRequestDatasetAccessList([datum])
-                  }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 5, fontSize: 12 } }, ['Request Access'])]) :
-                  div({ style: { color: colors.success(), display: 'flex', fontWeight: 'bold' } }, [icon('unlock'), div({ style: { paddingLeft: 10, paddingTop: 5, fontSize: 12 } }, ['Open Access'])])
+                  }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Request Access'])]) :
+                  div({ style: { color: styles.access.open, display: 'flex' } }, [
+                    icon('unlock'),
+                    div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Open Access'])
+                  ])
               ])
             ])
           }
-        }, sortData(listData))
+        }, listData)
       })])
   }
 
@@ -245,9 +239,9 @@ const Browser = () => {
       featuredList: catalogSnapshots, sidebarSections,
       customSort: true,
       searchType: 'Datasets',
-      children: DataTable
+      listContent: DataTable
     }),
-    SelectedItemsDisplay(),
+    h(SelectedItemsDisplay, []),
     !!requestDatasetAccessList && h(RequestDatasetAccessModal, {
       datasets: requestDatasetAccessList,
       onDismiss: () => setRequestDatasetAccessList()

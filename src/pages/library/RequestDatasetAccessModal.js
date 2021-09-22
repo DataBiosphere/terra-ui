@@ -13,8 +13,6 @@ import * as Utils from 'src/libs/utils'
 export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
   const [reason, setReason] = useState('')
 
-  console.log('datasets', datasets)
-
   return h(Modal, {
     title: 'Request Access',
     width: '40rem',
@@ -41,12 +39,12 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
         tr({ style: { height: '2rem' } }, [th({ style: { textAlign: 'left' } }, ['Datasets']), th({ style: { textAlign: 'left', width: '15rem' } }, ['Access'])])
       ]),
       tbody(
-        _.map(dataset => tr({ style: { height: '2rem' }, key: dataset.id }, [
+        _.map(dataset => tr({ key: dataset.id, style: { height: '2rem' } }, [
           td({ style: { paddingRight: 20 } }, [dataset['dct:title']]),
           td([
             dataset.locked ?
               h(RequestDatasetAccessButton, {
-                datasetName: dataset['dct.title']
+                datasetName: dataset['dct:title']
               }) :
               span({ style: { fontWeight: 600 } }, ['Permission Granted'])
           ])
