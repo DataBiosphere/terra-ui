@@ -141,7 +141,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     numberOfPreemptibleWorkers: defaultNumDataprocPreemptibleWorkers,
     workerMachineType: defaultDataprocMachineType,
     workerDiskSize: defaultDataprocDiskSize,
-    componentGatewayEnabled: !!sparkMode, // We enable Spark console for all new Dataproc clusters.
+    componentGatewayEnabled: true, // We enable web interfaces (aka Spark console) for all new Dataproc clusters.
     gpuEnabled: false,
     hasGpu: false,
     gpuType: defaultGpuType,
@@ -577,17 +577,18 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         const isDataproc = (sparkMode, runtimeConfig) => !sparkMode && !runtimeConfig?.diskSize
         const runtimeConfig = currentRuntimeDetails?.runtimeConfig
         const gpuConfig = runtimeConfig?.gpuConfig
-
-        setSparkMode(runtimeConfig?.cloudService === cloudServices.DATAPROC ?
+        const newSparkMode = runtimeConfig?.cloudService === cloudServices.DATAPROC ?
           (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') :
-          false)
+          false
+
+        setSparkMode(newSparkMode)
         setComputeConfig({
           selectedPersistentDiskSize: currentPersistentDiskDetails?.size || defaultGcePersistentDiskSize,
           masterMachineType: runtimeConfig?.masterMachineType || runtimeConfig?.machineType,
           masterDiskSize: runtimeConfig?.masterDiskSize || runtimeConfig?.diskSize ||
             (isDataproc ? defaultDataprocDiskSize : defaultGceBootDiskSize),
           numberOfWorkers: runtimeConfig?.numberOfWorkers || 2,
-          componentGatewayEnabled: runtimeConfig?.componentGatewayEnabled || !!sparkMode,
+          componentGatewayEnabled: runtimeConfig?.componentGatewayEnabled || !!newSparkMode,
           numberOfPreemptibleWorkers: runtimeConfig?.numberOfPreemptibleWorkers || 0,
           workerMachineType: runtimeConfig?.workerMachineType || defaultDataprocMachineType,
           workerDiskSize: runtimeConfig?.workerDiskSize || defaultDataprocDiskSize,
@@ -841,7 +842,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   id,
                   isSearchable: false,
                   value: sparkMode,
-                  onChange: ({ value }) => setSparkMode(value),
+                  onChange: ({ value }) => {
+                    setSparkMode(value)
+                    updateComputeConfig('componentGatewayEnabled', !!value)
+                  },
                   options: [
                     { value: false, label: 'Standard VM', isDisabled: requiresSpark },
                     { value: 'master', label: 'Spark master node' },
@@ -1163,9 +1167,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       value: selectedLeoImage,
       onChange: ({ value }) => {
         const requiresSpark = _.find({ image: value }, leoImages)?.requiresSpark
+        const newSparkMode = requiresSpark ? (sparkMode || 'master') : false
         setSelectedLeoImage(value)
         setCustomEnvImage('')
-        setSparkMode(requiresSpark ? (sparkMode || 'master') : false)
+        setSparkMode(newSparkMode)
+        updateComputeConfig('componentGatewayEnabled', !!newSparkMode)
       },
       isSearchable: true,
       isClearable: false,
