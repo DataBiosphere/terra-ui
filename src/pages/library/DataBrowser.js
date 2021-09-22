@@ -171,7 +171,7 @@ const Browser = () => {
     ])
   }
 
-  const DataTable = listData => {
+  const DataTable = ({ listData }) => {
     return _.isEmpty(listData) ?
       centeredSpinner() :
       div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
@@ -241,7 +241,7 @@ const Browser = () => {
       featuredList: catalogSnapshots, sidebarSections,
       customSort: true,
       searchType: 'Datasets',
-      listContent: DataTable
+      ListContent: DataTable
     }),
     h(SelectedItemsDisplay, []),
     !!requestDatasetAccessList && h(RequestDatasetAccessModal, {

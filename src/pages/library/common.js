@@ -77,7 +77,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
   ])
 }
 
-export const SearchAndFilterComponent = ({ featuredList, sidebarSections, customSort, searchType, children }) => {
+export const SearchAndFilterComponent = ({ featuredList, sidebarSections, customSort, searchType, ListContent }) => {
   const [selectedSections, setSelectedSections] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [searchFilter, setSearchFilter] = useState('')
@@ -180,7 +180,7 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, custom
         })
       ]),
       div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
-        children(filteredData)
+        h(ListContent, { listData: filteredData })
       ])
     ])
   ])

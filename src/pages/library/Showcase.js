@@ -44,12 +44,10 @@ const sidebarSections = [{
   labels: ['HCA', 'AnVIL', 'BRAIN Initiative', 'BioData Catalyst', 'NCI']
 }]
 
-
-const WorkspaceCard = variant => workspace => {
+const WorkspaceCard = ({ workspace }) => {
   const { namespace, name, created, description } = workspace
   return a({
     href: Nav.getLink('workspace-dashboard', { namespace, name }),
-    key: `${namespace}:${name}`,
     style: {
       backgroundColor: 'white',
       height: 175,
@@ -65,7 +63,7 @@ const WorkspaceCard = variant => workspace => {
         width: 87,
         ...Utils.cond(
           [name.toLowerCase().includes('covid'), () => ({ backgroundImage: `url(${covidBg})` })],
-          [variant === 'gatk', () => ({ backgroundColor: '#333', backgroundImage: `url(${gatkLogo})`, backgroundSize: undefined })],
+          [namespace === 'help-gatk', () => ({ backgroundColor: '#333', backgroundImage: `url(${gatkLogo})`, backgroundSize: undefined })],
           () => ({ backgroundImage: `url(${featuredBg})`, opacity: 0.75 })
         )
       }
@@ -112,7 +110,14 @@ const Showcase = () => {
     SearchAndFilterComponent({
       featuredList, sidebarSections,
       searchType: 'Featured Workspaces',
-      listContent: list => _.isEmpty(list) ? centeredSpinner() : _.map(WorkspaceCard(), list)
+      ListContent: ({ listData }) => {
+        return _.isEmpty(listData) ?
+          centeredSpinner() :
+          _.map(workspace => {
+            const { namespace, name } = workspace
+            return h(WorkspaceCard, { key: `${namespace}:${name}`, workspace })
+          }, listData)
+      }
     })
   ])
 }
