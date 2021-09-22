@@ -237,7 +237,7 @@ const Browser = () => {
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('browse & explore'),
-    SearchAndFilterComponent({
+    h(SearchAndFilterComponent, {
       featuredList: catalogSnapshots, sidebarSections,
       customSort: true,
       searchType: 'Datasets',
