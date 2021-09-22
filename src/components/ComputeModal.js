@@ -323,6 +323,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           masterMachineType: runtimeConfig.masterMachineType || defaultDataprocMachineType,
           masterDiskSize: runtimeConfig.masterDiskSize || 100,
           numberOfWorkers,
+          componentGatewayEnabled: runtimeConfig.componentGatewayEnabled || !!sparkMode,
           ...(numberOfWorkers && {
             numberOfPreemptibleWorkers: runtimeConfig.numberOfPreemptibleWorkers || 0,
             workerMachineType: runtimeConfig.workerMachineType || defaultDataprocMachineType,
@@ -410,6 +411,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
         masterDiskSize: desiredRuntime.masterDiskSize,
         numberOfWorkers: desiredRuntime.numberOfWorkers,
+        componentGatewayEnabled: computeConfig.componentGatewayEnabled,
         ...(desiredRuntime.numberOfWorkers && {
           numberOfPreemptibleWorkers: desiredRuntime.numberOfPreemptibleWorkers,
           workerMachineType: desiredRuntime.workerMachineType,
