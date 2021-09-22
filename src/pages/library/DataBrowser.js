@@ -122,15 +122,15 @@ const Browser = () => {
   Utils.useOnMount(() => {
     const loadData = async () => {
       const rawList = await getRawList()
-      const normList = _.map(
-        snapshot => ({ ...snapshot, tags: extractTags(snapshot) }),
-        _.map(snapshot => ({
+      const normList = _.map(snapshot => {
+        const normalizedSnapshot = {
           ...snapshot,
           project: _.get('0.dct:title', snapshot['TerraDCAT_ap:hasDataCollection']),
           lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description']),
           lastUpdated: new Date(snapshot['dct:modified'])
-        }), rawList)
-      )
+        }
+        return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)
+      }, rawList)
 
       setCatalogSnapshots(normList)
       StateHistory.update({ catalogSnapshots })
