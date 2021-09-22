@@ -8,7 +8,6 @@ import { libraryTopMatter } from 'src/components/library-common'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
-import * as tempData from 'src/pages/library/hca-sample.json'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -18,14 +17,18 @@ const styles = {
   headers: { margin: '20px 0 0' },
   attributesColumn: { width: '22%', marginRight: 20, marginTop: 30 },
   access: {
-    open: colors.success(1.8),
+    open: colors.success(1.5),
     controlled: colors.accent()
   }
 }
 
 const getSnapshot = id => new Promise(resolve => setTimeout(() => {
-  const dataMap = _.groupBy('dct:identifier', tempData.default.data)
-  resolve(_.get([id, 0], dataMap))
+  fetch('hca-sample.json').then(response => {
+    response.json().then(tempData => {
+      const dataMap = _.keyBy('dct:identifier', tempData.data)
+      resolve(dataMap[id])
+    })
+  })
 }, 1000))
 
 const MainContent = ({ snapshot }) => {

@@ -12,13 +12,12 @@ import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { SearchAndFilterComponent } from 'src/pages/library/common'
-import * as tempData from 'src/pages/library/hca-sample.json'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
 const styles = {
   access: {
-    open: colors.success(1.8),
+    open: colors.success(1.5),
     controlled: colors.accent()
   },
   table: {
@@ -95,7 +94,11 @@ const sidebarSections = [{
 }]
 
 const getRawList = () => new Promise(resolve => setTimeout(() => {
-  resolve(tempData.default.data)
+  fetch('hca-sample.json').then(response => {
+    response.json().then(tempData => {
+      resolve(tempData.data)
+    })
+  })
 }, 1000))
 
 const extractTags = snapshot => {
