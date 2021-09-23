@@ -851,7 +851,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     { value: 'master', label: 'Spark master node' },
                     { value: 'cluster', label: 'Spark cluster' }
                   ]
-                })
+                }),
+                h(Link, { onClick: () => setViewMode('packages') }, ['Manage and monitor Spark console'])
               ])
             ])
           ])
