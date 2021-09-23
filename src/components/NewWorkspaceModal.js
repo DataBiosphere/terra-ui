@@ -96,16 +96,15 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   const loadProjectsGroups = _.flow(
     withErrorReporting('Error loading data'),
     Utils.withBusyState(setLoading)
-  )(async () => {
-    const [billingProjects, allGroups] = await Promise.all([
-      Ajax(signal).Billing.listProjects(),
-      Ajax(signal).Groups.list()
-    ])
-    setBillingProjects(billingProjects)
-    setAllGroups(allGroups)
-    setNamespace(_.some({ projectName: namespace }, billingProjects) ? namespace : undefined)
-  })
-
+  )(() => Promise.all([
+    Ajax(signal).Billing.listProjects()
+      .then(_.filter({ status: 'Ready' }))
+      .then(projects => {
+        setBillingProjects(projects)
+        setNamespace(_.some({ projectName: namespace }, projects) ? namespace : undefined)
+      }),
+    Ajax(signal).Groups.list().then(setAllGroups)
+  ]))
 
   // Lifecycle
   Utils.useOnMount(() => { loadProjectsGroups() })

@@ -5,9 +5,10 @@ import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { icon } from 'src/components/icons'
+import { icon, spinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { InfoBox } from 'src/components/PopupTrigger'
 import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
@@ -39,27 +40,37 @@ const styles = {
   }
 }
 
-const ProjectListItem = ({ project: { projectName, roles }, isActive }) => {
-  return div({ role: 'listitem' }, [
-    _.includes(billingRoles.owner, roles) && h(Clickable, {
-      style: {
-        ...styles.projectListItem(isActive),
-        color: isActive ? colors.dark() : colors.accent()
-      },
-      href: `${Nav.getLink('billing')}?${qs.stringify({
-        selectedName: projectName,
-        type: 'project'
-      })}`,
-      onClick: () => {
-        Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, {
-          billingProjectName: projectName
-        })
-      },
-      hover: Style.navList.itemHover(isActive),
-      'aria-current': isActive ? 'location' : false
-    }, [projectName])
+const ProjectListItem = (() => {
+  const selectableProject = ({ projectName }, isActive) => h(Clickable, {
+    style: { ...styles.projectListItem(isActive), color: isActive ? colors.dark() : colors.accent() },
+    href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
+    onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, {
+      billingProjectName: projectName
+    }),
+    hover: Style.navList.itemHover(isActive),
+    'aria-current': isActive ? 'location' : false
+  }, [projectName])
+
+  const unselectableProject = ({ projectName, status, message }, isActive) => {
+    const iconAndTooltip =
+      status === 'Creating' ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
+        status === 'Error' ? h(InfoBox, { style: { color: colors.danger(), margin: '0 1rem 0 0.5rem' }, side: 'right' }, [
+          div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
+            message || 'Error during project creation.'
+          ])
+        ]) : undefined
+
+    return div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [
+      projectName, iconAndTooltip
+    ])
+  }
+
+  return ({ project, project: { roles, status }, isActive }) => div({ role: 'listitem' }, [
+    _.includes(billingRoles.owner, roles) && status === 'Ready' ?
+      selectableProject(project, isActive) :
+      unselectableProject(project, isActive)
   ])
-}
+})()
 
 const billingProjectNameValidator = existing => ({
   presence: { allowEmpty: false },
