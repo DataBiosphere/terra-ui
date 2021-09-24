@@ -857,7 +857,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           ]),
           // TODO: Is there a more robust way to center Link vertically wrt the Select element above?
           span({ style: { paddingTop: '2rem' } }, [
-            h(Link, { onClick: () => setViewMode('packages') }, ['Manage and monitor Spark console'])
+            h(Link, { onClick: () => setViewMode('sparkConsole') }, ['Manage and monitor Spark console'])
           ])
         ])
       ]),
@@ -1333,6 +1333,22 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ])
     ])
   }
+
+  const renderSparkConsole = () => {
+    return div({ style: styles.drawerContent }, [
+      h(TitleBar, {
+        id: titleId,
+        style: styles.titleBar,
+        title: 'Spark Console',
+        hideCloseButton: isAnalysisMode,
+        onDismiss,
+        onPrevious: () => setViewMode(undefined)
+      }),
+      renderImageSelect({ 'aria-label': 'Select Environment' }),
+      makeImageInfo({ margin: '1rem 0 0.5rem' }),
+      packages && h(ImageDepViewer, { packageLink: packages })
+    ])
+  }
   // Render functions -- end
 
   // Render
@@ -1340,6 +1356,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     Utils.switchCase(viewMode,
       ['packages', renderPackages],
       ['aboutPersistentDisk', renderAboutPersistentDisk],
+      ['sparkConsole', renderSparkConsole],
       ['customImageWarning', renderCustomImageWarning],
       ['environmentWarning', renderEnvironmentWarning],
       ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
