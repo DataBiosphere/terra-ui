@@ -206,6 +206,7 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
   const [searchFilter, setSearchFilter] = useState('')
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
+  // eslint-disable-next-line no-unused-vars
   const [datasetName, setDatasetName] = useState('')
 
   const [selectedData, setSelectedData] = useState([])
