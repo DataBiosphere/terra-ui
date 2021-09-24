@@ -10,8 +10,8 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-export const defaultDataprocDiskSize = 60 // For both main and worker machine disks. Dataproc clusters don't have persistent disks.
-export const defaultGceBootDiskSize = 70 // GCE boot disk size is not customizable by users. We use this for cost estimate calculations only.
+export const defaultDataprocDiskSize = 80 // For both main and worker machine disks. Dataproc clusters don't have persistent disks.
+export const defaultGceBootDiskSize = 80 // GCE boot disk size is not customizable by users. We use this for cost estimate calculations only.
 export const defaultGcePersistentDiskSize = 50
 
 export const defaultGceMachineType = 'n1-standard-1'
@@ -23,7 +23,6 @@ export const defaultGpuType = 'nvidia-tesla-t4'
 export const defaultNumGpus = 1
 
 export const usableStatuses = ['Updating', 'Running']
-
 
 export const getDefaultMachineType = isDataproc => isDataproc ? defaultDataprocMachineType : defaultGceMachineType
 
@@ -223,34 +222,38 @@ export const isCurrentGalaxyDiskDetaching = apps => {
 export const getGalaxyCostTextChildren = (app, galaxyDataDisks) => {
   const dataDisk = currentAttachedDataDisk(app, galaxyDataDisks)
   return app ?
-    [getConvertedAppStatus(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``] : ['None']
+    [getComputeStatusForDisplay(app.status), dataDisk?.size ? ` (${Utils.formatUSD(getGalaxyCost(app, dataDisk.size))} / hr)` : ``] : ['None']
 }
 
-export const isAppDeletable = app => _.includes(app?.status, ['RUNNING', 'ERROR'])
-
-export const isRuntimeDeletable = runtime => _.includes(runtime?.status,
-  ['Unknown', 'Running', 'Updating', 'Error', 'Stopping', 'Stopped', 'Starting'])
+/**
+ * 'Deletable' and 'Pausable' statuses are defined in a resource's respective model in Leonardo repo:
+ * https://github.com/DataBiosphere/leonardo/blob/3339ae218b4258f704702475be1431b48a5e2932/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/runtimeModels.scala
+ * https://github.com/DataBiosphere/leonardo/blob/706a7504420ea4bec686d4f761455e8502b2ddf1/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/kubernetesModels.scala
+ * https://github.com/DataBiosphere/leonardo/blob/e60c71a9e78b53196c2848cd22a752e22a2cf6f5/core/src/main/scala/org/broadinstitute/dsde/workbench/leonardo/diskModels.scala
+ */
+export const isResourceDeletable = _.curry((resourceType, resource) => _.includes(_.lowerCase(resource?.status), Utils.switchCase(resourceType,
+  ['runtime', () => ['unknown', 'running', 'updating', 'error', 'stopping', 'stopped', 'starting']],
+  ['app', () => ['unspecified', 'running', 'error']],
+  ['disk', () => ['failed', 'ready']],
+  [Utils.DEFAULT, () => console.error(`Cannot determine deletability; resource type ${resourceType} must be one of runtime, app or disk.`)]
+)))
+export const isComputePausable = _.curry((computeType, compute) => _.includes(_.lowerCase(compute?.status), Utils.switchCase(computeType,
+  ['runtime', () => ['unknown', 'running', 'updating', 'starting']],
+  ['app', () => ['running', 'starting']],
+  [Utils.DEFAULT, () => console.error(`Cannot determine pausability; compute type ${computeType} must be runtime or app.`)]
+)))
 
 export const getConvertedRuntimeStatus = runtime => {
   return runtime && (runtime.patchInProgress ? 'LeoReconfiguring' : runtime.status) // NOTE: preserves null vs undefined
 }
 
-export const getDisplayRuntimeStatus = status => Utils.switchCase(status, ['Starting', () => 'Resuming'],
-  ['Stopping', () => 'Pausing'],
-  ['Stopped', () => 'Paused'],
-  [Utils.DEFAULT, () => status])
-
-
-export const getConvertedAppStatus = appStatus => {
-  return Utils.switchCase(_.upperCase(appStatus),
-    ['STOPPED', () => 'Paused'],
-    ['STOPPING', () => 'Pausing'],
-    ['STARTING', () => 'Resuming'],
-    ['PRESTARTING', () => 'Resuming'],
-    ['PRESTOPPING', () => 'Pausing'],
-    [Utils.DEFAULT, () => _.capitalize(appStatus)]
-  )
-}
+export const getComputeStatusForDisplay = status => Utils.switchCase(_.lowerCase(status),
+  ['starting', () => 'Resuming'],
+  ['stopping', () => 'Pausing'],
+  ['stopped', () => 'Paused'],
+  ['prestarting', () => 'Resuming'],
+  ['prestopping', () => 'Pausing'],
+  [Utils.DEFAULT, () => _.capitalize(status)])
 
 export const displayNameForGpuType = type => {
   return Utils.switchCase(type,

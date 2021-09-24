@@ -1,5 +1,6 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
+import { h } from 'react-hyperscript-helpers'
 import { Ajax } from 'src/libs/ajax'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
@@ -61,7 +62,9 @@ const Showcase = () => {
     loadData()
   })
 
-  return SearchAndFilterComponent(featuredWorkspaces, sidebarSections, 'featured workspaces')
+  return h(SearchAndFilterComponent, {
+    featuredList: featuredWorkspaces, sidebarSections, activeTab: 'featured workspaces', listDataType: 'Workspaces'
+  })
 }
 
 export const navPaths = [

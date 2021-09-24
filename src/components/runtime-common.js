@@ -110,7 +110,7 @@ export const PeriodicCookieSetter = () => {
   return null
 }
 
-export const SaveFilesHelp = () => {
+export const SaveFilesHelp = (isGalaxyDisk = false) => {
   return h(Fragment, [
     p([
       'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
@@ -119,7 +119,20 @@ export const SaveFilesHelp = () => {
         ...Utils.newTabLinkProps
       }, ['move them to the workspace bucket.'])
     ]),
-    p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.'])
+    !isGalaxyDisk && p(['Note: Jupyter notebooks are autosaved to the workspace bucket, and deleting your disk will not delete your notebooks.'])
+  ])
+}
+
+export const SaveFilesHelpRStudio = () => {
+  return h(Fragment, [
+    p([
+      'If you want to save files permanently, including input data, analysis outputs, installed packages or code in your session, ',
+      h(Link, {
+        href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
+        ...Utils.newTabLinkProps
+      }, ['move them to the workspace bucket.'])
+    ]),
+    p(['Note: RStudio files are not autosaved to the workspace bucket (unlike Jupyter *.ipynb files). Autosaving *.Rmd files will be supported soon. Stay tuned!'])
   ])
 }
 

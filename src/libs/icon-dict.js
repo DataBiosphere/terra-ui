@@ -1,45 +1,11 @@
-import { faClipboard, faClock, faClone, faEye, faFileAlt, faFolder, faFolderOpen, faListAlt, faTimesCircle } from '@fortawesome/free-regular-svg-icons'
 import {
-  faArrowLeft,
-  faArrowRight,
-  faBan,
-  faCaretDown,
-  faChalkboard,
-  faCheck,
-  faCheckCircle,
-  faCircle,
-  faClock as faClockSolid,
-  faCloud,
-  faCog,
-  faCreditCard,
-  faDownload,
-  faEllipsisV,
-  faExclamationCircle,
-  faExclamationTriangle,
-  faFileInvoiceDollar,
-  faGripHorizontal,
-  faInfoCircle,
-  faLock,
-  faLongArrowAltDown,
-  faLongArrowAltUp,
-  faMinusCircle,
-  faMoneyCheckAlt,
-  faPause,
-  faPen,
-  faPlay,
-  faPlus,
-  faPlusCircle,
-  faQuestion,
-  faQuestionCircle,
-  faRocket,
-  faSearch,
-  faShareAlt,
-  faSquare as faSquareSolid,
-  faTachometerAlt,
-  faTasks,
-  faTerminal,
-  faTrashAlt,
-  faVirus
+  faClipboard, faClock, faClone, faEye, faFileAlt, faFolder, faFolderOpen, faListAlt, faTimesCircle
+} from '@fortawesome/free-regular-svg-icons'
+import {
+  faArrowLeft, faArrowRight, faBan, faCaretDown, faChalkboard, faCheck, faCheckCircle, faCircle, faClock as faClockSolid, faCloud, faCog,
+  faCreditCard, faDownload, faEllipsisV, faExclamationCircle, faExclamationTriangle, faFileInvoiceDollar, faGripHorizontal, faInfoCircle, faLock,
+  faLongArrowAltDown, faLongArrowAltUp, faMinusCircle, faMoneyCheckAlt, faPause, faPen, faPlay, faPlus, faPlusCircle, faQuestion, faQuestionCircle,
+  faRocket, faSearch, faShareAlt, faSquare as faSquareSolid, faTachometerAlt, faTasks, faTerminal, faTrashAlt, faUnlock, faVirus
 } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import _ from 'lodash/fp'
@@ -145,6 +111,7 @@ const iconDict = {
   times: custom(times),
   'times-circle': fa(faTimesCircle),
   trash: fa(faTrashAlt),
+  unlock: fa(faUnlock),
   'upload-cloud': custom(cloudUpload),
   'view-cards': fa(faGripHorizontal),
   'view-list': custom(list),

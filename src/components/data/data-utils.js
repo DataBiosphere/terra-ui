@@ -19,7 +19,8 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
-import { requesterPaysProjectStore } from 'src/libs/state'
+import { notify } from 'src/libs/notifications'
+import { asyncImportJobStore, requesterPaysProjectStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -220,6 +221,13 @@ export const EntityDeleter = ({ onDismiss, onSuccess, namespace, name, selectedE
 
 const supportsFireCloudDataModel = entityType => _.includes(entityType, ['pair', 'participant', 'sample'])
 
+export const notifyDataImportProgress = jobId => {
+  notify('info', 'Data import in progress.', {
+    id: jobId,
+    message: 'Data will show up incrementally as the job progresses.'
+  })
+}
+
 export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTypes }) => {
   const [useFireCloudDataModel, setUseFireCloudDataModel] = useState(false)
   const [isFileImportCurrMode, setIsFileImportCurrMode] = useState(true)
@@ -233,7 +241,18 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
     setUploading(true)
     try {
       const workspace = Ajax().Workspaces.workspace(namespace, name)
-      await (useFireCloudDataModel ? workspace.importEntitiesFile : workspace.importFlexibleEntitiesFile)(file)
+      if (useFireCloudDataModel) {
+        await workspace.importEntitiesFile(file)
+      } else {
+        const filesize = file?.size || Number.MAX_SAFE_INTEGER
+        if (filesize < 524288) { // 512k
+          await workspace.importFlexibleEntitiesFileSynchronous(file)
+        } else {
+          const { jobId } = await workspace.importFlexibleEntitiesFileAsync(file)
+          asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId }))
+          notifyDataImportProgress(jobId)
+        }
+      }
       onSuccess()
       Ajax().Metrics.captureEvent(Events.workspaceDataUpload, {
         workspaceNamespace: namespace, workspaceName: name
@@ -268,7 +287,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
           disabled: !currentFile || isInvalid || uploading,
           tooltip: !currentFile || isInvalid ? 'Please select valid data to upload' : 'Upload selected data',
           onClick: doUpload
-        }, ['Upload'])
+        }, ['Start Import Job'])
       }, [
         div({ style: { padding: '0 0 1rem' } },
           ['Choose the data import option below. ',

@@ -19,11 +19,10 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import {
-  getConvertedAppStatus,
+  getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
   getCurrentApp,
   getCurrentRuntime,
-  getDisplayRuntimeStatus,
   getGalaxyCostTextChildren,
   getIsAppBusy,
   getIsRuntimeBusy,
@@ -210,7 +209,7 @@ export const CloudEnvironmentModal = ({
           disabled: true,
           tooltip: 'Environment update in progress',
           messageChildren: [span('Environment'),
-            span(toolLabel === tools.galaxy.label ? getConvertedAppStatus(_.upperCase(status)) : getDisplayRuntimeStatus(status))]
+            span(toolLabel === tools.galaxy.label ? getComputeStatusForDisplay(status) : getComputeStatusForDisplay(status))]
         })
       case 'Error':
         return h(RuntimeIcon, {
@@ -248,7 +247,7 @@ export const CloudEnvironmentModal = ({
     [getRuntimeForTool(toolLabel), () => {
       const runtime = getRuntimeForTool(toolLabel)
       const totalCost = runtimeCost(runtime) + _.sum(_.map(persistentDiskCost, persistentDisks))
-      return span([`${getDisplayRuntimeStatus(runtime.status)} (${Utils.formatUSD(totalCost)} / hr)`])
+      return span([`${getComputeStatusForDisplay(runtime.status)} (${Utils.formatUSD(totalCost)} / hr)`])
     }],
     [Utils.DEFAULT, () => span(['None'])]
   )

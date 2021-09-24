@@ -837,10 +837,18 @@ const Workspaces = signal => ({
         return fetchOrchestration(`api/${root}/importEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
       },
 
-      importFlexibleEntitiesFile: file => {
+      importFlexibleEntitiesFileSynchronous: async file => {
         const formData = new FormData()
         formData.set('entities', file)
-        return fetchOrchestration(`api/${root}/flexibleImportEntities`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?async=false`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+        return res
+      },
+
+      importFlexibleEntitiesFileAsync: async file => {
+        const formData = new FormData()
+        formData.set('entities', file)
+        const res = await fetchOrchestration(`api/${root}/flexibleImportEntities?async=true`, _.merge(authOpts(), { body: formData, signal, method: 'POST' }))
+        return res.json()
       },
 
       importPFB: async url => {
@@ -848,8 +856,14 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      importPFBStatus: async jobId => {
-        const res = await fetchOrchestration(`api/${root}/importPFB/${jobId}`, _.merge(authOpts(), { signal }))
+      getImportJobStatus: async jobId => {
+        const res = await fetchOrchestration(`api/${root}/importJob/${jobId}`, _.merge(authOpts(), { signal }))
+        return res.json()
+      },
+
+      listImportJobs: async isRunning => {
+        // ToDo: This endpoint should be deprecated in favor of more generic "importJob" endpoint
+        const res = await fetchOrchestration(`api/${root}/importPFB?running_only=${isRunning}`, _.merge(authOpts(), { signal }))
         return res.json()
       },
 
@@ -908,6 +922,12 @@ const DataRepo = signal => ({
         return res.json()
       }
     }
+  },
+
+  requestAccess: async id => {
+    //TODO: Update this link to hit the real endpoint
+    const res = await fetchRawls(`dunno/what/this/is/${id}/requestAccess`, _.merge(authOpts(), { signal }))
+    return res.json()
   }
 })
 
