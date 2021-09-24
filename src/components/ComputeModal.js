@@ -835,7 +835,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             ])
           ]),
           h(IdContainer, [
-            id => div({ style: { gridColumnEnd: 'span 3', marginTop: '0.5rem' } }, [
+            id => div({ style: { gridColumnEnd: 'span 4', marginTop: '0.5rem' } }, [
               label({ htmlFor: id, style: styles.label }, ['Compute type']),
               div({ style: { marginTop: '0.5rem' } }, [
                 h(Select, {
@@ -851,10 +851,13 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     { value: 'master', label: 'Spark master node' },
                     { value: 'cluster', label: 'Spark cluster' }
                   ]
-                }),
-                h(Link, { onClick: () => setViewMode('packages') }, ['Manage and monitor Spark console'])
+                })
               ])
             ])
+          ]),
+          // TODO: Is there a more robust way to center Link vertically wrt the Select element above?
+          span({ style: { paddingTop: '2rem' } }, [
+            h(Link, { onClick: () => setViewMode('packages') }, ['Manage and monitor Spark console'])
           ])
         ])
       ]),
