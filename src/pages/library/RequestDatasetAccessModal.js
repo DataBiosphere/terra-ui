@@ -16,7 +16,8 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
   return h(Modal, {
     title: 'Request Access',
     width: '40rem',
-    showCancel: false,
+    showButtons: false,
+    showX: true,
     onDismiss
   }, [
     div([

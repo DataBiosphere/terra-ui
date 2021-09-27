@@ -173,7 +173,7 @@ const Browser = () => {
     ])
   }
 
-  const DataTable = ({ listData }) => {
+  const DataBrowserTable = ({ listData }) => {
     return _.isEmpty(listData) ?
       centeredSpinner() :
       div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
@@ -244,7 +244,7 @@ const Browser = () => {
       featuredList: catalogSnapshots, sidebarSections,
       customSort: sort,
       searchType: 'Datasets',
-      ListContent: DataTable
+      ListContent: DataBrowserTable
     }),
     h(SelectedItemsDisplay, []),
     !!requestDatasetAccessList && h(RequestDatasetAccessModal, {
