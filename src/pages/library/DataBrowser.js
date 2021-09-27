@@ -8,6 +8,7 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { MiniSortable, SimpleTable } from 'src/components/table'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
@@ -127,7 +128,7 @@ const Browser = () => {
           ...snapshot,
           project: _.get('0.dct:title', snapshot['TerraDCAT_ap:hasDataCollection']),
           lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description']),
-          lastUpdated: new Date(snapshot['dct:modified'])
+          lastUpdated: snapshot['dct:modified'] ? new Date(snapshot['dct:modified']) : null
         }
         return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)
       }, rawList)
@@ -141,32 +142,37 @@ const Browser = () => {
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
   const SelectedItemsDisplay = () => {
-    const length = _.size(selectedData)
-    const files = _.sumBy(data => _.sumBy('count', data.files), selectedData)
+    const length = _.size(selectedData).toLocaleString()
+    const files = _.sumBy(data => _.sumBy('count', data.files), selectedData).toLocaleString()
     const totalBytes = _.sumBy(data => _.sumBy('dcat:byteSize', data.files), selectedData)
     const fileSizeFormatted = filesize(totalBytes)
 
-    return div({
+    return !_.isEmpty(selectedData) && div({
       style: {
         display: selectedData.length > 0 ? 'block' : 'none',
-        position: 'sticky', bottom: 0, marginTop: '20px',
+        position: 'sticky', bottom: 0, marginTop: 20,
         width: '100%', padding: '34px 60px',
-        backgroundColor: 'white', boxShadow: 'rgb(0 0 0 / 30%) 0px 0px 8px 3px',
+        backgroundColor: 'white', boxShadow: 'rgb(0 0 0 / 30%) 0 0 8px 3px',
         fontSize: 17
       }
     }, [
-      div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' } }, [
-        `${length} dataset${length > 1 ? 's' : ''} (${fileSizeFormatted} - ${files} bam files) selected to be saved to a Terra Workspace`,
-        div([
-          h(ButtonSecondary, {
-            style: { fontSize: 16, marginRight: 40, textTransform: 'none' },
-            onClick: () => setSelectedData([])
-          }, 'Cancel'),
-          h(ButtonPrimary, {
-            style: { textTransform: 'none', fontSize: 14 },
-            onClick: () => {}
-          }, ['Save to a workspace'])
-        ])
+      div({ style: { display: 'flex', alignItems: 'center' } }, [
+        div({ style: { flexGrow: 1 } }, [
+          `${length} dataset${length > 1 ? 's' : ''} (${fileSizeFormatted} - ${files} files) selected to be saved to a Terra Workspace`
+        ]),
+        h(ButtonSecondary, {
+          style: { fontSize: 16, marginRight: 40, textTransform: 'none' },
+          onClick: () => setSelectedData([])
+        }, 'Cancel'),
+        h(ButtonPrimary, {
+          style: { textTransform: 'none', fontSize: 14 },
+          onClick: () => {
+            Nav.history.push({
+              pathname: Nav.getPath('import-data'),
+              search: `?url=${getConfig().dataRepoUrlRoot}&snapshotId=REPLACE_ME&snapshotName=${selectedData[0]['dct:title']}&format=snapshot`
+            })
+          }
+        }, ['Save to a workspace'])
       ])
     ])
   }
@@ -216,7 +222,8 @@ const Browser = () => {
             project,
             subjects: datum?.counts?.donors,
             dataType,
-            lastUpdated: Utils.makeStandardDate(datum['dct:modified']),
+            // lastUpdated: 'none',
+            lastUpdated: datum.lastUpdated ? Utils.makeStandardDate(datum.lastUpdated) : null,
             underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
               div({ style: { display: 'flex', alignItems: 'center' } }, [
                 locked ?
@@ -239,7 +246,7 @@ const Browser = () => {
     libraryTopMatter('browse & explore'),
     h(SearchAndFilterComponent, {
       featuredList: catalogSnapshots, sidebarSections,
-      customSort: true,
+      customSort: sort,
       searchType: 'Datasets',
       ListContent: DataTable
     }),

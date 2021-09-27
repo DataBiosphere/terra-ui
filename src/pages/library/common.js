@@ -123,7 +123,7 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, custom
     filterBySections,
     filterByTags,
     filterByText,
-    customSort ? _.identity : _.orderBy([sort.field], [sort.direction])
+    customSort ? _.orderBy([customSort.field], [customSort.direction]) : _.orderBy([sort.field], [sort.direction])
   )(featuredList)
 
   return h(Fragment, [
