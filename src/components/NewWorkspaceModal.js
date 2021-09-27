@@ -46,7 +46,6 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState()
   const [bucketLocation, setBucketLocation] = useState('')
-
   const signal = Utils.useCancellation()
 
 
@@ -111,9 +110,26 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     setNamespace(_.some({ projectName: namespace }, usableProjects) ? namespace : undefined)
   })
 
+  const loadBucketLocation = _.flow(
+    withErrorReporting('Error loading data'),
+    Utils.withBusyState(setLoading)
+  )(async () => {
+    console.log('in loadbucketlocation')
+    const [locationResponse] = await Promise.all([
+      Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
+    ])
+    console.log(locationResponse.location)
+    setBucketLocation(locationResponse.location.toLowerCase())
+  })
+
 
   // Lifecycle
-  Utils.useOnMount(() => { loadProjectsGroups() })
+  Utils.useOnMount(() => {
+    loadProjectsGroups()
+    if (cloneWorkspace) {
+      loadBucketLocation()
+    }
+  })
 
 
   // Render
