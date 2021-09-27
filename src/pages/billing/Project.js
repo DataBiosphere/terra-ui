@@ -338,7 +338,7 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
   // Lifecycle
   Utils.useOnMount(() => { refresh() })
 
-  useEffect(() => { StateHistory.update({ projectUsers }), [projectUsers] })
+  useEffect(() => StateHistory.update({ projectUsers }), [projectUsers])
 
   // There's some madness going on when using state variables in polling effects - the reference
   // never updates (i.e. it's bound to the value that the component was first mounted with).
