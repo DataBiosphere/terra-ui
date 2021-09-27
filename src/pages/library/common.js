@@ -14,6 +14,7 @@ import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
 import gatkLogo from 'src/images/library/showcase/gatk-logo-light.svg'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -205,6 +206,8 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
   const [searchFilter, setSearchFilter] = useState('')
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
+  // eslint-disable-next-line no-unused-vars
+  const [datasetName, setDatasetName] = useState('')
 
   const [selectedData, setSelectedData] = useState([])
 
@@ -343,7 +346,12 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, active
         }, 'Cancel'),
         h(ButtonPrimary, {
           style: { textTransform: 'none', fontSize: 14 },
-          onClick: () => {}
+          onClick: () => {
+            Nav.history.push({
+              pathname: Nav.getPath('import-data'),
+              search: `?url=${getConfig().dataRepoUrlRoot}&snapshotId=REPLACE_ME&snapshotName=${datasetName}&format=snapshot`
+            })
+          }
         }, ['Save to a workspace'])
       ])
     ]),
