@@ -165,7 +165,8 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
             label: h(Fragment, [
               invalidBillingAccount ?
                 h(TooltipTrigger, {
-                  content: ['Workspaces may only be created in billing projects that have a Google billing account accessible in Terra'], side: 'left'
+                  content: 'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra',
+                  side: 'left'
                 }, [div({ style: { padding: 10 } }, [projectName])]) :
                 div({ style: { padding: 10 } }, [projectName])
             ]),

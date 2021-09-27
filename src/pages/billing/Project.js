@@ -168,9 +168,9 @@ const BillingAccountSummaryPanel = (() => {
       ]),
       error > 0 && div({ style: { padding: '1rem 0 0' } }, [
         'Try again or ',
-        h(Link, { onClick: () => contactUsActive.set(true) },
-          ['contact us regarding unresolved errors']),
-        '.'
+        h(Link, { onClick: () => contactUsActive.set(true) }, [
+          'contact us regarding unresolved errors'
+        ]), '.'
       ])
     ]))
 })()
@@ -219,7 +219,7 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
   )(workspaces), [billingProject, workspaces])
 
   const groups = groupByBillingAccountStatus(billingProject, workspacesInProject)
-  const billingAccountsOutOfDate = !_.every(_.isEmpty, [groups.error, groups.updating])
+  const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating))
   const getBillingAccountStatus = workspace => _.findKey(g => g.has(workspace), groups)
 
   const tabToTable = {
@@ -336,9 +336,9 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
   })
 
   // Lifecycle
-  Utils.useOnMount(refresh)
+  Utils.useOnMount(() => { refresh() })
 
-  useEffect(() => StateHistory.update({ projectUsers }), [projectUsers])
+  useEffect(() => { StateHistory.update({ projectUsers }), [projectUsers] })
 
   // There's some madness going on when using state variables in polling effects - the reference
   // never updates (i.e. it's bound to the value that the component was first mounted with).

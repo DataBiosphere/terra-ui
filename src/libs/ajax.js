@@ -80,11 +80,12 @@ const checkRequesterPaysError = async response => {
   }
 }
 
-export const canUseWorkspaceProject =
-  async ({ canCompute, workspace: { namespace } }) => canCompute || _.some(
-    p => p.projectName === namespace && _.includes('Owner', p.roles),
+export const canUseWorkspaceProject = async ({ canCompute, workspace: { namespace } }) => {
+  return canCompute || _.some(
+    ({ projectName, roles }) => projectName === namespace && _.includes('Owner', roles),
     await Ajax().Billing.listProjects()
   )
+}
 
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing
@@ -436,7 +437,10 @@ const Groups = signal => ({
 
 
 const Billing = signal => ({
-  listProjects: async () => (await fetchRawls('billing/v2', _.merge(authOpts(), { signal }))).json(),
+  listProjects: async () => {
+    const res = await fetchRawls('billing/v2', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
 
   listAccounts: async () => {
     const res = await fetchRawls('user/billingAccounts', _.merge(authOpts(), { signal }))
