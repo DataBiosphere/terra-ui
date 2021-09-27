@@ -6,6 +6,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
+import { allRegions } from 'src/components/region-common'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -44,7 +45,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState()
-
+  const [bucketLocation, setBucketLocation] = useState('')
   const signal = Utils.useCancellation()
 
 
@@ -67,6 +68,9 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
         authorizationDomain: _.map(v => ({ membersGroupName: v }), [...getRequiredGroups(), ...groups]),
         attributes: { description },
         copyFilesWithPrefix: 'notebooks/'
+      }
+      if (bucketLocation) {
+        body.bucketLocation = bucketLocation
       }
       onSuccess(await Utils.cond(
         [cloneWorkspace, async () => {
@@ -106,9 +110,26 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     setNamespace(_.some({ projectName: namespace }, usableProjects) ? namespace : undefined)
   })
 
+  const loadBucketLocation = _.flow(
+    withErrorReporting('Error loading data'),
+    Utils.withBusyState(setLoading)
+  )(async () => {
+    console.log('in loadbucketlocation')
+    const [locationResponse] = await Promise.all([
+      Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
+    ])
+    console.log(locationResponse.location)
+    setBucketLocation(locationResponse.location.toLowerCase())
+  })
+
 
   // Lifecycle
-  Utils.useOnMount(() => { loadProjectsGroups() })
+  Utils.useOnMount(() => {
+    loadProjectsGroups()
+    if (cloneWorkspace) {
+      loadBucketLocation()
+    }
+  })
 
 
   // Render
@@ -200,6 +221,26 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           value: groups,
           onChange: data => setGroups(_.map('value', data)),
           options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()
+        })
+      ])]),
+      h(IdContainer, [id => h(Fragment, [
+        h(FormLabel, { htmlFor: id }, [
+          'Bucket location',
+          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+            'A bucket location can only be set when creating a workspace. ',
+            'Once set, it cannot be changed. ',
+            'Any cloned workspace will automatically inherit the bucket location from the original workspace and cannot be changed. ',
+            h(Link, {
+              href: 'https://cloud.google.com/storage/docs/locations',
+              ...Utils.newTabLinkProps
+            }, ['Read more about bucket locations'])
+          ])
+        ]),
+        h(Select, {
+          id,
+          value: bucketLocation,
+          onChange: ({ value }) => setBucketLocation(value),
+          options: allRegions
         })
       ])]),
       customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
