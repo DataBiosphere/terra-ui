@@ -114,8 +114,7 @@ const extractTags = snapshot => {
 }
 
 const Browser = () => {
-  const stateHistory = StateHistory.get()
-  const [catalogSnapshots, setCatalogSnapshots] = useState(stateHistory.catalogSnapshots)
+  const [catalogSnapshots, setCatalogSnapshots] = useState(() => StateHistory.get().catalogSnapshots)
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const [selectedData, setSelectedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
