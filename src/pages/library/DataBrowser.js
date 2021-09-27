@@ -24,7 +24,7 @@ const styles = {
   table: {
     header: {
       color: colors.accent(),
-      height: 16,
+      height: '1rem',
       textTransform: 'uppercase', fontWeight: 600, fontSize: '0.75rem'
     },
     row: {
