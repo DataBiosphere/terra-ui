@@ -26,8 +26,8 @@ export const requesterPaysWrapper = ({ onDismiss }) => WrappedComponent => {
     return Utils.cond(
       [showModal, () => h(RequesterPaysModal, {
         onDismiss: () => onDismiss(props),
-        onSuccess: selectedBilling => {
-          requesterPaysProjectStore.set(selectedBilling)
+        onSuccess: selectedGoogleProject => {
+          requesterPaysProjectStore.set(selectedGoogleProject)
           setShowModal(false)
         }
       })],
