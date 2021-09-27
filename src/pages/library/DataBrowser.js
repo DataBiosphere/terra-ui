@@ -30,7 +30,7 @@ const styles = {
     row: {
       backgroundColor: '#ffffff',
       borderRadius: 5, border: '1px solid rgba(0,0,0,.15)',
-      margin: '0 -15px 15px', padding: 15
+      margin: '0 -1rem 1rem', padding: '1rem'
     }
   }
 }
