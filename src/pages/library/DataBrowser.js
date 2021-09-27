@@ -39,20 +39,20 @@ const styles = {
 const sidebarSections = [{
   name: 'Access Type',
   labels: [
-    'Controlled Access',
-    'Open Access'
+    'Controlled',
+    'Open'
   ],
   labelDisplays: {
-    'Controlled Access': [
+    Controlled: [
       div({ style: { display: 'flex' } }, [
         icon('lock', { style: { color: styles.access.controlled, marginRight: 5 } }),
-        div(['Controlled Access'])
+        div(['Controlled'])
       ])
     ],
-    'Open Access': [
+    Open: [
       div({ style: { display: 'flex' } }, [
         icon('unlock', { style: { color: styles.access.open, marginRight: 5 } }),
-        div(['Open Access'])
+        div(['Open'])
       ])
     ]
   }
@@ -103,7 +103,7 @@ const extractTags = snapshot => {
   return {
     itemsType: 'AttributeValue',
     items: [
-      snapshot.locked ? 'controlled access' : 'open access',
+      snapshot.locked ? 'controlled' : 'open',
       _.toLower(snapshot.project),
       ..._.map('dcat:mediaType', snapshot.files)
     ]
