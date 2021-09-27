@@ -6,6 +6,7 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
@@ -148,7 +149,12 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
     ]),
     h(ButtonPrimary, {
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
-      onClick: () => console.log('clicked')
+      onClick: () => {
+        Nav.history.push({
+          pathname: Nav.getPath('import-data'),
+          search: `?url=${getConfig().dataRepoUrlRoot}&snapshotId=REPLACE_ME&snapshotName=${snapshot['dct:title']}&format=snapshot`
+        })
+      }
     }, ['Save to a workspace'])
   ])
 }
