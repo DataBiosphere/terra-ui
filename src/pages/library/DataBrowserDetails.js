@@ -23,14 +23,11 @@ const styles = {
   }
 }
 
-const getSnapshot = id => new Promise(resolve => setTimeout(() => {
-  fetch('hca-sample.json').then(response => {
-    response.json().then(tempData => {
-      const dataMap = _.keyBy('dct:identifier', tempData.data)
-      resolve(dataMap[id])
-    })
-  })
-}, 1000))
+const getSnapshot = async id => {
+  const list = await fetch('hca-sample.json').then(res => res.json())
+  const dataMap = _.keyBy('dct:identifier', list.data)
+  return new Promise(resolve => setTimeout(resolve(dataMap[id]), 1000))
+}
 
 const MainContent = ({ snapshot }) => {
   return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [

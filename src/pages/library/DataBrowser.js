@@ -94,13 +94,10 @@ const sidebarSections = [{
   ]
 }]
 
-const getRawList = () => new Promise(resolve => setTimeout(() => {
-  fetch('hca-sample.json').then(response => {
-    response.json().then(tempData => {
-      resolve(tempData.data)
-    })
-  })
-}, 1000))
+const getRawList = async () => {
+  const list = await fetch('hca-sample.json').then(res => res.json())
+  return new Promise(resolve => setTimeout(resolve(list.data), 1000))
+}
 
 const extractTags = snapshot => {
   return {
