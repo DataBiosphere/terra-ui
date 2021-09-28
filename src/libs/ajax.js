@@ -140,6 +140,7 @@ const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
+const fetchDataExplorer = withUrlPrefix(``, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.${tools.Jupyter.ext}`)
 const rName = name => encodeURIComponent(`notebooks/${name}.${tools.RStudio.ext}`)
@@ -911,6 +912,11 @@ const Workspaces = signal => ({
 
 
 const DataRepo = signal => ({
+  getMetadata: async () => {
+    const res = await fetchDataRepo(`repository/v1/search/metadata`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
   snapshot: snapshotId => {
     return {
       details: async () => {
