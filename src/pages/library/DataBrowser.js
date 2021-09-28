@@ -1,5 +1,4 @@
 import filesize from 'filesize'
-import { isEmpty } from 'lodash'
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
@@ -15,14 +14,11 @@ import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
 import { SearchAndFilterComponent } from 'src/pages/library/common'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
+import { normalizeSnapshot, snapshotStyles } from 'src/pages/library/Snapshots'
 
 
 const styles = {
-  access: {
-    open: colors.success(1.5),
-    controlled: colors.accent(),
-    pending: '#F7981C'
-  },
+  ...snapshotStyles,
   table: {
     header: {
       color: colors.accent(),
@@ -79,18 +75,38 @@ const sidebarSections = [{
     'HCA'
   ]
 }, {
+  name: 'Species',
+  labels: ['Homo sapiens', 'Mus musculus']
+}, {
   name: 'Disease',
   labels: [
-    'Alzheimer\'s disease',
-    'asthma',
-    'autism spectrum disorder'
+    'brain cancer', 'normal', 'cardiovascular disease', 'epilepsy', 'hepatocellular carcinoma',
+    'cystic fibrosis', 'asymptomatic COVID-19 infection', 'critical COVID-19 infection', 'mild COVID-19 infection',
+    'moderate COVID-19 infection', 'severe COVID-19 infection', 'Enterococcus faecalis infection', 'Lyme disease',
+    'acoustic neuroma', 'acute kidney tubular necrosis', 'adrenal cortex adenoma', 'anxiety disorder', 'arthritis',
+    'benign prostatic hyperplasia (disease)', 'depressive disorder', 'diverticulitis', 'essential hypertension',
+    'gastroesophageal reflux disease', 'hereditary hemochromatosis', 'hiatus hernia (disease)', 'hyperlipidemia (disease)',
+    'irritable bowel syndrome', 'kidney cancer', 'non-alcoholic fatty liver disease', 'obstructive sleep apnea syndrome',
+    'pericardial effusion (disease)', 'prostate cancer', 'pure autonomic failure', 'syndromic dyslipidemia',
+    'type 2 diabetes mellitus', 'ventricular tachycardia', 'GATA2 deficiency with susceptibility to MDS/AML',
+    'colitis (disease)', 'ulcerative colitis (disease)', 'allergic asthma', 'hyperlipidemia', 'hypertensive disorder',
+    'atypical chronic myeloid leukemia', 'chronic obstructive pulmonary disease', 'lung cancer', 'measles', 'mumps infectious disease',
+    'tongue cancer', 'Warthin tumor', 'breast cancer', 'oncocytic adenoma', 'cancer', 'Crohn disease', 'cervical cancer',
+    'glaucoma (disease)', 'clear cell renal carcinoma', 'renal pelvis papillary urothelial carcinoma', 'Alzheimer disease',
+    'cognitive impairment with or without cerebellar ataxia', 'glioblastoma (disease)', 'HIV infectious disease',
+    'benign prostatic hyperplasia', 'pericardial effusion', 'type 1 diabetes mellitus', 'plasma cell myeloma', 'end stage renal failure',
+    'hemolytic-uremic syndrome', 'orofaciodigital syndrome VIII', 'asymptomatic dengue', 'multiple sclerosis', 'lupus erythematosus',
+    'melanoma (disease)', 'renal cell carcinoma (disease)', 'colorectal cancer', 'lung adenocarcinoma', 'intracranial hypertension',
+    'atopic eczema', 'psoriasis', 'pulmonary fibrosis', 'osteoarthritis, hip', 'bacterial infectious disease with sepsis',
+    'bronchopneumonia', 'heart failure', 'intestinal obstruction', 'ovarian cancer', 'rheumatoid arthritis', 'tongue squamous cell carcinoma',
+    'cataract (disease)', 'testicular cancer'
   ]
-},
-{
+}, {
   name: 'Data Type',
   labels: [
     'Exome',
-    'Whole Genome'
+    'Whole Genome',
+    'N/A'
   ]
 }, {
   name: 'File type',
@@ -114,11 +130,13 @@ const extractTags = snapshot => {
     items: [
       snapshot.access || 'open',
       _.toLower(snapshot.project),
-      ..._.map('dcat:mediaType', snapshot.files)
+      ..._.map('dcat:mediaType', snapshot.files),
+      _.toLower(snapshot.dataType),
+      ..._.map(_.toLower, _.getOr([], 'donors.genus', snapshot)),
+      ..._.map(_.toLower, _.getOr([], 'donors.disease', snapshot))
     ]
   }
 }
-
 
 const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
   const length = _.size(selectedData).toLocaleString()
@@ -159,7 +177,7 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
 
 const DataBrowserTable = ({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList, showProjectFilters, setShowProjectFilters }) => {
   return ({ fullList, filteredList, setSelectedTags, selectedTags, sections }) => {
-    if (isEmpty(fullList)) {
+    if (_.isEmpty(fullList)) {
       return centeredSpinner()
     }
 
@@ -266,14 +284,11 @@ const Browser = () => {
     const loadData = async () => {
       const rawList = await getRawList()
       const normList = _.map(snapshot => {
-        const normalizedSnapshot = {
-          ...snapshot,
-          project: _.get('0.dct:title', snapshot['TerraDCAT_ap:hasDataCollection']),
-          lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description']),
-          lastUpdated: snapshot['dct:modified'] ? new Date(snapshot['dct:modified']) : null
-        }
+        const normalizedSnapshot = normalizeSnapshot(snapshot)
         return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)
       }, rawList)
+
+      console.log(_.uniq(_.flatMap(item => item.donors.disease, normList)))
 
       setFullList(normList)
       StateHistory.update({ catalogSnapshots: fullList })

@@ -43,11 +43,13 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
         _.map(dataset => tr({ key: dataset.id, style: { height: '2rem' } }, [
           td({ style: { paddingRight: 20 } }, [dataset['dct:title']]),
           td([
-            dataset.locked ?
-              h(RequestDatasetAccessButton, {
+            Utils.cond(
+              [dataset.access === 'controlled', h(RequestDatasetAccessButton, {
                 datasetName: dataset['dct:title']
-              }) :
-              span({ style: { fontWeight: 600 } }, ['Permission Granted'])
+              })],
+              [dataset.access === 'pending', span({ style: { fontWeight: 600 } }, ['Request Pending'])],
+              () => span({ style: { fontWeight: 600 } }, ['Permission Granted'])
+            )
           ])
         ]), datasets)
       )

@@ -10,17 +10,16 @@ import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
+import { normalizeSnapshot, snapshotStyles } from 'src/pages/library/Snapshots'
+import { normalize } from 'upath'
 
 
 const activeTab = 'browse & explore'
 const styles = {
+  ...snapshotStyles,
   content: { padding: 20, marginTop: 15 },
   headers: { margin: '20px 0 0' },
   attributesColumn: { width: '22%', marginRight: 20, marginTop: 30 },
-  access: {
-    open: colors.success(1.5),
-    controlled: colors.accent()
-  }
 }
 
 const getSnapshot = async id => {
@@ -31,7 +30,7 @@ const getSnapshot = async id => {
 
 const MainContent = ({ snapshot }) => {
   return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
-    h1([_.get('dct:title', snapshot)]),
+    h1({ style: { lineHeight: '1.5em' } }, [_.get('dct:title', snapshot)]),
     div([_.get('dct:description', snapshot)]),
     h2({ className: 'sr-only' }, ['Snapshot Sources']),
     div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
@@ -62,10 +61,10 @@ const MainContent = ({ snapshot }) => {
         h3({ style: styles.headers }, ['Data curator'])
         // div(['Will add later, after data structure is added'])
       ]),
-      div({ style: styles.attributesColumn }, [
-        h3({ style: styles.headers }, ['Contributors']),
-        _.map(contributor => div({ key: `contributor-list_${contributor}}` }, [contributor]), _.get('contributors', snapshot))
-      ]),
+      // div({ style: styles.attributesColumn }, [
+      //   h3({ style: styles.headers }, ['Contributors']),
+      //   _.map(contributor => div({ key: `contributor-list_${contributor.contactName}}` }, [contributor]), _.get('contributors', snapshot))
+      // ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Cloud provider']),
         div([
@@ -81,24 +80,31 @@ const MainContent = ({ snapshot }) => {
 }
 
 const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
+  const { access } = snapshot
+
   return div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
     h2({ className: 'sr-only' }, ['Snapshot Data Details']),
     div({ style: { backgroundColor: 'white', padding: 20, paddingTop: 0, width: '100%', border: '2px solid #D6D7D7', borderRadius: 5 } }, [
       div([
         h3(['Access type']),
         div([
-          _.get('locked', snapshot) ?
-            h(ButtonSecondary, {
+          Utils.cond(
+            [access === 'controlled', h(ButtonSecondary, {
               style: { fontSize: 16, textTransform: 'none', height: 'unset' },
               onClick: () => setShowRequestAccessModal(true)
             }, [
               icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
               'Request Access'
-            ]) :
-            div({ style: { color: styles.access.open } }, [
+            ])],
+            [access === 'pending', div({ style: { color: styles.access.pending } }, [
+              icon('unlock', { size: 18, style: { marginRight: 10 } }),
+              'Pending Access'
+            ])],
+            () => div({ style: { color: styles.access.open } }, [
               icon('unlock', { size: 18, style: { marginRight: 10 } }),
               'Open Access'
             ])
+          )
         ])
       ]),
       div([
@@ -161,7 +167,7 @@ const DataBrowserDetails = ({ id }) => {
   const [showRequestAccessModal, setShowRequestAccessModal] = useState()
 
   Utils.useOnMount(() => {
-    const loadData = async () => setSnapshot(await getSnapshot(id))
+    const loadData = async () => setSnapshot(normalizeSnapshot(await getSnapshot(id)))
     loadData()
   })
 
