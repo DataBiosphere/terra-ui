@@ -92,12 +92,12 @@ const DataprocDiskSelector = ({ value, onChange }) => {
   ])
 }
 
-const SparkConsoleInterface = ({ header, bodyTextLines }) => {
+const SparkConsoleInterface = ({ interfaceName, synopsisLines }) => {
   return div({ style: { ...styles.whiteBoxContainer, marginBottom: '1rem', backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
     div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
       div([
-        div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, [header]),
-        div({ style: { lineHeight: 1.5 } }, _.map(line => div([line]), bodyTextLines)),
+        div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, [interfaceName]),
+        div({ style: { lineHeight: 1.5 } }, _.map(line => div([line]), synopsisLines)),
         div({ style: { display: 'flex', marginTop: '2rem' } }, [
           h(ButtonOutline, {
             disabled: false,
@@ -1336,17 +1336,37 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         div(['File System (HDFS), MapReduce, and Spark.'])
       ]),
       h(SparkConsoleInterface, {
-        header: 'YARN',
-        bodyTextLines: [
+        interfaceName: 'YARN Resource Manager',
+        synopsisLines: [
           'Apache Hadoop YARN interface provides information about cluster resource',
           'management and job scheduling/monitoring.'
         ]
       }),
       h(SparkConsoleInterface, {
-        header: 'Spark',
-        bodyTextLines: [
-          'Apache Hadoop YARN interface provides information about cluster resource',
-          'management and job scheduling/monitoring.'
+        interfaceName: 'Spark Job History Server',
+        synopsisLines: [
+          'Spark users often wish to view job history files for diagnostic or other purposes.',
+          'This interface allows for viewing job history for jobs run on active Spark clusters.'
+        ]
+      }),
+      h(SparkConsoleInterface, {
+        interfaceName: 'MapReduce Job History Server',
+        synopsisLines: [
+          'Similarly to above, this interface allows for viewing history for MapReduce jobs.'
+        ]
+      }),
+      h(SparkConsoleInterface, {
+        interfaceName: 'HDFS NameNode',
+        synopsisLines: [
+          'A NameNode is a main daemon that maintains and manages DataNodes.',
+          'This interface can be used to view summary and detailed information',
+          'on name and data nodes.'
+        ]
+      }),
+      h(SparkConsoleInterface, {
+        interfaceName: 'YARN Application Timeline',
+        synopsisLines: [
+          'This service interface provides information about application- and YARN- published events.'
         ]
       })
     ])
