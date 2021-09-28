@@ -1311,86 +1311,25 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         onDismiss,
         onPrevious: () => setViewMode(undefined)
       }),
-      div({ style: { marginBottom: '1rem' } }, ['Some of the Spark cluster components such as Apache Hadoop and Apache Spark, ',
-        'provide web interfaces. These interfaces can be used to manage and monitor ',
-        'cluster resources and facilities, such as the YARN resource manager, the ',
-        'Hadoop Distributed File System (HDFS), MapReduce, and Spark.']),
-      div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
-        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
-          div([
-            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
-            div({ style: { lineHeight: 1.5 } }, [
-              div(['Please pause or delete the cloud environment when finished; it will']),
-              div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running. Please see the subsection']),
-              h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
-                'Pausing/Resuming a Galaxy instance.',
-                icon('pop-out', { size: 12, style: { marginTop: '0.5rem', marginLeft: '0.25rem' } })
-              ])
-            ])
-          ])
-        ])
-      ]),
-      div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [
-        renderActionButton()
-      ])
-    ])
-  }
-
-
-  const renderSparkConsole2 = () => {
-    return div({ style: styles.drawerContent }, [
-      h(TitleBar, {
-        id: titleId,
-        title: 'Cloud Environment',
-        style: styles.titleBar,
-        hideCloseButton: isAnalysisMode,
-        onDismiss,
-        onPrevious: () => setViewMode(undefined)
-      }),
-      div({ style: { marginBottom: '2rem' } }, [
-        'Some of the Spark cluster components such as Apache Hadoop and Apache Spark, ',
-        'provide web interfaces. These interfaces can be used to manage and monitor ',
-        'cluster resources and facilities, such as the YARN resource manager, the ',
-        'Hadoop Distributed File System (HDFS), MapReduce, and Spark.'
+      div({ style: { marginBottom: '1rem' } }, [
+        div(['Some of the Spark cluster components such as Apache Hadoop and Apache Spark']),
+        div(['provide web interfaces. These interfaces can be used to manage and monitor cluster']),
+        div(['resources and facilities, such as the YARN resource manager, the Hadoop Distributed']),
+        div(['File System (HDFS), MapReduce, and Spark.'])
       ]),
       div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
         div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
           div([
-            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Setup duration']),
+            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['YARN']),
             div({ style: { lineHeight: 1.5 } }, [
-              div(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
-              div(['You can navigate away, and we will notify you when it\'s ready. '])
-            ])
-          ])
-        ]),
-        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
-          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('money-check-alt', { size: 25, color: colors.accent() })]),
-          div([
-            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
-            div({ style: { lineHeight: 1.5 } }, [
-              div(['Please pause or delete the cloud environment when finished; it will']),
-              div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running. Please see the subsection']),
-              h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
-                'Pausing/Resuming a Galaxy instance.',
-                icon('pop-out', { size: 12, style: { marginTop: '0.5rem', marginLeft: '0.25rem' } })
-              ])
-            ])
-          ])
-        ]),
-        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
-          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('cog', { size: 25, color: colors.accent() })]),
-          div([
-            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Environment updates']),
-            div({ style: { lineHeight: 1.5 } }, [
-              div(['If you would like to update your compute or disk configuration']),
-              div(['after an environment is created, please delete the environment and']),
-              div(['create a new environment with the desired configuration.'])
+              div(['Apache Hadoop YARN interface provides information about cluster resource']),
+              div(['management and job scheduling/monitoring.'])
+            ]),
+            div({ style: { display: 'flex', marginTop: '2rem' } }, [
+              h(ButtonOutline, { disabled: false, style: { textTransform: 'capitalize', marginRight: 'auto' }, onClick: () => console.log('LAUNCHING...') }, ['Launch'])
             ])
           ])
         ])
-      ]),
-      div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [
-        renderActionButton()
       ])
     ])
   }
