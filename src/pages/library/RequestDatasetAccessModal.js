@@ -44,10 +44,10 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
           td({ style: { paddingRight: 20 } }, [dataset['dct:title']]),
           td([
             Utils.cond(
-              [dataset.access === 'controlled', h(RequestDatasetAccessButton, {
+              [dataset['TerraDCAT_ap:hasDataUsePermission'] === 'TerraCore:Restricted', () => h(RequestDatasetAccessButton, {
                 datasetName: dataset['dct:title']
               })],
-              [dataset.access === 'pending', span({ style: { fontWeight: 600 } }, ['Request Pending'])],
+              [dataset['TerraDCAT_ap:hasDataUsePermission'] === 'TerraCore:Pending', () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
               () => span({ style: { fontWeight: 600 } }, ['Permission Granted'])
             )
           ])

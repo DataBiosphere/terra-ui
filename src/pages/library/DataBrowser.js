@@ -37,24 +37,24 @@ const styles = {
 const sidebarSections = [{
   name: 'Access Type',
   labels: [
-    'Controlled',
-    'Open',
-    'Pending'
+    'TerraCore:Restricted',
+    'TerraCore:NoRestriction',
+    'TerraCore:Pending'
   ],
   labelDisplays: {
-    Controlled: [
+    'TerraCore:Restricted': [
       div({ style: { display: 'flex' } }, [
         icon('lock', { style: { color: styles.access.controlled, marginRight: 5 } }),
         div(['Controlled'])
       ])
     ],
-    Open: [
+    'TerraCore:NoRestriction': [
       div({ style: { display: 'flex' } }, [
         icon('unlock', { style: { color: styles.access.open, marginRight: 5 } }),
         div(['Open'])
       ])
     ],
-    Pending: [
+    'TerraCore:Pending': [
       div({ style: { display: 'flex' } }, [
         icon('lock', { style: { color: styles.access.pending, marginRight: 5 } }),
         div(['Pending'])
@@ -128,7 +128,7 @@ const extractTags = snapshot => {
   return {
     itemsType: 'AttributeValue',
     items: [
-      snapshot.access || 'open',
+      _.toLower(snapshot['TerraDCAT_ap:hasDataUsePermission'] || 'TerraCore:NoRestriction'),
       _.toLower(snapshot.project),
       ..._.map('dcat:mediaType', snapshot.files),
       _.toLower(snapshot.dataType),
@@ -234,7 +234,8 @@ const DataBrowserTable = ({ sort, setSort, selectedData, toggleSelectedData, set
         useHover: false,
         underRowKey: 'underRow',
         rows: _.map(datum => {
-          const { project, dataType, access } = datum
+          const { project, dataType } = datum
+          const access = _.get('TerraDCAT_ap:hasDataUsePermission', datum)
           return {
             checkbox: h(Checkbox, {
               'aria-label': datum['dct:title'],
@@ -252,11 +253,11 @@ const DataBrowserTable = ({ sort, setSort, selectedData, toggleSelectedData, set
             underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
               div({ style: { display: 'flex', alignItems: 'center' } }, [
                 Utils.cond(
-                  [access === 'controlled', () => h(ButtonSecondary, {
+                  [access === 'TerraCore:Restricted', () => h(ButtonSecondary, {
                     style: { height: 'unset', textTransform: 'none' },
                     onClick: () => setRequestDatasetAccessList([datum])
                   }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Request Access'])])],
-                  [access === 'pending', () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
+                  [access === 'TerraCore:Pending', () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
                     icon('lock'),
                     div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
                   ])],

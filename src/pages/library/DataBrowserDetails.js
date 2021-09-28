@@ -43,27 +43,8 @@ const MainContent = ({ snapshot }) => {
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Version']),
-        div([_.get('', snapshot)])
+        div(['1.0'])
       ]),
-      div({ style: styles.attributesColumn }, [
-        h3({ style: styles.headers }, ['Region']),
-        _.map(
-          storage => div({ key: `region-table-${storage.region}` }, [storage.region]),
-          _.uniqBy('region', snapshot.storage)
-        )
-      ]),
-      div({ style: styles.attributesColumn }, [
-        h3({ style: styles.headers }, ['Contact'])
-        // h(Link, { href: `mailto:fakeemail@fake.org` }, ['fakeemail@fake.org'])
-      ]),
-      div({ style: styles.attributesColumn }, [
-        h3({ style: styles.headers }, ['Data curator'])
-        // div(['Will add later, after data structure is added'])
-      ]),
-      // div({ style: styles.attributesColumn }, [
-      //   h3({ style: styles.headers }, ['Contributors']),
-      //   _.map(contributor => div({ key: `contributor-list_${contributor.contactName}}` }, [contributor]), _.get('contributors', snapshot))
-      // ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Cloud provider']),
         div([
@@ -72,6 +53,30 @@ const MainContent = ({ snapshot }) => {
             _.uniqBy('cloudPlatform', snapshot.storage)
           )
         ])
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Contact']),
+        _.map(contact => div({ key: `data-curator_${contact.contactName}`, style: { marginBottom: 30 } }, [
+          contact.contactName.replace(',,', ' '),
+          contact.institution && div({ style: { marginTop: 5 } }, [contact.institution]),
+          contact.email && h(Link, { href: contact.email, style: { marginTop: 5, display: 'block' } }, [contact.email])
+        ]), snapshot.contacts)
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Data curator']),
+        _.map(curator => div({ key: `data-curator_${curator.contactName}`, style: { marginBottom: 30 } }, [
+          curator.contactName.replace(',,', ' '),
+          curator.institution && div({ style: { marginTop: 5 } }, [curator.institution]),
+          curator.email && h(Link, { href: curator.email, style: { marginTop: 5, display: 'block' } }, [curator.email])
+        ]), snapshot.curators)
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Contributors']),
+        div({ style: { whiteSpace: 'pre' } }, [snapshot.contributors.join('\n')])
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Region']),
+        div({ style: { whiteSpace: 'pre' } }, _.map('region', _.uniqBy('region', snapshot.storage)).join('\n'))
       ])
     ])
 
@@ -79,7 +84,7 @@ const MainContent = ({ snapshot }) => {
 }
 
 const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
-  const { access } = snapshot
+  const access = _.get('TerraDCAT_ap:hasDataUsePermission', snapshot)
 
   return div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
     h2({ className: 'sr-only' }, ['Snapshot Data Details']),
@@ -88,14 +93,14 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
         h3(['Access type']),
         div([
           Utils.cond(
-            [access === 'controlled', () => h(ButtonSecondary, {
+            [access === 'TerraCore:Restricted', () => h(ButtonSecondary, {
               style: { fontSize: 16, textTransform: 'none', height: 'unset' },
               onClick: () => setShowRequestAccessModal(true)
             }, [
               icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
               'Request Access'
             ])],
-            [access === 'pending', () => div({ style: { color: styles.access.pending } }, [
+            [access === 'TerraCore:Pending', () => div({ style: { color: styles.access.pending } }, [
               icon('unlock', { size: 18, style: { marginRight: 10 } }),
               'Pending Access'
             ])],
