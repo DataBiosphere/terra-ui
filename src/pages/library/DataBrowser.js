@@ -1,4 +1,5 @@
 import filesize from 'filesize'
+import { isEmpty } from 'lodash'
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
@@ -111,7 +112,7 @@ const extractTags = snapshot => {
 }
 
 const Browser = () => {
-  const [catalogSnapshots, setCatalogSnapshots] = useState(() => StateHistory.get().catalogSnapshots)
+  const [fullList, setFullList] = useState(() => StateHistory.get().catalogSnapshots)
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const [showProjectFilters, setShowProjectFilters] = useState(false)
   const [selectedData, setSelectedData] = useState([])
@@ -130,8 +131,8 @@ const Browser = () => {
         return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)
       }, rawList)
 
-      setCatalogSnapshots(normList)
-      StateHistory.update({ catalogSnapshots })
+      setFullList(normList)
+      StateHistory.update({ catalogSnapshots: fullList })
     }
     loadData()
   })
@@ -174,9 +175,13 @@ const Browser = () => {
     ])
   }
 
-  const DataBrowserTable = ({ listData, setSelectedTags, selectedTags, sections }) => {
-    return _.isEmpty(listData) ?
-      centeredSpinner() :
+  const DataBrowserTable = ({ fullList, filteredList, setSelectedTags, selectedTags, sections }) => {
+    if (isEmpty(fullList)) {
+      return centeredSpinner()
+    }
+
+    return _.isEmpty(filteredList) ?
+      div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found']) :
       div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
         'aria-label': 'dataset list',
         columns: [
@@ -257,14 +262,14 @@ const Browser = () => {
               ])
             ])
           }
-        }, listData)
+        }, filteredList)
       })])
   }
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('browse & explore'),
     h(SearchAndFilterComponent, {
-      featuredList: catalogSnapshots, sidebarSections,
+      fullList, sidebarSections,
       customSort: sort,
       searchType: 'Datasets',
       ListContent: DataBrowserTable

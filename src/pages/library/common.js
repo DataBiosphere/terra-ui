@@ -77,13 +77,13 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
   ])
 }
 
-export const SearchAndFilterComponent = ({ featuredList, sidebarSections, customSort, searchType, ListContent }) => {
+export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort, searchType, ListContent }) => {
   const [selectedSections, setSelectedSections] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [searchFilter, setSearchFilter] = useState('')
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
 
-  const listDataByTag = _.omitBy(_.isEmpty, groupByFeaturedTags(featuredList, sidebarSections))
+  const listDataByTag = _.omitBy(_.isEmpty, groupByFeaturedTags(fullList, sidebarSections))
 
   // Trim items from the sidebar facets for which there aren't any search results
   const sections = _.flow(
@@ -119,19 +119,19 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, custom
   }
   const filterByText = _.filter(({ lowerName, lowerDescription }) => _.includes(searchFilter, `${lowerName} ${lowerDescription}`))
 
-  const filteredData = _.flow(
+  const filteredList = _.flow(
     filterBySections,
     filterByTags,
     filterByText,
     customSort ? _.orderBy([customSort.field], [customSort.direction]) : _.orderBy([sort.field], [sort.direction])
-  )(featuredList)
+  )(fullList)
 
   return h(Fragment, [
     div({ style: { display: 'flex', margin: '1rem 1rem 0', alignItems: 'baseline' } }, [
       div({ style: { width: '19rem', flex: 'none' } }, [
         div({ style: styles.sidebarRow }, [
           div({ style: styles.header }, [`${searchType}`]),
-          div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredData)])
+          div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredList)])
         ]),
         div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
           div({ style: { flex: 1 } }),
@@ -176,11 +176,11 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, custom
           sections,
           selectedSections,
           selectedTags,
-          listDataByTag: groupByFeaturedTags(filteredData, sidebarSections)
+          listDataByTag: groupByFeaturedTags(filteredList, sidebarSections)
         })
       ]),
       div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
-        h(ListContent, { listData: filteredData, sections, selectedTags, setSelectedTags })
+        h(ListContent, { fullList, filteredList, sections, selectedTags, setSelectedTags })
       ])
     ])
   ])

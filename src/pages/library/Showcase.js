@@ -81,7 +81,7 @@ const WorkspaceCard = ({ workspace }) => {
 
 const Showcase = () => {
   const stateHistory = StateHistory.get()
-  const [featuredList, setFeaturedList] = useState(stateHistory.featuredWorkspaces)
+  const [fullList, setFullList] = useState(stateHistory.featuredWorkspaces)
 
   Utils.useOnMount(() => {
     const loadData = async () => {
@@ -95,7 +95,7 @@ const Showcase = () => {
         lowerName: _.toLower(workspace.name), lowerDescription: _.toLower(workspace.description)
       }), showcase)
 
-      setFeaturedList(featuredWorkspaces)
+      setFullList(featuredWorkspaces)
 
       // Saves in Session Storage so there is no loading spinner while awaiting fresh data
       // when user returns via back button
@@ -108,15 +108,18 @@ const Showcase = () => {
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('featured workspaces'),
     h(SearchAndFilterComponent, {
-      featuredList, sidebarSections,
+      fullList, sidebarSections,
       searchType: 'Featured Workspaces',
-      ListContent: ({ listData }) => {
-        return _.isEmpty(listData) ?
-          centeredSpinner() :
+      ListContent: ({ fullList, filteredList }) => {
+        if (_.isEmpty(fullList)) {
+          return centeredSpinner()
+        }
+        return _.isEmpty(filteredList) ?
+          div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found']) :
           _.map(workspace => {
             const { namespace, name } = workspace
             return h(WorkspaceCard, { key: `${namespace}:${name}`, workspace })
-          }, listData)
+          }, filteredList)
       }
     })
   ])
