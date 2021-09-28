@@ -251,7 +251,9 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           id,
           value: bucketLocation,
           onChange: ({ value }) => setBucketLocation(value),
-          options: allRegions
+          //options: allRegions.sort((a, b) => { return (a.label < b.label) ? -1 : 1 })
+          //options: _.flow(_.sortBy(_.label))(allRegions)
+          options: _.sortBy('label', allRegions)
         })
       ])]),
       customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
