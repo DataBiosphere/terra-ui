@@ -89,7 +89,7 @@
           "cloudPlatform": "gcp"
         }
       ],
-      "locked": true,
+      "access": "controlled",
       "counts": {
         "donors": 3,
         "samples": 6,
@@ -129,6 +129,7 @@
       ]
     },
     {
+      "access": "pending",
       "dct:identifier": "fcca83ce-9015-42ae-a846-504cefa7902a",
       "dct:title": "Transcriptomic Profiling of the Developing Cardiac Conduction System at Single-Cell Resolution.",
       "dct:description": "The cardiac conduction system (CCS) consists of distinct components including the sinoatrial node (SAN), atrioventricular node (AVN), His bundle, bundle branches (BB) and Purkinje fibers (PF). Despite an essential role for the CCS in heart development and function, the CCS has remained challenging to interrogate due to inherent obstacles including small cell numbers, large cell type heterogeneity, complex anatomy and difficulty in isolation. We used single-cell RNA-sequencing (scRNA-seq) to perform genome-wide analysis of gene expression of the CCS at single-cell resolution. Overall design: Single cell transcriptional analysis of embryonic cardiac cells using 10x genomics 3' solution.",

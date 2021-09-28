@@ -20,7 +20,8 @@ import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAcces
 const styles = {
   access: {
     open: colors.success(1.5),
-    controlled: colors.accent()
+    controlled: colors.accent(),
+    pending: '#F7981C'
   },
   table: {
     header: {
@@ -41,7 +42,8 @@ const sidebarSections = [{
   name: 'Access Type',
   labels: [
     'Controlled',
-    'Open'
+    'Open',
+    'Pending'
   ],
   labelDisplays: {
     Controlled: [
@@ -54,6 +56,12 @@ const sidebarSections = [{
       div({ style: { display: 'flex' } }, [
         icon('unlock', { style: { color: styles.access.open, marginRight: 5 } }),
         div(['Open'])
+      ])
+    ],
+    Pending: [
+      div({ style: { display: 'flex' } }, [
+        icon('lock', { style: { color: styles.access.pending, marginRight: 5 } }),
+        div(['Pending'])
       ])
     ]
   }
@@ -104,7 +112,7 @@ const extractTags = snapshot => {
   return {
     itemsType: 'AttributeValue',
     items: [
-      snapshot.locked ? 'controlled' : 'open',
+      snapshot.access || 'open',
       _.toLower(snapshot.project),
       ..._.map('dcat:mediaType', snapshot.files)
     ]
@@ -208,7 +216,7 @@ const DataBrowserTable = ({ sort, setSort, selectedData, toggleSelectedData, set
         useHover: false,
         underRowKey: 'underRow',
         rows: _.map(datum => {
-          const { project, dataType, locked } = datum
+          const { project, dataType, access } = datum
           return {
             checkbox: h(Checkbox, {
               'aria-label': datum['dct:title'],
@@ -225,15 +233,20 @@ const DataBrowserTable = ({ sort, setSort, selectedData, toggleSelectedData, set
             lastUpdated: datum.lastUpdated ? Utils.makeStandardDate(datum.lastUpdated) : null,
             underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
               div({ style: { display: 'flex', alignItems: 'center' } }, [
-                locked ?
-                  h(ButtonSecondary, {
+                Utils.cond(
+                  [access === 'controlled', h(ButtonSecondary, {
                     style: { height: 'unset', textTransform: 'none' },
                     onClick: () => setRequestDatasetAccessList([datum])
-                  }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Request Access'])]) :
-                  div({ style: { color: styles.access.open, display: 'flex' } }, [
+                  }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Request Access'])])],
+                  [access === 'pending', div({ style: { color: styles.access.pending, display: 'flex' } }, [
+                    icon('lock'),
+                    div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
+                  ])],
+                  () => div({ style: { color: styles.access.open, display: 'flex' } }, [
                     icon('unlock'),
                     div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Open Access'])
                   ])
+                )
               ])
             ])
           }
