@@ -16,12 +16,13 @@ export const normalizeSnapshot = snapshot => {
   const contributors = []
 
   _.forEach(person => {
+    person.contactName = person.contactName.replace(',,', ' ').replace(/,/g, ' ')
     if (person.projectRole === 'data curator') {
       curators.push(person)
     } else if (person.correspondingContributor) {
       contacts.push(person)
     }
-    contributors.push(person.contactName.replace(',,', ' '))
+    contributors.push(person.contactName)
   }, snapshot.contributors)
 
   return {

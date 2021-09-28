@@ -57,7 +57,7 @@ const MainContent = ({ snapshot }) => {
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Contact']),
         _.map(contact => div({ key: `data-curator_${contact.contactName}`, style: { marginBottom: 30 } }, [
-          contact.contactName.replace(',,', ' '),
+          contact.contactName,
           contact.institution && div({ style: { marginTop: 5 } }, [contact.institution]),
           contact.email && h(Link, { href: contact.email, style: { marginTop: 5, display: 'block' } }, [contact.email])
         ]), snapshot.contacts)
@@ -65,7 +65,7 @@ const MainContent = ({ snapshot }) => {
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Data curator']),
         _.map(curator => div({ key: `data-curator_${curator.contactName}`, style: { marginBottom: 30 } }, [
-          curator.contactName.replace(',,', ' '),
+          curator.contactName,
           curator.institution && div({ style: { marginTop: 5 } }, [curator.institution]),
           curator.email && h(Link, { href: curator.email, style: { marginTop: 5, display: 'block' } }, [curator.email])
         ]), snapshot.curators)
