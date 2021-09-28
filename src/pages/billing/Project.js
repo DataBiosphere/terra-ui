@@ -185,7 +185,7 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
   return _.mapValues(ws => new Set(ws), _.groupBy(group, workspaces))
 }
 
-const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) => {
+const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccounts, invalidateProjectAndReload }) => {
   // State
   const { query } = Nav.useRoute()
   // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
@@ -196,7 +196,6 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
   const [editingUser, setEditingUser] = useState(false)
   const [deletingUser, setDeletingUser] = useState(false)
   const [updating, setUpdating] = useState(false)
-  const [updatingAccount, setUpdatingAccount] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [showBillingModal, setShowBillingModal] = useState(false)
   const [showSpendReportConfigurationModal, setShowSpendReportConfigurationModal] = useState(false)
@@ -207,7 +206,6 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
   const [expandedWorkspaceName, setExpandedWorkspaceName] = useState()
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
-  const [billingProject, setBillingProject] = useState(project)
 
   const signal = Utils.useCancellation()
 
@@ -289,25 +287,20 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
   })
 
   // Helpers
-  const updateBillingProject = withErrorReporting('Error updating billing project')(
-    () => Ajax(signal).Billing.billingProject(billingProject.projectName).then(setBillingProject)
+  const setBillingAccount = withErrorReporting('Error updating billing account')(
+    async newAccountName => {
+      Ajax().Metrics.captureEvent(Events.changeBillingAccount, {
+        oldName: billingProject.billingAccount,
+        newName: newAccountName,
+        billingProjectName: billingProject.projectName
+      })
+      await Ajax(signal).Billing.changeBillingAccount({
+        billingProjectName: billingProject.projectName,
+        newBillingAccountName: newAccountName
+      })
+      invalidateProjectAndReload()
+    }
   )
-
-  const setBillingAccount = _.flow(
-    withErrorReporting('Error updating billing account'),
-    Utils.withBusyState(setUpdatingAccount)
-  )(async newAccountName => {
-    Ajax().Metrics.captureEvent(Events.changeBillingAccount, {
-      oldName: billingProject.billingAccount,
-      newName: newAccountName,
-      billingProjectName: billingProject.projectName
-    })
-    await Ajax(signal).Billing.changeBillingAccount({
-      billingProjectName: billingProject.projectName,
-      newBillingAccountName: newAccountName
-    })
-    await updateBillingProject()
-  })
 
   const updateSpendConfiguration = _.flow(
     withErrorReporting('Error updating workflow spend report configuration'),
@@ -340,14 +333,12 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
 
   useEffect(() => { StateHistory.update({ projectUsers }) }, [projectUsers])
 
-  // There's some madness going on when using state variables in polling effects - the reference
-  // never updates (i.e. it's bound to the value that the component was first mounted with).
-  // `useGetter` works around this and I have no idea why.
+  // usePollingEffect calls the "effect" in a while-loop and binds references once on mount.
+  // As such, we need a layer of indirection to get current values.
   const getShowBillingModal = Utils.useGetter(showBillingModal)
   const getBillingAccountsOutOfDate = Utils.useGetter(billingAccountsOutOfDate)
   Utils.usePollingEffect(
-    async () => getShowBillingModal() || (getBillingAccountsOutOfDate() &&
-      await Promise.all([updateBillingProject(), refreshWorkspaces()])),
+    () => !getShowBillingModal() && getBillingAccountsOutOfDate() && refreshWorkspaces(),
     { ms: 5000 }
   )
 
@@ -498,7 +489,7 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
       })
     }),
     billingAccountsOutOfDate && h(BillingAccountSummaryPanel, { counts: _.mapValues(_.size, groups) }),
-    (refreshing || updatingAccount || updating) && spinnerOverlay
+    (refreshing || updating) && spinnerOverlay
   ])
 }
 

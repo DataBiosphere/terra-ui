@@ -362,9 +362,10 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           ])],
         [selectedName && hasBillingProjects, () => h(ProjectDetail, {
           key: selectedName,
-          project: _.find({ projectName: selectedName }, billingProjects),
+          billingProject: _.find({ projectName: selectedName }, billingProjects),
           billingAccounts,
-          authorizeAndLoadAccounts
+          authorizeAndLoadAccounts,
+          invalidateProjectAndReload: loadProjects
         })],
         [!_.isEmpty(projectsOwned) && !selectedName && hasBillingProjects, () => div(
           { style: { margin: '1rem auto 0 auto' } }, [
