@@ -11,7 +11,6 @@ import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 import { normalizeSnapshot, snapshotStyles } from 'src/pages/library/Snapshots'
-import { normalize } from 'upath'
 
 
 const activeTab = 'browse & explore'
@@ -19,7 +18,7 @@ const styles = {
   ...snapshotStyles,
   content: { padding: 20, marginTop: 15 },
   headers: { margin: '20px 0 0' },
-  attributesColumn: { width: '22%', marginRight: 20, marginTop: 30 },
+  attributesColumn: { width: '22%', marginRight: 20, marginTop: 30 }
 }
 
 const getSnapshot = async id => {
@@ -89,14 +88,14 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
         h3(['Access type']),
         div([
           Utils.cond(
-            [access === 'controlled', h(ButtonSecondary, {
+            [access === 'controlled', () => h(ButtonSecondary, {
               style: { fontSize: 16, textTransform: 'none', height: 'unset' },
               onClick: () => setShowRequestAccessModal(true)
             }, [
               icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
               'Request Access'
             ])],
-            [access === 'pending', div({ style: { color: styles.access.pending } }, [
+            [access === 'pending', () => div({ style: { color: styles.access.pending } }, [
               icon('unlock', { size: 18, style: { marginRight: 10 } }),
               'Pending Access'
             ])],
@@ -114,10 +113,6 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
       div([
         h3({ style: styles.headers }, ['Sample size']),
         div([_.getOr(0, 'counts.samples', snapshot).toLocaleString()])
-      ]),
-      div([
-        h3({ style: styles.headers }, ['Donor modality']),
-        div([_.get('donor.modality', snapshot)])
       ]),
       div([
         h3({ style: styles.headers }, ['Data type']),

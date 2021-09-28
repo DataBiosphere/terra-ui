@@ -252,11 +252,11 @@ const DataBrowserTable = ({ sort, setSort, selectedData, toggleSelectedData, set
             underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
               div({ style: { display: 'flex', alignItems: 'center' } }, [
                 Utils.cond(
-                  [access === 'controlled', h(ButtonSecondary, {
+                  [access === 'controlled', () => h(ButtonSecondary, {
                     style: { height: 'unset', textTransform: 'none' },
                     onClick: () => setRequestDatasetAccessList([datum])
                   }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Request Access'])])],
-                  [access === 'pending', div({ style: { color: styles.access.pending, display: 'flex' } }, [
+                  [access === 'pending', () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
                     icon('lock'),
                     div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
                   ])],
@@ -287,8 +287,6 @@ const Browser = () => {
         const normalizedSnapshot = normalizeSnapshot(snapshot)
         return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)
       }, rawList)
-
-      console.log(_.uniq(_.flatMap(item => item.donors.disease, normList)))
 
       setFullList(normList)
       StateHistory.update({ catalogSnapshots: fullList })
