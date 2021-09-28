@@ -7,6 +7,7 @@ import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
 import { allRegions } from 'src/components/region-common'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -99,16 +100,15 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   const loadProjectsGroups = _.flow(
     withErrorReporting('Error loading data'),
     Utils.withBusyState(setLoading)
-  )(async () => {
-    const [billingProjects, allGroups] = await Promise.all([
-      Ajax(signal).Billing.listProjects(),
-      Ajax(signal).Groups.list()
-    ])
-    const usableProjects = _.filter({ creationStatus: 'Ready' }, billingProjects)
-    setBillingProjects(usableProjects)
-    setAllGroups(allGroups)
-    setNamespace(_.some({ projectName: namespace }, usableProjects) ? namespace : undefined)
-  })
+  )(() => Promise.all([
+    Ajax(signal).Billing.listProjects()
+      .then(_.filter({ status: 'Ready' }))
+      .then(projects => {
+        setBillingProjects(projects)
+        setNamespace(_.some({ projectName: namespace }, projects) ? namespace : undefined)
+      }),
+    Ajax(signal).Groups.list().then(setAllGroups)
+  ]))
 
   const loadBucketLocation = _.flow(
     withErrorReporting('Error loading data'),
@@ -121,7 +121,6 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     console.log(locationResponse.location)
     setBucketLocation(locationResponse.location.toLowerCase())
   })
-
 
   // Lifecycle
   Utils.useOnMount(() => {
@@ -182,7 +181,19 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           placeholder: 'Select a billing project',
           value: namespace,
           onChange: ({ value }) => setNamespace(value),
-          options: _.uniq(_.map('projectName', billingProjects)).sort()
+          styles: { option: provided => ({ ...provided, padding: 0 }) },
+          options: _.uniq(_.map(({ projectName, invalidBillingAccount }) => ({
+            label: h(Fragment, [
+              invalidBillingAccount ?
+                h(TooltipTrigger, {
+                  content: 'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra',
+                  side: 'left'
+                }, [div({ style: { padding: 10 } }, [projectName])]) :
+                div({ style: { padding: 10 } }, [projectName])
+            ]),
+            value: projectName,
+            isDisabled: invalidBillingAccount
+          }), billingProjects)).sort()
         })
       ])]),
       h(IdContainer, [id => h(Fragment, [

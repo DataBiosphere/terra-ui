@@ -450,7 +450,7 @@ const WorkspaceData = _.flow(
   const getRunningImportJobs = async () => {
     try {
       const runningJobs = await Ajax(signal).Workspaces.workspace(namespace, name).listImportJobs(true)
-      _.map(job => {
+      _.forEach(job => {
         const jobStatus = _.lowerCase(job.status)
         if (!_.includes(jobStatus, ['success', 'error', 'done'])) {
           asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId: job.jobId }))

@@ -562,15 +562,17 @@ GridTable.propTypes = {
   readOnly: PropTypes.bool
 }
 
-export const SimpleTable = ({ columns, rows, 'aria-label': ariaLabel }) => {
+export const SimpleTable = ({
+  columns, rows, 'aria-label': ariaLabel, rowStyle = {}, cellStyle: cellStyleOverrides = {}, useHover = true, underRowKey
+}) => {
   Utils.useLabelAssert('SimpleTable', { 'aria-label': ariaLabel, allowLabelledBy: false })
 
-  const cellStyles = { paddingTop: '0.25rem', paddingBottom: '0.25rem' }
+  const cellStyles = { paddingTop: '0.25rem', paddingBottom: '0.25rem', ...cellStyleOverrides }
   return h(div, {
     role: 'table',
     'aria-label': ariaLabel
   }, [
-    div({ role: 'row', style: { display: 'flex' } }, [
+    div({ role: 'row', style: { display: 'flex', alignItems: 'center' } }, [
       _.map(({ key, header, size }) => {
         return div({
           key,
@@ -584,20 +586,23 @@ export const SimpleTable = ({ columns, rows, 'aria-label': ariaLabel }) => {
         key: i,
         role: 'row',
         as: 'div',
-        style: { display: 'flex' }, className: 'table-row',
-        hover: { backgroundColor: colors.light(0.4) }
+        style: rowStyle, className: 'table-row',
+        hover: useHover && { backgroundColor: colors.light(0.4) }
       }, [
-        _.map(({ key, size }) => {
-          return div({
-            key,
-            role: 'cell',
-            className: 'table-cell',
-            style: {
-              ...cellStyles, ...styles.flexCell(size),
-              borderTop: `1px solid ${colors.dark(0.2)}`
-            }
-          }, [row[key]])
-        }, columns)
+        div({ style: { display: 'flex' } }, [
+          _.map(({ key, size }) => {
+            return div({
+              key,
+              role: 'cell',
+              className: 'table-cell',
+              style: {
+                borderTop: `1px solid ${colors.dark(0.2)}`,
+                ...cellStyles, ...styles.flexCell(size)
+              }
+            }, [row[key]])
+          }, columns)
+        ]),
+        underRowKey && row[underRowKey]
       ])
     }, Utils.toIndexPairs(rows))
   ])

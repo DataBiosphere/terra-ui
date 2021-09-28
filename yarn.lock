@@ -4536,13 +4536,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"classnames@npm:^2.2.5":
-  version: 2.3.1
-  resolution: "classnames@npm:2.3.1"
-  checksum: 14db8889d56c267a591f08b0834989fe542d47fac659af5a539e110cc4266694e8de86e4e3bbd271157dbd831361310a8293e0167141e80b0f03a0f175c80960
-  languageName: node
-  linkType: hard
-
 "clean-css@npm:^4.2.3":
   version: 4.2.3
   resolution: "clean-css@npm:4.2.3"
@@ -4599,7 +4592,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clsx@npm:^1.0.4":
+"clsx@npm:^1.0.4, clsx@npm:^1.1.1":
   version: 1.1.1
   resolution: "clsx@npm:1.1.1"
   checksum: ff052650329773b9b245177305fc4c4dc3129f7b2be84af4f58dc5defa99538c61d4207be7419405a5f8f3d92007c954f4daba5a7b74e563d5de71c28c830063
@@ -5467,10 +5460,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"date-fns@npm:^2.23.0":
-  version: 2.23.0
-  resolution: "date-fns@npm:2.23.0"
-  checksum: 485216d550255a548552db16379e7a5cd440e262b90fbdc0362f63ee71d0e74bd00ce29ca8d76b343f6df36c1ecb6f22edba0b72848a4c32674e755619695c1f
+"date-fns@npm:^2.24.0":
+  version: 2.24.0
+  resolution: "date-fns@npm:2.24.0"
+  checksum: f930419e356cf6a6a02c7ed6c6e438df61b4011861002a3dc94a4efc83bc96a7f30ea3cc2e7231c421604c3d5131f9ffb097bf8e7f81a59d68f556864490664f
   languageName: node
   linkType: hard
 
@@ -5858,10 +5851,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:^2.3.1":
-  version: 2.3.1
-  resolution: "dompurify@npm:2.3.1"
-  checksum: 9c93cfaa9d1d0b31aa2e926ebfa0621287a63ebb16277c94ad4aad2bcf3ad12e609e699fc10f2eaf69e4698e29a31dec87a69f3c6725ce3f4c7a69ee93123d0c
+"dompurify@npm:^2.3.3":
+  version: 2.3.3
+  resolution: "dompurify@npm:2.3.3"
+  checksum: 947e3661681bd183aae1cd08f991b14c6aa41fd188f6c801c5e916c2dc4575bbefbaa121ed06dbe0cb0f595545527d588a44b53bfc35d1cbb898c214dc0d7930
   languageName: node
   linkType: hard
 
@@ -8027,12 +8020,12 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"husky@npm:^7.0.0":
-  version: 7.0.1
-  resolution: "husky@npm:7.0.1"
+"husky@npm:^7.0.2":
+  version: 7.0.2
+  resolution: "husky@npm:7.0.2"
   bin:
     husky: lib/bin.js
-  checksum: b2ea1460f1126ed7161779b1b89f7ec8ae66fb6723e0e9fd47c522f454f4a2ea7e31a21d6ce2eb5d32e9837d232fb0245783425c109df0adab53668f8c8d8fc8
+  checksum: 2ccfe6ddc51dc05ae8ea1e2fbb893344e93a813e00c595d6b5f5e704b7b998d6b0e2adda7c57f99b5e46a60dc07c7d860269a2ea91661c6bacef0eca8e0b8e96
   languageName: node
   linkType: hard
 
@@ -12313,10 +12306,10 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"prismjs@npm:^1.24.1":
-  version: 1.24.1
-  resolution: "prismjs@npm:1.24.1"
-  checksum: e5d14a4ba56773122039295bd760c72106acc964e04cb9831b9ae7e7a58f67ccac6c053e77e21f1018a3684f31d35bb065c0c81fd4ff00b73b1570c3ace4aef0
+"prismjs@npm:^1.25.0":
+  version: 1.25.0
+  resolution: "prismjs@npm:1.25.0"
+  checksum: 04d8eae9d1b26b76c350bc65621584c8f8cab80ace7da3953f8aef2f9a8dd4b4f71c1d15bc5c67f126ddc90cd5af613919dc1340589a6c57355bed86fa3ac010
   languageName: node
   linkType: hard
 
@@ -12732,26 +12725,29 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react-draggable@npm:^4.4.3":
-  version: 4.4.3
-  resolution: "react-draggable@npm:4.4.3"
+"react-draggable@npm:^4.4.4":
+  version: 4.4.4
+  resolution: "react-draggable@npm:4.4.4"
   dependencies:
-    classnames: ^2.2.5
+    clsx: ^1.1.1
     prop-types: ^15.6.0
-  checksum: 94d3d5f0e7fd5920894915f069e393d55b46de114570a613ca56bd1f46bb5fc8dc9dbd1a254d8e09153e8261589122d1c725f722b37d454da883d0ffcc1a68bf
+  peerDependencies:
+    react: ">= 16.3.0"
+    react-dom: ">= 16.3.0"
+  checksum: b8258a58938c261a79f1b9ffd67774283c1ac732423c1c9c9f5fe4d17a06886edd659891e445ba089828ca59f1885e5b909262e24cf60640b8ed05c8499c88bb
   languageName: node
   linkType: hard
 
-"react-dropzone@npm:^11.3.4":
-  version: 11.3.4
-  resolution: "react-dropzone@npm:11.3.4"
+"react-dropzone@npm:^11.4.0":
+  version: 11.4.0
+  resolution: "react-dropzone@npm:11.4.0"
   dependencies:
     attr-accept: ^2.2.1
     file-selector: ^0.2.2
     prop-types: ^15.7.2
   peerDependencies:
     react: ">= 16.8"
-  checksum: 602ac4e41a39d9ef8b475faed0c5d5429116150c2cdd1cceb98992d741769865212ceb9d379e9886c4c101b8a65d06f16395dee530e949830bf0bb60d46d29b4
+  checksum: a076b1bd98778abb81738cb0e532fbe1c1141f3f0055368206e370f49c2b59413bf84c8f32bc6543e4c55c6b79b639305e8be8c4608ee95655b04f47220c87a8
   languageName: node
   linkType: hard
 
@@ -12890,13 +12886,13 @@ fsevents@^1.2.7:
   languageName: node
   linkType: hard
 
-"react-onclickoutside@npm:^6.11.2":
-  version: 6.11.2
-  resolution: "react-onclickoutside@npm:6.11.2"
+"react-onclickoutside@npm:^6.12.0":
+  version: 6.12.0
+  resolution: "react-onclickoutside@npm:6.12.0"
   peerDependencies:
     react: ^15.5.x || ^16.x || ^17.x
     react-dom: ^15.5.x || ^16.x || ^17.x
-  checksum: 1cd23df5abedb102fc0bc33de8d357d8805a865875875d0fe0654efc66b9593084d5b7634d40e271acbceeec9504be869df35683e6e47f739f98d5d83c633303
+  checksum: f3d2f2fd0aaf05baaccc572895c6381bbbb01fd748a7e228f424b0f610af957fc3df748d7fefa09a88afdaedb09ffd563de04bc0614acb7a5e4031538251084b
   languageName: node
   linkType: hard
 
@@ -14925,9 +14921,9 @@ resolve@^2.0.0-next.3:
     clipboard-polyfill: ^3.0.3
     color: ^4.0.1
     customize-cra: ^1.0.0
-    date-fns: ^2.23.0
+    date-fns: ^2.24.0
     debounce-promise: ^3.1.2
-    dompurify: ^2.3.1
+    dompurify: ^2.3.3
     downshift: ^6.1.7
     easymde: ^2.15.0
     eslint-plugin-lodash-fp: ^2.2.0-a1
@@ -14936,7 +14932,7 @@ resolve@^2.0.0-next.3:
     filesize: ^7.0.0
     github-markdown-css: ^4.0.0
     history: ^4.10.1
-    husky: ^7.0.0
+    husky: ^7.0.2
     iframe-resizer: ^4.3.2
     igv: 2.3.5
     jszip: ^3.7.1
@@ -14944,7 +14940,7 @@ resolve@^2.0.0-next.3:
     marked: ^2.1.3
     outdated-browser-rework: ^3.0.1
     path-to-regexp: ^5.0.0
-    prismjs: ^1.24.1
+    prismjs: ^1.25.0
     prop-types: ^15.7.2
     qs: ^6.10.1
     react: 17.0.1
@@ -14952,8 +14948,8 @@ resolve@^2.0.0-next.3:
     react-app-rewired: ^2.1.8
     react-collapse: ^5.1.0
     react-dom: "npm:@hot-loader/react-dom@17.0.1"
-    react-draggable: ^4.4.3
-    react-dropzone: ^11.3.4
+    react-draggable: ^4.4.4
+    react-dropzone: ^11.4.0
     react-favicon: ^0.0.23
     react-focus-lock: ^2.5.2
     react-hot-loader: ^4.13.0
@@ -14961,7 +14957,7 @@ resolve@^2.0.0-next.3:
     react-json-view: ^1.21.3
     react-modal: ^3.14.3
     react-notifications-component: ^3.1.0
-    react-onclickoutside: ^6.11.2
+    react-onclickoutside: ^6.12.0
     react-paginating: ^1.4.0
     react-scripts: 4.0.3
     react-select: ^4.3.1
