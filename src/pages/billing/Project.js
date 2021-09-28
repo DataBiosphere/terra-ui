@@ -235,7 +235,7 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
           _.map(workspace => {
             const isExpanded = expandedWorkspaceName === workspace.name
             return h(WorkspaceCard, {
-              workspace,
+              workspace: { ...workspace, billingAccount: billingAccounts[workspace.billingAccount]?.displayName },
               billingAccountStatus: billingAccountsOutOfDate && getBillingAccountStatus(workspace),
               key: workspace.workspaceId,
               isExpanded,
