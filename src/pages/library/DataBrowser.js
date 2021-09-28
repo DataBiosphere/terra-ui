@@ -1,7 +1,7 @@
 import filesize from 'filesize'
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, label } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Checkbox, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -113,6 +113,7 @@ const extractTags = snapshot => {
 const Browser = () => {
   const [catalogSnapshots, setCatalogSnapshots] = useState(() => StateHistory.get().catalogSnapshots)
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
+  const [showProjectFilters, setShowProjectFilters] = useState(false)
   const [selectedData, setSelectedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
 
@@ -173,7 +174,7 @@ const Browser = () => {
     ])
   }
 
-  const DataBrowserTable = ({ listData }) => {
+  const DataBrowserTable = ({ listData, setSelectedTags, selectedTags, sections }) => {
     return _.isEmpty(listData) ?
       centeredSpinner() :
       div({ style: { margin: '0 15px' } }, [h(SimpleTable, {
@@ -186,7 +187,30 @@ const Browser = () => {
             header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'dct:title', onSort: setSort }, ['Dataset Name'])]),
             size: { grow: 2.2 }, key: 'name'
           }, {
-            header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'project', onSort: setSort }, ['Project'])]),
+            header: div({ style: styles.table.header }, [
+              h(ButtonSecondary, {
+                style: { height: '1rem', fontSize: '.75rem', fontWeight: 600, position: 'relative' },
+                onClick: () => setShowProjectFilters(!showProjectFilters)
+              }, ['Project', icon('caretDown')]),
+              showProjectFilters && div({
+                style: {
+                  backgroundColor: 'white', width: 380, height: 280, overflowY: 'auto',
+                  border: '1px solid', borderColor: colors.accent(), borderRadius: 3,
+                  position: 'absolute', padding: 15, marginTop: 4, boxShadow: 'rgb(0 0 0 / 5%) 0 0 8px 5px',
+                  textTransform: 'none', color: 'gray', fontSize: '.9rem', fontWeight: 400
+                }
+              }, _.map(tag => {
+                return div({ key: `project-filter-dropdown_${tag}`, style: { height: '3rem' } }, [
+                  h(Checkbox, {
+                    style: { marginRight: 10 },
+                    'aria-label': tag,
+                    checked: _.includes(tag.toLowerCase(), selectedTags),
+                    onChange: () => setSelectedTags(_.xor([tag.toLowerCase()]))
+                  }),
+                  label([tag])
+                ])
+              }, sections[1].labels))
+            ]),
             size: { grow: 1 }, key: 'project'
           }, {
             header: div({ style: styles.table.header }, [h(MiniSortable, { sort, field: 'counts.donors', onSort: setSort }, ['No. of Subjects'])]),
@@ -218,7 +242,6 @@ const Browser = () => {
             project,
             subjects: datum?.counts?.donors,
             dataType,
-            // lastUpdated: 'none',
             lastUpdated: datum.lastUpdated ? Utils.makeStandardDate(datum.lastUpdated) : null,
             underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
               div({ style: { display: 'flex', alignItems: 'center' } }, [

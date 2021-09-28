@@ -180,7 +180,7 @@ export const SearchAndFilterComponent = ({ featuredList, sidebarSections, custom
         })
       ]),
       div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
-        h(ListContent, { listData: filteredData })
+        h(ListContent, { listData: filteredData, sections, selectedTags, setSelectedTags })
       ])
     ])
   ])
