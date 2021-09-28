@@ -22,7 +22,7 @@ import { versionTag } from 'src/libs/logos'
 import {
   defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType,
   defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime,
-  getDefaultMachineType, getValidGpuTypes, persistentDiskCostMonthly, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
+  getDefaultMachineType, getValidGpuTypes, persistentDiskCostMonthly, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost, styles
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -32,15 +32,6 @@ import validate from 'validate.js'
 // Change to true to enable a debugging panel (intended for dev mode only)
 const showDebugPanel = false
 const titleId = 'cloud-compute-modal-title'
-
-// TODO Factor out common pieces with GalaxyModal.styles into runtime-utils
-const styles = {
-  label: { fontWeight: 600, whiteSpace: 'pre' },
-  titleBar: { marginBottom: '1rem' },
-  drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
-  warningView: { backgroundColor: colors.warning(0.1) },
-  whiteBoxContainer: { padding: '1.5rem', borderRadius: 3, backgroundColor: 'white' }
-}
 
 const customMode = '__custom_mode__'
 const terraDockerBaseGithubUrl = 'https://github.com/databiosphere/terra-docker'
@@ -855,7 +846,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
               ])
             ])
           ]),
-          // TODO: Is there a more robust way to center Link vertically wrt the Select element above?
+          // TODO: Is there a more robust way to center Link vertically wrt. the Select component above?
           span({ style: { paddingTop: '2rem' } }, [
             h(Link, { onClick: () => setViewMode('sparkConsole') }, ['Manage and monitor Spark console'])
           ])
@@ -1310,6 +1301,100 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     ])
   }
 
+  const renderSparkConsole = () => {
+    return div({ style: styles.drawerContent }, [
+      h(TitleBar, {
+        id: titleId,
+        title: 'Spark Console',
+        style: { marginBottom: '0.5rem' },
+        hideCloseButton: isAnalysisMode,
+        onDismiss,
+        onPrevious: () => setViewMode(undefined)
+      }),
+      div({ style: { marginBottom: '1rem' } }, ['Some of the Spark cluster components such as Apache Hadoop and Apache Spark, ',
+        'provide web interfaces. These interfaces can be used to manage and monitor ',
+        'cluster resources and facilities, such as the YARN resource manager, the ',
+        'Hadoop Distributed File System (HDFS), MapReduce, and Spark.']),
+      div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
+        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+          div([
+            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
+            div({ style: { lineHeight: 1.5 } }, [
+              div(['Please pause or delete the cloud environment when finished; it will']),
+              div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running. Please see the subsection']),
+              h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
+                'Pausing/Resuming a Galaxy instance.',
+                icon('pop-out', { size: 12, style: { marginTop: '0.5rem', marginLeft: '0.25rem' } })
+              ])
+            ])
+          ])
+        ])
+      ]),
+      div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [
+        renderActionButton()
+      ])
+    ])
+  }
+
+
+  const renderSparkConsole2 = () => {
+    return div({ style: styles.drawerContent }, [
+      h(TitleBar, {
+        id: titleId,
+        title: 'Cloud Environment',
+        style: styles.titleBar,
+        hideCloseButton: isAnalysisMode,
+        onDismiss,
+        onPrevious: () => setViewMode(undefined)
+      }),
+      div({ style: { marginBottom: '2rem' } }, [
+        'Some of the Spark cluster components such as Apache Hadoop and Apache Spark, ',
+        'provide web interfaces. These interfaces can be used to manage and monitor ',
+        'cluster resources and facilities, such as the YARN resource manager, the ',
+        'Hadoop Distributed File System (HDFS), MapReduce, and Spark.'
+      ]),
+      div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
+        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+          div([
+            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Setup duration']),
+            div({ style: { lineHeight: 1.5 } }, [
+              div(['Creating a cloud environment for Galaxy takes ', span({ style: { fontWeight: 600 } }, ['8-10 minutes.'])]),
+              div(['You can navigate away, and we will notify you when it\'s ready. '])
+            ])
+          ])
+        ]),
+        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('money-check-alt', { size: 25, color: colors.accent() })]),
+          div([
+            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Continuation cost']),
+            div({ style: { lineHeight: 1.5 } }, [
+              div(['Please pause or delete the cloud environment when finished; it will']),
+              div(['continue to ', span({ style: { fontWeight: 600 } }, ['incur charges ']), 'if it keeps running. Please see the subsection']),
+              h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360050566271', ...Utils.newTabLinkProps }, [
+                'Pausing/Resuming a Galaxy instance.',
+                icon('pop-out', { size: 12, style: { marginTop: '0.5rem', marginLeft: '0.25rem' } })
+              ])
+            ])
+          ])
+        ]),
+        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+          span({ style: { marginRight: '0.5rem', marginTop: '0.5rem' } }, [icon('cog', { size: 25, color: colors.accent() })]),
+          div([
+            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['Environment updates']),
+            div({ style: { lineHeight: 1.5 } }, [
+              div(['If you would like to update your compute or disk configuration']),
+              div(['after an environment is created, please delete the environment and']),
+              div(['create a new environment with the desired configuration.'])
+            ])
+          ])
+        ])
+      ]),
+      div({ style: { display: 'flex', marginTop: '2rem', justifyContent: 'flex-end' } }, [
+        renderActionButton()
+      ])
+    ])
+  }
+
   const renderPersistentDiskSection = () => {
     return div({ style: { ...styles.whiteBoxContainer, marginTop: '1rem' } }, [
       h(IdContainer, [
@@ -1331,22 +1416,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           })
         ])
       ])
-    ])
-  }
-
-  const renderSparkConsole = () => {
-    return div({ style: styles.drawerContent }, [
-      h(TitleBar, {
-        id: titleId,
-        style: styles.titleBar,
-        title: 'Spark Console',
-        hideCloseButton: isAnalysisMode,
-        onDismiss,
-        onPrevious: () => setViewMode(undefined)
-      }),
-      renderImageSelect({ 'aria-label': 'Select Environment' }),
-      makeImageInfo({ margin: '1rem 0 0.5rem' }),
-      packages && h(ImageDepViewer, { packageLink: packages })
     ])
   }
   // Render functions -- end

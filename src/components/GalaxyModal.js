@@ -15,20 +15,11 @@ import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
   currentAttachedDataDisk, currentPersistentDisk, findMachineType, getCurrentApp, getGalaxyComputeCost,
-  getGalaxyDiskCost, RadioBlock
+  getGalaxyDiskCost, RadioBlock, styles
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
-// TODO Factor out common pieces with ComputeModal.styles into runtime-utils
-const styles = {
-  label: { fontWeight: 600, whiteSpace: 'pre' },
-  value: { fontWeight: 400, whiteSpace: 'pre' },
-  whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' },
-  drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
-  headerText: { fontSize: 16, fontWeight: 600 },
-  warningView: { backgroundColor: colors.warning(0.1) }
-}
 
 const defaultDataDiskSize = 500 // GB
 const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 1, autoscalingEnabled: false }
@@ -208,7 +199,6 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
         ])
       ])
     }
-
 
     const renderLaunchWarning = () => {
       return div({ style: styles.drawerContent }, [
