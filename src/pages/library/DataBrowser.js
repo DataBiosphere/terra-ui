@@ -111,71 +111,46 @@ const extractTags = snapshot => {
   }
 }
 
-const Browser = () => {
-  const [fullList, setFullList] = useState(() => StateHistory.get().catalogSnapshots)
-  const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
-  const [showProjectFilters, setShowProjectFilters] = useState(false)
-  const [selectedData, setSelectedData] = useState([])
-  const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
 
-  Utils.useOnMount(() => {
-    const loadData = async () => {
-      const rawList = await getRawList()
-      const normList = _.map(snapshot => {
-        const normalizedSnapshot = {
-          ...snapshot,
-          project: _.get('0.dct:title', snapshot['TerraDCAT_ap:hasDataCollection']),
-          lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description']),
-          lastUpdated: snapshot['dct:modified'] ? new Date(snapshot['dct:modified']) : null
-        }
-        return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)
-      }, rawList)
+const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
+  const length = _.size(selectedData).toLocaleString()
+  const files = _.sumBy(data => _.sumBy('count', data.files), selectedData).toLocaleString()
+  const totalBytes = _.sumBy(data => _.sumBy('dcat:byteSize', data.files), selectedData)
+  const fileSizeFormatted = filesize(totalBytes)
 
-      setFullList(normList)
-      StateHistory.update({ catalogSnapshots: fullList })
+  return !_.isEmpty(selectedData) && div({
+    style: {
+      display: selectedData.length > 0 ? 'block' : 'none',
+      position: 'sticky', bottom: 0, marginTop: 20,
+      width: '100%', padding: '34px 60px',
+      backgroundColor: 'white', boxShadow: 'rgb(0 0 0 / 30%) 0 0 8px 3px',
+      fontSize: 17
     }
-    loadData()
-  })
-
-  const toggleSelectedData = data => setSelectedData(_.xor([data]))
-
-  const SelectedItemsDisplay = () => {
-    const length = _.size(selectedData).toLocaleString()
-    const files = _.sumBy(data => _.sumBy('count', data.files), selectedData).toLocaleString()
-    const totalBytes = _.sumBy(data => _.sumBy('dcat:byteSize', data.files), selectedData)
-    const fileSizeFormatted = filesize(totalBytes)
-
-    return !_.isEmpty(selectedData) && div({
-      style: {
-        display: selectedData.length > 0 ? 'block' : 'none',
-        position: 'sticky', bottom: 0, marginTop: 20,
-        width: '100%', padding: '34px 60px',
-        backgroundColor: 'white', boxShadow: 'rgb(0 0 0 / 30%) 0 0 8px 3px',
-        fontSize: 17
-      }
-    }, [
-      div({ style: { display: 'flex', alignItems: 'center' } }, [
-        div({ style: { flexGrow: 1 } }, [
-          `${length} dataset${length > 1 ? 's' : ''} (${fileSizeFormatted} - ${files} files) selected to be saved to a Terra Workspace`
-        ]),
-        h(ButtonSecondary, {
-          style: { fontSize: 16, marginRight: 40, textTransform: 'none' },
-          onClick: () => setSelectedData([])
-        }, 'Cancel'),
-        h(ButtonPrimary, {
-          style: { textTransform: 'none', fontSize: 14 },
-          onClick: () => {
-            Nav.history.push({
-              pathname: Nav.getPath('import-data'),
-              search: `?url=${getConfig().dataRepoUrlRoot}&snapshotId=REPLACE_ME&snapshotName=${selectedData[0]['dct:title']}&format=snapshot`
-            })
-          }
-        }, ['Save to a workspace'])
-      ])
+  }, [
+    div({ style: { display: 'flex', alignItems: 'center' } }, [
+      div({ style: { flexGrow: 1 } }, [
+        `${length} dataset${length > 1 ? 's' : ''} (${fileSizeFormatted} - ${files} files) selected to be saved to a Terra Workspace`
+      ]),
+      h(ButtonSecondary, {
+        style: { fontSize: 16, marginRight: 40, textTransform: 'none' },
+        onClick: () => setSelectedData([])
+      }, 'Cancel'),
+      h(ButtonPrimary, {
+        style: { textTransform: 'none', fontSize: 14 },
+        onClick: () => {
+          Nav.history.push({
+            pathname: Nav.getPath('import-data'),
+            search: `?url=${getConfig().dataRepoUrlRoot}&snapshotId=REPLACE_ME&snapshotName=${selectedData[0]['dct:title']}&format=snapshot`
+          })
+        }
+      }, ['Save to a workspace'])
     ])
-  }
+  ])
+}
 
-  const DataBrowserTable = ({ fullList, filteredList, setSelectedTags, selectedTags, sections }) => {
+
+const DataBrowserTable = ({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList, showProjectFilters, setShowProjectFilters }) => {
+  return ({ fullList, filteredList, setSelectedTags, selectedTags, sections }) => {
     if (isEmpty(fullList)) {
       return centeredSpinner()
     }
@@ -265,6 +240,35 @@ const Browser = () => {
         }, filteredList)
       })])
   }
+}
+
+const Browser = () => {
+  const [fullList, setFullList] = useState(() => StateHistory.get().catalogSnapshots)
+  const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
+  const [showProjectFilters, setShowProjectFilters] = useState(false)
+  const [selectedData, setSelectedData] = useState([])
+  const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
+
+  Utils.useOnMount(() => {
+    const loadData = async () => {
+      const rawList = await getRawList()
+      const normList = _.map(snapshot => {
+        const normalizedSnapshot = {
+          ...snapshot,
+          project: _.get('0.dct:title', snapshot['TerraDCAT_ap:hasDataCollection']),
+          lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description']),
+          lastUpdated: snapshot['dct:modified'] ? new Date(snapshot['dct:modified']) : null
+        }
+        return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)
+      }, rawList)
+
+      setFullList(normList)
+      StateHistory.update({ catalogSnapshots: fullList })
+    }
+    loadData()
+  })
+
+  const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('browse & explore'),
@@ -272,9 +276,9 @@ const Browser = () => {
       fullList, sidebarSections,
       customSort: sort,
       searchType: 'Datasets',
-      ListContent: DataBrowserTable
+      ListContent: DataBrowserTable({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList, showProjectFilters, setShowProjectFilters })
     }),
-    h(SelectedItemsDisplay, []),
+    h(SelectedItemsDisplay, { selectedData, setSelectedData }, []),
     !!requestDatasetAccessList && h(RequestDatasetAccessModal, {
       datasets: requestDatasetAccessList,
       onDismiss: () => setRequestDatasetAccessList()
