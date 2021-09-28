@@ -92,6 +92,24 @@ const DataprocDiskSelector = ({ value, onChange }) => {
   ])
 }
 
+const SparkConsoleInterface = ({ header, bodyTextLines }) => {
+  return div({ style: { ...styles.whiteBoxContainer, marginBottom: '1rem', backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
+    div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
+      div([
+        div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, [header]),
+        div({ style: { lineHeight: 1.5 } }, _.map(line => div([line]), bodyTextLines)),
+        div({ style: { display: 'flex', marginTop: '2rem' } }, [
+          h(ButtonOutline, {
+            disabled: false,
+            style: { textTransform: 'capitalize', marginRight: 'auto' },
+            onClick: () => console.log('LAUNCHING...')
+          }, ['Launch'])
+        ])
+      ])
+    ])
+  ])
+}
+
 const getImageUrl = runtimeDetails => {
   return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)?.imageUrl
 }
@@ -1317,20 +1335,20 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         div(['resources and facilities, such as the YARN resource manager, the Hadoop Distributed']),
         div(['File System (HDFS), MapReduce, and Spark.'])
       ]),
-      div({ style: { ...styles.whiteBoxContainer, backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
-        div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
-          div([
-            div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, ['YARN']),
-            div({ style: { lineHeight: 1.5 } }, [
-              div(['Apache Hadoop YARN interface provides information about cluster resource']),
-              div(['management and job scheduling/monitoring.'])
-            ]),
-            div({ style: { display: 'flex', marginTop: '2rem' } }, [
-              h(ButtonOutline, { disabled: false, style: { textTransform: 'capitalize', marginRight: 'auto' }, onClick: () => console.log('LAUNCHING...') }, ['Launch'])
-            ])
-          ])
-        ])
-      ])
+      h(SparkConsoleInterface, {
+        header: 'YARN',
+        bodyTextLines: [
+          'Apache Hadoop YARN interface provides information about cluster resource',
+          'management and job scheduling/monitoring.'
+        ]
+      }),
+      h(SparkConsoleInterface, {
+        header: 'Spark',
+        bodyTextLines: [
+          'Apache Hadoop YARN interface provides information about cluster resource',
+          'management and job scheduling/monitoring.'
+        ]
+      })
     ])
   }
 
