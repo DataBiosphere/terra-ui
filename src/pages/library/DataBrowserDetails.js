@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
+import { div, h, h1, h2, h3, img, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
@@ -17,7 +17,7 @@ const activeTab = 'browse & explore'
 const styles = {
   ...snapshotStyles,
   content: { padding: 20, marginTop: 15 },
-  headers: { margin: '20px 0 0' },
+  headers: { margin: '20px 0 10px' },
   attributesColumn: { width: '22%', marginRight: 20, marginTop: 30 }
 }
 
@@ -49,7 +49,12 @@ const MainContent = ({ snapshot }) => {
         h3({ style: styles.headers }, ['Cloud provider']),
         div([
           _.map(
-            storage => div({ key: `cloud-platform-table-${storage.cloudPlatform}` }, [storage.cloudPlatform]),
+            storage => div({ key: `cloud-platform-table-${storage.cloudPlatform}` }, [
+              Utils.cond(
+                [storage.cloudPlatform === 'gcp', () => img({ src: 'logos/gcp.svg', alt: 'Google Cloud Platform', style: { maxHeight: 25, maxWidth: 150 } })],
+                [storage.cloudPlatform === 'azure', () => img({ src: 'logos/azure.svg', alt: 'Microsoft Azure', style: { maxHeight: 25, maxWidth: 150 } })]
+              )
+            ]),
             _.uniqBy('cloudPlatform', snapshot.storage)
           )
         ])
