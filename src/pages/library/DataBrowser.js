@@ -72,7 +72,7 @@ const sidebarSections = [{
     'HPRC',
     'PAGE',
     'WGSPD1',
-    'HCA'
+    'Human Cell Atlas'
   ]
 }, {
   name: 'Species',
@@ -132,8 +132,8 @@ const extractTags = snapshot => {
       _.toLower(snapshot.project),
       ..._.map('dcat:mediaType', snapshot.files),
       _.toLower(snapshot.dataType),
-      ..._.map(_.toLower, _.getOr([], 'donors.genus', snapshot)),
-      ..._.map(_.toLower, _.getOr([], 'donors.disease', snapshot))
+      ..._.map(_.toLower, _.getOr([], 'samples.genus', snapshot)),
+      ..._.map(_.toLower, _.getOr([], 'samples.disease', snapshot))
     ]
   }
 }

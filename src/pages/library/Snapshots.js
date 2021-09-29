@@ -16,7 +16,7 @@ export const normalizeSnapshot = snapshot => {
   const contributors = []
 
   _.forEach(person => {
-    person.contactName = person.contactName.replace(',,', ' ').replace(/,/g, ' ')
+    person.contactName = person.contactName.replace(',,', ' ').replace(/,/g, ' ').replace(/\s([A-Z])\s/, ' $1. ')
     if (person.projectRole === 'data curator') {
       curators.push(person)
     } else if (person.correspondingContributor) {
@@ -27,7 +27,7 @@ export const normalizeSnapshot = snapshot => {
 
   return {
     ...snapshot,
-    project: _.get('0.dct:identifier', snapshot['TerraDCAT_ap:hasDataCollection']),
+    project: _.get('0.dct:title', snapshot['TerraDCAT_ap:hasDataCollection']),
     lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description']),
     lastUpdated: snapshot['dct:modified'] ? new Date(snapshot['dct:modified']) : null,
     dataType: _.getOr('N/A', 'TerraDCAT_ap:dataType', snapshot),

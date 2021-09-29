@@ -21,8 +21,28 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477273",
-          "dct:modified": "2021-09-17T17:00:51.477284"
+          "dct:issued": "2021-09-29T10:46:51.870512",
+          "dct:modified": "2021-09-29T10:46:51.870523"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "CITE-seq",
+            "10x 3' v3 sequencing",
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Proteomic",
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -74,7 +94,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -163,8 +183,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477311",
-          "dct:modified": "2021-09-17T17:00:51.477313"
+          "dct:issued": "2021-09-29T10:46:51.870554",
+          "dct:modified": "2021-09-29T10:46:51.870557"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' v3 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -221,7 +258,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -344,15 +381,32 @@
       "TerraDCAT_ap:hasOriginalPublication": null,
       "TerraDCAT_ap:hasDataCollection": [
         {
-          "dct:identifier": "HCA",
-          "dct:title": "Human Cell Atlas",
+          "dct:identifier": "1000genomes",
+          "dct:title": "1000 Genomes",
           "dct:description": "The Human Cell Atlas (HCA) data collection contains comprehensive reference maps of all human cells - the fundamental units of life - as a basis for understanding fundamental human biological processes and diagnosing, monitoring, and treating disease.",
           "dct:creator": {
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477329",
-          "dct:modified": "2021-09-17T17:00:51.477330"
+          "dct:issued": "2021-09-29T10:46:51.870579",
+          "dct:modified": "2021-09-29T10:46:51.870581"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -404,7 +458,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Mus musculus"
         ],
@@ -548,8 +602,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477367",
-          "dct:modified": "2021-09-17T17:00:51.477369"
+          "dct:issued": "2021-09-29T10:46:51.870621",
+          "dct:modified": "2021-09-29T10:46:51.870623"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -586,7 +657,7 @@
           "count": 4
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -650,8 +721,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477382",
-          "dct:modified": "2021-09-17T17:00:51.477383"
+          "dct:issued": "2021-09-29T10:46:51.870641",
+          "dct:modified": "2021-09-29T10:46:51.870643"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-like"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -688,7 +776,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -760,8 +848,27 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477425",
-          "dct:modified": "2021-09-17T17:00:51.477432"
+          "dct:issued": "2021-09-29T10:46:51.870667",
+          "dct:modified": "2021-09-29T10:46:51.870669"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v3 sequencing",
+            "10X 3' v2 sequencing",
+            "Drop-seq"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -793,7 +900,7 @@
           "count": 606
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -850,8 +957,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477468",
-          "dct:modified": "2021-09-17T17:00:51.477470"
+          "dct:issued": "2021-09-29T10:46:51.870698",
+          "dct:modified": "2021-09-29T10:46:51.870700"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -888,7 +1012,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -960,8 +1084,29 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477505",
-          "dct:modified": "2021-09-17T17:00:51.477507"
+          "dct:issued": "2021-09-29T10:46:51.870730",
+          "dct:modified": "2021-09-29T10:46:51.870732"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X Feature Barcoding technology for cell surface proteins",
+            "10x Ig enrichment",
+            "10x TCR enrichment",
+            "10X Gene Expression Library"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Proteomic",
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -998,7 +1143,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -1115,8 +1260,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477522",
-          "dct:modified": "2021-09-17T17:00:51.477527"
+          "dct:issued": "2021-09-29T10:46:51.870748",
+          "dct:modified": "2021-09-29T10:46:51.870750"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 5' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "snRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -1153,7 +1315,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -1281,8 +1443,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477541",
-          "dct:modified": "2021-09-17T17:00:51.477543"
+          "dct:issued": "2021-09-29T10:46:51.870766",
+          "dct:modified": "2021-09-29T10:46:51.870767"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' v3 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -1324,7 +1503,7 @@
           "count": 6
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -1372,8 +1551,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477555",
-          "dct:modified": "2021-09-17T17:00:51.477557"
+          "dct:issued": "2021-09-29T10:46:51.870812",
+          "dct:modified": "2021-09-29T10:46:51.870814"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' v2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -1420,7 +1616,7 @@
           "count": 9
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -1493,8 +1689,26 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477576",
-          "dct:modified": "2021-09-17T17:00:51.477580"
+          "dct:issued": "2021-09-29T10:46:51.870834",
+          "dct:modified": "2021-09-29T10:46:51.870836"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-Seq",
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -1556,7 +1770,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens",
           "Mus musculus"
@@ -1759,8 +1973,26 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477598",
-          "dct:modified": "2021-09-17T17:00:51.477601"
+          "dct:issued": "2021-09-29T10:46:51.870854",
+          "dct:modified": "2021-09-29T10:46:51.870856"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' v3",
+            "10x 3' v2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -1792,7 +2024,7 @@
           "count": 40
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -1940,8 +2172,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477621",
-          "dct:modified": "2021-09-17T17:00:51.477623"
+          "dct:issued": "2021-09-29T10:46:51.870874",
+          "dct:modified": "2021-09-29T10:46:51.870876"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -1978,7 +2227,7 @@
           "count": 3
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -2058,8 +2307,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477636",
-          "dct:modified": "2021-09-17T17:00:51.477638"
+          "dct:issued": "2021-09-29T10:46:51.870892",
+          "dct:modified": "2021-09-29T10:46:51.870894"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -2101,7 +2367,7 @@
           "count": 4
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -2253,8 +2519,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477692",
-          "dct:modified": "2021-09-17T17:00:51.477694"
+          "dct:issued": "2021-09-29T10:46:51.870932",
+          "dct:modified": "2021-09-29T10:46:51.870934"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -2291,7 +2574,7 @@
           "count": 2
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -2356,8 +2639,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477709",
-          "dct:modified": "2021-09-17T17:00:51.477711"
+          "dct:issued": "2021-09-29T10:46:51.870950",
+          "dct:modified": "2021-09-29T10:46:51.870952"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -2394,7 +2694,7 @@
           "count": 72
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -2450,8 +2750,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477723",
-          "dct:modified": "2021-09-17T17:00:51.477724"
+          "dct:issued": "2021-09-29T10:46:51.870967",
+          "dct:modified": "2021-09-29T10:46:51.870969"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x v3 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -2488,7 +2805,7 @@
           "count": 14
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -2554,8 +2871,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477737",
-          "dct:modified": "2021-09-17T17:00:51.477738"
+          "dct:issued": "2021-09-29T10:46:51.870984",
+          "dct:modified": "2021-09-29T10:46:51.870986"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Fluidigm C1-based library preparation"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -2587,7 +2921,7 @@
           "count": 446
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -2643,8 +2977,26 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477750",
-          "dct:modified": "2021-09-17T17:00:51.477752"
+          "dct:issued": "2021-09-29T10:46:51.871003",
+          "dct:modified": "2021-09-29T10:46:51.871005"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Fluidigm C1-based library preparation",
+            "10x 3' v3 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -2686,7 +3038,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -2798,8 +3150,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477763",
-          "dct:modified": "2021-09-17T17:00:51.477764"
+          "dct:issued": "2021-09-29T10:46:51.871023",
+          "dct:modified": "2021-09-29T10:46:51.871025"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -2841,7 +3210,7 @@
           "count": 2
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -2945,8 +3314,27 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477780",
-          "dct:modified": "2021-09-17T17:00:51.477781"
+          "dct:issued": "2021-09-29T10:46:51.871047",
+          "dct:modified": "2021-09-29T10:46:51.871049"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-like",
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "RNA-seq",
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -3008,7 +3396,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens",
           "Mus musculus"
@@ -3157,8 +3545,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477795",
-          "dct:modified": "2021-09-17T17:00:51.477797"
+          "dct:issued": "2021-09-29T10:46:51.871067",
+          "dct:modified": "2021-09-29T10:46:51.871069"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -3210,7 +3615,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -3260,8 +3665,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477814",
-          "dct:modified": "2021-09-17T17:00:51.477816"
+          "dct:issued": "2021-09-29T10:46:51.871093",
+          "dct:modified": "2021-09-29T10:46:51.871095"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' V2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -3298,7 +3720,7 @@
           "count": 31
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -3362,8 +3784,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477827",
-          "dct:modified": "2021-09-17T17:00:51.477828"
+          "dct:issued": "2021-09-29T10:46:51.871113",
+          "dct:modified": "2021-09-29T10:46:51.871141"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -3400,7 +3839,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -3446,8 +3885,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477844",
-          "dct:modified": "2021-09-17T17:00:51.477846"
+          "dct:issued": "2021-09-29T10:46:51.871158",
+          "dct:modified": "2021-09-29T10:46:51.871160"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -3484,7 +3940,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -3548,8 +4004,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477857",
-          "dct:modified": "2021-09-17T17:00:51.477858"
+          "dct:issued": "2021-09-29T10:46:51.871175",
+          "dct:modified": "2021-09-29T10:46:51.871177"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' V2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -3611,7 +4084,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -3675,8 +4148,26 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477876",
-          "dct:modified": "2021-09-17T17:00:51.477878"
+          "dct:issued": "2021-09-29T10:46:51.871207",
+          "dct:modified": "2021-09-29T10:46:51.871209"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v1 sequencing",
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -3708,7 +4199,7 @@
           "count": 506
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -3996,8 +4487,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477890",
-          "dct:modified": "2021-09-17T17:00:51.477892"
+          "dct:issued": "2021-09-29T10:46:51.871225",
+          "dct:modified": "2021-09-29T10:46:51.871227"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' V2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -4039,7 +4547,7 @@
           "count": 2
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -4103,8 +4611,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477907",
-          "dct:modified": "2021-09-17T17:00:51.477909"
+          "dct:issued": "2021-09-29T10:46:51.871243",
+          "dct:modified": "2021-09-29T10:46:51.871245"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -4141,7 +4666,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -4213,8 +4738,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477921",
-          "dct:modified": "2021-09-17T17:00:51.477922"
+          "dct:issued": "2021-09-29T10:46:51.871262",
+          "dct:modified": "2021-09-29T10:46:51.871264"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -4266,7 +4808,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -4354,8 +4896,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477939",
-          "dct:modified": "2021-09-17T17:00:51.477941"
+          "dct:issued": "2021-09-29T10:46:51.871286",
+          "dct:modified": "2021-09-29T10:46:51.871288"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -4402,7 +4961,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -4483,8 +5042,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477955",
-          "dct:modified": "2021-09-17T17:00:51.477957"
+          "dct:issued": "2021-09-29T10:46:51.871303",
+          "dct:modified": "2021-09-29T10:46:51.871305"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -4526,7 +5102,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -4766,8 +5342,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477969",
-          "dct:modified": "2021-09-17T17:00:51.477970"
+          "dct:issued": "2021-09-29T10:46:51.871324",
+          "dct:modified": "2021-09-29T10:46:51.871326"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x v3 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -4819,7 +5412,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -4900,8 +5493,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.477986",
-          "dct:modified": "2021-09-17T17:00:51.477988"
+          "dct:issued": "2021-09-29T10:46:51.871342",
+          "dct:modified": "2021-09-29T10:46:51.871344"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' v2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -4953,7 +5563,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -5074,8 +5684,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478001",
-          "dct:modified": "2021-09-17T17:00:51.478003"
+          "dct:issued": "2021-09-29T10:46:51.871363",
+          "dct:modified": "2021-09-29T10:46:51.871365"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "barcoded plate-based single cell RNA-seq"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -5112,7 +5739,7 @@
           "count": 2
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -5264,8 +5891,28 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478034",
-          "dct:modified": "2021-09-17T17:00:51.478038"
+          "dct:issued": "2021-09-29T10:46:51.871404",
+          "dct:modified": "2021-09-29T10:46:51.871406"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "cDNA library construction",
+            "barcoded plate-based single cell RNA-seq",
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "RNA-seq",
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -5317,7 +5964,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -5503,8 +6150,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478065",
-          "dct:modified": "2021-09-17T17:00:51.478067"
+          "dct:issued": "2021-09-29T10:46:51.871434",
+          "dct:modified": "2021-09-29T10:46:51.871436"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -5541,7 +6205,7 @@
           "count": 2
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Mus musculus"
         ],
@@ -5627,8 +6291,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478085",
-          "dct:modified": "2021-09-17T17:00:51.478087"
+          "dct:issued": "2021-09-29T10:46:51.871453",
+          "dct:modified": "2021-09-29T10:46:51.871455"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -5665,7 +6346,7 @@
           "count": 4
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -5737,8 +6418,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478097",
-          "dct:modified": "2021-09-17T17:00:51.478099"
+          "dct:issued": "2021-09-29T10:46:51.871470",
+          "dct:modified": "2021-09-29T10:46:51.871472"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Fluidigm C1-based library preparation"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -5775,7 +6473,7 @@
           "count": 5
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -5824,8 +6522,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478144",
-          "dct:modified": "2021-09-17T17:00:51.478146"
+          "dct:issued": "2021-09-29T10:46:51.871494",
+          "dct:modified": "2021-09-29T10:46:51.871496"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-like"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -5862,7 +6577,7 @@
           "count": 86
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -5918,8 +6633,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478156",
-          "dct:modified": "2021-09-17T17:00:51.478158"
+          "dct:issued": "2021-09-29T10:46:51.871512",
+          "dct:modified": "2021-09-29T10:46:51.871514"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -5956,7 +6688,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -6004,8 +6736,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478168",
-          "dct:modified": "2021-09-17T17:00:51.478170"
+          "dct:issued": "2021-09-29T10:46:51.871529",
+          "dct:modified": "2021-09-29T10:46:51.871531"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Fluidigm C1-based library preparation"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -6042,7 +6791,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -6107,8 +6856,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478180",
-          "dct:modified": "2021-09-17T17:00:51.478182"
+          "dct:issued": "2021-09-29T10:46:51.871545",
+          "dct:modified": "2021-09-29T10:46:51.871547"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -6150,7 +6916,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -6206,8 +6972,27 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478192",
-          "dct:modified": "2021-09-17T17:00:51.478194"
+          "dct:issued": "2021-09-29T10:46:51.871563",
+          "dct:modified": "2021-09-29T10:46:51.871565"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "ATAC 10x v1",
+            "10x 5' v1"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic",
+            "TerraCoreValueSets:Epigenomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "snRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -6239,7 +7024,7 @@
           "count": 28
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -6315,8 +7100,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478204",
-          "dct:modified": "2021-09-17T17:00:51.478206"
+          "dct:issued": "2021-09-29T10:46:51.871581",
+          "dct:modified": "2021-09-29T10:46:51.871583"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -6368,7 +7170,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -6440,8 +7242,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478220",
-          "dct:modified": "2021-09-17T17:00:51.478222"
+          "dct:issued": "2021-09-29T10:46:51.871601",
+          "dct:modified": "2021-09-29T10:46:51.871603"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -6478,7 +7297,7 @@
           "count": 2
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -6542,8 +7361,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478233",
-          "dct:modified": "2021-09-17T17:00:51.478234"
+          "dct:issued": "2021-09-29T10:46:51.871647",
+          "dct:modified": "2021-09-29T10:46:51.871649"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -6580,7 +7416,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -6628,8 +7464,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478245",
-          "dct:modified": "2021-09-17T17:00:51.478246"
+          "dct:issued": "2021-09-29T10:46:51.871664",
+          "dct:modified": "2021-09-29T10:46:51.871666"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -6666,7 +7519,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -6732,8 +7585,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478261",
-          "dct:modified": "2021-09-17T17:00:51.478263"
+          "dct:issued": "2021-09-29T10:46:51.871687",
+          "dct:modified": "2021-09-29T10:46:51.871690"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -6765,7 +7635,7 @@
           "count": 50
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens",
           "Mus musculus"
@@ -6822,8 +7692,26 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478274",
-          "dct:modified": "2021-09-17T17:00:51.478276"
+          "dct:issued": "2021-09-29T10:46:51.871706",
+          "dct:modified": "2021-09-29T10:46:51.871708"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X v2 sequencing",
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -6875,7 +7763,7 @@
           "count": 2
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -6939,8 +7827,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478287",
-          "dct:modified": "2021-09-17T17:00:51.478289"
+          "dct:issued": "2021-09-29T10:46:51.871724",
+          "dct:modified": "2021-09-29T10:46:51.871726"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "inDrop"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -6987,7 +7892,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -7092,8 +7997,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478306",
-          "dct:modified": "2021-09-17T17:00:51.478308"
+          "dct:issued": "2021-09-29T10:46:51.871756",
+          "dct:modified": "2021-09-29T10:46:51.871758"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Drop-seq"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -7130,7 +8052,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -7186,8 +8108,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478320",
-          "dct:modified": "2021-09-17T17:00:51.478322"
+          "dct:issued": "2021-09-29T10:46:51.871775",
+          "dct:modified": "2021-09-29T10:46:51.871777"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' V2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -7224,7 +8163,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -7288,8 +8227,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478332",
-          "dct:modified": "2021-09-17T17:00:51.478333"
+          "dct:issued": "2021-09-29T10:46:51.871791",
+          "dct:modified": "2021-09-29T10:46:51.871793"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Fluidigm C1-based library preparation"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -7326,7 +8282,7 @@
           "count": 2
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -7414,8 +8370,29 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478344",
-          "dct:modified": "2021-09-17T17:00:51.478346"
+          "dct:issued": "2021-09-29T10:46:51.871809",
+          "dct:modified": "2021-09-29T10:46:51.871811"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "cDNA library construction",
+            "DNA library construction",
+            "10x 3' v3 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic",
+            "TerraCoreValueSets:Genomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "snRNA-seq",
+            "nuc-seq"
+          ]
         }
       ],
       "storage": [
@@ -7462,7 +8439,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -7718,8 +8695,26 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478358",
-          "dct:modified": "2021-09-17T17:00:51.478360"
+          "dct:issued": "2021-09-29T10:46:51.871831",
+          "dct:modified": "2021-09-29T10:46:51.871833"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X v2 sequencing",
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -7776,7 +8771,7 @@
           "count": 5
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -7881,8 +8876,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478392",
-          "dct:modified": "2021-09-17T17:00:51.478394"
+          "dct:issued": "2021-09-29T10:46:51.871869",
+          "dct:modified": "2021-09-29T10:46:51.871871"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -7914,7 +8926,7 @@
           "count": 1464
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -8090,8 +9102,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478417",
-          "dct:modified": "2021-09-17T17:00:51.478419"
+          "dct:issued": "2021-09-29T10:46:51.871899",
+          "dct:modified": "2021-09-29T10:46:51.871901"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Fluidigm C1-based library preparation"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -8128,7 +9157,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -8185,8 +9214,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478430",
-          "dct:modified": "2021-09-17T17:00:51.478432"
+          "dct:issued": "2021-09-29T10:46:51.871915",
+          "dct:modified": "2021-09-29T10:46:51.871917"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -8243,7 +9289,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -8307,8 +9353,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478447",
-          "dct:modified": "2021-09-17T17:00:51.478449"
+          "dct:issued": "2021-09-29T10:46:51.871936",
+          "dct:modified": "2021-09-29T10:46:51.871938"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -8350,7 +9413,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -8407,8 +9470,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478470",
-          "dct:modified": "2021-09-17T17:00:51.478474"
+          "dct:issued": "2021-09-29T10:46:51.871966",
+          "dct:modified": "2021-09-29T10:46:51.871968"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -8440,7 +9520,7 @@
           "count": 23592
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -8537,8 +9617,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478489",
-          "dct:modified": "2021-09-17T17:00:51.478491"
+          "dct:issued": "2021-09-29T10:46:51.871990",
+          "dct:modified": "2021-09-29T10:46:51.871992"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x v2 3'"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "snRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -8610,7 +9707,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens",
           "Mus musculus"
@@ -8779,8 +9876,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478505",
-          "dct:modified": "2021-09-17T17:00:51.478507"
+          "dct:issued": "2021-09-29T10:46:51.872015",
+          "dct:modified": "2021-09-29T10:46:51.872017"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -8817,7 +9931,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -8873,8 +9987,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478517",
-          "dct:modified": "2021-09-17T17:00:51.478519"
+          "dct:issued": "2021-09-29T10:46:51.872032",
+          "dct:modified": "2021-09-29T10:46:51.872034"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Drop-Seq"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -8911,7 +10042,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -8967,8 +10098,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478528",
-          "dct:modified": "2021-09-17T17:00:51.478530"
+          "dct:issued": "2021-09-29T10:46:51.872051",
+          "dct:modified": "2021-09-29T10:46:51.872053"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' v2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -9000,7 +10148,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -9264,8 +10412,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478542",
-          "dct:modified": "2021-09-17T17:00:51.478544"
+          "dct:issued": "2021-09-29T10:46:51.872069",
+          "dct:modified": "2021-09-29T10:46:51.872071"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -9317,7 +10482,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Mus musculus"
         ],
@@ -9571,8 +10736,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478562",
-          "dct:modified": "2021-09-17T17:00:51.478564"
+          "dct:issued": "2021-09-29T10:46:51.872095",
+          "dct:modified": "2021-09-29T10:46:51.872097"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -9619,7 +10801,7 @@
           "count": 2
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Mus musculus"
         ],
@@ -9771,8 +10953,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478577",
-          "dct:modified": "2021-09-17T17:00:51.478579"
+          "dct:issued": "2021-09-29T10:46:51.872112",
+          "dct:modified": "2021-09-29T10:46:51.872114"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Drop-seq"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -9814,7 +11013,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -9983,8 +11182,26 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478591",
-          "dct:modified": "2021-09-17T17:00:51.478593"
+          "dct:issued": "2021-09-29T10:46:51.872130",
+          "dct:modified": "2021-09-29T10:46:51.872132"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 5' v2 sequencing",
+            "10X TCR enrichment"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -10021,7 +11238,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -10133,8 +11350,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478613",
-          "dct:modified": "2021-09-17T17:00:51.478615"
+          "dct:issued": "2021-09-29T10:46:51.872155",
+          "dct:modified": "2021-09-29T10:46:51.872157"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' v2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -10171,7 +11405,7 @@
           "count": 3
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -10507,8 +11741,26 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478656",
-          "dct:modified": "2021-09-17T17:00:51.478658"
+          "dct:issued": "2021-09-29T10:46:51.872172",
+          "dct:modified": "2021-09-29T10:46:51.872174"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "sci-CAR",
+            "sci-RNA-seq"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "snRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -10545,7 +11797,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens",
           "Mus musculus"
@@ -10611,8 +11863,27 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478676",
-          "dct:modified": "2021-09-17T17:00:51.478678"
+          "dct:issued": "2021-09-29T10:46:51.872196",
+          "dct:modified": "2021-09-29T10:46:51.872198"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-like",
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "RNA-seq",
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -10654,7 +11925,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -10807,8 +12078,27 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478692",
-          "dct:modified": "2021-09-17T17:00:51.478694"
+          "dct:issued": "2021-09-29T10:46:51.872213",
+          "dct:modified": "2021-09-29T10:46:51.872215"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "CITE-seq",
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Proteomic",
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -10840,7 +12130,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -11046,8 +12336,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478708",
-          "dct:modified": "2021-09-17T17:00:51.478710"
+          "dct:issued": "2021-09-29T10:46:51.872231",
+          "dct:modified": "2021-09-29T10:46:51.872234"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -11099,7 +12406,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens",
           "Mus musculus"
@@ -11204,8 +12511,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478725",
-          "dct:modified": "2021-09-17T17:00:51.478727"
+          "dct:issued": "2021-09-29T10:46:51.872256",
+          "dct:modified": "2021-09-29T10:46:51.872258"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Fluidigm C1-based library preparation"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -11242,7 +12566,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -11306,8 +12630,26 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478738",
-          "dct:modified": "2021-09-17T17:00:51.478740"
+          "dct:issued": "2021-09-29T10:46:51.872278",
+          "dct:modified": "2021-09-29T10:46:51.872280"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "cDNA library construction",
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -11369,7 +12711,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Mus musculus"
         ],
@@ -11433,8 +12775,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478755",
-          "dct:modified": "2021-09-17T17:00:51.478757"
+          "dct:issued": "2021-09-29T10:46:51.872300",
+          "dct:modified": "2021-09-29T10:46:51.872301"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Fluidigm C1-based library preparation"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -11471,7 +12830,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -11535,8 +12894,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478768",
-          "dct:modified": "2021-09-17T17:00:51.478770"
+          "dct:issued": "2021-09-29T10:46:51.872318",
+          "dct:modified": "2021-09-29T10:46:51.872320"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' v3 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -11588,7 +12964,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -11740,8 +13116,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478791",
-          "dct:modified": "2021-09-17T17:00:51.478793"
+          "dct:issued": "2021-09-29T10:46:51.872347",
+          "dct:modified": "2021-09-29T10:46:51.872349"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Fluidigm C1-based library preparation"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -11773,7 +13166,7 @@
           "count": 2001
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -11829,8 +13222,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478809",
-          "dct:modified": "2021-09-17T17:00:51.478811"
+          "dct:issued": "2021-09-29T10:46:51.872368",
+          "dct:modified": "2021-09-29T10:46:51.872370"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -11887,7 +13297,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -12191,8 +13601,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478826",
-          "dct:modified": "2021-09-17T17:00:51.478828"
+          "dct:issued": "2021-09-29T10:46:51.872388",
+          "dct:modified": "2021-09-29T10:46:51.872390"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -12229,7 +13656,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens",
           "Mus musculus"
@@ -12294,8 +13721,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478840",
-          "dct:modified": "2021-09-17T17:00:51.478842"
+          "dct:issued": "2021-09-29T10:46:51.872438",
+          "dct:modified": "2021-09-29T10:46:51.872440"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' v3 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -12347,7 +13791,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -12411,8 +13855,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478871",
-          "dct:modified": "2021-09-17T17:00:51.478873"
+          "dct:issued": "2021-09-29T10:46:51.872478",
+          "dct:modified": "2021-09-29T10:46:51.872480"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' v2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -12444,7 +13905,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -12878,8 +14339,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478884",
-          "dct:modified": "2021-09-17T17:00:51.478885"
+          "dct:issued": "2021-09-29T10:46:51.872497",
+          "dct:modified": "2021-09-29T10:46:51.872499"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -12931,7 +14409,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Mus musculus"
         ],
@@ -13092,8 +14570,27 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478898",
-          "dct:modified": "2021-09-17T17:00:51.478900"
+          "dct:issued": "2021-09-29T10:46:51.872522",
+          "dct:modified": "2021-09-29T10:46:51.872523"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "DroNc-Seq",
+            "Drop-Seq"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "snRNA-seq",
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -13135,7 +14632,7 @@
           "count": 3
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -13231,8 +14728,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478913",
-          "dct:modified": "2021-09-17T17:00:51.478916"
+          "dct:issued": "2021-09-29T10:46:51.872542",
+          "dct:modified": "2021-09-29T10:46:51.872544"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' v3"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -13264,7 +14778,7 @@
           "count": 60
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -13440,8 +14954,27 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478929",
-          "dct:modified": "2021-09-17T17:00:51.478931"
+          "dct:issued": "2021-09-29T10:46:51.872564",
+          "dct:modified": "2021-09-29T10:46:51.872566"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v2 sequencing",
+            "Drop-seq"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "snRNA-seq",
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -13498,7 +15031,7 @@
           "count": 2
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -13586,8 +15119,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478948",
-          "dct:modified": "2021-09-17T17:00:51.478950"
+          "dct:issued": "2021-09-29T10:46:51.872588",
+          "dct:modified": "2021-09-29T10:46:51.872590"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -13639,7 +15189,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -13856,8 +15406,26 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478966",
-          "dct:modified": "2021-09-17T17:00:51.478968"
+          "dct:issued": "2021-09-29T10:46:51.872611",
+          "dct:modified": "2021-09-29T10:46:51.872613"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "CITE-seq"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Proteomic",
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -13894,7 +15462,7 @@
           "count": 6
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -13966,8 +15534,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478979",
-          "dct:modified": "2021-09-17T17:00:51.478981"
+          "dct:issued": "2021-09-29T10:46:51.872628",
+          "dct:modified": "2021-09-29T10:46:51.872630"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "MARS-seq"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -14014,7 +15599,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -14086,8 +15671,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.478993",
-          "dct:modified": "2021-09-17T17:00:51.478995"
+          "dct:issued": "2021-09-29T10:46:51.872648",
+          "dct:modified": "2021-09-29T10:46:51.872650"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -14144,7 +15746,7 @@
           "count": 2
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -14216,8 +15818,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.479007",
-          "dct:modified": "2021-09-17T17:00:51.479009"
+          "dct:issued": "2021-09-29T10:46:51.872669",
+          "dct:modified": "2021-09-29T10:46:51.872671"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -14269,7 +15888,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -14357,8 +15976,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.479027",
-          "dct:modified": "2021-09-17T17:00:51.479029"
+          "dct:issued": "2021-09-29T10:46:51.872698",
+          "dct:modified": "2021-09-29T10:46:51.872700"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "snRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -14410,7 +16046,7 @@
           "count": 2
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -14538,8 +16174,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.479044",
-          "dct:modified": "2021-09-17T17:00:51.479046"
+          "dct:issued": "2021-09-29T10:46:51.872720",
+          "dct:modified": "2021-09-29T10:46:51.872722"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Fluidigm C1-based library preparation"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -14576,7 +16229,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -14632,8 +16285,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.479058",
-          "dct:modified": "2021-09-17T17:00:51.479060"
+          "dct:issued": "2021-09-29T10:46:51.872738",
+          "dct:modified": "2021-09-29T10:46:51.872740"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -14690,7 +16360,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -14915,8 +16585,26 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.479076",
-          "dct:modified": "2021-09-17T17:00:51.479078"
+          "dct:issued": "2021-09-29T10:46:51.872764",
+          "dct:modified": "2021-09-29T10:46:51.872765"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v2 sequencing",
+            "Drop-seq"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -14963,7 +16651,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -15075,8 +16763,26 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.479092",
-          "dct:modified": "2021-09-17T17:00:51.479094"
+          "dct:issued": "2021-09-29T10:46:51.872787",
+          "dct:modified": "2021-09-29T10:46:51.872789"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' v3",
+            "10x 3' v2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -15113,7 +16819,7 @@
           "count": 2
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -15191,8 +16897,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.479106",
-          "dct:modified": "2021-09-17T17:00:51.479107"
+          "dct:issued": "2021-09-29T10:46:51.872805",
+          "dct:modified": "2021-09-29T10:46:51.872807"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -15249,7 +16972,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -15329,8 +17052,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.479122",
-          "dct:modified": "2021-09-17T17:00:51.479124"
+          "dct:issued": "2021-09-29T10:46:51.872826",
+          "dct:modified": "2021-09-29T10:46:51.872830"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10x 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -15372,7 +17112,7 @@
           "count": 60
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [],
         "disease": []
       },
@@ -15424,8 +17164,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.479136",
-          "dct:modified": "2021-09-17T17:00:51.479138"
+          "dct:issued": "2021-09-29T10:46:51.872849",
+          "dct:modified": "2021-09-29T10:46:51.872851"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -15462,7 +17219,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Mus musculus"
         ],
@@ -15534,8 +17291,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.479154",
-          "dct:modified": "2021-09-17T17:00:51.479156"
+          "dct:issued": "2021-09-29T10:46:51.872869",
+          "dct:modified": "2021-09-29T10:46:51.872872"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "10X 3' v2 sequencing"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "snRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -15592,7 +17366,7 @@
           "count": 1
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
@@ -15704,8 +17478,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.479170",
-          "dct:modified": "2021-09-17T17:00:51.479171"
+          "dct:issued": "2021-09-29T10:46:51.872901",
+          "dct:modified": "2021-09-29T10:46:51.872904"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "inDrop"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -15742,7 +17533,7 @@
           "count": 38
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens",
           "Mus musculus"
@@ -15880,8 +17671,25 @@
             "foaf:name": "Human Cell Atlas"
           },
           "dct:publisher": "Data Explorer Team",
-          "dct:issued": "2021-09-17T17:00:51.479183",
-          "dct:modified": "2021-09-17T17:00:51.479185"
+          "dct:issued": "2021-09-29T10:46:51.872921",
+          "dct:modified": "2021-09-29T10:46:51.872923"
+        }
+      ],
+      "prov:wasGeneratedBy": [
+        {
+          "TerraCore:hasAssayType": [
+            "Smart-seq2"
+          ]
+        },
+        {
+          "TerraCore:hasDataModality": [
+            "TerraCoreValueSets:Transcriptomic"
+          ]
+        },
+        {
+          "TerraCore:hasAssayCategory": [
+            "scRNA-seq"
+          ]
         }
       ],
       "storage": [
@@ -15913,7 +17721,7 @@
           "count": 2290
         }
       ],
-      "donors": {
+      "samples": {
         "genus": [
           "Homo sapiens"
         ],
