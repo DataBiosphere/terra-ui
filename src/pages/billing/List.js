@@ -241,11 +241,11 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const loadAccounts = _.flow(
     withErrorReporting('Error loading billing accounts'),
     Utils.withBusyState(setIsLoadingAccounts)
-  )(async () => {
+  )(() => {
     if (Auth.hasBillingScope()) {
-      const accounts = await Ajax(signal).Billing.listAccounts()
-      const byAccountName = Object.fromEntries(_.map(acc => [acc.accountName, acc], accounts))
-      setBillingAccounts(byAccountName)
+      return Ajax(signal).Billing.listAccounts()
+        .then(_.keyBy('accountName'))
+        .then(setBillingAccounts)
     }
   })
 
@@ -374,10 +374,9 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             }
           })
         }],
-        [!_.isEmpty(projectsOwned) && !selectedName && hasBillingProjects, () => div(
-          { style: { margin: '1rem auto 0 auto' } }, [
-            'Select a Billing Project'
-          ]
+        [!_.isEmpty(projectsOwned) && !selectedName && hasBillingProjects, () => div({
+          style: { margin: '1rem auto 0 auto' }
+        }, ['Select a Billing Project']
         )],
         [!hasBillingProjects, () => noBillingMessage(showCreateProjectModal)]
       )]),
