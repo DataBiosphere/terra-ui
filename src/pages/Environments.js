@@ -234,7 +234,7 @@ const Environments = () => {
         div([span({ style: { fontWeight: '600' } }, ['Name: ']), appName]),
         disk && div([span({ style: { fontWeight: '600' } }, ['Persistent Disk: ']), disk.name])
       ])
-    }, [h(Link, ['details'])])
+    }, [h(Link, ['view'])])
   }
 
   const renderDetailsRuntime = (runtime, disks) => {
@@ -245,7 +245,7 @@ const Environments = () => {
         div([span({ style: { fontWeight: '600' } }, ['Name: ']), runtimeName]),
         disk && div([span({ style: { fontWeight: '600' } }, ['Persistent Disk: ']), disk.name])
       ])
-    }, [h(Link, ['details'])])
+    }, [h(Link, ['view'])])
   }
 
   const renderDeleteButton = (resourceType, resource) => {
@@ -453,7 +453,7 @@ const Environments = () => {
                   runtime && div([span({ style: { fontWeight: 600 } }, ['Runtime: ']), runtime.runtimeName]),
                   app && div([span({ style: { fontWeight: 600 } }, ['Galaxy: ']), app.appName])
                 ])
-              }, [h(Link, ['details'])])
+              }, [h(Link, ['view'])])
             }
           },
           {
