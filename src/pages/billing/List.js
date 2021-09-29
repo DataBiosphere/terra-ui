@@ -217,14 +217,12 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const [billingProjects, setBillingProjects] = useState(StateHistory.get().billingProjects || null)
   const [creatingBillingProject, setCreatingBillingProject] = useState(false)
   const [billingAccounts, setBillingAccounts] = useState(null)
-  const [isOwner, setIsOwner] = useState(false)
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)
 
   const signal = Utils.useCancellation()
   const interval = useRef()
-
 
   // Helpers
   const loadProjects = _.flow(
@@ -245,13 +243,11 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     Utils.withBusyState(setIsLoadingAccounts)
   )(async () => {
     if (Auth.hasBillingScope()) {
-      setBillingAccounts(await Ajax(signal).Billing.listAccounts())
+      const accounts = await Ajax(signal).Billing.listAccounts()
+      const byAccountName = Object.fromEntries(_.map(acc => [acc.accountName, acc], accounts))
+      setBillingAccounts(byAccountName)
     }
   })
-
-  const checkOwner = () => {
-    !isOwner && _.map(project => _.includes(billingRoles.owner, project.role) ? setIsOwner(true) : null, billingProjects)
-  }
 
   const showCreateProjectModal = async () => {
     if (Auth.hasBillingScope()) {
@@ -262,12 +258,10 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     }
   }
 
-
   // Lifecycle
   Utils.useOnMount(() => {
     loadProjects()
     loadAccounts()
-    checkOwner()
   })
 
   useEffect(() => {
@@ -285,12 +279,14 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     return () => clearInterval(interval.current)
   })
 
-
   // Render
   const hasBillingProjects = !_.isEmpty(billingProjects)
   const breadcrumbs = `Billing > Billing Project`
-
   const billingProjectListWidth = 330
+  const [projectsOwned, projectsShared] = _.partition(
+    ({ roles }) => _.includes(billingRoles.owner, roles),
+    billingProjects
+  )
 
   return h(FooterWrapper, { fixedHeight: true }, [
     h(TopBar, { title: 'Billing' }, [
@@ -322,22 +318,20 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             div({ style: { marginLeft: '0.5rem' } }, ['Create'])
           ])
         ]),
-
         h(BillingProjectSubheader, { title: 'Owned by You' }, [
           div({ role: 'list' }, [
             _.map(project => h(ProjectListItem, {
               project, key: project.projectName,
               isActive: !!selectedName && project.projectName === selectedName
-            }), _.filter(project => _.includes(billingRoles.owner, project.roles), billingProjects))
+            }), projectsOwned)
           ])
         ]),
-
         h(BillingProjectSubheader, { title: 'Shared with You' }, [
           div({ role: 'list' }, [
             _.map(project => h(ProjectListItem, {
               project, key: project.projectName,
               isActive: !!selectedName && project.projectName === selectedName
-            }), _.filter(project => !_.includes(billingRoles.owner, project.roles), billingProjects))
+            }), projectsShared)
           ])
         ])
       ]),
@@ -372,7 +366,11 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           billingAccounts,
           authorizeAndLoadAccounts
         })],
-        [isOwner && !selectedName && hasBillingProjects, () => div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Billing Project'])],
+        [!_.isEmpty(projectsOwned) && !selectedName && hasBillingProjects, () => div(
+          { style: { margin: '1rem auto 0 auto' } }, [
+            'Select a Billing Project'
+          ]
+        )],
         [!hasBillingProjects, () => noBillingMessage(showCreateProjectModal)]
       )]),
       (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
