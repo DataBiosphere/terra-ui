@@ -360,13 +360,20 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
               p(['It may not exist, or you may not have access to it.'])
             ])
           ])],
-        [selectedName && hasBillingProjects, () => h(ProjectDetail, {
-          key: selectedName,
-          billingProject: _.find({ projectName: selectedName }, billingProjects),
-          billingAccounts,
-          authorizeAndLoadAccounts,
-          invalidateProjectAndReload: loadProjects
-        })],
+        [selectedName && hasBillingProjects, () => {
+          const index = _.findIndex({ projectName: selectedName }, billingProjects)
+          return h(ProjectDetail, {
+            key: selectedName,
+            billingProject: billingProjects[index],
+            billingAccounts,
+            authorizeAndLoadAccounts,
+            invalidateProjectAndReload: async () => {
+              const projects = billingProjects.slice()
+              projects[index] = await Ajax(signal).Billing.billingProject(selectedName)
+              setBillingProjects(projects)
+            }
+          })
+        }],
         [!_.isEmpty(projectsOwned) && !selectedName && hasBillingProjects, () => div(
           { style: { margin: '1rem auto 0 auto' } }, [
             'Select a Billing Project'
