@@ -98,7 +98,7 @@ const SparkConsoleInterface = ({ interfaceName, synopsisLines }) => {
       div([
         div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, [interfaceName]),
         div({ style: { lineHeight: 1.5 } }, _.map(line => div([line]), synopsisLines)),
-        div({ style: { display: 'flex', marginTop: '2rem' } }, [
+        div({ style: { display: 'flex', marginTop: '1rem' } }, [
           h(ButtonOutline, {
             disabled: false,
             style: { textTransform: 'capitalize', marginRight: 'auto' },
@@ -1338,21 +1338,22 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       h(SparkConsoleInterface, {
         interfaceName: 'YARN Resource Manager',
         synopsisLines: [
-          'Apache Hadoop YARN interface provides information about cluster resource',
-          'management and job scheduling/monitoring.'
+          'YARN Resource Manager provides information about cluster status and metrics',
+          'as well as information about the scheduler, nodes, and applications on the cluster.'
         ]
       }),
       h(SparkConsoleInterface, {
-        interfaceName: 'Spark Job History Server',
+        interfaceName: 'Spark History Server',
         synopsisLines: [
-          'Spark users often wish to view job history files for diagnostic or other purposes.',
-          'This interface allows for viewing job history for jobs run on active Spark clusters.'
+          'Spark History Server provides information about completed Spark applications',
+          'on the cluster.'
         ]
       }),
       h(SparkConsoleInterface, {
-        interfaceName: 'MapReduce Job History Server',
+        interfaceName: 'MapReduce History Server',
         synopsisLines: [
-          'Similarly to above, this interface allows for viewing history for MapReduce jobs.'
+          'MapReduce History Server displays information about completed MapReduce',
+          'applications on a cluster.'
         ]
       }),
       h(SparkConsoleInterface, {
@@ -1366,7 +1367,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       h(SparkConsoleInterface, {
         interfaceName: 'YARN Application Timeline',
         synopsisLines: [
-          'This service interface provides information about application- and YARN- published events.'
+          'YARN Application Timeline provides information about current and historic',
+          'applications executed on the cluster.'
         ]
       })
     ])
