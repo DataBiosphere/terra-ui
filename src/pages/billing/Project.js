@@ -185,7 +185,7 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
   return _.mapValues(ws => new Set(ws), _.groupBy(group, workspaces))
 }
 
-const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccounts, invalidateProjectAndReload }) => {
+const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccounts, updateProjectAndReload }) => {
   // State
   const { query } = Nav.useRoute()
   // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
@@ -298,7 +298,7 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
         billingProjectName: billingProject.projectName,
         newBillingAccountName: newAccountName
       })
-      invalidateProjectAndReload()
+      updateProjectAndReload()
     }
   )
 

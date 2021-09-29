@@ -367,7 +367,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             billingProject: billingProjects[index],
             billingAccounts,
             authorizeAndLoadAccounts,
-            invalidateProjectAndReload: async () => {
+            updateProjectAndReload: async () => {
               const projects = billingProjects.slice()
               projects[index] = await Ajax(signal).Billing.billingProject(selectedName)
               setBillingProjects(projects)
