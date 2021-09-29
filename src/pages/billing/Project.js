@@ -79,7 +79,7 @@ const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details,
 })
 
 const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingAccountStatus, isExpanded, onExpand }) => {
-  const { namespace, name, createdBy, lastModified, googleProject, billingAccount, billingAccountErrorMessage } = workspace
+  const { namespace, name, createdBy, lastModified, googleProject, billingAccountDisplayName, billingAccountErrorMessage } = workspace
   const workspaceCardStyles = {
     field: {
       ...Style.noWrapEllipsis, flex: 1, height: '1rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`, paddingRight: '1rem'
@@ -130,7 +130,7 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingA
       isExpanded && div({ id, style: { ...workspaceCardStyles.row, padding: '0.5rem', border: `1px solid ${colors.light()}` } }, [
         div({ style: workspaceCardStyles.expandedInfoContainer }, [
           h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
-          h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccount, errorMessage: billingAccountErrorMessage })
+          h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountDisplayName, errorMessage: billingAccountErrorMessage })
         ])
       ])
     ])])
@@ -235,7 +235,7 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
           _.map(workspace => {
             const isExpanded = expandedWorkspaceName === workspace.name
             return h(WorkspaceCard, {
-              workspace: { ...workspace, billingAccount: billingAccounts[workspace.billingAccount]?.displayName },
+              workspace: { ...workspace, billingAccountDisplayName: billingAccounts[workspace.billingAccount]?.displayName },
               billingAccountStatus: billingAccountsOutOfDate && getBillingAccountStatus(workspace),
               key: workspace.workspaceId,
               isExpanded,
