@@ -163,6 +163,7 @@
       ]
     },
     {
+      "access": "Controlled",
       "dct:identifier": "ae52c25c-9ee4-4a42-83f2-6e4b20116380",
       "dct:title": "Transcriptomic and clonal characterization of T cells in the human central nervous system.",
       "dct:description": "Tissues develop unique homeostatic immune states through specific recruitment of immune cells that are further shaped by the tissue environment. Single-cell RNA of healthy cerebrospinal fluid (CSF) and single-nucleus RNA sequencing of brain parenchyma was used to profile the T cell state in the human central nervous system (CNS).",
@@ -368,6 +369,7 @@
       ]
     },
     {
+      "access": "Pending",
       "dct:identifier": "fcca83ce-9015-42ae-a846-504cefa7902a",
       "dct:title": "Transcriptomic Profiling of the Developing Cardiac Conduction System at Single-Cell Resolution.",
       "dct:description": "The cardiac conduction system (CCS) consists of distinct components including the sinoatrial node (SAN), atrioventricular node (AVN), His bundle, bundle branches (BB) and Purkinje fibers (PF). Despite an essential role for the CCS in heart development and function, the CCS has remained challenging to interrogate due to inherent obstacles including small cell numbers, large cell type heterogeneity, complex anatomy and difficulty in isolation. We used single-cell RNA-sequencing (scRNA-seq) to perform genome-wide analysis of gene expression of the CCS at single-cell resolution. Overall design: Single cell transcriptional analysis of embryonic cardiac cells using 10x genomics 3' solution.",

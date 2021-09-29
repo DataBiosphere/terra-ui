@@ -25,12 +25,28 @@ export const normalizeSnapshot = snapshot => {
     contributors.push(person.contactName)
   }, snapshot.contributors)
 
+  const dataType = _.flow(
+    _.getOr([], 'prov:wasGeneratedBy'),
+    _.filter(x => x.hasOwnProperty('TerraCore:hasAssayCategory')),
+    _.flatMap('TerraCore:hasAssayCategory'),
+    _.uniqBy(_.toLower)
+  )(snapshot)
+
+  const dataModality = _.flow(
+    _.getOr([], 'prov:wasGeneratedBy'),
+    _.filter(x => x.hasOwnProperty('TerraCore:hasDataModality')),
+    _.flatMap(x => _.map(y => y.replace('TerraCoreValueSets:', ''), x['TerraCore:hasDataModality'])),
+    _.uniqBy(_.toLower)
+  )(snapshot)
+
   return {
     ...snapshot,
     project: _.get('0.dct:title', snapshot['TerraDCAT_ap:hasDataCollection']),
     lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description']),
     lastUpdated: snapshot['dct:modified'] ? new Date(snapshot['dct:modified']) : null,
-    dataType: _.getOr('N/A', 'TerraDCAT_ap:dataType', snapshot),
-    contacts, curators, contributors
+    dataReleasePolicy: snapshot['TerraDCAT_ap:hasDataUsePermission'].replace('TerraCore:', '').replace(/([A-Z])/g, ' $1'),
+    contacts, curators, contributors,
+    dataType, dataModality,
+    access: _.getOr('Open', 'access', snapshot)
   }
 }

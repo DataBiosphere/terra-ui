@@ -37,24 +37,24 @@ const styles = {
 const sidebarSections = [{
   name: 'Access Type',
   labels: [
-    'TerraCore:Restricted',
-    'TerraCore:NoRestriction',
-    'TerraCore:Pending'
+    'Controlled',
+    'Open',
+    'Pending'
   ],
   labelDisplays: {
-    'TerraCore:Restricted': [
+    Controlled: [
       div({ style: { display: 'flex' } }, [
         icon('lock', { style: { color: styles.access.controlled, marginRight: 5 } }),
         div(['Controlled'])
       ])
     ],
-    'TerraCore:NoRestriction': [
+    Open: [
       div({ style: { display: 'flex' } }, [
         icon('unlock', { style: { color: styles.access.open, marginRight: 5 } }),
         div(['Open'])
       ])
     ],
-    'TerraCore:Pending': [
+    Pending: [
       div({ style: { display: 'flex' } }, [
         icon('lock', { style: { color: styles.access.pending, marginRight: 5 } }),
         div(['Pending'])
@@ -75,8 +75,20 @@ const sidebarSections = [{
     'Human Cell Atlas'
   ]
 }, {
-  name: 'Species',
-  labels: ['Homo sapiens', 'Mus musculus']
+  name: 'Data modality',
+  labels: ['Proteomic', 'Transcriptomic', 'Epigenomic', 'Genomic']
+}, {
+  name: 'Data Type',
+  labels: ['scRNA-seq', 'snRNA-seq', 'RNA-seq', 'nuc-seq', 'N/A']
+}, {
+  name: 'File type',
+  labels: [
+    'Rds', 'Robj',
+    'bam', 'csv', 'csv.gz', 'fastq', 'fastq.gz',
+    'h5', 'h5ad', 'loom', 'mtx', 'mtx.gz', 'pdf',
+    'rds', 'rds.gz', 'tar', 'tar.gz', 'tsv',
+    'tsv.gz', 'txt', 'txt.gz', 'xlsx', 'zip'
+  ]
 }, {
   name: 'Disease',
   labels: [
@@ -102,21 +114,8 @@ const sidebarSections = [{
     'cataract (disease)', 'testicular cancer'
   ]
 }, {
-  name: 'Data Type',
-  labels: [
-    'Exome',
-    'Whole Genome',
-    'N/A'
-  ]
-}, {
-  name: 'File type',
-  labels: [
-    'Rds', 'Robj',
-    'bam', 'csv', 'csv.gz', 'fastq', 'fastq.gz',
-    'h5', 'h5ad', 'loom', 'mtx', 'mtx.gz', 'pdf',
-    'rds', 'rds.gz', 'tar', 'tar.gz', 'tsv',
-    'tsv.gz', 'txt', 'txt.gz', 'xlsx', 'zip'
-  ]
+  name: 'Species',
+  labels: ['Homo sapiens', 'Mus musculus']
 }]
 
 const getRawList = async () => {
@@ -128,12 +127,14 @@ const extractTags = snapshot => {
   return {
     itemsType: 'AttributeValue',
     items: [
-      _.toLower(snapshot['TerraDCAT_ap:hasDataUsePermission'] || 'TerraCore:NoRestriction'),
+      _.toLower(snapshot.access),
       _.toLower(snapshot.project),
       ..._.map('dcat:mediaType', snapshot.files),
       _.toLower(snapshot.dataType),
       ..._.map(_.toLower, _.getOr([], 'samples.genus', snapshot)),
-      ..._.map(_.toLower, _.getOr([], 'samples.disease', snapshot))
+      ..._.map(_.toLower, _.getOr([], 'samples.disease', snapshot)),
+      ..._.map(_.toLower, _.getOr([], 'dataType', snapshot)),
+      ..._.map(_.toLower, _.getOr([], 'dataModality', snapshot))
     ]
   }
 }
@@ -234,8 +235,8 @@ const DataBrowserTable = ({ sort, setSort, selectedData, toggleSelectedData, set
         useHover: false,
         underRowKey: 'underRow',
         rows: _.map(datum => {
-          const { project, dataType } = datum
-          const access = _.get('TerraDCAT_ap:hasDataUsePermission', datum)
+          const { project, dataType, access } = datum
+
           return {
             checkbox: h(Checkbox, {
               'aria-label': datum['dct:title'],
@@ -248,16 +249,16 @@ const DataBrowserTable = ({ sort, setSort, selectedData, toggleSelectedData, set
             ),
             project,
             subjects: datum?.counts?.donors,
-            dataType,
+            dataType: dataType.join(', '),
             lastUpdated: datum.lastUpdated ? Utils.makeStandardDate(datum.lastUpdated) : null,
             underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
               div({ style: { display: 'flex', alignItems: 'center' } }, [
                 Utils.cond(
-                  [access === 'TerraCore:Restricted', () => h(ButtonSecondary, {
+                  [access === 'Controlled', () => h(ButtonSecondary, {
                     style: { height: 'unset', textTransform: 'none' },
                     onClick: () => setRequestDatasetAccessList([datum])
                   }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Request Access'])])],
-                  [access === 'TerraCore:Pending', () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
+                  [access === 'Pending', () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
                     icon('lock'),
                     div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
                   ])],

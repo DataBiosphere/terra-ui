@@ -35,7 +35,7 @@ const MainContent = ({ snapshot }) => {
     div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Data release policy']),
-        div([_.get('releasePolicy', snapshot)])
+        div([_.get('dataReleasePolicy', snapshot)])
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Last Updated']),
@@ -89,7 +89,7 @@ const MainContent = ({ snapshot }) => {
 }
 
 const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
-  const access = _.get('TerraDCAT_ap:hasDataUsePermission', snapshot)
+  const { access } = snapshot
 
   return div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
     h2({ className: 'sr-only' }, ['Snapshot Data Details']),
@@ -98,14 +98,14 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
         h3(['Access type']),
         div([
           Utils.cond(
-            [access === 'TerraCore:Restricted', () => h(ButtonSecondary, {
+            [access === 'Controlled', () => h(ButtonSecondary, {
               style: { fontSize: 16, textTransform: 'none', height: 'unset' },
               onClick: () => setShowRequestAccessModal(true)
             }, [
               icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
               'Request Access'
             ])],
-            [access === 'TerraCore:Pending', () => div({ style: { color: styles.access.pending } }, [
+            [access === 'Pending', () => div({ style: { color: styles.access.pending } }, [
               icon('unlock', { size: 18, style: { marginRight: 10 } }),
               'Pending Access'
             ])],
@@ -125,8 +125,12 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
         div([_.getOr(0, 'counts.samples', snapshot).toLocaleString()])
       ]),
       div([
+        h3({ style: styles.headers }, ['Data Modality']),
+        div([_.join(', ', _.get('dataModality', snapshot))])
+      ]),
+      div([
         h3({ style: styles.headers }, ['Data type']),
-        div([_.get('dataType', snapshot)])
+        div([_.join(', ', _.get('dataType', snapshot))])
       ]),
       div([
         h3({ style: styles.headers }, ['File counts']),
