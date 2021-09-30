@@ -93,7 +93,7 @@ const DataprocDiskSelector = ({ value, onChange }) => {
   ])
 }
 
-const SparkInterface = ({ interfaceName, synopsisLines, namespace, name, onDismiss }) => {
+const SparkInterface = ({ interfaceName, synopsis, namespace, name, onDismiss }) => {
   const interfaceDisplayName = Utils.switchCase(interfaceName,
     ['yarn', () => 'YARN Resource Manager'],
     ['apphistory', () => 'YARN Application Timeline'],
@@ -106,7 +106,7 @@ const SparkInterface = ({ interfaceName, synopsisLines, namespace, name, onDismi
     div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
       div([
         div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, [interfaceDisplayName]),
-        div({ style: { lineHeight: 1.5 } }, _.map(line => div([line]), synopsisLines)),
+        p([synopsis]),
         div({ style: { display: 'flex', marginTop: '1rem' } }, [
           h(ButtonOutline, {
             disabled: false,
@@ -1346,59 +1346,54 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         onDismiss,
         onPrevious: () => setViewMode(undefined)
       }),
-      div({ style: { marginBottom: '1rem' } }, [
-        div(['Some of the Spark cluster components such as Apache Hadoop and Apache Spark']),
-        div(['provide web interfaces. These interfaces can be used to manage and monitor cluster']),
-        div(['resources and facilities, such as the YARN resource manager, the Hadoop Distributed']),
-        div(['File System (HDFS), MapReduce, and Spark.'])
+      p([
+        `Some of the Spark cluster components such as Apache Hadoop and Apache Spark
+         provide web interfaces. These interfaces can be used to manage and monitor cluster
+         resources and facilities, such as the YARN resource manager, the Hadoop Distributed
+         File System (HDFS), MapReduce, and Spark.`
       ]),
       h(SparkInterface, {
         interfaceName: 'yarn',
-        synopsisLines: [
-          'YARN Resource Manager provides information about cluster status and metrics',
-          'as well as information about the scheduler, nodes, and applications on the cluster.'
-        ],
+        synopsis:
+          `YARN Resource Manager provides information about cluster status and metrics
+           as well as information about the scheduler, nodes, and applications on the cluster.`,
         namespace,
         name,
         onDismiss
       }),
       h(SparkInterface, {
         interfaceName: 'apphistory',
-        synopsisLines: [
-          'YARN Application Timeline provides information about current and historic',
-          'applications executed on the cluster.'
-        ],
+        synopsis:
+          `YARN Application Timeline provides information about current and historic applications
+           executed on the cluster.`,
         namespace,
         name,
         onDismiss
       }),
       h(SparkInterface, {
         interfaceName: 'hdfs',
-        synopsisLines: [
-          'A NameNode is a main daemon that maintains and manages DataNodes.',
-          'This interface can be used to view summary and detailed information',
-          'on name and data nodes.'
-        ],
+        synopsis:
+          `A NameNode is a main daemon that maintains and manages DataNodes. 
+          This interface can be used to view summary and detailed information
+          on name and data nodes.`,
         namespace,
         name,
         onDismiss
       }),
       h(SparkInterface, {
         interfaceName: 'sparkhistory',
-        synopsisLines: [
-          'Spark History Server provides information about completed Spark applications',
-          'on the cluster.'
-        ],
+        synopsis:
+          `Spark History Server provides information about completed Spark applications
+           on the cluster.`,
         namespace,
         name,
         onDismiss
       }),
       h(SparkInterface, {
         interfaceName: 'jobhistory',
-        synopsisLines: [
-          'MapReduce History Server displays information about completed MapReduce',
-          'applications on a cluster.'
-        ],
+        synopsis:
+          `MapReduce History Server displays information about completed MapReduce
+           applications on a cluster.`,
         namespace,
         name,
         onDismiss
