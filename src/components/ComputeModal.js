@@ -269,9 +269,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     onSuccess()
   })
 
-  const canUpdateNumberOfWorkers = () => {
-    return !currentRuntimeDetails || currentRuntimeDetails.status === 'Running'
-  }
+  const isRuntimeRunning = () => currentRuntimeDetails?.status === 'Running'
+
+  const canManageSparkConsole = () => !!sparkMode && isRuntimeRunning()
+
+  const canUpdateNumberOfWorkers = () => !currentRuntimeDetails || isRuntimeRunning()
 
   const canUpdateRuntime = () => {
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
@@ -878,8 +880,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           // TODO: Is there a more robust way to center Link vertically wrt. the Select component above?
           span({ style: { paddingTop: '2rem' } }, [
             h(Link, {
-              disabled: !sparkMode,
-              tooltip: !sparkMode && 'You must have a Spark cluster or a master node.',
+              disabled: !canManageSparkConsole(),
+              tooltip: !canManageSparkConsole() && 'You must have a running Spark cluster or a master node.',
               onClick: () => setViewMode('sparkConsole')
             }, ['Manage and monitor Spark console'])
           ])
