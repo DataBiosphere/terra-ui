@@ -309,7 +309,18 @@ const Browser = () => {
     h(SelectedItemsDisplay, { selectedData, setSelectedData }, []),
     !!requestDatasetAccessList && h(RequestDatasetAccessModal, {
       datasets: requestDatasetAccessList,
-      onDismiss: () => setRequestDatasetAccessList()
+      onDismiss: () => {
+        setRequestDatasetAccessList()
+
+        const ind = _.findIndex(x => x['dct:identifier'] === requestDatasetAccessList[0]['dct:identifier'], fullList)
+        fullList[ind].access = 'Pending'
+        fullList[ind].tags.items = _.remove(x => x === 'controlled', fullList[ind].tags.items)
+        fullList[ind].tags.items.push('pending')
+
+        console.log(fullList[ind])
+
+        setFullList(fullList)
+      }
     })
   ])
 }

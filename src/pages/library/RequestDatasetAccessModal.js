@@ -62,13 +62,21 @@ const RequestDatasetAccessButton = ({ dataset }) => {
   const [requested, setRequested] = useState(false)
   const signal = Utils.useCancellation()
 
-  const requestAccess = _.flow(
-    Utils.withBusyState(setRequesting),
-    withErrorReporting('Error requesting dataset access')
-  )(async () => {
-    await Ajax(signal).requestAccess(dataset.id)
-    setRequested(true)
-  })
+  // const requestAccess = _.flow(
+  //   Utils.withBusyState(setRequesting),
+  //   withErrorReporting('Error requesting dataset access')
+  // )(async () => {
+  //   await Ajax(signal).requestAccess(dataset.id)
+  //   setRequested(true)
+  // })
+
+  const requestAccess = () => {
+    setRequesting(true)
+    setTimeout(() => {
+      setRequested(true)
+      setRequesting(false)
+    }, 1500)
+  }
 
   return h(ButtonPrimary, {
     disabled: requesting || requested,

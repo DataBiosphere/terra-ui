@@ -5,6 +5,7 @@ import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/compone
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
+import TooltipTrigger from 'src/components/TooltipTrigger'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
@@ -150,13 +151,19 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
         ])
       ])
     ]),
-    h(ButtonOutline, {
-      style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
-      onClick: () => Nav.goToPath('library-catalog-preview', { id: _.get('dct:identifier', snapshot) })
-    }, [
-      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [
-        icon('eye', { size: 22, style: { marginRight: 10 } }),
-        'Preview data'
+    h(TooltipTrigger, { content: 'Coming soon!' }, [
+      h(ButtonOutline, {
+        disabled: true,
+        style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20, hover: 'none',
+          color: colors.dark(1)
+        },
+        hover: { backgroundColor: colors.dark(0.25), cursor: 'default' }
+        // onClick: () => Nav.goToPath('library-catalog-preview', { id: _.get('dct:identifier', snapshot) })
+      }, [
+        div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [
+          icon('eye', { size: 22, style: { marginRight: 10 } }),
+          'Preview data'
+        ])
       ])
     ]),
     h(ButtonPrimary, {
@@ -198,7 +205,10 @@ const DataBrowserDetails = ({ id }) => {
           h(Sidebar, { snapshot, setShowRequestAccessModal }),
           showRequestAccessModal && h(RequestDatasetAccessModal, {
             datasets: [snapshot],
-            onDismiss: () => setShowRequestAccessModal(false)
+            onDismiss: () => {
+              setShowRequestAccessModal(false)
+              snapshot.access = 'Pending'
+            }
           })
         ])
       ])
