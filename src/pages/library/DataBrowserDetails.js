@@ -51,10 +51,10 @@ const MainContent = ({ snapshot }) => {
         h3({ style: styles.headers }, ['Cloud provider']),
         div([
           _.map(
-            storage => div({ key: `cloud-platform-table-${storage.cloudPlatform}` }, [
+            ({ cloudPlatform }) => div({ key: `cloud-platform-table-${cloudPlatform}` }, [
               Utils.cond(
-                [storage.cloudPlatform === 'gcp', () => img({ src: gcp, alt: 'Google Cloud Platform', style: { maxHeight: 25, maxWidth: 150 } })],
-                [storage.cloudPlatform === 'azure', () => img({ src: azure, alt: 'Microsoft Azure', style: { maxHeight: 25, maxWidth: 150 } })]
+                [cloudPlatform === 'gcp', () => img({ src: gcp, alt: 'Google Cloud Platform', style: { maxHeight: 25, maxWidth: 150 } })],
+                [cloudPlatform === 'azure', () => img({ src: azure, alt: 'Microsoft Azure', style: { maxHeight: 25, maxWidth: 150 } })]
               )
             ]),
             _.uniqBy('cloudPlatform', snapshot.storage)
@@ -63,18 +63,18 @@ const MainContent = ({ snapshot }) => {
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Contact']),
-        _.map(contact => div({ key: `data-curator_${contact.contactName}`, style: { marginBottom: 30 } }, [
-          contact.contactName,
-          contact.institution && div({ style: { marginTop: 5 } }, [contact.institution]),
-          contact.email && h(Link, { href: contact.email, style: { marginTop: 5, display: 'block' } }, [contact.email])
+        _.map(({ contactName, institution, email }) => div({ key: `data-curator_${contactName}`, style: { marginBottom: 30 } }, [
+          contactName,
+          institution && div({ style: { marginTop: 5 } }, [institution]),
+          email && h(Link, { href: email, style: { marginTop: 5, display: 'block' } }, [email])
         ]), snapshot.contacts)
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Data curator']),
-        _.map(curator => div({ key: `data-curator_${curator.contactName}`, style: { marginBottom: 30 } }, [
-          curator.contactName,
-          curator.institution && div({ style: { marginTop: 5 } }, [curator.institution]),
-          curator.email && h(Link, { href: curator.email, style: { marginTop: 5, display: 'block' } }, [curator.email])
+        _.map(({ contactName, institution, email }) => div({ key: `data-curator_${contactName}`, style: { marginBottom: 30 } }, [
+          contactName,
+          institution && div({ style: { marginTop: 5 } }, [institution]),
+          email && h(Link, { href: email, style: { marginTop: 5, display: 'block' } }, [email])
         ]), snapshot.curators)
       ]),
       div({ style: styles.attributesColumn }, [
@@ -99,23 +99,22 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
       div([
         h3(['Access type']),
         div([
-          Utils.cond(
-            [access === 'Controlled', () => h(ButtonSecondary, {
+          Utils.switchCase(access,
+            ['Controlled', () => h(ButtonSecondary, {
               style: { fontSize: 16, textTransform: 'none', height: 'unset' },
               onClick: () => setShowRequestAccessModal(true)
             }, [
               icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
               'Request Access'
             ])],
-            [access === 'Pending', () => div({ style: { color: styles.access.pending } }, [
+            ['Pending', () => div({ style: { color: styles.access.pending } }, [
               icon('unlock', { size: 18, style: { marginRight: 10 } }),
               'Pending Access'
             ])],
-            () => div({ style: { color: styles.access.open } }, [
+            [Utils.DEFAULT, () => div({ style: { color: styles.access.open } }, [
               icon('unlock', { size: 18, style: { marginRight: 10 } }),
               'Open Access'
-            ])
-          )
+            ])])
         ])
       ]),
       div([

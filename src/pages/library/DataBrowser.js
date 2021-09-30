@@ -123,18 +123,13 @@ const getRawList = async () => {
   return new Promise(resolve => setTimeout(resolve(list.data), 1000))
 }
 
-const extractTags = snapshot => {
+const extractTags = ({ samples: { genus, disease }, dataType, dataModality, access, project, files }) => {
+  console.log('Tags')
   return {
     itemsType: 'AttributeValue',
     items: [
-      _.toLower(snapshot.access),
-      _.toLower(snapshot.project),
-      ..._.map('dcat:mediaType', snapshot.files),
-      _.toLower(snapshot.dataType),
-      ..._.map(_.toLower, _.getOr([], 'samples.genus', snapshot)),
-      ..._.map(_.toLower, _.getOr([], 'samples.disease', snapshot)),
-      ..._.map(_.toLower, _.getOr([], 'dataType', snapshot)),
-      ..._.map(_.toLower, _.getOr([], 'dataModality', snapshot))
+      ..._.map('dcat:mediaType', files),
+      _.map(_.toLower, [...genus, ...disease, ...dataType, ...dataModality, access, project])
     ]
   }
 }
@@ -253,20 +248,19 @@ const DataBrowserTable = ({ sort, setSort, selectedData, toggleSelectedData, set
             lastUpdated: datum.lastUpdated ? Utils.makeStandardDate(datum.lastUpdated) : null,
             underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
               div({ style: { display: 'flex', alignItems: 'center' } }, [
-                Utils.cond(
-                  [access === 'Controlled', () => h(ButtonSecondary, {
+                Utils.switchCase(access,
+                  ['Controlled', () => h(ButtonSecondary, {
                     style: { height: 'unset', textTransform: 'none' },
                     onClick: () => setRequestDatasetAccessList([datum])
                   }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Request Access'])])],
-                  [access === 'Pending', () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
+                  ['Pending', () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
                     icon('lock'),
                     div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
                   ])],
-                  () => div({ style: { color: styles.access.open, display: 'flex' } }, [
+                  [Utils.DEFAULT, () => div({ style: { color: styles.access.open, display: 'flex' } }, [
                     icon('unlock'),
                     div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Open Access'])
-                  ])
-                )
+                  ])])
               ])
             ])
           }
