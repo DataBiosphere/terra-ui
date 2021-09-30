@@ -877,7 +877,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           ]),
           // TODO: Is there a more robust way to center Link vertically wrt. the Select component above?
           span({ style: { paddingTop: '2rem' } }, [
-            h(Link, { onClick: () => setViewMode('sparkConsole') }, ['Manage and monitor Spark console'])
+            h(Link, {
+              disabled: !sparkMode,
+              tooltip: !sparkMode && 'You must have a Spark cluster or a master node.',
+              onClick: () => setViewMode('sparkConsole')
+            }, ['Manage and monitor Spark console'])
           ])
         ])
       ]),
