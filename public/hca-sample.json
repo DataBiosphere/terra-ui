@@ -173,7 +173,7 @@
       "dct:issued": "2021-01-20T11:20:19.948000Z",
       "dct:modified": "2021-01-20T11:20:27.792000Z",
       "dcat:accessURL": "https://jade.datarepo-dev.broadinstitute.org/snapshots/details/ae52c25c-9ee4-4a42-83f2-6e4b20116380",
-      "TerraDCAT_ap:hasDataUsePermission": "TerraCore:Restricted",
+      "TerraDCAT_ap:hasDataUsePermission": "TerraCore:GeneralResearchUse",
       "TerraDCAT_ap:hasOriginalPublication": null,
       "TerraDCAT_ap:hasDataCollection": [
         {
@@ -379,7 +379,7 @@
       "dct:issued": "2020-08-04T10:39:04.598000Z",
       "dct:modified": "2020-08-04T10:39:11.237000Z",
       "dcat:accessURL": "https://jade.datarepo-dev.broadinstitute.org/snapshots/details/fcca83ce-9015-42ae-a846-504cefa7902a",
-      "TerraDCAT_ap:hasDataUsePermission": "TerraCore:Pending",
+      "TerraDCAT_ap:hasDataUsePermission": "TerraCore:GeneralResearchUse",
       "TerraDCAT_ap:hasOriginalPublication": null,
       "TerraDCAT_ap:hasDataCollection": [
         {
