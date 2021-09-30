@@ -6,6 +6,8 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
+import azure from 'src/images/azure.svg'
+import gcp from 'src/images/gcp.svg'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
@@ -52,8 +54,8 @@ const MainContent = ({ snapshot }) => {
           _.map(
             storage => div({ key: `cloud-platform-table-${storage.cloudPlatform}` }, [
               Utils.cond(
-                [storage.cloudPlatform === 'gcp', () => img({ src: 'logos/gcp.svg', alt: 'Google Cloud Platform', style: { maxHeight: 25, maxWidth: 150 } })],
-                [storage.cloudPlatform === 'azure', () => img({ src: 'logos/azure.svg', alt: 'Microsoft Azure', style: { maxHeight: 25, maxWidth: 150 } })]
+                [storage.cloudPlatform === 'gcp', () => img({ src: gcp, alt: 'Google Cloud Platform', style: { maxHeight: 25, maxWidth: 150 } })],
+                [storage.cloudPlatform === 'azure', () => img({ src: azure, alt: 'Microsoft Azure', style: { maxHeight: 25, maxWidth: 150 } })]
               )
             ]),
             _.uniqBy('cloudPlatform', snapshot.storage)
