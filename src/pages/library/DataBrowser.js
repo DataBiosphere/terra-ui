@@ -167,7 +167,7 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
         onClick: () => {
           Nav.history.push({
             pathname: Nav.getPath('import-data'),
-            search: `?url=${getConfig().dataRepoUrlRoot}&snapshotId=REPLACE_ME&snapshotName=${selectedData[0]['dct:title']}&format=snapshot`
+            search: `?url=${encodeURIComponent(getConfig().dataRepoUrlRoot)}&snapshotId=${encodeURIComponent(selectedData[0]['dct:identifier'])}&snapshotName=${encodeURIComponent(selectedData[0]['dct:title'])}&format=snapshot`
           })
         }
       }, ['Save to a workspace'])
