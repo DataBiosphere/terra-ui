@@ -10394,6 +10394,7 @@
       ]
     },
     {
+      "access": "Controlled",
       "dct:identifier": "69d49001-0f5f-46a8-8396-b83fd1c41e6b",
       "dct:title": "Microglia Require CD4\u00a0T Cells to Complete the Fetal-to-Adult Transition.",
       "dct:description": "The brain is a site of relative immune privilege. Although CD4 T\u00a0cells have been reported in the central nervous system, their presence in the healthy brain remains controversial, and their function remains largely unknown. We used a combination of imaging, single cell, and surgical approaches to identify a CD69+ CD4 T\u00a0cell population in both the mouse and human brain, distinct from circulating CD4 T\u00a0cells. The brain-resident population was derived through in situ differentiation from activated circulatory cells and was shaped by self-antigen and the peripheral microbiome. Single-cell sequencing revealed that in the absence of murine CD4 T\u00a0cells, resident microglia remained suspended between the fetal and adult states. This maturation defect resulted in excess immature neuronal synapses and behavioral abnormalities. These results illuminate a role for CD4 T\u00a0cells in brain development and a potential interconnected dynamic between the evolution of the immunological and neurological systems.",
