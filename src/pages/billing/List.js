@@ -366,7 +366,10 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             billingProject: billingProjects[index],
             billingAccounts,
             authorizeAndLoadAccounts,
-            updateProject: async () => {
+            updateProject: _.flow(
+              withErrorReporting('Error updating billing project'),
+              Utils.withBusyState(setIsLoadingProjects)
+            )(async () => {
               try {
                 const projects = billingProjects.slice()
                 projects[index] = await Ajax(signal).Billing.billingProject(selectedName)
@@ -374,7 +377,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
               } catch (_) {
                 loadProjects()
               }
-            }
+            })
           })
         }],
         [!_.isEmpty(projectsOwned) && !selectedName, () => {

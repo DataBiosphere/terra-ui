@@ -310,7 +310,7 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
     datasetName: selectedDatasetName
   }))
 
-  const refreshUsers = _.flow(
+  const updateProjectUsers = _.flow(
     withErrorReporting('Error loading billing project users list'),
     Utils.withBusyState(setRefreshing)
   )(() => Ajax(signal).Billing.project(billingProject.projectName).listUsers()
@@ -322,7 +322,7 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
     .then(setProjectUsers))
 
   // Lifecycle
-  Utils.useOnMount(() => { refreshUsers() })
+  Utils.useOnMount(() => { updateProjectUsers() })
 
   useEffect(() => { StateHistory.update({ projectUsers }) }, [projectUsers])
 
@@ -434,7 +434,7 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
         value: tab,
         onChange: newTab => {
           if (newTab === tab) {
-            refreshUsers()
+            updateProjectUsers()
           } else {
             setTab(newTab)
           }
@@ -461,7 +461,7 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
       onDismiss: () => setAddingUser(false),
       onSuccess: () => {
         setAddingUser(false)
-        refreshUsers()
+        updateProjectUsers()
       }
     }),
     editingUser && h(EditUserModal, {
@@ -473,7 +473,7 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
       onSuccess: () => {
         setEditingUser(false)
         updateProject()
-        refreshUsers()
+        updateProjectUsers()
       }
     }),
     !!deletingUser && h(DeleteUserModal, {
@@ -486,7 +486,7 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
         )(() => Ajax().Billing.project(billingProject.projectName).removeUser(deletingUser.roles, deletingUser.email))()
         setDeletingUser(false)
         updateProject()
-        refreshUsers()
+        updateProjectUsers()
       }
     }),
     billingAccountsOutOfDate && h(BillingAccountSummaryPanel, { counts: _.mapValues(_.size, groups) }),
