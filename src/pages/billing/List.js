@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { div, h, h2, p, span } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { ButtonOutline, ButtonPrimary, Clickable, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
@@ -214,9 +214,9 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
 
 export const BillingList = ({ queryParams: { selectedName } }) => {
   // State
-  const [billingProjects, setBillingProjects] = useState(StateHistory.get().billingProjects || null)
+  const [billingProjects, setBillingProjects] = useState(StateHistory.get().billingProjects || [])
   const [creatingBillingProject, setCreatingBillingProject] = useState(false)
-  const [billingAccounts, setBillingAccounts] = useState(null)
+  const [billingAccounts, setBillingAccounts] = useState({ })
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)
@@ -280,7 +280,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   })
 
   // Render
-  const hasBillingProjects = !_.isEmpty(billingProjects)
   const breadcrumbs = `Billing > Billing Project`
   const billingProjectListWidth = 330
   const [projectsOwned, projectsShared] = _.partition(
@@ -349,7 +348,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           overflowY: 'auto', flexGrow: 1, display: 'flex', flexDirection: 'column'
         }
       }, [Utils.cond(
-        [selectedName && hasBillingProjects && !_.some({ projectName: selectedName }, billingProjects),
+        [selectedName && !_.some({ projectName: selectedName }, billingProjects),
           () => div({
             style: {
               margin: '1rem auto 0 auto'
@@ -360,25 +359,30 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
               p(['It may not exist, or you may not have access to it.'])
             ])
           ])],
-        [selectedName && hasBillingProjects, () => {
+        [selectedName && _.some({ projectName: selectedName }, projectsOwned), () => {
           const index = _.findIndex({ projectName: selectedName }, billingProjects)
           return h(ProjectDetail, {
             key: selectedName,
             billingProject: billingProjects[index],
             billingAccounts,
             authorizeAndLoadAccounts,
-            updateProjectAndReload: async () => {
-              const projects = billingProjects.slice()
-              projects[index] = await Ajax(signal).Billing.billingProject(selectedName)
-              setBillingProjects(projects)
+            updateProject: async () => {
+              try {
+                const projects = billingProjects.slice()
+                projects[index] = await Ajax(signal).Billing.billingProject(selectedName)
+                setBillingProjects(projects)
+              } catch (_) {
+                loadProjects()
+              }
             }
           })
         }],
-        [!_.isEmpty(projectsOwned) && !selectedName && hasBillingProjects, () => div({
-          style: { margin: '1rem auto 0 auto' }
-        }, ['Select a Billing Project']
-        )],
-        [!hasBillingProjects, () => noBillingMessage(showCreateProjectModal)]
+        [!_.isEmpty(projectsOwned) && !selectedName, () => {
+          return div({ style: { margin: '1rem auto 0 auto' } }, [
+            'Select a Billing Project'
+          ])
+        }],
+        [_.isEmpty(billingProjects), () => noBillingMessage(showCreateProjectModal)]
       )]),
       (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay
     ])

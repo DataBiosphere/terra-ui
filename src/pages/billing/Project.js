@@ -185,13 +185,13 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
   return _.mapValues(ws => new Set(ws), _.groupBy(group, workspaces))
 }
 
-const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccounts, updateProjectAndReload }) => {
+const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccounts, updateProject }) => {
   // State
   const { query } = Nav.useRoute()
   // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
   const { workspaces, refresh: refreshWorkspaces } = useWorkspaces()
 
-  const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || null)
+  const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || [])
   const [addingUser, setAddingUser] = useState(false)
   const [editingUser, setEditingUser] = useState(false)
   const [deletingUser, setDeletingUser] = useState(false)
@@ -288,17 +288,16 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
 
   // Helpers
   const setBillingAccount = withErrorReporting('Error updating billing account')(
-    async newAccountName => {
+    newAccountName => {
       Ajax().Metrics.captureEvent(Events.changeBillingAccount, {
         oldName: billingProject.billingAccount,
         newName: newAccountName,
         billingProjectName: billingProject.projectName
       })
-      await Ajax(signal).Billing.changeBillingAccount({
+      return Ajax(signal).Billing.changeBillingAccount({
         billingProjectName: billingProject.projectName,
         newBillingAccountName: newAccountName
       })
-      updateProjectAndReload()
     }
   )
 
@@ -311,25 +310,19 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
     datasetName: selectedDatasetName
   }))
 
-  const refresh = _.flow(
+  const refreshUsers = _.flow(
     withErrorReporting('Error loading billing project users list'),
     Utils.withBusyState(setRefreshing)
-  )(async () => {
-    setAddingUser(false)
-    setDeletingUser(false)
-    setUpdating(false)
-    setEditingUser(false)
-    const rawProjectUsers = await Ajax(signal).Billing.project(billingProject.projectName).listUsers()
-    const projectUsers = _.flow(
+  )(() => Ajax(signal).Billing.project(billingProject.projectName).listUsers()
+    .then(_.flow(
       _.groupBy('email'),
       _.map(gs => ({ ..._.omit('role', gs[0]), roles: _.map('role', gs) })),
       _.sortBy('email')
-    )(rawProjectUsers)
-    setProjectUsers(projectUsers)
-  })
+    ))
+    .then(setProjectUsers))
 
   // Lifecycle
-  Utils.useOnMount(() => { refresh() })
+  Utils.useOnMount(() => { refreshUsers() })
 
   useEffect(() => { StateHistory.update({ projectUsers }) }, [projectUsers])
 
@@ -367,9 +360,9 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
           onDismiss: () => setShowBillingModal(false),
           okButton: h(ButtonPrimary, {
             disabled: !selectedBilling || billingProject.billingAccount === selectedBilling,
-            onClick: async () => {
+            onClick: () => {
               setShowBillingModal(false)
-              await setBillingAccount(selectedBilling)
+              setBillingAccount(selectedBilling).then(updateProject)
             }
           }, ['Ok'])
         }, [
@@ -441,7 +434,7 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
         value: tab,
         onChange: newTab => {
           if (newTab === tab) {
-            refresh()
+            refreshUsers()
           } else {
             setTab(newTab)
           }
@@ -466,7 +459,10 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
       footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
       addFunction: Ajax().Billing.project(billingProject.projectName).addUser,
       onDismiss: () => setAddingUser(false),
-      onSuccess: refresh
+      onSuccess: () => {
+        setAddingUser(false)
+        refreshUsers()
+      }
     }),
     editingUser && h(EditUserModal, {
       adminLabel: billingRoles.owner,
@@ -474,19 +470,24 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
       user: editingUser,
       saveFunction: Ajax().Billing.project(billingProject.projectName).changeUserRoles,
       onDismiss: () => setEditingUser(false),
-      onSuccess: refresh
+      onSuccess: () => {
+        setEditingUser(false)
+        updateProject()
+        refreshUsers()
+      }
     }),
     !!deletingUser && h(DeleteUserModal, {
       userEmail: deletingUser.email,
       onDismiss: () => setDeletingUser(false),
-      onSubmit: _.flow(
-        withErrorReporting('Error removing member from billing project'),
-        Utils.withBusyState(setUpdating)
-      )(async () => {
+      onSubmit: async () => {
+        await _.flow(
+          withErrorReporting('Error removing member from billing project'),
+          Utils.withBusyState(setUpdating)
+        )(() => Ajax().Billing.project(billingProject.projectName).removeUser(deletingUser.roles, deletingUser.email))()
         setDeletingUser(false)
-        await Ajax().Billing.project(billingProject.projectName).removeUser(deletingUser.roles, deletingUser.email)
-        refresh()
-      })
+        updateProject()
+        refreshUsers()
+      }
     }),
     billingAccountsOutOfDate && h(BillingAccountSummaryPanel, { counts: _.mapValues(_.size, groups) }),
     (refreshing || updating) && spinnerOverlay
