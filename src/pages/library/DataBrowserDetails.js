@@ -154,7 +154,8 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
     h(TooltipTrigger, { content: 'Coming soon!' }, [
       h(ButtonOutline, {
         disabled: true,
-        style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20, hover: 'none',
+        style: {
+          fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20, hover: 'none',
           color: colors.dark(1)
         },
         hover: { backgroundColor: colors.dark(0.25), cursor: 'default' }

@@ -4,8 +4,6 @@ import { div, h, span, table, tbody, td, th, thead, tr } from 'react-hyperscript
 import { ButtonPrimary, IdContainer } from 'src/components/common'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
-import { Ajax } from 'src/libs/ajax'
-import { withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 
@@ -60,7 +58,6 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
 const RequestDatasetAccessButton = ({ dataset }) => {
   const [requesting, setRequesting] = useState(false)
   const [requested, setRequested] = useState(false)
-  const signal = Utils.useCancellation()
 
   // const requestAccess = _.flow(
   //   Utils.withBusyState(setRequesting),
