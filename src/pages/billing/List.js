@@ -375,7 +375,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
                 projects[index] = await Ajax(signal).Billing.billingProject(selectedName)
                 setBillingProjects(projects)
               } catch (_) {
-                loadProjects()
+                await loadProjects()
               }
             })
           })
