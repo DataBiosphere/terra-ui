@@ -123,12 +123,18 @@ const getRawList = async () => {
   return new Promise(resolve => setTimeout(resolve(list.data), 1000))
 }
 
-const extractTags = ({ samples: { genus, disease }, dataType, dataModality, access, project, files }) => {
+const extractTags = snapshot => {
   return {
     itemsType: 'AttributeValue',
     items: [
-      ..._.map('dcat:mediaType', files),
-      _.map(_.toLower, [...genus, ...disease, ...dataType, ...dataModality, access, project])
+      _.toLower(snapshot.access),
+      _.toLower(snapshot.project),
+      ..._.map('dcat:mediaType', snapshot.files),
+      _.toLower(snapshot.dataType),
+      ..._.map(_.toLower, _.getOr([], 'samples.genus', snapshot)),
+      ..._.map(_.toLower, _.getOr([], 'samples.disease', snapshot)),
+      ..._.map(_.toLower, _.getOr([], 'dataType', snapshot)),
+      ..._.map(_.toLower, _.getOr([], 'dataModality', snapshot))
     ]
   }
 }
