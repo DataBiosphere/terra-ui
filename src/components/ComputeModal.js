@@ -552,7 +552,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ])
       const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
 
-      // TODO: Provide default here in case remote call fails
       const { location, locationType } = await Ajax().Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
 
       const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
