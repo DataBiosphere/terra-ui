@@ -218,18 +218,18 @@ export const refreshTerraProfile = async () => {
   authStore.update(state => ({ ...state, profile }))
 }
 
-authStore.subscribe(withErrorReporting('Error loading user profile', async (state, oldState) => {
-  if (!oldState.isSignedIn && state.isSignedIn) {
-    await refreshTerraProfile()
-  }
-}))
+// authStore.subscribe(withErrorReporting('Error loading user profile', async (state, oldState) => {
+//   if (!oldState.isSignedIn && state.isSignedIn) {
+//     await refreshTerraProfile()
+//   }
+// }))
 
-authStore.subscribe(withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
-  if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
-    const nihStatus = await Ajax().User.getNihStatus()
-    authStore.update(state => ({ ...state, nihStatus }))
-  }
-}))
+// authStore.subscribe(withErrorReporting('Error loading NIH account link status', async (state, oldState) => {
+//   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
+//     const nihStatus = await Ajax().User.getNihStatus()
+//     authStore.update(state => ({ ...state, nihStatus }))
+//   }
+// }))
 
 authStore.subscribe(async (state, oldState) => {
   if (oldState.registrationStatus !== 'registered' && state.registrationStatus === 'registered') {
