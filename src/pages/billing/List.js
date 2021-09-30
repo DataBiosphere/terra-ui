@@ -366,7 +366,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             billingProject: billingProjects[index],
             billingAccounts,
             authorizeAndLoadAccounts,
-            updateProject: _.flow(
+            updateBillingProject: _.flow(
               withErrorReporting('Error updating billing project'),
               Utils.withBusyState(setIsLoadingProjects)
             )(async () => {

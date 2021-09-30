@@ -185,7 +185,7 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
   return _.mapValues(ws => new Set(ws), _.groupBy(group, workspaces))
 }
 
-const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccounts, updateProject }) => {
+const ProjectDetail = ({ billingProject, updateBillingProject, billingAccounts, authorizeAndLoadAccounts }) => {
   // State
   const { query } = Nav.useRoute()
   // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
@@ -310,7 +310,7 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
     datasetName: selectedDatasetName
   }))
 
-  const updateProjectUsers = _.flow(
+  const updateBillingProjectUsers = _.flow(
     withErrorReporting('Error loading billing project users list'),
     Utils.withBusyState(setRefreshing)
   )(() => Ajax(signal).Billing.project(billingProject.projectName).listUsers()
@@ -322,7 +322,7 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
     .then(setProjectUsers))
 
   // Lifecycle
-  Utils.useOnMount(() => { updateProjectUsers() })
+  Utils.useOnMount(() => { updateBillingProjectUsers() })
 
   useEffect(() => { StateHistory.update({ projectUsers }) }, [projectUsers])
 
@@ -362,7 +362,7 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
             disabled: !selectedBilling || billingProject.billingAccount === selectedBilling,
             onClick: () => {
               setShowBillingModal(false)
-              setBillingAccount(selectedBilling).then(updateProject)
+              setBillingAccount(selectedBilling).then(updateBillingProject)
             }
           }, ['Ok'])
         }, [
@@ -434,7 +434,7 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
         value: tab,
         onChange: newTab => {
           if (newTab === tab) {
-            updateProjectUsers()
+            updateBillingProjectUsers()
           } else {
             setTab(newTab)
           }
@@ -461,7 +461,7 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
       onDismiss: () => setAddingUser(false),
       onSuccess: () => {
         setAddingUser(false)
-        updateProjectUsers()
+        updateBillingProjectUsers()
       }
     }),
     editingUser && h(EditUserModal, {
@@ -472,8 +472,8 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
       onDismiss: () => setEditingUser(false),
       onSuccess: () => {
         setEditingUser(false)
-        updateProject()
-        updateProjectUsers()
+        updateBillingProject()
+        updateBillingProjectUsers()
       }
     }),
     !!deletingUser && h(DeleteUserModal, {
@@ -485,8 +485,8 @@ const ProjectDetail = ({ billingProject, billingAccounts, authorizeAndLoadAccoun
           Utils.withBusyState(setUpdating)
         )(() => Ajax().Billing.project(billingProject.projectName).removeUser(deletingUser.roles, deletingUser.email))()
         setDeletingUser(false)
-        updateProject()
-        updateProjectUsers()
+        updateBillingProject()
+        updateBillingProjectUsers()
       }
     }),
     billingAccountsOutOfDate && h(BillingAccountSummaryPanel, { counts: _.mapValues(_.size, groups) }),
