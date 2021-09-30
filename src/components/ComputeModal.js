@@ -19,6 +19,7 @@ import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { versionTag } from 'src/libs/logos'
+import * as Nav from 'src/libs/nav'
 import {
   defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType,
   defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime,
@@ -92,17 +93,27 @@ const DataprocDiskSelector = ({ value, onChange }) => {
   ])
 }
 
-const SparkConsoleInterface = ({ interfaceName, synopsisLines }) => {
+const SparkInterface = ({ interfaceName, synopsisLines, namespace, name, onDismiss }) => {
+  const interfaceDisplayName = Utils.switchCase(interfaceName,
+    ['yarn', () => 'YARN Resource Manager'],
+    ['apphistory', () => 'YARN Application Timeline'],
+    ['hdfs', () => 'HDFS NameNode'],
+    ['sparkhistory', () => 'Spark History Server'],
+    ['jobhistory', () => 'MapReduce History Server']
+  )
+
   return div({ style: { ...styles.whiteBoxContainer, marginBottom: '1rem', backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
     div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
       div([
-        div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, [interfaceName]),
+        div({ style: { ...styles.headerText, marginTop: '0.5rem' } }, [interfaceDisplayName]),
         div({ style: { lineHeight: 1.5 } }, _.map(line => div([line]), synopsisLines)),
         div({ style: { display: 'flex', marginTop: '1rem' } }, [
           h(ButtonOutline, {
             disabled: false,
-            style: { textTransform: 'capitalize', marginRight: 'auto' },
-            onClick: () => console.log('LAUNCHING...')
+            href: Nav.getLink('workspace-spark-interface-launch', { namespace, name, application: 'spark', sparkInterface: interfaceName }),
+            style: { marginRight: 'auto' },
+            onClick: onDismiss,
+            ...Utils.newTabLinkProps
           }, ['Launch'])
         ])
       ])
@@ -1320,6 +1331,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const renderSparkConsole = () => {
+    const { namespace, name } = getWorkspaceObject()
+
     return div({ style: styles.drawerContent }, [
       h(TitleBar, {
         id: titleId,
@@ -1335,41 +1348,56 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         div(['resources and facilities, such as the YARN resource manager, the Hadoop Distributed']),
         div(['File System (HDFS), MapReduce, and Spark.'])
       ]),
-      h(SparkConsoleInterface, {
-        interfaceName: 'YARN Resource Manager',
+      h(SparkInterface, {
+        interfaceName: 'yarn',
         synopsisLines: [
           'YARN Resource Manager provides information about cluster status and metrics',
           'as well as information about the scheduler, nodes, and applications on the cluster.'
-        ]
+        ],
+        namespace,
+        name,
+        onDismiss
       }),
-      h(SparkConsoleInterface, {
-        interfaceName: 'Spark History Server',
+      h(SparkInterface, {
+        interfaceName: 'apphistory',
         synopsisLines: [
-          'Spark History Server provides information about completed Spark applications',
-          'on the cluster.'
-        ]
+          'YARN Application Timeline provides information about current and historic',
+          'applications executed on the cluster.'
+        ],
+        namespace,
+        name,
+        onDismiss
       }),
-      h(SparkConsoleInterface, {
-        interfaceName: 'MapReduce History Server',
-        synopsisLines: [
-          'MapReduce History Server displays information about completed MapReduce',
-          'applications on a cluster.'
-        ]
-      }),
-      h(SparkConsoleInterface, {
-        interfaceName: 'HDFS NameNode',
+      h(SparkInterface, {
+        interfaceName: 'hdfs',
         synopsisLines: [
           'A NameNode is a main daemon that maintains and manages DataNodes.',
           'This interface can be used to view summary and detailed information',
           'on name and data nodes.'
-        ]
+        ],
+        namespace,
+        name,
+        onDismiss
       }),
-      h(SparkConsoleInterface, {
-        interfaceName: 'YARN Application Timeline',
+      h(SparkInterface, {
+        interfaceName: 'sparkhistory',
         synopsisLines: [
-          'YARN Application Timeline provides information about current and historic',
-          'applications executed on the cluster.'
-        ]
+          'Spark History Server provides information about completed Spark applications',
+          'on the cluster.'
+        ],
+        namespace,
+        name,
+        onDismiss
+      }),
+      h(SparkInterface, {
+        interfaceName: 'jobhistory',
+        synopsisLines: [
+          'MapReduce History Server displays information about completed MapReduce',
+          'applications on a cluster.'
+        ],
+        namespace,
+        name,
+        onDismiss
       })
     ])
   }

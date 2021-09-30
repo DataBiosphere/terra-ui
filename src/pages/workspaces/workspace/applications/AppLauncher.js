@@ -15,13 +15,27 @@ import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
+const getSparkInterfaceSource = (proxyUrl, sparkInterface) => {
+  console.assert(_.endsWith('/jupyter', proxyUrl), 'Unexpected ending for proxy URL')
+  const proxyUrlWithlastSegmentDropped = _.flow(_.split('/'), _.dropRight(1), _.join('/'))(proxyUrl)
+  return `${proxyUrlWithlastSegmentDropped}/${sparkInterface}`
+}
+
+const getApplicationIFrameSource = (proxyUrl, application, sparkInterface) => {
+  return Utils.switchCase(application,
+    ['terminal', () => `${proxyUrl}/terminals/1`],
+    ['spark', () => getSparkInterfaceSource(proxyUrl, sparkInterface)],
+    [Utils.DEFAULT, () => proxyUrl] // RStudio
+  )
+}
+
 const ApplicationLauncher = _.flow(
   Utils.forwardRefWithName('ApplicationLauncher'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: _.get('application')
   })
-)(({ namespace, name, refreshRuntimes, runtimes, persistentDisks, application, workspace }, ref) => {
+)(({ sparkInterface, refreshRuntimes, runtimes, persistentDisks, application, workspace }, ref) => {
   const cookieReady = Utils.useStore(cookieReadyStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
@@ -43,7 +57,7 @@ const ApplicationLauncher = _.flow(
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
         iframe({
-          src: `${runtime.proxyUrl}/${application === 'terminal' ? 'terminals/1' : ''}`,
+          src: getApplicationIFrameSource(runtime.proxyUrl, application, sparkInterface),
           style: {
             border: 'none', flex: 1,
             ...(application === 'terminal' ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
@@ -97,5 +111,11 @@ export const navPaths = [
     path: '/workspaces/:namespace/:name/applications/:application',
     component: ApplicationLauncher,
     title: ({ name, application }) => `${name} - ${application}`
+  },
+  {
+    name: 'workspace-spark-interface-launch',
+    path: '/workspaces/:namespace/:name/applications/:application/:sparkInterface',
+    component: ApplicationLauncher,
+    title: ({ name, application, sparkInterface }) => `${name} - ${application} - ${sparkInterface}`
   }
 ]
