@@ -17,7 +17,7 @@ export const normalizeSnapshot = snapshot => {
   }), snapshot.contributors)
 
   const curators = _.filter(({ projectRole }) => projectRole === 'data curator', contactNames)
-  const contacts = _.filter(({ correspondingContributor }) => _.identity(correspondingContributor), contactNames)
+  const contacts = _.filter('correspondingContributor', contactNames)
   const contributors = _.flow(
     _.without(curators),
     _.map('contactName')
