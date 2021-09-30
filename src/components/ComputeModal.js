@@ -271,7 +271,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
   const isRuntimeRunning = () => currentRuntimeDetails?.status === 'Running'
 
-  const canManageSparkConsole = () => !!sparkMode && isRuntimeRunning()
+  const canManageSparkConsole = () => !!sparkMode && isRuntimeRunning() && computeConfig.componentGatewayEnabled
 
   const canUpdateNumberOfWorkers = () => !currentRuntimeDetails || isRuntimeRunning()
 
