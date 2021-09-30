@@ -124,7 +124,6 @@ const getRawList = async () => {
 }
 
 const extractTags = ({ samples: { genus, disease }, dataType, dataModality, access, project, files }) => {
-  console.log('Tags')
   return {
     itemsType: 'AttributeValue',
     items: [
