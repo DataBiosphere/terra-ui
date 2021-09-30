@@ -44,11 +44,9 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
           td({ style: { paddingRight: 20 } }, [title]),
           td([
             Utils.switchCase(access,
-              [access === 'Controlled', () => h(RequestDatasetAccessButton, {
-                datasetName: title
-              })],
-              [access === 'Pending', () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
-              () => span({ style: { fontWeight: 600 } }, ['Permission Granted'])
+              ['Controlled', () => h(RequestDatasetAccessButton, { datasetName: title })],
+              ['Pending', () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
+              [Utils.DEFAULT, () => span({ style: { fontWeight: 600 } }, ['Permission Granted'])]
             )
           ])
         ]), datasets)
