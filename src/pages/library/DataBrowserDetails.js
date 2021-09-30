@@ -52,9 +52,9 @@ const MainContent = ({ snapshot }) => {
         div([
           _.map(
             ({ cloudPlatform }) => div({ key: `cloud-platform-table-${cloudPlatform}` }, [
-              Utils.cond(
-                [cloudPlatform === 'gcp', () => img({ src: gcp, alt: 'Google Cloud Platform', style: { maxHeight: 25, maxWidth: 150 } })],
-                [cloudPlatform === 'azure', () => img({ src: azure, alt: 'Microsoft Azure', style: { maxHeight: 25, maxWidth: 150 } })]
+              Utils.switchCase(cloudPlatform,
+                ['gcp', () => img({ src: gcp, alt: 'Google Cloud Platform', style: { maxHeight: 25, maxWidth: 150 } })],
+                ['azure', () => img({ src: azure, alt: 'Microsoft Azure', style: { maxHeight: 25, maxWidth: 150 } })]
               )
             ]),
             _.uniqBy('cloudPlatform', snapshot.storage)

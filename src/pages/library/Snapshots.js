@@ -12,7 +12,7 @@ export const snapshotStyles = {
 
 export const normalizeSnapshot = snapshot => {
   const contactNames = _.map(({ contactName, ...rest }) => ({
-    contactName: contactName.replace(/,|(,,)/g, ' ').replace(/\s([A-Z])\s/, ' $1. '),
+    contactName: _.flow(_.replace(/,|(,,)/g, ' '), _.replace(/\s([A-Z])\s/, ' $1. '))(contactName),
     ...rest
   }), snapshot.contributors)
 
