@@ -11,31 +11,30 @@ export const snapshotStyles = {
 }
 
 export const normalizeSnapshot = snapshot => {
-  const contacts = []
-  const curators = []
-  const contributors = []
+  const contactNames = _.map(({ contactName, ...rest }) => ({
+    contactName: contactName.replace(/,|(,,)/g, ' ').replace(/\s([A-Z])\s/, ' $1. '),
+    ...rest
+  }), snapshot.contributors)
 
-  _.forEach(person => {
-    person.contactName = person.contactName.replace(',,', ' ').replace(/,/g, ' ').replace(/\s([A-Z])\s/, ' $1. ')
-    if (person.projectRole === 'data curator') {
-      curators.push(person)
-    } else if (person.correspondingContributor) {
-      contacts.push(person)
-    }
-    contributors.push(person.contactName)
-  }, snapshot.contributors)
+  const curators = _.filter(({ projectRole }) => projectRole === 'data curator', contactNames)
+  const contacts = _.filter(({ correspondingContributor }) => _.identity(correspondingContributor), contactNames)
+  const contributors = _.flow(
+    _.without(curators),
+    _.map('contactName')
+  )(contactNames)
 
   const dataType = _.flow(
     _.getOr([], 'prov:wasGeneratedBy'),
-    _.filter(x => x.hasOwnProperty('TerraCore:hasAssayCategory')),
+    _.filter(_.get('TerraCore:hasAssayCategory')),
     _.flatMap('TerraCore:hasAssayCategory'),
     _.uniqBy(_.toLower)
   )(snapshot)
 
   const dataModality = _.flow(
     _.getOr([], 'prov:wasGeneratedBy'),
-    _.filter(x => x.hasOwnProperty('TerraCore:hasDataModality')),
-    _.flatMap(x => _.map(y => y.replace('TerraCoreValueSets:', ''), x['TerraCore:hasDataModality'])),
+    _.filter(_.get('TerraCore:hasDataModality')),
+    _.flatMap(({ 'TerraCore:hasDataModality': hasDataModality }) => hasDataModality),
+    _.map(_.replace('TerraCoreValueSets:', '')),
     _.uniqBy(_.toLower)
   )(snapshot)
 
