@@ -79,7 +79,7 @@ const LaunchAnalysisModal = ({
     [type === chooseSetType, () => _.flow(mergeSets, _.uniqBy('entityName'))(selectedEntities).length]
   )
   const { location, locationType } = bucketLocation
-  const { flag, regionDescription } = regionInfo(location, locationType)
+  const { flag, regionDescription, computeRegion } = regionInfo(location, locationType)
 
   const onlyConstantInputs = _.every(i => !i || Utils.maybeParseJSON(i) !== undefined, config.inputs)
   const warnDuplicateAnalyses = onlyConstantInputs && entityCount > 1
@@ -110,6 +110,15 @@ const LaunchAnalysisModal = ({
           p(['Note that metadata about this run will be stored in the US.'])
         ])]) : 'Loading...'
     ]),
+    div(['Compute for this workflow will occur ', span({ style: { fontWeight: 'bold' } }, 'by default '), 'in the region:']),
+    div({ style: { margin: '1rem 0 1.5rem' } }, [
+      location ? h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [flag]),
+        h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [computeRegion])])]) : 'Loading...'
+    ]),
+    div({ style: { margin: '1rem 0' } }, ['Be sure to use compute in the same region as your data. ',
+      span({ style: { fontStyle: 'italic' } }, 'Running compute in regions other than the source data or bucket region can incur network egress charges. ')]),
+    div(['The listed default workflow compute locations can be overriden in the workflow WDL or with explicit zone inputs to the workflow. ',
+      span({ style: { textDecoration: 'underline' } }, 'Please check the workflow, your inputs, and the documentation before proceeding.')]),
     h(IdContainer, [id => div({ style: { margin: '1rem 0' } }, [
       label({ htmlFor: id, style: { display: 'block', margin: '1rem 0' } }, ['Describe your submission (optional):']),
       ValidatedTextArea({

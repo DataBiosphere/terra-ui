@@ -295,7 +295,7 @@ export const EntityUploader = ({ onSuccess, onDismiss, namespace, name, entityTy
               ...Utils.newTabLinkProps,
               href: 'https://support.terra.bio/hc/en-us/articles/360025758392'
             }, ['Click here for more info on the table.']),
-            p(['Data will be saved in location: 🇺🇸 US (Terra-managed).'])]),
+            p(['Data will be saved in location: 🇺🇸 ', span({ style: { fontWeight: 'bold' } }, 'US '), '(Terra-managed).'])]),
         h(SimpleTabBar, {
           'aria-label': 'import type',
           tabs: [{ title: 'File Import', key: true, width: 121 }, { title: 'Text Import', key: false, width: 127 }],
