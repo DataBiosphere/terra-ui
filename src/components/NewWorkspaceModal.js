@@ -16,6 +16,7 @@ import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
+import { defaultLocation } from 'src/libs/runtime-utils'
 
 
 const constraints = {
@@ -46,7 +47,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState()
-  const [bucketLocation, setBucketLocation] = useState('')
+  const [bucketLocation, setBucketLocation] = useState(defaultLocation)
   const signal = Utils.useCancellation()
 
 
@@ -117,7 +118,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     const [locationResponse] = await Promise.all([
       Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
     ])
-    setBucketLocation(locationResponse.location.toLowerCase())
+    setBucketLocation(locationResponse.location)
   })
 
   // Lifecycle
@@ -141,7 +142,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     [hasBillingProjects, () => h(Modal, {
       title: Utils.cond(
         [title, () => title],
-        [cloneWorkspace, () => 'Clone a workspace'],
+        [cloneWorkspace, () => 'Clone this workspace'],
         () => 'Create a New Workspace'
       ),
       onDismiss,
@@ -195,6 +196,30 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
         })
       ])]),
       h(IdContainer, [id => h(Fragment, [
+        h(FormLabel, { htmlFor: id }, [
+          'Bucket location',
+          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+            'A bucket location can only be set when creating a workspace. ',
+            'Once set, it cannot be changed. ',
+            'A cloned workspace will automatically inherit the bucket location from the original workspace but this may be changed at clone time.',
+            p([
+              'By default, workflow and Cloud Environment VMs will run in the same region as the workspace bucket. ',
+              'Changing bucket or VM locations from the defaults can lead to network egress charges.',
+            ]),
+            h(Link, {
+              href: 'https://support.terra.bio/hc/en-us/articles/360058964552',
+              ...Utils.newTabLinkProps
+            }, ['Read more about bucket locations'])
+          ])
+        ]),
+        h(Select, {
+          id,
+          value: bucketLocation,
+          onChange: ({ value }) => setBucketLocation(value),
+          options: _.sortBy('label', allRegions)
+        })
+      ])]),
+      h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, ['Description']),
         h(TextArea, {
           id,
@@ -230,30 +255,6 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           value: groups,
           onChange: data => setGroups(_.map('value', data)),
           options: _.difference(_.uniq(_.map('groupName', allGroups)), existingGroups).sort()
-        })
-      ])]),
-      h(IdContainer, [id => h(Fragment, [
-        h(FormLabel, { htmlFor: id }, [
-          'Bucket location',
-          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
-            'A bucket location can only be set when creating a workspace. ',
-            'Once set, it cannot be changed. ',
-            'A cloned workspace will automatically inherit the bucket location from the original workspace but this may be changed at clone time.',
-            p([
-              'By default, workflow and Cloud Environment VMs will run in the same region as the workspace bucket. ',
-              'Changing bucket or VM locations from the defaults can lead to network egress charges.',
-            ]),
-            h(Link, {
-              href: 'https://support.terra.bio/hc/en-us/articles/360058964552',
-              ...Utils.newTabLinkProps
-            }, ['Read more about bucket locations'])
-          ])
-        ]),
-        h(Select, {
-          id,
-          value: bucketLocation,
-          onChange: ({ value }) => setBucketLocation(value),
-          options: _.sortBy('label', allRegions)
         })
       ])]),
       customMessage && div({ style: { marginTop: '1rem', lineHeight: '1.5rem' } }, [customMessage]),
