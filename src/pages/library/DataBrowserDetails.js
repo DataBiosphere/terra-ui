@@ -1,12 +1,12 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h1, h2, h3, img, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
+import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
-import azure from 'src/images/azure.svg'
-import gcp from 'src/images/gcp.svg'
+import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
+import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
@@ -51,10 +51,10 @@ const MainContent = ({ snapshot }) => {
         h3({ style: styles.headers }, ['Cloud provider']),
         div([
           _.map(
-            ({ cloudPlatform }) => div({ key: `cloud-platform-table-${cloudPlatform}` }, [
+            ({ cloudPlatform }) => div({ key: cloudPlatform }, [
               Utils.switchCase(cloudPlatform,
-                ['gcp', () => img({ src: gcp, alt: 'Google Cloud Platform', style: { maxHeight: 25, maxWidth: 150 } })],
-                ['azure', () => img({ src: azure, alt: 'Microsoft Azure', style: { maxHeight: 25, maxWidth: 150 } })]
+                ['gcp', () => h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { maxHeight: 25, maxWidth: 150 } })],
+                ['azure', () => h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { maxHeight: 25, maxWidth: 150 } })]
               )
             ]),
             _.uniqBy('cloudPlatform', snapshot.storage)
@@ -63,7 +63,7 @@ const MainContent = ({ snapshot }) => {
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Contact']),
-        _.map(({ contactName, institution, email }) => div({ key: `data-curator_${contactName}`, style: { marginBottom: 30 } }, [
+        _.map(({ contactName, institution, email }) => div({ key: contactName, style: { marginBottom: 30 } }, [
           contactName,
           institution && div({ style: { marginTop: 5 } }, [institution]),
           email && h(Link, { href: email, style: { marginTop: 5, display: 'block' } }, [email])
@@ -71,7 +71,7 @@ const MainContent = ({ snapshot }) => {
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Data curator']),
-        _.map(({ contactName, institution, email }) => div({ key: `data-curator_${contactName}`, style: { marginBottom: 30 } }, [
+        _.map(({ contactName, institution, email }) => div({ key: contactName, style: { marginBottom: 30 } }, [
           contactName,
           institution && div({ style: { marginTop: 5 } }, [institution]),
           email && h(Link, { href: email, style: { marginTop: 5, display: 'block' } }, [email])
