@@ -185,7 +185,7 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
   return _.mapValues(ws => new Set(ws), _.groupBy(group, workspaces))
 }
 
-const ProjectDetail = ({ billingProject, updateBillingProject, billingAccounts, authorizeAndLoadAccounts }) => {
+const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, authorizeAndLoadAccounts }) => {
   // State
   const { query } = Nav.useRoute()
   // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
@@ -196,7 +196,6 @@ const ProjectDetail = ({ billingProject, updateBillingProject, billingAccounts, 
   const [editingUser, setEditingUser] = useState(false)
   const [deletingUser, setDeletingUser] = useState(false)
   const [updating, setUpdating] = useState(false)
-  const [refreshing, setRefreshing] = useState(false)
   const [showBillingModal, setShowBillingModal] = useState(false)
   const [showSpendReportConfigurationModal, setShowSpendReportConfigurationModal] = useState(false)
   const [selectedBilling, setSelectedBilling] = useState()
@@ -287,19 +286,20 @@ const ProjectDetail = ({ billingProject, updateBillingProject, billingAccounts, 
   })
 
   // Helpers
-  const setBillingAccount = withErrorReporting('Error updating billing account')(
-    newAccountName => {
-      Ajax().Metrics.captureEvent(Events.changeBillingAccount, {
-        oldName: billingProject.billingAccount,
-        newName: newAccountName,
-        billingProjectName: billingProject.projectName
-      })
-      return Ajax(signal).Billing.changeBillingAccount({
-        billingProjectName: billingProject.projectName,
-        newBillingAccountName: newAccountName
-      })
-    }
-  )
+  const setBillingAccount = _.flow(
+    withErrorReporting('Error updating billing account'),
+    Utils.withBusyState(setUpdating)
+  )(newAccountName => {
+    Ajax().Metrics.captureEvent(Events.changeBillingAccount, {
+      oldName: billingProject.billingAccount,
+      newName: newAccountName,
+      billingProjectName: billingProject.projectName
+    })
+    return Ajax(signal).Billing.changeBillingAccount({
+      billingProjectName: billingProject.projectName,
+      newBillingAccountName: newAccountName
+    })
+  })
 
   const updateSpendConfiguration = _.flow(
     withErrorReporting('Error updating workflow spend report configuration'),
@@ -310,19 +310,28 @@ const ProjectDetail = ({ billingProject, updateBillingProject, billingAccounts, 
     datasetName: selectedDatasetName
   }))
 
-  const updateBillingProjectUsers = _.flow(
+  const collectUserRoles = _.flow(
+    _.groupBy('email'),
+    _.entries,
+    _.map(([email, members]) => ({ email, roles: _.map('role', members) })),
+    _.sortBy('email')
+  )
+
+  const reloadBillingProjectUsers = _.flow(
     withErrorReporting('Error loading billing project users list'),
-    Utils.withBusyState(setRefreshing)
+    Utils.withBusyState(setUpdating)
   )(() => Ajax(signal).Billing.project(billingProject.projectName).listUsers()
-    .then(_.flow(
-      _.groupBy('email'),
-      _.map(gs => ({ ..._.omit('role', gs[0]), roles: _.map('role', gs) })),
-      _.sortBy('email')
-    ))
-    .then(setProjectUsers))
+    .then(collectUserRoles)
+    .then(setProjectUsers)
+  )
+
+  const removeUserFromBillingProject = _.flow(
+    withErrorReporting('Error removing member from billing project'),
+    Utils.withBusyState(setUpdating)
+  )(Ajax().Billing.project(billingProject.projectName).removeUser)
 
   // Lifecycle
-  Utils.useOnMount(() => { updateBillingProjectUsers() })
+  Utils.useOnMount(() => { reloadBillingProjectUsers() })
 
   useEffect(() => { StateHistory.update({ projectUsers }) }, [projectUsers])
 
@@ -362,7 +371,7 @@ const ProjectDetail = ({ billingProject, updateBillingProject, billingAccounts, 
             disabled: !selectedBilling || billingProject.billingAccount === selectedBilling,
             onClick: () => {
               setShowBillingModal(false)
-              setBillingAccount(selectedBilling).then(updateBillingProject)
+              setBillingAccount(selectedBilling).then(reloadBillingProject)
             }
           }, ['Ok'])
         }, [
@@ -434,7 +443,7 @@ const ProjectDetail = ({ billingProject, updateBillingProject, billingAccounts, 
         value: tab,
         onChange: newTab => {
           if (newTab === tab) {
-            updateBillingProjectUsers()
+            reloadBillingProjectUsers()
           } else {
             setTab(newTab)
           }
@@ -461,7 +470,7 @@ const ProjectDetail = ({ billingProject, updateBillingProject, billingAccounts, 
       onDismiss: () => setAddingUser(false),
       onSuccess: () => {
         setAddingUser(false)
-        updateBillingProjectUsers()
+        reloadBillingProjectUsers()
       }
     }),
     editingUser && h(EditUserModal, {
@@ -472,25 +481,21 @@ const ProjectDetail = ({ billingProject, updateBillingProject, billingAccounts, 
       onDismiss: () => setEditingUser(false),
       onSuccess: () => {
         setEditingUser(false)
-        updateBillingProject()
-        updateBillingProjectUsers()
+        reloadBillingProject().then(reloadBillingProjectUsers)
       }
     }),
     !!deletingUser && h(DeleteUserModal, {
       userEmail: deletingUser.email,
       onDismiss: () => setDeletingUser(false),
-      onSubmit: async () => {
-        await _.flow(
-          withErrorReporting('Error removing member from billing project'),
-          Utils.withBusyState(setUpdating)
-        )(() => Ajax().Billing.project(billingProject.projectName).removeUser(deletingUser.roles, deletingUser.email))()
+      onSubmit: () => {
         setDeletingUser(false)
-        updateBillingProject()
-        updateBillingProjectUsers()
+        removeUserFromBillingProject(deletingUser.roles, deletingUser.email)
+          .then(reloadBillingProject)
+          .then(reloadBillingProjectUsers)
       }
     }),
     billingAccountsOutOfDate && h(BillingAccountSummaryPanel, { counts: _.mapValues(_.size, groups) }),
-    (refreshing || updating) && spinnerOverlay
+    updating && spinnerOverlay
   ])
 }
 

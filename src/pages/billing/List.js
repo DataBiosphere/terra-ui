@@ -230,13 +230,20 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     Utils.withBusyState(setIsLoadingProjects)
   )(async () => setBillingProjects(_.sortBy('projectName', await Ajax(signal).Billing.listProjects())))
 
-  const authorizeAndLoadAccounts = _.flow(
+  const reloadBillingProject = _.flow(
+    withErrorReporting('Error loading billing project'),
+    Utils.withBusyState(setIsLoadingProjects)
+  )(async ({ projectName }) => {
+    // evaluate first to error if project doesn't exist/user can't access
+    const project = await Ajax(signal).Billing.billingProject(selectedName)
+    const index = _.findIndex({ projectName }, billingProjects)
+    setBillingProjects(_.set([index], project))
+  })
+
+  const authorizeAccounts = _.flow(
     withErrorReporting('Error setting up authorization'),
     Utils.withBusyState(setIsAuthorizing)
-  )(async () => {
-    await Auth.ensureBillingScope()
-    await loadAccounts()
-  })
+  )(Auth.ensureBillingScope)
 
   const loadAccounts = _.flow(
     withErrorReporting('Error loading billing accounts'),
@@ -253,7 +260,8 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     if (Auth.hasBillingScope()) {
       setCreatingBillingProject(true)
     } else {
-      await authorizeAndLoadAccounts()
+      await authorizeAccounts()
+      await loadAccounts()
       Auth.hasBillingScope() && setCreatingBillingProject(true)
     }
   }
@@ -360,24 +368,13 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             ])
           ])],
         [selectedName && _.some({ projectName: selectedName }, projectsOwned), () => {
-          const index = _.findIndex({ projectName: selectedName }, billingProjects)
+          const billingProject = _.find({ projectName: selectedName }, billingProjects)
           return h(ProjectDetail, {
             key: selectedName,
-            billingProject: billingProjects[index],
+            billingProject,
             billingAccounts,
-            authorizeAndLoadAccounts,
-            updateBillingProject: _.flow(
-              withErrorReporting('Error updating billing project'),
-              Utils.withBusyState(setIsLoadingProjects)
-            )(async () => {
-              try {
-                const projects = billingProjects.slice()
-                projects[index] = await Ajax(signal).Billing.billingProject(selectedName)
-                setBillingProjects(projects)
-              } catch (_) {
-                await loadProjects()
-              }
-            })
+            authorizeAndLoadAccounts: authorizeAccounts,
+            reloadBillingProject: () => reloadBillingProject(billingProject).catch(loadProjects)
           })
         }],
         [!_.isEmpty(projectsOwned) && !selectedName, () => {
