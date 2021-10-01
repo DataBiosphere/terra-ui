@@ -33,6 +33,7 @@ export const regionInfo = (location, locationType) => {
       ['EUROPE-WEST4', () => ({ flag: '🇳🇱', regionDescription: `${regionDescription} (Netherlands)`, computeZone: 'europe-west4-a', computeRegion: 'europe-west4' })],
       ['EUROPE-WEST6', () => ({ flag: '🇨🇭', regionDescription: `${regionDescription} (Zurich)`, computeZone: 'europe-west6-a', computeRegion: 'europe-west6' })],
       ['NORTHAMERICA-NORTHEAST1', () => ({ flag: '🇨🇦', regionDescription: `${regionDescription} (Montreal)`, computeZone: 'northamerica-northeast1-a', computeRegion: 'northamerica-northeast1' })],
+      ['NORTHAMERICA-NORTHEAST2', () => ({ flag: '🇨🇦', regionDescription: `${regionDescription} (Toronto)`, computeZone: 'northamerica-northeast2-a', computeRegion: 'northamerica-northeast2' })],
       ['SOUTHAMERICA-EAST1', () => ({ flag: '🇧🇷', regionDescription: `${regionDescription} (Sao Paulo)`, computeZone: 'southamerica-east1-a', computeRegion: 'southamerica-east1' })],
       ['US-CENTRAL1', () => ({ flag: '🇺🇸', regionDescription: `${regionDescription} (Iowa)`, computeZone: 'us-central1-a', computeRegion: 'us-central1' })],
       ['US-EAST1', () => ({ flag: '🇺🇸', regionDescription: `${regionDescription} (South Carolina)`, computeZone: 'us-east1-b', computeRegion: 'us-east1' })],
@@ -48,9 +49,9 @@ export const regionInfo = (location, locationType) => {
 }
 
 export const allRegions = [
-  // In this list, us-east*, us-west*, and asia-northeast2 has purposefully been removed.
+  // In this list, us-east*, us-west*, northamerica-northeast2 and asia-northeast2 have purposefully been removed.
   // This is to avoid creating within-country silos of life sciences community data.
-  // So for US and Japan, we are restricting to one region.
+  // So for US, Canada and Japan, we are restricting to one region.
   { value: 'US', label: 'US multi-regional (default)' },
   { value: 'NORTHAMERICA-NORTHEAST1', label: 'northamerica-northeast1 (Montreal)' },
   { value: 'SOUTHAMERICA-EAST1', label: 'southamerica-east1 (Sao Paulo)' },
