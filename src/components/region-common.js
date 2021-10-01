@@ -6,6 +6,9 @@ import * as Utils from 'src/libs/utils'
 // computeZone is generally the 'a' zone for each region, except for those regions where it is not available.
 // The choice to use the 'a' zone is arbitrary, choosing 'b' zone would also work.
 // The region choice for multi-region locations is arbitrary as well.
+
+// When updating region list, please also update the list in 
+// https://github.com/DataBiosphere/leonardo/blob/develop/http/src/main/resources/reference.conf
 export const unknownRegionFlag = '❓'
 export const regionInfo = (location, locationType) => {
   const regionDescription = `${locationType}: ${location}`
