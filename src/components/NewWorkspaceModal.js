@@ -14,9 +14,9 @@ import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { defaultLocation } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
-import { defaultLocation } from 'src/libs/runtime-utils'
 
 
 const constraints = {
@@ -204,7 +204,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
             'A cloned workspace will automatically inherit the bucket location from the original workspace but this may be changed at clone time.',
             p([
               'By default, workflow and Cloud Environment VMs will run in the same region as the workspace bucket. ',
-              'Changing bucket or VM locations from the defaults can lead to network egress charges.',
+              'Changing bucket or VM locations from the defaults can lead to network egress charges.'
             ]),
             h(Link, {
               href: 'https://support.terra.bio/hc/en-us/articles/360058964552',

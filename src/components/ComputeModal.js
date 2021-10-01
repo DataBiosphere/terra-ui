@@ -1207,6 +1207,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const renderMainForm = () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
     const { cpu, memory } = findMachineType(mainMachineType)
+    const { computeRegion } = regionInfo(bucketLocation, bucketLocationType)
     const renderTitleAndTagline = () => {
       return h(Fragment, [
         h(TitleBar, {
@@ -1258,6 +1259,17 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 ]),
                 li({ style: { marginTop: '1rem' } }, [
                   h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about Persistent disks and where your disk is mounted'])
+                ]),
+                li({ style: { marginTop: '1rem' } }, [
+                  p([
+                    'This cloud environment will be created in the region ', computeRegion, '. ',
+                    'Copying data from a bucket in a different region may incur network egress charges. ',
+                    'For more information, particularly if you work with data stored in multiple cloud regions, please read the ',
+                    h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
+                      'documentation.',
+                      icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+                    ])
+                  ])
                 ])
               ])
             ]),
