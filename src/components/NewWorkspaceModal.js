@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, p } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
@@ -114,11 +114,9 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     withErrorReporting('Error loading data'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    console.log('in loadbucketlocation')
     const [locationResponse] = await Promise.all([
       Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
     ])
-    console.log(locationResponse.location)
     setBucketLocation(locationResponse.location.toLowerCase())
   })
 
@@ -240,9 +238,13 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
             'A bucket location can only be set when creating a workspace. ',
             'Once set, it cannot be changed. ',
-            'Any cloned workspace will automatically inherit the bucket location from the original workspace and cannot be changed. ',
+            'A cloned workspace will automatically inherit the bucket location from the original workspace but this may be changed at clone time.',
+            p([
+              'By default, workflow and Cloud Environment VMs will run in the same region as the workspace bucket. ',
+              'Changing bucket or VM locations from the defaults can lead to network egress charges.',
+            ]),
             h(Link, {
-              href: 'https://cloud.google.com/storage/docs/locations',
+              href: 'https://support.terra.bio/hc/en-us/articles/360058964552',
               ...Utils.newTabLinkProps
             }, ['Read more about bucket locations'])
           ])
