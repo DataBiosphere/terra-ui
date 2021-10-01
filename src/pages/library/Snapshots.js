@@ -11,41 +11,41 @@ export const snapshotStyles = {
 }
 
 export const normalizeSnapshot = snapshot => {
-  const contactNames = _.map(({ contactName, ...rest }) => ({
-    contactName: _.flow(_.replace(/,|(,,)/g, ' '), _.replace(/\s([A-Z])\s/, ' $1. '))(contactName),
-    ...rest
-  }), snapshot.contributors)
+  const contributors = _.map(_.update('contactName', _.flow(
+    _.replace(/,+/g, ' '),
+    _.replace(/(^|\s)[A-Z](?=\s|$)/g, '$&.')
+  )), snapshot.contributors)
 
-  const curators = _.filter(({ projectRole }) => projectRole === 'data curator', contactNames)
-  const contacts = _.filter('correspondingContributor', contactNames)
-  const contributors = _.flow(
-    _.without(curators),
-    _.map('contactName')
-  )(contactNames)
+  const [curators, rawContributors] = _.partition({ projectRole: 'data curator' }, contributors)
+  const contacts = _.filter('correspondingContributor', contributors)
+  const contributorNames = _.map('contactName', rawContributors)
 
   const dataType = _.flow(
-    _.getOr([], 'prov:wasGeneratedBy'),
-    _.filter(_.get('TerraCore:hasAssayCategory')),
     _.flatMap('TerraCore:hasAssayCategory'),
+    _.compact,
     _.uniqBy(_.toLower)
-  )(snapshot)
+  )(snapshot['prov:wasGeneratedBy'])
 
   const dataModality = _.flow(
-    _.getOr([], 'prov:wasGeneratedBy'),
-    _.filter(_.get('TerraCore:hasDataModality')),
-    _.flatMap(({ 'TerraCore:hasDataModality': hasDataModality }) => hasDataModality),
+    _.flatMap('TerraCore:hasDataModality'),
+    _.compact,
     _.map(_.replace('TerraCoreValueSets:', '')),
     _.uniqBy(_.toLower)
-  )(snapshot)
+  )(snapshot['prov:wasGeneratedBy'])
+
+  const dataReleasePolicy = _.flow(
+    _.replace('TerraCore:', ''),
+    _.startCase
+  )(snapshot['TerraDCAT_ap:hasDataUsePermission'])
 
   return {
     ...snapshot,
-    project: _.get('0.dct:title', snapshot['TerraDCAT_ap:hasDataCollection']),
+    project: _.get(['TerraDCAT_ap:hasDataCollection', 0, 'dct:title'], snapshot),
     lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description']),
-    lastUpdated: snapshot['dct:modified'] ? new Date(snapshot['dct:modified']) : null,
-    dataReleasePolicy: snapshot['TerraDCAT_ap:hasDataUsePermission'].replace('TerraCore:', '').replace(/([A-Z])/g, ' $1'),
-    contacts, curators, contributors,
+    lastUpdated: !!snapshot['dct:modified'] && new Date(snapshot['dct:modified']),
+    dataReleasePolicy,
+    contacts, curators, contributorNames,
     dataType, dataModality,
-    access: _.getOr('Open', 'access', snapshot)
+    access: snapshot.access || 'Open'
   }
 }

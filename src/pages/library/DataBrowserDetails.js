@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
@@ -22,6 +23,7 @@ const styles = {
   headers: { margin: '20px 0 10px' },
   attributesColumn: { width: '22%', marginRight: 20, marginTop: 30 }
 }
+const cloudIconProps = { role: 'img', style: { maxHeight: 25, maxWidth: 150 } }
 
 const getSnapshot = async id => {
   const list = await fetch('hca-sample.json').then(res => res.json())
@@ -29,61 +31,59 @@ const getSnapshot = async id => {
   return new Promise(resolve => setTimeout(resolve(dataMap[id]), 1000))
 }
 
+const makeContactCard = ({ contactName, institution, email }) => {
+  return div({ key: contactName, style: { marginBottom: 30 } }, [
+    contactName,
+    institution && div({ style: { marginTop: 5 } }, [institution]),
+    email && h(Link, { href: email, style: { marginTop: 5, display: 'block' } }, [email])
+  ])
+}
+
 const MainContent = ({ snapshot }) => {
   return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
-    h1({ style: { lineHeight: '1.5em' } }, [_.get('dct:title', snapshot)]),
-    div([_.get('dct:description', snapshot)]),
+    h1({ style: { lineHeight: '1.5em' } }, [snapshot['dct:title']]),
+    snapshot['dct:description'],
     h2({ className: 'sr-only' }, ['Snapshot Sources']),
     div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Data release policy']),
-        div([_.get('dataReleasePolicy', snapshot)])
+        snapshot.dataReleasePolicy
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Last Updated']),
-        div([Utils.makeStandardDate(_.get('dct:modified', snapshot))])
+        Utils.makeStandardDate(snapshot['dct:modified'])
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Version']),
-        div(['1.0'])
+        '1.0'
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Cloud provider']),
-        div([
-          _.map(
-            ({ cloudPlatform }) => div({ key: cloudPlatform }, [
-              Utils.switchCase(cloudPlatform,
-                ['gcp', () => h(GcpLogo, { title: 'Google Cloud Platform', role: 'img', style: { maxHeight: 25, maxWidth: 150 } })],
-                ['azure', () => h(AzureLogo, { title: 'Microsoft Azure', role: 'img', style: { maxHeight: 25, maxWidth: 150 } })]
-              )
-            ]),
-            _.uniqBy('cloudPlatform', snapshot.storage)
-          )
-        ])
+        _.map(
+          ({ cloudPlatform }) => div({ key: cloudPlatform }, [
+            Utils.switchCase(cloudPlatform,
+              ['gcp', () => h(GcpLogo, { title: 'Google Cloud Platform', ...cloudIconProps })],
+              ['azure', () => h(AzureLogo, { title: 'Microsoft Azure', ...cloudIconProps })]
+            )
+          ]),
+          _.uniqBy('cloudPlatform', snapshot.storage)
+        )
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Contact']),
-        _.map(({ contactName, institution, email }) => div({ key: contactName, style: { marginBottom: 30 } }, [
-          contactName,
-          institution && div({ style: { marginTop: 5 } }, [institution]),
-          email && h(Link, { href: email, style: { marginTop: 5, display: 'block' } }, [email])
-        ]), snapshot.contacts)
+        _.map(makeContactCard, snapshot.contacts)
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Data curator']),
-        _.map(({ contactName, institution, email }) => div({ key: contactName, style: { marginBottom: 30 } }, [
-          contactName,
-          institution && div({ style: { marginTop: 5 } }, [institution]),
-          email && h(Link, { href: email, style: { marginTop: 5, display: 'block' } }, [email])
-        ]), snapshot.curators)
+        _.map(makeContactCard, snapshot.curators)
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Contributors']),
-        div({ style: { whiteSpace: 'pre' } }, [snapshot.contributors.join('\n')])
+        div({ style: { whiteSpace: 'pre' } }, [_.join('\n', snapshot.contributorNames)])
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Region']),
-        div({ style: { whiteSpace: 'pre' } }, _.map('region', _.uniqBy('region', snapshot.storage)).join('\n'))
+        div({ style: { whiteSpace: 'pre' } }, [_.flow(_.map('region'), _.uniq, _.join('\n'))(snapshot.storage)])
       ])
     ])
 
@@ -127,11 +127,11 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
       ]),
       div([
         h3({ style: styles.headers }, ['Data Modality']),
-        div([_.join(', ', _.get('dataModality', snapshot))])
+        div([_.join(', ', snapshot.dataModality)])
       ]),
       div([
         h3({ style: styles.headers }, ['Data type']),
-        div([_.join(', ', _.get('dataType', snapshot))])
+        div([_.join(', ', snapshot.dataType)])
       ]),
       div([
         h3({ style: styles.headers }, ['File counts']),
@@ -142,10 +142,10 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
                 td({ style: { paddingRight: 30 } }, [file['dcat:mediaType']]),
                 td([(file.count || 0).toLocaleString()])
               ])
-            }, _.get('files', snapshot)),
+            }, snapshot.files),
             tr({ style: { fontWeight: 'bold', borderTop: '2px solid rgba(0,0,0,.3)' } }, [
               td(['Total']),
-              td([_.sumBy('count', _.get('files', snapshot)).toLocaleString()])
+              td([_.sumBy('count', snapshot.files).toLocaleString()])
             ])
           ])
         ])
@@ -165,7 +165,9 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
       onClick: () => {
         Nav.history.push({
           pathname: Nav.getPath('import-data'),
-          search: `?url=${getConfig().dataRepoUrlRoot}&snapshotId=REPLACE_ME&snapshotName=${snapshot['dct:title']}&format=snapshot`
+          search: qs.stringify({
+            url: getConfig().dataRepoUrlRoot, snapshotId: 'REPLACE_ME', snapshotName: snapshot['dct:title'], format: 'snapshot'
+          })
         })
       }
     }, ['Save to a workspace'])
@@ -210,5 +212,5 @@ export const navPaths = [{
   name: 'library-details',
   path: '/library/browser/:id',
   component: DataBrowserDetails,
-  title: ({ id }) => `Catalog - Dataset Details`
+  title: 'Catalog - Dataset Details'
 }]

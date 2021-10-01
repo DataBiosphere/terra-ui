@@ -2,7 +2,6 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { a, div, h } from 'react-hyperscript-helpers'
 import FooterWrapper from 'src/components/FooterWrapper'
-import { centeredSpinner } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import covidBg from 'src/images/library/showcase/covid-19.jpg'
 import featuredBg from 'src/images/library/showcase/featured-workspace.svg'
@@ -109,19 +108,15 @@ const Showcase = () => {
     libraryTopMatter('featured workspaces'),
     h(SearchAndFilterComponent, {
       fullList, sidebarSections,
-      searchType: 'Featured Workspaces',
-      ListContent: ({ fullList, filteredList }) => {
-        if (_.isEmpty(fullList)) {
-          return centeredSpinner()
-        }
-        return _.isEmpty(filteredList) ?
-          div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found']) :
-          _.map(workspace => {
-            const { namespace, name } = workspace
-            return h(WorkspaceCard, { key: `${namespace}:${name}`, workspace })
-          }, filteredList)
+      searchType: 'Featured Workspaces'
+    }, [
+      ({ filteredList }) => {
+        return _.map(workspace => {
+          const { namespace, name } = workspace
+          return h(WorkspaceCard, { key: `${namespace}:${name}`, workspace })
+        }, filteredList)
       }
-    })
+    ])
   ])
 }
 

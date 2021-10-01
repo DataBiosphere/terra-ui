@@ -3,8 +3,10 @@ import { Fragment, useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, IdContainer, Link, Select } from 'src/components/common'
+import { centeredSpinner } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import colors from 'src/libs/colors'
+import * as Utils from 'src/libs/utils'
 
 
 const styles = {
@@ -77,7 +79,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
   ])
 }
 
-export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort, searchType, ListContent }) => {
+export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort, searchType, children }) => {
   const [selectedSections, setSelectedSections] = useState([])
   const [selectedTags, setSelectedTags] = useState([])
   const [searchFilter, setSearchFilter] = useState('')
@@ -180,7 +182,11 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
         })
       ]),
       div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
-        h(ListContent, { fullList, filteredList, sections, selectedTags, setSelectedTags })
+        Utils.cond(
+          [_.isEmpty(fullList), centeredSpinner],
+          [_.isEmpty(filteredList), () => div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found'])],
+          () => children({ filteredList, sections, selectedTags, setSelectedTags })
+        )
       ])
     ])
   ])
