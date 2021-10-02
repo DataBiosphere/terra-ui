@@ -10,7 +10,7 @@ import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { regionInfo } from 'src/components/region-common'
+import { allRegions, regionInfo } from 'src/components/region-common'
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -21,10 +21,10 @@ import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { versionTag } from 'src/libs/logos'
 import {
-  defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize, defaultGceMachineType, defaultGcePersistentDiskSize, defaultGpuType,
-  defaultLocation, defaultLocationType, defaultNumDataprocPreemptibleWorkers, defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType,
-  findMachineType, getCurrentRuntime, getDefaultMachineType, getValidGpuTypes, persistentDiskCostMonthly, RadioBlock, runtimeConfigBaseCost,
-  runtimeConfigCost
+  defaultComputeRegion, defaultComputeZone, defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize, defaultGceMachineType,
+  defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultLocationType, defaultNumDataprocPreemptibleWorkers,
+  defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType, getValidGpuTypes,
+  persistentDiskCostMonthly, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -135,8 +135,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const [customEnvImage, setCustomEnvImage] = useState('')
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('')
   const [sparkMode, setSparkMode] = useState(false)
-  const [bucketLocation, setBucketLocation] = useState(defaultLocation)
-  const [bucketLocationType, setBucketLocationType] = useState(defaultLocationType)
   const [computeConfig, setComputeConfig] = useState({
     selectedPersistentDiskSize: defaultGcePersistentDiskSize,
     masterMachineType: defaultGceMachineType,
@@ -148,7 +146,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     gpuEnabled: false,
     hasGpu: false,
     gpuType: defaultGpuType,
-    numGpus: defaultNumGpus
+    numGpus: defaultNumGpus,
+    computeRegion: defaultComputeRegion,
+    computeZone: defaultComputeZone
   })
   // State -- end
 
@@ -188,12 +188,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const shouldDeleteRuntime = existingRuntime && !canUpdateRuntime()
     const shouldCreateRuntime = !canUpdateRuntime() && desiredRuntime
     const { namespace, name, bucketName, googleProject } = getWorkspaceObject()
-    const { computeZone, computeRegion } = regionInfo(bucketLocation, bucketLocationType)
 
     const runtimeConfig = desiredRuntime && {
       cloudService: desiredRuntime.cloudService,
       ...(desiredRuntime.cloudService === cloudServices.GCE ? {
-        zone: computeZone,
+        zone: desiredRuntime.zone.toLowerCase(),
         machineType: desiredRuntime.machineType || defaultGceMachineType,
         ...(desiredRuntime.diskSize ? {
           diskSize: desiredRuntime.diskSize
@@ -208,7 +207,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         }),
         ...(computeConfig.gpuEnabled && { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } })
       } : {
-        region: computeRegion,
+        region: desiredRuntime.region.toLowerCase(),
         masterMachineType: desiredRuntime.masterMachineType || defaultDataprocMachineType,
         masterDiskSize: desiredRuntime.masterDiskSize,
         numberOfWorkers: desiredRuntime.numberOfWorkers,
@@ -307,7 +306,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const numberOfWorkers = runtimeConfig?.numberOfWorkers || 0
     const gpuConfig = runtimeConfig?.gpuConfig
     const tool = currentRuntimeDetails?.labels?.tool
-    const { computeZone, computeRegion } = regionInfo(bucketLocation, bucketLocationType)
 
     return {
       hasGpu: computeConfig.hasGpu,
@@ -317,7 +315,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         tool,
         ...(currentRuntimeDetails?.jupyterUserScriptUri && { jupyterUserScriptUri: currentRuntimeDetails?.jupyterUserScriptUri }),
         ...(cloudService === cloudServices.GCE ? {
-          zone: computeZone,
+          zone: computeConfig.computeZone,
           machineType: runtimeConfig.machineType || defaultGceMachineType,
           ...(computeConfig.hasGpu && gpuConfig ? { gpuConfig } : {}),
           bootDiskSize: runtimeConfig.bootDiskSize,
@@ -327,7 +325,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             diskSize: runtimeConfig.diskSize
           })
         } : {
-          region: computeRegion,
+          region: computeConfig.computeRegion,
           masterMachineType: runtimeConfig.masterMachineType || defaultDataprocMachineType,
           masterDiskSize: runtimeConfig.masterDiskSize || 100,
           numberOfWorkers,
@@ -346,7 +344,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const { persistentDisk: existingPersistentDisk, runtime: existingRuntime } = getExistingEnvironmentConfig()
     const cloudService = sparkMode ? cloudServices.DATAPROC : cloudServices.GCE
     const desiredNumberOfWorkers = sparkMode === 'cluster' ? computeConfig.numberOfWorkers : 0
-    const { computeZone, computeRegion } = regionInfo(bucketLocation, bucketLocationType)
 
     return {
       hasGpu: computeConfig.hasGpu,
@@ -357,7 +354,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             toolDockerImage: selectedLeoImage === customMode ? customEnvImage : selectedLeoImage,
             ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
             ...(cloudService === cloudServices.GCE ? {
-              zone: computeZone,
+              zone: computeConfig.computeZone,
               machineType: computeConfig.masterMachineType || defaultGceMachineType,
               ...(computeConfig.gpuEnabled ? { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } } : {}),
               bootDiskSize: existingRuntime?.bootDiskSize,
@@ -367,7 +364,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 diskSize: computeConfig.masterDiskSize
               })
             } : {
-              region: computeRegion,
+              region: computeConfig.computeRegion,
               masterMachineType: computeConfig.masterMachineType || defaultDataprocMachineType,
               masterDiskSize: computeConfig.masterDiskSize,
               numberOfWorkers: desiredNumberOfWorkers,
@@ -526,6 +523,12 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const { runtime: existingRuntime } = getExistingEnvironmentConfig()
     return existingRuntime && (!canUpdateRuntime() || isStopRequired())
   }
+
+  const onLocationChange = (location, locationType) => {
+    const { computeZone, computeRegion } = regionInfo(location, locationType)
+    updateComputeConfig('computeZone', computeZone)
+    updateComputeConfig('computeRegion', computeRegion)
+  }
   // Helper functions -- end
 
   // Lifecycle
@@ -585,9 +588,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         setCurrentPersistentDiskDetails(currentPersistentDiskDetails)
         setCustomEnvImage(!foundImage ? imageUrl : '')
         setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
-        setBucketLocation(location || defaultLocation)
-        setBucketLocationType(locationType || defaultLocationType)
 
+        const { computeZone, computeRegion } = regionInfo(location || defaultLocation, locationType || defaultLocationType)
         const isDataproc = (sparkMode, runtimeConfig) => !sparkMode && !runtimeConfig?.diskSize
         const runtimeConfig = currentRuntimeDetails?.runtimeConfig
         const gpuConfig = runtimeConfig?.gpuConfig
@@ -607,7 +609,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           gpuEnabled: (!!gpuConfig && !sparkMode) || false,
           hasGpu: !!gpuConfig,
           gpuType: gpuConfig?.gpuType || defaultGpuType,
-          numGpus: gpuConfig?.numOfGpus || defaultNumGpus
+          numGpus: gpuConfig?.numOfGpus || defaultNumGpus,
+          computeZone,
+          computeRegion
         })
       })
 
@@ -860,6 +864,24 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     { value: 'master', label: 'Spark master node' },
                     { value: 'cluster', label: 'Spark cluster' }
                   ]
+                })
+              ])
+            ])
+          ]),
+          h(IdContainer, [
+            id => div({ style: { gridColumnEnd: 'span 3', marginTop: '0.5rem' } }, [
+              label({ htmlFor: id, style: styles.label }, ['Location']),
+              h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+                'By default, workflow and cloud environment VMs will run in the same region as the workspace bucket. ',
+                'Take care as overriding the default can lead to network egress charges.'
+              ]),
+              div({ style: { marginTop: '0.5rem' } }, [
+                h(Select, {
+                  id,
+                  isSearchable: false,
+                  value: computeConfig.computeRegion,
+                  onChange: ({ value, locationType }) => onLocationChange(value, locationType),
+                  options: _.flow(_.filter(l => l.value !== 'US'), _.sortBy('label'))(allRegions)
                 })
               ])
             ])
@@ -1207,7 +1229,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const renderMainForm = () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
     const { cpu, memory } = findMachineType(mainMachineType)
-    const { computeRegion } = regionInfo(bucketLocation, bucketLocationType)
     const renderTitleAndTagline = () => {
       return h(Fragment, [
         h(TitleBar, {
@@ -1262,7 +1283,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 ]),
                 li({ style: { marginTop: '1rem' } }, [
                   p([
-                    'This cloud environment will be created in the region ', computeRegion, '. ',
+                    'This cloud environment will be created in the region ', computeConfig.computeRegion, '. ',
                     'Copying data from a bucket in a different region may incur network egress charges. ',
                     'For more information, particularly if you work with data stored in multiple cloud regions, please read the ',
                     h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [

@@ -25,6 +25,9 @@ export const defaultNumGpus = 1
 export const defaultLocation = 'US'
 export const defaultLocationType = 'multi-region'
 
+export const defaultComputeZone = 'us-central1-a'
+export const defaultComputeRegion = 'us-central1'
+
 export const usableStatuses = ['Updating', 'Running']
 
 export const getDefaultMachineType = isDataproc => isDataproc ? defaultDataprocMachineType : defaultGceMachineType
