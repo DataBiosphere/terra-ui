@@ -68,7 +68,6 @@ const AnalysisLauncher = _.flow(
               { key: runtimeName, workspace, runtime, analysisName, mode, toolLabel, styles: iframeStyles }) :
             h(Fragment, [
               h(PreviewHeader, {
-                'aria-label': `Preview header`,
                 styles: iframeStyles, queryParams, runtime, analysisName, toolLabel, workspace, setCreateOpen,
                 readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true)
               }),
@@ -149,18 +148,18 @@ const EditModeDisabledModal = ({ onDismiss, onRecreateRuntime, onPlayground }) =
     p('We’ve released important updates that are not compatible with the older cloud environment associated with this workspace. To enable Edit Mode, please delete your existing cloud environment and create a new cloud environment.'),
     p('If you have any files on your old cloud environment that you want to keep, you can access your old cloud environment using the Playground Mode option.'),
     h(Link, {
-      'aria-label': `Data syncing doc`,
+      'aria-label': 'Data syncing doc',
       href: dataSyncingDocUrl,
       ...Utils.newTabLinkProps
     }, ['Read here for more details.']),
     div({ style: { marginTop: '2rem' } }, [
       h(ButtonSecondary, {
-        'aria-label': `Launcher dismiss`,
+        'aria-label': 'Launcher dismiss',
         style: { padding: '0 1rem' },
         onClick: () => onDismiss()
       }, ['Cancel']),
       h(ButtonSecondary, {
-        'aria-label': `Launcher playground`,
+        'aria-label': 'Launcher playground',
         style: { padding: '0 1rem', marginLeft: '1rem' },
         onClick: () => onPlayground()
       }, ['Run in playground mode']),
@@ -551,7 +550,7 @@ const WelderDisabledNotebookEditorFrame = ({
       notify('error', 'Cannot Edit Notebook', {
         message: h(Fragment, [
           p(['Recent updates to Terra are not compatible with the older cloud environment in this workspace. Please recreate your cloud environment in order to access Edit Mode for this notebook.']),
-          h(Link, { 'aria-label': `Data syncing doc`, href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
+          h(Link, { 'aria-label': 'Data syncing doc', href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
         ])
       })
       chooseMode(undefined)
@@ -573,7 +572,7 @@ const WelderDisabledNotebookEditorFrame = ({
       b(['NOT ']),
       'being saved to the workspace. To save your changes, download the notebook using the file menu.',
       h(Link, {
-        'aria-label': `Data syncing doc`,
+        'aria-label': 'Data syncing doc',
         style: { marginLeft: '0.5rem' },
         href: dataSyncingDocUrl,
         ...Utils.newTabLinkProps

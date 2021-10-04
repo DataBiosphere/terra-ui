@@ -334,19 +334,19 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
 export const WorkspaceMenuTrigger = ({ children, canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace }) => h(
   MenuTrigger, {
     closeOnClick: true,
-    'aria-label': `Workspace menu`,
+    'aria-label': 'Workspace menu',
     content: h(Fragment, [
-      h(MenuButton, { 'aria-label': `Workspace copy`, onClick: () => setCloningWorkspace(true) }, [makeMenuIcon('copy'), 'Clone']),
+      h(MenuButton, { 'aria-label': 'Workspace copy', onClick: () => setCloningWorkspace(true) }, [makeMenuIcon('copy'), 'Clone']),
       h(MenuButton, {
-        'aria-label': `Workspace share`,
+        'aria-label': 'Workspace share',
         disabled: !canShare,
         tooltip: !canShare && 'You have not been granted permission to share this workspace',
         tooltipSide: 'left',
         onClick: () => setSharingWorkspace(true)
       }, [makeMenuIcon('share'), 'Share']),
-      h(MenuButton, { 'aria-label': `Workspace publish`, disabled: true }, [makeMenuIcon('export'), 'Publish', comingSoon]),
+      h(MenuButton, { 'aria-label': 'Workspace publish', disabled: true }, [makeMenuIcon('export'), 'Publish', comingSoon]),
       h(MenuButton, {
-        'aria-label': `Workspace delete`,
+        'aria-label': 'Workspace delete',
         disabled: !isOwner,
         tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
         tooltipSide: 'left',
