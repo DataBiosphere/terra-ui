@@ -13,7 +13,7 @@ import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
@@ -287,7 +287,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
 
   // Helpers
   const setBillingAccount = _.flow(
-    withErrorReporting('Error updating billing account'),
+    reportErrorAndRethrow('Error updating billing account'),
     Utils.withBusyState(setUpdating)
   )(newAccountName => {
     Ajax().Metrics.captureEvent(Events.changeBillingAccount, {
@@ -302,7 +302,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
   })
 
   const updateSpendConfiguration = _.flow(
-    withErrorReporting('Error updating workflow spend report configuration'),
+    reportErrorAndRethrow('Error updating workflow spend report configuration'),
     Utils.withBusyState(setUpdating)
   )(() => Ajax(signal).Billing.updateSpendConfiguration({
     billingProjectName: billingProject.projectName,
@@ -318,7 +318,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
   )
 
   const reloadBillingProjectUsers = _.flow(
-    withErrorReporting('Error loading billing project users list'),
+    reportErrorAndRethrow('Error loading billing project users list'),
     Utils.withBusyState(setUpdating)
   )(() => Ajax(signal).Billing.project(billingProject.projectName).listUsers()
     .then(collectUserRoles)
@@ -326,7 +326,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
   )
 
   const removeUserFromBillingProject = _.flow(
-    withErrorReporting('Error removing member from billing project'),
+    reportErrorAndRethrow('Error removing member from billing project'),
     Utils.withBusyState(setUpdating)
   )(Ajax().Billing.project(billingProject.projectName).removeUser)
 

@@ -13,7 +13,7 @@ import TopBar from 'src/components/TopBar'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { formHint, FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
@@ -113,7 +113,7 @@ const NewBillingProjectModal = ({ onSuccess, onDismiss, billingAccounts, loadAcc
   const [chosenBillingAccount, setChosenBillingAccount] = useState('')
 
   const submit = _.flow(
-    withErrorReporting('Error creating billing project'),
+    reportErrorAndRethrow('Error creating billing project'),
     Utils.withBusyState(setIsBusy)
   )(async () => {
     try {
@@ -226,12 +226,12 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
 
   // Helpers
   const loadProjects = _.flow(
-    withErrorReporting('Error loading billing projects list'),
+    reportErrorAndRethrow('Error loading billing projects list'),
     Utils.withBusyState(setIsLoadingProjects)
   )(async () => setBillingProjects(_.sortBy('projectName', await Ajax(signal).Billing.listProjects())))
 
   const reloadBillingProject = _.flow(
-    withErrorReporting('Error loading billing project'),
+    reportErrorAndRethrow('Error loading billing project'),
     Utils.withBusyState(setIsLoadingProjects)
   )(async ({ projectName }) => {
     // evaluate first to error if project doesn't exist/user can't access
@@ -241,12 +241,12 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   })
 
   const authorizeAccounts = _.flow(
-    withErrorReporting('Error setting up authorization'),
+    reportErrorAndRethrow('Error setting up authorization'),
     Utils.withBusyState(setIsAuthorizing)
   )(Auth.ensureBillingScope)
 
   const loadAccounts = _.flow(
-    withErrorReporting('Error loading billing accounts'),
+    reportErrorAndRethrow('Error loading billing accounts'),
     Utils.withBusyState(setIsLoadingAccounts)
   )(() => {
     if (Auth.hasBillingScope()) {
