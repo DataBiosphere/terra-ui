@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h, label, span, table, tbody, td, th, thead, tr } from 'react-hyperscript-helpers'
-import { ButtonPrimary, Checkbox, IdContainer, Link } from 'src/components/common'
+import { ButtonPrimary, IdContainer, LabeledCheckbox, Link } from 'src/components/common'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
@@ -36,12 +36,12 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
         onChange: setReason
       }),
       div([
-        h(Checkbox, {
-          id: 'send-copy_link',
+        h(LabeledCheckbox, {
           checked: sendCopy,
           onChange: () => setSendCopy(!sendCopy)
-        }),
-        label({ htmlFor: 'send-copy_link', style: { marginLeft: 5 } }, ['Also send me a copy'])
+        }, [
+          label({ style: { margin: '0 2rem 0 0.25rem' } }, [`Also send me a copy`])
+        ])
       ])
     ])]),
     table({ style: { margin: '1rem', width: '100%' } }, [
@@ -53,7 +53,7 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
           td({ style: { paddingRight: 20 } }, [
             title,
             div({ style: { fontSize: '.7rem', marginTop: 5, width: 'fit-content' } }, [
-              _.map(({ email }) => email && h(Link, { key: `${id}_${email}`, href: `mailto:${email}`, style: { marginTop: 5, display: 'block' } }, [email]), contacts)
+              _.map(({ email }) => email && h(Link, { key: email, href: `mailto:${email}`, style: { marginTop: 5, display: 'block' } }, [email]), contacts)
             ])
           ]),
           td([
