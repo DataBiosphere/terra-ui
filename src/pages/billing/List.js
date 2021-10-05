@@ -40,34 +40,44 @@ const styles = {
   }
 }
 
-const ProjectListItem = ({ project: { projectName, role, creationStatus, message }, isActive }) => {
-  const projectReady = creationStatus === 'Ready'
-  const statusIcon = creationStatus === 'Creating' ?
-    spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
-    h(InfoBox, {
-      style: { color: colors.danger(), margin: '0 1rem 0 0.5rem' }, side: 'right'
-    }, [div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [message || 'Error during project creation.'])])
-  const selectableProject = h(Clickable, {
+const ProjectListItem = (() => {
+  const selectableProject = ({ projectName }, isActive) => h(Clickable, {
     style: { ...styles.projectListItem(isActive), color: isActive ? colors.dark() : colors.accent() },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
-    onClick: () => {
-      Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, {
-        billingProjectName: projectName
-      })
-    },
+    onClick: () => Ajax().Metrics.captureEvent(Events.billingProjectOpenFromList, {
+      billingProjectName: projectName
+    }),
     hover: Style.navList.itemHover(isActive),
     'aria-current': isActive ? 'location' : false
-  }, [projectName, !projectReady && statusIcon])
-  const unselectableProject = div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [projectName, !projectReady && statusIcon])
-  return div({ role: 'listitem' }, [_.includes(billingRoles.owner, role) && projectReady ? selectableProject : unselectableProject])
-}
+  }, [projectName])
+
+  const unselectableProject = ({ projectName, status, message }, isActive) => {
+    const iconAndTooltip =
+      status === 'Creating' ? spinner({ size: 16, style: { color: colors.accent(), margin: '0 1rem 0 0.5rem' } }) :
+        status === 'Error' ? h(InfoBox, { style: { color: colors.danger(), margin: '0 1rem 0 0.5rem' }, side: 'right' }, [
+          div({ style: { wordWrap: 'break-word', whiteSpace: 'pre-wrap' } }, [
+            message || 'Error during project creation.'
+          ])
+        ]) : undefined
+
+    return div({ style: { ...styles.projectListItem(isActive), color: colors.dark() } }, [
+      projectName, iconAndTooltip
+    ])
+  }
+
+  return ({ project, project: { roles, status }, isActive }) => div({ role: 'listitem' }, [
+    _.includes(billingRoles.owner, roles) && status === 'Ready' ?
+      selectableProject(project, isActive) :
+      unselectableProject(project, isActive)
+  ])
+})()
 
 const billingProjectNameValidator = existing => ({
   presence: { allowEmpty: false },
   length: { minimum: 6, maximum: 30 },
   format: {
-    pattern: /^[a-z]([a-z0-9-])*$/,
-    message: 'must start with a letter and can only contain lowercase letters, numbers, and hyphens.'
+    pattern: /(\w|-)+/,
+    message: 'can only contain letters, numbers, underscores and hyphens.'
   },
   exclusion: {
     within: existing,
@@ -207,7 +217,6 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const [billingProjects, setBillingProjects] = useState(StateHistory.get().billingProjects || null)
   const [creatingBillingProject, setCreatingBillingProject] = useState(false)
   const [billingAccounts, setBillingAccounts] = useState(null)
-  const [isOwner, setIsOwner] = useState(false)
   const [isLoadingProjects, setIsLoadingProjects] = useState(false)
   const [isAuthorizing, setIsAuthorizing] = useState(false)
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(false)
@@ -215,20 +224,11 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
   const signal = Utils.useCancellation()
   const interval = useRef()
 
-
   // Helpers
   const loadProjects = _.flow(
     withErrorReporting('Error loading billing projects list'),
     Utils.withBusyState(setIsLoadingProjects)
-  )(async () => {
-    const rawBillingProjects = await Ajax(signal).Billing.listProjects()
-    const billingProjects = _.flow(
-      _.groupBy('projectName'),
-      _.map(gs => ({ ...gs[0], role: _.map('role', gs) })),
-      _.sortBy('projectName')
-    )(rawBillingProjects)
-    setBillingProjects(billingProjects)
-  })
+  )(async () => setBillingProjects(_.sortBy('projectName', await Ajax(signal).Billing.listProjects())))
 
   const authorizeAndLoadAccounts = _.flow(
     withErrorReporting('Error setting up authorization'),
@@ -243,13 +243,11 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     Utils.withBusyState(setIsLoadingAccounts)
   )(async () => {
     if (Auth.hasBillingScope()) {
-      setBillingAccounts(await Ajax(signal).Billing.listAccounts())
+      const accounts = await Ajax(signal).Billing.listAccounts()
+      const byAccountName = Object.fromEntries(_.map(acc => [acc.accountName, acc], accounts))
+      setBillingAccounts(byAccountName)
     }
   })
-
-  const checkOwner = () => {
-    !isOwner && _.map(project => _.includes(billingRoles.owner, project.role) ? setIsOwner(true) : null, billingProjects)
-  }
 
   const showCreateProjectModal = async () => {
     if (Auth.hasBillingScope()) {
@@ -260,12 +258,10 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     }
   }
 
-
   // Lifecycle
   Utils.useOnMount(() => {
     loadProjects()
     loadAccounts()
-    checkOwner()
   })
 
   useEffect(() => {
@@ -283,12 +279,14 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     return () => clearInterval(interval.current)
   })
 
-
   // Render
   const hasBillingProjects = !_.isEmpty(billingProjects)
   const breadcrumbs = `Billing > Billing Project`
-
   const billingProjectListWidth = 330
+  const [projectsOwned, projectsShared] = _.partition(
+    ({ roles }) => _.includes(billingRoles.owner, roles),
+    billingProjects
+  )
 
   return h(FooterWrapper, { fixedHeight: true }, [
     h(TopBar, { title: 'Billing' }, [
@@ -320,22 +318,20 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
             div({ style: { marginLeft: '0.5rem' } }, ['Create'])
           ])
         ]),
-
         h(BillingProjectSubheader, { title: 'Owned by You' }, [
           div({ role: 'list' }, [
             _.map(project => h(ProjectListItem, {
               project, key: project.projectName,
               isActive: !!selectedName && project.projectName === selectedName
-            }), _.filter(project => _.includes(billingRoles.owner, project.role), billingProjects))
+            }), projectsOwned)
           ])
         ]),
-
         h(BillingProjectSubheader, { title: 'Shared with You' }, [
           div({ role: 'list' }, [
             _.map(project => h(ProjectListItem, {
               project, key: project.projectName,
               isActive: !!selectedName && project.projectName === selectedName
-            }), _.filter(project => !_.includes(billingRoles.owner, project.role), billingProjects))
+            }), projectsShared)
           ])
         ])
       ]),
@@ -370,7 +366,11 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
           billingAccounts,
           authorizeAndLoadAccounts
         })],
-        [isOwner && !selectedName && hasBillingProjects, () => div({ style: { margin: '1rem auto 0 auto' } }, ['Select a Billing Project'])],
+        [!_.isEmpty(projectsOwned) && !selectedName && hasBillingProjects, () => div(
+          { style: { margin: '1rem auto 0 auto' } }, [
+            'Select a Billing Project'
+          ]
+        )],
         [!hasBillingProjects, () => noBillingMessage(showCreateProjectModal)]
       )]),
       (isLoadingProjects || isAuthorizing || isLoadingAccounts) && spinnerOverlay

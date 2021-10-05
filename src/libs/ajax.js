@@ -80,22 +80,24 @@ const checkRequesterPaysError = async response => {
   }
 }
 
+export const canUseWorkspaceProject = async ({ canCompute, workspace: { namespace } }) => {
+  return canCompute || _.some(
+    ({ projectName, roles }) => projectName === namespace && _.includes('Owner', roles),
+    await Ajax().Billing.listProjects()
+  )
+}
+
 /*
  * Detects errors due to requester pays buckets, and adds the current workspace's billing
  * project if the user has access, retrying the request once if necessary.
  */
 const withRequesterPays = wrappedFetch => (url, ...args) => {
   const bucket = /\/b\/([^/?]+)[/?]/.exec(url)[1]
-  const { workspace, canCompute } = workspaceStore.get() || {}
-  const workspaceProject = workspace?.namespace
-
-  const canUseWorkspaceProject = async () => {
-    return canCompute || _.some({ projectName: workspaceProject, role: 'Owner' }, await Ajax().Billing.listProjects())
-  }
+  const workspace = workspaceStore.get()
 
   const getUserProject = async () => {
-    if (!requesterPaysProjectStore.get() && workspaceProject && await canUseWorkspaceProject()) {
-      requesterPaysProjectStore.set(workspaceProject)
+    if (!requesterPaysProjectStore.get() && workspace && await canUseWorkspaceProject(workspace)) {
+      requesterPaysProjectStore.set(workspace.workspace.googleProject)
     }
     return requesterPaysProjectStore.get()
   }
@@ -437,7 +439,7 @@ const Groups = signal => ({
 
 const Billing = signal => ({
   listProjects: async () => {
-    const res = await fetchRawls('user/billing', _.merge(authOpts(), { signal }))
+    const res = await fetchRawls('billing/v2', _.merge(authOpts(), { signal }))
     return res.json()
   },
 
@@ -447,7 +449,7 @@ const Billing = signal => ({
   },
 
   createProject: async (projectName, billingAccount) => {
-    const res = await fetchRawls('billing',
+    const res = await fetchRawls('billing/v2',
       _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }]))
     return res
   },
@@ -470,8 +472,14 @@ const Billing = signal => ({
     return res
   },
 
+  billingProject: async projectName => {
+    const route = `billing/v2/${projectName}`
+    const res = await fetchRawls(route, _.merge(authOpts(), { signal, method: 'GET' }))
+    return res.json()
+  },
+
   project: projectName => {
-    const root = `billing/${projectName}`
+    const root = `billing/v2/${projectName}/members`
 
     const removeRole = (role, email) => {
       return fetchRawls(`${root}/${role}/${encodeURIComponent(email)}`, _.merge(authOpts(), { signal, method: 'DELETE' }))
@@ -483,7 +491,7 @@ const Billing = signal => ({
 
     return {
       listUsers: async () => {
-        const res = await fetchRawls(`${root}/members`, _.merge(authOpts(), { signal }))
+        const res = await fetchRawls(root, _.merge(authOpts(), { signal }))
         return res.json()
       },
 

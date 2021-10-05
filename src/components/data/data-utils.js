@@ -13,9 +13,8 @@ import { SimpleTabBar } from 'src/components/tabBars'
 import { TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { UriViewerLink } from 'src/components/UriViewer'
-import { canUseWorkspaceProject } from 'src/components/workspace-utils'
 import ReferenceData from 'src/data/reference-data'
-import { Ajax } from 'src/libs/ajax'
+import { Ajax, canUseWorkspaceProject } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -56,7 +55,7 @@ export const getDownloadCommand = (fileName, gsUri, accessUrl) => {
 }
 
 export const getUserProjectForWorkspace = async workspace => (workspace && await canUseWorkspaceProject(workspace)) ?
-  workspace.workspace.namespace :
+  workspace.workspace.googleProject :
   requesterPaysProjectStore.get()
 
 export const renderDataCell = (data, googleProject) => {

@@ -16,7 +16,8 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
   return h(Modal, {
     title: 'Request Access',
     width: '40rem',
-    showCancel: false,
+    showButtons: false,
+    showX: true,
     onDismiss
   }, [
     div([
@@ -39,14 +40,14 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
         tr({ style: { height: '2rem' } }, [th({ style: { textAlign: 'left' } }, ['Datasets']), th({ style: { textAlign: 'left', width: '15rem' } }, ['Access'])])
       ]),
       tbody(
-        _.map(dataset => tr({ style: { height: '2rem' } }, [
-          td([dataset.name]),
+        _.map(({ 'dct:title': title, access, id }) => tr({ key: id, style: { height: '2rem' } }, [
+          td({ style: { paddingRight: 20 } }, [title]),
           td([
-            dataset.locked ?
-              h(RequestDatasetAccessButton, {
-                datasetName: dataset.name
-              }) :
-              span({ style: { fontWeight: 600 } }, ['Yes'])
+            Utils.switchCase(access,
+              ['Controlled', () => h(RequestDatasetAccessButton, { datasetName: title })],
+              ['Pending', () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
+              [Utils.DEFAULT, () => span({ style: { fontWeight: 600 } }, ['Permission Granted'])]
+            )
           ])
         ]), datasets)
       )
