@@ -4,7 +4,6 @@ import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinnerOverlay } from 'src/components/common'
 import { ComputeModal } from 'src/components/ComputeModal'
-import { tools } from 'src/components/notebook-utils'
 import { appLauncherTabName, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
@@ -27,8 +26,13 @@ const ApplicationLauncher = _.flow(
   const cookieReady = Utils.useStore(cookieReadyStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
+
   // We've already init Welder if app is Jupyter.
-  const [shouldSetupWelder, setShouldSetupWelder] = useState(application !== tools.RStudio.label)
+  // TODO: We are stubbing this to never set up welder until we resolve some backend issues around file syncing
+  // See following tickets for status (both parts needed):
+  // PT1 - https://broadworkbench.atlassian.net/browse/IA-2991
+  // PT2 - https://broadworkbench.atlassian.net/browse/IA-2990
+  const [shouldSetupWelder, setShouldSetupWelder] = useState(false) // useState(application == tools.RStudio.label)
 
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
@@ -51,7 +55,7 @@ const ApplicationLauncher = _.flow(
         .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.Rmd`)
     })
 
-    if (!shouldSetupWelder && runtimeStatus === 'Running') {
+    if (shouldSetupWelder && runtimeStatus === 'Running') {
       setupWelder()
       setShouldSetupWelder(true)
     }
