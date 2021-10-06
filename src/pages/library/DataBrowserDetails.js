@@ -85,7 +85,7 @@ const MainContent = ({ snapshot }) => {
   ])
 }
 
-const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
+const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
   const { access } = snapshot
 
   return div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
@@ -161,7 +161,7 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
         Nav.history.push({
           pathname: Nav.getPath('import-data'),
           search: qs.stringify({
-            url: getConfig().dataRepoUrlRoot, snapshotId: 'REPLACE_ME', snapshotName: snapshot['dct:title'], format: 'snapshot'
+            url: getConfig().dataRepoUrlRoot, snapshotId: id, snapshotName: snapshot['dct:title'], format: 'snapshot'
           })
         })
       }
@@ -190,7 +190,7 @@ const DataBrowserDetails = ({ id }) => {
             ])
           ]),
           h(MainContent, { snapshot }),
-          h(Sidebar, { snapshot, setShowRequestAccessModal }),
+          h(Sidebar, { snapshot, id, setShowRequestAccessModal }),
           showRequestAccessModal && h(RequestDatasetAccessModal, {
             datasets: [snapshot],
             onDismiss: () => setShowRequestAccessModal(false)
