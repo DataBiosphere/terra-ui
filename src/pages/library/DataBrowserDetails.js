@@ -12,24 +12,19 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
+import { commonStyles } from 'src/pages/library/common'
+import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
-import { normalizeSnapshot, snapshotStyles } from 'src/pages/library/Snapshots'
 
 
 const activeTab = 'browse & explore'
 const styles = {
-  ...snapshotStyles,
+  ...commonStyles,
   content: { padding: 20, marginTop: 15 },
   headers: { margin: '20px 0 10px' },
   attributesColumn: { width: '22%', marginRight: 20, marginTop: 30 }
 }
 const cloudIconProps = { role: 'img', style: { maxHeight: 25, maxWidth: 150 } }
-
-const getSnapshot = async id => {
-  const list = await fetch('hca-sample.json').then(res => res.json())
-  const dataMap = _.keyBy('dct:identifier', list.data)
-  return new Promise(resolve => setTimeout(resolve(dataMap[id]), 1000))
-}
 
 const makeContactCard = ({ contactName, institution, email }) => {
   return div({ key: contactName, style: { marginBottom: 30 } }, [
@@ -174,14 +169,11 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
   ])
 }
 
-const DataBrowserDetails = ({ id }) => {
-  const [snapshot, setSnapshot] = useState()
+const DataBrowserDetails = ({ id, ...props }) => {
   const [showRequestAccessModal, setShowRequestAccessModal] = useState()
-
-  Utils.useOnMount(() => {
-    const loadData = async () => setSnapshot(normalizeSnapshot(await getSnapshot(id)))
-    loadData()
-  })
+  const { dataCatalog } = useDataCatalog()
+  const dataMap = _.keyBy('dct:identifier', dataCatalog)
+  const snapshot = dataMap[id]
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter(activeTab),
