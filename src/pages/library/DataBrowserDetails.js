@@ -169,7 +169,7 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
   ])
 }
 
-const DataBrowserDetails = ({ id, ...props }) => {
+const DataBrowserDetails = ({ id }) => {
   const [showRequestAccessModal, setShowRequestAccessModal] = useState()
   const { dataCatalog } = useDataCatalog()
   const dataMap = _.keyBy('dct:identifier', dataCatalog)
