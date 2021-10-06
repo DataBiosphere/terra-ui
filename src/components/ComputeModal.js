@@ -1301,7 +1301,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           label({ htmlFor: id, style: styles.label }, ['Persistent disk size (GB)']),
           div({ style: { marginTop: '0.5rem' } }, [
             'Persistent disks store analysis data. ',
-            h(Link, { 'aria-label': `Disk doc`, onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
+            h(Link, { onClick: handleLearnMoreAboutPersistentDisk }, ['Learn more about persistent disks and where your disk is mounted.'])
           ]),
           h(NumberInput, {
             id,
