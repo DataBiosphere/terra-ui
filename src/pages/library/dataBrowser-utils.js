@@ -71,7 +71,6 @@ export const useDataCatalog = () => {
     Utils.withBusyState(setLoading)
   )(async () => {
     const metadata = await Ajax(signal).DataRepo.getMetadata()
-
     const normList = _.map(snapshot => {
       const normalizedSnapshot = normalizeSnapshot(snapshot)
       return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)
