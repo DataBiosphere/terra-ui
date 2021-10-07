@@ -920,7 +920,7 @@ const Workspaces = signal => ({
 
 const DataRepo = signal => ({
   getMetadata: async () => {
-    const res = await fetchDataRepo(`repository/v1/search/metadata`, _.merge(authOpts(), { signal }))
+    const res = await fetchDataRepo('repository/v1/search/metadata', _.merge(authOpts(), { signal }))
     return res.json()
   },
 
