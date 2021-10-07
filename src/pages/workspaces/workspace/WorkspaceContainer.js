@@ -338,7 +338,6 @@ export const WorkspaceMenuTrigger = ({ children, canShare, isOwner, setCloningWo
     content: h(Fragment, [
       h(MenuButton, { 'aria-label': 'Workspace copy', onClick: () => setCloningWorkspace(true) }, [makeMenuIcon('copy'), 'Clone']),
       h(MenuButton, {
-        'aria-label': 'Workspace share',
         disabled: !canShare,
         tooltip: !canShare && 'You have not been granted permission to share this workspace',
         tooltipSide: 'left',
