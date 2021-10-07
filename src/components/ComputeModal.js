@@ -934,7 +934,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         p([
           'You are about to create a virtual machine using an unverified Docker image. ',
           'Please make sure that it was created by you or someone you trust, using one of our ',
-          h(Link, { 'aria-label': 'Terra base images', href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
+          h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.']),
           ' Custom Docker images could potentially cause serious security issues.'
         ]),
         h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
