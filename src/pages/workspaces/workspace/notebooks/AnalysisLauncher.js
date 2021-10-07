@@ -281,7 +281,7 @@ const PreviewHeader = ({
           closeOnClick: true,
           content: h(Fragment, [
             h(MenuButton, { 'aria-label': `Copy analysis`, onClick: () => setCopyingAnalysis(true) }, ['Make a Copy']),
-            h(MenuButton, { 'aria-label': `Export analysis`, onClick: () => setExportingAnalysis(true) }, ['Copy to another workspace']),
+            h(MenuButton, { onClick: () => setExportingAnalysis(true) }, ['Copy to another workspace']),
             h(MenuButton, {
               onClick: withErrorReporting('Error copying to clipboard', async () => {
                 await clipboard.writeText(`${window.location.host}/${analysisLink}`)
