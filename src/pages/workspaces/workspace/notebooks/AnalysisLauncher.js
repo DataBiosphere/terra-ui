@@ -572,7 +572,6 @@ const WelderDisabledNotebookEditorFrame = ({
       b(['NOT ']),
       'being saved to the workspace. To save your changes, download the notebook using the file menu.',
       h(Link, {
-        'aria-label': 'Data syncing doc',
         style: { marginLeft: '0.5rem' },
         href: dataSyncingDocUrl,
         ...Utils.newTabLinkProps
