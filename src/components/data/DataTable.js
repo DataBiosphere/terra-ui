@@ -120,7 +120,7 @@ const DataTable = props => {
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
-    const params = _.merge({pageSize: filteredCount}, activeTextFilter ? {filterTerms: activeTextFilter} : {})
+    const params = _.merge({ pageSize: filteredCount }, activeTextFilter ? { filterTerms: activeTextFilter } : {})
     const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params)
     setSelected(entityMap(queryResults.results))
   })
@@ -217,7 +217,7 @@ const DataTable = props => {
                         content: h(Fragment, [
                           h(MenuButton, { onClick: selectPage }, ['Page']),
                           h(MenuButton, { onClick: selectAll },
-                            ((totalRowCount == filteredCount) ? [`All (${filteredCount})`] : [`Filtered (${filteredCount})`])),
+                            ((totalRowCount === filteredCount) ? [`All (${filteredCount})`] : [`Filtered (${filteredCount})`])),
                           h(MenuButton, { onClick: selectNone }, ['None'])
                         ]),
                         side: 'bottom'
