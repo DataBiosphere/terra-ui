@@ -481,8 +481,8 @@ const AnalysisEditorFrame = ({
     const cloudStorageDirectory = `gs://${bucketName}/notebooks`
 
     const pattern = Utils.switchCase(toolLabel,
-      [tools.RStudio.label, () => `.*\\.Rmd`],
-      [tools.Jupyter.label, () => `.*\\.ipynb`]
+      [tools.RStudio.label, () => '.*\\.Rmd'],
+      [tools.Jupyter.label, () => '.*\\.ipynb']
     )
 
     const setUpAnalysis = _.flow(
