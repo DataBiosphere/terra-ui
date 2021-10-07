@@ -550,7 +550,7 @@ const WelderDisabledNotebookEditorFrame = ({
       notify('error', 'Cannot Edit Notebook', {
         message: h(Fragment, [
           p(['Recent updates to Terra are not compatible with the older cloud environment in this workspace. Please recreate your cloud environment in order to access Edit Mode for this notebook.']),
-          h(Link, { 'aria-label': 'Data syncing doc', href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
+          h(Link, { href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
         ])
       })
       chooseMode(undefined)
