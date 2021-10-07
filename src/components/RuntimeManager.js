@@ -59,6 +59,7 @@ const styles = {
 
 const RuntimeIcon = ({ shape, onClick, disabled, style, ...props }) => {
   return h(Clickable, {
+    'aria-label': 'Runtime icon',
     style: { color: onClick && !disabled ? colors.accent() : colors.dark(0.7), ...styles.verticalCenter, ...style },
     onClick, disabled, ...props
   }, [icon(shape, { size: 20 })])
@@ -103,6 +104,7 @@ const RuntimeErrorNotification = ({ runtime }) => {
 
   return h(Fragment, [
     h(Clickable, {
+      'aria-label': 'Runtime error notification',
       onClick: () => setModalOpen(true),
       style: {
         marginTop: '1rem',
@@ -147,6 +149,7 @@ const AppErrorNotification = ({ app }) => {
 
   return h(Fragment, [
     h(Clickable, {
+      'aria-label': 'App error notification',
       onClick: () => setModalOpen(true),
       style: {
         marginTop: '1rem',
@@ -215,7 +218,7 @@ export default class RuntimeManager extends PureComponent {
       notify('warn', 'Please Update Your Cloud Environment', {
         message: h(Fragment, [
           p(['Last year, we introduced important updates to Terra that are not compatible with the older cloud environment associated with this workspace. You are no longer able to save new changes to notebooks using this older cloud environment.']),
-          h(Link, { href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
+          h(Link, { 'aria-label': `Welder cutoff link`, href: dataSyncingDocUrl, ...Utils.newTabLinkProps }, ['Read here for more details.'])
         ])
       })
     } else if (isAfter(createdDate, twoMonthsAgo) && !isToday(dateNotified)) {
@@ -348,6 +351,7 @@ export default class RuntimeManager extends PureComponent {
     return h(Fragment, [
       app && div({ style: { ...styles.container, borderRadius: 5, marginRight: '1.5rem' } }, [
         h(Clickable, {
+          'aria-label': 'Galaxy clickable',
           style: { display: 'flex' },
           disabled: appIsSettingUp(app),
           tooltip: appIsSettingUp(app) ?
@@ -366,11 +370,13 @@ export default class RuntimeManager extends PureComponent {
       ]),
       div({ style: styles.container }, [
         (activeRuntimes.length > 1 || activeDisks.length > 1) && h(Link, {
+          'aria-label': 'Multiple cloud env warning',
           style: { marginRight: '1rem' },
           href: Nav.getLink('environments'),
           tooltip: 'Multiple cloud environments found in this billing project. Click to select which to delete.'
         }, [icon('warning-standard', { size: 24, style: { color: colors.danger() } })]),
         h(Link, {
+          'aria-label': 'Launch app',
           href: applicationLaunchLink,
           onClick: window.location.hash === applicationLaunchLink && currentStatus === 'Stopped' ? () => this.startRuntime() : undefined,
           tooltip: canCompute ? `Open ${applicationName}` : noCompute,
@@ -382,6 +388,7 @@ export default class RuntimeManager extends PureComponent {
         h(IdContainer, [id => h(Fragment, [
           h(Clickable, {
             id,
+            'aria-label': 'Create runtime clickable',
             style: styles.button(isDisabled),
             tooltip: Utils.cond(
               [!canCompute, () => noCompute],

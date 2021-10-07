@@ -115,6 +115,7 @@ export const SaveFilesHelp = (isGalaxyDisk = false) => {
     p([
       'If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
       h(Link, {
+        'aria-label': 'Save file help',
         href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
         ...Utils.newTabLinkProps
       }, ['move them to the workspace bucket.'])
@@ -128,6 +129,7 @@ export const SaveFilesHelpRStudio = () => {
     p([
       'If you want to save files permanently, including input data, analysis outputs, installed packages or code in your session, ',
       h(Link, {
+        'aria-label': 'RStudio save help',
         href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
         ...Utils.newTabLinkProps
       }, ['move them to the workspace bucket.'])
@@ -145,6 +147,7 @@ export const SaveFilesHelpGalaxy = () => {
     ]),
     p(['If you want to save some files permanently, such as input data, analysis outputs, or installed packages, ',
       h(Link, {
+        'aria-label': 'Galaxy save help',
         href: 'https://support.terra.bio/hc/en-us/articles/360026639112',
         ...Utils.newTabLinkProps
       }, ['move them to the workspace bucket.'])])
@@ -172,3 +175,5 @@ export const GalaxyLaunchButton = ({ app, key = app.status, onClick, ...props })
     ...props
   }, ['Launch Galaxy'])
 }
+
+export const appLauncherTabName = 'appLauncher'

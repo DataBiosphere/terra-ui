@@ -9,7 +9,10 @@ import { ButtonPrimary, ButtonSecondary, Clickable, LabeledCheckbox, Link, spinn
 import { ComputeModal } from 'src/components/ComputeModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
-import { AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getTool, notebookLockHash } from 'src/components/notebook-utils'
+import {
+  AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getTool,
+  getToolFromRuntime, notebookLockHash, tools
+} from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { dataSyncingDocUrl } from 'src/data/machines'
@@ -65,7 +68,7 @@ const AnalysisLauncher = _.flow(
               { key: runtimeName, workspace, runtime, analysisName, mode, toolLabel, styles: iframeStyles }) :
             h(Fragment, [
               h(PreviewHeader, {
-                styles: iframeStyles, queryParams, runtime, analysisName, toolLabel, workspace,
+                styles: iframeStyles, queryParams, runtime, analysisName, toolLabel, workspace, setCreateOpen,
                 readOnlyAccess: !(Utils.canWrite(accessLevel) && canCompute), onCreateRuntime: () => setCreateOpen(true)
               }),
               h(AnalysisPreviewFrame, { styles: iframeStyles, analysisName, toolLabel, workspace })
@@ -145,19 +148,23 @@ const EditModeDisabledModal = ({ onDismiss, onRecreateRuntime, onPlayground }) =
     p('We’ve released important updates that are not compatible with the older cloud environment associated with this workspace. To enable Edit Mode, please delete your existing cloud environment and create a new cloud environment.'),
     p('If you have any files on your old cloud environment that you want to keep, you can access your old cloud environment using the Playground Mode option.'),
     h(Link, {
+      'aria-label': 'Data syncing doc',
       href: dataSyncingDocUrl,
       ...Utils.newTabLinkProps
     }, ['Read here for more details.']),
     div({ style: { marginTop: '2rem' } }, [
       h(ButtonSecondary, {
+        'aria-label': 'Launcher dismiss',
         style: { padding: '0 1rem' },
         onClick: () => onDismiss()
       }, ['Cancel']),
       h(ButtonSecondary, {
+        'aria-label': 'Launcher playground',
         style: { padding: '0 1rem', marginLeft: '1rem' },
         onClick: () => onPlayground()
       }, ['Run in playground mode']),
       h(ButtonPrimary, {
+        'aria-label': `Launcher create`,
         style: { padding: '0 1rem', marginLeft: '2rem' },
         onClick: () => onRecreateRuntime()
       }, ['Recreate cloud environment'])
@@ -190,11 +197,12 @@ const PlaygroundModal = ({ onDismiss, onPlayground }) => {
 }
 
 const HeaderButton = ({ children, ...props }) => h(ButtonSecondary, {
+  'aria-label': `analysis header button`,
   style: { padding: '1rem', backgroundColor: colors.dark(0.1), height: '100%', marginRight: 2 }, ...props
 }, [children])
 
 const PreviewHeader = ({
-  queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, toolLabel, workspace,
+  queryParams, runtime, readOnlyAccess, onCreateRuntime, analysisName, toolLabel, workspace, setCreateOpen,
   workspace: { canShare, workspace: { namespace, name, bucketName, googleProject } }
 }) => {
   const signal = Utils.useCancellation()
@@ -210,6 +218,7 @@ const PreviewHeader = ({
   const welderEnabled = runtime && !runtime.labels.welderInstallFailed
   const { mode } = queryParams
   const analysisLink = Nav.getLink('workspace-analysis-launch', { namespace, name, analysisName })
+  const currentRuntimeTool = getToolFromRuntime(runtime)
 
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
     const { metadata: { lastLockedBy, lockExpiresAt } = {} } = await Ajax(signal)
@@ -232,32 +241,46 @@ const PreviewHeader = ({
     labelBgColor: colors.dark(0.2)
   }, [
     Utils.cond(
-      [readOnlyAccess, () => h(HeaderButton, { onClick: () => setExportingAnalysis(true) },
-        [makeMenuIcon('export'), 'Copy to another workspace']
-      )],
-      //TODO: THIS CONDITIONAL should look for Jupyter or Rstudio
-      [!!runtimeStatus && runtime.labels.tool !== 'Jupyter', () => h(StatusMessage, { hideSpinner: true }, [
-        'Your cloud compute doesn\'t appear to be running Jupyter. Create a new cloud environment with Jupyter on it to edit this notebook.'
+      [readOnlyAccess, () => h(HeaderButton, { onClick: () => setExportingAnalysis(true) }, [
+        makeMenuIcon('export'), 'Copy to another workspace'
       ])],
       [!mode || [null, 'Stopped'].includes(runtimeStatus), () => h(Fragment, [
-        Utils.cond(
-          [runtime && !welderEnabled, () => h(HeaderButton, {
-            onClick: () => setEditModeDisabledOpen(true)
-          }, [makeMenuIcon('warning-standard'), 'Edit (Disabled)'])],
-          [locked, () => h(HeaderButton, {
-            onClick: () => setFileInUseOpen(true)
-          }, [makeMenuIcon('lock'), 'Edit (In use)'])],
-          () => h(HeaderButton, {
-            onClick: () => chooseMode('edit')
-          }, [makeMenuIcon('edit'), 'Edit'])
-        ),
-        h(HeaderButton, {
-          onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
-        }, [makeMenuIcon('chalkboard'), 'Playground mode']),
+        ...(toolLabel === tools.Jupyter.label ? [
+          Utils.cond(
+            [runtime && !welderEnabled, () => h(HeaderButton, { onClick: () => setEditModeDisabledOpen(true) }, [
+              makeMenuIcon('warning-standard'), 'Edit (Disabled)'
+            ])],
+            [locked, () => h(HeaderButton, { onClick: () => setFileInUseOpen(true) }, [
+              makeMenuIcon('lock'), 'Edit (In use)'
+            ])],
+            () => h(HeaderButton, { onClick: () => currentRuntimeTool !== tools.Jupyter.label ? setCreateOpen(true) : chooseMode('edit') }, [
+              makeMenuIcon('edit'), 'Edit'
+            ])
+          ),
+          h(HeaderButton, {
+            onClick: () => getLocalPref('hidePlaygroundMessage') ? chooseMode('playground') : setPlaygroundModalOpen(true)
+          }, [
+            makeMenuIcon('chalkboard'), 'Playground mode'
+          ])
+        ] : [
+          h(HeaderButton, {
+            onClick: () => {
+              if (currentRuntimeTool !== tools.RStudio.label) {
+                setCreateOpen(true)
+              } else {
+                Nav.goToPath('workspace-application-launch', { namespace, name, application: 'RStudio' })
+              }
+            },
+            disabled: runtimeStatus !== 'Running',
+            tooltip: runtimeStatus !== 'Running' ? 'You must have a running cloud environment.' : ''
+          }, [
+            makeMenuIcon('rocket'), 'Launch'
+          ])
+        ]),
         h(MenuTrigger, {
           closeOnClick: true,
           content: h(Fragment, [
-            h(MenuButton, { onClick: () => setCopyingAnalysis(true) }, ['Make a Copy']),
+            h(MenuButton, { 'aria-label': `Copy analysis`, onClick: () => setCopyingAnalysis(true) }, ['Make a Copy']),
             h(MenuButton, { onClick: () => setExportingAnalysis(true) }, ['Copy to another workspace']),
             h(MenuButton, {
               onClick: withErrorReporting('Error copying to clipboard', async () => {
@@ -356,7 +379,6 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
     withRequesterPaysHandler(onRequesterPaysError),
     withErrorReporting('Error previewing analysis')
   )(async () => {
-    //TODO: this call may not be right, ensure file extension/toolLabel is correct
     setPreview(await Ajax(signal).Buckets.analysis(googleProject, bucketName, analysisName, toolLabel).preview())
   })
   Utils.useOnMount(() => {
@@ -381,7 +403,8 @@ const AnalysisPreviewFrame = ({ analysisName, toolLabel, workspace: { workspace:
   ])
 }
 
-//TODO: this ensures that navigating away from the Jupyter iframe results in a save via a custom extension located in `jupyter-iframe-extension`
+// TODO: this ensures that navigating away from the Jupyter iframe results in a save via a custom extension located in `jupyter-iframe-extension`
+// See this ticket for RStudio impl discussion: https://broadworkbench.atlassian.net/browse/IA-2947
 const JupyterFrameManager = ({ onClose, frameRef, details = {} }) => {
   Utils.useOnMount(() => {
     Ajax()
@@ -441,52 +464,58 @@ const AnalysisEditorFrame = ({
   console.assert(!labels.welderInstallFailed, 'Expected cloud environment to have Welder')
   const frameRef = useRef()
   const [busy, setBusy] = useState(false)
-  const [notebookSetupComplete, setNotebookSetupComplete] = useState(false)
+  const [analysisSetupComplete, setAnalysisSetupComplete] = useState(false)
   const cookieReady = Utils.useStore(cookieReadyStore)
 
-  const localBaseDirectory = `${name}/edit`
-  const localSafeModeBaseDirectory = `${name}/safe`
-  //TODO: should this vary on toolLabel? (As of right now, the answer is no because the VM path will be `/home/rstudio`, but the bucket path for all analyses will be `/notebooks`, but design still WIP)
-  const cloudStorageDirectory = `gs://${bucketName}/notebooks`
+  const localBaseDirectory = Utils.switchCase(toolLabel,
+    [tools.Jupyter.label, () => `${name}/edit`],
+    [tools.RStudio.label, () => ''])
 
-  //TODO: see inline TODOs, may require call-site change too
-  const setUpNotebook = _.flow(
-    Utils.withBusyState(setBusy),
-    withErrorReporting('Error setting up analysis')
-  )(async () => {
-    await Ajax()
-      //TODO: use proper welder calls
-      .Runtimes
-      .notebooks(googleProject, runtimeName)
-      .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.ipynb`)
-    if (mode === 'edit' && !(await Ajax().Runtimes.notebooks(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
-      notify('error', 'Unable to Edit Analysis', {
-        message: 'Another user is currently editing this analysis. You can run it in Playground Mode or make a copy.'
-      })
-      chooseMode(undefined)
-    } else {
-      //TODO use proper welder calls
-      await Ajax().Runtimes.notebooks(googleProject, runtimeName).localize([{
-        sourceUri: `${cloudStorageDirectory}/${analysisName}`,
-        localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${analysisName}` : `${localSafeModeBaseDirectory}/${analysisName}`
-      }])
-      setNotebookSetupComplete(true)
-    }
-  })
+  const localSafeModeBaseDirectory = Utils.switchCase(toolLabel,
+    [tools.Jupyter.label, () => `${name}/safe`],
+    [tools.RStudio.label, () => '']
+  )
 
   Utils.useOnMount(() => {
-    setUpNotebook()
+    const cloudStorageDirectory = `gs://${bucketName}/notebooks`
+
+    const pattern = Utils.switchCase(toolLabel,
+      [tools.RStudio.label, () => '.*\\.Rmd'],
+      [tools.Jupyter.label, () => '.*\\.ipynb']
+    )
+
+    const setUpAnalysis = _.flow(
+      Utils.withBusyState(setBusy),
+      withErrorReporting('Error setting up analysis')
+    )(async () => {
+      await Ajax()
+        .Runtimes
+        .fileSyncing(googleProject, runtimeName)
+        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, pattern)
+      if (mode === 'edit' && !(await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).lock(`${localBaseDirectory}/${analysisName}`))) {
+        notify('error', 'Unable to Edit Analysis', {
+          message: 'Another user is currently editing this analysis. You can run it in Playground Mode or make a copy.'
+        })
+        chooseMode(undefined)
+      } else {
+        await Ajax().Runtimes.fileSyncing(googleProject, runtimeName).localize([{
+          sourceUri: `${cloudStorageDirectory}/${analysisName}`,
+          localDestinationPath: mode === 'edit' ? `${localBaseDirectory}/${analysisName}` : `${localSafeModeBaseDirectory}/${analysisName}`
+        }])
+        setAnalysisSetupComplete(true)
+      }
+    })
+
+    setUpAnalysis()
   })
 
   return h(Fragment, [
-    notebookSetupComplete && cookieReady && h(Fragment, [
+    analysisSetupComplete && cookieReady && h(Fragment, [
       iframe({
-        //TODO: this may vary based on tool.
         src: `${proxyUrl}/notebooks/${mode === 'edit' ? localBaseDirectory : localSafeModeBaseDirectory}/${analysisName}`,
         style: { border: 'none', flex: 1, ...styles },
         ref: frameRef
       }),
-      //TODO: this frame will most likely vary based on tool. See comment attached to `JupyterFrameManager`
       h(JupyterFrameManager, {
         frameRef,
         onClose: () => Nav.goToPath('workspace-analyses', { namespace, name }),
@@ -525,8 +554,7 @@ const WelderDisabledNotebookEditorFrame = ({
       })
       chooseMode(undefined)
     } else {
-      //TODO: does this link need to change?
-      await Ajax(signal).Runtimes.notebooks(googleProject, runtimeName).oldLocalize({
+      await Ajax(signal).Runtimes.fileSyncing(googleProject, runtimeName).oldLocalize({
         [`~/${name}/${notebookName}`]: `gs://${bucketName}/notebooks/${notebookName}`
       })
       setLocalized(true)
@@ -550,7 +578,6 @@ const WelderDisabledNotebookEditorFrame = ({
     ]),
     localized && cookieReady && h(Fragment, [
       iframe({
-        //TODO: does this link need to change?
         src: `${proxyUrl}/notebooks/${name}/${notebookName}`,
         style: { border: 'none', flex: 1, ...styles },
         ref: frameRef

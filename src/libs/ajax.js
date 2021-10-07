@@ -1324,7 +1324,7 @@ const Runtimes = signal => ({
     }
   },
 
-  notebooks: (project, name) => {
+  fileSyncing: (project, name) => {
     const root = `proxy/${project}/${name}`
 
     return {
