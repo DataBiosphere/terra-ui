@@ -283,7 +283,6 @@ const PreviewHeader = ({
             h(MenuButton, { 'aria-label': `Copy analysis`, onClick: () => setCopyingAnalysis(true) }, ['Make a Copy']),
             h(MenuButton, { 'aria-label': `Export analysis`, onClick: () => setExportingAnalysis(true) }, ['Copy to another workspace']),
             h(MenuButton, {
-              'aria-label': `Copy to clipboard`,
               onClick: withErrorReporting('Error copying to clipboard', async () => {
                 await clipboard.writeText(`${window.location.host}/${analysisLink}`)
                 notify('success', 'Successfully copied URL to clipboard', { timeout: 3000 })
