@@ -29,6 +29,7 @@ export const regionInfo = (location, locationType) => {
       ['ASIA-SOUTHEAST1', () => ({ flag: '🇸🇬', regionDescription: `${regionDescription} (Singapore)`, computeZone: 'ASIA-SOUTHEAST1-A', computeRegion: 'ASIA-SOUTHEAST1' })],
       ['ASIA-SOUTHEAST2', () => ({ flag: '🇮🇩', regionDescription: `${regionDescription} (Jakarta)`, computeZone: 'ASIA-SOUTHEAST2-A', computeRegion: 'ASIA-SOUTHEAST2' })],
       ['AUSTRALIA-SOUTHEAST1', () => ({ flag: '🇦🇺', regionDescription: `${regionDescription} (Sydney)`, computeZone: 'AUSTRALIA-SOUTHEAST1-A', computeRegion: 'AUSTRALIA-SOUTHEAST1' })],
+      ['EUROPE-CENTRAL2', () => ({ flag: '🇵🇱', regionDescription: `${regionDescription} (Warsaw)`, computeZone: 'EUROPE-CENTRAL2-A', computeRegion: 'EUROPE-CENTRAL2' })],
       ['EUROPE-NORTH1', () => ({ flag: '🇫🇮', regionDescription: `${regionDescription} (Finland)`, computeZone: 'EUROPE-NORTH1-A', computeRegion: 'EUROPE-NORTH1' })],
       ['EUROPE-WEST1', () => ({ flag: '🇧🇪', regionDescription: `${regionDescription} (Belgium)`, computeZone: 'EUROPE-WEST1-B', computeRegion: 'EUROPE-WEST1' })],
       ['EUROPE-WEST2', () => ({ flag: '🇬🇧', regionDescription: `${regionDescription} (London)`, computeZone: 'EUROPE-WEST2-A', computeRegion: 'EUROPE-WEST2' })],
