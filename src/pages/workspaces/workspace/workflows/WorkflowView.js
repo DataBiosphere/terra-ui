@@ -432,7 +432,7 @@ const WorkflowView = _.flow(
   async componentDidMount() {
     const {
       namespace, name, workflowNamespace, workflowName,
-      workspace: { workspace: { attributes } },
+      workspace: { workspace: { attributes, googleProject } },
       signal,
       queryParams: { selectionKey }
     } = this.props
@@ -465,7 +465,7 @@ const WorkflowView = _.flow(
       )(config)
 
       const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ?
-        await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, modifiedConfig.dataReferenceName) :
+        await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, modifiedConfig.dataReferenceName) :
         undefined
 
       this.setState({
@@ -716,7 +716,7 @@ const WorkflowView = _.flow(
                       const selectedSnapshotEntityMetadata = await Ajax(signal)
                         .Workspaces
                         .workspace(namespace, workspaceName)
-                        .snapshotEntityMetadata(namespace, value)
+                        .snapshotEntityMetadata(workspace.googleProject, value)
 
                       this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value))
                       this.setState(_.unset(['modifiedConfig', 'rootEntityType']))

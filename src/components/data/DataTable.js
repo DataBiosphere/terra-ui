@@ -108,7 +108,7 @@ const DataTable = props => {
       .paginatedEntitiesOfType(entityType, {
         page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction,
         ...(!!snapshotName ?
-          { billingProject: namespace, dataReference: snapshotName } :
+          { billingProject: googleProject, dataReference: snapshotName } :
           { filterTerms: activeTextFilter })
       })
     setEntities(results)
