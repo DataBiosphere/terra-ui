@@ -687,7 +687,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             ]),
             div([
               'Custom environments ', b(['must ']), 'be based off one of the ',
-              h(Link, { 'aria-label': 'Terra base images', href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images'])
+              h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra Jupyter Notebook base images'])
             ])
           ])
         }],
