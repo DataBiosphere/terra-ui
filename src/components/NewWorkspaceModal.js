@@ -69,10 +69,8 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
         name,
         authorizationDomain: _.map(v => ({ membersGroupName: v }), [...getRequiredGroups(), ...groups]),
         attributes: { description },
-        copyFilesWithPrefix: 'notebooks/'
-      }
-      if (bucketLocation) {
-        body.bucketLocation = bucketLocation
+        copyFilesWithPrefix: 'notebooks/',
+        ...(!!bucketLocation && { bucketLocation })
       }
       onSuccess(await Utils.cond(
         [cloneWorkspace, async () => {
@@ -115,18 +113,14 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     withErrorReporting('Error loading data'),
     Utils.withBusyState(setLoading)
   )(async () => {
-    const [locationResponse] = await Promise.all([
-      Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
-    ])
+    const locationResponse = await Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
     setBucketLocation(locationResponse.location)
   })
 
   // Lifecycle
   Utils.useOnMount(() => {
     loadProjectsGroups()
-    if (cloneWorkspace) {
-      loadBucketLocation()
-    }
+    !!cloneWorkspace && loadBucketLocation()
   })
 
 
@@ -203,8 +197,8 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
             'Once set, it cannot be changed. ',
             'A cloned workspace will automatically inherit the bucket location from the original workspace but this may be changed at clone time.',
             p([
-              'By default, workflow and Cloud Environment VMs will run in the same region as the workspace bucket. ',
-              'Changing bucket or VM locations from the defaults can lead to network egress charges.'
+              'By default, workflow and Cloud Environments will run in the same region as the workspace bucket. ',
+              'Changing bucket or Cloud Environment locations from the defaults can lead to network egress charges.'
             ]),
             h(Link, {
               href: 'https://support.terra.bio/hc/en-us/articles/360058964552',

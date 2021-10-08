@@ -524,7 +524,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     return existingRuntime && (!canUpdateRuntime() || isStopRequired())
   }
 
-  const onLocationChange = (location, locationType) => {
+  const updateComputeLocation = (location, locationType) => {
     const { computeZone, computeRegion } = regionInfo(location, locationType)
     updateComputeConfig('computeZone', computeZone)
     updateComputeConfig('computeRegion', computeRegion)
@@ -872,7 +872,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             id => div({ style: { gridColumnEnd: 'span 3', marginTop: '0.5rem' } }, [
               label({ htmlFor: id, style: styles.label }, ['Location']),
               h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-                'By default, workflow and cloud environment VMs will run in the same region as the workspace bucket. ',
+                'By default, workflow and cloud environments will run in the same region as the workspace bucket. ',
                 'Take care as overriding the default can lead to network egress charges.'
               ]),
               div({ style: { marginTop: '0.5rem' } }, [
@@ -880,7 +880,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   id,
                   isSearchable: false,
                   value: computeConfig.computeRegion,
-                  onChange: ({ value, locationType }) => onLocationChange(value, locationType),
+                  onChange: ({ value, locationType }) => updateComputeLocation(value, locationType),
                   options: _.flow(_.filter(l => l.value !== 'US'), _.sortBy('label'))(allRegions)
                 })
               ])

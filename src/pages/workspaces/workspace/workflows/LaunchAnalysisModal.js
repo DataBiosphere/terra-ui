@@ -79,6 +79,8 @@ const LaunchAnalysisModal = ({
     [type === chooseSetType, () => _.flow(mergeSets, _.uniqBy('entityName'))(selectedEntities).length]
   )
   const { location, locationType } = bucketLocation
+  // us-central1 is always used for the location of the lifesciences api metadata.
+  // This is separate from the location that the VMs will run in, which is what we're setting here with computeRegion.
   const { flag, regionDescription, computeRegion } = regionInfo(location, locationType)
 
   const onlyConstantInputs = _.every(i => !i || Utils.maybeParseJSON(i) !== undefined, config.inputs)
@@ -112,8 +114,12 @@ const LaunchAnalysisModal = ({
     ]),
     div(['Compute for this workflow will occur ', span({ style: { fontWeight: 'bold' } }, 'by default '), 'in the region:']),
     div({ style: { margin: '1rem 0 1.5rem' } }, [
-      location ? h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [flag]),
-        h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [computeRegion])])]) : 'Loading...'
+      location ?
+        h(Fragment, [
+          span({ style: { marginRight: '0.5rem' } }, [flag]),
+          h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [computeRegion])])
+        ]) :
+        'Loading...'
     ]),
     div({ style: { margin: '1rem 0' } }, ['Be sure to use compute in the same region as your data. ',
       span({ style: { fontStyle: 'italic' } }, 'Running compute in regions other than the source data or bucket region can incur network egress charges. ')]),
