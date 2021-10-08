@@ -868,24 +868,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
               ])
             ])
           ]),
-          h(IdContainer, [
-            id => div({ style: { gridColumnEnd: 'span 3', marginTop: '0.5rem' } }, [
-              label({ htmlFor: id, style: styles.label }, ['Location']),
-              h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-                'By default, workflow and cloud environments will run in the same region as the workspace bucket. ',
-                'Take care as overriding the default can lead to network egress charges.'
-              ]),
-              div({ style: { marginTop: '0.5rem' } }, [
-                h(Select, {
-                  id,
-                  isSearchable: false,
-                  value: computeConfig.computeRegion,
-                  onChange: ({ value, locationType }) => updateComputeLocation(value, locationType),
-                  options: _.flow(_.filter(l => l.value !== 'US'), _.sortBy('label'))(allRegions)
-                })
-              ])
-            ])
-          ])
         ])
       ]),
       sparkMode === 'cluster' && fieldset({ style: { margin: '1.5rem 0 0', border: 'none', padding: 0 } }, [
@@ -927,6 +909,24 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             value: computeConfig.workerMachineType, machineTypeOptions: validMachineTypes, onChange: updateComputeConfig('workerMachineType')
           }),
           h(DataprocDiskSelector, { value: computeConfig.workerDiskSize, onChange: updateComputeConfig('workerDiskSize') })
+        ])
+      ]),
+      h(IdContainer, [
+        id => div({ style: { gridColumnEnd: 'span 3', marginTop: '1.5rem' } }, [
+          label({ htmlFor: id, style: styles.label }, ['Location']),
+          h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+            'By default, workflow and cloud environments will run in the same region as the workspace bucket. ',
+            'Take care as overriding the default can lead to network egress charges.'
+          ]),
+          div({ style: { marginTop: '0.5rem' } }, [
+            h(Select, {
+              id,
+              isSearchable: false,
+              value: computeConfig.computeRegion,
+              onChange: ({ value, locationType }) => updateComputeLocation(value, locationType),
+              options: _.flow(_.filter(l => l.value !== 'US'), _.sortBy('label'))(allRegions)
+            })
+          ])
         ])
       ])
     ])
@@ -1109,7 +1109,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                   'If you want to permanently save some files from the disk before deleting it, you will need to create a new cloud environment to access it.'
                 ])
               ]),
-              // At this point there is no runtime to check the tool
+              // At this point there is no runtime (we're in the !existingRuntime block) to check the tool
               h(SaveFilesHelpRStudio)
             ])
           }],
