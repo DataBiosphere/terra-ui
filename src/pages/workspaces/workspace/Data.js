@@ -561,8 +561,8 @@ const WorkspaceData = _.flow(
                     const canCompute = !!(workspace?.canCompute)
                     return h(DataTypeButton, {
                       // TODO: if reader, should be greyed out. What's the right color style? Any other styling?
-                      buttonStyle: canCompute ? { borderBottom: 0, height: 40 } : { borderBottom: 0, height: 40, color: '#ddd'},
-                      // TODO: how to override the tooltip only if the user doesn't have compute? If user does have compute, we want to 
+                      buttonStyle: canCompute ? { borderBottom: 0, height: 40 } : { borderBottom: 0, height: 40, color: '#ddd' },
+                      // TODO: how to override the tooltip only if the user doesn't have compute? If user does have compute, we want to
                       // use the default tooltip.
                       tooltip: canCompute ? (tableName ? `${tableName} (${count} row${count === 1 ? '' : 's'})` : undefined) : 'You must have compute',
                       tooltipDelay: 250,
