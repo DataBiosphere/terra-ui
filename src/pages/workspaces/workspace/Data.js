@@ -557,21 +557,32 @@ const WorkspaceData = _.flow(
                 ])],
                 () => div({ role: 'list', style: { fontSize: 14, lineHeight: '1.5' } }, [
                   _.map(([tableName, { count }]) => {
+                    // TODO: is this the correct permission to check? Is this reliable?
+                    const canCompute = !!(workspace?.canCompute)
                     return h(DataTypeButton, {
-                      buttonStyle: { borderBottom: 0, height: 40 },
+                      // TODO: if reader, should be greyed out. What's the right color style? Any other styling?
+                      buttonStyle: canCompute ? { borderBottom: 0, height: 40 } : { borderBottom: 0, height: 40, color: '#ddd'},
+                      // TODO: how to override the tooltip only if the user doesn't have compute? If user does have compute, we want to 
+                      // use the default tooltip.
+                      tooltip: canCompute ? (tableName ? `${tableName} (${count} row${count === 1 ? '' : 's'})` : undefined) : 'You must have compute',
+                      tooltipDelay: 250,
+                      useTooltipAsLabel: true,
                       key: `${snapshotName}_${tableName}`,
                       selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
                       entityName: tableName,
                       entityCount: count,
                       onClick: () => {
-                        setSelectedDataType([snapshotName, tableName])
-                        Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {
-                          ...extractWorkspaceDetails(workspace.workspace),
-                          resourceId,
-                          snapshotId,
-                          entityType: tableName
-                        })
-                        forceRefresh()
+                        // TODO: if reader, click should do nothing. Should the click instead pop up an error message?
+                        if (canCompute) {
+                          setSelectedDataType([snapshotName, tableName])
+                          Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {
+                            ...extractWorkspaceDetails(workspace.workspace),
+                            resourceId,
+                            snapshotId,
+                            entityType: tableName
+                          })
+                          forceRefresh()
+                        }
                       }
                     }, [`${tableName} (${count})`])
                   }, snapshotTablePairs)
