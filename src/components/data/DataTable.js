@@ -216,8 +216,8 @@ const DataTable = props => {
                         closeOnClick: true,
                         content: h(Fragment, [
                           h(MenuButton, { onClick: selectPage }, ['Page']),
-                          h(MenuButton, { onClick: selectAll },
-                            ((totalRowCount === filteredCount) ? [`All (${filteredCount})`] : [`Filtered (${filteredCount})`])),
+                          !!filteredCount && (h(MenuButton, { onClick: selectAll },
+                            ((totalRowCount === filteredCount) ? [`All (${filteredCount})`] : [`Filtered (${filteredCount})`]))),
                           h(MenuButton, { onClick: selectNone }, ['None'])
                         ]),
                         side: 'bottom'
