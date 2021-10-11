@@ -105,12 +105,12 @@ const DataTable = props => {
     withErrorReporting('Error loading entities')
   )(async () => {
     const { results, resultMetadata: { filteredCount, unfilteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name)
-      .paginatedEntitiesOfType(entityType, {
+      .paginatedEntitiesOfType(entityType, _.pickBy(_.trim, {
         page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction,
         ...(!!snapshotName ?
           { billingProject: googleProject, dataReference: snapshotName } :
           { filterTerms: activeTextFilter })
-      })
+      }))
     setEntities(results)
     setFilteredCount(filteredCount)
     setTotalRowCount(unfilteredCount)
@@ -120,7 +120,7 @@ const DataTable = props => {
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
-    const params = _.merge({ pageSize: filteredCount }, activeTextFilter ? { filterTerms: activeTextFilter } : {})
+    const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter })
     const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params)
     setSelected(entityMap(queryResults.results))
   })
