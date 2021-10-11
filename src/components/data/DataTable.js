@@ -179,7 +179,7 @@ const DataTable = props => {
             'aria-label': 'Search',
             placeholder: 'Search',
             onChange: v => {
-              setActiveTextFilter(v)
+              setActiveTextFilter(v.toString().trim())
               setPageNumber(1)
             },
             defaultValue: activeTextFilter
