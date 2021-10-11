@@ -911,23 +911,25 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           h(DataprocDiskSelector, { value: computeConfig.workerDiskSize, onChange: updateComputeConfig('workerDiskSize') })
         ])
       ]),
-      h(IdContainer, [
-        id => div({ style: { gridColumnEnd: 'span 3', marginTop: '1.5rem' } }, [
-          label({ htmlFor: id, style: styles.label }, ['Location']),
-          h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-            'By default, workflow and cloud environments will run in the same region as the workspace bucket. ',
-            'Take care as overriding the default can lead to network egress charges.',
-            p(['You cannot update the location of an existing environment.'])
-          ]),
-          div({ style: { marginTop: '0.5rem' } }, [
-            h(Select, {
-              id,
-              isDisabled: computeExists, // Can't update location of existing environments
-              isSearchable: false,
-              value: computeConfig.computeRegion,
-              onChange: ({ value, locationType }) => updateComputeLocation(value, locationType),
-              options: _.flow(_.filter(l => l.value !== 'US'), _.sortBy('label'))(allRegions)
-            })
+      div({ style: { ...gridStyle, gridTemplateColumns: '0.25fr 8.5rem 1fr 5.5rem 1fr 5rem', marginTop: '1.5rem' } }, [
+        h(IdContainer, [
+          id => div({ style: { gridColumnEnd: 'span 3' } }, [
+            label({ htmlFor: id, style: styles.label }, ['Location']),
+            h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
+              'By default, workflow and cloud environments will run in the same region as the workspace bucket. ',
+              'Take care as overriding the default can lead to network egress charges.',
+              p(['You cannot update the location of an existing environment.'])
+            ]),
+            div({ style: { marginTop: '0.5rem' } }, [
+              h(Select, {
+                id,
+                isDisabled: computeExists, // Can't update location of existing environments
+                isSearchable: false,
+                value: computeConfig.computeRegion,
+                onChange: ({ value, locationType }) => updateComputeLocation(value, locationType),
+                options: _.flow(_.filter(l => l.value !== 'US'), _.sortBy('label'))(allRegions)
+              })
+            ])
           ])
         ])
       ])
