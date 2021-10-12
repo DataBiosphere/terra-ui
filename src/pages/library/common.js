@@ -3,11 +3,17 @@ import { Fragment, useState } from 'react'
 import { div, h, label } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, IdContainer, Link, Select } from 'src/components/common'
-import { centeredSpinner } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import colors from 'src/libs/colors'
-import * as Utils from 'src/libs/utils'
 
+
+export const commonStyles = {
+  access: {
+    open: colors.success(1.5),
+    controlled: colors.accent(),
+    pending: '#F7981C'
+  }
+}
 
 const styles = {
   header: {
@@ -182,11 +188,8 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
         })
       ]),
       div({ style: { marginLeft: '1rem', minWidth: 0, width: '100%', height: '100%' } }, [
-        Utils.cond(
-          [_.isEmpty(fullList), centeredSpinner],
-          [_.isEmpty(filteredList), () => div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found'])],
-          () => children({ filteredList, sections, selectedTags, setSelectedTags })
-        )
+        _.isEmpty(filteredList) ? div({ style: { margin: 'auto', textAlign: 'center' } }, ['No Results Found']) :
+          children({ filteredList, sections, selectedTags, setSelectedTags })
       ])
     ])
   ])

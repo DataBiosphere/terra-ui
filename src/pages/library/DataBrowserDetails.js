@@ -12,30 +12,25 @@ import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
+import { commonStyles } from 'src/pages/library/common'
+import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
-import { normalizeSnapshot, snapshotStyles } from 'src/pages/library/Snapshots'
 
 
 const activeTab = 'browse & explore'
 const styles = {
-  ...snapshotStyles,
+  ...commonStyles,
   content: { padding: 20, marginTop: 15 },
   headers: { margin: '20px 0 10px' },
   attributesColumn: { width: '22%', marginRight: 20, marginTop: 30 }
 }
 const cloudIconProps = { role: 'img', style: { maxHeight: 25, maxWidth: 150 } }
 
-const getSnapshot = async id => {
-  const list = await fetch('hca-sample.json').then(res => res.json())
-  const dataMap = _.keyBy('dct:identifier', list.data)
-  return new Promise(resolve => setTimeout(resolve(dataMap[id]), 1000))
-}
-
 const makeContactCard = ({ contactName, institution, email }) => {
   return div({ key: contactName, style: { marginBottom: 30 } }, [
     contactName,
     institution && div({ style: { marginTop: 5 } }, [institution]),
-    email && h(Link, { href: email, style: { marginTop: 5, display: 'block' } }, [email])
+    email && h(Link, { href: `mailto:${email}`, style: { marginTop: 5, display: 'block' } }, [email])
   ])
 }
 
@@ -90,7 +85,7 @@ const MainContent = ({ snapshot }) => {
   ])
 }
 
-const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
+const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
   const { access } = snapshot
 
   return div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
@@ -166,7 +161,7 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
         Nav.history.push({
           pathname: Nav.getPath('import-data'),
           search: qs.stringify({
-            url: getConfig().dataRepoUrlRoot, snapshotId: 'REPLACE_ME', snapshotName: snapshot['dct:title'], format: 'snapshot'
+            url: getConfig().dataRepoUrlRoot, snapshotId: id, snapshotName: snapshot['dct:title'], format: 'snapshot'
           })
         })
       }
@@ -175,13 +170,10 @@ const Sidebar = ({ snapshot, setShowRequestAccessModal }) => {
 }
 
 const DataBrowserDetails = ({ id }) => {
-  const [snapshot, setSnapshot] = useState()
   const [showRequestAccessModal, setShowRequestAccessModal] = useState()
-
-  Utils.useOnMount(() => {
-    const loadData = async () => setSnapshot(normalizeSnapshot(await getSnapshot(id)))
-    loadData()
-  })
+  const { dataCatalog } = useDataCatalog()
+  const dataMap = _.keyBy('dct:identifier', dataCatalog)
+  const snapshot = dataMap[id]
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter(activeTab),
@@ -198,7 +190,7 @@ const DataBrowserDetails = ({ id }) => {
             ])
           ]),
           h(MainContent, { snapshot }),
-          h(Sidebar, { snapshot, setShowRequestAccessModal }),
+          h(Sidebar, { snapshot, id, setShowRequestAccessModal }),
           showRequestAccessModal && h(RequestDatasetAccessModal, {
             datasets: [snapshot],
             onDismiss: () => setShowRequestAccessModal(false)

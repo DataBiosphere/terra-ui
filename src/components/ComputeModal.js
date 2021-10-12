@@ -934,7 +934,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         p([
           'You are about to create a virtual machine using an unverified Docker image. ',
           'Please make sure that it was created by you or someone you trust, using one of our ',
-          h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['base images.']),
+          h(Link, { href: terraBaseImages, ...Utils.newTabLinkProps }, ['Terra base images.']),
           ' Custom Docker images could potentially cause serious security issues.'
         ]),
         h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
@@ -951,7 +951,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const makeJSON = value => div({ style: { whiteSpace: 'pre-wrap', fontFamily: 'Menlo, monospace' } }, [JSON.stringify(value, null, 2)])
     return showDebugger ?
       div({ style: { position: 'fixed', top: 0, left: 0, bottom: 0, right: '50vw', backgroundColor: 'white', padding: '1rem', overflowY: 'auto' } }, [
-        h(Link, { onClick: () => setShowDebugger(false), style: { position: 'absolute', top: 0, right: 0 } }, ['x']),
+        h(Link, { 'aria-label': 'Hide debugger', onClick: () => setShowDebugger(false), style: { position: 'absolute', top: 0, right: 0 } }, ['x']),
         makeHeader('Old Environment Config'),
         makeJSON(getExistingEnvironmentConfig()),
         makeHeader('New Environment Config'),
@@ -964,7 +964,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           willRequireDowntime: !!willRequireDowntime()
         })
       ]) :
-      h(Link, { onClick: () => setShowDebugger(true), style: { position: 'fixed', top: 0, left: 0, color: 'white' } }, ['D'])
+      h(Link, { 'aria-label': 'Show debugger', onClick: () => setShowDebugger(true), style: { position: 'fixed', top: 0, left: 0, color: 'white' } }, ['D'])
   }
 
   const renderDeleteDiskChoices = () => {

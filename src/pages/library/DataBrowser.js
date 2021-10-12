@@ -3,7 +3,7 @@ import _ from 'lodash/fp'
 import qs from 'qs'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Checkbox, LabeledCheckbox, Link } from 'src/components/common'
+import { ButtonPrimary, ButtonSecondary, Checkbox, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -11,15 +11,14 @@ import { MiniSortable, SimpleTable } from 'src/components/table'
 import colors from 'src/libs/colors'
 import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
-import * as StateHistory from 'src/libs/state-history'
 import * as Utils from 'src/libs/utils'
-import { SearchAndFilterComponent } from 'src/pages/library/common'
+import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
+import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
-import { normalizeSnapshot, snapshotStyles } from 'src/pages/library/Snapshots'
 
 
 const styles = {
-  ...snapshotStyles,
+  ...commonStyles,
   table: {
     header: {
       color: colors.accent(),
@@ -119,25 +118,6 @@ const sidebarSections = [{
   labels: ['Homo sapiens', 'Mus musculus']
 }]
 
-const getRawList = async () => {
-  const list = await fetch('hca-sample.json').then(res => res.json())
-  return new Promise(resolve => setTimeout(resolve(list.data), 1000))
-}
-
-const extractTags = snapshot => {
-  return {
-    itemsType: 'AttributeValue',
-    items: _.flow(_.flatten, _.toLower)([
-      snapshot.access,
-      snapshot.project,
-      snapshot.samples.genus,
-      snapshot.samples.disease,
-      snapshot.dataType,
-      snapshot.dataModality,
-      _.map('dcat:mediaType', snapshot.files)
-    ])
-  }
-}
 
 const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
   const length = _.size(selectedData).toLocaleString()
@@ -272,32 +252,18 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
 }
 
 const Browser = () => {
-  const [fullList, setFullList] = useState(() => StateHistory.get().catalogSnapshots)
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const [showProjectFilters, setShowProjectFilters] = useState(false)
   const [selectedData, setSelectedData] = useState([])
   const [requestDatasetAccessList, setRequestDatasetAccessList] = useState()
-
-  Utils.useOnMount(() => {
-    const loadData = async () => {
-      const rawList = await getRawList()
-      const normList = _.map(snapshot => {
-        const normalizedSnapshot = normalizeSnapshot(snapshot)
-        return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)
-      }, rawList)
-
-      setFullList(normList)
-      StateHistory.update({ catalogSnapshots: fullList })
-    }
-    loadData()
-  })
+  const { dataCatalog, loading } = useDataCatalog()
 
   const toggleSelectedData = data => setSelectedData(_.xor([data]))
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('browse & explore'),
     h(SearchAndFilterComponent, {
-      fullList, sidebarSections,
+      fullList: dataCatalog, sidebarSections,
       customSort: sort,
       searchType: 'Datasets'
     }, [makeDataBrowserTableComponent({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList, showProjectFilters, setShowProjectFilters })]),
@@ -305,7 +271,8 @@ const Browser = () => {
     !!requestDatasetAccessList && h(RequestDatasetAccessModal, {
       datasets: requestDatasetAccessList,
       onDismiss: () => setRequestDatasetAccessList()
-    })
+    }),
+    loading && spinnerOverlay
   ])
 }
 
@@ -315,6 +282,6 @@ export const navPaths = [
     path: '/library/browser',
     component: Browser,
     title: 'Datasets',
-    public: true
+    public: false
   }
 ]

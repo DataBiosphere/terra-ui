@@ -12,16 +12,10 @@ export const reportError = async (title, obj) => {
   }
 }
 
-// Transforms an async function so that it catches and reports errors using the provided text
-export const withErrorReporting = _.curry((title, fn) => async (...args) => {
-  try {
-    return await fn(...args)
-  } catch (error) {
-    reportError(title, error)
-  }
-})
-
-// Transforms an async function so that it catches and ignores errors
+/**
+ * Return a Promise to the result of evaluating the async `fn` with `...args` or undefined if
+ * evaluation fails.
+ */
 export const withErrorIgnoring = fn => async (...args) => {
   try {
     return await fn(...args)
@@ -29,3 +23,24 @@ export const withErrorIgnoring = fn => async (...args) => {
     // ignore error
   }
 }
+
+/**
+ * Return a Promise to the result of evaluating the async `fn` with `...args`. If evaluation fails,
+ * report the error to the user with `title` as a side effect.
+ */
+export const reportErrorAndRethrow = _.curry((title, fn) => async (...args) => {
+  try {
+    return await fn(...args)
+  } catch (error) {
+    reportError(title, error)
+    throw error
+  }
+})
+
+/**
+ * Return a Promise to the result of evaluating the async `fn` with `...args` or undefined if
+ * evaluation fails. If evaluation fails, report the error to the user with `title`.
+ */
+export const withErrorReporting = _.curry((title, fn) => {
+  return withErrorIgnoring(reportErrorAndRethrow(title)(fn))
+})
