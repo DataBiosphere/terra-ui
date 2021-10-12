@@ -81,7 +81,9 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
 
   console.info(`added user to: ${billingProject}`)
 
-  const userList = await page.evaluate(window.Ajax().Billing.listProjectUsers, billingProject)
+  const userList = await page.evaluate(billingProject => {
+    return window.Ajax().Billing.listProjectUsers(billingProject)
+  }, billingProject)
 
   const billingUser = _.find({ email }, userList)
 
