@@ -11,11 +11,8 @@ import { ButtonPrimary, Clickable, IdContainer, LabeledCheckbox, Link } from 'sr
 import { icon } from 'src/components/icons'
 import Interactive from 'src/components/Interactive'
 import Modal from 'src/components/Modal'
-import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
-import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 

@@ -703,7 +703,7 @@ const WorkspaceData = _.flow(
             entityMetadata,
             entityKey: selectedDataType,
             loadMetadata,
-            firstRender,
+            firstRender
           })]
         )
       ])
