@@ -1373,16 +1373,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         onDismiss
       }),
       h(SparkInterface, {
-        interfaceName: 'hdfs',
-        synopsis:
-          `A NameNode is a main daemon that maintains and manages DataNodes. 
-          This interface can be used to view summary and detailed information
-          on name and data nodes.`,
-        namespace,
-        name,
-        onDismiss
-      }),
-      h(SparkInterface, {
         interfaceName: 'sparkhistory',
         synopsis:
           `Spark History Server provides information about completed Spark applications
