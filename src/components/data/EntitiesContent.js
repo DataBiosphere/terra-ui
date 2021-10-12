@@ -383,7 +383,8 @@ const EntitiesContent = ({
             style: { marginRight: '0.5rem' }
           }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
           renderSelectedRowsMenu(columnSettings)
-        ])
+        ]),
+        loadMetadata
       }),
       deletingEntities && h(EntityDeleter, {
         onDismiss: () => setDeletingEntities(false),

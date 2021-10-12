@@ -1,6 +1,7 @@
+import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, fieldset, h, img, label, legend, span } from 'react-hyperscript-helpers'
+import { div, fieldset, h, img, label, legend, p, span } from 'react-hyperscript-helpers'
 import {
   ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay,
   Switch
@@ -9,17 +10,20 @@ import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { NumberInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
 import { TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { UriViewerLink } from 'src/components/UriViewer'
 import ReferenceData from 'src/data/reference-data'
 import { Ajax, canUseWorkspaceProject } from 'src/libs/ajax'
+import { bucketBrowserUrl, getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { notify } from 'src/libs/notifications'
+import { isResourceDeletable } from 'src/libs/runtime-utils'
 import { asyncImportJobStore, requesterPaysProjectStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -693,6 +697,81 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
     ]),
     text
   ])
+}
+
+export const DeleteEntityColumnModal = ({ workspaceId: { namespace, name }, column: { entityType, attributeName }, onDismiss, onSuccess }) => {
+  const [deleting, setDeleting] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+
+  const signal = Utils.useCancellation()
+
+  const deleteColumn = async () => {
+    try {
+      setDeleting(true)
+      await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntityColumn(entityType, attributeName)
+      onDismiss()
+      onSuccess()
+    } catch (e) {
+      reportError('Unable to modify column', e)
+      setDeleting(false)
+    }
+  }
+
+  return h(Modal, {
+    title: 'Delete Column',
+    onDismiss,
+    okButton: h(ButtonPrimary, {
+      onClick: deleteColumn,
+      tooltip: Utils.cond(
+        [_.toLower(deleteConfirmation) !== 'delete column', () => 'You must type the confirmation message'],
+        () => 'Delete Column')
+    }, 'Delete column')
+  }, [
+    div(['Are you sure you want to permanently delete the column ',
+      span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, attributeName),
+      '?']),
+    div({
+      style: {
+        fontWeight: 500,
+        marginTop: '1rem'
+      }
+    }, 'This cannot be undone.'),
+    div({ style: { marginTop: '1rem' } }, [
+      label({ htmlFor: 'delete-column-confirmation' }, ['Please type \'Delete Column\' to continue:']),
+      h(TextInput, {
+        id: 'delete-column-confirmation',
+        placeholder: 'Delete Column',
+        value: deleteConfirmation,
+        onChange: setDeleteConfirmation
+      })
+    ]),
+    deleting && spinnerOverlay
+  ])
+}
+
+export const HeaderOptions = ({ field, onSort, isEntityName, beginDelete, children }) => {
+  const columnMenu = h(MenuTrigger, {
+    closeOnClick: true,
+    side: 'bottom',
+    content: h(Fragment, [
+      h(MenuButton, { onClick:  () => onSort( { field: field, direction: 'asc' }) }, ['Sort Ascending']),
+      h(MenuButton, { onClick:  () => onSort( { field: field, direction: 'desc' }) }, ['Sort Descending']),
+      !isEntityName && h(MenuButton, { onClick: beginDelete }, ['Delete column'])])
+  }, [
+    h(Link, { 'aria-label': 'Workflow menu', onClick: e => e.stopPropagation() }, [
+      icon('cardMenuIcon', {
+        size: 16
+      })
+    ])
+  ])
+
+  return h(IdContainer, [id => div( {
+    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%' },
+    'aria-describedby': id
+  }, [
+    children,
+    div({ style: { marginRight: '1rem', marginLeft: 'auto' } }, [columnMenu])
+  ])])
 }
 
 export const saveScroll = _.throttle(100, (initialX, initialY) => {

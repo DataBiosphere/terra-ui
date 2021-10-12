@@ -3,7 +3,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { div, h, span } from 'react-hyperscript-helpers'
 import { AutoSizer } from 'react-virtualized'
 import { Checkbox, Clickable, fixedSpinnerOverlay, Link } from 'src/components/common'
-import { EditDataLink, EntityEditor, EntityRenamer, renderDataCell } from 'src/components/data/data-utils'
+import { DeleteEntityColumnModal, EditDataLink, EntityEditor, EntityRenamer, HeaderOptions, renderDataCell } from 'src/components/data/data-utils'
 import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
@@ -54,7 +54,8 @@ const DataTable = props => {
     childrenBefore,
     editable,
     persist, refreshKey, firstRender,
-    snapshotName
+    snapshotName,
+    loadMetadata
   } = props
 
   const persistenceId = `${namespace}/${name}/${entityType}`
@@ -95,6 +96,7 @@ const DataTable = props => {
 
   const [renamingEntity, setRenamingEntity] = useState()
   const [updatingEntity, setUpdatingEntity] = useState()
+  const [deletingColumn, setDeletingColumn] = useState()
 
   const table = useRef()
   const signal = Utils.useCancellation()
@@ -245,9 +247,8 @@ const DataTable = props => {
                       setColumnWidths(_.set('name', nameWidth + delta))
                     }
                   }, [
-                    h(Sortable, { sort, field: 'name', onSort: setSort }, [
-                      h(HeaderCell, [entityMetadata[entityType].idName])
-                    ])
+                    h(HeaderOptions, { field: 'name', onSort: setSort, isEntityName: true, },
+                      [ h(HeaderCell, [entityMetadata[entityType].idName]) ])
                   ]),
                   cellRenderer: ({ rowIndex }) => {
                     const { name: entityName } = entities[rowIndex]
@@ -261,16 +262,18 @@ const DataTable = props => {
                     ])
                   }
                 },
-                ..._.map(({ name }) => {
-                  const thisWidth = columnWidths[name] || 300
-                  const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(name)
+                ..._.map(({ name: attributeName }) => {
+                  const thisWidth = columnWidths[attributeName] || 300
+                  const [, columnNamespace, columnName] = /(.+:)?(.+)/.exec(attributeName)
                   return {
-                    field: name,
+                    field: attributeName,
                     width: thisWidth,
                     headerRenderer: () => h(Resizable, {
-                      width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(name, thisWidth + delta))
+                      width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(attributeName, thisWidth + delta))
                     }, [
-                      h(Sortable, { sort, field: name, onSort: setSort }, [
+                      h(HeaderOptions, { field: attributeName, onSort: setSort, isEntityName: false,
+                        beginDelete: () => setDeletingColumn({ entityType: entityType, attributeName: attributeName })
+                      }, [
                         h(HeaderCell, [
                           !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } },
                             columnNamespace)
@@ -279,7 +282,7 @@ const DataTable = props => {
                       ])
                     ]),
                     cellRenderer: ({ rowIndex }) => {
-                      const { attributes: { [name]: dataInfo }, name: entityName } = entities[rowIndex]
+                      const { attributes: { [attributeName]: dataInfo }, name: entityName } = entities[rowIndex]
                       const dataCell = renderDataCell(Utils.entityAttributeText(dataInfo), googleProject)
                       return h(Fragment, [
                         (!!dataInfo && _.isArray(dataInfo.items)) ?
@@ -289,10 +292,10 @@ const DataTable = props => {
                           }, [dataCell]) : dataCell,
                         div({ style: { flexGrow: 1 } }),
                         editable && h(EditDataLink, {
-                          'aria-label': `Edit attribute ${name} of ${entityType} ${entityName}`,
+                          'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
                           'aria-haspopup': 'dialog',
                           'aria-expanded': !!updatingEntity,
-                          onClick: () => setUpdatingEntity({ entityName, attributeName: name, attributeValue: dataInfo })
+                          onClick: () => setUpdatingEntity({ entityName, attributeName: attributeName, attributeValue: dataInfo })
                         })
                       ])
                     }
@@ -350,6 +353,15 @@ const DataTable = props => {
         loadData()
       },
       onDismiss: () => setUpdatingEntity(undefined)
+    }),
+    !!deletingColumn && h(DeleteEntityColumnModal, {
+        workspaceId: { namespace, name },
+        column: deletingColumn,
+        onSuccess: () => {
+          setDeletingColumn(undefined)
+          loadMetadata()
+        },
+        onDismiss: () => setDeletingColumn(undefined)
     }),
     loading && fixedSpinnerOverlay
   ])
