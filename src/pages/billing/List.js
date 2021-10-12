@@ -40,7 +40,7 @@ const styles = {
   }
 }
 
-const ProjectListItem = (() => {
+const ProjectListItem = ({ project, project: { roles, status }, isActive }) => {
   const selectableProject = ({ projectName }, isActive) => h(Clickable, {
     style: { ...styles.projectListItem(isActive), color: isActive ? colors.dark() : colors.accent() },
     href: `${Nav.getLink('billing')}?${qs.stringify({ selectedName: projectName, type: 'project' })}`,
@@ -65,12 +65,12 @@ const ProjectListItem = (() => {
     ])
   }
 
-  return ({ project, project: { roles, status }, isActive }) => div({ role: 'listitem' }, [
+  return div({ role: 'listitem' }, [
     _.includes(billingRoles.owner, roles) && status === 'Ready' ?
       selectableProject(project, isActive) :
       unselectableProject(project, isActive)
   ])
-})()
+}
 
 const billingProjectNameValidator = existing => ({
   presence: { allowEmpty: false },
