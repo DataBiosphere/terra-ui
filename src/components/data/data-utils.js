@@ -1,7 +1,6 @@
-import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, fieldset, h, img, label, legend, p, span } from 'react-hyperscript-helpers'
+import { div, fieldset, h, img, label, legend, span } from 'react-hyperscript-helpers'
 import {
   ButtonOutline, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, LabeledCheckbox, Link, RadioButton, Select, spinnerOverlay,
   Switch
@@ -17,13 +16,11 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { UriViewerLink } from 'src/components/UriViewer'
 import ReferenceData from 'src/data/reference-data'
 import { Ajax, canUseWorkspaceProject } from 'src/libs/ajax'
-import { bucketBrowserUrl, getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import { notify } from 'src/libs/notifications'
-import { isResourceDeletable } from 'src/libs/runtime-utils'
 import { asyncImportJobStore, requesterPaysProjectStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -754,9 +751,10 @@ export const HeaderOptions = ({ field, onSort, isEntityName, beginDelete, childr
     closeOnClick: true,
     side: 'bottom',
     content: h(Fragment, [
-      h(MenuButton, { onClick:  () => onSort( { field: field, direction: 'asc' }) }, ['Sort Ascending']),
-      h(MenuButton, { onClick:  () => onSort( { field: field, direction: 'desc' }) }, ['Sort Descending']),
-      !isEntityName && h(MenuButton, { onClick: beginDelete }, ['Delete column'])])
+      h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
+      h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
+      !isEntityName && h(MenuButton, { onClick: beginDelete }, ['Delete column'])
+    ])
   }, [
     h(Link, { 'aria-label': 'Workflow menu', onClick: e => e.stopPropagation() }, [
       icon('cardMenuIcon', {
@@ -765,7 +763,7 @@ export const HeaderOptions = ({ field, onSort, isEntityName, beginDelete, childr
     ])
   ])
 
-  return h(IdContainer, [id => div( {
+  return h(IdContainer, [id => div({
     style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%' },
     'aria-describedby': id
   }, [

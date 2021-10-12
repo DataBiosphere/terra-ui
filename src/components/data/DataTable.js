@@ -8,7 +8,7 @@ import { icon } from 'src/components/icons'
 import { ConfirmedSearchInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
-import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable, Sortable } from 'src/components/table'
+import { ColumnSelector, GridTable, HeaderCell, paginator, Resizable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
@@ -247,8 +247,8 @@ const DataTable = props => {
                       setColumnWidths(_.set('name', nameWidth + delta))
                     }
                   }, [
-                    h(HeaderOptions, { field: 'name', onSort: setSort, isEntityName: true, },
-                      [ h(HeaderCell, [entityMetadata[entityType].idName]) ])
+                    h(HeaderOptions, { field: 'name', onSort: setSort, isEntityName: true },
+                      [h(HeaderCell, [entityMetadata[entityType].idName])])
                   ]),
                   cellRenderer: ({ rowIndex }) => {
                     const { name: entityName } = entities[rowIndex]
@@ -271,8 +271,9 @@ const DataTable = props => {
                     headerRenderer: () => h(Resizable, {
                       width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(attributeName, thisWidth + delta))
                     }, [
-                      h(HeaderOptions, { field: attributeName, onSort: setSort, isEntityName: false,
-                        beginDelete: () => setDeletingColumn({ entityType: entityType, attributeName: attributeName })
+                      h(HeaderOptions, {
+                        field: attributeName, onSort: setSort, isEntityName: false,
+                        beginDelete: () => setDeletingColumn({ entityType, attributeName })
                       }, [
                         h(HeaderCell, [
                           !!columnNamespace && span({ style: { fontStyle: 'italic', color: colors.dark(0.75), paddingRight: '0.2rem' } },
@@ -295,7 +296,7 @@ const DataTable = props => {
                           'aria-label': `Edit attribute ${attributeName} of ${entityType} ${entityName}`,
                           'aria-haspopup': 'dialog',
                           'aria-expanded': !!updatingEntity,
-                          onClick: () => setUpdatingEntity({ entityName, attributeName: attributeName, attributeValue: dataInfo })
+                          onClick: () => setUpdatingEntity({ entityName, attributeName, attributeValue: dataInfo })
                         })
                       ])
                     }
@@ -355,13 +356,13 @@ const DataTable = props => {
       onDismiss: () => setUpdatingEntity(undefined)
     }),
     !!deletingColumn && h(DeleteEntityColumnModal, {
-        workspaceId: { namespace, name },
-        column: deletingColumn,
-        onSuccess: () => {
-          setDeletingColumn(undefined)
-          loadMetadata()
-        },
-        onDismiss: () => setDeletingColumn(undefined)
+      workspaceId: { namespace, name },
+      column: deletingColumn,
+      onSuccess: () => {
+        setDeletingColumn(undefined)
+        loadMetadata()
+      },
+      onDismiss: () => setDeletingColumn(undefined)
     }),
     loading && fixedSpinnerOverlay
   ])
