@@ -564,7 +564,8 @@ const WorkspaceData = _.flow(
                       buttonStyle: canCompute ? { borderBottom: 0, height: 40 } : { borderBottom: 0, height: 40, color: '#ddd' },
                       // TODO: how to override the tooltip only if the user doesn't have compute? If user does have compute, we want to
                       // use the default tooltip.
-                      tooltip: canCompute ? (tableName ? `${tableName} (${count} row${count === 1 ? '' : 's'})` : undefined) : 'You must have compute',
+                      tooltip: canCompute ? (tableName ? `${tableName} (${count} row${count === 1 ? '' : 's'})` : undefined) :
+                        'You must have Can Compute, Owner, or Project Owner permission on this workspace to view snapshot table contents.',
                       tooltipDelay: 250,
                       useTooltipAsLabel: true,
                       key: `${snapshotName}_${tableName}`,
