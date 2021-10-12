@@ -8,6 +8,7 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { appLauncherTabName } from 'src/components/runtime-common'
 import RuntimeManager from 'src/components/RuntimeManager'
 import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
@@ -108,7 +109,7 @@ const WorkspaceContainer = ({
     div({ role: 'main', style: Style.elements.pageContentContainer },
 
       // TODO: When we switch this over to all tabs, ensure other workspace tabs look the same when inside these divs
-      (isAnalysisTabVisible() && (activeTab === 'analyses' || activeTab === undefined) ?
+      (isAnalysisTabVisible() && (activeTab === 'analyses' || activeTab === appLauncherTabName) ?
         [div({ style: { flex: 1, display: 'flex' } }, [
           div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
             children
@@ -333,6 +334,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
 export const WorkspaceMenuTrigger = ({ children, canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace }) => h(
   MenuTrigger, {
     closeOnClick: true,
+    'aria-label': 'Workspace menu',
     content: h(Fragment, [
       h(MenuButton, { onClick: () => setCloningWorkspace(true) }, [makeMenuIcon('copy'), 'Clone']),
       h(MenuButton, {
@@ -341,8 +343,9 @@ export const WorkspaceMenuTrigger = ({ children, canShare, isOwner, setCloningWo
         tooltipSide: 'left',
         onClick: () => setSharingWorkspace(true)
       }, [makeMenuIcon('share'), 'Share']),
-      h(MenuButton, { disabled: true }, [makeMenuIcon('export'), 'Publish', comingSoon]),
+      h(MenuButton, { 'aria-label': 'Workspace publish', disabled: true }, [makeMenuIcon('export'), 'Publish', comingSoon]),
       h(MenuButton, {
+        'aria-label': 'Workspace delete',
         disabled: !isOwner,
         tooltip: !isOwner && 'You must be an owner of this workspace or the underlying billing project',
         tooltipSide: 'left',

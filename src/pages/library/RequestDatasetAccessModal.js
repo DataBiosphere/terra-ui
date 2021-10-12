@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
-import { div, h, span, table, tbody, td, th, thead, tr } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer } from 'src/components/common'
+import { div, h, label, span, table, tbody, td, th, thead, tr } from 'react-hyperscript-helpers'
+import { ButtonPrimary, IdContainer, LabeledCheckbox, Link } from 'src/components/common'
 import { TextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { Ajax } from 'src/libs/ajax'
@@ -12,11 +12,13 @@ import * as Utils from 'src/libs/utils'
 
 export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
   const [reason, setReason] = useState('')
+  const [sendCopy, setSendCopy] = useState(false)
 
   return h(Modal, {
     title: 'Request Access',
     width: '40rem',
-    showCancel: false,
+    showButtons: false,
+    showX: true,
     onDismiss
   }, [
     div([
@@ -32,21 +34,34 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
         placeholder: 'Enter your reason',
         value: reason,
         onChange: setReason
-      })
+      }),
+      div([
+        h(LabeledCheckbox, {
+          checked: sendCopy,
+          onChange: setSendCopy
+        }, [
+          label({ style: { margin: '0 2rem 0 0.25rem' } }, [`Also send me a copy`])
+        ])
+      ])
     ])]),
     table({ style: { margin: '1rem', width: '100%' } }, [
       thead([
         tr({ style: { height: '2rem' } }, [th({ style: { textAlign: 'left' } }, ['Datasets']), th({ style: { textAlign: 'left', width: '15rem' } }, ['Access'])])
       ]),
       tbody(
-        _.map(dataset => tr({ style: { height: '2rem' } }, [
-          td([dataset.name]),
+        _.map(({ 'dct:title': title, access, id, contacts }) => tr({ key: id, style: { height: '2rem' } }, [
+          td({ style: { paddingRight: 20 } }, [
+            title,
+            div({ style: { fontSize: '.7rem', marginTop: 5, width: 'fit-content' } }, [
+              _.map(({ email }) => email && h(Link, { key: email, href: `mailto:${email}`, style: { marginTop: 5, display: 'block' } }, [email]), contacts)
+            ])
+          ]),
           td([
-            dataset.locked ?
-              h(RequestDatasetAccessButton, {
-                datasetName: dataset.name
-              }) :
-              span({ style: { fontWeight: 600 } }, ['Yes'])
+            Utils.switchCase(access,
+              ['Controlled', () => h(RequestDatasetAccessButton, { datasetName: title })],
+              ['Pending', () => span({ style: { fontWeight: 600 } }, ['Request Pending'])],
+              [Utils.DEFAULT, () => span({ style: { fontWeight: 600 } }, ['Permission Granted'])]
+            )
           ])
         ]), datasets)
       )
