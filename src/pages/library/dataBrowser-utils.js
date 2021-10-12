@@ -37,6 +37,7 @@ const normalizeSnapshot = snapshot => {
   return {
     ...snapshot,
     project: _.get(['TerraDCAT_ap:hasDataCollection', 0, 'dct:title'], snapshot),
+    projectId: _.get(['TerraDCAT_ap:hasDataCollection', 0, 'dct:identifier'], snapshot),
     lowerName: _.toLower(snapshot['dct:title']), lowerDescription: _.toLower(snapshot['dct:description']),
     lastUpdated: !!snapshot['dct:modified'] && new Date(snapshot['dct:modified']),
     dataReleasePolicy,

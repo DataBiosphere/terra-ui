@@ -142,6 +142,7 @@ const fetchRex = withUrlPrefix(`${getConfig().rexUrlRoot}/api/`, fetchOk)
 const fetchBond = withUrlPrefix(`${getConfig().bondUrlRoot}/`, fetchOk)
 const fetchMartha = withUrlPrefix(`${getConfig().marthaUrlRoot}/`, fetchOk)
 const fetchBard = withUrlPrefix(`${getConfig().bardRoot}/`, fetchOk)
+const fetchBigQuery = withUrlPrefix(`https://www.googleapis.com/bigquery/v2`, fetchOk)
 
 const nbName = name => encodeURIComponent(`notebooks/${name}.${tools.Jupyter.ext}`)
 const rName = name => encodeURIComponent(`notebooks/${name}.${tools.RStudio.ext}`)
@@ -936,6 +937,11 @@ const DataRepo = signal => ({
   requestAccess: async id => {
     //TODO: Update this link to hit the real endpoint
     const res = await fetchRawls(`dunno/what/this/is/${id}/requestAccess`, _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
+  getPreviewTable: async ({ datasetProject, datasetBqSnapshotName, tableName }) => {
+    const res = await fetchBigQuery(`projects/${encodeURIComponent(datasetProject)}/datasets/${encodeURIComponent(datasetBqSnapshotName)}/tables/${encodeURIComponent(tableName)}/data?maxResults=100`, _.merge(authOpts(), { signal }))
     return res.json()
   }
 })
