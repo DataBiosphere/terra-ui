@@ -728,7 +728,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
   const renderComputeProfileSection = computeExists => {
     const { cpu: currentNumCpus, memory: currentMemory } = findMachineType(mainMachineType)
-    const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory)
+    const validGpuOptions = getValidGpuTypes(currentNumCpus, currentMemory, computeConfig.computeZone)
     const validGpuNames = _.flow(_.map('name'), _.uniq, _.sortBy('price'))(validGpuOptions)
     const validGpuName = _.includes(displayNameForGpuType(computeConfig.gpuType), validGpuNames) ?
       displayNameForGpuType(computeConfig.gpuType) :

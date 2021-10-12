@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h, input, label } from 'react-hyperscript-helpers'
 import { IdContainer } from 'src/components/common'
 import {
-  cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, monthlyStoragePrice, storagePrice
+  cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, monthlyStoragePrice, storagePrice, zonesToGpus
 } from 'src/data/machines'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
@@ -57,8 +57,9 @@ export const findMachineType = name => {
   return _.find({ name }, machineTypes) || { name, cpu: '?', memory: '?', price: NaN, preemptiblePrice: NaN }
 }
 
-export const getValidGpuTypes = (numCpus, mem) => {
-  const validGpuTypes = _.filter(({ maxNumCpus, maxMem }) => numCpus <= maxNumCpus && mem <= maxMem, gpuTypes)
+export const getValidGpuTypes = (numCpus, mem, zone) => {
+  const validGpusForZone = _.flow(_.find({ name: zone }), _.get(['validTypes']))(zonesToGpus)
+  const validGpuTypes = _.filter(({ maxNumCpus, maxMem, type }) => numCpus <= maxNumCpus && mem <= maxMem && validGpusForZone.includes(type), gpuTypes)
   return validGpuTypes || { name: '?', type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
 }
 
