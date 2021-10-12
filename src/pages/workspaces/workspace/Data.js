@@ -562,8 +562,6 @@ const WorkspaceData = _.flow(
                       buttonStyle: canCompute ? { borderBottom: 0, height: 40 } : { borderBottom: 0, height: 40, color: colors.dark(0.25) },
                       tooltip: canCompute ? (tableName ? `${tableName} (${count} row${count === 1 ? '' : 's'})` : undefined) :
                         'You must have Can Compute, Owner, or Project Owner permission on this workspace to view snapshot table contents.',
-                      tooltipDelay: 250,
-                      useTooltipAsLabel: true,
                       key: `${snapshotName}_${tableName}`,
                       selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
                       entityName: tableName,
