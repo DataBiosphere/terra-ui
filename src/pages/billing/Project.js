@@ -178,8 +178,12 @@ const groupByBillingAccountStatus = (billingProject, workspaces) => {
     !!workspace.billingAccountErrorMessage ? 'error' :
       'updating'
 
-  // return `Set`s of workspaces mapped by their status to reduce the complexity of looking up a
-  // workspace's status.
+  // Return Sets to reduce the time complexity of searching for the status of any workspace from
+  // O(N * W) to O(N * 1), where
+  //   N is the number of statuses a billing account change could have,
+  //   W is the number of workspaces in a billing project (can be very large for GP).
+  // Note we need to perform this search W times for each billing project; using a set reduces time
+  // complexity by an order of magnitude.
   return _.mapValues(ws => new Set(ws), _.groupBy(group, workspaces))
 }
 
