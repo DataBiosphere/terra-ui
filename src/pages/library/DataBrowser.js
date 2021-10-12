@@ -34,90 +34,79 @@ const styles = {
 }
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
-const sidebarSections = [{
-  name: 'Access Type',
-  labels: [
-    'Controlled',
-    'Open',
-    'Pending'
-  ],
-  labelDisplays: {
-    Controlled: [
-      div({ style: { display: 'flex' } }, [
-        icon('lock', { style: { color: styles.access.controlled, marginRight: 5 } }),
-        div(['Controlled'])
-      ])
+const extractCatalogFilters = dataCatalog => {
+  return [{
+    name: 'Access Type',
+    labels: [
+      'Controlled',
+      'Open',
+      'Pending'
     ],
-    Open: [
-      div({ style: { display: 'flex' } }, [
-        icon('unlock', { style: { color: styles.access.open, marginRight: 5 } }),
-        div(['Open'])
-      ])
-    ],
-    Pending: [
-      div({ style: { display: 'flex' } }, [
-        icon('lock', { style: { color: styles.access.pending, marginRight: 5 } }),
-        div(['Pending'])
-      ])
-    ]
-  }
-}, {
-  name: 'Consortium',
-  labels: [
-    '1000 Genomes',
-    'CCDG',
-    'CMG',
-    'Convergent Neuro',
-    'GTEx (v8)',
-    'HPRC',
-    'PAGE',
-    'WGSPD1',
-    'Human Cell Atlas'
-  ]
-}, {
-  name: 'Data modality',
-  labels: ['Proteomic', 'Transcriptomic', 'Epigenomic', 'Genomic']
-}, {
-  name: 'Data Type',
-  labels: ['scRNA-seq', 'snRNA-seq', 'RNA-seq', 'nuc-seq', 'N/A']
-}, {
-  name: 'File type',
-  labels: [
-    'Rds', 'Robj',
-    'bam', 'csv', 'csv.gz', 'fastq', 'fastq.gz',
-    'h5', 'h5ad', 'loom', 'mtx', 'mtx.gz', 'pdf',
-    'rds', 'rds.gz', 'tar', 'tar.gz', 'tsv',
-    'tsv.gz', 'txt', 'txt.gz', 'xlsx', 'zip'
-  ]
-}, {
-  name: 'Disease',
-  labels: [
-    'brain cancer', 'normal', 'cardiovascular disease', 'epilepsy', 'hepatocellular carcinoma',
-    'cystic fibrosis', 'asymptomatic COVID-19 infection', 'critical COVID-19 infection', 'mild COVID-19 infection',
-    'moderate COVID-19 infection', 'severe COVID-19 infection', 'Enterococcus faecalis infection', 'Lyme disease',
-    'acoustic neuroma', 'acute kidney tubular necrosis', 'adrenal cortex adenoma', 'anxiety disorder', 'arthritis',
-    'benign prostatic hyperplasia (disease)', 'depressive disorder', 'diverticulitis', 'essential hypertension',
-    'gastroesophageal reflux disease', 'hereditary hemochromatosis', 'hiatus hernia (disease)', 'hyperlipidemia (disease)',
-    'irritable bowel syndrome', 'kidney cancer', 'non-alcoholic fatty liver disease', 'obstructive sleep apnea syndrome',
-    'pericardial effusion (disease)', 'prostate cancer', 'pure autonomic failure', 'syndromic dyslipidemia',
-    'type 2 diabetes mellitus', 'ventricular tachycardia', 'GATA2 deficiency with susceptibility to MDS/AML',
-    'colitis (disease)', 'ulcerative colitis (disease)', 'allergic asthma', 'hyperlipidemia', 'hypertensive disorder',
-    'atypical chronic myeloid leukemia', 'chronic obstructive pulmonary disease', 'lung cancer', 'measles', 'mumps infectious disease',
-    'tongue cancer', 'Warthin tumor', 'breast cancer', 'oncocytic adenoma', 'cancer', 'Crohn disease', 'cervical cancer',
-    'glaucoma (disease)', 'clear cell renal carcinoma', 'renal pelvis papillary urothelial carcinoma', 'Alzheimer disease',
-    'cognitive impairment with or without cerebellar ataxia', 'glioblastoma (disease)', 'HIV infectious disease',
-    'benign prostatic hyperplasia', 'pericardial effusion', 'type 1 diabetes mellitus', 'plasma cell myeloma', 'end stage renal failure',
-    'hemolytic-uremic syndrome', 'orofaciodigital syndrome VIII', 'asymptomatic dengue', 'multiple sclerosis', 'lupus erythematosus',
-    'melanoma (disease)', 'renal cell carcinoma (disease)', 'colorectal cancer', 'lung adenocarcinoma', 'intracranial hypertension',
-    'atopic eczema', 'psoriasis', 'pulmonary fibrosis', 'osteoarthritis, hip', 'bacterial infectious disease with sepsis',
-    'bronchopneumonia', 'heart failure', 'intestinal obstruction', 'ovarian cancer', 'rheumatoid arthritis', 'tongue squamous cell carcinoma',
-    'cataract (disease)', 'testicular cancer'
-  ]
-}, {
-  name: 'Species',
-  labels: ['Homo sapiens', 'Mus musculus']
-}]
-
+    labelDisplays: {
+      Controlled: [
+        div({ style: { display: 'flex' } }, [
+          icon('lock', { style: { color: styles.access.controlled, marginRight: 5 } }),
+          div(['Controlled'])
+        ])
+      ],
+      Open: [
+        div({ style: { display: 'flex' } }, [
+          icon('unlock', { style: { color: styles.access.open, marginRight: 5 } }),
+          div(['Open'])
+        ])
+      ],
+      Pending: [
+        div({ style: { display: 'flex' } }, [
+          icon('lock', { style: { color: styles.access.pending, marginRight: 5 } }),
+          div(['Pending'])
+        ])
+      ]
+    }
+  }, {
+    name: 'Consortium',
+    labels: _.flow(
+      _.flatMap('project'),
+      _.uniqBy(_.identity),
+      _.sortBy(_.toLower)
+    )(dataCatalog)
+  }, {
+    name: 'Data Modality',
+    labels: _.flow(
+      _.flatMap('dataModality'),
+      _.uniqBy(_.identity),
+      _.sortBy(_.toLower)
+    )(dataCatalog)
+  }, {
+    name: 'Data Type',
+    labels: _.flow(
+      _.flatMap('dataType'),
+      _.uniqBy(_.identity),
+      _.sortBy(_.toLower)
+    )(dataCatalog)
+  }, {
+    name: 'File Type',
+    labels: _.flow(
+      _.flatMap(c => c.files),
+      _.map('dcat:mediaType'),
+      _.uniqBy(_.identity),
+      _.sortBy(_.lowerCase)
+    )(dataCatalog)
+  }, {
+    name: 'Disease',
+    labels: _.flow(
+      _.flatMap(_.getOr([], 'samples.disease')),
+      _.uniqBy(_.identity),
+      _.sortBy(_.lowerCase)
+    )(dataCatalog)
+  }, {
+    name: 'Species',
+    labels: _.flow(
+      _.flatMap(_.getOr([], 'samples.genus')),
+      _.uniqBy(_.identity),
+      _.sortBy(_.lowerCase)
+    )(dataCatalog)
+  }]
+}
 
 const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
   const length = _.size(selectedData).toLocaleString()
@@ -263,7 +252,7 @@ const Browser = () => {
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter('browse & explore'),
     h(SearchAndFilterComponent, {
-      fullList: dataCatalog, sidebarSections,
+      fullList: dataCatalog, sidebarSections: extractCatalogFilters(dataCatalog),
       customSort: sort,
       searchType: 'Datasets'
     }, [makeDataBrowserTableComponent({ sort, setSort, selectedData, toggleSelectedData, setRequestDatasetAccessList, showProjectFilters, setShowProjectFilters })]),
