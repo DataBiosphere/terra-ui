@@ -76,14 +76,12 @@ const withUser = test => async args => {
 
 const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
   await page.evaluate((email, billingProject) => {
-    return window.Ajax().Billing.project(billingProject).addUser(['User'], email)
+    return window.Ajax().Billing.addProjectUser(billingProject, ['User'], email)
   }, email, billingProject)
 
   console.info(`added user to: ${billingProject}`)
 
-  const userList = await page.evaluate(billingProject => {
-    return window.Ajax().Billing.project(billingProject).listUsers()
-  }, billingProject)
+  const userList = await page.evaluate(window.Ajax().Billing.listProjectUsers, billingProject)
 
   const billingUser = _.find({ email }, userList)
 
@@ -92,7 +90,7 @@ const addUserToBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, 
 
 const removeUserFromBilling = _.flow(withSignedInPage, withUserToken)(async ({ page, billingProject, email }) => {
   await page.evaluate((email, billingProject) => {
-    return window.Ajax().Billing.project(billingProject).removeUser(['User'], email)
+    return window.Ajax().Billing.removeProjectUser(billingProject, ['User'], email)
   }, email, billingProject)
 
   console.info(`removed user from: ${billingProject}`)

@@ -320,7 +320,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
   const reloadBillingProjectUsers = _.flow(
     reportErrorAndRethrow('Error loading billing project users list'),
     Utils.withBusyState(setUpdating)
-  )(() => Ajax(signal).Billing.project(billingProject.projectName).listUsers()
+  )(() => Ajax(signal).Billing.listProjectUsers(billingProject.projectName)
     .then(collectUserRoles)
     .then(setProjectUsers)
   )
@@ -328,7 +328,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
   const removeUserFromBillingProject = _.flow(
     reportErrorAndRethrow('Error removing member from billing project'),
     Utils.withBusyState(setUpdating)
-  )(Ajax().Billing.project(billingProject.projectName).removeUser)
+  )(_.partial(Ajax().Billing.removeProjectUser, [billingProject.projectName]))
 
   // Lifecycle
   Utils.useOnMount(() => { reloadBillingProjectUsers() })
@@ -466,7 +466,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
       userLabel: billingRoles.user,
       title: 'Add user to Billing Project',
       footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
-      addFunction: Ajax().Billing.project(billingProject.projectName).addUser,
+      addFunction: _.partial(Ajax().Billing.addProjectUser, [billingProject.projectName]),
       onDismiss: () => setAddingUser(false),
       onSuccess: () => {
         setAddingUser(false)
@@ -477,7 +477,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
       adminLabel: billingRoles.owner,
       userLabel: billingRoles.user,
       user: editingUser,
-      saveFunction: Ajax().Billing.project(billingProject.projectName).changeUserRoles,
+      saveFunction: _.partial(Ajax().Billing.changeUserRoles, [billingProject.projectName]),
       onDismiss: () => setEditingUser(false),
       onSuccess: () => {
         setEditingUser(false)

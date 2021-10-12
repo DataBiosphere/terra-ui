@@ -235,7 +235,7 @@ export const BillingList = ({ queryParams: { selectedName } }) => {
     Utils.withBusyState(setIsLoadingProjects)
   )(async ({ projectName }) => {
     // evaluate first to error if project doesn't exist/user can't access
-    const project = await Ajax(signal).Billing.billingProject(selectedName)
+    const project = await Ajax(signal).Billing.getProject(selectedName)
     const index = _.findIndex({ projectName }, billingProjects)
     setBillingProjects(_.set([index], project))
   })
