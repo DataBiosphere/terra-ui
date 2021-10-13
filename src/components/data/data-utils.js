@@ -719,22 +719,18 @@ export const DeleteEntityColumnModal = ({ workspaceId: { namespace, name }, colu
     onDismiss,
     okButton: h(ButtonPrimary, {
       onClick: deleteColumn,
-      tooltip: Utils.cond(
-        [_.toLower(deleteConfirmation) !== 'delete column', () => 'You must type the confirmation message'],
-        () => 'Delete Column')
+      disabled: _.toLower(deleteConfirmation) !== 'delete column',
+      tooltip: _.toLower(deleteConfirmation) !== 'delete column' ? 'You must type the confirmation message' : undefined
     }, 'Delete column')
   }, [
     div(['Are you sure you want to permanently delete the column ',
       span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, attributeName),
       '?']),
     div({
-      style: {
-        fontWeight: 500,
-        marginTop: '1rem'
-      }
+      style: { fontWeight: 500, marginTop: '1rem' }
     }, 'This cannot be undone.'),
     div({ style: { marginTop: '1rem' } }, [
-      label({ htmlFor: 'delete-column-confirmation' }, ['Please type \'Delete Column\' to continue:']),
+      label({ htmlFor: 'delete-column-confirmation' }, ['Please type "Delete Column" to continue:']),
       h(TextInput, {
         id: 'delete-column-confirmation',
         placeholder: 'Delete Column',
@@ -757,9 +753,7 @@ export const HeaderOptions = ({ field, onSort, isEntityName, beginDelete, childr
     ])
   }, [
     h(Link, { 'aria-label': 'Workflow menu', onClick: e => e.stopPropagation() }, [
-      icon('cardMenuIcon', {
-        size: 16
-      })
+      icon('cardMenuIcon', { size: 16 })
     ])
   ])
 
