@@ -271,7 +271,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
 
   const isRuntimeRunning = () => currentRuntimeDetails?.status === 'Running'
 
-  const canManageSparkConsole = () => !!sparkMode && isRuntimeRunning() && computeConfig.componentGatewayEnabled
+  const shouldDisplaySparkConsoleLink = () => !!sparkMode && currentRuntimeDetails?.runtimeConfig?.componentGatewayEnabled
+
+  const canManageSparkConsole = () => shouldDisplaySparkConsoleLink() && isRuntimeRunning()
 
   const canUpdateNumberOfWorkers = () => !currentRuntimeDetails || isRuntimeRunning()
 
@@ -415,8 +417,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   /**
-   * Transforms the new environment config into the shape of runtime config
-   * returned from leonardo. The cost calculation functions expect that shape,
+   * Transforms the desired environment config into the shape of runtime config
+   * returned from Leonardo. The cost calculation functions expect that shape,
    * so this is necessary to compute the cost for potential new configurations.
    */
   const getPendingRuntimeConfig = () => {
@@ -857,7 +859,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             ])
           ]),
           h(IdContainer, [
-            id => div({ style: { gridColumnEnd: 'span 4', marginTop: '0.5rem' } }, [
+            id => div({ style: { gridColumnEnd: 'span 3', marginTop: '0.5rem' } }, [
               label({ htmlFor: id, style: styles.label }, ['Compute type']),
               div({ style: { marginTop: '0.5rem' } }, [
                 h(Select, {
@@ -878,7 +880,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             ])
           ]),
           // TODO: Is there a more robust way to center Link vertically wrt. the Select component above?
-          span({ style: { paddingTop: '2rem' } }, [
+          shouldDisplaySparkConsoleLink() && span({ style: { paddingTop: '2rem' } }, [
             h(Link, {
               disabled: !canManageSparkConsole(),
               tooltip: !canManageSparkConsole() && 'You must have a running Spark cluster or a master node.',
