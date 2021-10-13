@@ -108,7 +108,6 @@ const SparkInterface = ({ interfaceName, synopsis, namespace, name, onDismiss })
         p([synopsis]),
         div({ style: { display: 'flex', marginTop: '1rem' } }, [
           h(ButtonOutline, {
-            disabled: false,
             href: Nav.getLink('workspace-spark-interface-launch', { namespace, name, application: 'spark', sparkInterface: interfaceName }),
             style: { marginRight: 'auto' },
             onClick: onDismiss,
