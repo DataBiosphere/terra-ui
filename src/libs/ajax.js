@@ -795,11 +795,6 @@ const Workspaces = signal => ({
 
       upsertEntities,
 
-      entitiesOfType: async type => {
-        const res = await fetchRawls(`${root}/entities/${type}`, _.merge(authOpts(), { signal }))
-        return res.json()
-      },
-
       paginatedEntitiesOfType: async (type, parameters) => {
         const res = await fetchRawls(`${root}/entityQuery/${type}?${qs.stringify(parameters)}`, _.merge(authOpts(), { signal }))
         return res.json()
