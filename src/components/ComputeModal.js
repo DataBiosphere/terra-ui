@@ -597,12 +597,12 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         setCustomEnvImage(!foundImage ? imageUrl : '')
         setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
 
-        const isDataproc = (sparkMode, runtimeConfig) => !sparkMode && !runtimeConfig?.diskSize
         const runtimeConfig = currentRuntimeDetails?.runtimeConfig
         const gpuConfig = runtimeConfig?.gpuConfig
         const newSparkMode = runtimeConfig?.cloudService === cloudServices.DATAPROC ?
           (runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster') :
           false
+        const isDataproc = !sparkMode && !runtimeConfig?.diskSize
 
         setSparkMode(newSparkMode)
         setComputeConfig({
