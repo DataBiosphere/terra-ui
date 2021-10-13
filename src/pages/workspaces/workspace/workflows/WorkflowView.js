@@ -899,8 +899,8 @@ const WorkflowView = _.flow(
       div({ style: styles.messageContainer }, [
         saving && miniMessage('Saving...'),
         saved && !saving && !modified && miniMessage('Saved!'),
-        modified && h(ButtonPrimary, { disabled: saving || !this.canSave(), onClick: () => this.save() }, 'Save'),
-        modified && h(ButtonSecondary, { style: { marginLeft: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
+        modified && h(ButtonSecondary, { style: { marginRight: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel'),
+        modified && h(ButtonPrimary, { disabled: saving || !this.canSave(), onClick: () => this.save() }, 'Save')
       ]),
       exporting && h(ExportWorkflowModal, {
         thisWorkspace: workspace, methodConfig: savedConfig,
