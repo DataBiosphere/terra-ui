@@ -450,7 +450,7 @@ const WorkspaceData = _.flow(
   const getRunningImportJobs = async () => {
     try {
       const runningJobs = await Ajax(signal).Workspaces.workspace(namespace, name).listImportJobs(true)
-      const currentJobIds = _.map( 'jobId', asyncImportJobStore.get())
+      const currentJobIds = _.map('jobId', asyncImportJobStore.get())
       _.forEach(job => {
         const jobStatus = _.lowerCase(job.status)
         if (!_.includes(jobStatus, ['success', 'error', 'done']) && _.indexOf(job.jobId, currentJobIds) === -1) {
