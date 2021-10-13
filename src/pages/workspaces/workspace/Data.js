@@ -453,7 +453,7 @@ const WorkspaceData = _.flow(
       const currentJobIds = _.map('jobId', asyncImportJobStore.get())
       _.forEach(job => {
         const jobStatus = _.lowerCase(job.status)
-        if (!_.includes(jobStatus, ['success', 'error', 'done']) && _.indexOf(job.jobId, currentJobIds) === -1) {
+        if (!_.includes(jobStatus, ['success', 'error', 'done']) && !_.includes(job.jobId, currentJobIds)) {
           asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId: job.jobId }))
         }
       }, runningJobs)
