@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, CromwellVersionLink, IdContainer } from 'src/components/common'
+import { ButtonPrimary, CromwellVersionLink, IdContainer, Link } from 'src/components/common'
 import { warningBoxStyle } from 'src/components/data/data-utils'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedTextArea } from 'src/components/input'
@@ -81,7 +81,7 @@ const LaunchAnalysisModal = ({
   const { location, locationType } = bucketLocation
   // us-central1 is always used for the location of the lifesciences api metadata.
   // This is separate from the location that the VMs will run in, which is what we're setting here with computeRegion.
-  const { flag, regionDescription, computeRegion } = regionInfo(location, locationType)
+  const { flag, regionDescription } = regionInfo(location, locationType)
 
   const onlyConstantInputs = _.every(i => !i || Utils.maybeParseJSON(i) !== undefined, config.inputs)
   const warnDuplicateAnalyses = onlyConstantInputs && entityCount > 1
@@ -103,7 +103,7 @@ const LaunchAnalysisModal = ({
   }, [
     div({ style: { margin: '1rem 0 1.5rem' } }, ['This analysis will be run by ', h(CromwellVersionLink), '.']),
     div(['Output files will be saved as workspace data in:']),
-    div({ style: { margin: '1rem 0 1.5rem' } }, [
+    div({ style: { margin: '0.5rem 0 1.5rem' } }, [
       location ? h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [flag]),
         span({ style: { marginRight: '0.5rem' } }, [regionDescription]),
         h(InfoBox, [
@@ -112,19 +112,26 @@ const LaunchAnalysisModal = ({
           p(['Note that metadata about this run will be stored in the US.'])
         ])]) : 'Loading...'
     ]),
-    div(['Compute for this workflow will occur ', span({ style: { fontWeight: 'bold' } }, 'by default '), 'in the region:']),
-    div({ style: { margin: '1rem 0 1.5rem' } }, [
-      location ?
-        h(Fragment, [
-          span({ style: { marginRight: '0.5rem' } }, [flag]),
-          h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [computeRegion])])
-        ]) :
-        'Loading...'
-    ]),
-    div({ style: { margin: '1rem 0' } }, ['Be sure to use compute in the same region as your data. ',
-      span({ style: { fontStyle: 'italic' } }, 'Running compute in regions other than the source data or bucket region can incur network egress charges. ')]),
-    div(['The listed default workflow compute locations can be overriden in the workflow WDL or with explicit zone inputs to the workflow. ',
-      span({ style: { textDecoration: 'underline' } }, 'Please check the workflow, your inputs, and the documentation before proceeding.')]),
+    div(['Running workflows will generate cloud charges. ',
+      h(InfoBox, [
+        p(['If you run a large workflow or a large number of small workflows, you may generate significant cloud costs ',
+          'for compute, disks, and network egress charges. When your workflow stages complete, the intermediate/output results ',
+          'will generate storage costs.'])
+      ])]),
+    div([h(Link, {
+      style: { verticalAlign: 'top' },
+      href: 'https://support.terra.bio/hc/en-us/articles/360037862771', ...Utils.newTabLinkProps
+    }, [
+      'How much does my workflow cost?',
+      icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+    ])]),
+    div([h(Link, {
+      style: { verticalAlign: 'top', marginTop: '0.5rem' },
+      href: 'https://support.terra.bio/hc/en-us/articles/360057589931', ...Utils.newTabLinkProps
+    }, [
+      'Set up budget alert',
+      icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+    ])]),
     h(IdContainer, [id => div({ style: { margin: '1rem 0' } }, [
       label({ htmlFor: id, style: { display: 'block', margin: '1rem 0' } }, ['Describe your submission (optional):']),
       ValidatedTextArea({
