@@ -97,7 +97,6 @@ const SparkInterface = ({ interfaceName, synopsis, namespace, name, onDismiss })
   const interfaceDisplayName = Utils.switchCase(interfaceName,
     ['yarn', () => 'YARN Resource Manager'],
     ['apphistory', () => 'YARN Application Timeline'],
-    ['hdfs', () => 'HDFS NameNode'],
     ['sparkhistory', () => 'Spark History Server'],
     ['jobhistory', () => 'MapReduce History Server']
   )
