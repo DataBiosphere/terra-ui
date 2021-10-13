@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h, input, label } from 'react-hyperscript-helpers'
 import { IdContainer } from 'src/components/common'
 import {
-  cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, monthlyStoragePrice, storagePrice, zonesToGpus
+  cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, regionToDiskPrice, zonesToGpus
 } from 'src/data/machines'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
@@ -34,7 +34,7 @@ export const getDefaultMachineType = isDataproc => isDataproc ? defaultDataprocM
 
 export const normalizeRuntimeConfig = ({
   cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers,
-  numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, bootDiskSize
+  numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, bootDiskSize, computeRegion
 }) => {
   const isDataproc = cloudService === cloudServices.DATAPROC
 
@@ -49,7 +49,8 @@ export const normalizeRuntimeConfig = ({
     // One caveat with using DEFAULT_BOOT_DISK_SIZE here is this over-estimates old GCE runtimes without PD by 1 cent
     // because those runtimes do not have a separate boot disk. But those old GCE runtimes are more than 1 year old if they exist.
     // Hence, we're okay with this caveat.
-    bootDiskSize: bootDiskSize || defaultGceBootDiskSize
+    bootDiskSize: bootDiskSize || defaultGceBootDiskSize,
+    computeRegion: computeRegion || defaultComputeRegion
   }
 }
 
@@ -73,21 +74,21 @@ const dataprocCost = (machineType, numInstances) => {
 
 export const runtimeConfigBaseCost = config => {
   const {
-    cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize
+    cloudService, masterMachineType, masterDiskSize, numberOfWorkers, workerMachineType, workerDiskSize, bootDiskSize, computeRegion
   } = normalizeRuntimeConfig(config)
 
   const isDataproc = cloudService === cloudServices.DATAPROC
 
   return _.sum([
-    (masterDiskSize + numberOfWorkers * workerDiskSize) * storagePrice,
+    (masterDiskSize + numberOfWorkers * workerDiskSize) * getStoragePriceForRegion(computeRegion),
     isDataproc ?
       (dataprocCost(masterMachineType, 1) + dataprocCost(workerMachineType, numberOfWorkers)) :
-      (bootDiskSize * storagePrice)
+      (bootDiskSize * getStoragePriceForRegion(computeRegion))
   ])
 }
 
 export const runtimeConfigCost = config => {
-  const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize } = normalizeRuntimeConfig(
+  const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, computeRegion } = normalizeRuntimeConfig(
     config)
   const { price: masterPrice } = findMachineType(masterMachineType)
   const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
@@ -99,7 +100,7 @@ export const runtimeConfigCost = config => {
     masterPrice,
     numberOfWorkers * workerPrice,
     numberOfPreemptibleWorkers * preemptiblePrice,
-    numberOfPreemptibleWorkers * workerDiskSize * storagePrice,
+    numberOfPreemptibleWorkers * workerDiskSize * getStoragePriceForRegion(computeRegion),
     cloudService === cloudServices.DATAPROC && dataprocCost(workerMachineType, numberOfPreemptibleWorkers),
     gpuEnabled && gpuCost(gpuConfig.gpuType, gpuConfig.numOfGpus),
     ephemeralExternalIpAddressCost({ numStandardVms: numberOfStandardVms, numPreemptibleVms: numberOfPreemptibleWorkers }),
@@ -107,11 +108,19 @@ export const runtimeConfigCost = config => {
   ])
 }
 
-const generateDiskCostFunction = price => ({ size, status }) => {
+const getStoragePriceForRegion = computeRegion => {
+  // per GB hour using 730 hours per month from https://cloud.google.com/compute/pricing
+  return _.flow(_.find({ name: computeRegion }), _.get(['monthlyDiskPrice']))(regionToDiskPrice) / 730
+}
+
+export const getPersistentDiskCost = ({ size, status }, computeRegion) => {
+  const price = getStoragePriceForRegion(computeRegion)
   return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : size * price
 }
-export const persistentDiskCost = generateDiskCostFunction(storagePrice)
-export const persistentDiskCostMonthly = generateDiskCostFunction(monthlyStoragePrice)
+export const getPersistentDiskCostMonthly = ({ size, status }, computeRegion) => {
+  const price = _.flow(_.find({ name: computeRegion }), _.get(['monthlyDiskPrice']))(regionToDiskPrice)
+  return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : size * price
+}
 
 const ephemeralExternalIpAddressCost = ({ numStandardVms, numPreemptibleVms }) => {
   // Google categorizes a VM as 'standard' if it is not 'pre-emptible'.
@@ -171,10 +180,10 @@ export const getGalaxyDiskCost = dataDiskSize => {
   const defaultNodepoolBootDiskSize = 100 // GB
   const appNodepoolBootDiskSize = 100 // GB
 
-  return persistentDiskCost({
+  return getPersistentDiskCost({
     status: 'Running',
     size: dataDiskSize + metadataDiskSize + defaultNodepoolBootDiskSize + appNodepoolBootDiskSize
-  })
+  }, defaultComputeRegion)
 }
 
 export const trimRuntimesOldestFirst = _.flow(

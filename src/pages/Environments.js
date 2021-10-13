@@ -16,8 +16,8 @@ import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import {
-  getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, isComputePausable,
-  isResourceDeletable, persistentDiskCostMonthly, runtimeCost
+  getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, getPersistentDiskCostMonthly, isComputePausable,
+  isResourceDeletable, runtimeCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -181,7 +181,7 @@ const Environments = () => {
     status: 'status',
     created: 'auditInfo.createdDate',
     accessed: 'auditInfo.dateAccessed',
-    cost: persistentDiskCostMonthly,
+    cost: getPersistentDiskCostMonthly,
     size: 'size'
   }[diskSort.field]], [diskSort.direction], disks)
 
@@ -198,7 +198,7 @@ const Environments = () => {
   const totalRuntimeCost = _.sum(_.map(runtimeCost, runtimes))
   const totalAppCost = _.sum(_.map(getGalaxyComputeCost, apps))
   const totalCost = totalRuntimeCost + totalAppCost
-  const totalDiskCost = _.sum(_.map(persistentDiskCostMonthly, disks))
+  const totalDiskCost = _.sum(_.map(getPersistentDiskCostMonthly, disks))
 
   const runtimesByProject = _.groupBy('googleProject', runtimes)
   const disksByProject = _.groupBy('googleProject', disks)
@@ -505,7 +505,7 @@ const Environments = () => {
               return h(Sortable, { sort: diskSort, field: 'cost', onSort: setDiskSort }, [`Cost / month (${Utils.formatUSD(totalDiskCost)} total)`])
             },
             cellRenderer: ({ rowIndex }) => {
-              return Utils.formatUSD(persistentDiskCostMonthly(filteredDisks[rowIndex]))
+              return Utils.formatUSD(getPersistentDiskCostMonthly(filteredDisks[rowIndex], 'US-CENTRAL1'))
             }
           },
           {

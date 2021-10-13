@@ -19,6 +19,7 @@ import { reportError, withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import {
+  defaultComputeRegion,
   getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
   getCurrentApp,
@@ -26,8 +27,8 @@ import {
   getGalaxyCostTextChildren,
   getIsAppBusy,
   getIsRuntimeBusy,
+  getPersistentDiskCost,
   isCurrentGalaxyDiskDetaching,
-  persistentDiskCost,
   runtimeCost
 } from 'src/libs/runtime-utils'
 import { cookieReadyStore } from 'src/libs/state'
@@ -246,7 +247,7 @@ export const CloudEnvironmentModal = ({
     [toolLabel === tools.galaxy.label, () => getGalaxyCostTextChildren(currentApp, galaxyDataDisks)],
     [getRuntimeForTool(toolLabel), () => {
       const runtime = getRuntimeForTool(toolLabel)
-      const totalCost = runtimeCost(runtime) + _.sum(_.map(persistentDiskCost, persistentDisks))
+      const totalCost = runtimeCost(runtime) + _.sum(_.map(getPersistentDiskCost(defaultComputeRegion), persistentDisks))
       return span([`${getComputeStatusForDisplay(runtime.status)} (${Utils.formatUSD(totalCost)} / hr)`])
     }],
     [Utils.DEFAULT, () => span(['None'])]

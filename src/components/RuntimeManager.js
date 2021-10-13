@@ -21,11 +21,12 @@ import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
 import {
   appIsSettingUp,
+  defaultComputeRegion,
   getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
   getCurrentApp,
   getCurrentRuntime,
-  persistentDiskCost,
+  getPersistentDiskCost,
   runtimeCost,
   trimRuntimesOldestFirst
 } from 'src/libs/runtime-utils'
@@ -333,7 +334,7 @@ export default class RuntimeManager extends PureComponent {
           })
       }
     }
-    const totalCost = _.sum(_.map(runtimeCost, runtimes)) + _.sum(_.map(persistentDiskCost, persistentDisks))
+    const totalCost = _.sum(_.map(runtimeCost, runtimes)) + _.sum(_.map(getPersistentDiskCost(defaultComputeRegion), persistentDisks))
     const activeRuntimes = this.getActiveRuntimesOldestFirst()
     const activeDisks = _.remove({ status: 'Deleting' }, persistentDisks)
     const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring } = _.countBy(getConvertedRuntimeStatus, activeRuntimes)

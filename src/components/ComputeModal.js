@@ -23,8 +23,8 @@ import { versionTag } from 'src/libs/logos'
 import {
   defaultComputeRegion, defaultComputeZone, defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize, defaultGceMachineType,
   defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultLocationType, defaultNumDataprocPreemptibleWorkers,
-  defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType, getValidGpuTypes,
-  persistentDiskCostMonthly, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
+  defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType, getPersistentDiskCostMonthly, getValidGpuTypes,
+  RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -496,7 +496,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       existingRuntime_cpus: existingRuntime && existingRuntimeCpus,
       existingRuntime_memory: existingRuntime && existingRuntimeMemory,
       ..._.mapKeys(key => `desiredPersistentDisk_${key}`, desiredPersistentDisk),
-      desiredPersistentDisk_costPerMonth: (desiredPersistentDisk && persistentDiskCostMonthly(getPendingDisk())),
+      desiredPersistentDisk_costPerMonth: (desiredPersistentDisk && getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion)),
       ..._.mapKeys(key => `existingPersistentDisk_${key}`, existingPersistentDisk),
       isDefaultConfig: !!simplifiedForm
     })
@@ -958,7 +958,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         { label: 'Running cloud compute cost', cost: Utils.formatUSD(runtimeConfigCost(getPendingRuntimeConfig())), unitLabel: 'per hr' },
         { label: 'Paused cloud compute cost', cost: Utils.formatUSD(runtimeConfigBaseCost(getPendingRuntimeConfig())), unitLabel: 'per hr' },
         {
-          label: 'Persistent disk cost', cost: isPersistentDisk ? Utils.formatUSD(persistentDiskCostMonthly(getPendingDisk())) : 'N/A',
+          label: 'Persistent disk cost', cost: isPersistentDisk ? Utils.formatUSD(getPersistentDiskCostMonthly(getPendingDisk(), computeConfig.computeRegion)) : 'N/A',
           unitLabel: isPersistentDisk ? 'per month' : ''
         }
       ])
@@ -1030,7 +1030,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         ]),
         p({ style: { marginBottom: 0 } }, [
           'You will continue to incur persistent disk cost at ',
-          span({ style: { fontWeight: 600 } }, [Utils.formatUSD(persistentDiskCostMonthly(currentPersistentDiskDetails)), ' per month.'])
+          span({ style: { fontWeight: 600 } }, [Utils.formatUSD(getPersistentDiskCostMonthly(currentPersistentDiskDetails, computeConfig.computeRegion)), ' per month.'])
         ])
       ]),
       h(RadioBlock, {

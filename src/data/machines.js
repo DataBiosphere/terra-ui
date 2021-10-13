@@ -127,8 +127,6 @@ export const zonesToGpus = [
   { name: 'US-WEST4-A', validTypes: ['nvidia-tesla-t4'] },
   { name: 'US-WEST4-B', validTypes: ['nvidia-tesla-t4'] },
   { name: 'US-WEST4-C', validTypes: [] }
-
-
 ]
 
 export const cloudServices = {
@@ -136,13 +134,38 @@ export const cloudServices = {
   DATAPROC: 'DATAPROC'
 }
 
-export const monthlyStoragePrice = 0.04 // from https://cloud.google.com/compute/pricing
-export const storagePrice = monthlyStoragePrice / 730 // per GB hour using 730 hours per month from https://cloud.google.com/compute/pricing
 export const dataprocCpuPrice = 0.01 // dataproc costs $0.01 per cpu per hour
 export const ephemeralExternalIpAddressPrice = { // per hour in dollars for Iowa (us-central1) region per https://cloud.google.com/vpc/network-pricing#ipaddress
   standard: 0.004,
   preemptible: 0.002
 }
+
+export const regionToDiskPrice = [
+  { name: 'ASIA-EAST1', monthlyDiskPrice: 0.04 },
+  { name: 'ASIA-EAST2', monthlyDiskPrice: 0.05 },
+  { name: 'ASIA-NORTHEAST1', monthlyDiskPrice: 0.052 },
+  { name: 'ASIA-NORTHEAST2', monthlyDiskPrice: 0.052 },
+  { name: 'ASIA-NORTHEAST3', monthlyDiskPrice: 0.052 },
+  { name: 'ASIA-SOUTH1', monthlyDiskPrice: 0.048 },
+  { name: 'ASIA-SOUTHEAST1', monthlyDiskPrice: 0.044 },
+  { name: 'ASIA-SOUTHEAST2', monthlyDiskPrice: 0.052 },
+  { name: 'AUSTRALIA-SOUTHEAST1', monthlyDiskPrice: 0.054 },
+  { name: 'EUROPE-NORTH1', monthlyDiskPrice: 0.044 },
+  { name: 'EUROPE-WEST1', monthlyDiskPrice: 0.04 },
+  { name: 'EUROPE-WEST2', monthlyDiskPrice: 0.048 },
+  { name: 'EUROPE-WEST3', monthlyDiskPrice: 0.048 },
+  { name: 'EUROPE-WEST4', monthlyDiskPrice: 0.044 },
+  { name: 'EUROPE-WEST6', monthlyDiskPrice: 0.052 },
+  { name: 'NORTHAMERICA-NORTHEAST1', monthlyDiskPrice: 0.044 },
+  { name: 'SOUTHAMERICA-EAST1', monthlyDiskPrice: 0.06 },
+  { name: 'US-CENTRAL1', monthlyDiskPrice: 0.04 },
+  { name: 'US-EAST1', monthlyDiskPrice: 0.04 },
+  { name: 'US-EAST4', monthlyDiskPrice: 0.044 },
+  { name: 'US-WEST1', monthlyDiskPrice: 0.04 },
+  { name: 'US-WEST2', monthlyDiskPrice: 0.048 },
+  { name: 'US-WEST3', monthlyDiskPrice: 0.048 },
+  { name: 'US-WEST4', monthlyDiskPrice: 0.044 }
+]
 
 export const version = '6' // updated jupyter-iframe-extension.js
 
