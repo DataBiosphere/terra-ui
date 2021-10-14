@@ -654,9 +654,16 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const renderActionButton = () => {
     const { runtime: existingRuntime, hasGpu } = getExistingEnvironmentConfig()
     const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
-    const commonButtonProps = Utils.cond(
-      [hasGpu && viewMode !== 'deleteEnvironmentOptions', () => ({ disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' })],
-      [computeConfig.gpuEnabled && getValidGpusForZone(computeConfig.computeZone).length === 0 && viewMode !== 'deleteEnvironmentOptions', () => ({ disabled: true, tooltip: 'GPUs not available in this location.' })],
+    const commonButtonProps = Utils.cond([
+      hasGpu && viewMode !== 'deleteEnvironmentOptions',
+      () => ({ disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' })
+    ], [
+      computeConfig.gpuEnabled && getValidGpusForZone(computeConfig.computeZone).length === 0 && viewMode !== 'deleteEnvironmentOptions',
+      () => ({ disabled: true, tooltip: 'GPUs not available in this location.' })
+    ], [
+      currentPersistentDiskDetails && currentPersistentDiskDetails.zone.toUpperCase() !== computeConfig.computeZone && viewMode !== 'deleteEnvironmentOptions',
+      () => ({ disabled: true, tooltip: 'Cannot create environment in location differing from existing persistent disk location.' })
+    ],
       () => ({ disabled: !hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) })
     )
     const canShowWarning = viewMode === undefined
