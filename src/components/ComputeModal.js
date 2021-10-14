@@ -23,8 +23,8 @@ import { versionTag } from 'src/libs/logos'
 import {
   defaultComputeRegion, defaultComputeZone, defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize, defaultGceMachineType,
   defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultLocationType, defaultNumDataprocPreemptibleWorkers,
-  defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType, getPersistentDiskCostMonthly, getValidGpuTypes,
-  getValidGpusForZone, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
+  defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType, getPersistentDiskCostMonthly, getValidGpusForZone, getValidGpuTypes,
+  RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -655,8 +655,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const { runtime: existingRuntime, hasGpu } = getExistingEnvironmentConfig()
     const { runtime: desiredRuntime } = getDesiredEnvironmentConfig()
     const commonButtonProps = Utils.cond(
-      [ hasGpu && viewMode !== 'deleteEnvironmentOptions', () => ({ disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' }) ],
-      [ computeConfig.gpuEnabled && getValidGpusForZone(computeConfig.computeZone).length === 0 && viewMode !== 'deleteEnvironmentOptions', () => ({ disabled: true, tooltip: 'GPUs not available in this location.' })],
+      [hasGpu && viewMode !== 'deleteEnvironmentOptions', () => ({ disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' })],
+      [computeConfig.gpuEnabled && getValidGpusForZone(computeConfig.computeZone).length === 0 && viewMode !== 'deleteEnvironmentOptions', () => ({ disabled: true, tooltip: 'GPUs not available in this location.' })],
       () => ({ disabled: !hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) })
     )
     const canShowWarning = viewMode === undefined
