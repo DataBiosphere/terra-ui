@@ -91,8 +91,11 @@ const filterConfigIO = ({ inputs, outputs }) => {
   )
 }
 
-const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions, readOnly }) => {
+const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions, availableSnapshots, readOnly }) => {
   const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' })
+
+  // will only match if the current root entity type comes from a snapshot
+  const isSnapshot = _.some({ name: config.dataReferenceName }, availableSnapshots)
 
   const taskSort = o => ioTask(o).toLowerCase()
   const varSort = o => ioVariable(o).toLowerCase()
@@ -139,7 +142,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
       {
         headerRenderer: () => h(Fragment, [
           div({ style: { fontWeight: 'bold' } }, ['Attribute']),
-          !readOnly && which === 'outputs' && h(Fragment, [
+          !readOnly && !isSnapshot && which === 'outputs' && h(Fragment, [
             div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
             h(Link, { onClick: onSetDefaults }, ['Use defaults'])
           ])
@@ -974,7 +977,7 @@ const WorkflowView = _.flow(
     const { workspace } = this.props
     const {
       modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, filter,
-      selectedSnapshotEntityMetadata
+      selectedSnapshotEntityMetadata, availableSnapshots
     } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
 
@@ -1051,7 +1054,8 @@ const WorkflowView = _.flow(
               oldState
             )
           }),
-          suggestions
+          suggestions,
+          availableSnapshots
         })
       ])
     ])])
