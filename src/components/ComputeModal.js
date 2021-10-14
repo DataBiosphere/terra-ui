@@ -124,7 +124,7 @@ const SparkInterface = ({ interfaceName, synopsis, namespace, name, onDismiss })
               style: { marginRight: 'auto' },
               onClick: onDismiss,
               ...Utils.newTabLinkProps
-            }, ['Launch'])
+            }, ['Launch', icon('pop-out', { size: 12, style: { marginLeft: '0.5rem' } })])
           ])
         ])
       ])
