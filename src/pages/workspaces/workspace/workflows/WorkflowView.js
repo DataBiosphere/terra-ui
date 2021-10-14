@@ -95,7 +95,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
   const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' })
 
   // will only match if the current root entity type comes from a snapshot
-  const isSnapshot = !!_.find({ name: config.dataReferenceName }, availableSnapshots)
+  const isSnapshot = _.some({ name: config.dataReferenceName }, availableSnapshots)
 
   const taskSort = o => ioTask(o).toLowerCase()
   const varSort = o => ioVariable(o).toLowerCase()
