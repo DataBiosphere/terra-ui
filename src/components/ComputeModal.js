@@ -135,6 +135,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   const [customEnvImage, setCustomEnvImage] = useState('')
   const [jupyterUserScriptUri, setJupyterUserScriptUri] = useState('')
   const [sparkMode, setSparkMode] = useState(false)
+  const [bucketLocation, setBucketLocation] = useState(defaultLocation)
   const [computeConfig, setComputeConfig] = useState({
     selectedPersistentDiskSize: defaultGcePersistentDiskSize,
     masterMachineType: defaultGceMachineType,
@@ -529,6 +530,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     updateComputeConfig('computeZone', computeZone)
     updateComputeConfig('computeRegion', computeRegion)
   }
+
+  const isDifferentLocation = () => {
+    return bucketLocation === 'US' ? computeConfig.computeRegion !== 'US-CENTRAL1' : bucketLocation !== computeConfig.computeZone
+  }
   // Helper functions -- end
 
   // Lifecycle
@@ -588,6 +593,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         setCurrentPersistentDiskDetails(currentPersistentDiskDetails)
         setCustomEnvImage(!foundImage ? imageUrl : '')
         setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
+        setBucketLocation(location)
 
         const { computeZone, computeRegion } = regionInfo(location || defaultLocation, locationType || defaultLocationType)
         const isDataproc = (sparkMode, runtimeConfig) => !sparkMode && !runtimeConfig?.diskSize
@@ -651,15 +657,17 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const commonButtonProps = hasGpu && viewMode !== 'deleteEnvironmentOptions' ?
       { disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' } :
       { disabled: !hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) }
-    const canShowCustomImageWarning = viewMode === undefined
+    const canShowWarning = viewMode === undefined
     const canShowEnvironmentWarning = _.includes(viewMode, [undefined, 'customImageWarning'])
-
     return Utils.cond([
-        canShowCustomImageWarning && isCustomImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage,
+        canShowWarning && isCustomImage && existingRuntime?.toolDockerImage !== desiredRuntime?.toolDockerImage,
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('customImageWarning') }, ['Next'])
       ], [
         canShowEnvironmentWarning && (willDeleteBuiltinDisk() || willDeletePersistentDisk() || willRequireDowntime() || willDetachPersistentDisk()),
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('environmentWarning') }, ['Next'])
+      ], [
+        canShowWarning && isDifferentLocation(),
+        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next'])
       ],
       () => h(ButtonPrimary, {
         ...commonButtonProps,
@@ -984,6 +992,30 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         ]),
         h(Link, { href: safeImageDocumentation, ...Utils.newTabLinkProps }, ['Learn more about creating safe and secure custom Docker images.']),
         p(['If you\'re confident that your image is safe, you may continue using it. Otherwise, go back to select another image.'])
+      ]),
+      div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+        renderActionButton()
+      ])
+    ])
+  }
+
+  const renderDifferentLocationWarning = () => {
+    return div({ style: { ...styles.drawerContent, ...styles.warningView } }, [
+      h(TitleBar, {
+        id: titleId,
+        hideCloseButton: isAnalysisMode,
+        style: styles.titleBar,
+        title: h(WarningTitle, ['Compute location differs from workspace bucket location']),
+        onDismiss,
+        onPrevious: () => setViewMode(undefined)
+      }),
+      div({ style: { lineHeight: 1.5 } }, [
+        p([
+          'This cloud environment will be created in the region ', computeConfig.computeRegion, '. ',
+          'Copying data from your workspace bucket in ', bucketLocation, ' may incur network egress charges.'
+        ]),
+        h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, ['For more information please read the documentation.']),
+        p(['If you want your VM in ', computeConfig.computeRegion, ' select UPDATE. Go back to select another location.'])
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
         renderActionButton()
@@ -1383,6 +1415,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ['aboutPersistentDisk', renderAboutPersistentDisk],
       ['customImageWarning', renderCustomImageWarning],
       ['environmentWarning', renderEnvironmentWarning],
+      ['differentLocationWarning', renderDifferentLocationWarning],
       ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
       [Utils.DEFAULT, renderMainForm]
     ),
