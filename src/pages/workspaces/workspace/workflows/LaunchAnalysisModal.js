@@ -132,15 +132,15 @@ const LaunchAnalysisModal = ({
       'Set up budget alert',
       icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
     ])]),
-    h(IdContainer, [id => div({ style: { margin: '1rem 0' } }, [
-      label({ htmlFor: id, style: { display: 'block', margin: '1rem 0 0.5rem' } }, ['Describe your submission (optional):']),
+    h(IdContainer, [id => div({ style: { margin: '1.5rem 0' } }, [
+      label({ htmlFor: id, style: { display: 'block' } }, ['Describe your submission (optional):']),
       ValidatedTextArea({
         inputProps: {
           id,
           value: userComment,
           onChange: v => commentValidation(v, setUserComment, setUserCommentError),
           placeholder: 'Enter comment for the submission',
-          style: { height: 100 }
+          style: { height: 100, marginTop: '0.5rem' }
         },
         error: userCommentError
       })
