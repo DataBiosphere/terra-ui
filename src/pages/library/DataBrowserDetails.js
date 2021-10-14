@@ -30,7 +30,7 @@ const makeContactCard = ({ contactName, institution, email }) => {
   return div({ key: contactName, style: { marginBottom: 30 } }, [
     contactName,
     institution && div({ style: { marginTop: 5 } }, [institution]),
-    email && h(Link, { href: email, style: { marginTop: 5, display: 'block' } }, [email])
+    email && h(Link, { href: `mailto:${email}`, style: { marginTop: 5, display: 'block' } }, [email])
   ])
 }
 

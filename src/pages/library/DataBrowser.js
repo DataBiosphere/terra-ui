@@ -2,8 +2,8 @@ import filesize from 'filesize'
 import _ from 'lodash/fp'
 import qs from 'qs'
 import { useState } from 'react'
-import { div, h, label } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Checkbox, Link, spinnerOverlay } from 'src/components/common'
+import { div, h } from 'react-hyperscript-helpers'
+import { ButtonPrimary, ButtonSecondary, Checkbox, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
@@ -184,13 +184,12 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
               }
             }, _.map(tag => {
               return div({ key: `project-filter-dropdown_${tag}`, style: { height: '3rem' } }, [
-                h(Checkbox, {
+                h(LabeledCheckbox, {
                   style: { marginRight: 10 },
                   'aria-label': tag,
                   checked: _.includes(tag.toLowerCase(), selectedTags),
                   onChange: () => setSelectedTags(_.xor([tag.toLowerCase()]))
-                }),
-                label([tag])
+                }, [tag])
               ])
             }, sections[1].labels))
           ]),
