@@ -42,6 +42,20 @@ const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/3600
 // Distilled from https://github.com/docker/distribution/blob/95daa793b83a21656fe6c13e6d5cf1c3999108c7/reference/regexp.go
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
 
+// Enums -- start
+// const sparkInterfaces = {
+//   yarn: {
+//     label: 'yarn',
+//     displayName: 'YARN Resource Manager',
+//     synopsis: `Some of the Spark cluster components such as Apache Hadoop and Apache Spark
+//          provide web interfaces. These interfaces can be used to manage and monitor cluster
+//          resources and facilities, such as the YARN resource manager, the Hadoop Distributed
+//          File System (HDFS), MapReduce, and Spark.`
+//   }
+// }
+// Enums -- end
+
+// Auxiliary Components -- begin
 const WorkerSelector = ({ value, machineTypeOptions, onChange }) => {
   const { cpu: currentCpu, memory: currentMemory } = findMachineType(value)
   return h(Fragment, [
@@ -93,17 +107,6 @@ const DataprocDiskSelector = ({ value, onChange }) => {
   ])
 }
 
-// const sparkInterfaces = {
-//   yarn: {
-//     label: 'yarn',
-//     displayName: 'YARN Resource Manager',
-//     synopsis: `Some of the Spark cluster components such as Apache Hadoop and Apache Spark
-//          provide web interfaces. These interfaces can be used to manage and monitor cluster
-//          resources and facilities, such as the YARN resource manager, the Hadoop Distributed
-//          File System (HDFS), MapReduce, and Spark.`
-//   }
-// }
-
 const SparkInterface = ({ interfaceName, synopsis, namespace, name, onDismiss }) => {
   const interfaceDisplayName = Utils.switchCase(interfaceName,
     ['yarn', () => 'YARN Resource Manager'],
@@ -130,6 +133,7 @@ const SparkInterface = ({ interfaceName, synopsis, namespace, name, onDismiss })
       ])
     ])
 }
+// Auxiliary Components -- end
 
 const getImageUrl = runtimeDetails => {
   return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)?.imageUrl
