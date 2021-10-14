@@ -10,7 +10,7 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
-export const styles = {
+export const computeStyles = {
   label: { fontWeight: 600, whiteSpace: 'pre' },
   value: { fontWeight: 400, whiteSpace: 'pre' },
   titleBar: { marginBottom: '1rem' },
