@@ -118,22 +118,22 @@ const LaunchAnalysisModal = ({
           'for compute, disks, and network egress charges. When your workflow stages complete, the intermediate/output results ',
           'will generate storage costs.'])
       ])]),
-    div([h(Link, {
+    div({ style: { marginTop: '0.25rem' } }, [h(Link, {
       style: { verticalAlign: 'top' },
       href: 'https://support.terra.bio/hc/en-us/articles/360037862771', ...Utils.newTabLinkProps
     }, [
       'How much does my workflow cost?',
       icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
     ])]),
-    div([h(Link, {
-      style: { verticalAlign: 'top', marginTop: '0.5rem' },
+    div({ style: { marginTop: '0.25rem' } }, [h(Link, {
+      style: { verticalAlign: 'top' },
       href: 'https://support.terra.bio/hc/en-us/articles/360057589931', ...Utils.newTabLinkProps
     }, [
       'Set up budget alert',
       icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
     ])]),
     h(IdContainer, [id => div({ style: { margin: '1rem 0' } }, [
-      label({ htmlFor: id, style: { display: 'block', margin: '1rem 0' } }, ['Describe your submission (optional):']),
+      label({ htmlFor: id, style: { display: 'block', margin: '1rem 0 0.5rem' } }, ['Describe your submission (optional):']),
       ValidatedTextArea({
         inputProps: {
           id,

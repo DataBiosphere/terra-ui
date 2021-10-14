@@ -1014,8 +1014,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           'This cloud environment will be created in the region ', computeConfig.computeRegion, '. ',
           'Copying data from your workspace bucket in ', bucketLocation, ' may incur network egress charges.'
         ]),
-        h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, ['For more information please read the documentation.']),
-        p(['If you want your VM in ', computeConfig.computeRegion, ' select UPDATE. Go back to select another location.'])
+        h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
+          'For more information please read the documentation.',
+          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+        ]),
+        p(['If you want your VM in ', computeConfig.computeRegion, ', continue. Otherwise, go back to select another location.'])
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
         renderActionButton()
