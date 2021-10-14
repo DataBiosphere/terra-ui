@@ -58,8 +58,12 @@ export const findMachineType = name => {
   return _.find({ name }, machineTypes) || { name, cpu: '?', memory: '?', price: NaN, preemptiblePrice: NaN }
 }
 
+export const getValidGpusForZone = (zone) => {
+  return _.flow(_.find({ name: zone }), _.get(['validTypes']))(zonesToGpus)
+}
+
 export const getValidGpuTypes = (numCpus, mem, zone) => {
-  const validGpusForZone = _.flow(_.find({ name: zone }), _.get(['validTypes']))(zonesToGpus)
+  const validGpusForZone = getValidGpusForZone(zone)
   const validGpuTypes = _.filter(({ maxNumCpus, maxMem, type }) => numCpus <= maxNumCpus && mem <= maxMem && validGpusForZone.includes(type), gpuTypes)
   return validGpuTypes || { name: '?', type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
 }
