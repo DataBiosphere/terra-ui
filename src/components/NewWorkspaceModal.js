@@ -160,14 +160,11 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           onChange: ({ value }) => setNamespace(value),
           styles: { option: provided => ({ ...provided, padding: 0 }) },
           options: _.map(({ projectName, invalidBillingAccount }) => ({
-            label: ((label = div({ style: { padding: 10 } }, [projectName])) => {
-              return invalidBillingAccount ?
-                h(TooltipTrigger, {
-                  content: 'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra',
-                  side: 'left'
-                }, [label]) :
-                label
-            })(),
+            label: h(TooltipTrigger, {
+              content: invalidBillingAccount && 'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra',
+              side: 'left'
+            }, [div({ style: { padding: 10 } }, [projectName])]
+            ),
             value: projectName,
             isDisabled: invalidBillingAccount
           }), _.sortBy('projectName', _.uniq(billingProjects)))

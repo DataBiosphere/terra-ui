@@ -29,14 +29,14 @@ const workspaceLastModifiedWidth = 150
 const workspaceExpandIconSize = 20
 const billingAccountIconSize = 16
 
-const billingAccountIcon = {
+const billingAccountIcons = {
   updating: { shape: 'sync', color: colors.warning() },
   done: { shape: 'check', color: colors.accent() },
   error: { shape: 'warning-standard', color: colors.danger() }
 }
 
 const getBillingAccountIcon = status => {
-  const { shape, color } = billingAccountIcon[status]
+  const { shape, color } = billingAccountIcons[status]
   return icon(shape, { size: billingAccountIconSize, color })
 }
 

@@ -454,12 +454,9 @@ const Billing = signal => ({
   },
 
   createProject: async (projectName, billingAccount) => {
-    const res = await fetchRawls('billing/v2', _.mergeAll([
-      authOpts(),
-      jsonBody({ projectName, billingAccount }),
-      { signal, method: 'POST' }
-    ]))
-    return res.json()
+    const res = await fetchRawls('billing/v2',
+      _.mergeAll([authOpts(), jsonBody({ projectName, billingAccount }), { signal, method: 'POST' }]))
+    return res
   },
 
   changeBillingAccount: async ({ billingProjectName, newBillingAccountName }) => {
