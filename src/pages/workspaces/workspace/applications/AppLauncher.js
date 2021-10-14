@@ -4,6 +4,7 @@ import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinnerOverlay } from 'src/components/common'
 import { ComputeModal } from 'src/components/ComputeModal'
+import { tools } from 'src/components/notebook-utils'
 import { appLauncherTabName, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
@@ -23,9 +24,10 @@ const getSparkInterfaceSource = (proxyUrl, sparkInterface) => {
 
 const getApplicationIFrameSource = (proxyUrl, application, sparkInterface) => {
   return Utils.switchCase(application,
-    ['terminal', () => `${proxyUrl}/terminals/1`],
-    ['spark', () => getSparkInterfaceSource(proxyUrl, sparkInterface)],
-    [Utils.DEFAULT, () => proxyUrl] // RStudio
+    [tools.jupyterTerminal.label, () => `${proxyUrl}/terminals/1`],
+    [tools.spark.label, () => getSparkInterfaceSource(proxyUrl, sparkInterface)],
+    [tools.RStudio.label, () => proxyUrl],
+    [Utils.DEFAULT, () => console.error(`Expected ${application} to be one of terminal, spark or ${tools.RStudio.label}.`)]
   )
 }
 
@@ -93,7 +95,7 @@ const ApplicationLauncher = _.flow(
           src: getApplicationIFrameSource(runtime.proxyUrl, application, sparkInterface),
           style: {
             border: 'none', flex: 1,
-            ...(application === 'terminal' ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
+            ...(application === tools.jupyterTerminal.label ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
           },
           title: `Interactive ${application} iframe`
         })

@@ -71,6 +71,8 @@ export const analysisNameInput = ({ inputProps, ...props }) => h(ValidatedInput,
 export const tools = {
   RStudio: { label: 'RStudio', ext: 'Rmd', imageIds: ['RStudio'], defaultImageId: 'RStudio' },
   Jupyter: { label: 'Jupyter', ext: 'ipynb', imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk' },
+  jupyterTerminal: { label: 'terminal' },
+  spark: { label: 'spark' },
   galaxy: { label: 'galaxy' }
 }
 
