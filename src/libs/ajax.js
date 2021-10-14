@@ -501,7 +501,7 @@ const Billing = signal => ({
   },
 
   changeUserRoles: async (projectName, email, oldRoles, newRoles) => {
-    const billing = Billing(signal)
+    const billing = Billing()
     if (!_.isEqual(oldRoles, newRoles)) {
       await billing.addProjectUser(projectName, _.difference(newRoles, oldRoles), email)
       return billing.removeProjectUser(projectName, _.difference(oldRoles, newRoles), email)

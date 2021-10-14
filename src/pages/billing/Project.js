@@ -174,9 +174,11 @@ const BillingAccountSummaryPanel = ({ counts: { done, error, updating } }) => {
 }
 
 const groupByBillingAccountStatus = (billingProject, workspaces) => {
-  const group = workspace => billingProject.billingAccount === workspace.billingAccount ? 'done' :
-    !!workspace.billingAccountErrorMessage ? 'error' :
-      'updating'
+  const group = workspace => Utils.cond(
+    [billingProject.billingAccount === workspace.billingAccount, () => 'done'],
+    [!!workspace.billingAccountErrorMessage, () => 'error'],
+    [Utils.DEFAULT, () => 'updating']
+  )
 
   // Return Sets to reduce the time complexity of searching for the status of any workspace from
   // O(N * W) to O(N * 1), where
