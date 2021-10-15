@@ -169,8 +169,8 @@ const getFirstTimeStamp = Utils.memoizeAsync(async token => {
   return res.json()
 }, { keyFn: (...args) => JSON.stringify(args) })
 
-const getSnapshotEntityMetadata = Utils.memoizeAsync(async (token, workspaceNamespace, workspaceName, billingProject, dataReference) => {
-  const res = await fetchRawls(`workspaces/${workspaceNamespace}/${workspaceName}/entities?billingProject=${billingProject}&dataReference=${dataReference}`, authOpts(token))
+const getSnapshotEntityMetadata = Utils.memoizeAsync(async (token, workspaceNamespace, workspaceName, googleProject, dataReference) => {
+  const res = await fetchRawls(`workspaces/${workspaceNamespace}/${workspaceName}/entities?billingProject=${googleProject}&dataReference=${dataReference}`, authOpts(token))
   return res.json()
 }, { keyFn: (...args) => JSON.stringify(args) })
 
@@ -774,8 +774,8 @@ const Workspaces = signal => ({
         return res.json()
       },
 
-      snapshotEntityMetadata: (billingProject, dataReference) => {
-        return getSnapshotEntityMetadata(getUser().token, namespace, name, billingProject, dataReference)
+      snapshotEntityMetadata: (googleProject, dataReference) => {
+        return getSnapshotEntityMetadata(getUser().token, namespace, name, googleProject, dataReference)
       },
 
       createEntity: async payload => {
@@ -794,11 +794,6 @@ const Workspaces = signal => ({
       },
 
       upsertEntities,
-
-      entitiesOfType: async type => {
-        const res = await fetchRawls(`${root}/entities/${type}`, _.merge(authOpts(), { signal }))
-        return res.json()
-      },
 
       paginatedEntitiesOfType: async (type, parameters) => {
         const res = await fetchRawls(`${root}/entityQuery/${type}?${qs.stringify(parameters)}`, _.merge(authOpts(), { signal }))
@@ -919,6 +914,11 @@ const Workspaces = signal => ({
 
 
 const DataRepo = signal => ({
+  getMetadata: async () => {
+    const res = await fetchDataRepo('repository/v1/search/metadata', _.merge(authOpts(), { signal }))
+    return res.json()
+  },
+
   snapshot: snapshotId => {
     return {
       details: async () => {
@@ -1324,7 +1324,7 @@ const Runtimes = signal => ({
     }
   },
 
-  notebooks: (project, name) => {
+  fileSyncing: (project, name) => {
     const root = `proxy/${project}/${name}`
 
     return {

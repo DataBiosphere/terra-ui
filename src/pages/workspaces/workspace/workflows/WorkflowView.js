@@ -91,8 +91,11 @@ const filterConfigIO = ({ inputs, outputs }) => {
   )
 }
 
-const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions, readOnly }) => {
+const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange, onSetDefaults, onBrowse, suggestions, availableSnapshots, readOnly }) => {
   const [sort, setSort] = useState({ field: 'taskVariable', direction: 'asc' })
+
+  // will only match if the current root entity type comes from a snapshot
+  const isSnapshot = _.some({ name: config.dataReferenceName }, availableSnapshots)
 
   const taskSort = o => ioTask(o).toLowerCase()
   const varSort = o => ioVariable(o).toLowerCase()
@@ -139,7 +142,7 @@ const WorkflowIOTable = ({ which, inputsOutputs: data, config, errors, onChange,
       {
         headerRenderer: () => h(Fragment, [
           div({ style: { fontWeight: 'bold' } }, ['Attribute']),
-          !readOnly && which === 'outputs' && h(Fragment, [
+          !readOnly && !isSnapshot && which === 'outputs' && h(Fragment, [
             div({ style: { whiteSpace: 'pre' } }, ['  |  ']),
             h(Link, { onClick: onSetDefaults }, ['Use defaults'])
           ])
@@ -432,7 +435,7 @@ const WorkflowView = _.flow(
   async componentDidMount() {
     const {
       namespace, name, workflowNamespace, workflowName,
-      workspace: { workspace: { attributes } },
+      workspace: { workspace: { attributes, googleProject } },
       signal,
       queryParams: { selectionKey }
     } = this.props
@@ -465,7 +468,7 @@ const WorkflowView = _.flow(
       )(config)
 
       const selectedSnapshotEntityMetadata = modifiedConfig.dataReferenceName ?
-        await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, modifiedConfig.dataReferenceName) :
+        await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, modifiedConfig.dataReferenceName) :
         undefined
 
       this.setState({
@@ -716,7 +719,7 @@ const WorkflowView = _.flow(
                       const selectedSnapshotEntityMetadata = await Ajax(signal)
                         .Workspaces
                         .workspace(namespace, workspaceName)
-                        .snapshotEntityMetadata(namespace, value)
+                        .snapshotEntityMetadata(workspace.googleProject, value)
 
                       this.setState(_.set(['modifiedConfig', 'dataReferenceName'], value))
                       this.setState(_.unset(['modifiedConfig', 'rootEntityType']))
@@ -899,8 +902,8 @@ const WorkflowView = _.flow(
       div({ style: styles.messageContainer }, [
         saving && miniMessage('Saving...'),
         saved && !saving && !modified && miniMessage('Saved!'),
-        modified && h(ButtonPrimary, { disabled: saving || !this.canSave(), onClick: () => this.save() }, 'Save'),
-        modified && h(ButtonSecondary, { style: { marginLeft: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel')
+        modified && h(ButtonSecondary, { style: { marginRight: '1rem' }, disabled: saving, onClick: () => this.cancel() }, 'Cancel'),
+        modified && h(ButtonPrimary, { disabled: saving || !this.canSave(), onClick: () => this.save() }, 'Save')
       ]),
       exporting && h(ExportWorkflowModal, {
         thisWorkspace: workspace, methodConfig: savedConfig,
@@ -974,7 +977,7 @@ const WorkflowView = _.flow(
     const { workspace } = this.props
     const {
       modifiedConfig, modifiedInputsOutputs, errors, entityMetadata, workspaceAttributes, includeOptionalInputs, currentSnapRedacted, filter,
-      selectedSnapshotEntityMetadata
+      selectedSnapshotEntityMetadata, availableSnapshots
     } = this.state
     // Sometimes we're getting totally empty metadata. Not sure if that's valid; if not, revert this
 
@@ -1051,7 +1054,8 @@ const WorkflowView = _.flow(
               oldState
             )
           }),
-          suggestions
+          suggestions,
+          availableSnapshots
         })
       ])
     ])])

@@ -93,7 +93,7 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
       div({ style: contextBarStyles.contextBarContainer }, [
         h(WorkspaceMenuTrigger, { canShare, isOwner, setCloningWorkspace, setSharingWorkspace, setDeletingWorkspace }, [
           h(Clickable, {
-            'aria-label': 'Menu',
+            'aria-label': 'Workspace menu',
             style: contextBarStyles.contextBarButton,
             hover: contextBarStyles.hover,
             tooltipSide: 'left',
@@ -102,6 +102,7 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
           }, [icon('ellipsis-v', { size: 24 })])
         ]),
         h(Clickable, {
+          'aria-label': 'Cloud env config',
           style: { ...contextBarStyles.contextBarButton, flexDirection: 'column', justifyContent: 'center', padding: '.75rem' },
           hover: contextBarStyles.hover,
           tooltipSide: 'left',
@@ -114,6 +115,7 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
           getEnvironmentStatusIcons()
         ]),
         h(Clickable, {
+          'aria-label': 'Terminal button',
           style: { ...contextBarStyles.contextBarButton, color: !isTerminalEnabled ? colors.dark(0.7) : contextBarStyles.contextBarButton.color },
           hover: contextBarStyles.hover,
           tooltipSide: 'left',

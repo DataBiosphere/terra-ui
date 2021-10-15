@@ -77,6 +77,7 @@ export const tools = {
 const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }
 
 export const getTool = fileName => _.invert(toolToExtensionMap)[getExtension(fileName)]
+export const getToolFromRuntime = _.get(['labels', 'tool'])
 
 export const getAnalysisFileExtension = toolLabel => toolToExtensionMap[toolLabel]
 

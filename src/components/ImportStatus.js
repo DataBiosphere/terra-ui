@@ -15,7 +15,7 @@ const ImportStatus = () => {
     onDone: () => {
       asyncImportJobStore.update(_.reject({ jobId: job.jobId }))
     }
-  }), jobs))
+  }), _.uniq(jobs)))
 }
 
 const ImportStatusItem = ({ job: { targetWorkspace, jobId }, onDone }) => {

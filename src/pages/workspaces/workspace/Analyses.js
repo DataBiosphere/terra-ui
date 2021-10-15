@@ -12,7 +12,8 @@ import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
 import {
-  AnalysisDeleter, AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, notebookLockHash, stripExtension, tools
+  AnalysisDeleter, AnalysisDuplicator, findPotentialNotebookLockers, getDisplayName, getFileName, getTool, getToolFromRuntime, notebookLockHash,
+  stripExtension, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { ariaSort } from 'src/components/table'
@@ -26,6 +27,7 @@ import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
+import { getCurrentRuntime } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -63,8 +65,8 @@ const AnalysisCardHeaders = ({ sort, onSort }) => {
 }
 
 const AnalysisCard = ({
-  namespace, name, lastModified, metadata, application, wsName, onRename, onCopy, onDelete, onExport, canWrite, currentUserHash,
-  potentialLockers
+  currentRuntime, namespace, name, lastModified, metadata, application, wsName, onRename, onCopy, onDelete, onExport, canWrite,
+  currentUserHash, potentialLockers
 }) => {
   const { lockExpiresAt, lastLockedBy } = metadata || {}
   const lockExpirationDate = new Date(parseInt(lockExpiresAt))
@@ -72,40 +74,63 @@ const AnalysisCard = ({
   const lockedBy = potentialLockers ? potentialLockers[lastLockedBy] : null
 
   const analysisLink = Nav.getLink('workspace-analysis-launch', { namespace, name: wsName, analysisName: getFileName(name) })
+  const toolLabel = getTool(name)
 
+  const currentRuntimeTool = getToolFromRuntime(currentRuntime)
+
+  const rstudioLaunchLink = Nav.getLink('workspace-application-launch', { namespace, name, application: 'RStudio' })
   const analysisEditLink = `${analysisLink}/?${qs.stringify({ mode: 'edit' })}`
   const analysisPlaygroundLink = `${analysisLink}/?${qs.stringify({ mode: 'playground' })}`
 
   const analysisMenu = h(MenuTrigger, {
+    'aria-label': `Analysis menu`,
     side: 'right',
     closeOnClick: true,
     content: h(Fragment, [
       h(MenuButton, {
+        'aria-label': `Preview`,
         href: analysisLink,
         tooltip: canWrite && 'Open without cloud compute',
         tooltipSide: 'left'
       }, [makeMenuIcon('eye'), 'Open preview']),
+      ...(toolLabel === tools.Jupyter.label ? [
+        h(MenuButton, {
+          'aria-label': `Edit`,
+          href: analysisEditLink,
+          disabled: locked || !canWrite || currentRuntimeTool === tools.RStudio.label,
+          tooltip: Utils.cond([!canWrite, () => noWrite],
+            [currentRuntimeTool === tools.RStudio.label, () => 'You must have a runtime with Jupyter to edit.']),
+          tooltipSide: 'left'
+        }, locked ? [makeMenuIcon('lock'), 'Edit (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
+        h(MenuButton, {
+          'aria-label': `Playground`,
+          href: analysisPlaygroundLink,
+          tooltip: canWrite && 'Open in playground mode',
+          tooltipSide: 'left'
+        }, [makeMenuIcon('chalkboard'), 'Playground'])
+      ] : [
+        h(MenuButton, {
+          'aria-label': `Launch`,
+          href: rstudioLaunchLink,
+          disabled: !canWrite || currentRuntimeTool === tools.Jupyter.label,
+          tooltip: Utils.cond([!canWrite, () => noWrite],
+            [currentRuntimeTool === tools.RStudio.label, () => 'You must have a runtime with RStudio to launch.']),
+          tooltipSide: 'left'
+        }, [makeMenuIcon('rocket'), 'Launch'])
+      ]),
       h(MenuButton, {
-        href: analysisEditLink,
-        disabled: locked || !canWrite,
-        tooltip: !canWrite && noWrite,
-        tooltipSide: 'left'
-      }, locked ? [makeMenuIcon('lock'), 'Edit (In Use)'] : [makeMenuIcon('edit'), 'Edit']),
-      h(MenuButton, {
-        href: analysisPlaygroundLink,
-        tooltip: canWrite && 'Open in playground mode',
-        tooltipSide: 'left'
-      }, [makeMenuIcon('chalkboard'), 'Playground']),
-      h(MenuButton, {
+        'aria-label': `Copy`,
         disabled: !canWrite,
         tooltip: !canWrite && noWrite,
         tooltipSide: 'left',
         onClick: () => onCopy()
       }, [makeMenuIcon('copy'), 'Make a copy']),
       h(MenuButton, {
+        'aria-label': `Export`,
         onClick: () => onExport()
       }, [makeMenuIcon('export'), 'Copy to another workspace']),
       h(MenuButton, {
+        'aria-label': `Copy`,
         onClick: async () => {
           try {
             await clipboard.writeText(`${window.location.host}/${analysisLink}`)
@@ -116,12 +141,14 @@ const AnalysisCard = ({
         }
       }, [makeMenuIcon('copy-to-clipboard'), 'Copy analysis URL to clipboard']),
       h(MenuButton, {
+        'aria-label': `Rename`,
         disabled: !canWrite,
         tooltip: !canWrite && noWrite,
         tooltipSide: 'left',
         onClick: () => onRename()
       }, [makeMenuIcon('renameIcon'), 'Rename']),
       h(MenuButton, {
+        'aria-label': `Delete`,
         disabled: !canWrite,
         tooltip: !canWrite && noWrite,
         tooltipSide: 'left',
@@ -169,6 +196,7 @@ const AnalysisCard = ({
     div({ style: { ...endColumnFlex, flexDirection: 'row' } }, [
       div({ style: { flex: 1, display: 'flex' } }, [
         locked && h(Clickable, {
+          'aria-label': `${artifactName} artifact label`,
           style: { display: 'flex', paddingRight: '1rem', color: colors.dark(0.75) },
           tooltip: `This analysis is currently being edited by ${lockedBy || 'another user'}`
         }, [icon('lock')]),
@@ -211,6 +239,7 @@ const Analyses = _.flow(
 
   const authState = Utils.useStore(authStore)
   const signal = Utils.useCancellation()
+  const currentRuntime = getCurrentRuntime(runtimes)
 
   // Helpers
   //TODO: does this prevent users from making an .Rmd with the same name as an .ipynb?
@@ -298,7 +327,7 @@ const Analyses = _.flow(
       _.orderBy(sortTokens[field] || field, direction),
       _.map(({ name, lastModified, metadata, application }) => h(AnalysisCard, {
         key: name,
-        name, lastModified, metadata, application, namespace, wsName, canWrite, currentUserHash, potentialLockers,
+        currentRuntime, name, lastModified, metadata, application, namespace, wsName, canWrite, currentUserHash, potentialLockers,
         onRename: () => setRenamingAnalysisName(name),
         onCopy: () => setCopyingAnalysisName(name),
         onExport: () => setExportingAnalysisName(name),

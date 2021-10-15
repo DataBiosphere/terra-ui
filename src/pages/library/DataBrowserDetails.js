@@ -1,74 +1,200 @@
+import _ from 'lodash/fp'
+import qs from 'qs'
 import { Fragment, useState } from 'react'
-import { div, h, h1 } from 'react-hyperscript-helpers'
+import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
+import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { centeredSpinner, icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
+import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
+import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
+import colors from 'src/libs/colors'
+import { getConfig } from 'src/libs/config'
+import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
+import { commonStyles } from 'src/pages/library/common'
+import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
 const activeTab = 'browse & explore'
 const styles = {
-  content: { padding: 20, marginTop: 15 }
+  ...commonStyles,
+  content: { padding: 20, marginTop: 15 },
+  headers: { margin: '20px 0 10px' },
+  attributesColumn: { width: '22%', marginRight: 20, marginTop: 30 }
 }
+const cloudIconProps = { role: 'img', style: { maxHeight: 25, maxWidth: 150 } }
 
-const getSnapshot = id => new Promise(resolve => setTimeout(() => {
-  resolve({
-    namespace: 'harry-potter',
-    name: 'Harry Potter',
-    created: '2020-01-07T18:25:28.340Z',
-    lastUpdated: '2020-01-07T18:25:28.340Z',
-    tags: {
-      itemsType: 'AttributeValue',
-      items: ['1000 Genomes', 'CMG', 'Open Access', 'Exome']
-    },
-    description: 'The boy who lived',
-    lowerName: 'harry potter',
-    lowerDescription: 'lower description',
-    project: {
-      id: '112',
-      name: 'CDC'
-    },
-    subjects: 10,
-    dataType: 'RNA Seq',
-    keepCollapsed: true,
-    locked: false,
-    files: 15,
-    fileSize: 4432
-  })
-}, 2000))
-
-const MainContent = ({ snapshot }) => {
-  return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
-    h1({ style: { marginTop: 0 } }, [snapshot.name]),
-    div({ style: { whiteSpace: 'pre-wrap' } }, [JSON.stringify(snapshot, null, 2)])
+const makeContactCard = ({ contactName, institution, email }) => {
+  return div({ key: contactName, style: { marginBottom: 30 } }, [
+    contactName,
+    institution && div({ style: { marginTop: 5 } }, [institution]),
+    email && h(Link, { href: `mailto:${email}`, style: { marginTop: 5, display: 'block' } }, [email])
   ])
 }
 
-const Sidebar = () => {
-  return div({ style: { ...styles.content, width: 400, flexShrink: 0 } }, [
-    'Sidebar Content Area'
+const MainContent = ({ snapshot }) => {
+  return div({ style: { ...styles.content, width: '100%', marginTop: 0 } }, [
+    h1({ style: { lineHeight: '1.5em' } }, [snapshot['dct:title']]),
+    snapshot['dct:description'],
+    h2({ className: 'sr-only' }, ['Snapshot Sources']),
+    div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Data release policy']),
+        snapshot.dataReleasePolicy
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Last Updated']),
+        Utils.makeStandardDate(snapshot['dct:modified'])
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Version']),
+        '1.0'
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Cloud provider']),
+        _.map(
+          ({ cloudPlatform }) => div({ key: cloudPlatform }, [
+            Utils.switchCase(cloudPlatform,
+              ['gcp', () => h(GcpLogo, { title: 'Google Cloud Platform', ...cloudIconProps })],
+              ['azure', () => h(AzureLogo, { title: 'Microsoft Azure', ...cloudIconProps })]
+            )
+          ]),
+          _.uniqBy('cloudPlatform', snapshot.storage)
+        )
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Contact']),
+        _.map(makeContactCard, snapshot.contacts)
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Data curator']),
+        _.map(makeContactCard, snapshot.curators)
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Contributors']),
+        div({ style: { whiteSpace: 'pre' } }, [_.join('\n', snapshot.contributorNames)])
+      ]),
+      div({ style: styles.attributesColumn }, [
+        h3({ style: styles.headers }, ['Region']),
+        div({ style: { whiteSpace: 'pre' } }, [_.flow(_.map('region'), _.uniq, _.join('\n'))(snapshot.storage)])
+      ])
+    ])
+
+  ])
+}
+
+const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
+  const { access } = snapshot
+
+  return div({ style: { ...styles.content, width: 300, flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' } }, [
+    h2({ className: 'sr-only' }, ['Snapshot Data Details']),
+    div({ style: { backgroundColor: 'white', padding: 20, paddingTop: 0, width: '100%', border: '2px solid #D6D7D7', borderRadius: 5 } }, [
+      div([
+        h3(['Access type']),
+        div([
+          Utils.switchCase(access,
+            ['Controlled', () => h(ButtonSecondary, {
+              style: { fontSize: 16, textTransform: 'none', height: 'unset' },
+              onClick: () => setShowRequestAccessModal(true)
+            }, [
+              icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
+              'Request Access'
+            ])],
+            ['Pending', () => div({ style: { color: styles.access.pending } }, [
+              icon('unlock', { size: 18, style: { marginRight: 10 } }),
+              'Pending Access'
+            ])],
+            [Utils.DEFAULT, () => div({ style: { color: styles.access.open } }, [
+              icon('unlock', { size: 18, style: { marginRight: 10 } }),
+              'Open Access'
+            ])])
+        ])
+      ]),
+      div([
+        h3({ style: styles.headers }, ['Donor size']),
+        div([_.getOr(0, 'counts.donors', snapshot).toLocaleString()])
+      ]),
+      div([
+        h3({ style: styles.headers }, ['Sample size']),
+        div([_.getOr(0, 'counts.samples', snapshot).toLocaleString()])
+      ]),
+      div([
+        h3({ style: styles.headers }, ['Data Modality']),
+        div([_.join(', ', snapshot.dataModality)])
+      ]),
+      div([
+        h3({ style: styles.headers }, ['Data type']),
+        div([_.join(', ', snapshot.dataType)])
+      ]),
+      div([
+        h3({ style: styles.headers }, ['File counts']),
+        table([
+          tbody([
+            _.map(file => {
+              return tr({ key: `filetype_${file['dcat:mediaType']}_${file.count}` }, [
+                td({ style: { paddingRight: 30 } }, [file['dcat:mediaType']]),
+                td([(file.count || 0).toLocaleString()])
+              ])
+            }, snapshot.files),
+            tr({ style: { fontWeight: 'bold', borderTop: '2px solid rgba(0,0,0,.3)' } }, [
+              td(['Total']),
+              td([_.sumBy('count', snapshot.files).toLocaleString()])
+            ])
+          ])
+        ])
+      ])
+    ]),
+    h(ButtonOutline, {
+      style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
+      onClick: () => Nav.goToPath('library-catalog-preview', { id: _.get('dct:identifier', snapshot) })
+    }, [
+      div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [
+        icon('eye', { size: 22, style: { marginRight: 10 } }),
+        'Preview data'
+      ])
+    ]),
+    h(ButtonPrimary, {
+      style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
+      onClick: () => {
+        Nav.history.push({
+          pathname: Nav.getPath('import-data'),
+          search: qs.stringify({
+            url: getConfig().dataRepoUrlRoot, snapshotId: id, snapshotName: snapshot['dct:title'], format: 'snapshot'
+          })
+        })
+      }
+    }, ['Save to a workspace'])
   ])
 }
 
 const DataBrowserDetails = ({ id }) => {
-  const [snapshot, setSnapshot] = useState()
-
-  Utils.useOnMount(() => {
-    const loadData = async () => setSnapshot(await getSnapshot(id))
-    loadData()
-  })
+  const [showRequestAccessModal, setShowRequestAccessModal] = useState()
+  const { dataCatalog } = useDataCatalog()
+  const dataMap = _.keyBy('dct:identifier', dataCatalog)
+  const snapshot = dataMap[id]
 
   return h(FooterWrapper, { alwaysShow: true }, [
     libraryTopMatter(activeTab),
     !snapshot ?
       centeredSpinner() :
       h(Fragment, [
-        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%' } }, [
+        div({ style: { display: 'flex', flexDirection: 'row', alignItems: 'top', width: '100%', lineHeight: '26px' } }, [
           div({ style: styles.content }, [
-            icon('angle-left', { size: 35 })
+            h(Link, { onClick: Nav.history.goBack, 'aria-label': 'Back' }, [
+              span({ className: 'fa-stack fa-2x' }, [
+                icon('circle', { size: 40, className: 'fa-stack-2x', style: { color: colors.primary('light'), opacity: 0.2 } }),
+                icon('angle-left', { size: 30, className: 'fa-stack-1x', style: { color: colors.primary('light') } })
+              ])
+            ])
           ]),
           h(MainContent, { snapshot }),
-          h(Sidebar)
+          h(Sidebar, { snapshot, id, setShowRequestAccessModal }),
+          showRequestAccessModal && h(RequestDatasetAccessModal, {
+            datasets: [snapshot],
+            onDismiss: () => setShowRequestAccessModal(false)
+          })
         ])
       ])
   ])
@@ -78,5 +204,5 @@ export const navPaths = [{
   name: 'library-details',
   path: '/library/browser/:id',
   component: DataBrowserDetails,
-  title: ({ id }) => `${id} - Details`
+  title: 'Catalog - Dataset Details'
 }]

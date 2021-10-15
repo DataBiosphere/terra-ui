@@ -1,10 +1,10 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinnerOverlay } from 'src/components/common'
 import { ComputeModal } from 'src/components/ComputeModal'
-import { RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
+import { appLauncherTabName, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -19,15 +19,48 @@ const ApplicationLauncher = _.flow(
   Utils.forwardRefWithName('ApplicationLauncher'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: _.get('application')
+    title: _.get('application'),
+    activeTab: appLauncherTabName
   })
-)(({ namespace, name, refreshRuntimes, runtimes, persistentDisks, application, workspace }, ref) => {
+)(({ name: workspaceName, refreshRuntimes, runtimes, persistentDisks, application, workspace, workspace: { workspace: { googleProject, bucketName } } }, ref) => {
   const cookieReady = Utils.useStore(cookieReadyStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
 
+  // We've already init Welder if app is Jupyter.
+  // TODO: We are stubbing this to never set up welder until we resolve some backend issues around file syncing
+  // See following tickets for status (both parts needed):
+  // PT1 - https://broadworkbench.atlassian.net/browse/IA-2991
+  // PT2 - https://broadworkbench.atlassian.net/browse/IA-2990
+  const [shouldSetupWelder, setShouldSetupWelder] = useState(false) // useState(application == tools.RStudio.label)
+
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
+
+  useEffect(() => {
+    const runtime = getCurrentRuntime(runtimes)
+    const runtimeStatus = getConvertedRuntimeStatus(runtime)
+
+    const setupWelder = _.flow(
+      Utils.withBusyState(setBusy),
+      withErrorReporting('Error setting up analysis file syncing')
+    )(async () => {
+      const localBaseDirectory = ``
+      const localSafeModeBaseDirectory = ``
+      const cloudStorageDirectory = `gs://${bucketName}/notebooks`
+
+      await Ajax()
+        .Runtimes
+        .fileSyncing(googleProject, runtime.runtimeName)
+        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.Rmd`)
+    })
+
+    if (shouldSetupWelder && runtimeStatus === 'Running') {
+      setupWelder()
+      setShouldSetupWelder(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [googleProject, workspaceName, runtimes, bucketName])
 
   return h(Fragment, [
     h(RuntimeStatusMonitor, {
