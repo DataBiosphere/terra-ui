@@ -874,33 +874,34 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             ])
           ]),
           h(IdContainer, [
-            id => div({ style: { gridColumnEnd: 'span 3', marginTop: '0.5rem' } }, [
+            id => div({ style: { gridColumnEnd: 'span 4', marginTop: '0.5rem' } }, [
               label({ htmlFor: id, style: computeStyles.label }, ['Compute type']),
-              div({ style: { marginTop: '0.5rem' } }, [
-                h(Select, {
-                  id,
-                  isSearchable: false,
-                  value: sparkMode,
-                  onChange: ({ value }) => {
-                    setSparkMode(value)
-                    updateComputeConfig('componentGatewayEnabled', !!value)
-                  },
-                  options: [
-                    { value: false, label: 'Standard VM', isDisabled: requiresSpark },
-                    { value: 'master', label: 'Spark master node' },
-                    { value: 'cluster', label: 'Spark cluster' }
-                  ]
-                })
+              div({ style: { display: 'flex', alignItems: 'center', marginTop: '0.5rem' } }, [
+                div({ style: { flex: 1, marginRight: '2rem' } }, [
+                  h(Select, {
+                    id,
+                    isSearchable: false,
+                    value: sparkMode,
+                    onChange: ({ value }) => {
+                      setSparkMode(value)
+                      updateComputeConfig('componentGatewayEnabled', !!value)
+                    },
+                    options: [
+                      { value: false, label: 'Standard VM', isDisabled: requiresSpark },
+                      { value: 'master', label: 'Spark master node' },
+                      { value: 'cluster', label: 'Spark cluster' }
+                    ]
+                  })
+                ]),
+                shouldDisplaySparkConsoleLink() && span([
+                  h(Link, {
+                    disabled: !canManageSparkConsole(),
+                    tooltip: !canManageSparkConsole() && 'You must have a running Spark cluster or a master node.',
+                    onClick: () => setViewMode('sparkConsole')
+                  }, ['Manage and monitor Spark console'])
+                ])
               ])
             ])
-          ]),
-          // TODO: Is there a more robust way to center Link vertically wrt. the Select component above?
-          shouldDisplaySparkConsoleLink() && span({ style: { paddingTop: '2rem' } }, [
-            h(Link, {
-              disabled: !canManageSparkConsole(),
-              tooltip: !canManageSparkConsole() && 'You must have a running Spark cluster or a master node.',
-              onClick: () => setViewMode('sparkConsole')
-            }, ['Manage and monitor Spark console'])
           ])
         ])
       ]),
