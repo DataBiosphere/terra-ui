@@ -43,19 +43,31 @@ const safeImageDocumentation = 'https://support.terra.bio/hc/en-us/articles/3600
 const imageValidationRegexp = /^[A-Za-z0-9]+[\w./-]+(?::\w[\w.-]+)?(?:@[\w+.-]+:[A-Fa-f0-9]{32,})?$/
 
 // Enums -- start
-// const sparkInterfaces = {
-//   yarn: {
-//     label: 'yarn',
-//     displayName: 'YARN Resource Manager',
-//     synopsis: `Some of the Spark cluster components such as Apache Hadoop and Apache Spark
-//          provide web interfaces. These interfaces can be used to manage and monitor cluster
-//          resources and facilities, such as the YARN resource manager, the Hadoop Distributed
-//          File System (HDFS), MapReduce, and Spark.`
-//   }
-// }
+const sparkInterfaces = {
+  yarn: {
+    label: 'yarn',
+    displayName: 'YARN Resource Manager',
+    synopsis: `YARN Resource Manager provides information about cluster status and metrics as well as information about the scheduler, nodes, and applications on the cluster.`
+  },
+  appHistory: {
+    label: 'apphistory',
+    displayName: 'YARN Application Timeline',
+    synopsis: `YARN Application Timeline provides information about current and historic applications executed on the cluster.`
+  },
+  sparkHistory: {
+    label: 'sparkhistory',
+    displayName: 'Spark History Server',
+    synopsis: `Spark History Server provides information about completed Spark applications on the cluster.`
+  },
+  jobHistory: {
+    label: 'jobhistory',
+    displayName: 'MapReduce History Server',
+    synopsis: `MapReduce History Server displays information about completed MapReduce applications on a cluster.`
+  }
+}
 // Enums -- end
 
-// Auxiliary Components -- begin
+// Auxiliary components -- begin
 const WorkerSelector = ({ value, machineTypeOptions, onChange }) => {
   const { cpu: currentCpu, memory: currentMemory } = findMachineType(value)
   return h(Fragment, [
@@ -107,23 +119,18 @@ const DataprocDiskSelector = ({ value, onChange }) => {
   ])
 }
 
-const SparkInterface = ({ interfaceName, synopsis, namespace, name, onDismiss }) => {
-  const interfaceDisplayName = Utils.switchCase(interfaceName,
-    ['yarn', () => 'YARN Resource Manager'],
-    ['apphistory', () => 'YARN Application Timeline'],
-    ['sparkhistory', () => 'Spark History Server'],
-    ['jobhistory', () => 'MapReduce History Server']
-  )
+const SparkInterface = ({ sparkInterface, namespace, name, onDismiss }) => {
+  const { label, displayName, synopsis } = sparkInterface
 
   return div(
     { style: { ...computeStyles.whiteBoxContainer, marginBottom: '1rem', backgroundColor: colors.accent(0.1), boxShadow: Style.standardShadow } }, [
       div({ style: { flex: '1', lineHeight: '1.5rem', minWidth: 0, display: 'flex' } }, [
         div([
-          div({ style: { ...computeStyles.headerText, marginTop: '0.5rem' } }, [interfaceDisplayName]),
+          div({ style: { ...computeStyles.headerText, marginTop: '0.5rem' } }, [displayName]),
           p([synopsis]),
           div({ style: { display: 'flex', marginTop: '1rem' } }, [
             h(ButtonOutline, {
-              href: Nav.getLink('workspace-spark-interface-launch', { namespace, name, application: 'spark', sparkInterface: interfaceName }),
+              href: Nav.getLink('workspace-spark-interface-launch', { namespace, name, application: 'spark', sparkInterface: label }),
               style: { marginRight: 'auto' },
               onClick: onDismiss,
               ...Utils.newTabLinkProps
@@ -133,7 +140,7 @@ const SparkInterface = ({ interfaceName, synopsis, namespace, name, onDismiss })
       ])
     ])
 }
-// Auxiliary Components -- end
+// Auxiliary components -- end
 
 const getImageUrl = runtimeDetails => {
   return _.find(({ imageType }) => _.includes(imageType, ['Jupyter', 'RStudio']), runtimeDetails?.runtimeImages)?.imageUrl
@@ -1373,42 +1380,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
          resources and facilities, such as the YARN resource manager, the Hadoop Distributed
          File System (HDFS), MapReduce, and Spark.`
       ]),
-      h(SparkInterface, {
-        interfaceName: 'yarn',
-        synopsis:
-          `YARN Resource Manager provides information about cluster status and metrics
-           as well as information about the scheduler, nodes, and applications on the cluster.`,
-        namespace,
-        name,
-        onDismiss
-      }),
-      h(SparkInterface, {
-        interfaceName: 'apphistory',
-        synopsis:
-          `YARN Application Timeline provides information about current and historic applications
-           executed on the cluster.`,
-        namespace,
-        name,
-        onDismiss
-      }),
-      h(SparkInterface, {
-        interfaceName: 'sparkhistory',
-        synopsis:
-          `Spark History Server provides information about completed Spark applications
-           on the cluster.`,
-        namespace,
-        name,
-        onDismiss
-      }),
-      h(SparkInterface, {
-        interfaceName: 'jobhistory',
-        synopsis:
-          `MapReduce History Server displays information about completed MapReduce
-           applications on a cluster.`,
-        namespace,
-        name,
-        onDismiss
-      })
+      h(SparkInterface, { sparkInterface: sparkInterfaces.yarn, namespace, name, onDismiss }),
+      h(SparkInterface, { sparkInterface: sparkInterfaces.appHistory, namespace, name, onDismiss }),
+      h(SparkInterface, { sparkInterface: sparkInterfaces.sparkHistory, namespace, name, onDismiss }),
+      h(SparkInterface, { sparkInterface: sparkInterfaces.jobHistory, namespace, name, onDismiss })
     ])
   }
 
