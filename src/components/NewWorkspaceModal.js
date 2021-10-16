@@ -52,12 +52,10 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
 
 
   // Helpers
-  const getRequiredGroups = () => {
-    return _.uniq([
-      ...(cloneWorkspace ? _.map('membersGroupName', cloneWorkspace.workspace.authorizationDomain) : []),
-      ...(requiredAuthDomain ? [requiredAuthDomain] : [])
-    ])
-  }
+  const getRequiredGroups = () => _.uniq([
+    ...(cloneWorkspace ? _.map('membersGroupName', cloneWorkspace.workspace.authorizationDomain) : []),
+    ...(requiredAuthDomain ? [requiredAuthDomain] : [])
+  ])
 
   const create = async () => {
     try {
@@ -175,18 +173,15 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           value: namespace,
           onChange: ({ value }) => setNamespace(value),
           styles: { option: provided => ({ ...provided, padding: 0 }) },
-          options: _.uniq(_.map(({ projectName, invalidBillingAccount }) => ({
-            label: h(Fragment, [
-              invalidBillingAccount ?
-                h(TooltipTrigger, {
-                  content: 'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra',
-                  side: 'left'
-                }, [div({ style: { padding: 10 } }, [projectName])]) :
-                div({ style: { padding: 10 } }, [projectName])
-            ]),
+          options: _.map(({ projectName, invalidBillingAccount }) => ({
+            label: h(TooltipTrigger, {
+              content: invalidBillingAccount && 'Workspaces may only be created in billing projects that have a Google billing account accessible in Terra',
+              side: 'left'
+            }, [div({ style: { padding: 10 } }, [projectName])]
+            ),
             value: projectName,
             isDisabled: invalidBillingAccount
-          }), billingProjects)).sort()
+          }), _.sortBy('projectName', _.uniq(billingProjects)))
         })
       ])]),
       h(IdContainer, [id => h(Fragment, [
