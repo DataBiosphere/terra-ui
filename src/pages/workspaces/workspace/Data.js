@@ -559,7 +559,7 @@ const WorkspaceData = _.flow(
                   _.map(([tableName, { count }]) => {
                     const canCompute = !!(workspace?.canCompute)
                     return h(DataTypeButton, {
-                      buttonStyle: canCompute ? { borderBottom: 0, height: 40 } : { borderBottom: 0, height: 40, color: colors.dark(0.25) },
+                      buttonStyle: { borderBottom: 0, height: 40, ...(canCompute ? {} : {color: colors.dark(0.25)}) },
                       tooltip: canCompute ?
                         tableName ? `${tableName} (${count} row${count === 1 ? '' : 's'})` : undefined :
                         [div({ key: `${tableName}-tooltip`, style: { whiteSpace: 'pre-wrap' } }, 'You must be an owner, or a writer with compute permission, to view this snapshot.\n\n' +
