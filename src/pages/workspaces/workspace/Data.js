@@ -465,7 +465,7 @@ const WorkspaceData = _.flow(
   const deleteColumnUpdateMetadata = ({ attributeName, entityType }) => {
     const newArray = _.get(entityType, entityMetadata).attributeNames
     const attributeNamesArrayUpdated = _.without([attributeName], newArray)
-    const updatedMetadata = _.set([entityType, 'attributeNames'], attributeNamesArrayUpdated, entityMetadata);
+    const updatedMetadata = _.set([entityType, 'attributeNames'], attributeNamesArrayUpdated, entityMetadata)
     setEntityMetadata(updatedMetadata)
   }
 

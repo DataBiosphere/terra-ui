@@ -118,10 +118,9 @@ const DataTable = props => {
     setTotalRowCount(unfilteredCount)
   })
 
-  const deleteColumnUpdateEntities = (attributeName) => {
-    const updatedEntities = _.map( entity => {
-      const newAttributes = _.omit([attributeName], entity.attributes)
-      return { ...entity, attributes: newAttributes }
+  const deleteColumnUpdateEntities = attributeName => {
+    const updatedEntities = _.map(entity => {
+      return { ...entity, attributes: _.omit([attributeName], entity.attributes) }
     }, entities)
     setEntities(updatedEntities)
   }
