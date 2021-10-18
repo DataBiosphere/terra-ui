@@ -562,7 +562,7 @@ const WorkspaceData = _.flow(
                       buttonStyle: canCompute ? { borderBottom: 0, height: 40 } : { borderBottom: 0, height: 40, color: colors.dark(0.25) },
                       tooltip: canCompute ?
                         tableName ? `${tableName} (${count} row${count === 1 ? '' : 's'})` : undefined :
-                        [div({ style: { whiteSpace: 'pre-wrap' } }, 'You must be an owner, or a writer with compute permission, to view this snapshot.\n\n' +
+                        [div({ key: `${tableName}-tooltip`, style: { whiteSpace: 'pre-wrap' } }, 'You must be an owner, or a writer with compute permission, to view this snapshot.\n\n' +
                         'Contact the owner of this workspace in order to change your permissions.')],
                       tooltipSide: canCompute ? 'bottom' : 'left',
                       key: `${snapshotName}_${tableName}`,
