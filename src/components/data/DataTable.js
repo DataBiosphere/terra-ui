@@ -55,7 +55,7 @@ const DataTable = props => {
     editable,
     persist, refreshKey, firstRender,
     snapshotName,
-    loadMetadata
+    deleteColumnUpdateMetadata
   } = props
 
   const persistenceId = `${namespace}/${name}/${entityType}`
@@ -117,6 +117,15 @@ const DataTable = props => {
     setFilteredCount(filteredCount)
     setTotalRowCount(unfilteredCount)
   })
+
+  const deleteColumnUpdateEntities = (attributeName) => {
+    const updatedEntities = _.map( entity => {
+      const newAttributes = _.omit([attributeName], entity.attributes)
+      return { ...entity, attributes: newAttributes }
+    }, entities)
+    setEntities(updatedEntities)
+  }
+
 
   const selectAll = _.flow(
     Utils.withBusyState(setLoading),
@@ -247,7 +256,7 @@ const DataTable = props => {
                       setColumnWidths(_.set('name', nameWidth + delta))
                     }
                   }, [
-                    h(HeaderOptions, { field: 'name', onSort: setSort, isEntityName: true },
+                    h(HeaderOptions, { sort, field: 'name', onSort: setSort, isEntityName: true },
                       [h(HeaderCell, [entityMetadata[entityType].idName])])
                   ]),
                   cellRenderer: ({ rowIndex }) => {
@@ -272,7 +281,7 @@ const DataTable = props => {
                       width: thisWidth, onWidthChange: delta => setColumnWidths(_.set(attributeName, thisWidth + delta))
                     }, [
                       h(HeaderOptions, {
-                        field: attributeName, onSort: setSort, isEntityName: false,
+                        sort, field: attributeName, onSort: setSort, isEntityName: false,
                         beginDelete: () => setDeletingColumn({ entityType, attributeName })
                       }, [
                         h(HeaderCell, [
@@ -360,7 +369,8 @@ const DataTable = props => {
       column: deletingColumn,
       onSuccess: () => {
         setDeletingColumn(undefined)
-        loadMetadata()
+        deleteColumnUpdateMetadata(deletingColumn)
+        deleteColumnUpdateEntities(deletingColumn.attributeName)
       },
       onDismiss: () => setDeletingColumn(undefined)
     }),

@@ -11,7 +11,7 @@ import { NumberInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/comp
 import Modal from 'src/components/Modal'
 import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
-import { TextCell } from 'src/components/table'
+import { Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { UriViewerLink } from 'src/components/UriViewer'
 import ReferenceData from 'src/data/reference-data'
@@ -742,14 +742,14 @@ export const DeleteEntityColumnModal = ({ workspaceId: { namespace, name }, colu
   ])
 }
 
-export const HeaderOptions = ({ field, onSort, isEntityName, beginDelete, children }) => {
+export const HeaderOptions = ({ sort, field, onSort, isEntityName, beginDelete, children }) => {
   const columnMenu = h(MenuTrigger, {
     closeOnClick: true,
     side: 'bottom',
     content: h(Fragment, [
       h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
       h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
-      !isEntityName && h(MenuButton, { onClick: beginDelete }, ['Delete column'])
+      !isEntityName && h(MenuButton, { onClick: beginDelete }, ['Delete Column'])
     ])
   }, [
     h(Link, { 'aria-label': 'Workflow menu', onClick: e => e.stopPropagation() }, [
@@ -757,13 +757,12 @@ export const HeaderOptions = ({ field, onSort, isEntityName, beginDelete, childr
     ])
   ])
 
-  return h(IdContainer, [id => div({
-    style: { flex: 1, display: 'flex', alignItems: 'center', cursor: 'pointer', width: '100%', height: '100%' },
-    'aria-describedby': id
+  return h(Sortable, {
+    sort, field, onSort
   }, [
     children,
-    div({ style: { marginRight: '1rem', marginLeft: 'auto' } }, [columnMenu])
-  ])])
+    div({ style: { marginRight: '0.5rem', marginLeft: 'auto' } }, [columnMenu])
+  ])
 }
 
 export const saveScroll = _.throttle(100, (initialX, initialY) => {
