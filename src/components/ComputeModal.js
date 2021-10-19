@@ -1002,8 +1002,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             label({ htmlFor: id, style: computeStyles.label }, ['Location']),
             h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
               'By default, workflow and cloud environments will run in the same region as the workspace bucket. ',
-              'Take care as overriding the default can lead to network egress charges.',
-              p(['You cannot update the location of an existing environment.'])
+              p(['Currently, only a limited amount of locations are available but more will become available over time.'])
             ]),
             div({ style: { marginTop: '0.5rem' } }, [
               h(Select, {
