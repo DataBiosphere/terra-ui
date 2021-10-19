@@ -366,7 +366,7 @@ const WorkspaceData = _.flow(
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
     title: 'Data', activeTab: 'data'
   })
-)(({ namespace, name, workspace, workspace: { workspace: { attributes } }, refreshWorkspace }, ref) => {
+)(({ namespace, name, workspace, workspace: { workspace: { googleProject, attributes } }, refreshWorkspace }, ref) => {
   // State
   const [firstRender, setFirstRender] = useState(true)
   const [refreshKey, setRefreshKey] = useState(0)
@@ -437,7 +437,7 @@ const WorkspaceData = _.flow(
   const loadSnapshotEntities = async snapshotName => {
     try {
       setSnapshotDetails(_.set([snapshotName, 'error'], false))
-      const entities = await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(namespace, snapshotName)
+      const entities = await Ajax(signal).Workspaces.workspace(namespace, name).snapshotEntityMetadata(googleProject, snapshotName)
       setSnapshotDetails(_.set([snapshotName, 'entityMetadata'], entities))
     } catch (error) {
       reportError(`Error loading entities in snapshot ${snapshotName}`, error)
@@ -450,9 +450,10 @@ const WorkspaceData = _.flow(
   const getRunningImportJobs = async () => {
     try {
       const runningJobs = await Ajax(signal).Workspaces.workspace(namespace, name).listImportJobs(true)
+      const currentJobIds = _.map('jobId', asyncImportJobStore.get())
       _.forEach(job => {
         const jobStatus = _.lowerCase(job.status)
-        if (!_.includes(jobStatus, ['success', 'error', 'done'])) {
+        if (!_.includes(jobStatus, ['success', 'error', 'done']) && !_.includes(job.jobId, currentJobIds)) {
           asyncImportJobStore.update(Utils.append({ targetWorkspace: { namespace, name }, jobId: job.jobId }))
         }
       }, runningJobs)
@@ -556,21 +557,29 @@ const WorkspaceData = _.flow(
                 ])],
                 () => div({ role: 'list', style: { fontSize: 14, lineHeight: '1.5' } }, [
                   _.map(([tableName, { count }]) => {
+                    const canCompute = !!(workspace?.canCompute)
                     return h(DataTypeButton, {
-                      buttonStyle: { borderBottom: 0, height: 40 },
+                      buttonStyle: { borderBottom: 0, height: 40, ...(canCompute ? {} : { color: colors.dark(0.25) }) },
+                      tooltip: canCompute ?
+                        tableName ? `${tableName} (${count} row${count === 1 ? '' : 's'})` : undefined :
+                        [div({ key: `${tableName}-tooltip`, style: { whiteSpace: 'pre-wrap' } }, 'You must be an owner, or a writer with compute permission, to view this snapshot.\n\n' +
+                        'Contact the owner of this workspace to change your permissions.')],
+                      tooltipSide: canCompute ? 'bottom' : 'left',
                       key: `${snapshotName}_${tableName}`,
                       selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
                       entityName: tableName,
                       entityCount: count,
                       onClick: () => {
-                        setSelectedDataType([snapshotName, tableName])
-                        Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {
-                          ...extractWorkspaceDetails(workspace.workspace),
-                          resourceId,
-                          snapshotId,
-                          entityType: tableName
-                        })
-                        forceRefresh()
+                        if (canCompute) {
+                          setSelectedDataType([snapshotName, tableName])
+                          Ajax().Metrics.captureEvent(Events.workspaceSnapshotContentsView, {
+                            ...extractWorkspaceDetails(workspace.workspace),
+                            resourceId,
+                            snapshotId,
+                            entityType: tableName
+                          })
+                          forceRefresh()
+                        }
                       }
                     }, [`${tableName} (${count})`])
                   }, snapshotTablePairs)

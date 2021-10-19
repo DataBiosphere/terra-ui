@@ -1,10 +1,11 @@
 import _ from 'lodash/fp'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { div, h, iframe } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { spinnerOverlay } from 'src/components/common'
 import { ComputeModal } from 'src/components/ComputeModal'
-import { RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
+import { tools } from 'src/components/notebook-utils'
+import { appLauncherTabName, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -15,19 +16,67 @@ import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
 
 
+const getSparkInterfaceSource = (proxyUrl, sparkInterface) => {
+  console.assert(_.endsWith('/jupyter', proxyUrl), 'Unexpected ending for proxy URL')
+  const proxyUrlWithlastSegmentDropped = _.flow(_.split('/'), _.dropRight(1), _.join('/'))(proxyUrl)
+  return `${proxyUrlWithlastSegmentDropped}/${sparkInterface}`
+}
+
+const getApplicationIFrameSource = (proxyUrl, application, sparkInterface) => {
+  return Utils.switchCase(application,
+    [tools.jupyterTerminal.label, () => `${proxyUrl}/terminals/1`],
+    [tools.spark.label, () => getSparkInterfaceSource(proxyUrl, sparkInterface)],
+    [tools.RStudio.label, () => proxyUrl],
+    [Utils.DEFAULT, () => console.error(`Expected ${application} to be one of terminal, spark or ${tools.RStudio.label}.`)]
+  )
+}
+
 const ApplicationLauncher = _.flow(
   Utils.forwardRefWithName('ApplicationLauncher'),
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceDashboard(props),
-    title: _.get('application')
-  })
-)(({ namespace, name, refreshRuntimes, runtimes, persistentDisks, application, workspace }, ref) => {
+    title: _.get('application'),
+    activeTab: appLauncherTabName
+  }) // TODO: Check if name: workspaceName could be moved into the other workspace deconstruction
+)(({ name: workspaceName, sparkInterface, refreshRuntimes, runtimes, persistentDisks, application, workspace, workspace: { workspace: { googleProject, bucketName } } }, ref) => {
   const cookieReady = Utils.useStore(cookieReadyStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
 
+  // We've already init Welder if app is Jupyter.
+  // TODO: We are stubbing this to never set up welder until we resolve some backend issues around file syncing
+  // See following tickets for status (both parts needed):
+  // PT1 - https://broadworkbench.atlassian.net/browse/IA-2991
+  // PT2 - https://broadworkbench.atlassian.net/browse/IA-2990
+  const [shouldSetupWelder, setShouldSetupWelder] = useState(false) // useState(application == tools.RStudio.label)
+
   const runtime = getCurrentRuntime(runtimes)
   const runtimeStatus = getConvertedRuntimeStatus(runtime) // preserve null vs undefined
+
+  useEffect(() => {
+    const runtime = getCurrentRuntime(runtimes)
+    const runtimeStatus = getConvertedRuntimeStatus(runtime)
+
+    const setupWelder = _.flow(
+      Utils.withBusyState(setBusy),
+      withErrorReporting('Error setting up analysis file syncing')
+    )(async () => {
+      const localBaseDirectory = ``
+      const localSafeModeBaseDirectory = ``
+      const cloudStorageDirectory = `gs://${bucketName}/notebooks`
+
+      await Ajax()
+        .Runtimes
+        .fileSyncing(googleProject, runtime.runtimeName)
+        .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.Rmd`)
+    })
+
+    if (shouldSetupWelder && runtimeStatus === 'Running') {
+      setupWelder()
+      setShouldSetupWelder(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [googleProject, workspaceName, runtimes, bucketName])
 
   return h(Fragment, [
     h(RuntimeStatusMonitor, {
@@ -43,10 +92,10 @@ const ApplicationLauncher = _.flow(
     _.includes(runtimeStatus, usableStatuses) && cookieReady ?
       h(Fragment, [
         iframe({
-          src: `${runtime.proxyUrl}/${application === 'terminal' ? 'terminals/1' : ''}`,
+          src: getApplicationIFrameSource(runtime.proxyUrl, application, sparkInterface),
           style: {
             border: 'none', flex: 1,
-            ...(application === 'terminal' ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
+            ...(application === tools.jupyterTerminal.label ? { marginTop: -45, clipPath: 'inset(45px 0 0)' } : {}) // cuts off the useless Jupyter top bar
           },
           title: `Interactive ${application} iframe`
         })
@@ -97,5 +146,11 @@ export const navPaths = [
     path: '/workspaces/:namespace/:name/applications/:application',
     component: ApplicationLauncher,
     title: ({ name, application }) => `${name} - ${application}`
+  },
+  {
+    name: 'workspace-spark-interface-launch',
+    path: '/workspaces/:namespace/:name/applications/:application/:sparkInterface',
+    component: ApplicationLauncher,
+    title: ({ name, application, sparkInterface }) => `${name} - ${application} - ${sparkInterface}`
   }
 ]

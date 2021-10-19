@@ -13,7 +13,7 @@ import { useWorkspaces } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import * as Auth from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { reportErrorAndRethrow } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
@@ -29,14 +29,14 @@ const workspaceLastModifiedWidth = 150
 const workspaceExpandIconSize = 20
 const billingAccountIconSize = 16
 
-const BillingAccountIcon = {
+const billingAccountIcons = {
   updating: { shape: 'sync', color: colors.warning() },
   done: { shape: 'check', color: colors.accent() },
   error: { shape: 'warning-standard', color: colors.danger() }
 }
 
 const getBillingAccountIcon = status => {
-  const { shape, color } = BillingAccountIcon[status]
+  const { shape, color } = billingAccountIcons[status]
   return icon(shape, { size: billingAccountIconSize, color })
 }
 
@@ -60,7 +60,7 @@ const WorkspaceCardHeaders = Utils.memoWithName('WorkspaceCardHeaders', ({ needs
   ])
 })
 
-const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details, errorMessage }) => {
+const ExpandedInfoRow = ({ title, details, errorMessage }) => {
   const expandedInfoStyles = {
     row: { display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-start' },
     title: { fontWeight: 600, width: '20%', padding: '0.5rem 1rem 0 2rem', height: '1rem' },
@@ -76,10 +76,10 @@ const ExpandedInfoRow = Utils.memoWithName('ExpandedInfoRow', ({ title, details,
     div({ style: expandedInfoStyles.details }, [details]),
     errorMessage && div({ style: expandedInfoStyles.errorMessage }, [errorMessage])
   ])
-})
+}
 
 const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingAccountStatus, isExpanded, onExpand }) => {
-  const { namespace, name, createdBy, lastModified, googleProject, billingAccount, billingAccountErrorMessage } = workspace
+  const { namespace, name, createdBy, lastModified, googleProject, billingAccountDisplayName, billingAccountErrorMessage } = workspace
   const workspaceCardStyles = {
     field: {
       ...Style.noWrapEllipsis, flex: 1, height: '1rem', width: `calc(50% - ${(workspaceLastModifiedWidth + workspaceExpandIconSize) / 2}px)`, paddingRight: '1rem'
@@ -130,14 +130,14 @@ const WorkspaceCard = Utils.memoWithName('WorkspaceCard', ({ workspace, billingA
       isExpanded && div({ id, style: { ...workspaceCardStyles.row, padding: '0.5rem', border: `1px solid ${colors.light()}` } }, [
         div({ style: workspaceCardStyles.expandedInfoContainer }, [
           h(ExpandedInfoRow, { title: 'Google Project', details: googleProject }),
-          h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccount, errorMessage: billingAccountErrorMessage })
+          h(ExpandedInfoRow, { title: 'Billing Account', details: billingAccountDisplayName, errorMessage: billingAccountErrorMessage })
         ])
       ])
     ])])
   ])
 })
 
-const BillingAccountSummaryPanel = (() => {
+const BillingAccountSummaryPanel = ({ counts: { done, error, updating } }) => {
   const StatusAndCount = ({ status, count }) => div({ style: { display: 'float' } }, [
     div({ style: { float: 'left' } }, [getBillingAccountIcon(status)]),
     div({ style: { float: 'left', marginLeft: '0.5rem' } }, [`${status} (${count})`])
@@ -147,57 +147,59 @@ const BillingAccountSummaryPanel = (() => {
     h(StatusAndCount, { status, count })
   ])
 
-  return Utils.memoWithName(
-    'BillingAccountSummaryPanel',
-    ({ counts: { done, error, updating } }) => div({
-      style: {
-        padding: '0.5rem 2rem 1rem',
-        position: 'absolute',
-        top: topBarHeight,
-        right: '3rem',
-        width: '30rem',
-        backgroundColor: colors.light(0.5),
-        boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
-      }
-    }, [
-      div({ style: { padding: '1rem 0' } }, 'Your billing account is updating...'),
-      div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
-        maybeAddStatus('updating', updating),
-        maybeAddStatus('done', done),
-        maybeAddStatus('error', error)
-      ]),
-      error > 0 && div({ style: { padding: '1rem 0 0' } }, [
-        'Try again or ',
-        h(Link, { onClick: () => contactUsActive.set(true) }, [
-          'contact us regarding unresolved errors'
-        ]), '.'
-      ])
-    ]))
-})()
+  return div({
+    style: {
+      padding: '0.5rem 2rem 1rem',
+      position: 'absolute',
+      top: topBarHeight,
+      right: '3rem',
+      width: '30rem',
+      backgroundColor: colors.light(0.5),
+      boxShadow: '0 2px 5px 0 rgba(0,0,0,0.25)'
+    }
+  }, [
+    div({ style: { padding: '1rem 0' } }, 'Your billing account is updating...'),
+    div({ style: { display: 'flex', justifyContent: 'flex-start' } }, [
+      maybeAddStatus('updating', updating),
+      maybeAddStatus('done', done),
+      maybeAddStatus('error', error)
+    ]),
+    error > 0 && div({ style: { padding: '1rem 0 0' } }, [
+      'Try again or ',
+      h(Link, { onClick: () => contactUsActive.set(true) }, [
+        'contact us regarding unresolved errors'
+      ]), '.'
+    ])
+  ])
+}
 
 const groupByBillingAccountStatus = (billingProject, workspaces) => {
   const group = workspace => Utils.cond(
     [billingProject.billingAccount === workspace.billingAccount, () => 'done'],
-    ['billingAccountErrorMessage' in workspace, () => 'error'],
+    [!!workspace.billingAccountErrorMessage, () => 'error'],
     [Utils.DEFAULT, () => 'updating']
   )
 
+  // Return Sets to reduce the time complexity of searching for the status of any workspace from
+  // O(N * W) to O(N * 1), where
+  //   N is the number of statuses a billing account change could have,
+  //   W is the number of workspaces in a billing project (can be very large for GP).
+  // Note we need to perform this search W times for each billing project; using a set reduces time
+  // complexity by an order of magnitude.
   return _.mapValues(ws => new Set(ws), _.groupBy(group, workspaces))
 }
 
-const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) => {
+const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, authorizeAndLoadAccounts }) => {
   // State
   const { query } = Nav.useRoute()
   // Rather than using a localized StateHistory store here, we use the existing `workspaceStore` value (via the `useWorkspaces` hook)
   const { workspaces, refresh: refreshWorkspaces } = useWorkspaces()
 
-  const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || null)
+  const [projectUsers, setProjectUsers] = useState(() => StateHistory.get().projectUsers || [])
   const [addingUser, setAddingUser] = useState(false)
   const [editingUser, setEditingUser] = useState(false)
   const [deletingUser, setDeletingUser] = useState(false)
   const [updating, setUpdating] = useState(false)
-  const [updatingAccount, setUpdatingAccount] = useState(false)
-  const [refreshing, setRefreshing] = useState(false)
   const [showBillingModal, setShowBillingModal] = useState(false)
   const [showSpendReportConfigurationModal, setShowSpendReportConfigurationModal] = useState(false)
   const [selectedBilling, setSelectedBilling] = useState()
@@ -207,16 +209,15 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
   const [expandedWorkspaceName, setExpandedWorkspaceName] = useState()
   const [sort, setSort] = useState({ field: 'email', direction: 'asc' })
   const [workspaceSort, setWorkspaceSort] = useState({ field: 'name', direction: 'asc' })
-  const [billingProject, setBillingProject] = useState(project)
 
   const signal = Utils.useCancellation()
 
   const adminCanEdit = _.filter(({ roles }) => _.includes(billingRoles.owner, roles), projectUsers).length > 1
 
-  const workspacesInProject = useMemo(() => _.flow(
-    _.map('workspace'),
-    _.filter({ namespace: billingProject.projectName })
-  )(workspaces), [billingProject, workspaces])
+  const workspacesInProject = useMemo(() => _.filter(
+    { namespace: billingProject.projectName },
+    _.map('workspace', workspaces)
+  ), [billingProject, workspaces])
 
   const groups = groupByBillingAccountStatus(billingProject, workspacesInProject)
   const billingAccountsOutOfDate = !(_.isEmpty(groups.error) && _.isEmpty(groups.updating))
@@ -235,7 +236,7 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
           _.map(workspace => {
             const isExpanded = expandedWorkspaceName === workspace.name
             return h(WorkspaceCard, {
-              workspace,
+              workspace: { ...workspace, billingAccountDisplayName: billingAccounts[workspace.billingAccount]?.displayName },
               billingAccountStatus: billingAccountsOutOfDate && getBillingAccountStatus(workspace),
               key: workspace.workspaceId,
               isExpanded,
@@ -289,28 +290,23 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
   })
 
   // Helpers
-  const updateBillingProject = withErrorReporting('Error updating billing project')(
-    () => Ajax(signal).Billing.billingProject(billingProject.projectName).then(setBillingProject)
-  )
-
   const setBillingAccount = _.flow(
-    withErrorReporting('Error updating billing account'),
-    Utils.withBusyState(setUpdatingAccount)
-  )(async newAccountName => {
+    reportErrorAndRethrow('Error updating billing account'),
+    Utils.withBusyState(setUpdating)
+  )(newAccountName => {
     Ajax().Metrics.captureEvent(Events.changeBillingAccount, {
       oldName: billingProject.billingAccount,
       newName: newAccountName,
       billingProjectName: billingProject.projectName
     })
-    await Ajax(signal).Billing.changeBillingAccount({
+    return Ajax(signal).Billing.changeBillingAccount({
       billingProjectName: billingProject.projectName,
       newBillingAccountName: newAccountName
     })
-    await updateBillingProject()
   })
 
   const updateSpendConfiguration = _.flow(
-    withErrorReporting('Error updating workflow spend report configuration'),
+    reportErrorAndRethrow('Error updating workflow spend report configuration'),
     Utils.withBusyState(setUpdating)
   )(() => Ajax(signal).Billing.updateSpendConfiguration({
     billingProjectName: billingProject.projectName,
@@ -318,36 +314,37 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
     datasetName: selectedDatasetName
   }))
 
-  const refresh = _.flow(
-    withErrorReporting('Error loading billing project users list'),
-    Utils.withBusyState(setRefreshing)
-  )(async () => {
-    setAddingUser(false)
-    setDeletingUser(false)
-    setUpdating(false)
-    setEditingUser(false)
-    const rawProjectUsers = await Ajax(signal).Billing.project(billingProject.projectName).listUsers()
-    const projectUsers = _.flow(
-      _.groupBy('email'),
-      _.map(gs => ({ ..._.omit('role', gs[0]), roles: _.map('role', gs) })),
-      _.sortBy('email')
-    )(rawProjectUsers)
-    setProjectUsers(projectUsers)
-  })
+  const collectUserRoles = _.flow(
+    _.groupBy('email'),
+    _.entries,
+    _.map(([email, members]) => ({ email, roles: _.map('role', members) })),
+    _.sortBy('email')
+  )
+
+  const reloadBillingProjectUsers = _.flow(
+    reportErrorAndRethrow('Error loading billing project users list'),
+    Utils.withBusyState(setUpdating)
+  )(() => Ajax(signal).Billing.listProjectUsers(billingProject.projectName)
+    .then(collectUserRoles)
+    .then(setProjectUsers)
+  )
+
+  const removeUserFromBillingProject = _.flow(
+    reportErrorAndRethrow('Error removing member from billing project'),
+    Utils.withBusyState(setUpdating)
+  )(_.partial(Ajax().Billing.removeProjectUser, [billingProject.projectName]))
 
   // Lifecycle
-  Utils.useOnMount(() => { refresh() })
+  Utils.useOnMount(() => { reloadBillingProjectUsers() })
 
   useEffect(() => { StateHistory.update({ projectUsers }) }, [projectUsers])
 
-  // There's some madness going on when using state variables in polling effects - the reference
-  // never updates (i.e. it's bound to the value that the component was first mounted with).
-  // `useGetter` works around this and I have no idea why.
+  // usePollingEffect calls the "effect" in a while-loop and binds references once on mount.
+  // As such, we need a layer of indirection to get current values.
   const getShowBillingModal = Utils.useGetter(showBillingModal)
   const getBillingAccountsOutOfDate = Utils.useGetter(billingAccountsOutOfDate)
   Utils.usePollingEffect(
-    async () => getShowBillingModal() || (getBillingAccountsOutOfDate() &&
-      await Promise.all([updateBillingProject(), refreshWorkspaces()])),
+    () => !getShowBillingModal() && getBillingAccountsOutOfDate() && refreshWorkspaces(),
     { ms: 5000 }
   )
 
@@ -376,9 +373,9 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
           onDismiss: () => setShowBillingModal(false),
           okButton: h(ButtonPrimary, {
             disabled: !selectedBilling || billingProject.billingAccount === selectedBilling,
-            onClick: async () => {
+            onClick: () => {
               setShowBillingModal(false)
-              await setBillingAccount(selectedBilling)
+              setBillingAccount(selectedBilling).then(reloadBillingProject)
             }
           }, ['Ok'])
         }, [
@@ -450,7 +447,7 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
         value: tab,
         onChange: newTab => {
           if (newTab === tab) {
-            refresh()
+            reloadBillingProjectUsers()
           } else {
             setTab(newTab)
           }
@@ -473,32 +470,36 @@ const ProjectDetail = ({ project, billingAccounts, authorizeAndLoadAccounts }) =
       userLabel: billingRoles.user,
       title: 'Add user to Billing Project',
       footer: 'Warning: Adding any user to this project will mean they can incur costs to the billing associated with this project.',
-      addFunction: Ajax().Billing.project(billingProject.projectName).addUser,
+      addFunction: _.partial(Ajax().Billing.addProjectUser, [billingProject.projectName]),
       onDismiss: () => setAddingUser(false),
-      onSuccess: refresh
+      onSuccess: () => {
+        setAddingUser(false)
+        reloadBillingProjectUsers()
+      }
     }),
     editingUser && h(EditUserModal, {
       adminLabel: billingRoles.owner,
       userLabel: billingRoles.user,
       user: editingUser,
-      saveFunction: Ajax().Billing.project(billingProject.projectName).changeUserRoles,
+      saveFunction: _.partial(Ajax().Billing.changeUserRoles, [billingProject.projectName]),
       onDismiss: () => setEditingUser(false),
-      onSuccess: refresh
+      onSuccess: () => {
+        setEditingUser(false)
+        reloadBillingProject().then(reloadBillingProjectUsers)
+      }
     }),
     !!deletingUser && h(DeleteUserModal, {
       userEmail: deletingUser.email,
       onDismiss: () => setDeletingUser(false),
-      onSubmit: _.flow(
-        withErrorReporting('Error removing member from billing project'),
-        Utils.withBusyState(setUpdating)
-      )(async () => {
+      onSubmit: () => {
         setDeletingUser(false)
-        await Ajax().Billing.project(billingProject.projectName).removeUser(deletingUser.roles, deletingUser.email)
-        refresh()
-      })
+        removeUserFromBillingProject(deletingUser.roles, deletingUser.email)
+          .then(reloadBillingProject)
+          .then(reloadBillingProjectUsers)
+      }
     }),
     billingAccountsOutOfDate && h(BillingAccountSummaryPanel, { counts: _.mapValues(_.size, groups) }),
-    (refreshing || updatingAccount || updating) && spinnerOverlay
+    updating && spinnerOverlay
   ])
 }
 

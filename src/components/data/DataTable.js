@@ -105,12 +105,12 @@ const DataTable = props => {
     withErrorReporting('Error loading entities')
   )(async () => {
     const { results, resultMetadata: { filteredCount, unfilteredCount } } = await Ajax(signal).Workspaces.workspace(namespace, name)
-      .paginatedEntitiesOfType(entityType, {
+      .paginatedEntitiesOfType(entityType, _.pickBy(_.trim, {
         page: pageNumber, pageSize: itemsPerPage, sortField: sort.field, sortDirection: sort.direction,
         ...(!!snapshotName ?
-          { billingProject: namespace, dataReference: snapshotName } :
+          { billingProject: googleProject, dataReference: snapshotName } :
           { filterTerms: activeTextFilter })
-      })
+      }))
     setEntities(results)
     setFilteredCount(filteredCount)
     setTotalRowCount(unfilteredCount)
@@ -120,8 +120,9 @@ const DataTable = props => {
     Utils.withBusyState(setLoading),
     withErrorReporting('Error loading entities')
   )(async () => {
-    const results = await Ajax(signal).Workspaces.workspace(namespace, name).entitiesOfType(entityType)
-    setSelected(entityMap(results))
+    const params = _.pickBy(_.trim, { pageSize: filteredCount, filterTerms: activeTextFilter })
+    const queryResults = await Ajax(signal).Workspaces.workspace(namespace, name).paginatedEntitiesOfType(entityType, params)
+    setSelected(entityMap(queryResults.results))
   })
 
   const selectPage = () => {
@@ -178,7 +179,7 @@ const DataTable = props => {
             'aria-label': 'Search',
             placeholder: 'Search',
             onChange: v => {
-              setActiveTextFilter(v)
+              setActiveTextFilter(v.toString().trim())
               setPageNumber(1)
             },
             defaultValue: activeTextFilter
@@ -215,7 +216,8 @@ const DataTable = props => {
                         closeOnClick: true,
                         content: h(Fragment, [
                           h(MenuButton, { onClick: selectPage }, ['Page']),
-                          h(MenuButton, { onClick: selectAll }, [`All (${totalRowCount})`]),
+                          !!filteredCount && (h(MenuButton, { onClick: selectAll },
+                            ((totalRowCount === filteredCount) ? [`All (${filteredCount})`] : [`Filtered (${filteredCount})`]))),
                           h(MenuButton, { onClick: selectNone }, ['None'])
                         ]),
                         side: 'bottom'
