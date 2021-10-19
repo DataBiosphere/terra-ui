@@ -10,6 +10,16 @@ import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 
 
+export const computeStyles = {
+  label: { fontWeight: 600, whiteSpace: 'pre' },
+  value: { fontWeight: 400, whiteSpace: 'pre' },
+  titleBar: { marginBottom: '1rem' },
+  whiteBoxContainer: { padding: '1rem', borderRadius: 3, backgroundColor: 'white' },
+  drawerContent: { display: 'flex', flexDirection: 'column', flex: 1, padding: '1.5rem' },
+  headerText: { fontSize: 16, fontWeight: 600 },
+  warningView: { backgroundColor: colors.warning(0.1) }
+}
+
 export const defaultDataprocDiskSize = 80 // For both main and worker machine disks. Dataproc clusters don't have persistent disks.
 export const defaultGceBootDiskSize = 80 // GCE boot disk size is not customizable by users. We use this for cost estimate calculations only.
 export const defaultGcePersistentDiskSize = 50
