@@ -623,7 +623,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         const gpuConfig = runtimeConfig?.gpuConfig
         const newSparkMode = Utils.switchCase(runtimeConfig?.cloudService,
           [cloudServices.DATAPROC, () => runtimeConfig.numberOfWorkers === 0 ? 'master' : 'cluster'],
-          [cloudServices.GCE, () => false]
+          [cloudServices.GCE, () => false],
+          [undefined, () => false] // for when there's no existing runtime
         )
         const isDataproc = !sparkMode && !runtimeConfig?.diskSize
 
