@@ -33,6 +33,13 @@ const styles = {
   }
 }
 
+const getUnique = (prop, data) => _.flow(
+  _.flatMap(prop),
+  _.compact,
+  _.uniq,
+  _.sortBy(_.toLower)
+)(data)
+
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const extractCatalogFilters = dataCatalog => {
   return [{
@@ -64,47 +71,22 @@ const extractCatalogFilters = dataCatalog => {
     }
   }, {
     name: 'Consortium',
-    labels: _.flow(
-      _.flatMap('project'),
-      _.uniqBy(_.identity),
-      _.sortBy(_.toLower)
-    )(dataCatalog)
+    labels: getUnique('project', dataCatalog)
   }, {
     name: 'Data Modality',
-    labels: _.flow(
-      _.flatMap('dataModality'),
-      _.uniqBy(_.identity),
-      _.sortBy(_.toLower)
-    )(dataCatalog)
+    labels: getUnique('dataModality', dataCatalog)
   }, {
     name: 'Data Type',
-    labels: _.flow(
-      _.flatMap('dataType'),
-      _.uniqBy(_.identity),
-      _.sortBy(_.toLower)
-    )(dataCatalog)
+    labels: getUnique('dataType', dataCatalog)
   }, {
     name: 'File Type',
-    labels: _.flow(
-      _.flatMap(c => c.files),
-      _.map('dcat:mediaType'),
-      _.uniqBy(_.identity),
-      _.sortBy(_.lowerCase)
-    )(dataCatalog)
+    labels: getUnique('dcat:mediaType', _.flatMap('files', dataCatalog))
   }, {
     name: 'Disease',
-    labels: _.flow(
-      _.flatMap(_.getOr([], 'samples.disease')),
-      _.uniqBy(_.identity),
-      _.sortBy(_.lowerCase)
-    )(dataCatalog)
+    labels: getUnique('samples.disease', dataCatalog)
   }, {
     name: 'Species',
-    labels: _.flow(
-      _.flatMap(_.getOr([], 'samples.genus')),
-      _.uniqBy(_.identity),
-      _.sortBy(_.lowerCase)
-    )(dataCatalog)
+    labels: getUnique('samples.genus', dataCatalog)
   }]
 }
 
