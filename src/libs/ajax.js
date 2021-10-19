@@ -790,6 +790,10 @@ const Workspaces = signal => ({
           { signal, method: 'PATCH' }]))
       },
 
+      deleteEntityColumn: (type, attributeName) => {
+        return fetchRawls(`${root}/entities/${type}?attributeNames=${attributeName}`, _.mergeAll([authOpts(), { signal, method: 'DELETE' }]))
+      },
+
       upsertEntities,
 
       paginatedEntitiesOfType: async (type, parameters) => {

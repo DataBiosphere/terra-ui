@@ -462,6 +462,13 @@ const WorkspaceData = _.flow(
     }
   }
 
+  const deleteColumnUpdateMetadata = ({ attributeName, entityType }) => {
+    const newArray = _.get(entityType, entityMetadata).attributeNames
+    const attributeNamesArrayUpdated = _.without([attributeName], newArray)
+    const updatedMetadata = _.set([entityType, 'attributeNames'], attributeNamesArrayUpdated, entityMetadata)
+    setEntityMetadata(updatedMetadata)
+  }
+
   // Lifecycle
   Utils.useOnMount(() => {
     loadMetadata()
@@ -703,7 +710,8 @@ const WorkspaceData = _.flow(
             entityMetadata,
             entityKey: selectedDataType,
             loadMetadata,
-            firstRender
+            firstRender,
+            deleteColumnUpdateMetadata
           })]
         )
       ])
