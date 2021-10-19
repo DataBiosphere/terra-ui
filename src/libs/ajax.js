@@ -957,13 +957,14 @@ const DataRepo = signal => ({
     // return res.json()
 
     // Attempt 4 ----------------------------
-    const query = `SELECT ${tableName}, COUNT(*) FROM \`${datasetProject}.datarepo_${datasetBqSnapshotName}.${tableName}\` AS ${tableName}`
+    const query = `SELECT ${tableName}, COUNT(30) FROM \`${datasetProject}.datarepo_${datasetBqSnapshotName}.${tableName}\``
     const body = { query, useLegacySql: false }
     const jbody = jsonBody(body)
     // const token = await saToken(datasetProject)
+    console.log('body', body)
 
     const res = await fetchBigQuery(
-      `projects/${datasetProject}/queries`,
+      `/projects/${datasetProject}/queries`,
       {
         signal, method: 'POST', jbody,
         headers: { Authorization: `Bearer ${getUser().token}` }
