@@ -582,6 +582,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const isDifferentLocation = () => {
+    // If the bucket is regional, we can easily compare the bucketLocation with the compute region.
+    // bucketLocation === 'US' means the bucket is US multi-regional.
+    // For a US multi-regional bucket, the computeRegion needs to be US-CENTRAL1 in order to be considered "in the same location".
     return bucketLocation === 'US' ? computeConfig.computeRegion !== defaultComputeRegion : computeConfig.computeRegion !== bucketLocation
   }
   // Helper functions -- end
@@ -1086,14 +1089,14 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       }),
       div({ style: { lineHeight: 1.5 } }, [
         p([
-          'This cloud environment will be created in the region ', computeConfig.computeRegion, '. ',
-          'Copying data from your workspace bucket in ', bucketLocation, ' may incur network egress charges.'
+          'This cloud environment will be created in the region ', computeConfig.computeRegion.toLowerCase(), '. ',
+          'Copying data from your workspace bucket in ', bucketLocation.toLowerCase(), ' may incur network egress charges.'
         ]),
         h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
           'For more information please read the documentation.',
           icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ]),
-        p(['If you want your VM in ', computeConfig.computeRegion, ', continue. Otherwise, go back to select another location.'])
+        p(['If you want your VM in ', computeConfig.computeRegion.toLowerCase(), ', continue. Otherwise, go back to select another location.'])
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
         renderActionButton()
@@ -1400,7 +1403,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 ]),
                 li({ style: { marginTop: '1rem' } }, [
                   p([
-                    'This cloud environment will be created in the region ', computeConfig.computeRegion, '. ',
+                    'This cloud environment will be created in the region ',
+                    span({ style: { fontWeight: 600 } }, [computeConfig.computeRegion.toLowerCase()]), '. ',
                     'Copying data from a bucket in a different region may incur network egress charges. ',
                     'For more information, particularly if you work with data stored in multiple cloud regions, please read the ',
                     h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
