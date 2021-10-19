@@ -117,6 +117,5 @@ export const navPaths = [{
   name: 'library-catalog-preview',
   path: '/library/browser/:id/preview',
   component: DataBrowserPreview,
-  title: ({ id }) => `Catalog - Dataset Preview`,
-  public: true
+  title: ({ id }) => `Catalog - Dataset Preview`
 }]
