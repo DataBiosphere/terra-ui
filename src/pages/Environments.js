@@ -17,7 +17,7 @@ import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import {
   getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, getPersistentDiskCostMonthly, isComputePausable,
-  isResourceDeletable, runtimeCost
+  isResourceDeletable, runtimeCost, defaultComputeZone, defaultComputeRegion
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -369,7 +369,7 @@ const Environments = () => {
               const region = cloudEnvironment?.runtimeConfig?.region
               // This logic works under the assumption that all Galaxy apps get created in zone 'us-central1-a'
               // if zone or region are not present then cloudEnvironment is a Galaxy app so return 'us-central1-a'
-              return zone || region || 'us-central1-a'
+              return zone || region || defaultComputeZone
             }
           },
           {
@@ -505,7 +505,7 @@ const Environments = () => {
               return h(Sortable, { sort: diskSort, field: 'cost', onSort: setDiskSort }, [`Cost / month (${Utils.formatUSD(totalDiskCost)} total)`])
             },
             cellRenderer: ({ rowIndex }) => {
-              return Utils.formatUSD(getPersistentDiskCostMonthly(filteredDisks[rowIndex], 'US-CENTRAL1'))
+              return Utils.formatUSD(getPersistentDiskCostMonthly(filteredDisks[rowIndex], defaultComputeRegion))
             }
           },
           {
