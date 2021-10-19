@@ -282,6 +282,6 @@ export const navPaths = [
     path: '/library/browser',
     component: Browser,
     title: 'Datasets',
-    public: false
+    public: true
   }
 ]
