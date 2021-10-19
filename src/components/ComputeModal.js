@@ -582,7 +582,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const isDifferentLocation = () => {
-    return bucketLocation === 'US' ? computeConfig.computeRegion !== 'US-CENTRAL1' : bucketLocation !== computeConfig.computeZone
+    return bucketLocation === 'US' ? computeConfig.computeRegion !== defaultComputeRegion : computeConfig.computeRegion !== bucketLocation
   }
   // Helper functions -- end
 
