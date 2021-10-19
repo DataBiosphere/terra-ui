@@ -563,7 +563,7 @@ const WorkspaceData = _.flow(
                       tooltip: canCompute ?
                         tableName ? `${tableName} (${count} row${count === 1 ? '' : 's'})` : undefined :
                         [div({ key: `${tableName}-tooltip`, style: { whiteSpace: 'pre-wrap' } }, 'You must be an owner, or a writer with compute permission, to view this snapshot.\n\n' +
-                        'Contact the owner of this workspace in order to change your permissions.')],
+                        'Contact the owner of this workspace to change your permissions.')],
                       tooltipSide: canCompute ? 'bottom' : 'left',
                       key: `${snapshotName}_${tableName}`,
                       selected: _.isEqual(selectedDataType, [snapshotName, tableName]),
