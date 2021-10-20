@@ -1002,7 +1002,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           id => div({ style: { gridColumnEnd: 'span 3' } }, [
             label({ htmlFor: id, style: computeStyles.label }, ['Location']),
             h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-              'Cloud environments run in the same region as the workspace bucket and cannot be changed at this time.',
+              'Cloud environments run in the same region as the workspace bucket and cannot be changed at this time.'
             ]),
             div({ style: { marginTop: '0.5rem' } }, [
               h(Select, {
