@@ -73,7 +73,7 @@ const SnapshotLabeledInfo = ({ title, text }) => {
 }
 
 export const SnapshotInfo = ({
-  workspace: { workspace, workspace: { namespace, name } }, resource: { resourceId, description, snapshotId }, snapshotName,
+  workspace: { accessLevel, workspace, workspace: { namespace, name } }, resource: { resourceId, description, snapshotId }, snapshotName,
   onUpdate, onDelete
 }) => {
   // State
@@ -132,7 +132,7 @@ export const SnapshotInfo = ({
           }
         }, [
           snapshotName,
-          !editingDescription && h(Link, {
+          Utils.canWrite(accessLevel) && !editingName && h(Link, {
             style: { marginLeft: '0.5rem' },
             onClick: () => setEditingName(true),
             tooltip: 'Edit snapshot name'
@@ -140,7 +140,7 @@ export const SnapshotInfo = ({
         ]),
         div({ style: { ...Style.elements.sectionHeader, marginBottom: '0.2rem' } }, [
           'Description:',
-          !editingDescription && h(Link, {
+          Utils.canWrite(accessLevel) && !editingDescription && h(Link, {
             style: { marginLeft: '0.5rem' },
             onClick: () => setNewDescription(description || ''), // description is null for newly-added snapshot references
             tooltip: 'Edit description'
@@ -177,7 +177,7 @@ export const SnapshotInfo = ({
           ])
         }, source)
       ]),
-      div({ style: { marginTop: '2rem' } }, [
+      Utils.canWrite(accessLevel) && div({ style: { marginTop: '2rem' } }, [
         h(ButtonSecondary, { onClick: () => setDeleting(true) }, ['Delete snapshot from workspace'])
       ]),
       editingName && h(Modal, {

@@ -206,7 +206,7 @@ const EntitiesContent = ({
   workspace, workspace: {
     workspace: { namespace, name, googleProject, attributes: { 'workspace-column-defaults': columnDefaults } }, workspaceSubmissionStats: { runningSubmissionsCount }
   },
-  entityKey, entityMetadata, loadMetadata, firstRender, snapshotName
+  entityKey, entityMetadata, loadMetadata, firstRender, snapshotName, deleteColumnUpdateMetadata
 }) => {
   // State
   const [selectedEntities, setSelectedEntities] = useState({})
@@ -383,7 +383,8 @@ const EntitiesContent = ({
             style: { marginRight: '0.5rem' }
           }, [`${selectedLength} row${selectedLength === 1 ? '' : 's'} selected`]),
           renderSelectedRowsMenu(columnSettings)
-        ])
+        ]),
+        deleteColumnUpdateMetadata
       }),
       deletingEntities && h(EntityDeleter, {
         onDismiss: () => setDeletingEntities(false),

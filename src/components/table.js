@@ -628,7 +628,7 @@ export const Sortable = ({ sort, field, onSort, children }) => {
   }, [
     children,
     sort.field === field && div({
-      style: { color: colors.accent(), marginLeft: 'auto' }
+      style: { color: colors.accent(), marginLeft: '0.1rem' }
     }, [
       icon(sort.direction === 'asc' ? 'long-arrow-alt-down' : 'long-arrow-alt-up')
     ]),

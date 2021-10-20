@@ -9,8 +9,9 @@ import Dropzone from 'src/components/Dropzone'
 import { icon } from 'src/components/icons'
 import { NumberInput, PasteOnlyInput, TextInput, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import { SimpleTabBar } from 'src/components/tabBars'
-import { TextCell } from 'src/components/table'
+import { Sortable, TextCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { UriViewerLink } from 'src/components/UriViewer'
 import ReferenceData from 'src/data/reference-data'
@@ -693,6 +694,75 @@ export const ModalToolButton = ({ icon, text, disabled, ...props }) => {
       img({ src: icon, style: { opacity: disabled ? 0.5 : undefined, maxWidth: 45, maxHeight: 40 } })
     ]),
     text
+  ])
+}
+
+export const DeleteEntityColumnModal = ({ workspaceId: { namespace, name }, column: { entityType, attributeName }, onDismiss, onSuccess }) => {
+  const [deleting, setDeleting] = useState(false)
+  const [deleteConfirmation, setDeleteConfirmation] = useState('')
+
+  const signal = Utils.useCancellation()
+
+  const deleteColumn = async () => {
+    try {
+      setDeleting(true)
+      await Ajax(signal).Workspaces.workspace(namespace, name).deleteEntityColumn(entityType, attributeName)
+      onDismiss()
+      onSuccess()
+    } catch (e) {
+      reportError('Unable to modify column', e)
+      setDeleting(false)
+    }
+  }
+
+  return h(Modal, {
+    title: 'Delete Column',
+    onDismiss,
+    okButton: h(ButtonPrimary, {
+      onClick: deleteColumn,
+      disabled: _.toLower(deleteConfirmation) !== 'delete column',
+      tooltip: _.toLower(deleteConfirmation) !== 'delete column' ? 'You must type the confirmation message' : undefined
+    }, 'Delete column')
+  }, [
+    div(['Are you sure you want to permanently delete the column ',
+      span({ style: { fontWeight: 600, wordBreak: 'break-word' } }, attributeName),
+      '?']),
+    div({
+      style: { fontWeight: 500, marginTop: '1rem' }
+    }, 'This cannot be undone.'),
+    div({ style: { marginTop: '1rem' } }, [
+      label({ htmlFor: 'delete-column-confirmation' }, ['Please type "Delete Column" to continue:']),
+      h(TextInput, {
+        id: 'delete-column-confirmation',
+        placeholder: 'Delete Column',
+        value: deleteConfirmation,
+        onChange: setDeleteConfirmation
+      })
+    ]),
+    deleting && spinnerOverlay
+  ])
+}
+
+export const HeaderOptions = ({ sort, field, onSort, isEntityName, beginDelete, children }) => {
+  const columnMenu = h(MenuTrigger, {
+    closeOnClick: true,
+    side: 'bottom',
+    content: h(Fragment, [
+      h(MenuButton, { onClick: () => onSort({ field, direction: 'asc' }) }, ['Sort Ascending']),
+      h(MenuButton, { onClick: () => onSort({ field, direction: 'desc' }) }, ['Sort Descending']),
+      !isEntityName && h(MenuButton, { onClick: beginDelete }, ['Delete Column'])
+    ])
+  }, [
+    h(Link, { 'aria-label': 'Workflow menu', onClick: e => e.stopPropagation() }, [
+      icon('cardMenuIcon', { size: 16 })
+    ])
+  ])
+
+  return h(Sortable, {
+    sort, field, onSort
+  }, [
+    children,
+    div({ style: { marginRight: '0.5rem', marginLeft: 'auto' } }, [columnMenu])
   ])
 }
 
