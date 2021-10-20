@@ -585,6 +585,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     // If the bucket is regional, we can easily compare the bucketLocation with the compute region.
     // bucketLocation === 'US' means the bucket is US multi-regional.
     // For a US multi-regional bucket, the computeRegion needs to be US-CENTRAL1 in order to be considered "in the same location".
+    // Currently, US is the only multi-region supported in Terra
     return bucketLocation === 'US' ? computeConfig.computeRegion !== defaultComputeRegion : computeConfig.computeRegion !== bucketLocation
   }
   // Helper functions -- end
