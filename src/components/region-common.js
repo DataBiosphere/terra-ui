@@ -1,7 +1,7 @@
 import * as Utils from 'src/libs/utils'
 
 // Get a { flag: ..., countryName: ... } object representing a google locationType/location input.
-// 'flag' will always be defined (even if it's a question mark.
+// 'flag' will always be defined (even if it's a question mark).
 // 'regionDescription' is the same as location when locationType is 'multi-region', or a country name when locationType is 'region'.
 // computeZone is generally the 'a' zone for each region, except for those regions where it is not available.
 // The choice to use the 'a' zone is arbitrary, choosing 'b' zone would also work.

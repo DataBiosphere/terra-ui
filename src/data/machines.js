@@ -47,9 +47,9 @@ export const gpuTypes = [
   { name: 'NVIDIA Tesla V100', type: 'nvidia-tesla-v100', numGpus: 2, maxNumCpus: 24, maxMem: 156, price: 4.9600, preemptiblePrice: 1.4800 },
   { name: 'NVIDIA Tesla V100', type: 'nvidia-tesla-v100', numGpus: 4, maxNumCpus: 48, maxMem: 312, price: 9.9200, preemptiblePrice: 2.9600 },
   { name: 'NVIDIA Tesla V100', type: 'nvidia-tesla-v100', numGpus: 8, maxNumCpus: 96, maxMem: 624, price: 19.8400, preemptiblePrice: 5.9200 },
-  { name: 'NVIDIA Tesla VP00', type: 'nvidia-tesla-p100', numGpus: 1, maxNumCpus: 16, maxMem: 104, price: 1.4600, preemptiblePrice: 0.4300 },
-  { name: 'NVIDIA Tesla VP00', type: 'nvidia-tesla-p100', numGpus: 2, maxNumCpus: 32, maxMem: 208, price: 2.9200, preemptiblePrice: 0.8600 },
-  { name: 'NVIDIA Tesla VP00', type: 'nvidia-tesla-p100', numGpus: 4, maxNumCpus: 96, maxMem: 624, price: 5.8400, preemptiblePrice: 1.7200 }
+  { name: 'NVIDIA Tesla P100', type: 'nvidia-tesla-p100', numGpus: 1, maxNumCpus: 16, maxMem: 104, price: 1.4600, preemptiblePrice: 0.4300 },
+  { name: 'NVIDIA Tesla P100', type: 'nvidia-tesla-p100', numGpus: 2, maxNumCpus: 32, maxMem: 208, price: 2.9200, preemptiblePrice: 0.8600 },
+  { name: 'NVIDIA Tesla P100', type: 'nvidia-tesla-p100', numGpus: 4, maxNumCpus: 96, maxMem: 624, price: 5.8400, preemptiblePrice: 1.7200 }
 
 ]
 
