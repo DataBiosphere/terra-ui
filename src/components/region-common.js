@@ -10,7 +10,7 @@ import * as Utils from 'src/libs/utils'
 // When updating region list, please also update the list in
 // https://github.com/DataBiosphere/leonardo/blob/develop/http/src/main/resources/reference.conf
 export const unknownRegionFlag = '❓'
-export const regionInfo = (location, locationType) => {
+export const getRegionInfo = (location, locationType) => {
   const regionDescription = `${locationType}: ${location}`.toLowerCase()
   return Utils.switchCase(locationType,
     ['multi-region', () => Utils.switchCase(location,
@@ -52,14 +52,20 @@ export const regionInfo = (location, locationType) => {
   )
 }
 
+export const locationTypes = {
+  region: 'region',
+  multiRegion: 'multi-region',
+  default: 'multi-region'
+}
+
 export const allRegions = [
   // In this list, us-east*, us-west*, northamerica-northeast2 and asia-northeast2 have purposefully been removed.
   // This is to avoid creating within-country silos of life sciences community data.
   // So for US, Canada and Japan, we are restricting to one region.
   // For more information, see https://docs.google.com/document/d/1RMu8bxXAyP2q_85UHkPARW1Xpt_G_662pRi0LCML4yA/edit#heading=h.53j9ueoid5vt
   // TODO(wnojopra): Replace the above link with the Terra support article link once published
-  { value: 'US', label: 'US multi-regional (default)', locationType: 'multi-region' },
-  { value: 'US-CENTRAL1', label: 'us-central1 (Iowa)', locationType: 'region' }
+  { value: 'US', label: 'US multi-regional (default)', locationType: locationTypes.multiRegion },
+  { value: 'US-CENTRAL1', label: 'us-central1 (Iowa)', locationType: locationTypes.region }
   // Initially releasing regionality with just US-CENTRAL1 region. Overtime, will introduce more regions.
   // { value: 'NORTHAMERICA-NORTHEAST1', label: 'northamerica-northeast1 (Montreal)', locationType: 'region' },
   // { value: 'SOUTHAMERICA-EAST1', label: 'southamerica-east1 (Sao Paulo)', locationType: 'region' },

@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, input, label } from 'react-hyperscript-helpers'
 import { IdContainer } from 'src/components/common'
+import { locationTypes } from 'src/components/region-common'
 import {
   cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, regionToDiskPrice, zonesToGpus
 } from 'src/data/machines'
@@ -33,7 +34,7 @@ export const defaultGpuType = 'nvidia-tesla-t4'
 export const defaultNumGpus = 1
 
 export const defaultLocation = 'US'
-export const defaultLocationType = 'multi-region'
+export const defaultLocationType = locationTypes.default
 
 export const defaultComputeZone = 'US-CENTRAL1-A'
 export const defaultComputeRegion = 'US-CENTRAL1'
@@ -68,13 +69,13 @@ export const findMachineType = name => {
   return _.find({ name }, machineTypes) || { name, cpu: '?', memory: '?', price: NaN, preemptiblePrice: NaN }
 }
 
-export const getValidGpusForZone = zone => {
+export const getValidGpuTypesForZone = zone => {
   return _.flow(_.find({ name: zone }), _.get(['validTypes']))(zonesToGpus)
 }
 
 export const getValidGpuTypes = (numCpus, mem, zone) => {
-  const validGpusForZone = getValidGpusForZone(zone)
-  const validGpuTypes = _.filter(({ maxNumCpus, maxMem, type }) => numCpus <= maxNumCpus && mem <= maxMem && validGpusForZone.includes(type), gpuTypes)
+  const validGpuTypesForZone = getValidGpuTypesForZone(zone)
+  const validGpuTypes = _.filter(({ maxNumCpus, maxMem, type }) => numCpus <= maxNumCpus && mem <= maxMem && validGpuTypesForZone.includes(type), gpuTypes)
   return validGpuTypes || { name: '?', type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
 }
 

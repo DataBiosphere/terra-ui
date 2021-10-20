@@ -50,7 +50,6 @@ export const gpuTypes = [
   { name: 'NVIDIA Tesla P100', type: 'nvidia-tesla-p100', numGpus: 1, maxNumCpus: 16, maxMem: 104, price: 1.4600, preemptiblePrice: 0.4300 },
   { name: 'NVIDIA Tesla P100', type: 'nvidia-tesla-p100', numGpus: 2, maxNumCpus: 32, maxMem: 208, price: 2.9200, preemptiblePrice: 0.8600 },
   { name: 'NVIDIA Tesla P100', type: 'nvidia-tesla-p100', numGpus: 4, maxNumCpus: 96, maxMem: 624, price: 5.8400, preemptiblePrice: 1.7200 }
-
 ]
 
 export const zonesToGpus = [

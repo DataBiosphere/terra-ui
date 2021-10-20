@@ -10,7 +10,7 @@ import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { allRegions, regionInfo } from 'src/components/region-common'
+import { allRegions, getRegionInfo } from 'src/components/region-common'
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -24,8 +24,8 @@ import * as Nav from 'src/libs/nav'
 import {
   computeStyles, defaultComputeRegion, defaultComputeZone, defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize, defaultGceMachineType,
   defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultLocationType, defaultNumDataprocPreemptibleWorkers,
-  defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType, getPersistentDiskCostMonthly, getValidGpusForZone, getValidGpuTypes,
-  RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
+  defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType, getPersistentDiskCostMonthly, getValidGpuTypes,
+  getValidGpuTypesForZone, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -576,7 +576,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   }
 
   const updateComputeLocation = (location, locationType) => {
-    const { computeZone, computeRegion } = regionInfo(location, locationType)
+    const { computeZone, computeRegion } = getRegionInfo(location, locationType)
     updateComputeConfig('computeZone', computeZone)
     updateComputeConfig('computeRegion', computeRegion)
   }
@@ -649,7 +649,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
         setBucketLocation(location)
 
-        const { computeZone, computeRegion } = regionInfo(location || defaultLocation, locationType || defaultLocationType)
+        const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType || defaultLocationType)
         const runtimeConfig = currentRuntimeDetails?.runtimeConfig
         const gpuConfig = runtimeConfig?.gpuConfig
         const newSparkMode = Utils.switchCase(runtimeConfig?.cloudService,
@@ -715,7 +715,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       hasGpu && viewMode !== 'deleteEnvironmentOptions',
       () => ({ disabled: true, tooltip: 'Cloud compute with GPU(s) cannot be updated. Please delete it and create a new one.' })
     ], [
-      computeConfig.gpuEnabled && getValidGpusForZone(computeConfig.computeZone).length === 0 && viewMode !== 'deleteEnvironmentOptions',
+      computeConfig.gpuEnabled && _.isEmpty(getValidGpuTypesForZone(computeConfig.computeZone)) && viewMode !== 'deleteEnvironmentOptions',
       () => ({ disabled: true, tooltip: 'GPUs not available in this location.' })
     ], [
       currentPersistentDiskDetails && currentPersistentDiskDetails.zone.toUpperCase() !== computeConfig.computeZone && viewMode !== 'deleteEnvironmentOptions',

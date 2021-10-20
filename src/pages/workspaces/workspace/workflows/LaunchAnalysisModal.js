@@ -7,7 +7,7 @@ import { icon, spinner } from 'src/components/icons'
 import { ValidatedTextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { regionInfo } from 'src/components/region-common'
+import { getRegionInfo } from 'src/components/region-common'
 import { Ajax } from 'src/libs/ajax'
 import { launch } from 'src/libs/analysis'
 import colors from 'src/libs/colors'
@@ -81,7 +81,7 @@ const LaunchAnalysisModal = ({
   const { location, locationType } = bucketLocation
   // us-central1 is always used for the location of the lifesciences api metadata.
   // This is separate from the location that the VMs will run in, which is what we're setting here with computeRegion.
-  const { flag, regionDescription } = regionInfo(location, locationType)
+  const { flag, regionDescription } = getRegionInfo(location, locationType)
 
   const onlyConstantInputs = _.every(i => !i || Utils.maybeParseJSON(i) !== undefined, config.inputs)
   const warnDuplicateAnalyses = onlyConstantInputs && entityCount > 1
