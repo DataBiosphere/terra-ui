@@ -1017,7 +1017,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 isSearchable: false,
                 value: computeConfig.computeRegion,
                 onChange: ({ value, locationType }) => updateComputeLocation(value, locationType),
-                options: _.flow(_.filter(l => l.value !== 'US'), _.sortBy('label'))(allRegions)
+                options: _.flow(_.filter(l => l.value !== defaultLocation), _.sortBy('label'))(allRegions)
               })
             ])
           ])
@@ -1094,14 +1094,14 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       }),
       div({ style: { lineHeight: 1.5 } }, [
         p([
-          'This cloud environment will be created in the region ', computeConfig.computeRegion.toLowerCase(), '. ',
-          'Copying data from your workspace bucket in ', bucketLocation.toLowerCase(), ' may incur network egress charges.'
+          `This cloud environment will be created in the region ${computeConfig.computeRegion.toLowerCase()}. `,
+          `Copying data from your workspace bucket in ${bucketLocation.toLowerCase()} may incur network egress charges.`
         ]),
         h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
           'For more information please read the documentation.',
           icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ]),
-        p(['If you want your VM in ', computeConfig.computeRegion.toLowerCase(), ', continue. Otherwise, go back to select another location.'])
+        p([`If you want your VM in ${computeConfig.computeRegion.toLowerCase()} continue. Otherwise, go back to select another location.`])
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
         renderActionButton()
