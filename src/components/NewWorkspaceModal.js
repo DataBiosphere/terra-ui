@@ -33,6 +33,15 @@ const constraints = {
   }
 }
 
+const warningStyle = {
+  border: `1px solid ${colors.warning(0.8)}`, borderLeft: 'none', borderRight: 'none',
+  backgroundColor: colors.warning(0.15),
+  padding: '1rem 1.25rem', margin: '0 -1.25rem',
+  fontWeight: 'bold', fontSize: 12,
+  display: 'flex',
+  alignItems: 'center'
+}
+
 const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   cloneWorkspace, onSuccess, onDismiss, customMessage, requiredAuthDomain, title, buttonText
 }) => {
@@ -48,6 +57,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState()
   const [bucketLocation, setBucketLocation] = useState(defaultLocation)
+  const [sourceWorkspaceLocation, setSourceWorkspaceLocation] = useState(defaultLocation)
   const signal = Utils.useCancellation()
 
 
@@ -113,7 +123,12 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   )(async () => {
     const locationResponse = await Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
     setBucketLocation(locationResponse.location)
+    setSourceWorkspaceLocation(locationResponse.location)
   })
+
+  const showDifferentRegionWarning = () => {
+    return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation
+  }
 
   // Lifecycle
   Utils.useOnMount(() => {
@@ -250,6 +265,11 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
       createError && div({
         style: { marginTop: '1rem', color: colors.danger() }
       }, [createError]),
+      showDifferentRegionWarning() && div({ style: { ...warningStyle, marginTop: '1rem' } }, [
+        icon('warning-standard', { size: 36, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
+        `The cloned workspace will have a bucket in the region ${bucketLocation.toLowerCase()}. `,
+        `Copying data from a bucket in a different region may incur network egress charges.`
+      ]),
       creating && spinnerOverlay
     ])],
     () => h(Modal, {
