@@ -2,7 +2,6 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, input, label } from 'react-hyperscript-helpers'
 import { IdContainer } from 'src/components/common'
-import { locationTypes } from 'src/components/region-common'
 import {
   cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, regionToDiskPrice, zonesToGpus
 } from 'src/data/machines'
@@ -34,7 +33,6 @@ export const defaultGpuType = 'nvidia-tesla-t4'
 export const defaultNumGpus = 1
 
 export const defaultLocation = 'US'
-export const defaultLocationType = locationTypes.default
 
 export const defaultComputeZone = 'US-CENTRAL1-A'
 export const defaultComputeRegion = 'US-CENTRAL1'
@@ -95,10 +93,10 @@ export const runtimeConfigBaseCost = config => {
   const isDataproc = cloudService === cloudServices.DATAPROC
 
   return _.sum([
-    (masterDiskSize + numberOfWorkers * workerDiskSize) * getStoragePriceForRegion(computeRegion),
+    (masterDiskSize + numberOfWorkers * workerDiskSize) * getPersistentDiskPriceForRegionHourly(computeRegion),
     isDataproc ?
       (dataprocCost(masterMachineType, 1) + dataprocCost(workerMachineType, numberOfWorkers)) :
-      (bootDiskSize * getStoragePriceForRegion(computeRegion))
+      (bootDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion))
   ])
 }
 
@@ -115,7 +113,7 @@ export const runtimeConfigCost = config => {
     masterPrice,
     numberOfWorkers * workerPrice,
     numberOfPreemptibleWorkers * preemptiblePrice,
-    numberOfPreemptibleWorkers * workerDiskSize * getStoragePriceForRegion(computeRegion),
+    numberOfPreemptibleWorkers * workerDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion),
     cloudService === cloudServices.DATAPROC && dataprocCost(workerMachineType, numberOfPreemptibleWorkers),
     gpuEnabled && gpuCost(gpuConfig.gpuType, gpuConfig.numOfGpus),
     ephemeralExternalIpAddressCost({ numStandardVms: numberOfStandardVms, numPreemptibleVms: numberOfPreemptibleWorkers }),
@@ -123,17 +121,19 @@ export const runtimeConfigCost = config => {
   ])
 }
 
-const getStoragePriceForRegion = computeRegion => {
-  // per GB hour using 730 hours per month from https://cloud.google.com/compute/pricing
-  return _.flow(_.find({ name: computeRegion }), _.get(['monthlyDiskPrice']))(regionToDiskPrice) / 730
+// Per GB following https://cloud.google.com/compute/pricing
+const getPersistentDiskPriceForRegionMonthly = computeRegion => {
+  return _.flow(_.find({ name: computeRegion }), _.get(['monthlyDiskPrice']))(regionToDiskPrice)
 }
+const numberOfHoursPerMonth = 730
+const getPersistentDiskPriceForRegionHourly = computeRegion => getPersistentDiskPriceForRegionMonthly(computeRegion) / numberOfHoursPerMonth
 
-export const getPersistentDiskCost = ({ size, status }, computeRegion) => {
-  const price = getStoragePriceForRegion(computeRegion)
+export const getPersistentDiskCostMonthly = ({ size, status }, computeRegion) => {
+  const price = getPersistentDiskPriceForRegionMonthly(computeRegion)
   return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : size * price
 }
-export const getPersistentDiskCostMonthly = ({ size, status }, computeRegion) => {
-  const price = _.flow(_.find({ name: computeRegion }), _.get(['monthlyDiskPrice']))(regionToDiskPrice)
+export const getPersistentDiskCostHourly = ({ size, status }, computeRegion) => {
+  const price = getPersistentDiskPriceForRegionHourly(computeRegion)
   return _.includes(status, ['Deleting', 'Failed']) ? 0.0 : size * price
 }
 
@@ -195,7 +195,7 @@ export const getGalaxyDiskCost = dataDiskSize => {
   const defaultNodepoolBootDiskSize = 100 // GB
   const appNodepoolBootDiskSize = 100 // GB
 
-  return getPersistentDiskCost({
+  return getPersistentDiskCostHourly({
     status: 'Running',
     size: dataDiskSize + metadataDiskSize + defaultNodepoolBootDiskSize + appNodepoolBootDiskSize
   }, defaultComputeRegion)

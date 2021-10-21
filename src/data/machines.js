@@ -134,7 +134,7 @@ export const cloudServices = {
 }
 
 export const dataprocCpuPrice = 0.01 // dataproc costs $0.01 per cpu per hour
-export const ephemeralExternalIpAddressPrice = { // per hour in dollars for Iowa (us-central1) region per https://cloud.google.com/vpc/network-pricing#ipaddress
+export const ephemeralExternalIpAddressPrice = { // per hour in dollars for all regions per https://cloud.google.com/vpc/network-pricing#ipaddress
   standard: 0.004,
   preemptible: 0.002
 }

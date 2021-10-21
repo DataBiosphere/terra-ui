@@ -10,7 +10,7 @@ import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { allRegions, getRegionInfo } from 'src/components/region-common'
+import { allRegions, getRegionInfo, locationTypes } from 'src/components/region-common'
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -23,7 +23,7 @@ import { versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import {
   computeStyles, defaultComputeRegion, defaultComputeZone, defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize, defaultGceMachineType,
-  defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultLocationType, defaultNumDataprocPreemptibleWorkers,
+  defaultGcePersistentDiskSize, defaultGpuType, defaultLocation, defaultNumDataprocPreemptibleWorkers,
   defaultNumDataprocWorkers, defaultNumGpus, displayNameForGpuType, findMachineType, getCurrentRuntime, getDefaultMachineType, getPersistentDiskCostMonthly, getValidGpuTypes,
   getValidGpuTypesForZone, RadioBlock, runtimeConfigBaseCost, runtimeConfigCost
 } from 'src/libs/runtime-utils'
@@ -586,7 +586,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     // bucketLocation === 'US' means the bucket is US multi-regional.
     // For a US multi-regional bucket, the computeRegion needs to be US-CENTRAL1 in order to be considered "in the same location".
     // Currently, US is the only multi-region supported in Terra
-    return bucketLocation === 'US' ? computeConfig.computeRegion !== defaultComputeRegion : computeConfig.computeRegion !== bucketLocation
+    if (bucketLocation === defaultLocation) {
+      return computeConfig.computeRegion !== defaultComputeRegion
+    } else {
+      return computeConfig.computeRegion !== bucketLocation
+    }
   }
   // Helper functions -- end
 
@@ -649,7 +653,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
         setBucketLocation(location)
 
-        const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType || defaultLocationType)
+        const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType || locationTypes.default)
         const runtimeConfig = currentRuntimeDetails?.runtimeConfig
         const gpuConfig = runtimeConfig?.gpuConfig
         const newSparkMode = Utils.switchCase(runtimeConfig?.cloudService,
@@ -719,7 +723,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       computeConfig.gpuEnabled && _.isEmpty(getValidGpuTypesForZone(computeConfig.computeZone)) && viewMode !== 'deleteEnvironmentOptions',
       () => ({ disabled: true, tooltip: 'GPUs not available in this location.' })
     ], [
-      currentPersistentDiskDetails && currentPersistentDiskDetails.zone.toUpperCase() !== computeConfig.computeZone && viewMode !== 'deleteEnvironmentOptions',
+      !!currentPersistentDiskDetails && currentPersistentDiskDetails.zone.toUpperCase() !== computeConfig.computeZone && viewMode !== 'deleteEnvironmentOptions',
       () => ({ disabled: true, tooltip: 'Cannot create environment in location differing from existing persistent disk location.' })
     ],
       () => ({ disabled: !hasChanges() || !!errors, tooltip: Utils.summarizeErrors(errors) })
