@@ -230,15 +230,17 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
 }
 
 const withAutocomplete = WrappedComponent => ({
-  instructions, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId,
-  renderSuggestion = _.identity, openOnFocus = true, placeholderText, ...props
+  instructions, itemToString, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId,
+  renderSuggestion = _.identity, openOnFocus = true, suggestionFilter = Utils.textMatch, placeholderText, ...props
 }) => {
   Utils.useLabelAssert('withAutocomplete', { id, 'aria-labelledby': labelId, ...props, allowId: true })
 
-  const suggestions = _.filter(Utils.textMatch(value), rawSuggestions)
+  const suggestions = _.filter(suggestionFilter(value), rawSuggestions)
+  const controlProps = itemToString ? { itemToString: v => v ? itemToString(v) : value } : { selectedItem: value }
 
   return h(Downshift, {
-    selectedItem: value,
+    ...controlProps,
+    initialInputValue: value,
     onSelect: v => !!v && onPick?.(v),
     onInputValueChange: newValue => {
       if (newValue !== value) {
@@ -267,7 +269,7 @@ const withAutocomplete = WrappedComponent => ({
             } else if (_.includes(e.key, ['ArrowUp', 'ArrowDown']) && !suggestions.length) {
               e.nativeEvent.preventDownshiftDefault = true
             } else if (e.key === 'Enter') {
-              onPick && onPick(value)
+              onPick ? onPick(value) : toggleMenu()
             }
           },
           nativeOnChange: true,
@@ -283,7 +285,7 @@ const withAutocomplete = WrappedComponent => ({
           }, [placeholderText])]],
           [!_.isEmpty(suggestions), () => _.map(([index, item]) => {
             return div(getItemProps({
-              item, key: item,
+              item, key: index,
               style: styles.suggestion(highlightedIndex === index)
             }), [renderSuggestion(item)])
           }, Utils.toIndexPairs(suggestions))])
@@ -294,6 +296,8 @@ const withAutocomplete = WrappedComponent => ({
 }
 
 export const AutocompleteTextInput = withAutocomplete(TextInput)
+
+export const DelayedAutoCompleteInput = withDebouncedChange(AutocompleteTextInput)
 
 export const TextArea = ({ onChange, autosize = false, nativeOnChange = false, ...props }) => {
   Utils.useLabelAssert('TextArea', { ...props, allowId: true })
