@@ -270,12 +270,6 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         workspaceStore.set(workspace)
         setGoogleProject(workspace.workspace.googleProject)
 
-        // const { location, locationType } = await Ajax().Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
-        const location = 'US'
-        const locationType = 'multi-region'
-        setLocation(location)
-        setLocationType(locationType)
-
         const { accessLevel, workspace: { createdBy, createdDate, googleProject } } = workspace
 
         // Request a service account token. If this is the first time, it could take some time before everything is in sync.
@@ -283,6 +277,12 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         if (Utils.canWrite(accessLevel)) {
           saToken(googleProject)
         }
+
+        const { location, locationType } = await Ajax().Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
+        // const location = 'US'
+        // const locationType = 'multi-region'
+        setLocation(location)
+        setLocationType(locationType)
 
         if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceInSeconds(Date.now(), parseJSON(createdDate)) < 60)) {
           accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
