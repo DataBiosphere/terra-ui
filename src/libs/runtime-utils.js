@@ -272,7 +272,7 @@ export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
 
-export const getCurrentPersistentDisk = (appType, apps, appDataDisks) => {
+export const getCurrentPersistentDisk = (appType, apps, appDataDisks, workspaceName) => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
   const currentApp = getCurrentAppIncludingDeleting(appType)(apps)
   const currentDiskName = currentApp?.diskName
@@ -282,7 +282,7 @@ export const getCurrentPersistentDisk = (appType, apps, appDataDisks) => {
   return !!currentDiskName ?
     _.find({ name: currentDiskName }, appDataDisks) :
     _.flow(
-      _.filter(disk => getDiskAppType(disk) === appType && disk.status !== 'Deleting' && !_.includes(disk.name, attachedDiskNames)),
+      _.filter(disk => getDiskAppType(disk) === appType && disk.status !== 'Deleting' && !_.includes(disk.name, attachedDiskNames) && disk.labels.saturnWorkspaceName === workspaceName),
       _.sortBy('auditInfo.createdDate'),
       _.last
     )(appDataDisks)
