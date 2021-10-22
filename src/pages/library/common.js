@@ -167,7 +167,6 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
 
 
   const onSearchChange = filter => {
-    // Note: setting undefined so that falsy values don't show up at all
     const newSearch = qs.stringify({
       ...query,
       filter: filter || undefined
@@ -211,7 +210,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
             match => _.size(match) < 2 ? [...match, div({ style: { marginLeft: '2rem' } }, [...getContext(suggestion['dct:description'])])] : match
           )(suggestion['dct:title']))
         },
-        suggestions: fullList
+        suggestions: filteredData
       }),
       !customSort && h(IdContainer, [
         id => h(Fragment, [
