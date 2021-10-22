@@ -104,7 +104,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     }
   }
 
-  const loadProjectsGroups = _.flow(
+  const loadData = _.flow(
     withErrorReporting('Error loading data'),
     Utils.withBusyState(setLoading)
   )(() => Promise.all([
@@ -114,17 +114,13 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
         setBillingProjects(projects)
         setNamespace(_.some({ projectName: namespace }, projects) ? namespace : undefined)
       }),
-    Ajax(signal).Groups.list().then(setAllGroups)
+    Ajax(signal).Groups.list().then(setAllGroups),
+    !! cloneWorkspace && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
+      .then(locationResponse => {
+        setBucketLocation(locationResponse.location)
+        setSourceWorkspaceLocation(locationResponse.location)
+      })
   ]))
-
-  const loadBucketLocation = _.flow(
-    withErrorReporting('Error loading data'),
-    Utils.withBusyState(setLoading)
-  )(async () => {
-    const locationResponse = await Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
-    setBucketLocation(locationResponse.location)
-    setSourceWorkspaceLocation(locationResponse.location)
-  })
 
   const showDifferentRegionWarning = () => {
     return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation
@@ -132,8 +128,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
 
   // Lifecycle
   Utils.useOnMount(() => {
-    loadProjectsGroups()
-    !!cloneWorkspace && loadBucketLocation()
+    loadData()
   })
 
 
