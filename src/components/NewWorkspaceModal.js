@@ -224,7 +224,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     }, [
       div({ style: { color: colors.warning() } }, [
         icon('error-standard', { size: 16, style: { marginRight: '0.5rem' } }),
-        'You need a billing project to ', cloneWorkspace ? 'clone a' : 'create a new', ' workspace.'
+        'Youu need a billing project to ', cloneWorkspace ? 'clone a' : 'create a new', ' workspace.'
       ])
     ])
   )
