@@ -268,11 +268,23 @@ export const getDiskAppType = disk => {
   return appType
 }
 
+export const workspaceHasMultipleDisks = (disks, diskAppType) => {
+  const appTypeDisks = _.filter(disk => getDiskAppType(disk) === diskAppType && disk.status !== 'Deleting', disks)
+  const diskWorkspaces = _.map(currentDisk => currentDisk.labels.saturnWorkspaceName, appTypeDisks)
+  return _.uniq(diskWorkspaces).length < diskWorkspaces.length
+}
+
+export const workspaceHasMultipleApps = (apps, appType) => {
+  const appsByType = _.filter(currentApp => currentApp.appType === appType && !_.includes(currentApp.status, ['DELETING', 'PREDELETING']), apps)
+  const appWorkspaces = _.map(currentApp => currentApp.labels.saturnWorkspaceName, appsByType)
+  return _.uniq(appWorkspaces).length < appWorkspaces.length
+}
+
 export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
 
-export const getCurrentPersistentDisk = (appType, apps, appDataDisks) => {
+export const getCurrentPersistentDisk = (appType, apps, appDataDisks, workspaceName) => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
   const currentApp = getCurrentAppIncludingDeleting(appType)(apps)
   const currentDiskName = currentApp?.diskName
@@ -282,7 +294,7 @@ export const getCurrentPersistentDisk = (appType, apps, appDataDisks) => {
   return !!currentDiskName ?
     _.find({ name: currentDiskName }, appDataDisks) :
     _.flow(
-      _.filter(disk => getDiskAppType(disk) === appType && disk.status !== 'Deleting' && !_.includes(disk.name, attachedDiskNames)),
+      _.filter(disk => getDiskAppType(disk) === appType && disk.status !== 'Deleting' && !_.includes(disk.name, attachedDiskNames) && disk.labels.saturnWorkspaceName === workspaceName),
       _.sortBy('auditInfo.createdDate'),
       _.last
     )(appDataDisks)
