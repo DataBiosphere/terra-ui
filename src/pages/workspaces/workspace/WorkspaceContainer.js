@@ -270,7 +270,9 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         workspaceStore.set(workspace)
         setGoogleProject(workspace.workspace.googleProject)
 
-        const { location, locationType } = await Ajax().Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
+        // const { location, locationType } = await Ajax().Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
+        const location = 'US'
+        const locationType = 'multi-region'
         setLocation(location)
         setLocationType(locationType)
 
