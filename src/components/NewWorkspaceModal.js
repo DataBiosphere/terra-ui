@@ -15,6 +15,7 @@ import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { defaultLocation } from 'src/libs/runtime-utils'
+import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
@@ -31,15 +32,6 @@ const constraints = {
   namespace: {
     presence: true
   }
-}
-
-const warningStyle = {
-  border: `1px solid ${colors.warning(0.8)}`, borderLeft: 'none', borderRight: 'none',
-  backgroundColor: colors.warning(0.15),
-  padding: '1rem 1.25rem', margin: '0 -1.25rem',
-  fontWeight: 'bold', fontSize: 12,
-  display: 'flex',
-  alignItems: 'center'
 }
 
 const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
@@ -260,7 +252,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
       createError && div({
         style: { marginTop: '1rem', color: colors.danger() }
       }, [createError]),
-      showDifferentRegionWarning() && div({ style: { ...warningStyle, marginTop: '1rem' } }, [
+      showDifferentRegionWarning() && div({ style: { ...Style.warningStyle, display: 'flex', marginTop: '1rem' } }, [
         icon('warning-standard', { size: 36, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
         `The cloned workspace will have a bucket in the region ${bucketLocation.toLowerCase()}. `,
         `Copying data from a bucket in a different region may incur network egress charges.`
