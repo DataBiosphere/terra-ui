@@ -252,7 +252,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
       createError && div({
         style: { marginTop: '1rem', color: colors.danger() }
       }, [createError]),
-      showDifferentRegionWarning() && div({ style: { ...Style.warningStyle, display: 'flex', marginTop: '1rem' } }, [
+      showDifferentRegionWarning() && div({ style: { ...Style.warningStyle, display: 'flex', fontWeight: 'normal', marginTop: '1rem' } }, [
         icon('warning-standard', { size: 36, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
         `The cloned workspace will have a bucket in the region ${bucketLocation.toLowerCase()}. `,
         `Copying data from a bucket in a different region may incur network egress charges.`
