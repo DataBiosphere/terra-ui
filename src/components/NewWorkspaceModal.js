@@ -107,14 +107,14 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
         setNamespace(_.some({ projectName: namespace }, projects) ? namespace : undefined)
       }),
     Ajax(signal).Groups.list().then(setAllGroups),
-    !! cloneWorkspace && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
+    !!cloneWorkspace && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
       .then(locationResponse => {
         setBucketLocation(locationResponse.location)
         setSourceWorkspaceLocation(locationResponse.location)
       })
   ]))
 
-  const showDifferentRegionWarning = () => {
+  const shouldShowDifferentRegionWarning = () => {
     return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation
   }
 
@@ -252,7 +252,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
       createError && div({
         style: { marginTop: '1rem', color: colors.danger() }
       }, [createError]),
-      showDifferentRegionWarning() && div({ style: { ...Style.warningStyle, display: 'flex', fontWeight: 'normal', marginTop: '1rem' } }, [
+      shouldShowDifferentRegionWarning() && div({ style: { ...Style.warningStyle, display: 'flex', fontWeight: 'normal', marginTop: '1rem' } }, [
         icon('warning-standard', { size: 36, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
         `The cloned workspace will have a bucket in the region ${bucketLocation.toLowerCase()}. `,
         `Copying data from a bucket in a different region may incur network egress charges.`

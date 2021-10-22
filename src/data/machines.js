@@ -79,7 +79,7 @@ export const zonesToGpus = [
   { name: 'ASIA-SOUTHEAST2-C', validTypes: [] },
   { name: 'AUSTRALIA-SOUTHEAST1-A', validTypes: ['nvidia-tesla-t4', 'nvidia-tesla-p4'] },
   { name: 'AUSTRALIA-SOUTHEAST1-B', validTypes: ['nvidia-tesla-p4'] },
-  { name: 'AUSTRALIA-SOUTHEAST1-C', validTypes: ['nvidia-tesla-p4'] },
+  { name: 'AUSTRALIA-SOUTHEAST1-C', validTypes: ['nvidia-tesla-p100'] },
   { name: 'EUROPE-NORTH1-A', validTypes: [] },
   { name: 'EUROPE-NORTH1-B', validTypes: [] },
   { name: 'EUROPE-NORTH1-C', validTypes: [] },
@@ -106,10 +106,10 @@ export const zonesToGpus = [
   { name: 'SOUTHAMERICA-EAST1-C', validTypes: ['nvidia-tesla-t4'] },
   { name: 'US-CENTRAL1-A', validTypes: ['nvidia-tesla-t4', 'nvidia-tesla-v100', 'nvidia-tesla-p4', 'nvidia-tesla-k80'] },
   { name: 'US-CENTRAL1-B', validTypes: ['nvidia-tesla-t4', 'nvidia-tesla-v100'] },
-  { name: 'US-CENTRAL1-C', validTypes: ['nvidia-tesla-t4', 'nvidia-tesla-v100', 'nvidia-tesla-p100', 'nvidia-tesla-p4', 'nvidia-tesla-k80'] },
-  { name: 'US-CENTRAL1-F', validTypes: ['nvidia-tesla-v100', 'nvidia-tesla-p100'] },
+  { name: 'US-CENTRAL1-C', validTypes: ['nvidia-tesla-v100', 'nvidia-tesla-p100', 'nvidia-tesla-p4', 'nvidia-tesla-k80'] },
+  { name: 'US-CENTRAL1-F', validTypes: ['nvidia-tesla-t4', 'nvidia-tesla-v100', 'nvidia-tesla-p100'] },
   { name: 'US-EAST1-B', validTypes: ['nvidia-tesla-p100'] },
-  { name: 'US-EAST1-C', validTypes: ['nvidia-tesla-t4', 'nvidia-tesla-v100', 'nvidia-tesla-p4', 'nvidia-tesla-k80'] },
+  { name: 'US-EAST1-C', validTypes: ['nvidia-tesla-t4', 'nvidia-tesla-v100', 'nvidia-tesla-p100', 'nvidia-tesla-k80'] },
   { name: 'US-EAST1-D', validTypes: ['nvidia-tesla-t4', 'nvidia-tesla-k80'] },
   { name: 'US-EAST4-A', validTypes: ['nvidia-tesla-p4'] },
   { name: 'US-EAST4-B', validTypes: ['nvidia-tesla-t4', 'nvidia-tesla-p4'] },
@@ -134,11 +134,12 @@ export const cloudServices = {
 }
 
 export const dataprocCpuPrice = 0.01 // dataproc costs $0.01 per cpu per hour
-export const ephemeralExternalIpAddressPrice = { // per hour in dollars for all regions per https://cloud.google.com/vpc/network-pricing#ipaddress
+export const ephemeralExternalIpAddressPrice = {// per hour in dollars for all regions per https://cloud.google.com/vpc/network-pricing#ipaddress
   standard: 0.004,
   preemptible: 0.002
 }
 
+// Prices below are per GB per https://cloud.google.com/compute/all-pricing#disk
 export const regionToDiskPrice = [
   { name: 'ASIA-EAST1', monthlyDiskPrice: 0.04 },
   { name: 'ASIA-EAST2', monthlyDiskPrice: 0.05 },
