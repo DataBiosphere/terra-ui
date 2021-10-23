@@ -28,7 +28,7 @@ const testPreviewDrsUriFn = _.flow(
   await click(page, clickable({ textContains: workspaceName }))
 
   await click(page, navChild('data'))
-  await delay(5000)
+  await delay(1000)
   await click(page, clickable({ textContains: testEntity.entityType }))
   await click(page, elementInDataTableRow(testEntity.name, testEntity.attributes.file_uri))
   await waitForNoSpinners(page)

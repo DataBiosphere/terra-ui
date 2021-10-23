@@ -27,7 +27,7 @@ const testImportCohortDataFn = _.flow(
   await click(page, clickable({ textContains: 'an existing workspace' }))
   await select(page, 'Select a workspace', workspaceName)
   await click(page, clickable({ text: 'Import' }))
-  await delay(5000)
+  await delay(1000)
   await click(page, clickable({ textContains: 'cohort' }))
   await findInGrid(page, '1000 Genomes')
   await findInGrid(page, cohortName)
