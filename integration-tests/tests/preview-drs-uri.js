@@ -29,6 +29,7 @@ const testPreviewDrsUriFn = _.flow(
 
   await click(page, navChild('data'))
   await click(page, clickable({ textContains: testEntity.entityType }))
+  await click(page, clickable({ textContains: testEntity.entityType }))
   await click(page, elementInDataTableRow(testEntity.name, testEntity.attributes.file_uri))
   await waitForNoSpinners(page)
   await findText(page, 'View this file in the Google Cloud Storage Browser')
