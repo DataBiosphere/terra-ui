@@ -1,6 +1,6 @@
 const _ = require('lodash/fp')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { findInGrid, click, clickable, dismissNotifications, fillIn, findIframe, input, signIntoTerra, select, svgText, waitForNoSpinners, findElement } = require('../utils/integration-utils')
+const { findInGrid, click, clickable, delay, dismissNotifications, fillIn, findIframe, input, signIntoTerra, select, svgText, waitForNoSpinners, findElement } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
@@ -27,6 +27,8 @@ const testImportCohortDataFn = _.flow(
   await click(page, clickable({ textContains: 'an existing workspace' }))
   await select(page, 'Select a workspace', workspaceName)
   await click(page, clickable({ text: 'Import' }))
+  // Wait a bit for the workspace to load
+  await delay(5000)
   await click(page, clickable({ textContains: 'cohort' }))
   await findInGrid(page, '1000 Genomes')
   await findInGrid(page, cohortName)
