@@ -1,6 +1,6 @@
 const _ = require('lodash/fp')
 const { withWorkspace } = require('../utils/integration-helpers')
-const { findInGrid, click, clickable, dismissNotifications, fillIn, findIframe, input, signIntoTerra, select, svgText, waitForNoSpinners, findElement } = require('../utils/integration-utils')
+const { findInGrid, click, clickable, delay, dismissNotifications, fillIn, findIframe, input, signIntoTerra, select, svgText, waitForNoSpinners, findElement } = require('../utils/integration-utils')
 const { withUserToken } = require('../utils/terra-sa-utils')
 
 
