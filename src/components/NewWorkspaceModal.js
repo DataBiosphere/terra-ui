@@ -24,6 +24,7 @@ const warningStyle = {
   borderRadius: '5px',
   backgroundColor: colors.warning(0.15),
   display: 'flex',
+  lineHeight: '22px',
   padding: '1rem 1rem', margin: '0.5rem 0 1rem',
   fontWeight: 'normal', fontSize: 14
 }
