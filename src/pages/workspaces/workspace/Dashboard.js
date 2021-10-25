@@ -6,7 +6,7 @@ import { ButtonPrimary, ButtonSecondary, ClipboardButton, Link, spinnerOverlay }
 import { centeredSpinner, icon, spinner } from 'src/components/icons'
 import { MarkdownEditor, MarkdownViewer } from 'src/components/markdown'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { regionInfo } from 'src/components/region-common'
+import { getRegionInfo } from 'src/components/region-common'
 import { SimpleTable, TooltipCell } from 'src/components/table'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { WorkspaceTagSelect } from 'src/components/workspace-utils'
@@ -220,7 +220,7 @@ const WorkspaceDashboard = _.flow(
 
   // Render
   const isEditing = _.isString(editDescription)
-  const { flag, regionDescription } = regionInfo(bucketLocation, bucketLocationType)
+  const { flag, regionDescription } = getRegionInfo(bucketLocation, bucketLocationType)
 
   return div({ style: { flex: 1, display: 'flex' } }, [
     div({ style: Style.dashboard.leftBox }, [

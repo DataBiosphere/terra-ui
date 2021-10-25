@@ -8,6 +8,7 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
+import { locationTypes } from 'src/components/region-common'
 import { appLauncherTabName } from 'src/components/runtime-common'
 import RuntimeManager from 'src/components/RuntimeManager'
 import { TabBar } from 'src/components/tabBars'
@@ -19,7 +20,7 @@ import { isAnalysisTabVisible, isTerra } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
+import { defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
 import { workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -67,7 +68,7 @@ const WorkspaceTabs = ({
 
 const WorkspaceContainer = ({
   namespace, name, breadcrumbs, topBarContent, title, activeTab, showTabBar = true, refresh, refreshRuntimes, workspace,
-  runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, children
+  runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, location, locationType, children
 }) => {
   const [deletingWorkspace, setDeletingWorkspace] = useState(false)
   const [cloningWorkspace, setCloningWorkspace] = useState(false)
@@ -99,7 +100,7 @@ const WorkspaceContainer = ({
       h(RuntimeManager, {
         namespace, name, runtimes, persistentDisks, refreshRuntimes,
         canCompute: !!(workspace?.canCompute || runtimes?.length),
-        apps, galaxyDataDisks, workspace, refreshApps
+        apps, galaxyDataDisks, workspace, refreshApps, location, locationType
       })
     ]),
     showTabBar && h(WorkspaceTabs, {
@@ -117,7 +118,7 @@ const WorkspaceContainer = ({
           workspace && h(ContextBar, {
             workspace, setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace,
             apps, galaxyDataDisks, refreshApps,
-            runtimes, persistentDisks, refreshRuntimes
+            runtimes, persistentDisks, refreshRuntimes, location, locationType
           })
         ])] : [children])),
     deletingWorkspace && h(DeleteWorkspaceModal, {
@@ -246,6 +247,8 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       cachedWorkspace :
       undefined
     const [googleProject, setGoogleProject] = useState(workspace?.workspace.googleProject)
+    const [location, setLocation] = useState(defaultLocation)
+    const [locationType, setLocationType] = useState(locationTypes.default)
     const prevGoogleProject = Utils.usePrevious(googleProject)
     const { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks } = useCloudEnvironmentPolling(googleProject)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
@@ -266,6 +269,10 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         ])
         workspaceStore.set(workspace)
         setGoogleProject(workspace.workspace.googleProject)
+
+        const { location, locationType } = await Ajax().Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
+        setLocation(location)
+        setLocationType(locationType)
 
         const { accessLevel, workspace: { createdBy, createdDate, googleProject } } = workspace
 
@@ -307,7 +314,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       return h(FooterWrapper, [h(TopBar), h(WorkspaceAccessError)])
     } else {
       return h(WorkspaceContainer, {
-        namespace, name, activeTab, showTabBar, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps,
+        namespace, name, activeTab, showTabBar, workspace, runtimes, persistentDisks, galaxyDataDisks, apps, refreshApps, location, locationType,
         title: _.isFunction(title) ? title(props) : title,
         breadcrumbs: breadcrumbs(props),
         topBarContent: topBarContent && topBarContent({ workspace, ...props }),

@@ -32,9 +32,8 @@ const contextBarStyles = {
   hover: { backgroundColor: colors.accent(0.4) }
 }
 
-export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
+export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setSharingWorkspace, runtimes, apps, galaxyDataDisks, refreshRuntimes, location, locationType, refreshApps, workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } } }) => {
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
-
 
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentApp = getCurrentApp(apps)
@@ -87,7 +86,9 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
       runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps,
       workspace,
       canCompute,
-      persistentDisks
+      persistentDisks,
+      location,
+      locationType
     }),
     div({ style: Style.elements.contextBarContainer }, [
       div({ style: contextBarStyles.contextBarContainer }, [

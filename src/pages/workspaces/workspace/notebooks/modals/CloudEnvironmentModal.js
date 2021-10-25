@@ -7,6 +7,7 @@ import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { tools } from 'src/components/notebook-utils'
+import { getRegionInfo } from 'src/components/region-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import TitleBar from 'src/components/TitleBar'
 import cloudIcon from 'src/icons/cloud-compute.svg'
@@ -26,8 +27,8 @@ import {
   getGalaxyCostTextChildren,
   getIsAppBusy,
   getIsRuntimeBusy,
+  getPersistentDiskCostHourly,
   isCurrentGalaxyDiskDetaching,
-  persistentDiskCost,
   runtimeCost
 } from 'src/libs/runtime-utils'
 import { cookieReadyStore } from 'src/libs/state'
@@ -38,13 +39,15 @@ const titleId = 'cloud-env-modal'
 
 export const CloudEnvironmentModal = ({
   isOpen, onDismiss, onSuccess, canCompute, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps,
-  workspace, persistentDisks, workspace: { workspace: { namespace, bucketName, name: workspaceName } }
+  workspace, persistentDisks, location, locationType, workspace: { workspace: { namespace, bucketName, name: workspaceName } }
 }) => {
   const [viewMode, setViewMode] = useState(undefined)
   const [busy, setBusy] = useState(false)
   const [errorRuntimeId, setErrorRuntimeId] = useState(undefined)
   const [errorAppId, setErrorAppId] = useState(undefined)
   const cookieReady = Utils.useStore(cookieReadyStore)
+
+  const [computeRegion] = useState(getRegionInfo(location, locationType).computeRegion)
 
   const noCompute = 'You do not have access to run analyses on this workspace.'
 
@@ -246,7 +249,7 @@ export const CloudEnvironmentModal = ({
     [toolLabel === tools.galaxy.label, () => getGalaxyCostTextChildren(currentApp, galaxyDataDisks)],
     [getRuntimeForTool(toolLabel), () => {
       const runtime = getRuntimeForTool(toolLabel)
-      const totalCost = runtimeCost(runtime) + _.sum(_.map(persistentDiskCost, persistentDisks))
+      const totalCost = runtimeCost(runtime) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
       return span([`${getComputeStatusForDisplay(runtime.status)} (${Utils.formatUSD(totalCost)} / hr)`])
     }],
     [Utils.DEFAULT, () => span(['None'])]
@@ -407,6 +410,5 @@ export const CloudEnvironmentModal = ({
       onDismiss()
     }
   }
-
   return h(ModalDrawer, { ...modalProps, children: modalBody })
 }

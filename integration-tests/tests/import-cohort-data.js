@@ -27,6 +27,10 @@ const testImportCohortDataFn = _.flow(
   await click(page, clickable({ textContains: 'an existing workspace' }))
   await select(page, 'Select a workspace', workspaceName)
   await click(page, clickable({ text: 'Import' }))
+
+  // Loading the workspace page now means we need to make a Google API call to
+  // fetch the GCS bucket location. Wait a bit for it.
+  await waitForNoSpinners(page)
   await click(page, clickable({ textContains: 'cohort' }))
   await findInGrid(page, '1000 Genomes')
   await findInGrid(page, cohortName)
