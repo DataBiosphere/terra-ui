@@ -1,7 +1,7 @@
 const _ = require('lodash/fp')
 const { withWorkspace, createEntityInWorkspace } = require('../utils/integration-helpers')
 const { withUserToken } = require('../utils/terra-sa-utils')
-const { findText, navChild, fillIn, click, clickable, delay, elementInDataTableRow, waitForNoSpinners, input, signIntoTerra, dismissNotifications } = require('../utils/integration-utils')
+const { findText, navChild, fillIn, click, clickable, elementInDataTableRow, waitForNoSpinners, input, signIntoTerra, dismissNotifications } = require('../utils/integration-utils')
 
 
 const testPreviewDrsUriFn = _.flow(
@@ -28,8 +28,10 @@ const testPreviewDrsUriFn = _.flow(
   await click(page, clickable({ textContains: workspaceName }))
 
   await click(page, navChild('data'))
-  // Wait a bit for the workspace to load
-  await delay(5000)
+
+  // Loading the workspace page now means we need to make a Google API call to
+  // fetch the GCS bucket location. Wait a bit for it.
+  await waitForNoSpinners(page)
   await click(page, clickable({ textContains: testEntity.entityType }))
   await click(page, elementInDataTableRow(testEntity.name, testEntity.attributes.file_uri))
   await waitForNoSpinners(page)
