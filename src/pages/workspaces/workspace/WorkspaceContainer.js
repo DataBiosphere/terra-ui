@@ -13,7 +13,7 @@ import { appLauncherTabName } from 'src/components/runtime-common'
 import RuntimeManager from 'src/components/RuntimeManager'
 import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
-import { Ajax } from 'src/libs/ajax'
+import { Ajax, saToken } from 'src/libs/ajax'
 import { getUser } from 'src/libs/auth'
 import colors from 'src/libs/colors'
 import { isAnalysisTabVisible, isTerra } from 'src/libs/config'
@@ -275,6 +275,12 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         setLocationType(locationType)
 
         const { accessLevel, workspace: { createdBy, createdDate } } = workspace
+
+        // Request a service account token. If this is the first time, it could take some time before everything is in sync.
+        // Doing this now, even though we don't explicitly need it now, increases the likelihood that it will be ready when it is needed.
+        if (Utils.canWrite(accessLevel)) {
+          saToken(googleProject)
+        }
 
         if (!Utils.isOwner(accessLevel) && (createdBy === getUser().email) && (differenceInSeconds(Date.now(), parseJSON(createdDate)) < 60)) {
           accessNotificationId.current = notify('info', 'Workspace access synchronizing', {
