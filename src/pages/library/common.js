@@ -204,11 +204,17 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
         onChange: onSearchChange,
         suggestionFilter: _.curry((needle, { lowerName, lowerDescription }) => _.includes(_.toLower(needle), `${lowerName} ${lowerDescription}`)),
         renderSuggestion: suggestion => {
-          return div(_.flow(
-            _.split(filterRegex),
-            _.map(item => _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item),
-            match => _.size(match) < 2 ? [...match, div({ style: { marginLeft: '2rem' } }, [...getContext(suggestion['dct:description'])])] : match
-          )(suggestion['dct:title']))
+          return div({ style: { lineHeight: '1.75rem', padding: '0.375rem 0', borderBottom: `1px dotted ${colors.dark(0.7)}` } },
+            _.flow(
+              _.split(filterRegex),
+              _.map(item => _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item),
+              match => {
+                return _.size(match) < 2 ?
+                  [...match, div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion['dct:description'])])] :
+                  match
+              }
+            )(suggestion['dct:title'])
+          )
         },
         suggestions: filteredData
       }),
