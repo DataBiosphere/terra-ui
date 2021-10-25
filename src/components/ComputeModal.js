@@ -618,7 +618,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ])
       const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
 
-      const { location, locationType } = await Ajax().Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
+      const { location } = await Ajax().Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
 
       const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
       const foundImage = _.find({ image: imageUrl }, newLeoImages)
@@ -653,7 +653,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
       setBucketLocation(location)
 
-      const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType || locationTypes.default)
+      // For initial regionality release, compute zone and region is limited to
+      // us-central1. In later releases, we should pass in bucket location and
+      // bucket locationType here instead of defaultLocation and locationTypes.default
+      const { computeZone, computeRegion } = getRegionInfo(defaultLocation, locationTypes.default)
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
       const newSparkMode = Utils.switchCase(runtimeConfig?.cloudService,
