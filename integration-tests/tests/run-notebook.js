@@ -42,6 +42,7 @@ const testRunNotebookFn = _.flow(
   await delay(1000)
   waitForNoSpinners(page)
   await click(page, clickable({ text: 'Create' }))
+  waitForNoSpinners(page)
   await findElement(page, clickable({ textContains: 'Creating' }))
   await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60 * 1000 })
 
