@@ -13,7 +13,7 @@ export const unknownRegionFlag = '❓'
 export const getRegionInfo = (location, locationType) => {
   const regionDescription = locationType === locationTypes.multiRegion ?
     `${location} (${locationTypes.multiRegion})` :
-    `${location}`.toLowerCase()
+    location ? location.toLowerCase() : 'UNKNOWN'
   return Utils.switchCase(locationType,
     ['multi-region', () => Utils.switchCase(location,
       ['US', () => ({ flag: '🇺🇸', regionDescription, computeZone: 'US-CENTRAL1-A', computeRegion: 'US-CENTRAL1' })],

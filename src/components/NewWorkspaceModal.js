@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, p, span } from 'react-hyperscript-helpers'
+import { div, h, p, strong } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
@@ -226,10 +226,10 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
         icon('warning-standard', { size: 24, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
         div({ style: { flex: 1 } }, [
           `Copying data from `,
-          span({ style: { fontWeight: 600 } }, [`${getRegionInfo(sourceWorkspaceLocation, sourceLocationType).regionDescription} `]),
-          `to `,
-          span({ style: { fontWeight: 600 } }, [`${getRegionInfo(bucketLocation, destLocationType).regionDescription} `]),
-          `may incur network egress charges. `,
+          strong([getRegionInfo(sourceWorkspaceLocation, sourceLocationType).regionDescription]),
+          ` to `,
+          strong([getRegionInfo(bucketLocation, destLocationType).regionDescription]),
+          ` may incur network egress charges. `,
           `To prevent charges, the new bucket location needs to stay in the same region as the original one.`
         ])
       ]),
