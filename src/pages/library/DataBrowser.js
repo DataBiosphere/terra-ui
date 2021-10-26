@@ -92,9 +92,6 @@ const extractCatalogFilters = dataCatalog => {
 
 const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
   const length = _.size(selectedData).toLocaleString()
-  const files = _.sumBy(data => _.sumBy('count', data.files), selectedData).toLocaleString()
-  const totalBytes = _.sumBy(data => _.sumBy('dcat:byteSize', data.files), selectedData)
-  const fileSizeFormatted = filesize(totalBytes)
 
   return !_.isEmpty(selectedData) && div({
     style: {
@@ -107,7 +104,7 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
   }, [
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       div({ style: { flexGrow: 1 } }, [
-        `${length} dataset${length > 1 ? 's' : ''} (${fileSizeFormatted} - ${files} files) selected to be saved to a Terra Workspace`
+        `${length} dataset${length > 1 ? 's' : ''} selected to be linked to a Terra Workspace`
       ]),
       h(ButtonSecondary, {
         style: { fontSize: 16, marginRight: 40, textTransform: 'none' },
@@ -123,7 +120,7 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
             })
           })
         }
-      }, ['Save to a workspace'])
+      }, ['Link to a workspace'])
     ])
   ])
 }
