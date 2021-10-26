@@ -1,11 +1,12 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h } from 'react-hyperscript-helpers'
+import { div, h, p, strong } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
+import { allRegions, getRegionInfo, locationTypes } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -13,9 +14,20 @@ import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
+import { defaultLocation } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
+
+const warningStyle = {
+  border: `1px solid ${colors.warning(0.8)}`,
+  borderRadius: '5px',
+  backgroundColor: colors.warning(0.15),
+  display: 'flex',
+  lineHeight: '18px',
+  padding: '1rem 1rem', margin: '0.5rem 0 1rem',
+  fontWeight: 'normal', fontSize: 14
+}
 
 const constraints = {
   name: {
@@ -45,7 +57,8 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
   const [loading, setLoading] = useState(false)
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState()
-
+  const [bucketLocation, setBucketLocation] = useState(defaultLocation)
+  const [sourceWorkspaceLocation, setSourceWorkspaceLocation] = useState(defaultLocation)
   const signal = Utils.useCancellation()
 
 
@@ -65,7 +78,8 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
         name,
         authorizationDomain: _.map(v => ({ membersGroupName: v }), [...getRequiredGroups(), ...groups]),
         attributes: { description },
-        copyFilesWithPrefix: 'notebooks/'
+        copyFilesWithPrefix: 'notebooks/',
+        ...(!!bucketLocation && { bucketLocation })
       }
       onSuccess(await Utils.cond(
         [cloneWorkspace, async () => {
@@ -91,7 +105,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     }
   }
 
-  const loadProjectsGroups = _.flow(
+  const loadData = _.flow(
     withErrorReporting('Error loading data'),
     Utils.withBusyState(setLoading)
   )(() => Promise.all([
@@ -101,11 +115,22 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
         setBillingProjects(projects)
         setNamespace(_.some({ projectName: namespace }, projects) ? namespace : undefined)
       }),
-    Ajax(signal).Groups.list().then(setAllGroups)
+    Ajax(signal).Groups.list().then(setAllGroups),
+    !!cloneWorkspace && Ajax(signal).Workspaces.workspace(namespace, cloneWorkspace.workspace.name).checkBucketLocation(cloneWorkspace.workspace.googleProject, cloneWorkspace.workspace.bucketName)
+      .then(locationResponse => {
+        setBucketLocation(locationResponse.location)
+        setSourceWorkspaceLocation(locationResponse.location)
+      })
   ]))
 
+  const shouldShowDifferentRegionWarning = () => {
+    return !!cloneWorkspace && bucketLocation !== sourceWorkspaceLocation
+  }
+
   // Lifecycle
-  Utils.useOnMount(() => { loadProjectsGroups() })
+  Utils.useOnMount(() => {
+    loadData()
+  })
 
 
   // Render
@@ -115,12 +140,15 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     prettify: v => ({ namespace: 'Billing project', name: 'Name' }[v] || validate.prettify(v))
   })
 
+  const sourceLocationType = sourceWorkspaceLocation === defaultLocation ? locationTypes.default : locationTypes.region
+  const destLocationType = bucketLocation === defaultLocation ? locationTypes.default : locationTypes.region
+
   return Utils.cond(
     [loading, () => spinnerOverlay],
     [hasBillingProjects, () => h(Modal, {
       title: Utils.cond(
         [title, () => title],
-        [cloneWorkspace, () => 'Clone a workspace'],
+        [cloneWorkspace, () => 'Clone this workspace'],
         () => 'Create a New Workspace'
       ),
       onDismiss,
@@ -170,6 +198,41 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           }), _.sortBy('projectName', _.uniq(billingProjects)))
         })
       ])]),
+      h(IdContainer, [id => h(Fragment, [
+        h(FormLabel, { htmlFor: id }, [
+          'Bucket location',
+          h(InfoBox, { style: { marginLeft: '0.25rem' } }, [
+            'A bucket location can only be set when creating a workspace. ',
+            'Once set, it cannot be changed. ',
+            'A cloned workspace will automatically inherit the bucket location from the original workspace but this may be changed at clone time.',
+            p([
+              'By default, workflow and Cloud Environments will run in the same region as the workspace bucket. ',
+              'Changing bucket or Cloud Environment locations from the defaults can lead to network egress charges.'
+            ]),
+            h(Link, {
+              href: 'https://support.terra.bio/hc/en-us/articles/360058964552',
+              ...Utils.newTabLinkProps
+            }, ['Read more about bucket locations'])
+          ])
+        ]),
+        h(Select, {
+          id,
+          value: bucketLocation,
+          onChange: ({ value }) => setBucketLocation(value),
+          options: _.sortBy('label', allRegions)
+        })
+      ])]),
+      shouldShowDifferentRegionWarning() && div({ style: { ...warningStyle } }, [
+        icon('warning-standard', { size: 24, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
+        div({ style: { flex: 1 } }, [
+          `Copying data from `,
+          strong([getRegionInfo(sourceWorkspaceLocation, sourceLocationType).regionDescription]),
+          ` to `,
+          strong([getRegionInfo(bucketLocation, destLocationType).regionDescription]),
+          ` may incur network egress charges. `,
+          `To prevent charges, the new bucket location needs to stay in the same region as the original one.`
+        ])
+      ]),
       h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, ['Description']),
         h(TextArea, {

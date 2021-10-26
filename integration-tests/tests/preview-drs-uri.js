@@ -28,6 +28,10 @@ const testPreviewDrsUriFn = _.flow(
   await click(page, clickable({ textContains: workspaceName }))
 
   await click(page, navChild('data'))
+
+  // Loading the workspace page now means we need to make a Google API call to
+  // fetch the GCS bucket location. Wait a bit for it.
+  await waitForNoSpinners(page)
   await click(page, clickable({ textContains: testEntity.entityType }))
   await click(page, elementInDataTableRow(testEntity.name, testEntity.attributes.file_uri))
   await waitForNoSpinners(page)

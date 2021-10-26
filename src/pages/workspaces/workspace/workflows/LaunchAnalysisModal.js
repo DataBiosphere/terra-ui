@@ -1,13 +1,13 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { b, div, h, label, p, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, CromwellVersionLink, IdContainer } from 'src/components/common'
+import { ButtonPrimary, CromwellVersionLink, IdContainer, Link } from 'src/components/common'
 import { warningBoxStyle } from 'src/components/data/data-utils'
 import { icon, spinner } from 'src/components/icons'
 import { ValidatedTextArea } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { regionInfo } from 'src/components/region-common'
+import { getRegionInfo } from 'src/components/region-common'
 import { Ajax } from 'src/libs/ajax'
 import { launch } from 'src/libs/analysis'
 import colors from 'src/libs/colors'
@@ -79,7 +79,9 @@ const LaunchAnalysisModal = ({
     [type === chooseSetType, () => _.flow(mergeSets, _.uniqBy('entityName'))(selectedEntities).length]
   )
   const { location, locationType } = bucketLocation
-  const { flag, regionDescription } = regionInfo(location, locationType)
+  // us-central1 is always used for the location of the lifesciences api metadata.
+  // This is separate from the location that the VMs will run in, which is what we're setting here with computeRegion.
+  const { flag, regionDescription } = getRegionInfo(location, locationType)
 
   const onlyConstantInputs = _.every(i => !i || Utils.maybeParseJSON(i) !== undefined, config.inputs)
   const warnDuplicateAnalyses = onlyConstantInputs && entityCount > 1
@@ -101,7 +103,7 @@ const LaunchAnalysisModal = ({
   }, [
     div({ style: { margin: '1rem 0 1.5rem' } }, ['This analysis will be run by ', h(CromwellVersionLink), '.']),
     div(['Output files will be saved as workspace data in:']),
-    div({ style: { margin: '1rem 0 1.5rem' } }, [
+    div({ style: { margin: '0.5rem 0 1.5rem' } }, [
       location ? h(Fragment, [span({ style: { marginRight: '0.5rem' } }, [flag]),
         span({ style: { marginRight: '0.5rem' } }, [regionDescription]),
         h(InfoBox, [
@@ -110,15 +112,35 @@ const LaunchAnalysisModal = ({
           p(['Note that metadata about this run will be stored in the US.'])
         ])]) : 'Loading...'
     ]),
-    h(IdContainer, [id => div({ style: { margin: '1rem 0' } }, [
-      label({ htmlFor: id, style: { display: 'block', margin: '1rem 0' } }, ['Describe your submission (optional):']),
+    div(['Running workflows will generate cloud charges. ',
+      h(InfoBox, [
+        p(['If you run a large workflow or a large number of small workflows, you may generate significant cloud costs ',
+          'for compute, disks, and network egress charges. When your workflow stages complete, the intermediate/output results ',
+          'will generate storage costs.'])
+      ])]),
+    div({ style: { marginTop: '0.25rem' } }, [h(Link, {
+      style: { verticalAlign: 'top' },
+      href: 'https://support.terra.bio/hc/en-us/articles/360037862771', ...Utils.newTabLinkProps
+    }, [
+      'How much does my workflow cost?',
+      icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+    ])]),
+    div({ style: { marginTop: '0.25rem' } }, [h(Link, {
+      style: { verticalAlign: 'top' },
+      href: 'https://support.terra.bio/hc/en-us/articles/360057589931', ...Utils.newTabLinkProps
+    }, [
+      'Set up budget alert',
+      icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+    ])]),
+    h(IdContainer, [id => div({ style: { margin: '1.5rem 0' } }, [
+      label({ htmlFor: id, style: { display: 'block' } }, ['Describe your submission (optional):']),
       ValidatedTextArea({
         inputProps: {
           id,
           value: userComment,
           onChange: v => commentValidation(v, setUserComment, setUserCommentError),
           placeholder: 'Enter comment for the submission',
-          style: { height: 100 }
+          style: { height: 100, marginTop: '0.5rem' }
         },
         error: userCommentError
       })

@@ -151,3 +151,15 @@ export const dashboard = {
     fontSize: 8, fontWeight: 'bold', textTransform: 'uppercase', color: colors.dark()
   }
 }
+
+export const warningStyle = {
+  border: `1px solid ${colors.warning(0.8)}`, borderLeft: 'none', borderRight: 'none',
+  backgroundColor: colors.warning(0.15),
+  padding: '1rem 1.25rem', margin: '0 -1.25rem',
+  fontWeight: 'bold', fontSize: 12
+}
+export const errorStyle = {
+  ...warningStyle,
+  border: `1px solid ${colors.danger(0.8)}`,
+  backgroundColor: colors.danger(0.15)
+}

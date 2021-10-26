@@ -9,6 +9,7 @@ import { ComputeModal } from 'src/components/ComputeModal'
 import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
+import { getRegionInfo } from 'src/components/region-common'
 import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/runtime-common'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import galaxyLogo from 'src/images/galaxy.svg'
@@ -25,7 +26,7 @@ import {
   getConvertedRuntimeStatus,
   getCurrentApp,
   getCurrentRuntime,
-  persistentDiskCost,
+  getPersistentDiskCostHourly,
   runtimeCost,
   trimRuntimesOldestFirst
 } from 'src/libs/runtime-utils'
@@ -285,8 +286,9 @@ export default class RuntimeManager extends PureComponent {
   }
 
   render() {
-    const { namespace, name, runtimes, refreshRuntimes, canCompute, persistentDisks, apps, galaxyDataDisks, refreshApps, workspace } = this.props
+    const { namespace, name, runtimes, refreshRuntimes, canCompute, persistentDisks, apps, galaxyDataDisks, refreshApps, location, locationType, workspace } = this.props
     const { busy, createModalDrawerOpen, errorModalOpen, galaxyDrawerOpen } = this.state
+    const { computeRegion } = getRegionInfo(location, locationType)
     if (!runtimes || !apps) {
       return null
     }
@@ -336,7 +338,8 @@ export default class RuntimeManager extends PureComponent {
           })
       }
     }
-    const totalCost = _.sum(_.map(runtimeCost, runtimes)) + _.sum(_.map(persistentDiskCost, persistentDisks))
+    const totalCost = _.sum(_.map(runtimeCost, runtimes)) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
+
     const activeRuntimes = this.getActiveRuntimesOldestFirst()
     const activeDisks = _.remove({ status: 'Deleting' }, persistentDisks)
     const { Creating: creating, Updating: updating, LeoReconfiguring: reconfiguring } = _.countBy(getConvertedRuntimeStatus, activeRuntimes)

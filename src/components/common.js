@@ -480,7 +480,7 @@ export const CromwellVersionLink = props => {
       href: `https://github.com/broadinstitute/cromwell/releases/tag/${version}`,
       ...Utils.newTabLinkProps,
       ...props
-    }, ['Cromwell ', version]) :
+    }, ['Cromwell ', version, icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })]) :
     'Cromwell version loading...'
 }
 
