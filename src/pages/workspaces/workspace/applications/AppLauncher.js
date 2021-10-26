@@ -83,8 +83,8 @@ const ApplicationLauncher = _.flow(
       setLocation(location)
     })
 
-
     loadBucketLocation()
+
     if (shouldSetupWelder && runtimeStatus === 'Running') {
       setupWelder()
       setShouldSetupWelder(true)

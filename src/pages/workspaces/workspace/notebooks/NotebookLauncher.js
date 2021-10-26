@@ -45,12 +45,14 @@ const NotebookLauncher = _.flow(
   ({ queryParams, notebookName, workspace, workspace: { workspace: { bucketName, googleProject, namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks, refreshRuntimes },
     ref) => {
     const [createOpen, setCreateOpen] = useState(false)
+    const [busy, setBusy] = useState()
+    const [location, setLocation] = useState(defaultLocation)
+
     const runtime = getCurrentRuntime(runtimes)
     const { runtimeName, labels } = runtime || {}
     const status = getConvertedRuntimeStatus(runtime)
-    const [busy, setBusy] = useState()
     const { mode } = queryParams
-    const [location, setLocation] = useState(defaultLocation)
+
     useEffect(() => {
       const loadBucketLocation = _.flow(
         Utils.withBusyState(setBusy),

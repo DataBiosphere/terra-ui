@@ -59,6 +59,7 @@ const AnalysisLauncher = _.flow(
     const { mode } = queryParams
     const toolLabel = getTool(analysisName)
     const iframeStyles = { height: '100%', width: '100%' }
+
     useEffect(() => {
       const loadBucketLocation = _.flow(
         Utils.withBusyState(setBusy),

@@ -38,8 +38,8 @@ import * as Utils from 'src/libs/utils'
 const titleId = 'cloud-env-modal'
 
 export const CloudEnvironmentModal = ({
-  isOpen, onDismiss, onSuccess, canCompute, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps,
-  workspace, persistentDisks, location, locationType, workspace: { workspace: { namespace, bucketName, name: workspaceName } }
+  isOpen, onDismiss, canCompute, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps,
+  workspace, persistentDisks, location, locationType, workspace: { workspace: { namespace, name: workspaceName } }
 }) => {
   const [viewMode, setViewMode] = useState(undefined)
   const [busy, setBusy] = useState(false)
