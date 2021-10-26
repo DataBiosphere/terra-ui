@@ -617,7 +617,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
       ])
       const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
-      //const location = 'us-central1'
+
       const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
       const foundImage = _.find({ image: imageUrl }, newLeoImages)
 
@@ -649,7 +649,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       setCurrentPersistentDiskDetails(currentPersistentDiskDetails)
       setCustomEnvImage(!foundImage ? imageUrl : '')
       setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
-      console.log('compute modal location', location)
       setBucketLocation(location)
 
       // For initial regionality release, compute zone and region is limited to

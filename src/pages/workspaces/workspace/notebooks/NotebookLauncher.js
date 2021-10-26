@@ -52,7 +52,6 @@ const NotebookLauncher = _.flow(
     const { mode } = queryParams
     const [location, setLocation] = useState(defaultLocation)
     useEffect(() => {
-      console.log('notebook launcher useEffect!')
       const loadBucketLocation = _.flow(
         Utils.withBusyState(setBusy),
         withErrorReporting('Error loading bucket location')
