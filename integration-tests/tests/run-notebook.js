@@ -24,7 +24,9 @@ const testRunNotebookFn = _.flow(
   await fillIn(page, input({ placeholder: 'Enter a name' }), notebookName)
   await select(page, 'Language', 'Python 3')
   await click(page, clickable({ text: 'Create Notebook' }))
+  waitForNoSpinners(page)
   await click(page, clickable({ textContains: notebookName }))
+  waitForNoSpinners(page)
   await click(page, clickable({ text: 'Edit' }))
   // There are two separate activities in the UI that could interfere with beginning to interact
   // with the modal for creating a cloud environment:
