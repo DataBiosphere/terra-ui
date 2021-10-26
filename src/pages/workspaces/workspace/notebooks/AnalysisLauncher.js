@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
@@ -23,7 +23,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
-import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
+import { defaultLocation, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import ExportAnalysisModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
@@ -46,7 +46,7 @@ const AnalysisLauncher = _.flow(
   })
 )(
   ({
-    queryParams, analysisName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks,
+    queryParams, analysisName, workspace, workspace: { workspace: { bucketName, googleProject, namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks,
     refreshRuntimes
   },
   ref) => {
@@ -55,9 +55,24 @@ const AnalysisLauncher = _.flow(
     const { runtimeName, labels } = runtime || {}
     const status = getConvertedRuntimeStatus(runtime)
     const [busy, setBusy] = useState()
+    const [location, setLocation] = useState(defaultLocation)
     const { mode } = queryParams
     const toolLabel = getTool(analysisName)
     const iframeStyles = { height: '100%', width: '100%' }
+    useEffect(() => {
+      const loadBucketLocation = _.flow(
+        Utils.withBusyState(setBusy),
+        withErrorReporting('Error loading bucket location')
+      )(async () => {
+        const { location } = await Ajax()
+          .Workspaces
+          .workspace(namespace, name)
+          .checkBucketLocation(googleProject, bucketName)
+        setLocation(location)
+      })
+      loadBucketLocation()
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [googleProject, bucketName])
 
     return h(Fragment, [
 
@@ -83,6 +98,7 @@ const AnalysisLauncher = _.flow(
           workspace,
           runtimes,
           persistentDisks,
+          location,
           onDismiss: () => {
             chooseMode(undefined)
             setCreateOpen(false)
