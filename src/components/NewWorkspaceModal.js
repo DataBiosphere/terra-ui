@@ -1,12 +1,12 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, p } from 'react-hyperscript-helpers'
+import { div, h, p, strong } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Link, Select, spinnerOverlay } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { allRegions } from 'src/components/region-common'
+import { allRegions, getRegionInfo, locationTypes } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -15,10 +15,19 @@ import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import { defaultLocation } from 'src/libs/runtime-utils'
-import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
 
+
+const warningStyle = {
+  border: `1px solid ${colors.warning(0.8)}`,
+  borderRadius: '5px',
+  backgroundColor: colors.warning(0.15),
+  display: 'flex',
+  lineHeight: '18px',
+  padding: '1rem 1rem', margin: '0.5rem 0 1rem',
+  fontWeight: 'normal', fontSize: 14
+}
 
 const constraints = {
   name: {
@@ -131,6 +140,9 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
     prettify: v => ({ namespace: 'Billing project', name: 'Name' }[v] || validate.prettify(v))
   })
 
+  const sourceLocationType = sourceWorkspaceLocation === defaultLocation ? locationTypes.default : locationTypes.region
+  const destLocationType = bucketLocation === defaultLocation ? locationTypes.default : locationTypes.region
+
   return Utils.cond(
     [loading, () => spinnerOverlay],
     [hasBillingProjects, () => h(Modal, {
@@ -210,6 +222,17 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           options: _.sortBy('label', allRegions)
         })
       ])]),
+      shouldShowDifferentRegionWarning() && div({ style: { ...warningStyle } }, [
+        icon('warning-standard', { size: 24, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
+        div({ style: { flex: 1 } }, [
+          `Copying data from `,
+          strong([getRegionInfo(sourceWorkspaceLocation, sourceLocationType).regionDescription]),
+          ` to `,
+          strong([getRegionInfo(bucketLocation, destLocationType).regionDescription]),
+          ` may incur network egress charges. `,
+          `To prevent charges, the new bucket location needs to stay in the same region as the original one.`
+        ])
+      ]),
       h(IdContainer, [id => h(Fragment, [
         h(FormLabel, { htmlFor: id }, ['Description']),
         h(TextArea, {
@@ -252,11 +275,6 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
       createError && div({
         style: { marginTop: '1rem', color: colors.danger() }
       }, [createError]),
-      shouldShowDifferentRegionWarning() && div({ style: { ...Style.warningStyle, display: 'flex', fontWeight: 'normal', marginTop: '1rem' } }, [
-        icon('warning-standard', { size: 36, style: { color: colors.warning(), flex: 'none', marginRight: '0.5rem' } }),
-        `The cloned workspace will have a bucket in the region ${bucketLocation.toLowerCase()}. `,
-        `Copying data from a bucket in a different region may incur network egress charges.`
-      ]),
       creating && spinnerOverlay
     ])],
     () => h(Modal, {
