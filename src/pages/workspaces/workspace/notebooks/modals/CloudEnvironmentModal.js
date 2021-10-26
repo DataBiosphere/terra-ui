@@ -58,6 +58,7 @@ export const CloudEnvironmentModal = ({
     tool,
     runtimes,
     persistentDisks,
+    location,
     onDismiss: () => {
       setViewMode(undefined)
       onDismiss()

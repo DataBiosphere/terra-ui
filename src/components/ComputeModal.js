@@ -161,7 +161,7 @@ const getCurrentPersistentDisk = (runtimes, persistentDisks) => {
 const shouldUsePersistentDisk = (sparkMode, runtimeDetails, upgradeDiskSelected) => !sparkMode &&
   (!runtimeDetails?.runtimeConfig?.diskSize || upgradeDiskSelected)
 
-export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, isAnalysisMode = false }) => {
+export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDisks, tool, workspace, location, isAnalysisMode = false }) => {
   // State -- begin
   const [showDebugger, setShowDebugger] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -601,7 +601,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       withErrorReporting('Error loading cloud environment'),
       Utils.withBusyState(setLoading)
     )(async () => {
-      const { bucketName, namespace, googleProject, name } = getWorkspaceObject()
+      const { googleProject } = getWorkspaceObject()
       const currentRuntime = getCurrentRuntime(runtimes)
       const currentPersistentDisk = getCurrentPersistentDisk(runtimes, persistentDisks)
 
@@ -617,9 +617,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         currentPersistentDisk ? Ajax().Disks.disk(currentPersistentDisk.googleProject, currentPersistentDisk.name).details() : null
       ])
       const filteredNewLeoImages = !!tool ? _.filter(image => _.includes(image.id, tools[tool].imageIds), newLeoImages) : newLeoImages
-
-      const { location } = await Ajax().Workspaces.workspace(namespace, name).checkBucketLocation(googleProject, bucketName)
-
+      //const location = 'us-central1'
       const imageUrl = currentRuntimeDetails ? getImageUrl(currentRuntimeDetails) : _.find({ id: 'terra-jupyter-gatk' }, newLeoImages).image
       const foundImage = _.find({ image: imageUrl }, newLeoImages)
 
@@ -651,6 +649,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       setCurrentPersistentDiskDetails(currentPersistentDiskDetails)
       setCustomEnvImage(!foundImage ? imageUrl : '')
       setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
+      console.log('compute modal location', location)
       setBucketLocation(location)
 
       // For initial regionality release, compute zone and region is limited to
