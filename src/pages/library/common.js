@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useMemo, useState } from 'react'
-import { div, h, i, label, strong } from 'react-hyperscript-helpers'
+import { div, em, h, label, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, IdContainer, Link, Select } from 'src/components/common'
 import { DelayedAutoCompleteInput } from 'src/components/input'
@@ -97,7 +97,7 @@ const truncateLeftWord = _.curry((options, text) => _.flow(
 
 const getContextualSuggestion = ([leftContext, match, rightContext]) => {
   return [
-    strong([i(['Description: '])]),
+    strong([em(['Description: '])]),
     truncateLeftWord({ length: 50 }, leftContext),
     match,
     _.truncate({ length: 50 }, rightContext)
