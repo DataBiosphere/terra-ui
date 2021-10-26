@@ -269,7 +269,8 @@ const withAutocomplete = WrappedComponent => ({
             } else if (_.includes(e.key, ['ArrowUp', 'ArrowDown']) && !suggestions.length) {
               e.nativeEvent.preventDownshiftDefault = true
             } else if (e.key === 'Enter') {
-              onPick ? onPick(value) : toggleMenu()
+              onPick && onPick(value)
+              toggleMenu()
             }
           },
           nativeOnChange: true,
