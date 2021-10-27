@@ -14,7 +14,15 @@ import {
   getToolFromRuntime, notebookLockHash, tools
 } from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
-import { ApplicationHeader, PlaygroundHeader, RuntimeKicker, RuntimeStatusMonitor, StatusMessage } from 'src/components/runtime-common'
+import {
+  analysisLauncherTabName, analysisTabName,
+  appLauncherTabName,
+  ApplicationHeader,
+  PlaygroundHeader,
+  RuntimeKicker,
+  RuntimeStatusMonitor,
+  StatusMessage
+} from 'src/components/runtime-common'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -42,7 +50,8 @@ const AnalysisLauncher = _.flow(
   wrapWorkspace({
     breadcrumbs: props => breadcrumbs.commonPaths.workspaceTab(props, 'analyses'),
     title: _.get('analysisName'),
-    showTabBar: false
+    showTabBar: false,
+    activeTab: analysisLauncherTabName
   })
 )(
   ({
@@ -234,7 +243,7 @@ const PreviewHeader = ({
   const runtimeStatus = getConvertedRuntimeStatus(runtime)
   const welderEnabled = runtime && !runtime.labels.welderInstallFailed
   const { mode } = queryParams
-  const analysisLink = Nav.getLink('workspace-analysis-launch', { namespace, name, analysisName })
+  const analysisLink = Nav.getLink(analysisLauncherTabName, { namespace, name, analysisName })
   const currentRuntimeTool = getToolFromRuntime(runtime)
 
   const checkIfLocked = withErrorReporting('Error checking analysis lock status', async () => {
@@ -285,7 +294,7 @@ const PreviewHeader = ({
               if (currentRuntimeTool !== tools.RStudio.label) {
                 setCreateOpen(true)
               } else {
-                Nav.goToPath('workspace-application-launch', { namespace, name, application: 'RStudio' })
+                Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
               }
             },
             disabled: runtimeStatus !== 'Running',
@@ -335,7 +344,7 @@ const PreviewHeader = ({
         'aria-label': 'Exit preview mode',
         style: { opacity: 0.65, marginRight: '1.5rem' },
         hover: { opacity: 1 }, focus: 'hover',
-        onClick: () => Nav.goToPath('workspace-analyses', { namespace, name })
+        onClick: () => Nav.goToPath(analysisTabName, { namespace, name })
       }, [icon('times-circle', { size: 30 })])
     ]),
     editModeDisabledOpen && h(EditModeDisabledModal, {
@@ -535,7 +544,7 @@ const AnalysisEditorFrame = ({
       }),
       h(JupyterFrameManager, {
         frameRef,
-        onClose: () => Nav.goToPath('workspace-analyses', { namespace, name }),
+        onClose: () => Nav.goToPath(analysisTabName, { namespace, name }),
         details: { analysisName, name, namespace }
       })
     ]),
@@ -601,7 +610,7 @@ const WelderDisabledNotebookEditorFrame = ({
       }),
       h(JupyterFrameManager, {
         frameRef,
-        onClose: () => Nav.goToPath('workspace-analyses', { namespace, name }),
+        onClose: () => Nav.goToPath(analysisTabName, { namespace, name }),
         details: { notebookName, name, namespace }
       })
     ]),
@@ -611,7 +620,7 @@ const WelderDisabledNotebookEditorFrame = ({
 
 export const navPaths = [
   {
-    name: 'workspace-analysis-launch',
+    name: analysisLauncherTabName,
     path: '/workspaces/:namespace/:name/analysis/launch/:analysisName',
     component: AnalysisLauncher,
     title: ({ name, analysisName }) => `${analysisName} - ${name}`

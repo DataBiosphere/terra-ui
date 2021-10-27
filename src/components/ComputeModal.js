@@ -17,7 +17,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { cloudServices, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { versionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
@@ -221,7 +221,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   // Helper functions -- begin
   const applyChanges = _.flow(
     Utils.withBusyState(setLoading),
-    withErrorReporting('Error creating cloud environment')
+    withErrorReportingInModal('Error modifying cloud environment', onDismiss)
   )(async () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
     const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
@@ -288,7 +288,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
         runtimeConfig,
         toolDockerImage: desiredRuntime.toolDockerImage,
-        labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name },
+        labels: {
+          saturnWorkspaceNamespace: namespace,
+          saturnWorkspaceName: name
+        },
         customEnvironmentVariables: customEnvVars,
         ...(desiredRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: desiredRuntime.jupyterUserScriptUri } : {})
       })

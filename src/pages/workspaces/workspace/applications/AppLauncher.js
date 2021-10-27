@@ -157,7 +157,7 @@ export const navPaths = [
     component: props => h(Nav.Redirector, { pathname: Nav.getPath('workspace-application-launch', { ...props, application: 'terminal' }) })
   },
   {
-    name: 'workspace-application-launch',
+    name: appLauncherTabName,
     path: '/workspaces/:namespace/:name/applications/:application',
     component: ApplicationLauncher,
     title: ({ name, application }) => `${name} - ${application}`

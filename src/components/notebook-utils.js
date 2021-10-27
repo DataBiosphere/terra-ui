@@ -5,6 +5,7 @@ import { ButtonPrimary, IdContainer, Select, spinnerOverlay } from 'src/componen
 import { centeredSpinner } from 'src/components/icons'
 import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
+import { analysisLauncherTabName } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
@@ -207,7 +208,7 @@ export const AnalysisDuplicator = ({ destroyOld = false, fromLauncher = false, p
           )
           onSuccess()
           if (fromLauncher) {
-            Nav.goToPath('workspace-analysis-launch', {
+            Nav.goToPath(analysisLauncherTabName, {
               namespace, name: wsName, analysisName: `${newName}.${getAnalysisFileExtension(toolLabel)}`, toolLabel
             })
           }
