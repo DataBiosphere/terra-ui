@@ -89,8 +89,6 @@ const ImportData = () => {
     loadTemplateWorkspaces()
   })
 
-  console.log('snapshots', snapshots)
-
   const onImport = _.flow(
     Utils.withBusyState(setIsImporting),
     withErrorReporting('Import Error')
