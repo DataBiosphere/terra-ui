@@ -95,12 +95,14 @@ const truncateLeftWord = _.curry((options, text) => _.flow(
   _.replace(/\.\.\.(\S+)/, '...')
 )(text))
 
+const contextualLength = 60
 const getContextualSuggestion = ([leftContext, match, rightContext]) => {
+  const contextLength = Math.floor(contextualLength / 2)
   return [
     strong([em(['Description: '])]),
-    truncateLeftWord({ length: 50 }, leftContext),
+    truncateLeftWord({ length: contextLength }, leftContext),
     match,
-    _.truncate({ length: 50 }, rightContext)
+    _.truncate({ length: contextLength }, rightContext)
   ]
 }
 
@@ -195,7 +197,9 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
         ])
       ]),
       h(DelayedAutoCompleteInput, {
-        style: { flex: 1, marginLeft: '1rem' },
+        style: { borderRadius: 25, width: 800, flex: 1, margin: '1rem' },
+        inputIcon: 'search',
+        iconStyle: { transform: 'translateX(2.5rem)' },
         openOnFocus: true,
         value: searchFilter,
         'aria-label': `Search ${searchType}`,
@@ -208,10 +212,11 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
             _.flow(
               _.split(filterRegex),
               _.map(item => _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item),
-              match => {
-                return _.size(match) < 2 ?
-                  [...match, div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion['dct:description'])])] :
-                  match
+              maybeMatch => {
+                return _.size(maybeMatch) < 2 ? [
+                  _.truncate({ length: contextualLength }, _.head(maybeMatch)),
+                  div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion['dct:description'])])
+                ] : maybeMatch
               }
             )(suggestion['dct:title'])
           )
