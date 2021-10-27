@@ -87,7 +87,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
   ])
 }
 
-const reverseText = _.flow(_.split(''), _.reverse, _.join(''))
+const reverseText = _.flow(_.reverse, _.join(''))
 const truncateLeftWord = _.curry((options, text) => _.flow(
   reverseText,
   _.truncate(options),
