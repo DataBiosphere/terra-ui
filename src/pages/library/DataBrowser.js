@@ -120,7 +120,13 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
             pathname: Nav.getPath('import-data'),
             search: qs.stringify({
               url: getConfig().dataRepoUrlRoot, snapshotId: selectedData[0]['dct:identifier'], snapshotName: selectedData[0]['dct:title'], format: 'snapshot'
-            })
+            }),
+            state: {
+              title: 'Catalog',
+              header: 'Linking data to a workspace',
+              supportMultipleImports: true,
+              snapshots: _.map(snapshot => { return { title: snapshot['dct:title'], id: snapshot['dct:identifier'] } }, selectedData)
+            }
           })
         }
       }, ['Save to a workspace'])

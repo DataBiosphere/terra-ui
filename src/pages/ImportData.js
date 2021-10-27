@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2, img, p } from 'react-hyperscript-helpers'
+import { div, h, h2, img, li, p, ul } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common'
 import { notifyDataImportProgress } from 'src/components/data/data-utils'
@@ -60,7 +60,7 @@ const ChoiceButton = ({ iconName, title, detail, style, ...props }) => {
 const ImportData = () => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
-  const { query: { url, format, ad, wid, template, snapshotId, snapshotName } } = Nav.useRoute()
+  const { query: { url, format, ad, wid, template, snapshotId, snapshotName }, state: { title, header, supportMultipleImports, snapshots } } = Nav.useRoute()
   const [mode, setMode] = useState(wid ? 'existing' : undefined)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCloneOpen, setIsCloneOpen] = useState(false)
@@ -89,6 +89,8 @@ const ImportData = () => {
     loadTemplateWorkspaces()
   })
 
+  console.log('snapshots', snapshots)
+
   const onImport = _.flow(
     Utils.withBusyState(setIsImporting),
     withErrorReporting('Import Error')
@@ -106,7 +108,9 @@ const ImportData = () => {
         notify('success', 'Data imported successfully.', { timeout: 3000 })
       }],
       ['snapshot', async () => {
-        await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName)
+        supportMultipleImports ?
+          await Promise.allSettled(_.map(({ title, id }) => Ajax().Workspaces.workspace(namespace, name).importSnapshot(id, title), snapshots)) :
+          await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName)
         notify('success', 'Snapshot imported successfully.', { timeout: 3000 })
       }],
       [Utils.DEFAULT, async () => {
@@ -119,12 +123,22 @@ const ImportData = () => {
   })
 
   return h(FooterWrapper, [
-    h(TopBar, { title: `Import ${isDataset ? 'Data' : 'Snapshot'}` }),
+    h(TopBar, { title: title || `Import ${isDataset ? 'Data' : 'Snapshot'}` }),
     div({ role: 'main', style: styles.container }, [
       backgroundLogo,
       div({ style: styles.card }, [
-        h2({ style: styles.title }, [`Importing ${isDataset ? 'Data' : `Snapshot ${snapshotName}`}`]),
-        div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
+        h2({ style: styles.title }, [header || `Importing ${isDataset ? 'Data' : `Snapshot ${snapshotName}`}`]),
+        supportMultipleImports ?
+          div({ style: { marginTop: 20, marginBottom: 60 } }, [
+            'Dataset(s):',
+            ul({ style: { listStyle: 'none', position: 'relative', marginLeft: 0, paddingLeft: '2rem' } }, [
+              _.map(({ title, id }) => li({ key: `snapshot_${id}`, style: { fontSize: 16, fontWeight: 'bold', marginTop: 20 } }, [
+                icon('success-standard', { size: 18, style: { position: 'absolute', left: 0, color: colors.primary() } }),
+                title
+              ]), snapshots)
+            ])
+          ]) :
+          div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
         div({ style: { marginTop: '1rem' } }, [
           `The ${isDataset ? 'dataset' : 'snapshot'}(s) you just chose to import to Terra will be made available to you `,
           'within a workspace of your choice where you can then perform analysis.'

@@ -162,7 +162,13 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
           pathname: Nav.getPath('import-data'),
           search: qs.stringify({
             url: getConfig().dataRepoUrlRoot, snapshotId: id, snapshotName: snapshot['dct:title'], format: 'snapshot'
-          })
+          }),
+          state: {
+            title: 'Catalog',
+            header: 'Linking data to a workspace',
+            supportMultipleImports: true,
+            snapshots: [{ title: snapshot['dct:title'], id: snapshot['dct:identifier'] }]
+          }
         })
       }
     }, ['Save to a workspace'])
