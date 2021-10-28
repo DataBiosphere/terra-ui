@@ -13,7 +13,7 @@ import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { SNAPSHOT_ACCESS_TYPES, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -42,33 +42,18 @@ const getUnique = (prop, data) => _.flow(
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const extractCatalogFilters = dataCatalog => {
+  const accessArray = _.values(SNAPSHOT_ACCESS_TYPES)
+
   return [{
     name: 'Access Type',
-    labels: [
-      'Controlled',
-      'Open',
-      'Pending'
-    ],
-    labelDisplays: {
-      Controlled: [
-        div({ style: { display: 'flex' } }, [
-          icon('lock', { style: { color: styles.access.controlled, marginRight: 5 } }),
-          div(['Controlled'])
-        ])
-      ],
-      Open: [
-        div({ style: { display: 'flex' } }, [
-          icon('unlock', { style: { color: styles.access.open, marginRight: 5 } }),
-          div(['Open'])
-        ])
-      ],
-      Pending: [
-        div({ style: { display: 'flex' } }, [
-          icon('lock', { style: { color: styles.access.pending, marginRight: 5 } }),
-          div(['Pending'])
-        ])
-      ]
-    }
+    labels: accessArray,
+    labelDisplays: _.zipObject(accessArray, _.map(accessKey => {
+      const lowerKey = _.toLower(accessKey)
+      return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
+        icon('lock', { style: { color: styles.access[lowerKey], marginRight: 5 } }),
+        div([SNAPSHOT_ACCESS_TYPES[accessKey]])
+      ])]
+    }, _.keys(SNAPSHOT_ACCESS_TYPES)))
   }, {
     name: 'Consortium',
     labels: getUnique('project', dataCatalog)
@@ -200,11 +185,11 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
           underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
             div({ style: { display: 'flex', alignItems: 'center' } }, [
               Utils.switchCase(access,
-                ['Controlled', () => h(ButtonSecondary, {
+                [SNAPSHOT_ACCESS_TYPES.CONTROLLED, () => h(ButtonSecondary, {
                   style: { height: 'unset', textTransform: 'none' },
                   onClick: () => setRequestDatasetAccessList([datum])
                 }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Request Access'])])],
-                ['Pending', () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
+                [SNAPSHOT_ACCESS_TYPES.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
                   icon('lock'),
                   div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
                 ])],
