@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useMemo, useState } from 'react'
-import { div, em, h, label, strong } from 'react-hyperscript-helpers'
+import { div, em, h, h3, label, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, IdContainer, Link, Select } from 'src/components/common'
 import { DelayedAutoCompleteInput } from 'src/components/input'
@@ -19,7 +19,7 @@ export const commonStyles = {
 
 const styles = {
   header: {
-    fontSize: 19, color: colors.dark(), fontWeight: 'bold', marginBottom: '1rem'
+    fontSize: '1.5rem', color: colors.dark(), fontWeight: 700
   },
   sidebarRow: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'baseline'
@@ -88,7 +88,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
 }
 
 const reverseText = _.flow(_.reverse, _.join(''))
-const contextualLength = 60
+const contextualLength = 80
 
 // truncateLeftWord
 // This will behave like Lodash's _.truncate except it will truncate from the left side of the string.
@@ -186,26 +186,33 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
   }
 
   return h(Fragment, [
-    div({ style: { display: 'flex', margin: '1rem 1rem 0', alignItems: 'baseline' } }, [
-      div({ style: { width: '19rem', flex: 'none' } }, [
-        div({ style: styles.sidebarRow }, [
-          div({ style: styles.header }, [`${searchType}`]),
-          div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredData)])
-        ]),
-        div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
-          div({ style: { flex: 1 } }),
-          h(Link, {
-            onClick: () => {
-              setSelectedSections([])
-              setSelectedTags([])
-            }
-          }, ['clear'])
-        ])
+    div({
+      style: {
+        display: 'grid',
+        gridTemplateColumns: '19rem 1fr',
+        gridTemplateRows: 'auto 2rem',
+        gap: '2rem 1rem',
+        gridAutoFlow: 'column',
+        margin: '1rem 1rem 0',
+        alignItems: 'baseline'
+      }
+    }, [
+      div({ style: styles.sidebarRow }, [
+        div({ style: styles.header }, [searchType]),
+        div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredData)])
+      ]),
+      div({ style: { display: 'flex', alignItems: 'baseline' } }, [
+        div({ style: { margin: 0, flex: 1, fontSize: '1.125rem', fontWeight: 600 } }, ['Filters']),
+        h(Link, {
+          onClick: () => {
+            setSelectedSections([])
+            setSelectedTags([])
+          }
+        }, ['clear'])
       ]),
       h(DelayedAutoCompleteInput, {
-        style: { borderRadius: 25, width: 800, flex: 1, margin: '1rem' },
+        style: { borderRadius: 25, width: 800, flex: 1 },
         inputIcon: 'search',
-        iconStyle: { transform: 'translateX(2.5rem)' },
         openOnFocus: true,
         value: searchFilter,
         'aria-label': `Search ${searchType}`,
@@ -220,7 +227,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
               _.map(item => _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item),
               maybeMatch => {
                 return _.size(maybeMatch) < 2 ? [
-                  _.truncate({ length: contextualLength }, _.head(maybeMatch)),
+                  _.truncate({ length: 90 }, _.head(maybeMatch)),
                   div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion['dct:description'])])
                 ] : maybeMatch
               }
@@ -229,6 +236,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
         },
         suggestions: filteredData
       }),
+      div({ style: { fontSize: '1rem', fontWeight: 600 } }, [`Results For "${searchFilter}"`]),
       !customSort && h(IdContainer, [
         id => h(Fragment, [
           label({ htmlFor: id, style: { margin: '0 0.5rem 0 1rem', whiteSpace: 'nowrap' } }, ['Sort by']),
