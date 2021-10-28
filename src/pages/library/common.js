@@ -81,7 +81,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
             },
             onClick: () => onTagFilter(tag)
           }, [
-            div({ style: { flex: 1 } }, [...(labelDisplays && labelDisplays[label] ? labelDisplays[label] : label)]),
+            div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelDisplays && labelDisplays[label] ? labelDisplays[label] : label)]),
             div({ style: styles.pill(_.includes(tag, selectedTags)) }, [_.size(listDataByTag[tag])])
           ])
         }, labels)])
