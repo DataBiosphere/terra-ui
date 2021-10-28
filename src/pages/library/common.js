@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useMemo, useState } from 'react'
-import { div, em, h, h3, label, strong } from 'react-hyperscript-helpers'
+import { div, em, h, label, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, IdContainer, Link, Select } from 'src/components/common'
 import { DelayedAutoCompleteInput } from 'src/components/input'
@@ -26,16 +26,15 @@ const styles = {
   },
   nav: {
     navSection: {
-      alignItems: 'center', flex: 'none', padding: '1.2rem 0',
-      borderTop: `1px solid ${colors.dark(0.35)}`
+      alignItems: 'center', flex: 'none', padding: '0.5rem 0'
     },
-    title: { fontWeight: 700 }
+    title: { color: colors.dark(), fontWeight: 700, borderBottom: `1px solid ${colors.dark(0.3)}`, paddingBottom: '0.75rem' }
   },
   pill: highlight => ({
     width: '4.5rem', padding: '0.25rem', fontWeight: 500, textAlign: 'center',
     border: '1px solid', borderColor: colors.dark(0.25), borderRadius: '1rem',
     backgroundColor: 'white',
-    ...(highlight ? { color: 'white', backgroundColor: colors.accent(), borderColor: colors.accent() } : {})
+    ...(highlight ? { color: 'white', backgroundColor: colors.primary(), borderColor: colors.primary() } : {})
   })
 }
 
@@ -76,7 +75,10 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
           const tag = _.toLower(label)
           return h(Clickable, {
             key: label,
-            style: { display: 'flex', alignItems: 'baseline', margin: '0.5rem 0' },
+            style: {
+              display: 'flex', alignItems: 'baseline', margin: '0.5rem 0',
+              paddingBottom: '0.5rem', borderBottom: `1px solid ${colors.dark(0.1)}`
+            },
             onClick: () => onTagFilter(tag)
           }, [
             div({ style: { flex: 1 } }, [...(labelDisplays && labelDisplays[label] ? labelDisplays[label] : label)]),
@@ -190,7 +192,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
       style: {
         display: 'grid',
         gridTemplateColumns: '19rem 1fr',
-        gridTemplateRows: 'auto 2rem',
+        gridTemplateRows: 'auto 3rem',
         gap: '2rem 1rem',
         gridAutoFlow: 'column',
         margin: '1rem 1rem 0',
@@ -201,8 +203,8 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
         div({ style: styles.header }, [searchType]),
         div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredData)])
       ]),
-      div({ style: { display: 'flex', alignItems: 'baseline' } }, [
-        div({ style: { margin: 0, flex: 1, fontSize: '1.125rem', fontWeight: 600 } }, ['Filters']),
+      div({ style: { ...styles.nav.title, display: 'flex', alignItems: 'baseline' } }, [
+        div({ style: { flex: 1, fontSize: '1.125rem', fontWeight: 600 } }, ['Filters']),
         h(Link, {
           onClick: () => {
             setSelectedSections([])
