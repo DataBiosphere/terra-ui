@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useMemo, useState } from 'react'
-import { div, em, h, label, strong } from 'react-hyperscript-helpers'
+import { div, em, h, label, span, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, IdContainer, Link, Select } from 'src/components/common'
 import { DelayedAutoCompleteInput } from 'src/components/input'
@@ -70,7 +70,7 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
           style: styles.nav.navSection,
           buttonStyle: styles.nav.title,
           titleFirst: true, initialOpenState: true,
-          title: name
+          title: h(Fragment, [name, span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(labels)})`])])
         }, [_.map(label => {
           const tag = _.toLower(label)
           return h(Clickable, {
@@ -238,7 +238,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
         },
         suggestions: filteredData
       }),
-      div({ style: { fontSize: '1rem', fontWeight: 600 } }, [`Results For "${searchFilter}"`]),
+      div({ style: { fontSize: '1rem', fontWeight: 600 } }, [searchFilter ? `Results For "${searchFilter}"` : 'All datasets']),
       !customSort && h(IdContainer, [
         id => h(Fragment, [
           label({ htmlFor: id, style: { margin: '0 0.5rem 0 1rem', whiteSpace: 'nowrap' } }, ['Sort by']),
