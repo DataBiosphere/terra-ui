@@ -90,7 +90,6 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
 }
 
 const reverseText = _.flow(_.reverse, _.join(''))
-const contextualLength = 80
 
 // truncateLeftWord
 // This will behave like Lodash's _.truncate except it will truncate from the left side of the string.
@@ -104,13 +103,11 @@ const truncateLeftWord = _.curry((options, text) => _.flow(
 )(text))
 
 const getContextualSuggestion = ([leftContext, match, rightContext]) => {
-  const contextLength = Math.floor(contextualLength / 2)
-
   return [
     strong([em(['Description: '])]),
-    truncateLeftWord({ length: contextLength }, leftContext),
+    truncateLeftWord({ length: 40 }, leftContext),
     match,
-    _.truncate({ length: contextLength }, rightContext)
+    _.truncate({ length: 40 }, rightContext)
   ]
 }
 
