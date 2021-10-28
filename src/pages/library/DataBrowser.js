@@ -1,4 +1,3 @@
-import filesize from 'filesize'
 import _ from 'lodash/fp'
 import qs from 'qs'
 import { useState } from 'react'
