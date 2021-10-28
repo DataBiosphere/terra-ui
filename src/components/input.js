@@ -230,13 +230,15 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
 }
 
 const withAutocomplete = WrappedComponent => ({
-  instructions, itemToString, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId, inputIcon,
-  iconStyle = {}, renderSuggestion = _.identity, openOnFocus = true, suggestionFilter = Utils.textMatch, placeholderText, ...props
+  instructions, itemToString, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId, inputIcon, iconStyle,
+  renderSuggestion = _.identity, openOnFocus = true, suggestionFilter = Utils.textMatch, placeholderText, ...props
 }) => {
   Utils.useLabelAssert('withAutocomplete', { id, 'aria-labelledby': labelId, ...props, allowId: true })
 
   const suggestions = _.filter(suggestionFilter(value), rawSuggestions)
-  const controlProps = itemToString ? { itemToString: v => v ? itemToString(v) : value } : { selectedItem: value }
+  const controlProps = itemToString ?
+    { itemToString: v => v ? itemToString(v) : value } :
+    { selectedItem: value }
 
   return h(Downshift, {
     ...controlProps,

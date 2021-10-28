@@ -87,17 +87,23 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
   ])
 }
 
-const reverseText = _.flow(_.split(''), _.reverse, _.join(''))
+const reverseText = _.flow(_.reverse, _.join(''))
+const contextualLength = 60
+
+// truncateLeftWord
+// This will behave like Lodash's _.truncate except it will truncate from the left side of the string.
+// This function will also truncate at a word, so the beginning of the text is fully readable.
+// Example: truncateLeftWord({length: 14}, 'this is my string') -> '...my string' - the ellipses are part of the string length
 const truncateLeftWord = _.curry((options, text) => _.flow(
-  reverseText,
+  reverseText, // reverses the text so we can perform a truncate
   _.truncate(options),
-  reverseText,
-  _.replace(/\.\.\.(\S+)/, '...')
+  reverseText, // puts the text back in its original order
+  _.replace(/\.\.\.(\S+)/, '...') // Removes the first partial word
 )(text))
 
-const contextualLength = 60
 const getContextualSuggestion = ([leftContext, match, rightContext]) => {
   const contextLength = Math.floor(contextualLength / 2)
+
   return [
     strong([em(['Description: '])]),
     truncateLeftWord({ length: contextLength }, leftContext),

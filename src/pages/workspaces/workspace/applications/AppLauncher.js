@@ -10,7 +10,7 @@ import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
-import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
+import { defaultLocation, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import { wrapWorkspace } from 'src/pages/workspaces/workspace/WorkspaceContainer'
@@ -42,6 +42,7 @@ const ApplicationLauncher = _.flow(
   const cookieReady = Utils.useStore(cookieReadyStore)
   const [showCreate, setShowCreate] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [location, setLocation] = useState(defaultLocation)
 
   // We've already init Welder if app is Jupyter.
   // TODO: We are stubbing this to never set up welder until we resolve some backend issues around file syncing
@@ -70,6 +71,19 @@ const ApplicationLauncher = _.flow(
         .fileSyncing(googleProject, runtime.runtimeName)
         .setStorageLinks(localBaseDirectory, localSafeModeBaseDirectory, cloudStorageDirectory, `.*\\.Rmd`)
     })
+
+    const loadBucketLocation = _.flow(
+      Utils.withBusyState(setBusy),
+      withErrorReporting('Error loading bucket location')
+    )(async () => {
+      const { location } = await Ajax()
+        .Workspaces
+        .workspace(workspace.namespace, workspace.name)
+        .checkBucketLocation(googleProject, bucketName)
+      setLocation(location)
+    })
+
+    loadBucketLocation()
 
     if (shouldSetupWelder && runtimeStatus === 'Running') {
       setupWelder()
@@ -120,6 +134,7 @@ const ApplicationLauncher = _.flow(
           workspace,
           runtimes,
           persistentDisks,
+          location,
           onDismiss: () => setShowCreate(false),
           onSuccess: _.flow(
             withErrorReporting('Error loading cloud environment'),

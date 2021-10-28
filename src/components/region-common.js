@@ -11,7 +11,9 @@ import * as Utils from 'src/libs/utils'
 // https://github.com/DataBiosphere/leonardo/blob/develop/http/src/main/resources/reference.conf
 export const unknownRegionFlag = '❓'
 export const getRegionInfo = (location, locationType) => {
-  const regionDescription = `${locationType}: ${location}`.toLowerCase()
+  const regionDescription = locationType === locationTypes.multiRegion ?
+    `${location} (${locationTypes.multiRegion})` :
+    location ? location.toLowerCase() : 'UNKNOWN'
   return Utils.switchCase(locationType,
     ['multi-region', () => Utils.switchCase(location,
       ['US', () => ({ flag: '🇺🇸', regionDescription, computeZone: 'US-CENTRAL1-A', computeRegion: 'US-CENTRAL1' })],
