@@ -130,10 +130,21 @@ const ImportData = () => {
           div({ style: { marginTop: 20, marginBottom: 60 } }, [
             'Dataset(s):',
             ul({ style: { listStyle: 'none', position: 'relative', marginLeft: 0, paddingLeft: '2rem' } }, [
-              _.map.convert({ cap: false })(({ title, id }, mapindex) => li({ key: `snapshot_${id}`, style: { fontSize: 16, fontWeight: 'bold', marginTop: 20, paddingTop: mapindex ? 20 : 0, borderTop: `${mapindex ? 1 : 0}px solid #AAA` } }, [
-                icon('success-standard', { size: 18, style: { position: 'absolute', left: 0, color: colors.primary() } }),
-                title
-              ]), snapshots)
+              _.flow(
+                Utils.toIndexPairs,
+                _.map(([mapindex, { title, id }]) => li({
+                  key: `snapshot_${id}`,
+                  style: {
+                    fontSize: 16,
+                    fontWeight: 'bold',
+                    marginTop: 20,
+                    paddingTop: mapindex ? 20 : 0,
+                    borderTop: `${mapindex ? 1 : 0}px solid #AAA`
+                  }
+                }, [
+                  icon('success-standard', { size: 18, style: { position: 'absolute', left: 0, color: colors.primary() } }),
+                  title
+                ])))(snapshots)
             ])
           ]) :
           div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
