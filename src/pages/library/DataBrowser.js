@@ -50,7 +50,7 @@ const extractCatalogFilters = dataCatalog => {
     labelDisplays: _.zipObject(accessArray, _.map(accessKey => {
       const lowerKey = _.toLower(accessKey)
       return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
-        icon('lock', { style: { color: styles.access[lowerKey], marginRight: 5 } }),
+        icon(SNAPSHOT_ACCESS_TYPES[accessKey] === SNAPSHOT_ACCESS_TYPES.OPEN ? 'unlock' : 'lock', { style: { color: styles.access[lowerKey], marginRight: 5 } }),
         div([SNAPSHOT_ACCESS_TYPES[accessKey]])
       ])]
     }, _.keys(SNAPSHOT_ACCESS_TYPES)))
