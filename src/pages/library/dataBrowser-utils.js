@@ -5,6 +5,7 @@ import { withErrorReporting } from 'src/libs/error'
 import { dataCatalogStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
+
 export const snapshotAccessTypes = {
   CONTROLLED: 'Controlled',
   OPEN: 'Open',
@@ -47,7 +48,7 @@ const normalizeSnapshot = snapshot => {
     dataReleasePolicy,
     contacts, curators, contributorNames,
     dataType, dataModality,
-    access: snapshot.access || SNAPSHOT_ACCESS_TYPES.OPEN
+    access: snapshot.access || snapshotAccessTypes.OPEN
   }
 }
 
