@@ -110,7 +110,7 @@ const DataprocDiskSelector = ({ value, onChange }) => {
       label({ htmlFor: id, style: computeStyles.label }, ['Disk size (GB)']),
       h(NumberInput, {
         id,
-        min: 120, // less than this size causes failures in cluster creation
+        min: 100, // less than this size causes failures in cluster creation
         max: 64000,
         isClearable: false,
         onlyInteger: true,
