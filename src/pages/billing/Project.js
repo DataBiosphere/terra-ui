@@ -393,7 +393,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
               setShowBillingRemovalModal(Auth.hasBillingScope())
             }
           }
-        }, [icon('trash', { size: 12 })]),
+        }, [icon('times-circle', { size: 12 })]),
         showBillingModal && h(Modal, {
           title: 'Change Billing Account',
           onDismiss: () => setShowBillingModal(false),
