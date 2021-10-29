@@ -20,7 +20,7 @@ export const computeStyles = {
   warningView: { backgroundColor: colors.warning(0.1) }
 }
 
-export const defaultDataprocDiskSize = 80 // For both main and worker machine disks. Dataproc clusters don't have persistent disks.
+export const defaultDataprocDiskSize = 100 // For both main and worker machine disks. Dataproc clusters don't have persistent disks.
 export const defaultGceBootDiskSize = 80 // GCE boot disk size is not customizable by users. We use this for cost estimate calculations only.
 export const defaultGcePersistentDiskSize = 50
 
