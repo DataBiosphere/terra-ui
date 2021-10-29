@@ -13,7 +13,7 @@ import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
-import { SNAPSHOT_ACCESS_TYPES, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -95,14 +95,14 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
         h3(['Access type']),
         div([
           Utils.switchCase(access,
-            [SNAPSHOT_ACCESS_TYPES.CONTROLLED, () => h(ButtonSecondary, {
+            [snapshotAccessTypes.CONTROLLED, () => h(ButtonSecondary, {
               style: { fontSize: 16, textTransform: 'none', height: 'unset' },
               onClick: () => setShowRequestAccessModal(true)
             }, [
               icon('lock', { size: 18, style: { marginRight: 10, color: styles.access.controlled } }),
               'Request Access'
             ])],
-            [SNAPSHOT_ACCESS_TYPES.PENDING, () => div({ style: { color: styles.access.pending } }, [
+            [snapshotAccessTypes.PENDING, () => div({ style: { color: styles.access.pending } }, [
               icon('unlock', { size: 18, style: { marginRight: 10 } }),
               'Pending Access'
             ])],

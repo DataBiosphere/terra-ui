@@ -5,7 +5,7 @@ import { withErrorReporting } from 'src/libs/error'
 import { dataCatalogStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
-export const SNAPSHOT_ACCESS_TYPES = {
+export const snapshotAccessTypes = {
   CONTROLLED: 'Controlled',
   OPEN: 'Open',
   PENDING: 'Pending'

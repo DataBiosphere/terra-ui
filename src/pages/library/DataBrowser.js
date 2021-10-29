@@ -13,7 +13,7 @@ import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { SNAPSHOT_ACCESS_TYPES, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -42,7 +42,7 @@ const getUnique = (prop, data) => _.flow(
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const extractCatalogFilters = dataCatalog => {
-  const accessArray = _.values(SNAPSHOT_ACCESS_TYPES)
+  const accessArray = _.values(snapshotAccessTypes)
 
   return [{
     name: 'Access Type',
@@ -50,10 +50,12 @@ const extractCatalogFilters = dataCatalog => {
     labelDisplays: _.zipObject(accessArray, _.map(accessKey => {
       const lowerKey = _.toLower(accessKey)
       return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
-        icon(SNAPSHOT_ACCESS_TYPES[accessKey] === SNAPSHOT_ACCESS_TYPES.OPEN ? 'unlock' : 'lock', { style: { color: styles.access[lowerKey], marginRight: 5 } }),
-        div([SNAPSHOT_ACCESS_TYPES[accessKey]])
+        icon(snapshotAccessTypes[accessKey] === snapshotAccessTypes.OPEN ? 'unlock' : 'lock', {
+          style: { color: styles.access[lowerKey], marginRight: 5 }
+        }),
+        div([snapshotAccessTypes[accessKey]])
       ])]
-    }, _.keys(SNAPSHOT_ACCESS_TYPES)))
+    }, _.keys(snapshotAccessTypes)))
   }, {
     name: 'Consortium',
     labels: getUnique('project', dataCatalog)
@@ -185,11 +187,11 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
           underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
             div({ style: { display: 'flex', alignItems: 'center' } }, [
               Utils.switchCase(access,
-                [SNAPSHOT_ACCESS_TYPES.CONTROLLED, () => h(ButtonSecondary, {
+                [snapshotAccessTypes.CONTROLLED, () => h(ButtonSecondary, {
                   style: { height: 'unset', textTransform: 'none' },
                   onClick: () => setRequestDatasetAccessList([datum])
                 }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Request Access'])])],
-                [SNAPSHOT_ACCESS_TYPES.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
+                [snapshotAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
                   icon('lock'),
                   div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
                 ])],
