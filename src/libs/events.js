@@ -24,6 +24,7 @@ const eventsList = {
   notebookRename: 'notebook:rename',
   notebookCopy: 'notebook:copy',
   pageView: 'page:view',
+  removeBillingAccount: 'billing:project:account:remove',
   userRegister: 'user:register',
   workflowImport: 'workflow:import',
   workflowLaunch: 'workflow:launch',

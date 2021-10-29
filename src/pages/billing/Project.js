@@ -201,6 +201,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
   const [deletingUser, setDeletingUser] = useState(false)
   const [updating, setUpdating] = useState(false)
   const [showBillingModal, setShowBillingModal] = useState(false)
+  const [showBillingRemovalModal, setShowBillingRemovalModal] = useState(false)
   const [showSpendReportConfigurationModal, setShowSpendReportConfigurationModal] = useState(false)
   const [selectedBilling, setSelectedBilling] = useState()
   const [selectedDatasetProjectName, setSelectedDatasetProjectName] = useState(null)
@@ -305,6 +306,18 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
     })
   })
 
+  const removeBillingAccount = _.flow(
+    reportErrorAndRethrow('Error removing billing account'),
+    Utils.withBusyState(setUpdating)
+  )(() => {
+    Ajax().Metrics.captureEvent(Events.removeBillingAccount, {
+      billingProject: billingProject.projectName
+    })
+    return Ajax(signal).Billing.removeBillingAccount({
+      billingProjectName: billingProject.projectName
+    })
+  })
+
   const updateSpendConfiguration = _.flow(
     reportErrorAndRethrow('Error updating workflow spend report configuration'),
     Utils.withBusyState(setUpdating)
@@ -368,6 +381,19 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
             }
           }
         }, [icon('edit', { size: 12 })]),
+        h(Link, {
+          tooltip: 'Remove Billing Account',
+          style: { marginLeft: '0.5rem' },
+          baseColor: colors.danger,
+          onClick: async () => {
+            if (Auth.hasBillingScope()) {
+              setShowBillingRemovalModal(true)
+            } else {
+              await authorizeAndLoadAccounts()
+              setShowBillingRemovalModal(Auth.hasBillingScope())
+            }
+          }
+        }, [icon('trash', { size: 12 })]),
         showBillingModal && h(Modal, {
           title: 'Change Billing Account',
           onDismiss: () => setShowBillingModal(false),
@@ -391,6 +417,19 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
             div({ style: { marginTop: '1rem' } },
               ['Note: Changing the billing account for this billing project will clear the workflow spend report configuration.'])
           ])])
+        ]),
+        showBillingRemovalModal && h(Modal, {
+          title: 'Remove Billing Account',
+          onDismiss: () => setShowBillingRemovalModal(false),
+          okButton: h(ButtonPrimary, {
+            onClick: () => {
+              setShowBillingModal(false)
+              removeBillingAccount(selectedBilling).then(reloadBillingProject)
+            }
+          }, ['Ok'])
+        }, [
+          div({ style: { marginTop: '1rem' } },
+            ['Are you sure you want to remove this billing project\'s billing account?'])
         ])
       ]),
       div({ style: { color: colors.dark(), fontSize: 14, display: 'flex', alignItems: 'center', margin: '0.5rem 0 0 1rem' } }, [
