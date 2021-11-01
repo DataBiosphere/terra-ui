@@ -384,7 +384,8 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
         h(Link, {
           tooltip: 'Remove Billing Account',
           style: { marginLeft: '0.5rem' },
-          disabled: billingProject.billingAccount === 'null',
+          // For some reason the api sometimes returns string null, and sometimes returns no field, and soemtimes returns null. This is just to be complete.
+          disabled: billingProject.billingAccount === 'null' || billingProject.billingAccount === undefined || billingProject.billingAccount === null,
           baseColor: colors.danger,
           onClick: async () => {
             if (Auth.hasBillingScope()) {
