@@ -10,6 +10,8 @@ import { FormLabel } from 'src/libs/forms'
 import * as Utils from 'src/libs/utils'
 
 
+const sendCopyEnabled = false
+
 export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
   const [reason, setReason] = useState('')
   const [sendCopy, setSendCopy] = useState(false)
@@ -35,7 +37,7 @@ export const RequestDatasetAccessModal = ({ onDismiss, datasets }) => {
         value: reason,
         onChange: setReason
       }),
-      div([
+      sendCopyEnabled && div([
         h(LabeledCheckbox, {
           checked: sendCopy,
           onChange: setSendCopy
@@ -78,7 +80,7 @@ const RequestDatasetAccessButton = ({ dataset }) => {
     Utils.withBusyState(setRequesting),
     withErrorReporting('Error requesting dataset access')
   )(async () => {
-    await Ajax(signal).requestAccess(dataset.id)
+    await Ajax(signal).DataRepo.requestAccess(dataset.id)
     setRequested(true)
   })
 
