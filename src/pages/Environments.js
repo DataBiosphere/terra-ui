@@ -334,13 +334,12 @@ const Environments = () => {
             }
           },
           {
-            size: { basis: 90, grow: 0 },
+            size: { basis: 100, grow: 0 },
             headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Type']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              // TODO: update return logic once we support more app types (will need a backend change to return appType in list apps endpoint as well)
               return cloudEnvironment.appName ?
-                'Galaxy' :
+                (cloudEnvironment.appType ? _.capitalize(cloudEnvironment.appType) : 'Galaxy') :
                 (cloudEnvironment.runtimeConfig.cloudService === 'DATAPROC' ? 'Dataproc' : cloudEnvironment.runtimeConfig.cloudService)
             }
           },
