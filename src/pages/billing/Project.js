@@ -384,6 +384,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
         h(Link, {
           tooltip: 'Remove Billing Account',
           style: { marginLeft: '0.5rem' },
+          disabled: billingProject.billingAccount === 'null',
           baseColor: colors.danger,
           onClick: async () => {
             if (Auth.hasBillingScope()) {
@@ -423,7 +424,7 @@ const ProjectDetail = ({ billingProject, reloadBillingProject, billingAccounts, 
           onDismiss: () => setShowBillingRemovalModal(false),
           okButton: h(ButtonPrimary, {
             onClick: () => {
-              setShowBillingModal(false)
+              setShowBillingRemovalModal(false)
               removeBillingAccount(selectedBilling).then(reloadBillingProject)
             }
           }, ['Ok'])
