@@ -165,7 +165,7 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
           })
         })
       }
-    }, ['Save to a workspace'])
+    }, ['Link to a workspace'])
   ])
 }
 
