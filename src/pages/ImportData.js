@@ -21,6 +21,7 @@ import { notify } from 'src/libs/notifications'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 
 
 const styles = {
@@ -60,7 +61,7 @@ const ChoiceButton = ({ iconName, title, detail, style, ...props }) => {
 const ImportData = () => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
-  const { query: { url, format, ad, wid, template, snapshotId, snapshotName }, state: { title, header, supportMultipleImports, snapshots } } = Nav.useRoute()
+  const { query: { url, format, ad, wid, template, snapshotId, snapshotName, snapshotIds, referrer } } = Nav.useRoute()
   const [mode, setMode] = useState(wid ? 'existing' : undefined)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCloneOpen, setIsCloneOpen] = useState(false)
@@ -68,8 +69,21 @@ const ImportData = () => {
   const [selectedTemplateWorkspaceKey, setSelectedTemplateWorkspaceKey] = useState()
   const [allTemplates, setAllTemplates] = useState()
 
+  const { dataCatalog } = useDataCatalog()
+  const snapshots = _.flow(
+    _.filter(snapshot => _.includes(snapshot['dct:identifier'], snapshotIds)),
+    _.map(snapshot => { return { id: snapshot['dct:identifier'], title: snapshot['dct:title'] } })
+  )(dataCatalog)
+
   const isDataset = format !== 'snapshot'
   const noteMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.'
+  let title = `Import ${isDataset ? 'Data' : 'Snapshot'}`
+  let header = `Importing ${isDataset ? 'Data' : `Snapshot ${snapshotName}`}`
+
+  if (referrer === 'data-catalog') {
+    title = 'Catalog'
+    header = 'Linking data to a workspace'
+  }
 
   const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
 
@@ -106,7 +120,7 @@ const ImportData = () => {
         notify('success', 'Data imported successfully.', { timeout: 3000 })
       }],
       ['snapshot', async () => {
-        supportMultipleImports ?
+        snapshots && snapshots.length > 0 ?
           await Promise.allSettled(_.map(({ title, id }) => Ajax().Workspaces.workspace(namespace, name).importSnapshot(id, title), snapshots)) :
           await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName)
         notify('success', 'Snapshot imported successfully.', { timeout: 3000 })
@@ -121,12 +135,12 @@ const ImportData = () => {
   })
 
   return h(FooterWrapper, [
-    h(TopBar, { title: title || `Import ${isDataset ? 'Data' : 'Snapshot'}` }),
+    h(TopBar, { title }),
     div({ role: 'main', style: styles.container }, [
       backgroundLogo,
       div({ style: styles.card }, [
-        h2({ style: styles.title }, [header || `Importing ${isDataset ? 'Data' : `Snapshot ${snapshotName}`}`]),
-        supportMultipleImports ?
+        h2({ style: styles.title }, [header]),
+        snapshots && snapshots.length > 0 ?
           div({ style: { marginTop: 20, marginBottom: 60 } }, [
             'Dataset(s):',
             ul({ style: { listStyle: 'none', position: 'relative', marginLeft: 0, paddingLeft: '2rem' } }, [

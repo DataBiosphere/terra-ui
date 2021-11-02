@@ -1,5 +1,4 @@
 import _ from 'lodash/fp'
-import qs from 'qs'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Checkbox, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
@@ -8,11 +7,10 @@ import { icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { MiniSortable, SimpleTable } from 'src/components/table'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { importDataToWorkspace, snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -99,18 +97,7 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
       h(ButtonPrimary, {
         style: { textTransform: 'none', fontSize: 14 },
         onClick: () => {
-          Nav.history.push({
-            pathname: Nav.getPath('import-data'),
-            search: qs.stringify({
-              url: getConfig().dataRepoUrlRoot, snapshotId: selectedData[0]['dct:identifier'], snapshotName: selectedData[0]['dct:title'], format: 'snapshot'
-            }),
-            state: {
-              title: 'Catalog',
-              header: 'Linking data to a workspace',
-              supportMultipleImports: true,
-              snapshots: _.map(snapshot => { return { title: snapshot['dct:title'], id: snapshot['dct:identifier'] } }, selectedData)
-            }
-          })
+          importDataToWorkspace(selectedData)
         }
       }, ['Link to a workspace'])
     ])
