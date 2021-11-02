@@ -451,7 +451,11 @@ const Environments = () => {
                 content: div({ style: { padding: '0.5rem' } }, [
                   div([span({ style: { fontWeight: 600 } }, ['Name: ']), name]),
                   runtime && div([span({ style: { fontWeight: 600 } }, ['Runtime: ']), runtime.runtimeName]),
-                  app && div([span({ style: { fontWeight: 600 } }, ['Galaxy: ']), app.appName])
+                  app && div([
+                    span({ style: { fontWeight: 600 } },
+                      [app.appType ? `${_.capitalize(app.appType)}: ` : 'Galaxy: ']
+                    ), app.appName]
+                  )
                 ])
               }, [h(Link, ['view'])])
             }
