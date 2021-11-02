@@ -454,8 +454,8 @@ const Environments = () => {
                   app && div([
                     span({ style: { fontWeight: 600 } },
                       [app.appType ? `${_.capitalize(app.appType)}: ` : 'Galaxy: ']
-                    ), app.appName]
-                  )
+                    ), app.appName
+                  ])
                 ])
               }, [h(Link, ['view'])])
             }
