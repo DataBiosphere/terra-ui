@@ -468,6 +468,12 @@ const Billing = signal => ({
     return res
   },
 
+  removeBillingAccount: async ({ billingProjectName }) => {
+    const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/billingAccount`,
+      _.merge(authOpts(), { signal, method: 'DELETE' }))
+    return res
+  },
+
   updateSpendConfiguration: async ({ billingProjectName, datasetGoogleProject, datasetName }) => {
     const res = await fetchOrchestration(`api/billing/v2/${billingProjectName}/spendReportConfiguration`,
       _.mergeAll([
@@ -1166,19 +1172,6 @@ const GoogleBilling = signal => ({
     const response = await fetchGoogleBilling(`${billingAccountName}/projects`, _.merge(authOpts(), { signal }))
     const json = await response.json()
     return _.map('projectId', json.projectBillingInfo)
-  },
-  getBillingInfo: async project => {
-    const response = await fetchGoogleBilling(`projects/${project}/billingInfo`, _.merge(authOpts(), { signal }))
-    return response.json()
-  },
-  changeBillingAccount: async ({ projectId, newAccountName }) => {
-    const name = `projects/${projectId}/billingInfo`
-    const response = await fetchGoogleBilling(name,
-      _.mergeAll([
-        authOpts(), { signal, method: 'PUT' },
-        jsonBody({ billingEnabled: true, billingAccountName: newAccountName, name, projectId })
-      ]))
-    return response.json()
   }
 })
 
