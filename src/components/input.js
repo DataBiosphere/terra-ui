@@ -241,10 +241,10 @@ const withAutocomplete = WrappedComponent => ({
     { selectedItem: value }
 
   const inputEl = useRef()
-  let clearMethod
+  let clearFn
   Utils.useOnMount(() => {
     inputEl.current.addEventListener('search', () => {
-      clearMethod && clearMethod()
+      clearFn?.()
     })
   })
 
@@ -261,7 +261,7 @@ const withAutocomplete = WrappedComponent => ({
     labelId
   }, [
     ({ getInputProps, getMenuProps, getItemProps, isOpen, openMenu, toggleMenu, clearSelection, highlightedIndex }) => {
-      clearMethod = clearSelection
+      clearFn = clearSelection
       return div({
         onFocus: openOnFocus ? openMenu : undefined,
         style: { width: style?.width || '100%', display: 'inline-flex', position: 'relative', outline: 'none' }
