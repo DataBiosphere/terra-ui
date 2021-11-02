@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
 import { Fragment, useMemo, useState } from 'react'
-import { div, em, h, label, strong } from 'react-hyperscript-helpers'
+import { div, em, h, label, span, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, IdContainer, Link, Select } from 'src/components/common'
 import { DelayedAutoCompleteInput } from 'src/components/input'
@@ -19,23 +19,22 @@ export const commonStyles = {
 
 const styles = {
   header: {
-    fontSize: 19, color: colors.dark(), fontWeight: 'bold', marginBottom: '1rem'
+    fontSize: '1.5rem', color: colors.dark(), fontWeight: 700
   },
   sidebarRow: {
     display: 'flex', justifyContent: 'space-between', alignItems: 'baseline'
   },
   nav: {
     navSection: {
-      alignItems: 'center', flex: 'none', padding: '1.2rem 0',
-      borderTop: `1px solid ${colors.dark(0.35)}`
+      alignItems: 'center', flex: 'none', padding: '0.5rem 0'
     },
-    title: { fontWeight: 700 }
+    title: { color: colors.dark(), fontWeight: 700, borderBottom: `1px solid ${colors.dark(0.3)}`, paddingBottom: '0.75rem' }
   },
   pill: highlight => ({
     width: '4.5rem', padding: '0.25rem', fontWeight: 500, textAlign: 'center',
     border: '1px solid', borderColor: colors.dark(0.25), borderRadius: '1rem',
     backgroundColor: 'white',
-    ...(highlight ? { color: 'white', backgroundColor: colors.accent(), borderColor: colors.accent() } : {})
+    ...(highlight ? { color: 'white', backgroundColor: colors.primary(), borderColor: colors.primary() } : {})
   })
 }
 
@@ -71,15 +70,18 @@ const Sidebar = ({ onSectionFilter, onTagFilter, sections, selectedSections, sel
           style: styles.nav.navSection,
           buttonStyle: styles.nav.title,
           titleFirst: true, initialOpenState: true,
-          title: name
+          title: h(Fragment, [name, span({ style: { marginLeft: '0.5rem', fontWeight: 400 } }, [`(${_.size(labels)})`])])
         }, [_.map(label => {
           const tag = _.toLower(label)
           return h(Clickable, {
             key: label,
-            style: { display: 'flex', alignItems: 'baseline', margin: '0.5rem 0' },
+            style: {
+              display: 'flex', alignItems: 'baseline', margin: '0.5rem 0',
+              paddingBottom: '0.5rem', borderBottom: `1px solid ${colors.dark(0.1)}`
+            },
             onClick: () => onTagFilter(tag)
           }, [
-            div({ style: { flex: 1 } }, [...(labelDisplays && labelDisplays[label] ? labelDisplays[label] : label)]),
+            div({ style: { lineHeight: '1.375rem', flex: 1 } }, [...(labelDisplays && labelDisplays[label] ? labelDisplays[label] : label)]),
             div({ style: styles.pill(_.includes(tag, selectedTags)) }, [_.size(listDataByTag[tag])])
           ])
         }, labels)])
@@ -103,9 +105,9 @@ const truncateLeftWord = _.curry((options, text) => _.flow(
 const getContextualSuggestion = ([leftContext, match, rightContext]) => {
   return [
     strong([em(['Description: '])]),
-    truncateLeftWord({ length: 50 }, leftContext),
+    truncateLeftWord({ length: 40 }, leftContext),
     match,
-    _.truncate({ length: 50 }, rightContext)
+    _.truncate({ length: 40 }, rightContext)
   ]
 }
 
@@ -183,24 +185,33 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
   }
 
   return h(Fragment, [
-    div({ style: { display: 'flex', margin: '1rem 1rem 0', alignItems: 'baseline' } }, [
-      div({ style: { width: '19rem', flex: 'none' } }, [
-        div({ style: styles.sidebarRow }, [
-          div({ style: styles.header }, [`${searchType}`]),
-          div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredData)])
-        ]),
-        div({ style: { display: 'flex', alignItems: 'center', height: '2.5rem' } }, [
-          div({ style: { flex: 1 } }),
-          h(Link, {
-            onClick: () => {
-              setSelectedSections([])
-              setSelectedTags([])
-            }
-          }, ['clear'])
-        ])
+    div({
+      style: {
+        display: 'grid',
+        gridTemplateColumns: '19rem 1fr',
+        gridTemplateRows: 'auto 3rem',
+        gap: '2rem 1rem',
+        gridAutoFlow: 'column',
+        margin: '1rem 1rem 0',
+        alignItems: 'baseline'
+      }
+    }, [
+      div({ style: styles.sidebarRow }, [
+        div({ style: styles.header }, [searchType]),
+        div({ style: styles.pill(_.isEmpty(selectedSections) && _.isEmpty(selectedTags)) }, [_.size(filteredData)])
+      ]),
+      div({ style: { ...styles.nav.title, display: 'flex', alignItems: 'baseline' } }, [
+        div({ style: { flex: 1, fontSize: '1.125rem', fontWeight: 600 } }, ['Filters']),
+        h(Link, {
+          onClick: () => {
+            setSelectedSections([])
+            setSelectedTags([])
+          }
+        }, ['clear'])
       ]),
       h(DelayedAutoCompleteInput, {
-        style: { flex: 1, marginLeft: '1rem' },
+        style: { borderRadius: 25, width: 800, flex: 1 },
+        inputIcon: 'search',
         openOnFocus: true,
         value: searchFilter,
         'aria-label': `Search ${searchType}`,
@@ -213,16 +224,18 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
             _.flow(
               _.split(filterRegex),
               _.map(item => _.toLower(item) === _.toLower(searchFilter) ? strong([item]) : item),
-              match => {
-                return _.size(match) < 2 ?
-                  [...match, div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion['dct:description'])])] :
-                  match
+              maybeMatch => {
+                return _.size(maybeMatch) < 2 ? [
+                  _.truncate({ length: 90 }, _.head(maybeMatch)),
+                  div({ style: { lineHeight: '1.5rem', marginLeft: '2rem' } }, [...getContext(suggestion['dct:description'])])
+                ] : maybeMatch
               }
             )(suggestion['dct:title'])
           )
         },
         suggestions: filteredData
       }),
+      div({ style: { fontSize: '1rem', fontWeight: 600 } }, [searchFilter ? `Results For "${searchFilter}"` : 'All datasets']),
       !customSort && h(IdContainer, [
         id => h(Fragment, [
           label({ htmlFor: id, style: { margin: '0 0.5rem 0 1rem', whiteSpace: 'nowrap' } }, ['Sort by']),

@@ -230,7 +230,7 @@ const AutocompleteSuggestions = ({ target: targetId, containerProps, children })
 }
 
 const withAutocomplete = WrappedComponent => ({
-  instructions, itemToString, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId,
+  instructions, itemToString, value, onChange, onPick, suggestions: rawSuggestions, style, id, labelId, inputIcon, iconStyle,
   renderSuggestion = _.identity, openOnFocus = true, suggestionFilter = Utils.textMatch, placeholderText, ...props
 }) => {
   Utils.useLabelAssert('withAutocomplete', { id, 'aria-labelledby': labelId, ...props, allowId: true })
@@ -255,10 +255,14 @@ const withAutocomplete = WrappedComponent => ({
     ({ getInputProps, getMenuProps, getItemProps, isOpen, openMenu, toggleMenu, highlightedIndex }) => {
       return div({
         onFocus: openOnFocus ? openMenu : undefined,
-        style: { width: '100%', display: 'inline-flex' }
+        style: { width: style?.width || '100%', display: 'inline-flex', position: 'relative' }
       }, [
+        inputIcon && icon(inputIcon, {
+          style: { transform: 'translateX(1.5rem)', alignSelf: 'center', color: colors.accent(), position: 'absolute', ...iconStyle },
+          size: 18
+        }),
         h(WrappedComponent, getInputProps({
-          style,
+          style: inputIcon ? { ...style, paddingLeft: '3rem' } : style,
           type: 'search',
           onKeyDown: e => {
             if (e.key === 'Escape') {
