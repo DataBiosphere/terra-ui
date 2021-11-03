@@ -27,7 +27,7 @@ import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
-import { getCurrentRuntime } from 'src/libs/runtime-utils'
+import { defaultLocation, getCurrentRuntime } from 'src/libs/runtime-utils'
 import { authStore } from 'src/libs/state'
 import * as StateHistory from 'src/libs/state-history'
 import * as Style from 'src/libs/style'
@@ -232,6 +232,7 @@ const Analyses = _.flow(
   const [filter, setFilter] = useState(() => StateHistory.get().filter || '')
   const [busy, setBusy] = useState(false)
   const [creating, setCreating] = useState(false)
+  const [location, setLocation] = useState(defaultLocation)
   //TODO: add galaxy artifacts to this once we have galaxy artifacts
   const [analyses, setAnalyses] = useState(() => StateHistory.get().analyses || undefined)
   const [currentUserHash, setCurrentUserHash] = useState(undefined)
@@ -250,6 +251,11 @@ const Analyses = _.flow(
     withErrorReporting('Error loading analyses'),
     Utils.withBusyState(setBusy)
   )(async () => {
+    const { location } = await Ajax()
+      .Workspaces
+      .workspace(namespace, workspace.name)
+      .checkBucketLocation(googleProject, bucketName)
+    setLocation(location)
     const rawAnalyses = await Ajax(signal).Buckets.listAnalyses(googleProject, bucketName)
     const notebooks = _.filter(({ name }) => _.endsWith(`.${tools.Jupyter.ext}`, name), rawAnalyses)
     const rmds = _.filter(({ name }) => _.endsWith(`.${tools.RStudio.ext}`, name), rawAnalyses)
@@ -259,6 +265,7 @@ const Analyses = _.flow(
     const enhancedRmd = _.map(rmd => _.merge(rmd, { application: tools.RStudio.label, lastModified: rmd.updated }), rmds)
 
     const analyses = _.concat(enhancedNotebooks, enhancedRmd)
+    setLocation(location)
     setAnalyses(_.reverse(_.sortBy('lastModified', analyses)))
   })
 
@@ -397,6 +404,7 @@ const Analyses = _.flow(
           apps,
           refreshApps,
           uploadFiles, openUploader,
+          location,
           onDismiss: () => {
             refreshAnalyses()
             setCreating(false)

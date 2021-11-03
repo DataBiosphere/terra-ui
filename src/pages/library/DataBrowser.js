@@ -1,4 +1,3 @@
-import filesize from 'filesize'
 import _ from 'lodash/fp'
 import qs from 'qs'
 import { useState } from 'react'
@@ -13,7 +12,7 @@ import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -42,33 +41,20 @@ const getUnique = (prop, data) => _.flow(
 
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const extractCatalogFilters = dataCatalog => {
+  const accessArray = _.values(snapshotAccessTypes)
+
   return [{
     name: 'Access Type',
-    labels: [
-      'Controlled',
-      'Open',
-      'Pending'
-    ],
-    labelDisplays: {
-      Controlled: [
-        div({ style: { display: 'flex' } }, [
-          icon('lock', { style: { color: styles.access.controlled, marginRight: 5 } }),
-          div(['Controlled'])
-        ])
-      ],
-      Open: [
-        div({ style: { display: 'flex' } }, [
-          icon('unlock', { style: { color: styles.access.open, marginRight: 5 } }),
-          div(['Open'])
-        ])
-      ],
-      Pending: [
-        div({ style: { display: 'flex' } }, [
-          icon('lock', { style: { color: styles.access.pending, marginRight: 5 } }),
-          div(['Pending'])
-        ])
-      ]
-    }
+    labels: accessArray,
+    labelDisplays: _.zipObject(accessArray, _.map(accessKey => {
+      const lowerKey = _.toLower(accessKey)
+      return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
+        icon(snapshotAccessTypes[accessKey] === snapshotAccessTypes.OPEN ? 'unlock' : 'lock', {
+          style: { color: styles.access[lowerKey], marginRight: 5 }
+        }),
+        div([snapshotAccessTypes[accessKey]])
+      ])]
+    }, _.keys(snapshotAccessTypes)))
   }, {
     name: 'Consortium',
     labels: getUnique('project', dataCatalog)
@@ -92,9 +78,6 @@ const extractCatalogFilters = dataCatalog => {
 
 const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
   const length = _.size(selectedData).toLocaleString()
-  const files = _.sumBy(data => _.sumBy('count', data.files), selectedData).toLocaleString()
-  const totalBytes = _.sumBy(data => _.sumBy('dcat:byteSize', data.files), selectedData)
-  const fileSizeFormatted = filesize(totalBytes)
 
   return !_.isEmpty(selectedData) && div({
     style: {
@@ -107,7 +90,7 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
   }, [
     div({ style: { display: 'flex', alignItems: 'center' } }, [
       div({ style: { flexGrow: 1 } }, [
-        `${length} dataset${length > 1 ? 's' : ''} (${fileSizeFormatted} - ${files} files) selected to be saved to a Terra Workspace`
+        `${length} dataset${length > 1 ? 's' : ''} selected to be linked to a Terra Workspace`
       ]),
       h(ButtonSecondary, {
         style: { fontSize: 16, marginRight: 40, textTransform: 'none' },
@@ -123,7 +106,7 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
             })
           })
         }
-      }, ['Save to a workspace'])
+      }, ['Link to a workspace'])
     ])
   ])
 }
@@ -200,11 +183,11 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
           underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
             div({ style: { display: 'flex', alignItems: 'center' } }, [
               Utils.switchCase(access,
-                ['Controlled', () => h(ButtonSecondary, {
+                [snapshotAccessTypes.CONTROLLED, () => h(ButtonSecondary, {
                   style: { height: 'unset', textTransform: 'none' },
                   onClick: () => setRequestDatasetAccessList([datum])
                 }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Request Access'])])],
-                ['Pending', () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
+                [snapshotAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
                   icon('lock'),
                   div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])
                 ])],

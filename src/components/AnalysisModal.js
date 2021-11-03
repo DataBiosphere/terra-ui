@@ -29,7 +29,7 @@ const environmentMode = Symbol('environment')
 export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
   ({
     isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, refreshAnalyses,
-    analyses, workspace, persistentDisks, workspace: { workspace: { googleProject, bucketName } }
+    analyses, workspace, persistentDisks, location, workspace: { workspace: { googleProject, bucketName } }
   }) => {
     const [viewMode, setViewMode] = useState(undefined)
     const [busy, setBusy] = useState()
@@ -103,6 +103,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
       tool: currentTool,
       runtimes,
       persistentDisks,
+      location,
       onDismiss: () => {
         resetView()
         onDismiss()

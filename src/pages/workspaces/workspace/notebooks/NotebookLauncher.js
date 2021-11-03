@@ -1,7 +1,7 @@
 import * as clipboard from 'clipboard-polyfill/text'
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { b, div, h, iframe, p, span } from 'react-hyperscript-helpers'
 import * as breadcrumbs from 'src/components/breadcrumbs'
 import { requesterPaysWrapper, withRequesterPaysHandler } from 'src/components/bucket-utils'
@@ -20,7 +20,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import { getLocalPref, setLocalPref } from 'src/libs/prefs'
-import { getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
+import { defaultLocation, getConvertedRuntimeStatus, getCurrentRuntime, usableStatuses } from 'src/libs/runtime-utils'
 import { authStore, cookieReadyStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 import ExportNotebookModal from 'src/pages/workspaces/workspace/notebooks/ExportNotebookModal'
@@ -42,14 +42,31 @@ const NotebookLauncher = _.flow(
     showTabBar: false
   })
 )(
-  ({ queryParams, notebookName, workspace, workspace: { workspace: { namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks, refreshRuntimes },
+  ({ queryParams, notebookName, workspace, workspace: { workspace: { bucketName, googleProject, namespace, name }, accessLevel, canCompute }, runtimes, persistentDisks, refreshRuntimes },
     ref) => {
     const [createOpen, setCreateOpen] = useState(false)
+    const [busy, setBusy] = useState()
+    const [location, setLocation] = useState(defaultLocation)
+
     const runtime = getCurrentRuntime(runtimes)
     const { runtimeName, labels } = runtime || {}
     const status = getConvertedRuntimeStatus(runtime)
-    const [busy, setBusy] = useState()
     const { mode } = queryParams
+
+    useEffect(() => {
+      const loadBucketLocation = _.flow(
+        Utils.withBusyState(setBusy),
+        withErrorReporting('Error loading bucket location')
+      )(async () => {
+        const { location } = await Ajax()
+          .Workspaces
+          .workspace(namespace, name)
+          .checkBucketLocation(googleProject, bucketName)
+        setLocation(location)
+      })
+      loadBucketLocation()
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [googleProject, bucketName])
 
     return h(Fragment, [
       (Utils.canWrite(accessLevel) && canCompute && !!mode && _.includes(status, usableStatuses) && labels.tool === 'Jupyter') ?
@@ -66,6 +83,7 @@ const NotebookLauncher = _.flow(
         workspace,
         runtimes,
         persistentDisks,
+        location,
         onDismiss: () => {
           chooseMode(undefined)
           setCreateOpen(false)

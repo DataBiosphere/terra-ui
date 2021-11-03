@@ -81,7 +81,6 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
   return h(Fragment, [
     h(CloudEnvironmentModal, {
       isOpen: isCloudEnvOpen,
-      onSuccess: () => {}, //TODO: I don't know if we want to do anything?
       onDismiss: () => setCloudEnvOpen(false),
       runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps,
       workspace,

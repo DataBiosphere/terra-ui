@@ -417,6 +417,7 @@ export default class RuntimeManager extends PureComponent {
           workspace,
           runtimes,
           persistentDisks,
+          location,
           onDismiss: () => this.setState({ createModalDrawerOpen: false }),
           onSuccess: _.flow(
             withErrorReporting('Error loading cloud environment'),
