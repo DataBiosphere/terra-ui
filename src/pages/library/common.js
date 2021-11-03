@@ -7,6 +7,8 @@ import { Clickable, IdContainer, Link, Select } from 'src/components/common'
 import { DelayedAutoCompleteInput } from 'src/components/input'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
+import {Ajax} from "src/libs/ajax";
+import Events from "src/libs/events";
 
 
 export const commonStyles = {
@@ -178,6 +180,12 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
       ...query,
       filter: filter || undefined
     }, { addQueryPrefix: true })
+
+    if (filter) {
+      Ajax().Metrics.captureEvent(Events.catalogueFilter + ':search', {
+        filter: filter
+      })
+    }
 
     if (newSearch !== Nav.history.location.search) {
       Nav.history.replace({ search: newSearch })

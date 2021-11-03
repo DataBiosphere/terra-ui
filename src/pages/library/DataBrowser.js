@@ -12,6 +12,8 @@ import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
 import { importDataToWorkspace, snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
+import { Ajax } from 'src/libs/ajax'
+import Events from 'src/libs/events'
 
 
 const styles = {
@@ -166,7 +168,14 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
             onChange: () => toggleSelectedData(datum)
           }),
           name: h(Link,
-            { onClick: () => Nav.goToPath('library-details', { id: datum['dct:identifier'] }) },
+            { onClick: () => {
+                Ajax().Metrics.captureEvent(Events.catalogueView, {
+                  id: datum['dct:identifier'],
+                  title: datum['dct:title']
+                })
+                Nav.goToPath('library-details', { id: datum['dct:identifier'] })
+              }
+            },
             [datum['dct:title']]
           ),
           project,
