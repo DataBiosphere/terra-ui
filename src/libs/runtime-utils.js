@@ -154,6 +154,8 @@ export const runtimeCost = ({ runtimeConfig, status }) => {
   }
 }
 
+export const isApp = cloudEnvironment => !!cloudEnvironment?.appName
+
 export const getGalaxyCost = (app, dataDiskSize) => {
   return getGalaxyDiskCost(dataDiskSize) + getGalaxyComputeCost(app)
 }

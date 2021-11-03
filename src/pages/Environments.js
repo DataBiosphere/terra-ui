@@ -17,8 +17,8 @@ import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import {
   defaultComputeRegion,
-  defaultComputeZone, getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, getPersistentDiskCostMonthly, isComputePausable,
-  isResourceDeletable, runtimeCost
+  defaultComputeZone, getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, getPersistentDiskCostMonthly,
+  isApp, isComputePausable, isResourceDeletable, runtimeCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -334,13 +334,12 @@ const Environments = () => {
             }
           },
           {
-            size: { basis: 90, grow: 0 },
+            size: { basis: 100, grow: 0 },
             headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Type']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              // TODO: update return logic once we support more app types (will need a backend change to return appType in list apps endpoint as well)
-              return cloudEnvironment.appName ?
-                'Galaxy' :
+              return isApp(cloudEnvironment) ?
+                (cloudEnvironment.appType ? _.capitalize(cloudEnvironment.appType) : 'Galaxy') :
                 (cloudEnvironment.runtimeConfig.cloudService === 'DATAPROC' ? 'Dataproc' : cloudEnvironment.runtimeConfig.cloudService)
             }
           },
@@ -452,7 +451,11 @@ const Environments = () => {
                 content: div({ style: { padding: '0.5rem' } }, [
                   div([span({ style: { fontWeight: 600 } }, ['Name: ']), name]),
                   runtime && div([span({ style: { fontWeight: 600 } }, ['Runtime: ']), runtime.runtimeName]),
-                  app && div([span({ style: { fontWeight: 600 } }, ['Galaxy: ']), app.appName])
+                  app && div([
+                    span({ style: { fontWeight: 600 } },
+                      [app.appType ? `${_.capitalize(app.appType)}: ` : 'Galaxy: ']
+                    ), app.appName
+                  ])
                 ])
               }, [h(Link, ['view'])])
             }
