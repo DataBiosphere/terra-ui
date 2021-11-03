@@ -6,6 +6,12 @@ import { dataCatalogStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
 
+export const snapshotAccessTypes = {
+  CONTROLLED: 'Controlled',
+  OPEN: 'Open',
+  PENDING: 'Pending'
+}
+
 const normalizeSnapshot = snapshot => {
   const contributors = _.map(_.update('contactName', _.flow(
     _.replace(/,+/g, ' '),
@@ -42,7 +48,7 @@ const normalizeSnapshot = snapshot => {
     dataReleasePolicy,
     contacts, curators, contributorNames,
     dataType, dataModality,
-    access: snapshot.access || 'Open'
+    access: snapshot.access || snapshotAccessTypes.OPEN
   }
 }
 
