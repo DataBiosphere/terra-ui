@@ -17,8 +17,8 @@ import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import {
   defaultComputeRegion,
-  defaultComputeZone, getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, getPersistentDiskCostMonthly, isComputePausable,
-  isResourceDeletable, runtimeCost
+  defaultComputeZone, getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, getPersistentDiskCostMonthly,
+  isApp, isComputePausable, isResourceDeletable, runtimeCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -338,7 +338,7 @@ const Environments = () => {
             headerRenderer: () => h(Sortable, { sort, field: 'created', onSort: setSort }, ['Type']),
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
-              return cloudEnvironment.appName ?
+              return isApp(cloudEnvironment) ?
                 (cloudEnvironment.appType ? _.capitalize(cloudEnvironment.appType) : 'Galaxy') :
                 (cloudEnvironment.runtimeConfig.cloudService === 'DATAPROC' ? 'Dataproc' : cloudEnvironment.runtimeConfig.cloudService)
             }
