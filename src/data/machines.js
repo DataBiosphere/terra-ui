@@ -167,6 +167,37 @@ export const regionToDiskPrice = [
   { name: 'US-WEST4', monthlyDiskPrice: 0.044 }
 ]
 
+
+export const regionToPrices = [
+  {
+    name: 'ASIA-EAST1',
+    n1HourlyGBRamPrice: 0.004906, n1HourlyCpuPrice: 0.036602, preemptibleN1HourlyGBRamPrice: 0.000981, preemptibleN1HourlyCpuPrice: 0.00732
+  },
+  { name: 'ASIA-EAST2', n1HourlyGBRamPrice: 0.005928, n1HourlyCpuPrice: 0.044231, preemptibleN1HourlyGBRamPrice: 0.000597, preemptibleN1HourlyCpuPrice: 0.004433 },
+  { name: 'ASIA-NORTHEAST1', n1HourlyGBRamPrice: 0.005419, n1HourlyCpuPrice: 0.040618, preemptibleN1HourlyGBRamPrice: 0.001178, preemptibleN1HourlyCpuPrice: 0.00883 },
+  { name: 'ASIA-NORTHEAST2', n1HourlyGBRamPrice: 0.005419, n1HourlyCpuPrice: 0.040618, preemptibleN1HourlyGBRamPrice: 0.001178, preemptibleN1HourlyCpuPrice: 0.00883 },
+  { name: 'ASIA-NORTHEAST3', n1HourlyGBRamPrice: 0.005419, n1HourlyCpuPrice: 0.040618, preemptibleN1HourlyGBRamPrice: 0.001178, preemptibleN1HourlyCpuPrice: 0.00883 },
+  { name: 'ASIA-SOUTH1', n1HourlyGBRamPrice: 0.005088, n1HourlyCpuPrice: 0.03797, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655 },
+  { name: 'ASIA-SOUTHEAST1', n1HourlyGBRamPrice: 0.005226, n1HourlyCpuPrice: 0.038999, preemptibleN1HourlyGBRamPrice: 0.00105, preemptibleN1HourlyCpuPrice: 0.0078 },
+  { name: 'ASIA-SOUTHEAST2', n1HourlyGBRamPrice: 0.00569634, n1HourlyCpuPrice: 0.04250891, preemptibleN1HourlyGBRamPrice: 0.0011445, preemptibleN1HourlyCpuPrice: 0.008502 },
+  { name: 'AUSTRALIA-SOUTHEAST1', n1HourlyGBRamPrice: 0.006011, n1HourlyCpuPrice: 0.044856, preemptibleN1HourlyGBRamPrice: 0.0012, preemptibleN1HourlyCpuPrice: 0.00898 },
+  { name: 'EUROPE-NORTH1', n1HourlyGBRamPrice: 0.004664, n1HourlyCpuPrice: 0.034806, preemptibleN1HourlyGBRamPrice: 0.000981, preemptibleN1HourlyCpuPrice: 0.00732 },
+  { name: 'EUROPE-WEST1', n1HourlyGBRamPrice: 0.004661, n1HourlyCpuPrice: 0.034773, preemptibleN1HourlyGBRamPrice: 0.000981, preemptibleN1HourlyCpuPrice: 0.007321 },
+  { name: 'EUROPE-WEST2', n1HourlyGBRamPrice: 0.005458, n1HourlyCpuPrice: 0.04073, preemptibleN1HourlyGBRamPrice: 0.00109, preemptibleN1HourlyCpuPrice: 0.00815 },
+  { name: 'EUROPE-WEST3', n1HourlyGBRamPrice: 0.005458, n1HourlyCpuPrice: 0.04073, preemptibleN1HourlyGBRamPrice: 0.00109, preemptibleN1HourlyCpuPrice: 0.00815 },
+  { name: 'EUROPE-WEST4', n1HourlyGBRamPrice: 0.004664, n1HourlyCpuPrice: 0.034802, preemptibleN1HourlyGBRamPrice: 0.000987, preemptibleN1HourlyCpuPrice: 0.007325 },
+  { name: 'EUROPE-WEST6', n1HourlyGBRamPrice: 0.005928, n1HourlyCpuPrice: 0.044231, preemptibleN1HourlyGBRamPrice: 0.001254, preemptibleN1HourlyCpuPrice: 0.009309 },
+  { name: 'NORTHAMERICA-NORTHEAST1', n1HourlyGBRamPrice: 0.004664, n1HourlyCpuPrice: 0.034802, preemptibleN1HourlyGBRamPrice: 0.000987, preemptibleN1HourlyCpuPrice: 0.007325 },
+  { name: 'SOUTHAMERICA-EAST1', n1HourlyGBRamPrice: 0.006725, n1HourlyCpuPrice: 0.05018, preemptibleN1HourlyGBRamPrice: 0.000641, preemptibleN1HourlyCpuPrice: 0.00478 },
+  { name: 'US-CENTRAL1', n1HourlyGBRamPrice: 0.004237, n1HourlyCpuPrice: 0.031611, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655 },
+  { name: 'US-EAST1', n1HourlyGBRamPrice: 0.004237, n1HourlyCpuPrice: 0.031611, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655 },
+  { name: 'US-EAST4', n1HourlyGBRamPrice: 0.004771, n1HourlyCpuPrice: 0.035605, preemptibleN1HourlyGBRamPrice: 0.00095444, preemptibleN1HourlyCpuPrice: 0.00712085 },
+  { name: 'US-WEST1', n1HourlyGBRamPrice: 0.004237, n1HourlyCpuPrice: 0.031611, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655 },
+  { name: 'US-WEST2', n1HourlyGBRamPrice: 0.005089, n1HourlyCpuPrice: 0.03797, preemptibleN1HourlyGBRamPrice: 0.001076, preemptibleN1HourlyCpuPrice: 0.007986 },
+  { name: 'US-WEST3', n1HourlyGBRamPrice: 0.005089, n1HourlyCpuPrice: 0.03797, preemptibleN1HourlyGBRamPrice: 0.001076, preemptibleN1HourlyCpuPrice: 0.007986 },
+  { name: 'US-WEST4', n1HourlyGBRamPrice: 0.004771, n1HourlyCpuPrice: 0.035605, preemptibleN1HourlyGBRamPrice: 0.000454, preemptibleN1HourlyCpuPrice: 0.003391 }
+]
+
 export const version = '6' // updated jupyter-iframe-extension.js
 
 export const dataSyncingDocUrl = 'https://support.terra.bio/hc/en-us/articles/360034505132--Lock-and-Playground-Notebook-Modes'

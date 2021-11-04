@@ -10,7 +10,7 @@ import { NumberInput, TextInput, ValidatedInput } from 'src/components/input'
 import { withModalDrawer } from 'src/components/ModalDrawer'
 import { tools } from 'src/components/notebook-utils'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { allRegions, getRegionInfo, locationTypes } from 'src/components/region-common'
+import { getAvailableComputeRegions, getRegionInfo, isUSLocation, locationTypes } from 'src/components/region-common'
 import { SaveFilesHelp, SaveFilesHelpRStudio } from 'src/components/runtime-common'
 import TitleBar from 'src/components/TitleBar'
 import TooltipTrigger from 'src/components/TooltipTrigger'
@@ -651,10 +651,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       setJupyterUserScriptUri(currentRuntimeDetails?.jupyterUserScriptUri || '')
       setBucketLocation(location)
 
-      // For initial regionality release, compute zone and region is limited to
-      // us-central1. In later releases, we should pass in bucket location and
-      // bucket locationType here instead of defaultLocation and locationTypes.default
-      const { computeZone, computeRegion } = getRegionInfo(defaultLocation, locationTypes.default)
+      const locationType = location === defaultLocation ? locationTypes.default : locationTypes.region
+      const { computeZone, computeRegion } = getRegionInfo(location || defaultLocation, locationType)
       const runtimeConfig = currentRuntimeDetails?.runtimeConfig
       const gpuConfig = runtimeConfig?.gpuConfig
       const newSparkMode = Utils.switchCase(runtimeConfig?.cloudService,
@@ -740,6 +738,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ], [
         canShowWarning && isDifferentLocation(),
         () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('differentLocationWarning') }, ['Next'])
+      ], [
+        canShowWarning && !isUSLocation(computeConfig.computeRegion),
+        () => h(ButtonPrimary, { ...commonButtonProps, onClick: () => setViewMode('nonUSLocationWarning') }, ['Next'])
       ],
       () => h(ButtonPrimary, {
         ...commonButtonProps,
@@ -1006,19 +1007,19 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       div({ style: { ...gridStyle, gridTemplateColumns: '0.25fr 8.5rem 1fr 5.5rem 1fr 5rem', marginTop: '1.5rem' } }, [
         h(IdContainer, [
           id => div({ style: { gridColumnEnd: 'span 3' } }, [
-            label({ htmlFor: id, style: computeStyles.label }, ['Location']),
+            label({ htmlFor: id, style: computeStyles.label }, ['Location ']),
+            versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` }),
             h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
               'Cloud environments run in the same region as the workspace bucket and cannot be changed at this time.'
             ]),
             div({ style: { marginTop: '0.5rem' } }, [
               h(Select, {
                 id,
-                isDisabled: true, // Initially releasing regionality supporting only us-central1 region
-                // isDisabled: computeExists, // Can't update location of existing environments
+                isDisabled: computeExists || isUSLocation(bucketLocation), // Can't update location of existing environments
                 isSearchable: false,
                 value: computeConfig.computeRegion,
                 onChange: ({ value, locationType }) => updateComputeLocation(value, locationType),
-                options: _.flow(_.filter(l => l.value !== defaultLocation), _.sortBy('label'))(allRegions)
+                options: _.flow(_.filter(l => l.value !== defaultLocation), _.sortBy('label'))(getAvailableComputeRegions(bucketLocation))
               })
             ])
           ])
@@ -1103,6 +1104,25 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ]),
         p([`If you want your VM in ${computeConfig.computeRegion.toLowerCase()} continue. Otherwise, go back to select another location.`])
+      ]),
+      div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
+        renderActionButton()
+      ])
+    ])
+  }
+
+  const renderNonUSLocationWarning = () => {
+    return div({ style: { ...computeStyles.drawerContent, ...computeStyles.warningView } }, [
+      h(TitleBar, {
+        id: titleId,
+        hideCloseButton: isAnalysisMode,
+        style: computeStyles.titleBar,
+        title: h(WarningTitle, ['Non-US Compute Location']),
+        onDismiss,
+        onPrevious: () => setViewMode(undefined)
+      }),
+      div({ style: { lineHeight: 1.5 } }, [
+        'Having a Cloud Environment outside of the US is currently a beta feature. Please go back to use a US location.'
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
         renderActionButton()
@@ -1534,6 +1554,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ['customImageWarning', renderCustomImageWarning],
       ['environmentWarning', renderEnvironmentWarning],
       ['differentLocationWarning', renderDifferentLocationWarning],
+      ['nonUSLocationWarning', renderNonUSLocationWarning],
       ['deleteEnvironmentOptions', renderDeleteEnvironmentOptions],
       [Utils.DEFAULT, renderMainForm]
     ),

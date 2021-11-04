@@ -219,7 +219,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           id,
           value: bucketLocation,
           onChange: ({ value }) => setBucketLocation(value),
-          options: _.sortBy('label', allRegions)
+          options: _.sortBy('label', allRegions.slice(0, 2))
         })
       ])]),
       shouldShowDifferentRegionWarning() && div({ style: { ...warningStyle } }, [
