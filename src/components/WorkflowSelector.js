@@ -5,6 +5,7 @@ import { ModalToolButton } from 'src/components/data/data-utils'
 import { centeredSpinner } from 'src/components/icons'
 import { Ajax } from 'src/libs/ajax'
 import { withErrorReporting } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import { workflowSelectionStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
@@ -35,7 +36,12 @@ const WorkflowSelector = ({ workspace: { workspace: { namespace, name } }, selec
   const makeWfCard = ({ namespace: workflowNamespace, name: workflowName }) => h(ModalToolButton, {
     href: `${Nav.getLink('workflow', { namespace, name, workflowNamespace, workflowName })}?selectionKey=${selectionKey}`,
     style: { marginBottom: '1rem', height: 50, flex: 'none' },
-    text: workflowName
+    text: workflowName,
+    onClick: () => {
+      Ajax().Metrics.captureEvent(Events.workspaceDataOpenWithWorkflow, {
+        ...extractWorkspaceDetails({ namespace, name })
+      })
+    }
   })
 
   return div({ style: { ...Style.modalDrawer.content, overflowY: 'auto' } }, [

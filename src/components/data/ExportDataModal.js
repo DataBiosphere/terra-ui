@@ -8,6 +8,7 @@ import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
+import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
 import * as Nav from 'src/libs/nav'
 import * as Style from 'src/libs/style'
@@ -92,6 +93,9 @@ const ExportDataModal = ({ onDismiss, selectedDataType, selectedEntities, runnin
         .copyEntities(selectedWorkspace.namespace, selectedWorkspace.name, selectedDataType, selectedEntities,
           !!softConflicts.length)
       setCopied(true)
+      Ajax().Metrics.captureEvent(Events.workspaceDataCopy, {
+        ...extractWorkspaceDetails(workspace.workspace)
+      })
     } catch (error) {
       switch (error.status) {
         case 409:
