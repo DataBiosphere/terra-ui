@@ -51,14 +51,13 @@ export const Redirector = ({ pathname, search }) => {
   return null
 }
 
-const parseRoute = (handlers, { pathname, search, state }) => {
+const parseRoute = (handlers, { pathname, search }) => {
   const handler = _.find(({ regex }) => regex.test(pathname), handlers)
   console.assert(handler, 'No handler found for path')
   return handler && {
     ...handler,
     params: _.zipObject(handler.keys, _.tail(handler.regex.exec(pathname))),
-    query: qs.parse(search, { ignoreQueryPrefix: true, plainObjects: true }),
-    state: state || {}
+    query: qs.parse(search, { ignoreQueryPrefix: true, plainObjects: true })
   }
 }
 
