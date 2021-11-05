@@ -22,7 +22,7 @@ const eventsList = {
   cloudEnvironmentUpdate: 'cloudEnvironment:update',
   catalogueFilter: 'catalogue:filter',
   catalogueView: 'catalogue:view',
-  catalogueWorkSpaceSave: 'catalogue:workspaceSave',
+  catalogueWorkSpaceLink: 'catalogue:workspaceLink',
   notebookLaunch: 'notebook:launch',
   notebookRename: 'notebook:rename',
   notebookCopy: 'notebook:copy',
