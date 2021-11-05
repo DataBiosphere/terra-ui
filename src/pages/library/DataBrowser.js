@@ -99,6 +99,10 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
       h(ButtonPrimary, {
         style: { textTransform: 'none', fontSize: 14 },
         onClick: () => {
+          Ajax().Metrics.captureEvent(Events.catalogueWorkSpaceSave + ':tableView', {
+            snapshotIds: _.map('dct:identifier', selectedData),
+            snapshotName: _.map('dct:title', selectedData)
+          })
           importDataToWorkspace(selectedData)
         }
       }, ['Link to a workspace'])
@@ -137,7 +141,10 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
                   style: { marginRight: 10 },
                   'aria-label': tag,
                   checked: _.includes(tag.toLowerCase(), selectedTags),
-                  onChange: () => setSelectedTags(_.xor([tag.toLowerCase()]))
+                  onChange: () => {
+                    Ajax().Metrics.captureEvent(Events.catalogueFilter + ':tableHeader', { tag })
+                    setSelectedTags(_.xor([tag.toLowerCase()]))
+                  }
                 }, [tag])
               ])
             }, sections[1].labels))
@@ -169,7 +176,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
           }),
           name: h(Link,
             { onClick: () => {
-                Ajax().Metrics.captureEvent(Events.catalogueView, {
+                Ajax().Metrics.captureEvent(Events.catalogueView + ':details', {
                   id: datum['dct:identifier'],
                   title: datum['dct:title']
                 })
