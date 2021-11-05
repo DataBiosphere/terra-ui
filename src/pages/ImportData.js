@@ -72,7 +72,7 @@ const ImportData = () => {
   const { dataCatalog } = useDataCatalog()
   const snapshots = _.flow(
     _.filter(snapshot => _.includes(snapshot['dct:identifier'], snapshotIds)),
-    _.map(snapshot => { return { id: snapshot['dct:identifier'], title: snapshot['dct:title'] } })
+    _.map(snapshot => ({ id: snapshot['dct:identifier'], title: snapshot['dct:title'] }))
   )(dataCatalog)
 
   const isDataset = format !== 'snapshot'
