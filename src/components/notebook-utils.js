@@ -74,7 +74,8 @@ export const tools = {
   Jupyter: { label: 'Jupyter', ext: 'ipynb', imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk' },
   jupyterTerminal: { label: 'terminal' },
   spark: { label: 'spark' },
-  galaxy: { label: 'galaxy' }
+  galaxy: { label: 'galaxy' },
+  cromwell: { label: 'cromwell', type: 'CROMWELL' }
 }
 
 const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }

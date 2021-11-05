@@ -4,6 +4,7 @@ import { div, h, hr, img, span } from 'react-hyperscript-helpers'
 import { Clickable, spinnerOverlay } from 'src/components/common'
 import { ComputeModalBase } from 'src/components/ComputeModal'
 import { GalaxyModalBase } from 'src/components/GalaxyModal'
+import { CromwellModalBase } from 'src/components/CromwellModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { tools } from 'src/components/notebook-utils'
@@ -14,6 +15,7 @@ import TitleBar from 'src/components/TitleBar'
 import cloudIcon from 'src/icons/cloud-compute.svg'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo-long.png'
+import cromwellImg from 'src/images/jamie_the_cromwell_pig.png'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -23,7 +25,7 @@ import * as Nav from 'src/libs/nav'
 import {
   getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
-  getCurrentApp,
+  getCurrentApp,  // TODO: change to getting the most recent app for a specific type.
   getCurrentRuntime,
   getGalaxyCostTextChildren,
   getIsAppBusy,
@@ -86,10 +88,30 @@ export const CloudEnvironmentModal = ({
     }
   })
 
+  const renderCromwellModal = () => h(CromwellModalBase, {
+    isOpen: viewMode === NEW_CROMWELL_MODE,
+    isAnalysisMode: true,
+    workspace,
+    apps,
+    galaxyDataDisks,  // TODO will this be all data disks?
+    onDismiss: () => {
+      setViewMode(undefined)
+      onDismiss()
+    },
+    onSuccess: _.flow(
+      withErrorReporting('Error creating app'),
+      Utils.withBusyState(setBusy)
+    )(async () => {
+      setViewMode(undefined)
+      await refreshApps(true)
+    })
+  })
+
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } }, [
     renderToolButtons(tools.Jupyter.label),
     renderToolButtons(tools.RStudio.label),
-    renderToolButtons(tools.galaxy.label)
+    renderToolButtons(tools.galaxy.label),
+    renderToolButtons(tools.cromwell.label)
   ])
 
   const toolPanelStyles = {
@@ -125,7 +147,7 @@ export const CloudEnvironmentModal = ({
     try {
       setBusy(true)
       await promise
-      await toolLabel === tools.galaxy.label ? refreshApps() : refreshRuntimes()
+      await toolLabel === tools.galaxy.label || toolLabel === tools.cromwell.label? refreshApps() : refreshRuntimes()
     } catch (error) {
       reportError('Cloud Environment Error', error)
     } finally {
@@ -134,7 +156,7 @@ export const CloudEnvironmentModal = ({
   }
 
   // We assume here that button disabling is working properly, so the only thing to check is whether it's a Galaxy app or the current (assumed to be existing) runtime
-  const startApp = toolLabel => Utils.cond([toolLabel === tools.galaxy.label, () => {
+  const startApp = toolLabel => Utils.cond([toolLabel === tools.galaxy.label || toolLabel === tools.cromwell.label, () => {
     const { googleProject, appName } = currentApp
     executeAndRefresh(toolLabel,
       Ajax().Apps.app(googleProject, appName).resume())
@@ -144,7 +166,7 @@ export const CloudEnvironmentModal = ({
       Ajax().Runtimes.runtime(googleProject, runtimeName).start())
   }])
 
-  const stopApp = toolLabel => Utils.cond([toolLabel === tools.galaxy.label, () => {
+  const stopApp = toolLabel => Utils.cond([toolLabel === tools.galaxy.label || toolLabel === tools.cromwell.label, () => {
     const { googleProject, appName } = currentApp
     executeAndRefresh(toolLabel, Ajax().Apps.app(googleProject, appName).pause())
   }], [Utils.DEFAULT, () => {
@@ -207,8 +229,7 @@ export const CloudEnvironmentModal = ({
           toolLabel,
           disabled: true,
           tooltip: 'Environment update in progress',
-          messageChildren: [span('Environment'),
-            span(toolLabel === tools.galaxy.label ? getComputeStatusForDisplay(status) : getComputeStatusForDisplay(status))]
+          messageChildren: [span('Environment'), span(getComputeStatusForDisplay(status))]
         })
       case 'Error':
         return h(RuntimeIcon, {
@@ -217,7 +238,7 @@ export const CloudEnvironmentModal = ({
           style: { color: colors.danger(0.9) },
           onClick: () => {
             Utils.cond(
-              [toolLabel === tools.galaxy.label, () => setErrorAppId(currentApp?.appName)],
+              [toolLabel === tools.galaxy.label || toolLabel === tools.cromwell.label, () => setErrorAppId(currentApp?.appName)],
               [Utils.DEFAULT, () => setErrorRuntimeId(currentRuntime?.id)]
             )
           },
@@ -238,11 +259,13 @@ export const CloudEnvironmentModal = ({
   const getToolIcon = toolLabel => Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => jupyterLogo],
     [tools.galaxy.label, () => galaxyLogo],
-    [tools.RStudio.label, () => rstudioLogo])
+    [tools.RStudio.label, () => rstudioLogo],
+    [tools.cromwell.label, () => cromwellImg])
 
   // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
   const getCostForTool = toolLabel => Utils.cond(
     [toolLabel === tools.galaxy.label, () => getGalaxyCostTextChildren(currentApp, galaxyDataDisks)],
+    [toolLabel === tools.cromwell.label, () => ""],  // TODO: figure out what to show for Cromwell
     [getRuntimeForTool(toolLabel), () => {
       const runtime = getRuntimeForTool(toolLabel)
       const totalCost = runtimeCost(runtime) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
@@ -262,7 +285,9 @@ export const CloudEnvironmentModal = ({
   )
 
   const getToolLaunchClickableProps = toolLabel => {
-    const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || (currentApp && toolLabel === tools.galaxy.label)
+    // TODO: fix this check so that "currentApp" isn't just the latest
+    const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || (currentApp?.appType === 'GALAXY' && toolLabel === tools.galaxy.label) ||  (currentApp?.appType === 'CROMWELL' && toolLabel === tools.cromwell.label)
+    // const doesCloudEnvForToolExist = true
     // TODO what does cookieReady do? Found it in the galaxy app launch code, is it needed here?
     const isToolBusy = toolLabel === tools.galaxy.label ?
       getIsAppBusy(currentApp) || currentApp?.status === 'STOPPED' || currentApp?.status === 'ERROR' :
@@ -296,7 +321,19 @@ export const CloudEnvironmentModal = ({
           },
           ...Utils.newTabLinkPropsWithReferrer
         }
-      }], [Utils.DEFAULT, () => {
+      }],
+      [tools.cromwell.label, () => {
+        return {
+          ...baseProps,
+          href: currentApp?.proxyUrls["cromwell-service"],
+          onClick: () => {
+            onDismiss()
+            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: 'Cromwell' })
+          },
+          ...Utils.newTabLinkPropsWithReferrer
+        }
+      }],
+      [Utils.DEFAULT, () => {
         // TODO: Jupyter link isn't currently valid, and button will always be disabled for Jupyter because launching directly into tree view is problematic in terms of welder/nbextensions. We are investigating alternatives in https://broadworkbench.atlassian.net/browse/IA-2873
         const applicationLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: toolLabel })
         return {
@@ -312,7 +349,6 @@ export const CloudEnvironmentModal = ({
       }]
     )
   }
-
 
   const renderToolButtons = toolLabel => {
     const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || (currentApp && toolLabel === tools.galaxy.label)
@@ -362,11 +398,13 @@ export const CloudEnvironmentModal = ({
   const NEW_JUPYTER_MODE = tools.Jupyter.label
   const NEW_RSTUDIO_MODE = tools.RStudio.label
   const NEW_GALAXY_MODE = tools.galaxy.label
+  const NEW_CROMWELL_MODE = tools.cromwell.label
 
   const getView = () => Utils.switchCase(viewMode,
     [NEW_JUPYTER_MODE, () => renderComputeModal(NEW_JUPYTER_MODE)],
     [NEW_RSTUDIO_MODE, () => renderComputeModal(NEW_RSTUDIO_MODE)],
     [NEW_GALAXY_MODE, renderGalaxyModal],
+    [NEW_CROMWELL_MODE, renderCromwellModal],
     [Utils.DEFAULT, renderDefaultPage]
   )
 

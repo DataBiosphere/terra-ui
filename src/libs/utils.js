@@ -197,7 +197,7 @@ export const abandonedPromise = () => {
 
 export const generateRuntimeName = () => `saturn-${uuid()}`
 
-export const generateGalaxyAppName = () => `saturn-k8-${uuid()}`
+export const generateAppName = () => `saturn-k8-${uuid()}`
 
 export const generatePersistentDiskName = () => `saturn-pd-${uuid()}`
 

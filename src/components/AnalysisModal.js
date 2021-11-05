@@ -4,6 +4,7 @@ import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
 import { ComputeModalBase } from 'src/components/ComputeModal'
 import Dropzone from 'src/components/Dropzone'
+import { CromwellModalBase } from 'src/components/CromwellModal'
 import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
@@ -12,6 +13,7 @@ import TitleBar from 'src/components/TitleBar'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
+import cromwellImg from 'src/images/jamie_the_cromwell_pig.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
@@ -75,6 +77,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
         }],
         [Utils.DEFAULT, () => Utils.cond(
           [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(analysisMode)],
+          [currentTool === tools.cromwell.label, () => setViewMode(environmentMode)],
           [currentTool === tools.galaxy.label && !currentApp, () => setViewMode(environmentMode)],
           [currentTool === tools.galaxy.label && currentApp, () => {
             console.error(
@@ -93,11 +96,12 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
     const getEnvironmentView = () => Utils.switchCase(currentTool,
       [tools.Jupyter.label, renderComputeModal],
       [tools.RStudio.label, renderComputeModal],
-      [tools.galaxy.label, renderGalaxyModal]
+      [tools.galaxy.label, renderGalaxyModal],
+      [tools.cromwell.label, renderCromwellModal]
     )
 
     const renderComputeModal = () => h(ComputeModalBase, {
-      isOpen: currentTool === tools.Jupyter.label || currentTool === tools.RStudio.label,
+      isOpen: currentTool === tools.Jupyter.label || currentTool === tools.RStudio.label || tools.cromwell.label,
       isAnalysisMode: true,
       workspace,
       tool: currentTool,
@@ -120,6 +124,26 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
 
     const renderGalaxyModal = () => h(GalaxyModalBase, {
       isOpen: viewMode === tools.galaxy.label,
+      isAnalysisMode: true,
+      workspace,
+      apps,
+      galaxyDataDisks,
+      onDismiss: () => {
+        setViewMode(undefined)
+        onDismiss()
+      },
+      onSuccess: _.flow(
+        withErrorReporting('Error creating app'),
+        Utils.withBusyState(setBusy)
+      )(async () => {
+        setViewMode(undefined)
+        onSuccess()
+        await refreshApps(true)
+      })
+    })
+
+    const renderCromwellModal = () => h(CromwellModalBase, {
+      isOpen: viewMode === tools.cromwell.label,
       isAnalysisMode: true,
       workspace,
       apps,
@@ -166,7 +190,13 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
           setCurrentTool(tools.galaxy.label)
           enterNextViewMode(tools.galaxy.label)
         }, disabled: !currentApp, title: currentApp ? 'You already have a galaxy environment' : ''
-      }, [img({ src: galaxyLogo, style: _.merge(styles.image, { width: '30%' }) })])
+      }, [img({ src: galaxyLogo, style: _.merge(styles.image, { width: '30%' }) })]),
+      div({
+        style: styles.toolCard, onClick: () => {
+          setCurrentTool(tools.cromwell.label)
+          enterNextViewMode(tools.cromwell.label)
+        }
+      }, [img({ src: cromwellImg, style: styles.image })]),
     ])
 
     const renderSelectAnalysisBody = () => div({
