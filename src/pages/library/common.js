@@ -267,7 +267,10 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
       div({ style: { width: '19rem', flex: 'none' } }, [
         h(Sidebar, {
           onSectionFilter: section => setSelectedSections(_.xor([section])),
-          onTagFilter: tag => setSelectedTags(_.xor([tag])),
+          onTagFilter: tag => {
+            Ajax().Metrics.captureEvent(Events.catalogueFilter + ':sidebar', { tag })
+            setSelectedTags(_.xor([tag]))
+          },
           sections,
           selectedSections,
           selectedTags,
