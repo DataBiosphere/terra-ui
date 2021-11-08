@@ -38,9 +38,7 @@ const WorkflowSelector = ({ workspace: { workspace: { namespace, name } }, selec
     style: { marginBottom: '1rem', height: 50, flex: 'none' },
     text: workflowName,
     onClick: () => {
-      Ajax().Metrics.captureEvent(Events.workspaceDataOpenWithWorkflow, {
-        ...extractWorkspaceDetails({ namespace, name })
-      })
+      Ajax().Metrics.captureEvent(Events.workspaceDataOpenWithWorkflow, extractWorkspaceDetails({ namespace, name }))
     }
   })
 

@@ -119,9 +119,7 @@ const ToolDrawer = _.flow(
           const cohortName = _.values(selectedEntities)[0].name
           const contents = notebookKernel === 'r' ? cohortRNotebook(cohortName) : cohortNotebook(cohortName)
           await Buckets.notebook(googleProject, bucketName, notebookName).create(JSON.parse(contents))
-          Ajax().Metrics.captureEvent(Events.workspaceDataOpenWithNotebook, {
-            ...extractWorkspaceDetails(workspace.workspace)
-          })
+          Ajax().Metrics.captureEvent(Events.workspaceDataOpenWithNotebook, extractWorkspaceDetails(workspace.workspace))
           Nav.goToPath('workspace-notebook-launch', { namespace, name: wsName, notebookName: `${notebookName}.ipynb` })
         },
         onDismiss: () => setToolMode(undefined),
@@ -150,10 +148,8 @@ const ToolDrawer = _.flow(
             }),
             h(ModalToolButton, {
               onClick: () => {
-                Ajax().Metrics.captureEvent(Events.workspaceDataOpenWithDataExplorer, {
-                  ...extractWorkspaceDetails(workspace.workspace)
-                })
-                if (!openDataExplorerInSameTab) onDismiss()
+                Ajax().Metrics.captureEvent(Events.workspaceDataOpenWithDataExplorer, extractWorkspaceDetails(workspace.workspace))
+                !openDataExplorerInSameTab && onDismiss()
               },
               href: openDataExplorerInSameTab ? dataExplorerPath : dataExplorerUrl,
               ...(!openDataExplorerInSameTab ? Utils.newTabLinkProps : {}),
@@ -399,9 +395,7 @@ const EntitiesContent = ({
           setDeletingEntities(false)
           setSelectedEntities({})
           setRefreshKey(_.add(1))
-          Ajax().Metrics.captureEvent(Events.workspaceDataDelete, {
-            ...extractWorkspaceDetails(workspace.workspace)
-          })
+          Ajax().Metrics.captureEvent(Events.workspaceDataDelete, extractWorkspaceDetails(workspace.workspace))
           loadMetadata()
         },
         namespace, name,
@@ -420,9 +414,7 @@ const EntitiesContent = ({
           setShowToolSelector(false)
           setIgvFiles(selectedFiles)
           setIgvRefGenome(refGenome)
-          Ajax().Metrics.captureEvent(Events.workspaceDataOpenWithIGV, {
-            ...extractWorkspaceDetails(workspace.workspace)
-          })
+          Ajax().Metrics.captureEvent(Events.workspaceDataOpenWithIGV, extractWorkspaceDetails(workspace.workspace))
         },
         entityMetadata,
         entityKey,
