@@ -74,12 +74,16 @@ export const tools = {
   Jupyter: { label: 'Jupyter', ext: 'ipynb', imageIds: ['terra-jupyter-bioconductor', 'terra-jupyter-bioconductor_legacy', 'terra-jupyter-hail', 'terra-jupyter-python', 'terra-jupyter-gatk', 'Pegasus', 'terra-jupyter-gatk_legacy'], defaultImageId: 'terra-jupyter-gatk' },
   jupyterTerminal: { label: 'terminal' },
   spark: { label: 'spark' },
-  galaxy: { label: 'galaxy' },
-  cromwell: { label: 'cromwell', type: 'CROMWELL' }
+  galaxy: { label: 'galaxy', appType: 'GALAXY' },
+  cromwell: { label: 'cromwell', appType: 'CROMWELL' }
 }
 
 const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }
 
+// Returns true iff the tool label corresponds to an app.
+export const isToolAnApp = label => label === tools.galaxy.label || label === tools.cromwell.label
+// Mapping of tool label to appType.
+export const toolToAppTypeMap = { [tools.galaxy.label] : tools.galaxy.appType, [tools.cromwell.label] : tools.cromwell.appType }
 export const getTool = fileName => _.invert(toolToExtensionMap)[getExtension(fileName)]
 export const getToolFromRuntime = _.get(['labels', 'tool'])
 

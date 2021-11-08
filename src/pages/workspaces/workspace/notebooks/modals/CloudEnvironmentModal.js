@@ -7,7 +7,7 @@ import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { CromwellModalBase } from 'src/components/CromwellModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
-import { tools } from 'src/components/notebook-utils'
+import {isToolAnApp, tools, toolToAppTypeMap} from 'src/components/notebook-utils'
 import { getRegionInfo } from 'src/components/region-common'
 import { appLauncherTabName } from 'src/components/runtime-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
@@ -25,7 +25,7 @@ import * as Nav from 'src/libs/nav'
 import {
   getComputeStatusForDisplay,
   getConvertedRuntimeStatus,
-  getCurrentApp,  // TODO: change to getting the most recent app for a specific type.
+  getCurrentAppForType,
   getCurrentRuntime,
   getGalaxyCostTextChildren,
   getIsAppBusy,
@@ -115,20 +115,44 @@ export const CloudEnvironmentModal = ({
   ])
 
   const toolPanelStyles = {
-    backgroundColor: 'white', margin: '0 1.5rem 1rem 1.5rem', padding: '0 1rem 1rem 1rem', display: 'flex', flexDirection: 'column'
+    backgroundColor: 'white',
+    margin: '0 1.5rem 1rem 1.5rem',
+    padding: '0 1rem 1rem 1rem',
+    display: 'flex',
+    flexDirection: 'column'
   }
-  const toolLabelStyles = { margin: '1rem 0 0.5rem 0', display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }
-  const toolButtonDivStyles = { display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' }
+  const toolLabelStyles = {
+    margin: '1rem 0 0.5rem 0',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  }
+  const toolButtonDivStyles = {display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly'}
   const toolButtonStyles = {
-    flex: '1 1 0%', maxWidth: 105, display: 'flex', flexDirection: 'column', border: '.5px solid grey', borderRadius: 16, padding: '.5rem .75rem',
-    alignItems: 'center', fontWeight: 550, fontSize: 11, color: colors.accent()
+    flex: '1 1 0%',
+    maxWidth: 105,
+    display: 'flex',
+    flexDirection: 'column',
+    border: '.5px solid grey',
+    borderRadius: 16,
+    padding: '.5rem .75rem',
+    alignItems: 'center',
+    fontWeight: 550,
+    fontSize: 11,
+    color: colors.accent()
   }
 
   const currentRuntime = getCurrentRuntime(runtimes)
   const currentRuntimeStatus = getConvertedRuntimeStatus(currentRuntime)
   const currentRuntimeTool = currentRuntime?.labels?.tool
 
-  const currentApp = getCurrentApp(apps)
+  const currentApp = (toolLabel) => {
+    const type = toolToAppTypeMap[toolLabel]
+    const app = getCurrentAppForType(type)(apps)
+    console.log(type + " " + app)
+    return app
+  }
 
   const RuntimeIcon = ({ shape, onClick, disabled, messageChildren, toolLabel, style, ...props }) => {
     return h(Clickable, {
@@ -147,7 +171,7 @@ export const CloudEnvironmentModal = ({
     try {
       setBusy(true)
       await promise
-      await toolLabel === tools.galaxy.label || toolLabel === tools.cromwell.label? refreshApps() : refreshRuntimes()
+      await isToolAnApp(toolLabel) ? refreshApps() : refreshRuntimes()
     } catch (error) {
       reportError('Cloud Environment Error', error)
     } finally {
@@ -155,9 +179,9 @@ export const CloudEnvironmentModal = ({
     }
   }
 
-  // We assume here that button disabling is working properly, so the only thing to check is whether it's a Galaxy app or the current (assumed to be existing) runtime
-  const startApp = toolLabel => Utils.cond([toolLabel === tools.galaxy.label || toolLabel === tools.cromwell.label, () => {
-    const { googleProject, appName } = currentApp
+  // We assume here that button disabling is working properly, so the only thing to check is whether it's an app or the current (assumed to be existing) runtime
+  const startApp = toolLabel => Utils.cond([isToolAnApp(toolLabel), () => {
+    const { googleProject, appName } = currentApp(toolLabel)
     executeAndRefresh(toolLabel,
       Ajax().Apps.app(googleProject, appName).resume())
   }], [Utils.DEFAULT, () => {
@@ -166,8 +190,8 @@ export const CloudEnvironmentModal = ({
       Ajax().Runtimes.runtime(googleProject, runtimeName).start())
   }])
 
-  const stopApp = toolLabel => Utils.cond([toolLabel === tools.galaxy.label || toolLabel === tools.cromwell.label, () => {
-    const { googleProject, appName } = currentApp
+  const stopApp = toolLabel => Utils.cond([isToolAnApp(toolLabel), () => {
+    const { googleProject, appName } = currentApp(toolLabel)
     executeAndRefresh(toolLabel, Ajax().Apps.app(googleProject, appName).pause())
   }], [Utils.DEFAULT, () => {
     const { googleProject, runtimeName } = currentRuntime
@@ -185,8 +209,8 @@ export const CloudEnvironmentModal = ({
 
   const renderStatusClickable = toolLabel => Utils.cond(
     [toolLabel === currentRuntimeTool, () => getIconFromStatus(toolLabel, currentRuntimeStatus)],
-    [toolLabel === tools.galaxy.label, () => {
-      const normalizedAppStatus = _.capitalize(currentApp?.status)
+    [isToolAnApp(toolLabel), () => {
+      const normalizedAppStatus = _.capitalize(currentApp(toolLabel)?.status)
       return getIconFromStatus(toolLabel, normalizedAppStatus)
     }],
     [Utils.DEFAULT, () => defaultIcon(toolLabel)]
@@ -238,7 +262,7 @@ export const CloudEnvironmentModal = ({
           style: { color: colors.danger(0.9) },
           onClick: () => {
             Utils.cond(
-              [toolLabel === tools.galaxy.label || toolLabel === tools.cromwell.label, () => setErrorAppId(currentApp?.appName)],
+              [isToolAnApp(toolLabel), () => setErrorAppId(currentApp(toolLabel)?.appName)],
               [Utils.DEFAULT, () => setErrorRuntimeId(currentRuntime?.id)]
             )
           },
@@ -264,7 +288,7 @@ export const CloudEnvironmentModal = ({
 
   // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
   const getCostForTool = toolLabel => Utils.cond(
-    [toolLabel === tools.galaxy.label, () => getGalaxyCostTextChildren(currentApp, galaxyDataDisks)],
+    [toolLabel === tools.galaxy.label, () => getGalaxyCostTextChildren(currentApp(toolLabel), galaxyDataDisks)],
     [toolLabel === tools.cromwell.label, () => ""],  // TODO: figure out what to show for Cromwell
     [getRuntimeForTool(toolLabel), () => {
       const runtime = getRuntimeForTool(toolLabel)
@@ -275,7 +299,7 @@ export const CloudEnvironmentModal = ({
   )
 
   const isCloudEnvModalDisabled = toolLabel => Utils.cond(
-    [toolLabel === tools.galaxy.label, () => !canCompute || busy || isCurrentGalaxyDiskDetaching(apps) || getIsAppBusy(currentApp)],
+    [toolLabel === tools.galaxy.label, () => !canCompute || busy || isCurrentGalaxyDiskDetaching(apps) || getIsAppBusy(currentApp(toolLabel))],
     [Utils.DEFAULT, () => {
       const runtime = getRuntimeForTool(toolLabel)
       return runtime ?
@@ -285,12 +309,11 @@ export const CloudEnvironmentModal = ({
   )
 
   const getToolLaunchClickableProps = toolLabel => {
-    // TODO: fix this check so that "currentApp" isn't just the latest
-    const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || (currentApp?.appType === 'GALAXY' && toolLabel === tools.galaxy.label) ||  (currentApp?.appType === 'CROMWELL' && toolLabel === tools.cromwell.label)
-    // const doesCloudEnvForToolExist = true
+    const app = currentApp(toolLabel)
+    const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app
     // TODO what does cookieReady do? Found it in the galaxy app launch code, is it needed here?
-    const isToolBusy = toolLabel === tools.galaxy.label ?
-      getIsAppBusy(currentApp) || currentApp?.status === 'STOPPED' || currentApp?.status === 'ERROR' :
+    const isToolBusy = isToolAnApp(toolLabel) ?
+      getIsAppBusy(app) || app?.status === 'STOPPED' || app?.status === 'ERROR' :
       currentRuntime?.status === 'Error'
     const isDisabled = !doesCloudEnvForToolExist || !cookieReady || !canCompute || busy || isToolBusy || toolLabel === tools.Jupyter.label
     const baseProps = {
@@ -303,18 +326,17 @@ export const CloudEnvironmentModal = ({
       hover: { backgroundColor: colors.accent(0.2) },
       tooltip: Utils.cond(
         [doesCloudEnvForToolExist && !isDisabled, () => 'Launch'],
-        [doesCloudEnvForToolExist && isDisabled && toolLabel !== tools.Jupyter.label, () => 'Please wait until Galaxy is running'],
+        [doesCloudEnvForToolExist && isDisabled && toolLabel !== tools.Jupyter.label, () => `Please wait until ${_.capitalize(app.appType)} is running`],
         [doesCloudEnvForToolExist && isDisabled && toolLabel === tools.Jupyter.label,
           () => 'Select or create a notebook in the analyses tab to launch Jupyter'],
         [Utils.DEFAULT, () => 'No Environment found']
       )
     }
-
     return Utils.switchCase(toolLabel,
       [tools.galaxy.label, () => {
         return {
           ...baseProps,
-          href: currentApp?.proxyUrls?.galaxy,
+          href: app?.proxyUrls?.galaxy,
           onClick: () => {
             onDismiss()
             Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: 'Galaxy' })
@@ -325,7 +347,7 @@ export const CloudEnvironmentModal = ({
       [tools.cromwell.label, () => {
         return {
           ...baseProps,
-          href: currentApp?.proxyUrls["cromwell-service"],
+          href: app?.proxyUrls["cromwell-service"],
           onClick: () => {
             onDismiss()
             Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: 'Cromwell' })
@@ -351,7 +373,8 @@ export const CloudEnvironmentModal = ({
   }
 
   const renderToolButtons = toolLabel => {
-    const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || (currentApp && toolLabel === tools.galaxy.label)
+    const app = currentApp(toolLabel)
+    const doesCloudEnvForToolExist = currentRuntimeTool === toolLabel || app
     const isCloudEnvForToolDisabled = isCloudEnvModalDisabled(toolLabel)
     return h(Fragment, [
       div({ style: toolPanelStyles }, [
