@@ -243,8 +243,8 @@ const withAutocomplete = WrappedComponent => ({
   const inputEl = useRef()
   const clearSelectionRef = useRef()
   Utils.useOnMount(() => {
-    inputEl.current.addEventListener('search', () => {
-      clearSelectionRef.current?.()
+    inputEl.current.addEventListener('search', e => {
+      !e.target.value && clearSelectionRef.current?.()
     })
   })
 
