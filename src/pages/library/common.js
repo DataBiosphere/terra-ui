@@ -182,7 +182,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
     }, { addQueryPrefix: true })
 
     if (filter) {
-      Ajax().Metrics.captureEvent(Events.catalogueFilter + ':search', {
+      Ajax().Metrics.captureEvent(Events.catalogFilter + ':search', {
         filter: filter
       })
     }
@@ -268,7 +268,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
         h(Sidebar, {
           onSectionFilter: section => setSelectedSections(_.xor([section])),
           onTagFilter: tag => {
-            Ajax().Metrics.captureEvent(Events.catalogueFilter + ':sidebar', { tag })
+            Ajax().Metrics.captureEvent(Events.catalogFilter + ':sidebar', { tag })
             setSelectedTags(_.xor([tag]))
           },
           sections,

@@ -149,7 +149,7 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
     h(ButtonOutline, {
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => {
-        Ajax().Metrics.captureEvent(Events.catalogueView + ':previewData', {
+        Ajax().Metrics.captureEvent(Events.catalogView + ':previewData', {
           snapshotId: _.get('dct:identifier', snapshot),
           snapshotName: snapshot['dct:title']
         })
@@ -164,7 +164,7 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
     h(ButtonPrimary, {
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => {
-        Ajax().Metrics.captureEvent(Events.catalogueWorkSpaceLink + ':detailsView', {
+        Ajax().Metrics.captureEvent(Events.catalogWorkSpaceLink + ':detailsView', {
           snapshotId: id,
           snapshotName: snapshot['dct:title']
         })

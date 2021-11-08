@@ -142,7 +142,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
                   'aria-label': tag,
                   checked: _.includes(tag.toLowerCase(), selectedTags),
                   onChange: () => {
-                    Ajax().Metrics.captureEvent(Events.catalogueFilter + ':tableHeader', { tag })
+                    Ajax().Metrics.captureEvent(Events.catalogFilter + ':tableHeader', { tag })
                     setSelectedTags(_.xor([tag.toLowerCase()]))
                   }
                 }, [tag])
@@ -176,7 +176,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
           }),
           name: h(Link,
             { onClick: () => {
-                Ajax().Metrics.captureEvent(Events.catalogueView + ':details', {
+                Ajax().Metrics.captureEvent(Events.catalogView + ':details', {
                   id: datum['dct:identifier'],
                   title: datum['dct:title']
                 })
