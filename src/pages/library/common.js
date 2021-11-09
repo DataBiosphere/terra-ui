@@ -212,6 +212,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
       h(DelayedAutoCompleteInput, {
         style: { borderRadius: 25, width: 800, flex: 1 },
         inputIcon: 'search',
+        debounceMs: 25,
         openOnFocus: true,
         value: searchFilter,
         'aria-label': `Search ${searchType}`,
