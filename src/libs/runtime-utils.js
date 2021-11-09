@@ -229,7 +229,7 @@ export const getCurrentAppForType = appType => _.flow(trimAppsOldestFirst, _.rem
 // Use getCurrentAppForType instead.
 export const getCurrentApp = getCurrentAppForType(tools.galaxy.appType)
 
-export const currentAppIncludingDeleting = _.flow(_.sortBy('auditInfo.createdDate'), _.last)
+export const currentAppIncludingDeleting = appType => _.flow(_.remove(_ => _.appType !== appType), _.sortBy('auditInfo.createdDate'), _.last)
 
 export const currentAttachedDataDisk = (app, appDataDisks) => {
   return _.find({ name: app?.diskName }, appDataDisks)
@@ -239,21 +239,21 @@ export const appIsSettingUp = app => {
   return app && (app.status === 'PROVISIONING' || app.status === 'PRECREATING')
 }
 
-export const currentPersistentDisk = (apps, galaxyDataDisks) => {
+export const currentGalaxyPersistentDisk = (apps, appDataDisks) => {
   // a user's PD can either be attached to their current app, detaching from a deleting app or unattached
-  const currentGalaxyApp = currentAppIncludingDeleting(apps)
+  const currentGalaxyApp = currentAppIncludingDeleting(tools.galaxy.appType)(apps)
   const currentDataDiskName = currentGalaxyApp?.diskName
   const attachedDataDiskNames = _.without([undefined], _.map(app => app.diskName, apps))
   // if the disk is attached to an app (or being detached from a deleting app), return that disk. otherwise,
   // return the newest galaxy disk that the user has unattached to an app
   return currentDataDiskName ?
-    _.find({ name: currentDataDiskName }, galaxyDataDisks) :
+    _.find({ name: currentDataDiskName }, appDataDisks) :
     _.last(_.sortBy('auditInfo.createdDate',
-      _.filter(({ name, status }) => status !== 'Deleting' && !_.includes(name, attachedDataDiskNames), galaxyDataDisks)))
+      _.filter(({ name, status }) => status !== 'Deleting' && !_.includes(name, attachedDataDiskNames), appDataDisks)))
 }
 
 export const isCurrentGalaxyDiskDetaching = apps => {
-  const currentGalaxyApp = currentAppIncludingDeleting(apps)
+  const currentGalaxyApp = currentAppIncludingDeleting(tools.galaxy.appType)(apps)
   return currentGalaxyApp && _.includes(currentGalaxyApp.status, ['DELETING', 'PREDELETING'])
 }
 
