@@ -413,6 +413,7 @@ export const CloudEnvironmentModal = ({
     [NEW_JUPYTER_MODE, () => 675],
     [NEW_RSTUDIO_MODE, () => 675],
     [NEW_GALAXY_MODE, () => 675],
+    [NEW_CROMWELL_MODE, () => 675],
     [Utils.DEFAULT, () => 430]
   )
 
