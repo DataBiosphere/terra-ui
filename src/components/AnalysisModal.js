@@ -3,8 +3,8 @@ import { Fragment, useState } from 'react'
 import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers'
 import { ButtonPrimary, IdContainer, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
 import { ComputeModalBase } from 'src/components/ComputeModal'
-import Dropzone from 'src/components/Dropzone'
 import { CromwellModalBase } from 'src/components/CromwellModal'
+import Dropzone from 'src/components/Dropzone'
 import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
@@ -20,14 +20,14 @@ import {
 } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
 import galaxyLogo from 'src/images/galaxy-logo.png'
+import cromwellImg from 'src/images/jamie_the_cromwell_pig.png' // To be replaced by something from UX
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
-import cromwellImg from 'src/images/jamie_the_cromwell_pig.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
-import {getCurrentAppForType, getCurrentRuntime, isResourceDeletable} from 'src/libs/runtime-utils'
+import { getCurrentAppForType, getCurrentRuntime, isResourceDeletable } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -51,16 +51,9 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
 
     const currentRuntime = getCurrentRuntime(runtimes)
     const currentRuntimeTool = currentRuntime?.labels?.tool
-    const currentApp = (toolLabel) => {
-      console.log('apps ' + apps)
-      const type = toolToAppTypeMap[toolLabel]
-      const app = getCurrentAppForType(type)(apps)
-      console.log('AnalysisModal ' + type + " " + app)
-      debugger
-      return app
-    }
+    const currentApp = toolLabel => getCurrentAppForType(toolToAppTypeMap[toolLabel])(apps)
 
-      const resetView = () => {
+    const resetView = () => {
       setViewMode(undefined)
       setAnalysisName('')
       setCurrentTool(undefined)
@@ -72,7 +65,6 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
      * step for you. Passing a viewMode is a way to force your next modal.
      */
     const enterNextViewMode = (currentTool, baseViewMode = viewMode) => {
-      debugger
       const app = currentApp(currentTool)
       const doesCloudEnvForToolExist = currentRuntimeTool === currentTool || app
 
@@ -118,7 +110,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
     )
 
     const renderComputeModal = () => h(ComputeModalBase, {
-      isOpen: currentTool === tools.Jupyter.label || currentTool === tools.RStudio.label || tools.cromwell.label,
+      isOpen: currentTool === tools.Jupyter.label || currentTool === tools.RStudio.label,
       isAnalysisMode: true,
       workspace,
       tool: currentTool,
@@ -216,7 +208,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
           setCurrentTool(tools.cromwell.label)
           enterNextViewMode(tools.cromwell.label)
         }, disabled: !cromwellApp, title: cromwellApp ? 'You already have a Cromwell instance' : ''
-      }, [img({ src: cromwellImg, style: styles.image })]),
+      }, [img({ src: cromwellImg, style: styles.image })])
     ])
 
     const renderSelectAnalysisBody = () => div({

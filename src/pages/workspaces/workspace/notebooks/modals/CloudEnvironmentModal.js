@@ -3,19 +3,19 @@ import { Fragment, useState } from 'react'
 import { div, h, hr, img, span } from 'react-hyperscript-helpers'
 import { Clickable, spinnerOverlay } from 'src/components/common'
 import { ComputeModalBase } from 'src/components/ComputeModal'
-import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { CromwellModalBase } from 'src/components/CromwellModal'
+import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
-import {isToolAnApp, tools, toolToAppTypeMap} from 'src/components/notebook-utils'
+import { isToolAnApp, tools, toolToAppTypeMap } from 'src/components/notebook-utils'
 import { getRegionInfo } from 'src/components/region-common'
 import { appLauncherTabName } from 'src/components/runtime-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import TitleBar from 'src/components/TitleBar'
 import cloudIcon from 'src/icons/cloud-compute.svg'
 import galaxyLogo from 'src/images/galaxy-logo.png'
-import jupyterLogo from 'src/images/jupyter-logo-long.png'
 import cromwellImg from 'src/images/jamie_the_cromwell_pig.png'
+import jupyterLogo from 'src/images/jupyter-logo-long.png'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -93,7 +93,7 @@ export const CloudEnvironmentModal = ({
     isAnalysisMode: true,
     workspace,
     apps,
-    galaxyDataDisks,  // TODO will this be all data disks?
+    galaxyDataDisks, // TODO will this be all data disks?
     onDismiss: () => {
       setViewMode(undefined)
       onDismiss()
@@ -128,7 +128,7 @@ export const CloudEnvironmentModal = ({
     alignItems: 'center',
     justifyContent: 'space-between'
   }
-  const toolButtonDivStyles = {display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly'}
+  const toolButtonDivStyles = { display: 'flex', flexDirection: 'row', justifyContent: 'space-evenly' }
   const toolButtonStyles = {
     flex: '1 1 0%',
     maxWidth: 105,
@@ -147,12 +147,7 @@ export const CloudEnvironmentModal = ({
   const currentRuntimeStatus = getConvertedRuntimeStatus(currentRuntime)
   const currentRuntimeTool = currentRuntime?.labels?.tool
 
-  const currentApp = (toolLabel) => {
-    const type = toolToAppTypeMap[toolLabel]
-    const app = getCurrentAppForType(type)(apps)
-    console.log(type + " " + app)
-    return app
-  }
+  const currentApp = toolLabel => getCurrentAppForType(toolToAppTypeMap[toolLabel])(apps)
 
   const RuntimeIcon = ({ shape, onClick, disabled, messageChildren, toolLabel, style, ...props }) => {
     return h(Clickable, {
@@ -289,7 +284,7 @@ export const CloudEnvironmentModal = ({
   // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
   const getCostForTool = toolLabel => Utils.cond(
     [toolLabel === tools.galaxy.label, () => getGalaxyCostTextChildren(currentApp(toolLabel), galaxyDataDisks)],
-    [toolLabel === tools.cromwell.label, () => ""],  // TODO: figure out what to show for Cromwell
+    [toolLabel === tools.cromwell.label, () => ''], // TODO: figure out what to show for Cromwell
     [getRuntimeForTool(toolLabel), () => {
       const runtime = getRuntimeForTool(toolLabel)
       const totalCost = runtimeCost(runtime) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
@@ -347,7 +342,7 @@ export const CloudEnvironmentModal = ({
       [tools.cromwell.label, () => {
         return {
           ...baseProps,
-          href: app?.proxyUrls["cromwell-service"],
+          href: app?.proxyUrls['cromwell-service'],
           onClick: () => {
             onDismiss()
             Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: 'Cromwell' })

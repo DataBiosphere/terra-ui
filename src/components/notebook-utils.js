@@ -80,10 +80,12 @@ export const tools = {
 
 const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }
 
+// Mapping of tool label to appType (or undefined if tool is not an app).
+export const toolToAppTypeMap = { [tools.galaxy.label]: tools.galaxy.appType, [tools.cromwell.label]: tools.cromwell.appType }
+
 // Returns true iff the tool label corresponds to an app.
-export const isToolAnApp = label => label === tools.galaxy.label || label === tools.cromwell.label
-// Mapping of tool label to appType.
-export const toolToAppTypeMap = { [tools.galaxy.label] : tools.galaxy.appType, [tools.cromwell.label] : tools.cromwell.appType }
+export const isToolAnApp = label => label in toolToAppTypeMap
+
 export const getTool = fileName => _.invert(toolToExtensionMap)[getExtension(fileName)]
 export const getToolFromRuntime = _.get(['labels', 'tool'])
 

@@ -2,10 +2,10 @@ import _ from 'lodash/fp'
 import { Fragment } from 'react'
 import { div, h, input, label } from 'react-hyperscript-helpers'
 import { IdContainer } from 'src/components/common'
+import { tools } from 'src/components/notebook-utils'
 import {
   cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, regionToDiskPrice, zonesToGpus
 } from 'src/data/machines'
-import { tools } from 'src/components/notebook-utils'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -223,7 +223,7 @@ export const machineCost = machineType => {
   return _.find(knownMachineType => knownMachineType.name === machineType, machineTypes).price
 }
 
-export const getCurrentAppForType = (appType) => _.flow(trimAppsOldestFirst, _.remove(_ => _.appType !== appType), _.last)
+export const getCurrentAppForType = appType => _.flow(trimAppsOldestFirst, _.remove(_ => _.appType !== appType), _.last)
 
 // DEPRECATED: this assumes that Galaxy is the only app that could be running.
 // Use getCurrentAppForType instead.
