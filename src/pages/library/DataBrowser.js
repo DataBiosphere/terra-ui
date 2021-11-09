@@ -6,14 +6,18 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { MiniSortable, SimpleTable } from 'src/components/table'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+<<<<<<< HEAD
+=======
+import { getConfig } from 'src/libs/config'
+import Events from 'src/libs/events'
+>>>>>>> run eslint
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
 import { importDataToWorkspace, snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
-import { Ajax } from 'src/libs/ajax'
-import Events from 'src/libs/events'
 
 
 const styles = {
@@ -142,7 +146,7 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
                   'aria-label': tag,
                   checked: _.includes(tag.toLowerCase(), selectedTags),
                   onChange: () => {
-                    Ajax().Metrics.captureEvent(Events.catalogFilter + ':tableHeader', { tag })
+                    Ajax().Metrics.captureEvent(`${Events.catalogFilter}:tableHeader`, { tag })
                     setSelectedTags(_.xor([tag.toLowerCase()]))
                   }
                 }, [tag])
@@ -175,8 +179,9 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
             onChange: () => toggleSelectedData(datum)
           }),
           name: h(Link,
-            { onClick: () => {
-                Ajax().Metrics.captureEvent(Events.catalogView + ':details', {
+            {
+              onClick: () => {
+                Ajax().Metrics.captureEvent(`${Events.catalogView}:details`, {
                   id: datum['dct:identifier'],
                   title: datum['dct:title']
                 })
