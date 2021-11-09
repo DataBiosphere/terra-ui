@@ -14,7 +14,7 @@ import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import TitleBar from 'src/components/TitleBar'
 import cloudIcon from 'src/icons/cloud-compute.svg'
 import galaxyLogo from 'src/images/galaxy-logo.png'
-import cromwellImg from 'src/images/jamie_the_cromwell_pig.png'
+import cromwellImg from 'src/images/jamie_the_cromwell_pig.png' // To be replaced by something better
 import jupyterLogo from 'src/images/jupyter-logo-long.png'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
@@ -41,7 +41,7 @@ import * as Utils from 'src/libs/utils'
 const titleId = 'cloud-env-modal'
 
 export const CloudEnvironmentModal = ({
-  isOpen, onDismiss, canCompute, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps,
+  isOpen, onDismiss, canCompute, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps,
   workspace, persistentDisks, location, locationType, workspace: { workspace: { namespace, name: workspaceName } }
 }) => {
   const [viewMode, setViewMode] = useState(undefined)
@@ -72,12 +72,12 @@ export const CloudEnvironmentModal = ({
     }
   })
 
-  const renderGalaxyModal = () => h(GalaxyModalBase, {
-    isOpen: viewMode === NEW_GALAXY_MODE,
+  const renderAppModal = (AppModalBase, appMode) => h(AppModalBase, {
+    isOpen: viewMode === appMode,
     isAnalysisMode: true,
     workspace,
     apps,
-    galaxyDataDisks,
+    appDataDisks,
     onDismiss: () => {
       setViewMode(undefined)
       onDismiss()
@@ -87,25 +87,8 @@ export const CloudEnvironmentModal = ({
       onDismiss()
     }
   })
-
-  const renderCromwellModal = () => h(CromwellModalBase, {
-    isOpen: viewMode === NEW_CROMWELL_MODE,
-    isAnalysisMode: true,
-    workspace,
-    apps,
-    galaxyDataDisks, // TODO will this be all data disks?
-    onDismiss: () => {
-      setViewMode(undefined)
-      onDismiss()
-    },
-    onSuccess: _.flow(
-      withErrorReporting('Error creating app'),
-      Utils.withBusyState(setBusy)
-    )(async () => {
-      setViewMode(undefined)
-      await refreshApps(true)
-    })
-  })
+  const renderGalaxyModal = () => renderAppModal(GalaxyModalBase, NEW_GALAXY_MODE)
+  const renderCromwellModal = () => renderAppModal(CromwellModalBase, NEW_CROMWELL_MODE)
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } }, [
     renderToolButtons(tools.Jupyter.label),
@@ -283,8 +266,8 @@ export const CloudEnvironmentModal = ({
 
   // TODO: multiple runtime: this is a good example of how the code should look when multiple runtimes are allowed, over a tool-centric approach
   const getCostForTool = toolLabel => Utils.cond(
-    [toolLabel === tools.galaxy.label, () => getGalaxyCostTextChildren(currentApp(toolLabel), galaxyDataDisks)],
-    [toolLabel === tools.cromwell.label, () => ''], // TODO: figure out what to show for Cromwell
+    [toolLabel === tools.galaxy.label, () => getGalaxyCostTextChildren(currentApp(toolLabel), appDataDisks)],
+    [toolLabel === tools.cromwell.label, () => ''], // We will determine what to put here later
     [getRuntimeForTool(toolLabel), () => {
       const runtime = getRuntimeForTool(toolLabel)
       const totalCost = runtimeCost(runtime) + _.sum(_.map(disk => getPersistentDiskCostHourly(disk, computeRegion), persistentDisks))
@@ -345,7 +328,7 @@ export const CloudEnvironmentModal = ({
           href: app?.proxyUrls['cromwell-service'],
           onClick: () => {
             onDismiss()
-            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: 'Cromwell' })
+            Ajax().Metrics.captureEvent(Events.applicationLaunch, { app: tools.cromwell.appType })
           },
           ...Utils.newTabLinkPropsWithReferrer
         }

@@ -20,7 +20,7 @@ import {
 } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
 import galaxyLogo from 'src/images/galaxy-logo.png'
-import cromwellImg from 'src/images/jamie_the_cromwell_pig.png' // To be replaced by something from UX
+import cromwellImg from 'src/images/jamie_the_cromwell_pig.png' // To be replaced by something better
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
@@ -131,8 +131,8 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
       })
     })
 
-    const renderGalaxyModal = () => h(GalaxyModalBase, {
-      isOpen: viewMode === tools.galaxy.label,
+    const renderAppModal = (AppModalBase, toolLabel) => h(AppModalBase, {
+      isOpen: viewMode === toolLabel,
       isAnalysisMode: true,
       workspace,
       apps,
@@ -150,26 +150,8 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
         await refreshApps(true)
       })
     })
-
-    const renderCromwellModal = () => h(CromwellModalBase, {
-      isOpen: viewMode === tools.cromwell.label,
-      isAnalysisMode: true,
-      workspace,
-      apps,
-      appDataDisks,
-      onDismiss: () => {
-        setViewMode(undefined)
-        onDismiss()
-      },
-      onSuccess: _.flow(
-        withErrorReporting('Error creating app'),
-        Utils.withBusyState(setBusy)
-      )(async () => {
-        setViewMode(undefined)
-        onSuccess()
-        await refreshApps(true)
-      })
-    })
+    const renderGalaxyModal = () => renderAppModal(GalaxyModalBase, tools.galaxy.label)
+    const renderCromwellModal = () => renderAppModal(CromwellModalBase, tools.cromwell.label)
 
     const styles = {
       toolCard: {

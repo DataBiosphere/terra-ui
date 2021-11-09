@@ -32,12 +32,12 @@ const titleId = 'galaxy-modal-title'
 
 export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
   ({
-    onDismiss, onSuccess, apps, galaxyDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
+    onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
     isAnalysisMode = false
   }) => {
     // Assumption: If there is an app defined, there must be a data disk corresponding to it.
     const app = getCurrentApp(apps)
-    const attachedDataDisk = currentAttachedDataDisk(app, galaxyDataDisks)
+    const attachedDataDisk = currentAttachedDataDisk(app, appDataDisks)
 
     const [dataDiskSize, setDataDiskSize] = useState(attachedDataDisk?.size || defaultDataDiskSize)
     const [kubernetesRuntimeConfig, setKubernetesRuntimeConfig] = useState(app?.kubernetesRuntimeConfig || defaultKubernetesRuntimeConfig)
@@ -45,7 +45,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
     const [loading, setLoading] = useState(false)
     const [shouldDeleteDisk, setShouldDeleteDisk] = useState(false)
 
-    const currentDataDisk = currentPersistentDisk(apps, galaxyDataDisks)
+    const currentDataDisk = currentPersistentDisk(apps, appDataDisks)
 
     const createGalaxy = _.flow(
       Utils.withBusyState(setLoading),

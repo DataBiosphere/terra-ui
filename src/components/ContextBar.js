@@ -91,7 +91,7 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
         setCloudEnvOpen(false)
         await refreshRuntimes(true)
       },
-      runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps,
+      runtimes, apps, appDataDisks: galaxyDataDisks, refreshRuntimes, refreshApps,
       workspace,
       canCompute,
       persistentDisks,

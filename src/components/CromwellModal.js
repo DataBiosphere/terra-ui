@@ -22,7 +22,7 @@ const titleId = 'cromwell-modal-title'
 
 export const CromwellModalBase = Utils.withDisplayName('CromwellModal')(
   ({
-    onDismiss, onSuccess, apps, dataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
+    onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
     isAnalysisMode = false
   }) => {
     const app = getCurrentAppForType(tools.cromwell.appType)(apps)

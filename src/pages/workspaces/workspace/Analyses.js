@@ -399,7 +399,7 @@ const Analyses = _.flow(
           runtimes,
           persistentDisks,
           refreshRuntimes,
-          galaxyDataDisks,
+          appDataDisks: galaxyDataDisks,
           refreshAnalyses,
           analyses,
           apps,

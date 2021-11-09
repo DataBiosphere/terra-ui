@@ -231,8 +231,8 @@ export const getCurrentApp = getCurrentAppForType(tools.galaxy.appType)
 
 export const currentAppIncludingDeleting = _.flow(_.sortBy('auditInfo.createdDate'), _.last)
 
-export const currentAttachedDataDisk = (app, galaxyDataDisks) => {
-  return _.find({ name: app?.diskName }, galaxyDataDisks)
+export const currentAttachedDataDisk = (app, appDataDisks) => {
+  return _.find({ name: app?.diskName }, appDataDisks)
 }
 
 export const appIsSettingUp = app => {
