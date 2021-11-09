@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, hr, img, span } from 'react-hyperscript-helpers'
-import { Clickable } from 'src/components/common'
+import { Clickable, spinnerOverlay } from 'src/components/common'
 import { ComputeModalBase } from 'src/components/ComputeModal'
 import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
@@ -395,7 +395,8 @@ export const CloudEnvironmentModal = ({
     errorRuntimeId && h(RuntimeErrorModal, {
       runtime: _.find({ id: errorRuntimeId }, runtimes),
       onDismiss: () => setErrorRuntimeId(undefined)
-    })
+    }),
+    busy && spinnerOverlay
   ])
 
   const modalProps = {

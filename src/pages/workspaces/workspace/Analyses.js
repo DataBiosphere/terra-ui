@@ -321,7 +321,6 @@ const Analyses = _.flow(
         // span({ style: { marginTop: '3.5rem'} }, ['Galaxy'])
       ])
     ]),
-    //TODO, check with Joy, wording change (it may not be their first, just first in this workspace)
     div({ style: { marginTop: '1rem', fontSize: 20 } }, [
       `Click the button above to create an analysis.`
     ])
