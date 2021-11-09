@@ -8,7 +8,16 @@ import { CromwellModalBase } from 'src/components/CromwellModal'
 import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
-import { analysisNameInput, analysisNameValidator, getDisplayName, getTool, notebookData, tools } from 'src/components/notebook-utils'
+import {
+  analysisNameInput,
+  analysisNameValidator,
+  getDisplayName,
+  getTool,
+  isToolAnApp,
+  notebookData,
+  tools,
+  toolToAppTypeMap
+} from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
@@ -18,7 +27,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
-import { getCurrentApp, getCurrentRuntime, isResourceDeletable } from 'src/libs/runtime-utils'
+import {getCurrentAppForType, getCurrentRuntime, isResourceDeletable} from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import validate from 'validate.js'
@@ -30,7 +39,7 @@ const environmentMode = Symbol('environment')
 
 export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
   ({
-    isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps, refreshAnalyses,
+    isOpen, onDismiss, onSuccess, uploadFiles, openUploader, runtimes, apps, appDataDisks, refreshRuntimes, refreshApps, refreshAnalyses,
     analyses, workspace, persistentDisks, location, workspace: { workspace: { googleProject, bucketName } }
   }) => {
     const [viewMode, setViewMode] = useState(undefined)
@@ -42,9 +51,16 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
 
     const currentRuntime = getCurrentRuntime(runtimes)
     const currentRuntimeTool = currentRuntime?.labels?.tool
-    const currentApp = getCurrentApp(apps)
+    const currentApp = (toolLabel) => {
+      console.log('apps ' + apps)
+      const type = toolToAppTypeMap[toolLabel]
+      const app = getCurrentAppForType(type)(apps)
+      console.log('AnalysisModal ' + type + " " + app)
+      debugger
+      return app
+    }
 
-    const resetView = () => {
+      const resetView = () => {
       setViewMode(undefined)
       setAnalysisName('')
       setCurrentTool(undefined)
@@ -56,7 +72,9 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
      * step for you. Passing a viewMode is a way to force your next modal.
      */
     const enterNextViewMode = (currentTool, baseViewMode = viewMode) => {
-      const doesCloudEnvForToolExist = currentRuntimeTool === currentTool || (currentApp && currentTool === tools.galaxy.label)
+      debugger
+      const app = currentApp(currentTool)
+      const doesCloudEnvForToolExist = currentRuntimeTool === currentTool || app
 
       Utils.switchCase(baseViewMode,
         [analysisMode, () => Utils.cond(
@@ -77,11 +95,10 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
         }],
         [Utils.DEFAULT, () => Utils.cond(
           [currentTool === tools.RStudio.label || currentTool === tools.Jupyter.label, () => setViewMode(analysisMode)],
-          [currentTool === tools.cromwell.label, () => setViewMode(environmentMode)],
-          [currentTool === tools.galaxy.label && !currentApp, () => setViewMode(environmentMode)],
-          [currentTool === tools.galaxy.label && currentApp, () => {
+          [isToolAnApp(currentTool) && !app, () => setViewMode(environmentMode)],
+          [isToolAnApp(currentTool) && app, () => {
             console.error(
-              'This shouldn\'t be possible, as you aren\'t allowed to create a galaxy analysis when one exists; the button should be disabled.')
+              `This shouldn't be possible, as you aren't allowed to create a ${_.capitalize(app.appType)} instance when one exists; the button should be disabled.`)
             resetView()
           }]
         )]
@@ -127,7 +144,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
       isAnalysisMode: true,
       workspace,
       apps,
-      galaxyDataDisks,
+      appDataDisks,
       onDismiss: () => {
         setViewMode(undefined)
         onDismiss()
@@ -147,7 +164,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
       isAnalysisMode: true,
       workspace,
       apps,
-      galaxyDataDisks,
+      appDataDisks,
       onDismiss: () => {
         setViewMode(undefined)
         onDismiss()
@@ -170,6 +187,9 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
       image: { verticalAlign: 'middle', height: '100%', width: '40%' }
     }
 
+    const galaxyApp = currentApp(tools.galaxy.label)
+    const cromwellApp = currentApp(tools.cromwell.label)
+
     const renderToolButtons = () => div({
       style: { display: 'flex', alignItems: 'center', flexDirection: 'column', justifyContent: 'space-between' }
     }, [
@@ -186,16 +206,16 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
         }
       }, [img({ src: rstudioLogo, style: styles.image })]),
       div({
-        style: { opacity: currentApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
+        style: { opacity: galaxyApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.galaxy.label)
           enterNextViewMode(tools.galaxy.label)
-        }, disabled: !currentApp, title: currentApp ? 'You already have a galaxy environment' : ''
+        }, disabled: !galaxyApp, title: galaxyApp ? 'You already have a galaxy environment' : ''
       }, [img({ src: galaxyLogo, style: _.merge(styles.image, { width: '30%' }) })]),
       div({
-        style: styles.toolCard, onClick: () => {
+        style: { opacity: cromwellApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.cromwell.label)
           enterNextViewMode(tools.cromwell.label)
-        }
+        }, disabled: !cromwellApp, title: cromwellApp ? 'You already have a Cromwell instance' : ''
       }, [img({ src: cromwellImg, style: styles.image })]),
     ])
 
