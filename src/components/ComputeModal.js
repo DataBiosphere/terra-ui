@@ -239,7 +239,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         machineType: desiredRuntime.machineType || defaultGceMachineType,
         ...(desiredRuntime.diskSize ? {
           diskSize: desiredRuntime.diskSize
-        } : {
+        } : (shouldUpdatePersistentDisk? {diskSize: desiredPersistentDisk.size} : {
           persistentDisk: existingPersistentDisk && !shouldDeletePersistentDisk ? {
             name: currentPersistentDiskDetails.name
           } : {
@@ -247,7 +247,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             size: desiredPersistentDisk.size,
             labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name }
           }
-        }),
+        })),
         ...(computeConfig.gpuEnabled && { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } })
       } : {
         region: desiredRuntime.region.toLowerCase(),
@@ -277,9 +277,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     }
     if (shouldDeletePersistentDisk && !hasAttachedDisk()) {
       await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).delete()
-    }
-    if (shouldUpdatePersistentDisk) {
-      await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).update(desiredPersistentDisk.size)
     }
     if (shouldUpdateRuntime) {
       await Ajax().Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName).update({ runtimeConfig })
