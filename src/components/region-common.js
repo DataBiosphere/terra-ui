@@ -67,23 +67,22 @@ export const allRegions = [
   // For more information, see https://docs.google.com/document/d/1RMu8bxXAyP2q_85UHkPARW1Xpt_G_662pRi0LCML4yA/edit#heading=h.53j9ueoid5vt
   // TODO(wnojopra): Replace the above link with the Terra support article link once published
   { value: 'US', label: 'US multi-regional (default)', locationType: locationTypes.multiRegion },
-  { value: 'US-CENTRAL1', label: 'us-central1 (Iowa)', locationType: locationTypes.region }
-  // Initially releasing regionality with just US-CENTRAL1 region. Overtime, will introduce more regions.
-  // { value: 'NORTHAMERICA-NORTHEAST1', label: 'northamerica-northeast1 (Montreal)', locationType: 'region' },
-  // { value: 'SOUTHAMERICA-EAST1', label: 'southamerica-east1 (Sao Paulo)', locationType: 'region' },
-  // { value: 'EUROPE-CENTRAL2', label: 'europe-central2 (Warsaw)', locationType: 'region' },
-  // { value: 'EUROPE-NORTH1', label: 'europe-north1 (Finland)', locationType: 'region' },
-  // { value: 'EUROPE-WEST1', label: 'europe-west1 (Belgium)', locationType: 'region' },
-  // { value: 'EUROPE-WEST2', label: 'europe-west2 (London)', locationType: 'region' },
-  // { value: 'EUROPE-WEST3', label: 'europe-west3 (Frankfurt)', locationType: 'region' },
-  // { value: 'EUROPE-WEST4', label: 'europe-west4 (Netherlands)', locationType: 'region' },
-  // { value: 'EUROPE-WEST6', label: 'europe-west6 (Zurich)', locationType: 'region' },
-  // { value: 'ASIA-EAST1', label: 'asia-east1 (Taiwan)', locationType: 'region' },
-  // { value: 'ASIA-EAST2', label: 'asia-east2 (Hong Kong)', locationType: 'region' },
-  // { value: 'ASIA-NORTHEAST1', label: 'asia-northeast1 (Tokyo)', locationType: 'region' },
-  // { value: 'ASIA-NORTHEAST3', label: 'asia-northeast3 (Seoul)', locationType: 'region' },
-  // { value: 'ASIA-SOUTH1', label: 'asia-south1 (Mumbai)', locationType: 'region' },
-  // { value: 'ASIA-SOUTHEAST1', label: 'asia-southeast1 (Singapore)', locationType: 'region' },
-  // { value: 'ASIA-SOUTHEAST2', label: 'asia-southeast2 (Jakarta)', locationType: 'region' },
-  // { value: 'AUSTRALIA-SOUTHEAST1', label: 'australia-southeast1 (Sydney)', locationType: 'region' }
+  { value: 'US-CENTRAL1', label: 'us-central1 (Iowa)', locationType: locationTypes.region },
+  { value: 'NORTHAMERICA-NORTHEAST1', label: 'northamerica-northeast1 (Montreal)', locationType: locationTypes.region },
+  { value: 'SOUTHAMERICA-EAST1', label: 'southamerica-east1 (Sao Paulo)', locationType: locationTypes.region },
+  { value: 'EUROPE-CENTRAL2', label: 'europe-central2 (Warsaw)', locationType: locationTypes.region },
+  { value: 'EUROPE-NORTH1', label: 'europe-north1 (Finland)', locationType: locationTypes.region },
+  { value: 'EUROPE-WEST1', label: 'europe-west1 (Belgium)', locationType: locationTypes.region },
+  { value: 'EUROPE-WEST2', label: 'europe-west2 (London)', locationType: locationTypes.region },
+  { value: 'EUROPE-WEST3', label: 'europe-west3 (Frankfurt)', locationType: locationTypes.region },
+  { value: 'EUROPE-WEST4', label: 'europe-west4 (Netherlands)', locationType: locationTypes.region },
+  { value: 'EUROPE-WEST6', label: 'europe-west6 (Zurich)', locationType: locationTypes.region },
+  { value: 'ASIA-EAST1', label: 'asia-east1 (Taiwan)', locationType: locationTypes.region },
+  { value: 'ASIA-EAST2', label: 'asia-east2 (Hong Kong)', locationType: locationTypes.region },
+  { value: 'ASIA-NORTHEAST1', label: 'asia-northeast1 (Tokyo)', locationType: locationTypes.region },
+  { value: 'ASIA-NORTHEAST3', label: 'asia-northeast3 (Seoul)', locationType: locationTypes.region },
+  { value: 'ASIA-SOUTH1', label: 'asia-south1 (Mumbai)', locationType: locationTypes.region },
+  { value: 'ASIA-SOUTHEAST1', label: 'asia-southeast1 (Singapore)', locationType: locationTypes.region },
+  { value: 'ASIA-SOUTHEAST2', label: 'asia-southeast2 (Jakarta)', locationType: locationTypes.region },
+  { value: 'AUSTRALIA-SOUTHEAST1', label: 'australia-southeast1 (Sydney)', locationType: locationTypes.region }
 ]
