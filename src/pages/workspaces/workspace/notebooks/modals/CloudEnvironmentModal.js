@@ -304,7 +304,7 @@ export const CloudEnvironmentModal = ({
       hover: { backgroundColor: colors.accent(0.2) },
       tooltip: Utils.cond(
         [doesCloudEnvForToolExist && !isDisabled, () => 'Launch'],
-        [doesCloudEnvForToolExist && isDisabled && toolLabel !== tools.Jupyter.label, () => `Please wait until ${_.capitalize(app.appType)} is running`],
+        [doesCloudEnvForToolExist && isDisabled && toolLabel !== tools.Jupyter.label, () => `Please wait until ${toolLabel} is running`],
         [doesCloudEnvForToolExist && isDisabled && toolLabel === tools.Jupyter.label,
           () => 'Select or create a notebook in the analyses tab to launch Jupyter'],
         [Utils.DEFAULT, () => 'No Environment found']

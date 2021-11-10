@@ -54,7 +54,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
         kubernetesRuntimeConfig, diskName: currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDiskSize,
-        appType: 'GALAXY', namespace, bucketName, workspaceName
+        appType: tools.galaxy.appType, namespace, bucketName, workspaceName
       })
       Ajax().Metrics.captureEvent(Events.applicationCreate, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
       return onSuccess()
