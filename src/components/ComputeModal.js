@@ -239,7 +239,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         machineType: desiredRuntime.machineType || defaultGceMachineType,
         ...(desiredRuntime.diskSize ? {
           diskSize: desiredRuntime.diskSize
-        } : (shouldUpdatePersistentDisk? {diskSize: desiredPersistentDisk.size} : {
+        } : (shouldUpdatePersistentDisk ? { diskSize: desiredPersistentDisk.size } : {
           persistentDisk: existingPersistentDisk && !shouldDeletePersistentDisk ? {
             name: currentPersistentDiskDetails.name
           } : {
