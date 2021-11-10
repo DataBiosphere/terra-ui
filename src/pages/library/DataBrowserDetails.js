@@ -1,5 +1,4 @@
 import _ from 'lodash/fp'
-import qs from 'qs'
 import { Fragment, useState } from 'react'
 import { div, h, h1, h2, h3, span, table, tbody, td, tr } from 'react-hyperscript-helpers'
 import { ButtonOutline, ButtonPrimary, ButtonSecondary, Link } from 'src/components/common'
@@ -9,11 +8,10 @@ import { libraryTopMatter } from 'src/components/library-common'
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
-import { snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { importDataToWorkspace, snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -158,12 +156,7 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
     h(ButtonPrimary, {
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => {
-        Nav.history.push({
-          pathname: Nav.getPath('import-data'),
-          search: qs.stringify({
-            url: getConfig().dataRepoUrlRoot, snapshotId: id, snapshotName: snapshot['dct:title'], format: 'snapshot'
-          })
-        })
+        importDataToWorkspace([snapshot])
       }
     }, ['Link to a workspace'])
   ])
