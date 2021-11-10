@@ -77,13 +77,11 @@ const ImportData = () => {
 
   const isDataset = format !== 'snapshot'
   const noteMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.'
-  let title = `Import ${isDataset ? 'Data' : 'Snapshot'}`
-  let header = `Importing ${isDataset ? 'Data' : `Snapshot ${snapshotName}`}`
-
-  if (referrer === 'data-catalog') {
-    title = 'Catalog'
-    header = 'Linking data to a workspace'
-  }
+  const [title, header] = Utils.cond(
+    [referrer === 'data-catalog', () => ['Catalog', 'Linking data to a workspace']],
+    [isDataset, () => ['Data', 'Data']],
+    [Utils.DEFAULT, () => ['Snapshot', `Snapshot ${snapshotName}`]]
+  )
 
   const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
 
