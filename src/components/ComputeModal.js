@@ -1015,7 +1015,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             div({ style: { marginTop: '0.5rem' } }, [
               h(Select, {
                 id,
-                isDisabled: computeExists || isUSLocation(bucketLocation), // Can't update location of existing environments
+                isDisabled: computeExists || isUSLocation(bucketLocation) || sparkMode, // Can't update location of existing environments
                 isSearchable: false,
                 value: computeConfig.computeRegion,
                 onChange: ({ value, locationType }) => updateComputeLocation(value, locationType),
