@@ -294,11 +294,9 @@ const PreviewHeader = ({
               if (currentRuntimeTool !== tools.RStudio.label) {
                 setCreateOpen(true)
               } else {
-                Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' })
+                runtimeStatus === 'Running' ? Nav.goToPath(appLauncherTabName, { namespace, name, application: 'RStudio' }) : setCreateOpen(true)
               }
-            },
-            disabled: runtimeStatus !== 'Running',
-            tooltip: runtimeStatus !== 'Running' ? 'You must have a running cloud environment.' : ''
+            }
           }, [
             makeMenuIcon('rocket'), 'Launch'
           ])

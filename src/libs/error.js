@@ -39,7 +39,8 @@ export const reportErrorAndRethrow = _.curry((title, fn) => async (...args) => {
 
 /**
  *  This function is designed for use in modals
- *  Modals can overlay any error reporting, with the `throw` in the default `withErrorReporting` preventing the modal itself from closing on error
+ *  Modals can overlay any error reporting, with the `throw` in the default `withErrorReporting`
+ *  preventing the modal itself from closing on error
  *  As such, we must ensure we call the dismiss function if an error occurs
  */
 export const withErrorReportingInModal = _.curry((title, onDismiss, fn) => async (...args) => {
