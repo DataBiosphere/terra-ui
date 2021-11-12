@@ -319,15 +319,15 @@ export const AutocompleteTextInput = withAutocomplete(TextInput)
 
 export const DelayedAutoCompleteInput = withDebouncedChange(AutocompleteTextInput)
 
-export const TextArea = ({ onChange, autosize = false, nativeOnChange = false, ...props }) => {
+export const TextArea = Utils.forwardRefWithName('TextArea', ({ onChange, autosize = false, nativeOnChange = false, ...props }, ref) => {
   Utils.useLabelAssert('TextArea', { ...props, allowId: true })
 
   return h(autosize ? TextAreaAutosize : 'textarea', _.merge({
     className: 'focus-style',
     style: styles.textarea,
     onChange: onChange ? (e => onChange(nativeOnChange ? e : e.target.value)) : undefined
-  }, props))
-}
+  }, props), ref)
+})
 
 /**
  * A TextArea that provides visual and textual indications when the content is invalid.
