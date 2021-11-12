@@ -5,6 +5,7 @@ import { createContext, useContext, useEffect, useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { getAppName } from 'src/libs/logos'
 import { routeHandlersStore } from 'src/libs/state'
+import * as Utils from 'src/libs/utils'
 import { atom, cond, useOnMount, useStore } from 'src/libs/utils'
 
 
@@ -112,4 +113,15 @@ export const updateSearch = (query, params) => {
   if (newSearch !== history.location.search) {
     history.replace({ search: newSearch })
   }
+}
+
+export const PathHashInserter = () => {
+  Utils.useOnMount(() => {
+    const loc = window.location
+    if (loc.pathname !== '/') {
+      history.replace({ pathname: loc.pathname.substr(1), search: loc.search })
+      window.history.replaceState({}, '', '/')
+    }
+  })
+  return null
 }

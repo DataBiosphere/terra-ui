@@ -433,5 +433,11 @@ export const navPaths = [
     path: '/fence-callback',
     component: Profile,
     title: 'Profile'
+  },
+  {
+    name: 'ras-callback',
+    path: '/ras-callback',
+    component: Profile,
+    title: 'Profile'
   }
 ]
