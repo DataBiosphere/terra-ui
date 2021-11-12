@@ -7,12 +7,13 @@ import { tools } from 'src/components/notebook-utils'
 import { appLauncherTabName } from 'src/components/runtime-common'
 import cloudIcon from 'src/icons/cloud-compute.svg'
 import galaxyLogo from 'src/images/galaxy-logo.png'
+import cromwellImg from 'src/images/jamie_the_cromwell_pig.png' // To be replaced by something better
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import * as Nav from 'src/libs/nav'
-import { getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
+import { getCurrentAppForType, getCurrentRuntime } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import { CloudEnvironmentModal } from 'src/pages/workspaces/workspace/notebooks/modals/CloudEnvironmentModal'
@@ -37,7 +38,6 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
   const [isCloudEnvOpen, setCloudEnvOpen] = useState(false)
 
   const currentRuntime = getCurrentRuntime(runtimes)
-  const currentApp = getCurrentApp(apps)
   const currentRuntimeTool = currentRuntime?.labels?.tool
   const isTerminalEnabled = currentRuntimeTool === tools.Jupyter.label && currentRuntime && currentRuntime.status !== 'Error'
   const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' })
@@ -53,6 +53,7 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
   const getImgForTool = toolLabel => Utils.switchCase(toolLabel,
     [tools.Jupyter.label, () => img({ src: jupyterLogo, style: { height: 30, width: 30 } })],
     [tools.galaxy.label, () => img({ src: galaxyLogo, style: { height: 12, width: 35 } })],
+    [tools.cromwell.label, () => img({ src: cromwellImg, style: { width: 30 } })],
     [tools.RStudio.label, () => img({ src: rstudioSquareLogo, style: { height: 30, width: 30 } })]
   )
 
@@ -74,9 +75,12 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
   }
 
   const getEnvironmentStatusIcons = () => {
+    const galaxyApp = getCurrentAppForType(tools.galaxy.appType)(apps)
+    const cromwellApp = getCurrentAppForType(tools.cromwell.appType)(apps)
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
-      ...(currentApp ? [getIconForTool(tools.galaxy.label, currentApp.status)] : [])
+      ...(galaxyApp ? [getIconForTool(tools.galaxy.label, galaxyApp.status)] : []),
+      ...(cromwellApp ? [getIconForTool(tools.cromwell.label, cromwellApp.status)] : [])
     ])
   }
 
@@ -111,7 +115,6 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
           }, [icon('ellipsis-v', { size: 24 })])
         ]),
         h(Clickable, {
-          'aria-label': 'Cloud env config',
           style: { ...contextBarStyles.contextBarButton, flexDirection: 'column', justifyContent: 'center', padding: '.75rem' },
           hover: contextBarStyles.hover,
           tooltipSide: 'left',
