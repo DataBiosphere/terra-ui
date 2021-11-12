@@ -339,7 +339,7 @@ const Environments = () => {
             cellRenderer: ({ rowIndex }) => {
               const cloudEnvironment = filteredCloudEnvironments[rowIndex]
               return isApp(cloudEnvironment) ?
-                (cloudEnvironment.appType ? _.capitalize(cloudEnvironment.appType) : 'Galaxy') :
+                _.capitalize(cloudEnvironment.appType) :
                 (cloudEnvironment.runtimeConfig.cloudService === 'DATAPROC' ? 'Dataproc' : cloudEnvironment.runtimeConfig.cloudService)
             }
           },
@@ -453,7 +453,7 @@ const Environments = () => {
                   runtime && div([span({ style: { fontWeight: 600 } }, ['Runtime: ']), runtime.runtimeName]),
                   app && div([
                     span({ style: { fontWeight: 600 } },
-                      [app.appType ? `${_.capitalize(app.appType)}: ` : 'Galaxy: ']
+                      [`${_.capitalize(app.appType)}: `]
                     ), app.appName
                   ])
                 ])
