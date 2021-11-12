@@ -48,9 +48,9 @@ const testRunNotebookFn = _.flow(
 
   const frame = await findIframe(page)
   await findElement(frame, '//*[@title="Kernel Idle"]')
-  await fillIn(frame, '//textarea', '100 + 1')
+  await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
   await click(frame, clickable({ text: 'Run' }))
-  await findText(frame, '101')
+  await findText(frame, '123456789099886419754209')
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, clickable({ text: 'Save and Checkpoint' }))
   await delay(1000)
