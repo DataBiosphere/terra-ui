@@ -13,6 +13,7 @@ const printWarning = message => {
 }
 
 module.exports = {
+  exitOnPageError: false,
   browserContext: 'incognito',
   launch: {
     devtools: process.env.DEVTOOLS === 'true',

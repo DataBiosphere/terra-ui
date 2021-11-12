@@ -40,7 +40,7 @@ const clickable = ({ text, textContains }) => {
   }
 }
 
-const click = async (page, xpath, options) => {
+const click = async (page, xpath, options = { visible: true }) => {
   return (await page.waitForXPath(xpath, options)).click()
 }
 
@@ -85,7 +85,7 @@ const select = async (page, labelContains, text) => {
   return click(page, `//div[starts-with(@id, "react-select-") and contains(normalize-space(.),"${text}")]`)
 }
 
-const waitForNoSpinners = page => {
+const waitForNoSpinners = async (page) => {
   return page.waitForXPath('//*[@data-icon="loadingSpinner"]', { hidden: true })
 }
 

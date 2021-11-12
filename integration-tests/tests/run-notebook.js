@@ -41,18 +41,19 @@ const testRunNotebookFn = _.flow(
   // Therefore, we start with a 1000ms delay, then make sure there are no spinners just in case the
   // AJAX calls are unexpectedly slow.
   await delay(1000)
-  waitForNoSpinners(page)
+  await waitForNoSpinners(page)
   await click(page, clickable({ text: 'Create' }))
   await findElement(page, clickable({ textContains: 'Creating' }))
   await findElement(page, clickable({ textContains: 'Running' }), { timeout: 10 * 60 * 1000 })
 
   const frame = await findIframe(page)
   await findElement(frame, '//*[@title="Kernel Idle"]')
-  await fillIn(frame, '//textarea', 'print(123456789099876543210990+9876543219)')
+  await fillIn(frame, '//textarea', '100 + 1')
   await click(frame, clickable({ text: 'Run' }))
-  await findText(frame, '123456789099886419754209')
+  await findText(frame, '101')
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, clickable({ text: 'Save and Checkpoint' }))
+  await delay(1000)
 })
 const testRunNotebook = {
   name: 'run-notebook',
