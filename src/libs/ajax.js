@@ -235,6 +235,12 @@ const User = signal => ({
     }
   },
 
+  getTos: async () => {
+    const response = await fetch(`http://localhost/tos.md`)
+    const tosText = await response.text()
+    return tosText
+  },
+
   acceptTos: async () => {
     await fetchOk(
       `${getConfig().tosUrlRoot}/user/response`,
