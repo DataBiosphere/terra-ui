@@ -435,8 +435,8 @@ export const navPaths = [
     title: 'Profile'
   },
   {
-    name: 'ras-callback',
-    path: '/ras-callback',
+    name: 'ecm-callback',
+    path: '/ecm-callback',
     component: Profile,
     title: 'Profile'
   }
