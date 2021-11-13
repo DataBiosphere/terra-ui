@@ -3,7 +3,8 @@ import { Fragment } from 'react'
 import { div, h, input, label } from 'react-hyperscript-helpers'
 import { IdContainer } from 'src/components/common'
 import {
-  cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, regionToDiskPrice, zonesToGpus
+  cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, getHourlyCostForMachineType,
+  getHourlyPreemptibleCostForMachineType, gpuTypes, machineTypes, regionToPrices, zonesToGpus
 } from 'src/data/machines'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
@@ -43,10 +44,9 @@ export const getDefaultMachineType = isDataproc => isDataproc ? defaultDataprocM
 
 export const normalizeRuntimeConfig = ({
   cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers,
-  numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, bootDiskSize, computeRegion
+  numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, bootDiskSize, region
 }) => {
   const isDataproc = cloudService === cloudServices.DATAPROC
-
   return {
     cloudService: cloudService || cloudServices.GCE,
     masterMachineType: masterMachineType || machineType || getDefaultMachineType(isDataproc),
@@ -59,7 +59,7 @@ export const normalizeRuntimeConfig = ({
     // because those runtimes do not have a separate boot disk. But those old GCE runtimes are more than 1 year old if they exist.
     // Hence, we're okay with this caveat.
     bootDiskSize: bootDiskSize || defaultGceBootDiskSize,
-    computeRegion: computeRegion || defaultComputeRegion
+    computeRegion: region || defaultComputeRegion
   }
 }
 
@@ -103,8 +103,9 @@ export const runtimeConfigBaseCost = config => {
 export const runtimeConfigCost = config => {
   const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, computeRegion } = normalizeRuntimeConfig(
     config)
-  const { price: masterPrice } = findMachineType(masterMachineType)
-  const { price: workerPrice, preemptiblePrice } = findMachineType(workerMachineType)
+  const masterPrice = getHourlyCostForMachineType(masterMachineType, computeRegion)
+  const workerPrice = getHourlyCostForMachineType(workerMachineType, computeRegion)
+  const preemptiblePrice = getHourlyPreemptibleCostForMachineType(workerMachineType, computeRegion)
   const numberOfStandardVms = 1 + numberOfWorkers // 1 is for the master VM
   const gpuConfig = config?.gpuConfig
   const gpuEnabled = cloudService === cloudServices.GCE && !!gpuConfig
@@ -123,7 +124,7 @@ export const runtimeConfigCost = config => {
 
 // Per GB following https://cloud.google.com/compute/pricing
 const getPersistentDiskPriceForRegionMonthly = computeRegion => {
-  return _.flow(_.find({ name: computeRegion }), _.get(['monthlyDiskPrice']))(regionToDiskPrice)
+  return _.flow(_.find({ name: computeRegion }), _.get(['monthlyDiskPrice']))(regionToPrices)
 }
 const numberOfHoursPerMonth = 730
 const getPersistentDiskPriceForRegionHourly = computeRegion => getPersistentDiskPriceForRegionMonthly(computeRegion) / numberOfHoursPerMonth

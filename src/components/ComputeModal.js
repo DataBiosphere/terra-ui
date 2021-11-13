@@ -404,6 +404,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             ...(jupyterUserScriptUri && { jupyterUserScriptUri }),
             ...(cloudService === cloudServices.GCE ? {
               zone: computeConfig.computeZone,
+              region: computeConfig.computeRegion,
               machineType: computeConfig.masterMachineType || defaultGceMachineType,
               ...(computeConfig.gpuEnabled ? { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } } : {}),
               bootDiskSize: existingRuntime?.bootDiskSize,
@@ -461,6 +462,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       ...(desiredRuntime.cloudService === cloudServices.GCE ? {
         machineType: desiredRuntime.machineType || defaultGceMachineType,
         bootDiskSize: desiredRuntime.bootDiskSize,
+        region: desiredRuntime.region,
         zone: desiredRuntime.zone,
         ...(desiredRuntime.gpuConfig ? { gpuConfig: desiredRuntime.gpuConfig } : {}),
         ...(desiredRuntime.diskSize ? { diskSize: desiredRuntime.diskSize } : {})

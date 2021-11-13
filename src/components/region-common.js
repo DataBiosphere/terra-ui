@@ -88,6 +88,9 @@ export const allRegions = [
   { value: 'AUSTRALIA-SOUTHEAST1', label: 'australia-southeast1 (Sydney)', locationType: locationTypes.region }
 ]
 
+// For current phased release of regionality only supporting US and US-CENTRAL1 buckets.
+export const availableBucketRegions = allRegions.slice(0, 2)
+
 export const getAvailableComputeRegions = location => {
   const UsCentralRegion = _.find({ value: 'US-CENTRAL1' }, allRegions)
   return isUSLocation(location) ? [UsCentralRegion] : [UsCentralRegion, _.find({ value: location }, allRegions)]

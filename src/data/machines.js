@@ -1,26 +1,29 @@
+import _ from 'lodash/fp'
+
+
 export const machineTypes = [
-  { name: 'n1-standard-1', cpu: 1, memory: 3.75, price: 0.0475, preemptiblePrice: 0.0100 },
-  { name: 'n1-standard-2', cpu: 2, memory: 7.50, price: 0.0950, preemptiblePrice: 0.0200 },
-  { name: 'n1-standard-4', cpu: 4, memory: 15, price: 0.1900, preemptiblePrice: 0.0400 },
-  { name: 'n1-standard-8', cpu: 8, memory: 30, price: 0.3800, preemptiblePrice: 0.0800 },
-  { name: 'n1-standard-16', cpu: 16, memory: 60, price: 0.7600, preemptiblePrice: 0.1600 },
-  { name: 'n1-standard-32', cpu: 32, memory: 120, price: 1.5200, preemptiblePrice: 0.3200 },
-  { name: 'n1-standard-64', cpu: 64, memory: 240, price: 3.0400, preemptiblePrice: 0.6400 },
-  { name: 'n1-standard-96', cpu: 96, memory: 360, price: 4.5600, preemptiblePrice: 0.9600 },
-  { name: 'n1-highmem-2', cpu: 2, memory: 13, price: 0.1184, preemptiblePrice: 0.0250 },
-  { name: 'n1-highmem-4', cpu: 4, memory: 26, price: 0.2368, preemptiblePrice: 0.0500 },
-  { name: 'n1-highmem-8', cpu: 8, memory: 52, price: 0.4736, preemptiblePrice: 0.1000 },
-  { name: 'n1-highmem-16', cpu: 16, memory: 104, price: 0.9472, preemptiblePrice: 0.2000 },
-  { name: 'n1-highmem-32', cpu: 32, memory: 208, price: 1.8944, preemptiblePrice: 0.4000 },
-  { name: 'n1-highmem-64', cpu: 64, memory: 416, price: 3.7888, preemptiblePrice: 0.8000 },
-  { name: 'n1-highmem-96', cpu: 96, memory: 624, price: 5.6832, preemptiblePrice: 1.2000 },
-  { name: 'n1-highcpu-2', cpu: 2, memory: 1.8, price: 0.0709, preemptiblePrice: 0.0150 },
-  { name: 'n1-highcpu-4', cpu: 4, memory: 3.6, price: 0.1418, preemptiblePrice: 0.0300 },
-  { name: 'n1-highcpu-8', cpu: 8, memory: 7.2, price: 0.2836, preemptiblePrice: 0.0600 },
-  { name: 'n1-highcpu-16', cpu: 16, memory: 14.4, price: 0.5672, preemptiblePrice: 0.1200 },
-  { name: 'n1-highcpu-32', cpu: 32, memory: 28.8, price: 1.1344, preemptiblePrice: 0.2400 },
-  { name: 'n1-highcpu-64', cpu: 64, memory: 57.6, price: 2.2688, preemptiblePrice: 0.4800 },
-  { name: 'n1-highcpu-96', cpu: 96, memory: 86.4, price: 3.402, preemptiblePrice: 0.7200 }
+  { name: 'n1-standard-1', cpu: 1, memory: 3.75 },
+  { name: 'n1-standard-2', cpu: 2, memory: 7.50 },
+  { name: 'n1-standard-4', cpu: 4, memory: 15 },
+  { name: 'n1-standard-8', cpu: 8, memory: 30 },
+  { name: 'n1-standard-16', cpu: 16, memory: 60 },
+  { name: 'n1-standard-32', cpu: 32, memory: 120 },
+  { name: 'n1-standard-64', cpu: 64, memory: 240 },
+  { name: 'n1-standard-96', cpu: 96, memory: 360 },
+  { name: 'n1-highmem-2', cpu: 2, memory: 13 },
+  { name: 'n1-highmem-4', cpu: 4, memory: 26 },
+  { name: 'n1-highmem-8', cpu: 8, memory: 52 },
+  { name: 'n1-highmem-16', cpu: 16, memory: 104 },
+  { name: 'n1-highmem-32', cpu: 32, memory: 208 },
+  { name: 'n1-highmem-64', cpu: 64, memory: 416 },
+  { name: 'n1-highmem-96', cpu: 96, memory: 624 },
+  { name: 'n1-highcpu-2', cpu: 2, memory: 1.8 },
+  { name: 'n1-highcpu-4', cpu: 4, memory: 3.6 },
+  { name: 'n1-highcpu-8', cpu: 8, memory: 7.2 },
+  { name: 'n1-highcpu-16', cpu: 16, memory: 14.4 },
+  { name: 'n1-highcpu-32', cpu: 32, memory: 28.8 },
+  { name: 'n1-highcpu-64', cpu: 64, memory: 57.6 },
+  { name: 'n1-highcpu-96', cpu: 96, memory: 86.4 }
 ]
 
 // As of June 21, 2021:
@@ -139,64 +142,189 @@ export const ephemeralExternalIpAddressPrice = { // per hour in dollars for all 
   preemptible: 0.002
 }
 
-// Prices below are per GB per https://cloud.google.com/compute/all-pricing#disk
-export const regionToDiskPrice = [
-  { name: 'ASIA-EAST1', monthlyDiskPrice: 0.04 },
-  { name: 'ASIA-EAST2', monthlyDiskPrice: 0.05 },
-  { name: 'ASIA-NORTHEAST1', monthlyDiskPrice: 0.052 },
-  { name: 'ASIA-NORTHEAST2', monthlyDiskPrice: 0.052 },
-  { name: 'ASIA-NORTHEAST3', monthlyDiskPrice: 0.052 },
-  { name: 'ASIA-SOUTH1', monthlyDiskPrice: 0.048 },
-  { name: 'ASIA-SOUTHEAST1', monthlyDiskPrice: 0.044 },
-  { name: 'ASIA-SOUTHEAST2', monthlyDiskPrice: 0.052 },
-  { name: 'AUSTRALIA-SOUTHEAST1', monthlyDiskPrice: 0.054 },
-  { name: 'EUROPE-NORTH1', monthlyDiskPrice: 0.044 },
-  { name: 'EUROPE-WEST1', monthlyDiskPrice: 0.04 },
-  { name: 'EUROPE-WEST2', monthlyDiskPrice: 0.048 },
-  { name: 'EUROPE-WEST3', monthlyDiskPrice: 0.048 },
-  { name: 'EUROPE-WEST4', monthlyDiskPrice: 0.044 },
-  { name: 'EUROPE-WEST6', monthlyDiskPrice: 0.052 },
-  { name: 'NORTHAMERICA-NORTHEAST1', monthlyDiskPrice: 0.044 },
-  { name: 'SOUTHAMERICA-EAST1', monthlyDiskPrice: 0.06 },
-  { name: 'US-CENTRAL1', monthlyDiskPrice: 0.04 },
-  { name: 'US-EAST1', monthlyDiskPrice: 0.04 },
-  { name: 'US-EAST4', monthlyDiskPrice: 0.044 },
-  { name: 'US-WEST1', monthlyDiskPrice: 0.04 },
-  { name: 'US-WEST2', monthlyDiskPrice: 0.048 },
-  { name: 'US-WEST3', monthlyDiskPrice: 0.048 },
-  { name: 'US-WEST4', monthlyDiskPrice: 0.044 }
-]
-
-
+// Prices for disk below are per GB per https://cloud.google.com/compute/all-pricing#disk
 export const regionToPrices = [
   {
-    name: 'ASIA-EAST1',
-    n1HourlyGBRamPrice: 0.004906, n1HourlyCpuPrice: 0.036602, preemptibleN1HourlyGBRamPrice: 0.000981, preemptibleN1HourlyCpuPrice: 0.00732
+    name: 'ASIA-EAST1', monthlyDiskPrice: 0.04,
+    n1HourlyGBRamPrice: 0.004906, n1HourlyCpuPrice: 0.036602, preemptibleN1HourlyGBRamPrice: 0.000981, preemptibleN1HourlyCpuPrice: 0.00732,
+    t4HourlyPrice: 0.35, p4HourlyPrice: -1, k80HourlyPrice: 0.49, v100HourlyPrice: 0.48, p100HourlyPrice: 0.6,
+    preemptibleT4HourlyPrice: 0.069841, preemptibleP4HourlyPrice: -1, preemptibleK80HourlyPrice: 0.135,
+    preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
   },
-  { name: 'ASIA-EAST2', n1HourlyGBRamPrice: 0.005928, n1HourlyCpuPrice: 0.044231, preemptibleN1HourlyGBRamPrice: 0.000597, preemptibleN1HourlyCpuPrice: 0.004433 },
-  { name: 'ASIA-NORTHEAST1', n1HourlyGBRamPrice: 0.005419, n1HourlyCpuPrice: 0.040618, preemptibleN1HourlyGBRamPrice: 0.001178, preemptibleN1HourlyCpuPrice: 0.00883 },
-  { name: 'ASIA-NORTHEAST2', n1HourlyGBRamPrice: 0.005419, n1HourlyCpuPrice: 0.040618, preemptibleN1HourlyGBRamPrice: 0.001178, preemptibleN1HourlyCpuPrice: 0.00883 },
-  { name: 'ASIA-NORTHEAST3', n1HourlyGBRamPrice: 0.005419, n1HourlyCpuPrice: 0.040618, preemptibleN1HourlyGBRamPrice: 0.001178, preemptibleN1HourlyCpuPrice: 0.00883 },
-  { name: 'ASIA-SOUTH1', n1HourlyGBRamPrice: 0.005088, n1HourlyCpuPrice: 0.03797, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655 },
-  { name: 'ASIA-SOUTHEAST1', n1HourlyGBRamPrice: 0.005226, n1HourlyCpuPrice: 0.038999, preemptibleN1HourlyGBRamPrice: 0.00105, preemptibleN1HourlyCpuPrice: 0.0078 },
-  { name: 'ASIA-SOUTHEAST2', n1HourlyGBRamPrice: 0.00569634, n1HourlyCpuPrice: 0.04250891, preemptibleN1HourlyGBRamPrice: 0.0011445, preemptibleN1HourlyCpuPrice: 0.008502 },
-  { name: 'AUSTRALIA-SOUTHEAST1', n1HourlyGBRamPrice: 0.006011, n1HourlyCpuPrice: 0.044856, preemptibleN1HourlyGBRamPrice: 0.0012, preemptibleN1HourlyCpuPrice: 0.00898 },
-  { name: 'EUROPE-NORTH1', n1HourlyGBRamPrice: 0.004664, n1HourlyCpuPrice: 0.034806, preemptibleN1HourlyGBRamPrice: 0.000981, preemptibleN1HourlyCpuPrice: 0.00732 },
-  { name: 'EUROPE-WEST1', n1HourlyGBRamPrice: 0.004661, n1HourlyCpuPrice: 0.034773, preemptibleN1HourlyGBRamPrice: 0.000981, preemptibleN1HourlyCpuPrice: 0.007321 },
-  { name: 'EUROPE-WEST2', n1HourlyGBRamPrice: 0.005458, n1HourlyCpuPrice: 0.04073, preemptibleN1HourlyGBRamPrice: 0.00109, preemptibleN1HourlyCpuPrice: 0.00815 },
-  { name: 'EUROPE-WEST3', n1HourlyGBRamPrice: 0.005458, n1HourlyCpuPrice: 0.04073, preemptibleN1HourlyGBRamPrice: 0.00109, preemptibleN1HourlyCpuPrice: 0.00815 },
-  { name: 'EUROPE-WEST4', n1HourlyGBRamPrice: 0.004664, n1HourlyCpuPrice: 0.034802, preemptibleN1HourlyGBRamPrice: 0.000987, preemptibleN1HourlyCpuPrice: 0.007325 },
-  { name: 'EUROPE-WEST6', n1HourlyGBRamPrice: 0.005928, n1HourlyCpuPrice: 0.044231, preemptibleN1HourlyGBRamPrice: 0.001254, preemptibleN1HourlyCpuPrice: 0.009309 },
-  { name: 'NORTHAMERICA-NORTHEAST1', n1HourlyGBRamPrice: 0.004664, n1HourlyCpuPrice: 0.034802, preemptibleN1HourlyGBRamPrice: 0.000987, preemptibleN1HourlyCpuPrice: 0.007325 },
-  { name: 'SOUTHAMERICA-EAST1', n1HourlyGBRamPrice: 0.006725, n1HourlyCpuPrice: 0.05018, preemptibleN1HourlyGBRamPrice: 0.000641, preemptibleN1HourlyCpuPrice: 0.00478 },
-  { name: 'US-CENTRAL1', n1HourlyGBRamPrice: 0.004237, n1HourlyCpuPrice: 0.031611, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655 },
-  { name: 'US-EAST1', n1HourlyGBRamPrice: 0.004237, n1HourlyCpuPrice: 0.031611, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655 },
-  { name: 'US-EAST4', n1HourlyGBRamPrice: 0.004771, n1HourlyCpuPrice: 0.035605, preemptibleN1HourlyGBRamPrice: 0.00095444, preemptibleN1HourlyCpuPrice: 0.00712085 },
-  { name: 'US-WEST1', n1HourlyGBRamPrice: 0.004237, n1HourlyCpuPrice: 0.031611, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655 },
-  { name: 'US-WEST2', n1HourlyGBRamPrice: 0.005089, n1HourlyCpuPrice: 0.03797, preemptibleN1HourlyGBRamPrice: 0.001076, preemptibleN1HourlyCpuPrice: 0.007986 },
-  { name: 'US-WEST3', n1HourlyGBRamPrice: 0.005089, n1HourlyCpuPrice: 0.03797, preemptibleN1HourlyGBRamPrice: 0.001076, preemptibleN1HourlyCpuPrice: 0.007986 },
-  { name: 'US-WEST4', n1HourlyGBRamPrice: 0.004771, n1HourlyCpuPrice: 0.035605, preemptibleN1HourlyGBRamPrice: 0.000454, preemptibleN1HourlyCpuPrice: 0.003391 }
+  {
+    name: 'ASIA-EAST2', monthlyDiskPrice: 0.0498,
+    n1HourlyGBRamPrice: 0.005928, n1HourlyCpuPrice: 0.044231, preemptibleN1HourlyGBRamPrice: 0.000597, preemptibleN1HourlyCpuPrice: 0.004433,
+    t4HourlyPrice: -1, p4HourlyPrice: -1, k80HourlyPrice: -1, v100HourlyPrice: -1, p100HourlyPrice: -1,
+    preemptibleT4HourlyPrice: -1, preemptibleP4HourlyPrice: -1, preemptibleK80HourlyPrice: -1,
+    preemptibleV100HourlyPrice: -1, preemptibleP100HourlyPrice: -1
+  },
+  {
+    name: 'ASIA-NORTHEAST1', monthlyDiskPrice: 0.052,
+    n1HourlyGBRamPrice: 0.005419, n1HourlyCpuPrice: 0.040618, preemptibleN1HourlyGBRamPrice: 0.001178, preemptibleN1HourlyCpuPrice: 0.00883,
+    t4HourlyPrice: 0.37, p4HourlyPrice: -1, k80HourlyPrice: -1, v100HourlyPrice: -1, p100HourlyPrice: -1,
+    preemptibleT4HourlyPrice: 0.069841, preemptibleP4HourlyPrice: -1, preemptibleK80HourlyPrice: -1,
+    preemptibleV100HourlyPrice: -1, preemptibleP100HourlyPrice: -1
+  },
+  {
+    name: 'ASIA-NORTHEAST2', monthlyDiskPrice: 0.052,
+    n1HourlyGBRamPrice: 0.005419, n1HourlyCpuPrice: 0.040618, preemptibleN1HourlyGBRamPrice: 0.001178, preemptibleN1HourlyCpuPrice: 0.00883,
+    t4HourlyPrice: 0.37, p4HourlyPrice: 0.65, k80HourlyPrice: 0.0, v100HourlyPrice: 0.0, p100HourlyPrice: 0.6,
+    preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.135,
+    preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
+  },
+  {
+    name: 'ASIA-NORTHEAST3', monthlyDiskPrice: 0.052,
+    n1HourlyGBRamPrice: 0.005419, n1HourlyCpuPrice: 0.040618, preemptibleN1HourlyGBRamPrice: 0.001178, preemptibleN1HourlyCpuPrice: 0.00883,
+    t4HourlyPrice: 0.37, p4HourlyPrice: 0.65, k80HourlyPrice: 0.0, v100HourlyPrice: 0.0, p100HourlyPrice: 0.6,
+    preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.135,
+    preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
+  },
+  {
+    name: 'ASIA-SOUTH1', monthlyDiskPrice: 0.048,
+    n1HourlyGBRamPrice: 0.005088, n1HourlyCpuPrice: 0.03797, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655,
+    t4HourlyPrice: 0.41, p4HourlyPrice: -1, k80HourlyPrice: -1, v100HourlyPrice: -1, p100HourlyPrice: -1,
+    preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: -1, preemptibleK80HourlyPrice: -1,
+    preemptibleV100HourlyPrice: -1, preemptibleP100HourlyPrice: -1
+  },
+  {
+    name: 'ASIA-SOUTHEAST1', monthlyDiskPrice: 0.044,
+    n1HourlyGBRamPrice: 0.005226, n1HourlyCpuPrice: 0.038999, preemptibleN1HourlyGBRamPrice: 0.00105, preemptibleN1HourlyCpuPrice: 0.0078,
+    t4HourlyPrice: 0.37, p4HourlyPrice: 0.65, k80HourlyPrice: -1, v100HourlyPrice: -1, p100HourlyPrice: -1,
+    preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.072, preemptibleK80HourlyPrice: -1,
+    preemptibleV100HourlyPrice: -1, preemptibleP100HourlyPrice: -1
+  },
+  {
+    name: 'ASIA-SOUTHEAST2', monthlyDiskPrice: 0.052,
+    n1HourlyGBRamPrice: 0.00569634, n1HourlyCpuPrice: 0.04250891, preemptibleN1HourlyGBRamPrice: 0.0011445, preemptibleN1HourlyCpuPrice: 0.008502,
+    t4HourlyPrice: 0.4033, p4HourlyPrice: 0.7085, k80HourlyPrice: 0.5559, v100HourlyPrice: 0.0, p100HourlyPrice: 0.744,
+    preemptibleT4HourlyPrice: 0.1199, preemptibleP4HourlyPrice: 0.23544, preemptibleK80HourlyPrice: 0.14715,
+    preemptibleV100HourlyPrice: 0.8066, preemptibleP100HourlyPrice: 0.4687
+  },
+  {
+    name: 'AUSTRALIA-SOUTHEAST1', monthlyDiskPrice: 0.054,
+    n1HourlyGBRamPrice: 0.006011, n1HourlyCpuPrice: 0.044856, preemptibleN1HourlyGBRamPrice: 0.0012, preemptibleN1HourlyCpuPrice: 0.00898,
+    t4HourlyPrice: -1, p4HourlyPrice: 0.65, k80HourlyPrice: -1, v100HourlyPrice: -1, p100HourlyPrice: 1.6,
+    preemptibleT4HourlyPrice: 0.069841, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: -1,
+    preemptibleV100HourlyPrice: -1, preemptibleP100HourlyPrice: 0.43
+  },
+  {
+    name: 'EUROPE-NORTH1', monthlyDiskPrice: 0.044,
+    n1HourlyGBRamPrice: 0.004664, n1HourlyCpuPrice: 0.034806, preemptibleN1HourlyGBRamPrice: 0.000981, preemptibleN1HourlyCpuPrice: 0.00732,
+    t4HourlyPrice: -1, p4HourlyPrice: -1, k80HourlyPrice: -1, v100HourlyPrice: -1, p100HourlyPrice: -1,
+    preemptibleT4HourlyPrice: -1, preemptibleP4HourlyPrice: -1, preemptibleK80HourlyPrice: -1,
+    preemptibleV100HourlyPrice: -1, preemptibleP100HourlyPrice: -1
+  },
+  {
+    name: 'EUROPE-WEST1', monthlyDiskPrice: 0.04,
+    n1HourlyGBRamPrice: 0.004661, n1HourlyCpuPrice: 0.034773, preemptibleN1HourlyGBRamPrice: 0.000981, preemptibleN1HourlyCpuPrice: 0.007321,
+    t4HourlyPrice: 0.35, p4HourlyPrice: -1, k80HourlyPrice: 0.49, v100HourlyPrice: -1, p100HourlyPrice: 0.6,
+    preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: -1, preemptibleK80HourlyPrice: 0.0375,
+    preemptibleV100HourlyPrice: -1, preemptibleP100HourlyPrice: 0.43
+  },
+  {
+    name: 'EUROPE-WEST2', monthlyDiskPrice: 0.048,
+    n1HourlyGBRamPrice: 0.005458, n1HourlyCpuPrice: 0.04073, preemptibleN1HourlyGBRamPrice: 0.00109, preemptibleN1HourlyCpuPrice: 0.00815,
+    t4HourlyPrice: 0.41, p4HourlyPrice: -1, k80HourlyPrice: -1, v100HourlyPrice: -1, p100HourlyPrice: -1,
+    preemptibleT4HourlyPrice: 0.069841, preemptibleP4HourlyPrice: -1, preemptibleK80HourlyPrice: -1,
+    preemptibleV100HourlyPrice: -1, preemptibleP100HourlyPrice: -1
+  },
+  {
+    name: 'EUROPE-WEST3', monthlyDiskPrice: 0.048,
+    n1HourlyGBRamPrice: 0.005458, n1HourlyCpuPrice: 0.04073, preemptibleN1HourlyGBRamPrice: 0.00109, preemptibleN1HourlyCpuPrice: 0.00815,
+    t4HourlyPrice: 0.41, p4HourlyPrice: -1, k80HourlyPrice: -1, v100HourlyPrice: -1, p100HourlyPrice: -1,
+    preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: -1, preemptibleK80HourlyPrice: -1,
+    preemptibleV100HourlyPrice: -1, preemptibleP100HourlyPrice: -1
+  },
+  {
+    name: 'EUROPE-WEST4', monthlyDiskPrice: 0.044,
+    n1HourlyGBRamPrice: 0.004664, n1HourlyCpuPrice: 0.034802, preemptibleN1HourlyGBRamPrice: 0.000987, preemptibleN1HourlyCpuPrice: 0.007325,
+    t4HourlyPrice: 0.35, p4HourlyPrice: 0.65, k80HourlyPrice: -1, v100HourlyPrice: 0.55, p100HourlyPrice: 1.6,
+    preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.072, preemptibleK80HourlyPrice: -1,
+    preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
+  },
+  {
+    name: 'EUROPE-WEST6', monthlyDiskPrice: 0.052,
+    n1HourlyGBRamPrice: 0.005928, n1HourlyCpuPrice: 0.044231, preemptibleN1HourlyGBRamPrice: 0.001254, preemptibleN1HourlyCpuPrice: 0.009309,
+    t4HourlyPrice: 0.45, p4HourlyPrice: 0.84, k80HourlyPrice: 0.63, v100HourlyPrice: 0.472, p100HourlyPrice: 0.044,
+    preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.2808, preemptibleK80HourlyPrice: 0.1755,
+    preemptibleV100HourlyPrice: 0.962, preemptibleP100HourlyPrice: 0.559
+  },
+  {
+    name: 'NORTHAMERICA-NORTHEAST1', monthlyDiskPrice: 0.044,
+    n1HourlyGBRamPrice: 0.004664, n1HourlyCpuPrice: 0.034802, preemptibleN1HourlyGBRamPrice: 0.000987, preemptibleN1HourlyCpuPrice: 0.007325,
+    t4HourlyPrice: -1, p4HourlyPrice: 0.65, k80HourlyPrice: -1, v100HourlyPrice: -1, p100HourlyPrice: -1,
+    preemptibleT4HourlyPrice: -1, preemptibleP4HourlyPrice: 0.072, preemptibleK80HourlyPrice: -1,
+    preemptibleV100HourlyPrice: -1, preemptibleP100HourlyPrice: -1
+  },
+  {
+    name: 'SOUTHAMERICA-EAST1', monthlyDiskPrice: 0.06,
+    n1HourlyGBRamPrice: 0.006725, n1HourlyCpuPrice: 0.05018, preemptibleN1HourlyGBRamPrice: 0.000641, preemptibleN1HourlyCpuPrice: 0.00478,
+    t4HourlyPrice: 0.48, p4HourlyPrice: -1, k80HourlyPrice: -1, v100HourlyPrice: -1, p100HourlyPrice: -1,
+    preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: -1, preemptibleK80HourlyPrice: -1,
+    preemptibleV100HourlyPrice: -1, preemptibleP100HourlyPrice: -1
+  },
+  {
+    name: 'US-CENTRAL1', monthlyDiskPrice: 0.04,
+    n1HourlyGBRamPrice: 0.004237, n1HourlyCpuPrice: 0.031611, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655,
+    t4HourlyPrice: 0.35, p4HourlyPrice: 0.6, k80HourlyPrice: 0.45, v100HourlyPrice: 0.48, p100HourlyPrice: 0.46,
+    preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.0375,
+    preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
+  },
+  {
+    name: 'US-EAST1', monthlyDiskPrice: 0.04,
+    n1HourlyGBRamPrice: 0.004237, n1HourlyCpuPrice: 0.031611, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655,
+    t4HourlyPrice: 0.35, p4HourlyPrice: 0.6, k80HourlyPrice: 0.45, v100HourlyPrice: 0.48, p100HourlyPrice: 0.46,
+    preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.0375,
+    preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
+  },
+  {
+    name: 'US-EAST4', monthlyDiskPrice: 0.044,
+    n1HourlyGBRamPrice: 0.004771, n1HourlyCpuPrice: 0.035605, preemptibleN1HourlyGBRamPrice: 0.00095444, preemptibleN1HourlyCpuPrice: 0.00712085,
+    t4HourlyPrice: 0.35, p4HourlyPrice: 0.6, k80HourlyPrice: -1, v100HourlyPrice: -1, p100HourlyPrice: -1,
+    preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: -1,
+    preemptibleV100HourlyPrice: -1, preemptibleP100HourlyPrice: -1
+  },
+  {
+    name: 'US-WEST1', monthlyDiskPrice: 0.04,
+    n1HourlyGBRamPrice: 0.004237, n1HourlyCpuPrice: 0.031611, preemptibleN1HourlyGBRamPrice: 0.000892, preemptibleN1HourlyCpuPrice: 0.006655,
+    t4HourlyPrice: 0.35, p4HourlyPrice: 0.6, k80HourlyPrice: 0.45, v100HourlyPrice: 0.48, p100HourlyPrice: 0.46,
+    preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.0375,
+    preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
+  },
+  {
+    name: 'US-WEST2', monthlyDiskPrice: 0.048,
+    n1HourlyGBRamPrice: 0.005089, n1HourlyCpuPrice: 0.03797, preemptibleN1HourlyGBRamPrice: 0.001076, preemptibleN1HourlyCpuPrice: 0.007986,
+    t4HourlyPrice: 0.41, p4HourlyPrice: 0.72, k80HourlyPrice: 0.54, v100HourlyPrice: -1, p100HourlyPrice: -1,
+    preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.2592, preemptibleK80HourlyPrice: 0.162,
+    preemptibleV100HourlyPrice: -1, preemptibleP100HourlyPrice: -1
+  },
+  {
+    name: 'US-WEST3', monthlyDiskPrice: 0.048,
+    n1HourlyGBRamPrice: 0.005089, n1HourlyCpuPrice: 0.03797, preemptibleN1HourlyGBRamPrice: 0.001076, preemptibleN1HourlyCpuPrice: 0.007986,
+    t4HourlyPrice: 0.41, p4HourlyPrice: 0.72, k80HourlyPrice: 0.54, v100HourlyPrice: 0.976, p100HourlyPrice: 0.752,
+    preemptibleT4HourlyPrice: 0.11, preemptibleP4HourlyPrice: 0.2592, preemptibleK80HourlyPrice: 0.162,
+    preemptibleV100HourlyPrice: 0.888, preemptibleP100HourlyPrice: 0.516
+  },
+  {
+    name: 'US-WEST4', monthlyDiskPrice: 0.044,
+    n1HourlyGBRamPrice: 0.004771, n1HourlyCpuPrice: 0.035605, preemptibleN1HourlyGBRamPrice: 0.000454, preemptibleN1HourlyCpuPrice: 0.003391,
+    t4HourlyPrice: 0.37, p4HourlyPrice: 0.6, k80HourlyPrice: 0.48, v100HourlyPrice: 0.48, p100HourlyPrice: 0.46,
+    preemptibleT4HourlyPrice: 0.069841, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.135,
+    preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
+  }
 ]
+
+export const getHourlyCostForMachineType = (machineTypeName, region) => {
+  const machineType = _.find({ name: machineTypeName }, machineTypes)
+  const regionalPrices = _.find({ name: region }, regionToPrices)
+  return (machineType.cpu * regionalPrices.n1HourlyCpuPrice) + (machineType.memory * regionalPrices.n1HourlyGBRamPrice)
+}
+
+export const getHourlyPreemptibleCostForMachineType = (machineTypeName, region) => {
+  const machineType = _.find({ name: machineTypeName }, machineTypes)
+  const regionalPrices = _.find({ name: region }, regionToPrices)
+  return (machineType.cpu * regionalPrices.preemptibleN1HourlyCpuPrice) + (machineType.memory * regionalPrices.preemptibleN1HourlyGBRamPrice)
+}
 
 export const version = '6' // updated jupyter-iframe-extension.js
 

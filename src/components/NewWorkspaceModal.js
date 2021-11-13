@@ -6,7 +6,7 @@ import { icon } from 'src/components/icons'
 import { TextArea, ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { InfoBox } from 'src/components/PopupTrigger'
-import { allRegions, getRegionInfo, locationTypes } from 'src/components/region-common'
+import { availableBucketRegions, getRegionInfo, locationTypes } from 'src/components/region-common'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
@@ -219,7 +219,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           id,
           value: bucketLocation,
           onChange: ({ value }) => setBucketLocation(value),
-          options: _.sortBy('label', allRegions.slice(0, 2))
+          options: _.sortBy('label', availableBucketRegions)
         })
       ])]),
       shouldShowDifferentRegionWarning() && div({ style: { ...warningStyle } }, [
