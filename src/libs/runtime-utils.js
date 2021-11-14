@@ -3,7 +3,7 @@ import { Fragment } from 'react'
 import { div, h, input, label } from 'react-hyperscript-helpers'
 import { IdContainer } from 'src/components/common'
 import {
-  cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, getHourlyCostForMachineType,
+  cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, getGpuCost, getHourlyCostForMachineType,
   getHourlyPreemptibleCostForMachineType, gpuTypes, machineTypes, regionToPrices, zonesToGpus
 } from 'src/data/machines'
 import colors from 'src/libs/colors'
@@ -77,8 +77,6 @@ export const getValidGpuTypes = (numCpus, mem, zone) => {
   return validGpuTypes || { name: '?', type: '?', numGpus: '?', maxNumCpus: '?', maxMem: '?', price: NaN, preemptiblePrice: NaN }
 }
 
-const gpuCost = (gpuType, numGpus) => _.find({ type: gpuType, numGpus }, gpuTypes)?.price || NaN
-
 const dataprocCost = (machineType, numInstances) => {
   const { cpu: cpuPrice } = findMachineType(machineType)
 
@@ -116,7 +114,7 @@ export const runtimeConfigCost = config => {
     numberOfPreemptibleWorkers * preemptiblePrice,
     numberOfPreemptibleWorkers * workerDiskSize * getPersistentDiskPriceForRegionHourly(computeRegion),
     cloudService === cloudServices.DATAPROC && dataprocCost(workerMachineType, numberOfPreemptibleWorkers),
-    gpuEnabled && gpuCost(gpuConfig.gpuType, gpuConfig.numOfGpus),
+    gpuEnabled && getGpuCost(gpuConfig.gpuType, gpuConfig.numOfGpus, computeRegion),
     ephemeralExternalIpAddressCost({ numStandardVms: numberOfStandardVms, numPreemptibleVms: numberOfPreemptibleWorkers }),
     runtimeConfigBaseCost(config)
   ])
