@@ -3,8 +3,7 @@ import { Fragment } from 'react'
 import { div, h, input, label } from 'react-hyperscript-helpers'
 import { IdContainer } from 'src/components/common'
 import {
-  cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, getGpuCost, getHourlyCostForMachineType,
-  getHourlyPreemptibleCostForMachineType, gpuTypes, machineTypes, regionToPrices, zonesToGpus
+  cloudServices, dataprocCpuPrice, ephemeralExternalIpAddressPrice, gpuTypes, machineTypes, regionToPrices, zonesToGpus
 } from 'src/data/machines'
 import colors from 'src/libs/colors'
 import * as Style from 'src/libs/style'
@@ -81,6 +80,30 @@ const dataprocCost = (machineType, numInstances) => {
   const { cpu: cpuPrice } = findMachineType(machineType)
 
   return cpuPrice * numInstances * dataprocCpuPrice
+}
+
+const getHourlyCostForMachineType = (machineTypeName, region) => {
+  const machineType = _.find({ name: machineTypeName }, machineTypes)
+  const regionalPrices = _.find({ name: region }, regionToPrices)
+  return (machineType.cpu * regionalPrices.n1HourlyCpuPrice) + (machineType.memory * regionalPrices.n1HourlyGBRamPrice)
+}
+
+const getHourlyPreemptibleCostForMachineType = (machineTypeName, region) => {
+  const machineType = _.find({ name: machineTypeName }, machineTypes)
+  const regionalPrices = _.find({ name: region }, regionToPrices)
+  return (machineType.cpu * regionalPrices.preemptibleN1HourlyCpuPrice) + (machineType.memory * regionalPrices.preemptibleN1HourlyGBRamPrice)
+}
+
+const getGpuCost = (gpuType, numGpus, region) => {
+  const prices = _.find({ name: region }, regionToPrices)
+  const price = Utils.switchCase(gpuType,
+    ['nvidia-tesla-t4', () => prices.t4HourlyPrice],
+    ['nvidia-tesla-k80', () => prices.k80HourlyPrice],
+    ['nvidia-tesla-p4', () => prices.p4HourlyPrice],
+    ['nvidia-tesla-v100', () => prices.v100HourlyPrice],
+    ['nvidia-tesla-p100', () => prices.p100HourlyPrice]
+  )
+  return price * numGpus
 }
 
 export const runtimeConfigBaseCost = config => {

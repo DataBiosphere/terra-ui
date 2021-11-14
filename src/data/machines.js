@@ -1,7 +1,3 @@
-import _ from 'lodash/fp'
-import * as Utils from 'src/libs/utils'
-
-
 export const machineTypes = [
   { name: 'n1-standard-1', cpu: 1, memory: 3.75 },
   { name: 'n1-standard-2', cpu: 2, memory: 7.50 },
@@ -312,32 +308,8 @@ export const regionToPrices = [
     t4HourlyPrice: 0.37, p4HourlyPrice: 0.6, k80HourlyPrice: 0.48, v100HourlyPrice: 2.48, p100HourlyPrice: 1.46,
     preemptibleT4HourlyPrice: 0.069841, preemptibleP4HourlyPrice: 0.216, preemptibleK80HourlyPrice: 0.135,
     preemptibleV100HourlyPrice: 0.74, preemptibleP100HourlyPrice: 0.43
-  },
+  }
 ]
-
-export const getHourlyCostForMachineType = (machineTypeName, region) => {
-  const machineType = _.find({ name: machineTypeName }, machineTypes)
-  const regionalPrices = _.find({ name: region }, regionToPrices)
-  return (machineType.cpu * regionalPrices.n1HourlyCpuPrice) + (machineType.memory * regionalPrices.n1HourlyGBRamPrice)
-}
-
-export const getHourlyPreemptibleCostForMachineType = (machineTypeName, region) => {
-  const machineType = _.find({ name: machineTypeName }, machineTypes)
-  const regionalPrices = _.find({ name: region }, regionToPrices)
-  return (machineType.cpu * regionalPrices.preemptibleN1HourlyCpuPrice) + (machineType.memory * regionalPrices.preemptibleN1HourlyGBRamPrice)
-}
-
-export const getGpuCost = (gpuType, numGpus, region) => {
-  const prices = _.find({ name: region }, regionToPrices)
-  const price = Utils.switchCase(gpuType,
-    ['nvidia-tesla-t4', () => prices.t4HourlyPrice],
-    ['nvidia-tesla-k80', () => prices.k80HourlyPrice],
-    ['nvidia-tesla-p4', () => prices.p4HourlyPrice],
-    ['nvidia-tesla-v100', () => prices.v100HourlyPrice],
-    ['nvidia-tesla-p100', () => prices.p100HourlyPrice]
-  )
-  return price * numGpus
-}
 
 export const version = '6' // updated jupyter-iframe-extension.js
 
