@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { b, br, code, div, fieldset, h, label, legend, li, p, span, ul } from 'react-hyperscript-helpers'
+import { b, br, code, div, fieldset, h, label, legend, li, p, span, strong, ul } from 'react-hyperscript-helpers'
 import {
   ButtonOutline, ButtonPrimary, ButtonSecondary, GroupedSelect, IdContainer, LabeledCheckbox, Link, Select, spinnerOverlay, WarningTitle
 } from 'src/components/common'
@@ -1012,7 +1012,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             label({ htmlFor: id, style: computeStyles.label }, ['Location ']),
             versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` }),
             h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-              'Cloud environments run in the same region as the workspace bucket and cannot be changed at this time.'
+              'Cloud environments run in the same region as the workspace bucket and can be changed as a beta feature.'
             ]),
             div({ style: { marginTop: '0.5rem' } }, [
               h(Select, {
@@ -1105,7 +1105,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           'For more information please read the documentation.',
           icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ]),
-        p([`If you want your VM in ${computeConfig.computeRegion.toLowerCase()} continue. Otherwise, go back to select another location.`])
+        p(['If you want your VM in ',
+          strong(`${computeConfig.computeRegion.toLowerCase()}`),
+          ' continue. Otherwise, go back to select another location.'])
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
         renderActionButton()
@@ -1124,7 +1126,14 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         onPrevious: () => setViewMode(undefined)
       }),
       div({ style: { lineHeight: 1.5 } }, [
-        'Having a Cloud Environment outside of the US is currently a beta feature. Please go back to use a US location.'
+        p(['Having a Cloud Environment outside of the US is currently a beta feature.']),
+        h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
+          'For more information please read the documentation.',
+          icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+        ]),
+        p(['If you want your VM in ',
+          strong(`${computeConfig.computeRegion.toLowerCase()}`),
+          ' continue. Otherwise, go back to select a US location.'])
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
         renderActionButton()

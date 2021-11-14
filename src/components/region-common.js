@@ -65,8 +65,7 @@ export const allRegions = [
   // In this list, us-east*, us-west*, northamerica-northeast2 and asia-northeast2 have purposefully been removed.
   // This is to avoid creating within-country silos of life sciences community data.
   // So for US, Canada and Japan, we are restricting to one region.
-  // For more information, see https://docs.google.com/document/d/1RMu8bxXAyP2q_85UHkPARW1Xpt_G_662pRi0LCML4yA/edit#heading=h.53j9ueoid5vt
-  // TODO(wnojopra): Replace the above link with the Terra support article link once published
+  // For more information, see https://support.terra.bio/hc/en-us/articles/360060777272-US-regional-versus-Multi-regional-US-buckets-trade-offs
   { value: 'US', label: 'US multi-regional (default)', locationType: locationTypes.multiRegion },
   { value: 'US-CENTRAL1', label: 'us-central1 (Iowa)', locationType: locationTypes.region },
   { value: 'NORTHAMERICA-NORTHEAST1', label: 'northamerica-northeast1 (Montreal)', locationType: locationTypes.region },

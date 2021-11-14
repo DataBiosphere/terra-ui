@@ -230,7 +230,11 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           ` to `,
           strong([getRegionInfo(bucketLocation, destLocationType).regionDescription]),
           ` may incur network egress charges. `,
-          `To prevent charges, the new bucket location needs to stay in the same region as the original one.`
+          `To prevent charges, the new bucket location needs to stay in the same region as the original one. `,
+          h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
+            'For more information please read the documentation.',
+            icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
+          ]),
         ])
       ]),
       h(IdContainer, [id => h(Fragment, [
