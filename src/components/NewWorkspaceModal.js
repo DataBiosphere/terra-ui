@@ -234,7 +234,7 @@ const NewWorkspaceModal = Utils.withDisplayName('NewWorkspaceModal', ({
           h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
             'For more information please read the documentation.',
             icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
-          ]),
+          ])
         ])
       ]),
       h(IdContainer, [id => h(Fragment, [
