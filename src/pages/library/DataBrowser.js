@@ -8,11 +8,7 @@ import { libraryTopMatter } from 'src/components/library-common'
 import { MiniSortable, SimpleTable } from 'src/components/table'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-<<<<<<< HEAD
-=======
-import { getConfig } from 'src/libs/config'
 import Events from 'src/libs/events'
->>>>>>> run eslint
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
