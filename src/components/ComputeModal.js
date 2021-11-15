@@ -19,7 +19,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
-import { versionTag } from 'src/libs/logos'
+import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import {
   computeStyles, defaultComputeRegion, defaultComputeZone, defaultDataprocDiskSize, defaultDataprocMachineType, defaultGceBootDiskSize,
@@ -820,7 +820,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     const validNumGpus = _.includes(computeConfig.numGpus, validNumGpusOptions) ? computeConfig.numGpus : _.head(validNumGpusOptions)
     const gpuCheckboxDisabled = computeExists ? !computeConfig.gpuEnabled : sparkMode
     const enableGpusSpan = span(
-      ['Enable GPUs ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })])
+      ['Enable GPUs ', betaVersionTag])
     const gridStyle = { display: 'grid', gridGap: '1.3rem', alignItems: 'center', marginTop: '1rem' }
 
     return div({ style: { ...computeStyles.whiteBoxContainer, marginTop: '1rem' } }, [
@@ -945,6 +945,8 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     onChange: ({ value }) => {
                       setSparkMode(value)
                       updateComputeConfig('componentGatewayEnabled', !!value)
+                      // Currently only supporting US for spark clusters.
+                      value === 'cluster' && updateComputeLocation(defaultComputeRegion, locationTypes.region)
                     },
                     options: [
                       { value: false, label: 'Standard VM', isDisabled: requiresSpark },
@@ -1010,18 +1012,22 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         h(IdContainer, [
           id => div({ style: { gridColumnEnd: 'span 3' } }, [
             label({ htmlFor: id, style: computeStyles.label }, ['Location ']),
-            versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` }),
+            betaVersionTag,
             h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
               'Cloud environments run in the same region as the workspace bucket and can be changed as a beta feature.'
             ]),
             div({ style: { marginTop: '0.5rem' } }, [
               h(Select, {
                 id,
-                isDisabled: computeExists || isUSLocation(bucketLocation) || sparkMode === 'cluster', // Can't update location of existing environments
+                // Location dropdown is disabled for:
+                // 1) If editing an existing environment (can't update location of existing environments)
+                // 2) Workspace buckets that either us-central1 or us multi-regional
+                // 3) Spark clusters
+                isDisabled: computeExists || isUSLocation(bucketLocation) || sparkMode === 'cluster',
                 isSearchable: false,
                 value: computeConfig.computeRegion,
                 onChange: ({ value, locationType }) => updateComputeLocation(value, locationType),
-                options: _.flow(_.filter(l => l.value !== defaultLocation), _.sortBy('label'))(getAvailableComputeRegions(bucketLocation))
+                options: _.flow(_.filter(l => l.value !== defaultLocation), _.sortBy('label'))(getAvailableComputeRegions(bucketLocation, sparkMode))
               })
             ])
           ])

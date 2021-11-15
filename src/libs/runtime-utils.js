@@ -315,6 +315,7 @@ export const displayNameForGpuType = type => {
     ['nvidia-tesla-k80', () => 'NVIDIA Tesla K80'],
     ['nvidia-tesla-p4', () => 'NVIDIA Tesla P4'],
     ['nvidia-tesla-v100', () => 'NVIDIA Tesla V100'],
+    ['nvidia-tesla-p100', () => 'NVIDIA Tesla P100'],
     [Utils.DEFAULT, () => 'NVIDIA Tesla T4']
   )
 }

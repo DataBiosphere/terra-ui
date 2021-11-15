@@ -17,7 +17,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import { reportError, withErrorReporting } from 'src/libs/error'
-import { versionTag } from 'src/libs/logos'
+import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import {
@@ -326,7 +326,7 @@ const Notebooks = _.flow(
       div({ style: { fontSize: 18, lineHeight: '22px', width: 160, color: colors.accent() } }, [
         div(['Create a Cloud']),
         div(['Environment for ']),
-        div(['Galaxy ', versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })]),
+        div(['Galaxy ', betaVersionTag]),
         icon('plus-circle', { style: { marginTop: '0.5rem' }, size: 21 })
       ])
 

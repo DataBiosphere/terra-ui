@@ -70,3 +70,5 @@ export const versionTag = (version, styles) => b({
     ...styles
   }
 }, [version])
+
+export const betaVersionTag = versionTag('Beta', { color: colors.primary(1.5), backgroundColor: 'white', border: `1px solid ${colors.primary(1.5)}` })

@@ -1,4 +1,5 @@
 import _ from 'lodash/fp'
+import { defaultComputeRegion } from 'src/libs/runtime-utils'
 import * as Utils from 'src/libs/utils'
 
 // Get a { flag: ..., countryName: ... } object representing a google locationType/location input.
@@ -91,12 +92,13 @@ export const allRegions = [
 export const availableBucketRegions = allRegions.slice(0, 2)
 
 // For current phased release of regionality only supporting compute region in US-CENTRAL1
-// and the same region as your workspace bucket
-export const getAvailableComputeRegions = location => {
-  const UsCentralRegion = _.find({ value: 'US-CENTRAL1' }, allRegions)
-  return isUSLocation(location) ? [UsCentralRegion] : [UsCentralRegion, _.find({ value: location }, allRegions)]
+// and the same region as your workspace bucket.
+// Currently only supporting US for spark clusters.
+export const getAvailableComputeRegions = (location, sparkMode) => {
+  const usCentralRegion = _.find({ value: defaultComputeRegion }, allRegions)
+  return isUSLocation(location) || sparkMode === 'cluster' ? [usCentralRegion] : [usCentralRegion, _.find({ value: location }, allRegions)]
 }
 
 export const isUSLocation = location => {
-  return _.includes(location, ['US', 'US-CENTRAL1'])
+  return _.includes(location, ['US', defaultComputeRegion])
 }
