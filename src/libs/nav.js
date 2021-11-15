@@ -118,9 +118,9 @@ export const updateSearch = (query, params) => {
 export const PathHashInserter = () => {
   Utils.useOnMount(() => {
     const loc = window.location
-    if (loc.pathname !== '/') {
+    if (loc.pathname !== process.env.PUBLIC_URL) {
       history.replace({ pathname: loc.pathname.substr(1), search: loc.search })
-      window.history.replaceState({}, '', '/')
+      window.history.replaceState({}, '', process.env.PUBLIC_URL)
     }
   })
   return null
