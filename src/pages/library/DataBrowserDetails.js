@@ -7,7 +7,9 @@ import { centeredSpinner, icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { ReactComponent as AzureLogo } from 'src/images/azure.svg'
 import { ReactComponent as GcpLogo } from 'src/images/gcp.svg'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles } from 'src/pages/library/common'
@@ -146,7 +148,13 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
     ]),
     h(ButtonOutline, {
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
-      onClick: () => Nav.goToPath('library-catalog-preview', { id: _.get('dct:identifier', snapshot) })
+      onClick: () => {
+        Ajax().Metrics.captureEvent(`${Events.catalogView}:previewData`, {
+          snapshotId: _.get('dct:identifier', snapshot),
+          snapshotName: snapshot['dct:title']
+        })
+        Nav.goToPath('library-catalog-preview', { id: _.get('dct:identifier', snapshot) })
+      }
     }, [
       div({ style: { display: 'flex', alignItems: 'center', justifyContent: 'center' } }, [
         icon('eye', { size: 22, style: { marginRight: 10 } }),
@@ -156,6 +164,10 @@ const Sidebar = ({ snapshot, id, setShowRequestAccessModal }) => {
     h(ButtonPrimary, {
       style: { fontSize: 16, textTransform: 'none', height: 'unset', width: 230, marginTop: 20 },
       onClick: () => {
+        Ajax().Metrics.captureEvent(`${Events.catalogWorkSpaceLink}:detailsView`, {
+          snapshotId: id,
+          snapshotName: snapshot['dct:title']
+        })
         importDataToWorkspace([snapshot])
       }
     }, ['Link to a workspace'])
