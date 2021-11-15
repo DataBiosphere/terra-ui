@@ -21,6 +21,7 @@ import { LocationProvider, PathHashInserter, Router, TitleManager } from 'src/li
 
 const Main = () => {
   return h(LocationProvider, [
+    h(PathHashInserter),
     h(CookieWarning),
     h(ReactNotification),
     h(ImportStatus),
@@ -28,7 +29,6 @@ const Main = () => {
     h(Favicon),
     h(IdleStatusMonitor),
     h(ErrorWrapper, [
-      h(PathHashInserter),
       h(TitleManager),
       h(FirecloudNotification),
       h(AuthenticatedCookieSetter),
