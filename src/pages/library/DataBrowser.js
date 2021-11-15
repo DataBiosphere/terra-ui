@@ -99,7 +99,7 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
       h(ButtonPrimary, {
         style: { textTransform: 'none', fontSize: 14 },
         onClick: () => {
-          Ajax().Metrics.captureEvent(Events.catalogWorkSpaceLink + ':tableView', {
+          Ajax().Metrics.captureEvent(`${Events.catalogWorkSpaceLink}:tableView`, {
             snapshotIds: _.map('dct:identifier', selectedData),
             snapshotName: _.map('dct:title', selectedData)
           })
