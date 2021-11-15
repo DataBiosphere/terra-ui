@@ -52,7 +52,7 @@ export const CromwellModalBase = Utils.withDisplayName('CromwellModal')(
       return !app ?
         nonStatusSpecificMessage :
         Utils.switchCase(app.status,
-          ['PROVISIONING', () => `The cloud compute is provisioning.`],
+          ['PROVISIONING', () => `The cloud compute is provisioning, which may take several minutes.`],
           ['STOPPED', () => `The cloud compute is paused.`],
           ['PRESTOPPING', () => 'The cloud compute is preparing to pause.'],
           ['STOPPING', () => `The cloud compute is pausing. ${waitMessage}`],

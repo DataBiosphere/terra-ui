@@ -223,10 +223,10 @@ export const machineCost = machineType => {
   return _.find(knownMachineType => knownMachineType.name === machineType, machineTypes).price
 }
 
-export const getCurrentAppForType = appType => _.flow(trimAppsOldestFirst, _.remove(_ => _.appType !== appType), _.last)
+export const getCurrentAppForType = appType => _.flow(trimAppsOldestFirst, _.filter(_ => _.appType === appType), _.last)
 
 // DEPRECATED: this assumes that Galaxy is the only app that could be running.
-// Use getCurrentAppForType instead.
+// Use getCurrentAppForType instead (to be removed with BW-910).
 export const getCurrentApp = getCurrentAppForType(tools.galaxy.appType)
 
 export const currentAppIncludingDeleting = appType => _.flow(_.remove(_ => _.appType !== appType), _.sortBy('auditInfo.createdDate'), _.last)

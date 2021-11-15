@@ -11,12 +11,12 @@ import ModalDrawer from 'src/components/ModalDrawer'
 import {
   analysisNameInput,
   analysisNameValidator,
+  getAppType,
   getDisplayName,
   getTool,
   isToolAnApp,
   notebookData,
-  tools,
-  toolToAppTypeMap
+  tools
 } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
 import galaxyLogo from 'src/images/galaxy-logo.png'
@@ -51,7 +51,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
 
     const currentRuntime = getCurrentRuntime(runtimes)
     const currentRuntimeTool = currentRuntime?.labels?.tool
-    const currentApp = toolLabel => getCurrentAppForType(toolToAppTypeMap[toolLabel])(apps)
+    const currentApp = toolLabel => getCurrentAppForType(getAppType(toolLabel))(apps)
 
     const resetView = () => {
       setViewMode(undefined)
@@ -131,7 +131,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
       })
     })
 
-    const renderAppModal = (AppModalBase, toolLabel) => h(AppModalBase, {
+    const renderAppModal = (appModalBase, toolLabel) => h(appModalBase, {
       isOpen: viewMode === toolLabel,
       isAnalysisMode: true,
       workspace,
