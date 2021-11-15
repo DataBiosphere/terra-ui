@@ -182,9 +182,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
     }, { addQueryPrefix: true })
 
     if (filter) {
-      Ajax().Metrics.captureEvent(`${Events.catalogFilter}:search`, {
-        filter
-      })
+      Ajax().Metrics.captureEvent(`${Events.catalogFilter}:search`, { filter })
     }
 
     if (newSearch !== Nav.history.location.search) {
