@@ -5,7 +5,9 @@ import { div, em, h, label, span, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, IdContainer, Link, Select } from 'src/components/common'
 import { DelayedAutoCompleteInput } from 'src/components/input'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 
 
@@ -179,6 +181,10 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
       filter: filter || undefined
     }, { addQueryPrefix: true })
 
+    if (filter) {
+      Ajax().Metrics.captureEvent(`${Events.catalogFilter}:search`, { filter })
+    }
+
     if (newSearch !== Nav.history.location.search) {
       Nav.history.replace({ search: newSearch })
     }
@@ -259,7 +265,10 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
       div({ style: { width: '19rem', flex: 'none' } }, [
         h(Sidebar, {
           onSectionFilter: section => setSelectedSections(_.xor([section])),
-          onTagFilter: tag => setSelectedTags(_.xor([tag])),
+          onTagFilter: tag => {
+            Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag })
+            setSelectedTags(_.xor([tag]))
+          },
           sections,
           selectedSections,
           selectedTags,

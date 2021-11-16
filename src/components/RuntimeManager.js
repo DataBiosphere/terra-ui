@@ -10,7 +10,7 @@ import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import Modal from 'src/components/Modal'
 import { getRegionInfo } from 'src/components/region-common'
-import { GalaxyLaunchButton, GalaxyWarning } from 'src/components/runtime-common'
+import { appLauncherTabName, GalaxyLaunchButton, GalaxyWarning } from 'src/components/runtime-common'
 import { dataSyncingDocUrl } from 'src/data/machines'
 import galaxyLogo from 'src/images/galaxy.svg'
 import rLogo from 'src/images/r-logo.svg'
@@ -195,7 +195,7 @@ export default class RuntimeManager extends PureComponent {
     const welderCutOff = new Date('2019-08-01')
     const createdDate = new Date(runtime.createdDate)
     const dateNotified = getDynamic(sessionStorage, `notifiedOutdatedRuntime${runtime.id}`) || {}
-    const rStudioLaunchLink = Nav.getLink('workspace-application-launch', { namespace, name, application: 'RStudio' })
+    const rStudioLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: 'RStudio' })
     const app = getCurrentApp(apps)
     const prevApp = getCurrentApp(prevProps.apps)
 
@@ -347,7 +347,7 @@ export default class RuntimeManager extends PureComponent {
 
     const isRStudioImage = currentRuntime?.labels.tool === 'RStudio'
     const applicationName = isRStudioImage ? 'RStudio' : 'terminal'
-    const applicationLaunchLink = Nav.getLink('workspace-application-launch', { namespace, name, application: applicationName })
+    const applicationLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name, application: applicationName })
 
     const app = getCurrentApp(apps)
 

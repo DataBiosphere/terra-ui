@@ -134,8 +134,7 @@ const SupportRequest = () => {
           onChange: ({ value }) => setType(value),
           options: [
             { value: 'question', label: 'Question' },
-            { value: 'bug', label: 'Bug' },
-            { value: 'feature_request', label: 'Feature Request' }
+            { value: 'bug', label: 'Bug' }
           ]
         })
       ])]),

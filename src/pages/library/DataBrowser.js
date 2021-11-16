@@ -1,5 +1,4 @@
 import _ from 'lodash/fp'
-import qs from 'qs'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
 import { ButtonPrimary, ButtonSecondary, Checkbox, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
@@ -7,12 +6,13 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { MiniSortable, SimpleTable } from 'src/components/table'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { getConfig } from 'src/libs/config'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { importDataToWorkspace, snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -99,12 +99,11 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
       h(ButtonPrimary, {
         style: { textTransform: 'none', fontSize: 14 },
         onClick: () => {
-          Nav.history.push({
-            pathname: Nav.getPath('import-data'),
-            search: qs.stringify({
-              url: getConfig().dataRepoUrlRoot, snapshotId: selectedData[0]['dct:identifier'], snapshotName: selectedData[0]['dct:title'], format: 'snapshot'
-            })
+          Ajax().Metrics.captureEvent(`${Events.catalogWorkSpaceLink}:tableView`, {
+            snapshotIds: _.map('dct:identifier', selectedData),
+            snapshotName: _.map('dct:title', selectedData)
           })
+          importDataToWorkspace(selectedData)
         }
       }, ['Link to a workspace'])
     ])
@@ -142,7 +141,10 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
                   style: { marginRight: 10 },
                   'aria-label': tag,
                   checked: _.includes(tag.toLowerCase(), selectedTags),
-                  onChange: () => setSelectedTags(_.xor([tag.toLowerCase()]))
+                  onChange: () => {
+                    Ajax().Metrics.captureEvent(`${Events.catalogFilter}:tableHeader`, { tag })
+                    setSelectedTags(_.xor([tag.toLowerCase()]))
+                  }
                 }, [tag])
               ])
             }, sections[1].labels))
@@ -173,7 +175,15 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
             onChange: () => toggleSelectedData(datum)
           }),
           name: h(Link,
-            { onClick: () => Nav.goToPath('library-details', { id: datum['dct:identifier'] }) },
+            {
+              onClick: () => {
+                Ajax().Metrics.captureEvent(`${Events.catalogView}:details`, {
+                  id: datum['dct:identifier'],
+                  title: datum['dct:title']
+                })
+                Nav.goToPath('library-details', { id: datum['dct:identifier'] })
+              }
+            },
             [datum['dct:title']]
           ),
           project,

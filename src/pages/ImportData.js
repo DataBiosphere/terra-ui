@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2, img, p } from 'react-hyperscript-helpers'
+import { div, h, h2, img, li, p, ul } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common'
 import { notifyDataImportProgress } from 'src/components/data/data-utils'
@@ -21,6 +21,7 @@ import { notify } from 'src/libs/notifications'
 import { asyncImportJobStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
+import { useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 
 
 const styles = {
@@ -60,7 +61,7 @@ const ChoiceButton = ({ iconName, title, detail, style, ...props }) => {
 const ImportData = () => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
-  const { query: { url, format, ad, wid, template, snapshotId, snapshotName } } = Nav.useRoute()
+  const { query: { url, format, ad, wid, template, snapshotId, snapshotName, snapshotIds, referrer } } = Nav.useRoute()
   const [mode, setMode] = useState(wid ? 'existing' : undefined)
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [isCloneOpen, setIsCloneOpen] = useState(false)
@@ -68,8 +69,19 @@ const ImportData = () => {
   const [selectedTemplateWorkspaceKey, setSelectedTemplateWorkspaceKey] = useState()
   const [allTemplates, setAllTemplates] = useState()
 
+  const { dataCatalog } = useDataCatalog()
+  const snapshots = _.flow(
+    _.filter(snapshot => _.includes(snapshot['dct:identifier'], snapshotIds)),
+    _.map(snapshot => ({ id: snapshot['dct:identifier'], title: snapshot['dct:title'] }))
+  )(dataCatalog)
+
   const isDataset = format !== 'snapshot'
   const noteMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.'
+  const [title, header] = Utils.cond(
+    [referrer === 'data-catalog', () => ['Catalog', 'Linking data to a workspace']],
+    [isDataset, () => ['Import Data', `Dataset ${snapshotName}`]],
+    [Utils.DEFAULT, () => ['Import Snapshot', `Snapshot ${snapshotName}`]]
+  )
 
   const selectedWorkspace = _.find({ workspace: { workspaceId: selectedWorkspaceId } }, workspaces)
 
@@ -106,7 +118,9 @@ const ImportData = () => {
         notify('success', 'Data imported successfully.', { timeout: 3000 })
       }],
       ['snapshot', async () => {
-        await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName)
+        snapshots && snapshots.length > 0 ?
+          await Promise.allSettled(_.map(({ title, id }) => Ajax().Workspaces.workspace(namespace, name).importSnapshot(id, title), snapshots)) :
+          await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName)
         notify('success', 'Snapshot imported successfully.', { timeout: 3000 })
       }],
       [Utils.DEFAULT, async () => {
@@ -119,12 +133,33 @@ const ImportData = () => {
   })
 
   return h(FooterWrapper, [
-    h(TopBar, { title: `Import ${isDataset ? 'Data' : 'Snapshot'}` }),
+    h(TopBar, { title }),
     div({ role: 'main', style: styles.container }, [
       backgroundLogo,
       div({ style: styles.card }, [
-        h2({ style: styles.title }, [`Importing ${isDataset ? 'Data' : `Snapshot ${snapshotName}`}`]),
-        div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
+        h2({ style: styles.title }, [header]),
+        snapshots && snapshots.length > 0 ?
+          div({ style: { marginTop: 20, marginBottom: 60 } }, [
+            'Dataset(s):',
+            ul({ style: { listStyle: 'none', position: 'relative', marginLeft: 0, paddingLeft: '2rem' } }, [
+              _.flow(
+                Utils.toIndexPairs,
+                _.map(([mapindex, { title, id }]) => li({
+                  key: `snapshot_${id}`,
+                  style: {
+                    fontSize: 16,
+                    fontWeight: 'bold',
+                    marginTop: 20,
+                    paddingTop: mapindex ? 20 : 0,
+                    borderTop: `${mapindex ? 1 : 0}px solid #AAA`
+                  }
+                }, [
+                  icon('success-standard', { size: 18, style: { position: 'absolute', left: 0, color: colors.primary() } }),
+                  title
+                ])))(snapshots)
+            ])
+          ]) :
+          div({ style: { fontSize: 16 } }, ['From: ', new URL(url).hostname]),
         div({ style: { marginTop: '1rem' } }, [
           `The ${isDataset ? 'dataset' : 'snapshot'}(s) you just chose to import to Terra will be made available to you `,
           'within a workspace of your choice where you can then perform analysis.'

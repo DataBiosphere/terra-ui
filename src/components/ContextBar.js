@@ -4,6 +4,7 @@ import { div, h, img } from 'react-hyperscript-helpers'
 import { Clickable } from 'src/components/common'
 import { icon } from 'src/components/icons'
 import { tools } from 'src/components/notebook-utils'
+import { appLauncherTabName } from 'src/components/runtime-common'
 import cloudIcon from 'src/icons/cloud-compute.svg'
 import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo.svg'
@@ -39,7 +40,7 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
   const currentApp = getCurrentApp(apps)
   const currentRuntimeTool = currentRuntime?.labels?.tool
   const isTerminalEnabled = currentRuntimeTool === tools.Jupyter.label && currentRuntime && currentRuntime.status !== 'Error'
-  const terminalLaunchLink = Nav.getLink('workspace-application-launch', { namespace, name: workspaceName, application: 'terminal' })
+  const terminalLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: 'terminal' })
   const isOwner = workspace && Utils.isOwner(workspace.accessLevel)
   const canShare = !!workspace?.canShare
   const canCompute = !!(workspace?.canCompute || runtimes?.length)
@@ -58,6 +59,7 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
   const getColorForStatus = status => Utils.cond(
     [_.upperCase(status) === 'RUNNING', () => colors.success()],
     [_.upperCase(status) === 'ERROR', () => colors.danger()],
+    [_.includes('ING', _.upperCase(status)), () => colors.accent()],
     [Utils.DEFAULT, () => colors.warning()])
 
   const getIconForTool = (toolLabel, status) => {
@@ -81,7 +83,14 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
   return h(Fragment, [
     h(CloudEnvironmentModal, {
       isOpen: isCloudEnvOpen,
-      onDismiss: () => setCloudEnvOpen(false),
+      onSuccess: async () => {
+        setCloudEnvOpen(false)
+        await refreshRuntimes(true)
+      },
+      onDismiss: async () => {
+        setCloudEnvOpen(false)
+        await refreshRuntimes(true)
+      },
       runtimes, apps, galaxyDataDisks, refreshRuntimes, refreshApps,
       workspace,
       canCompute,
