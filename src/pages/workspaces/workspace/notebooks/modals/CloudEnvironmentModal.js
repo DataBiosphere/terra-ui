@@ -72,7 +72,7 @@ export const CloudEnvironmentModal = ({
     }
   })
 
-  const renderAppModal = (AppModalBase, appMode) => h(AppModalBase, {
+  const renderAppModal = (appModalBase, appMode) => h(appModalBase, {
     isOpen: viewMode === appMode,
     isAnalysisMode: true,
     workspace,
