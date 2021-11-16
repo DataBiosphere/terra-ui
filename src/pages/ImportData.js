@@ -1,6 +1,6 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
-import { div, h, h2, img, li, p, ul } from 'react-hyperscript-helpers'
+import { div, h, h2, img, li, p, strong, ul } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { backgroundLogo, ButtonPrimary, ButtonSecondary, Clickable, IdContainer, RadioButton, spinnerOverlay } from 'src/components/common'
 import { notifyDataImportProgress } from 'src/components/data/data-utils'
@@ -72,8 +72,9 @@ const ImportData = () => {
   const { dataCatalog } = useDataCatalog()
   const snapshots = _.flow(
     _.filter(snapshot => _.includes(snapshot['dct:identifier'], snapshotIds)),
-    _.map(snapshot => ({ id: snapshot['dct:identifier'], title: snapshot['dct:title'] }))
+    _.map(snapshot => ({ id: snapshot['dct:identifier'], title: snapshot['dct:title'], description: snapshot['dct:description'] }))
   )(dataCatalog)
+  const [snapshotResponses, setSnapshotResponses] = useState()
 
   const isDataset = format !== 'snapshot'
   const noteMessage = 'Note that the import process may take some time after you are redirected into your destination workspace.'
@@ -107,6 +108,7 @@ const ImportData = () => {
   )(async workspace => {
     const namespace = workspace.namespace
     const name = workspace.name
+    let success = true
     await Utils.switchCase(format,
       ['PFB', async () => {
         const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importPFB(url)
@@ -119,9 +121,29 @@ const ImportData = () => {
       }],
       ['snapshot', async () => {
         snapshots && snapshots.length > 0 ?
-          await Promise.allSettled(_.map(({ title, id }) => Ajax().Workspaces.workspace(namespace, name).importSnapshot(id, title), snapshots)) :
-          await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName)
-        notify('success', 'Snapshot imported successfully.', { timeout: 3000 })
+          await Promise.allSettled(
+            _.map(({ title, id, description }) => {
+              // Replace all whitespace characters with _
+              // Then replace all non alphanumeric characters with nothing
+              const normalizedTitle = title.replace(/\s/g, '_').replace(/[^A-Za-z0-9\s-_]/g, '')
+              return Ajax().Workspaces.workspace(namespace, name).importSnapshot(id, normalizedTitle, description)
+            }, snapshots)
+          ).then(async responses => {
+            success = !_.some(({ status }) => status === 'rejected', responses)
+
+            if (!success) {
+              const normalizedResponses = await Promise.all(_.map(async ({ status, reason }) => {
+                const reasonJson = reason ? await reason.json() : '{}'
+                const message = JSON.parse(reasonJson.message || '{}').message
+                return { status, message }
+              }, responses))
+              setSnapshotResponses(normalizedResponses)
+              notify('error', `There was a problem importing ${snapshots.length > 1 ? 'some of these snapshots' : 'this snapshot'}`, { timeout: 3000 })
+            }
+          }) :
+          await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName).then(() => {
+            notify('success', 'Snapshot imported successfully.', { timeout: 3000 })
+          })
       }],
       [Utils.DEFAULT, async () => {
         await Ajax().Workspaces.workspace(namespace, name).importBagit(url)
@@ -129,7 +151,10 @@ const ImportData = () => {
       }]
     )
     Ajax().Metrics.captureEvent(Events.workspaceDataImport, { format, ...extractWorkspaceDetails(workspace) })
-    Nav.goToPath('workspace-data', { namespace, name })
+
+    if (success) {
+      Nav.goToPath('workspace-data', { namespace, name })
+    }
   })
 
   return h(FooterWrapper, [
@@ -154,8 +179,32 @@ const ImportData = () => {
                     borderTop: `${mapindex ? 1 : 0}px solid #AAA`
                   }
                 }, [
-                  icon('success-standard', { size: 18, style: { position: 'absolute', left: 0, color: colors.primary() } }),
-                  title
+                  !snapshotResponses ?
+                    div([
+                      icon('success-standard', { size: 18, style: { position: 'absolute', left: 0, color: colors.primary() } }),
+                      title
+                    ]) :
+                    Utils.switchCase(snapshotResponses[mapindex].status,
+                      ['fulfilled', () => {
+                        return h(Fragment, [
+                          icon('success-standard', { size: 18, style: { position: 'absolute', left: 0, color: colors.primary() } }),
+                          title,
+                          div({ style: { color: colors.primary(), fontWeight: 'normal', fontSize: '0.625rem', marginTop: 5 } }, [
+                            strong(['Success: ']), 'Snapshot successfully imported' ]
+                          )
+                        ])
+                      }],
+                      ['rejected', () => {
+                        return h(Fragment, [
+                          icon('warning-standard', { size: 18, style: { position: 'absolute', left: 0, color: colors.danger() } }),
+                          title,
+                          div({ style: { color: colors.danger(), fontWeight: 'normal', fontSize: '0.625rem', marginTop: 5, wordBreak: 'break-word' } }, [
+                            strong(['Error: ']),
+                            snapshotResponses[mapindex].message
+                          ])
+                        ])
+                      }
+                    ])
                 ])))(snapshots)
             ])
           ]) :
