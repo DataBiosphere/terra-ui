@@ -53,7 +53,6 @@ const testRunNotebookFn = _.flow(
   await findText(frame, '123456789099886419754209')
   // Save notebook to avoid "unsaved changes" modal when test tear-down tries to close the window
   await click(frame, clickable({ text: 'Save and Checkpoint' }))
-  await delay(1000)
 })
 const testRunNotebook = {
   name: 'run-notebook',
