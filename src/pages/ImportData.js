@@ -190,8 +190,8 @@ const ImportData = () => {
                           icon('success-standard', { size: 18, style: { position: 'absolute', left: 0, color: colors.primary() } }),
                           title,
                           div({ style: { color: colors.primary(), fontWeight: 'normal', fontSize: '0.625rem', marginTop: 5 } }, [
-                            strong(['Success: ']), 'Snapshot successfully imported' ]
-                          )
+                            strong(['Success: ']), 'Snapshot successfully imported'
+                          ])
                         ])
                       }],
                       ['rejected', () => {
@@ -203,8 +203,7 @@ const ImportData = () => {
                             snapshotResponses[mapindex].message
                           ])
                         ])
-                      }
-                    ])
+                      }])
                 ])))(snapshots)
             ])
           ]) :
