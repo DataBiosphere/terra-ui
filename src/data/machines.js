@@ -140,6 +140,9 @@ export const ephemeralExternalIpAddressPrice = { // per hour in dollars for all 
 
 // Disk prices below are per GB per https://cloud.google.com/compute/all-pricing#disk
 // GPU prices below are hourly and per GPU (https://cloud.google.com/compute/gpus-pricing).
+// The data below comes from Google's pricing API: https://cloud.google.com/billing/v1/how-tos/caltalog-api
+// There is a script available in https://gist.github.com/wnojopra/be5be3ab7e6a09a351b89085992a940d
+// that parses the API and outputs this data.
 export const regionToPrices = [
   {
     name: 'ASIA-EAST1', monthlyDiskPrice: 0.04,
