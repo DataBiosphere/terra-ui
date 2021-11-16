@@ -8,6 +8,7 @@ import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
 import { tools } from 'src/components/notebook-utils'
 import { getRegionInfo } from 'src/components/region-common'
+import { appLauncherTabName } from 'src/components/runtime-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import TitleBar from 'src/components/TitleBar'
 import cloudIcon from 'src/icons/cloud-compute.svg'
@@ -16,7 +17,7 @@ import jupyterLogo from 'src/images/jupyter-logo-long.png'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError, withErrorReporting } from 'src/libs/error'
+import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import {
@@ -63,13 +64,10 @@ export const CloudEnvironmentModal = ({
       setViewMode(undefined)
       onDismiss()
     },
-    onSuccess: _.flow(
-      withErrorReporting('Error creating cloud compute'),
-      Utils.withBusyState(setBusy)
-    )(async () => {
+    onSuccess: () => {
       setViewMode(undefined)
-      await refreshRuntimes(true)
-    })
+      onDismiss()
+    }
   })
 
   const renderGalaxyModal = () => h(GalaxyModalBase, {
@@ -82,13 +80,10 @@ export const CloudEnvironmentModal = ({
       setViewMode(undefined)
       onDismiss()
     },
-    onSuccess: _.flow(
-      withErrorReporting('Error creating app'),
-      Utils.withBusyState(setBusy)
-    )(async () => {
+    onSuccess: () => {
       setViewMode(undefined)
-      await refreshApps(true)
-    })
+      onDismiss()
+    }
   })
 
   const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } }, [
@@ -303,7 +298,7 @@ export const CloudEnvironmentModal = ({
         }
       }], [Utils.DEFAULT, () => {
         // TODO: Jupyter link isn't currently valid, and button will always be disabled for Jupyter because launching directly into tree view is problematic in terms of welder/nbextensions. We are investigating alternatives in https://broadworkbench.atlassian.net/browse/IA-2873
-        const applicationLaunchLink = Nav.getLink('workspace-application-launch', { namespace, name: workspaceName, application: toolLabel })
+        const applicationLaunchLink = Nav.getLink(appLauncherTabName, { namespace, name: workspaceName, application: toolLabel })
         return {
           ...baseProps,
           href: applicationLaunchLink,
@@ -347,7 +342,7 @@ export const CloudEnvironmentModal = ({
             disabled: isCloudEnvForToolDisabled,
             onClick: () => setViewMode(toolLabel)
           }, [
-            img({ src: cloudIcon, style: { height: 20, width: 20, opacity: isCloudEnvForToolDisabled ? 0.4 : 1 } }), //TODO: why doesn't this icon disable properly color-wise?
+            img({ src: cloudIcon, style: { height: 20, width: 20, opacity: isCloudEnvForToolDisabled ? 0.4 : 1 } }),
             span('Cloud'),
             span('Environment')
           ]),

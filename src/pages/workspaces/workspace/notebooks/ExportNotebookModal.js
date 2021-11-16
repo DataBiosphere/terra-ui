@@ -11,6 +11,7 @@ import {
   getAnalysisFileExtension,
   getDisplayName
 } from 'src/components/notebook-utils'
+import { analysisLauncherTabName, analysisTabName } from 'src/components/runtime-common'
 import { useWorkspaces, WorkspaceSelector } from 'src/components/workspace-utils'
 import { Ajax } from 'src/libs/ajax'
 import Events, { extractCrossWorkspaceDetails } from 'src/libs/events'
@@ -177,7 +178,7 @@ export const ExportAnalysisModal = ({ fromLauncher, onDismiss, printName, toolLa
       tooltip: Utils.summarizeErrors(errors),
       disabled: !!errors,
       onClick: copied ?
-        () => Nav.goToPath(fromLauncher ? 'workspace-analysis-launch' : 'workspace-analyses', {
+        () => Nav.goToPath(fromLauncher ? analysisLauncherTabName : analysisTabName, {
           namespace: selectedWorkspace.workspace.namespace,
           name: selectedWorkspace.workspace.name,
           analysisName: `${newName}.${getAnalysisFileExtension(toolLabel)}`,
