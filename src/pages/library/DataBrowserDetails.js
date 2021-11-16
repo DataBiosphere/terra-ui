@@ -42,7 +42,8 @@ const MainContent = ({ snapshot }) => {
     div({ style: { display: 'flex', width: '100%', flexWrap: 'wrap' } }, [
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Data release policy']),
-        snapshot.dataReleasePolicy
+        snapshot.dataReleasePolicy.label,
+        snapshot.dataReleasePolicy.desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [snapshot.dataReleasePolicy.desc])
       ]),
       div({ style: styles.attributesColumn }, [
         h3({ style: styles.headers }, ['Last Updated']),

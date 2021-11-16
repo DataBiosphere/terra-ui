@@ -12,7 +12,7 @@ import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
-import { importDataToWorkspace, snapshotAccessTypes, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
+import { importDataToWorkspace, snapshotAccessTypes, snapshotReleasePolicies, useDataCatalog } from 'src/pages/library/dataBrowser-utils'
 import { RequestDatasetAccessModal } from 'src/pages/library/RequestDatasetAccessModal'
 
 
@@ -42,9 +42,10 @@ const getUnique = (prop, data) => _.flow(
 // Description of the structure of the sidebar. Case is preserved when rendering but all matching is case-insensitive.
 const extractCatalogFilters = dataCatalog => {
   const accessArray = _.values(snapshotAccessTypes)
+  const releasePolicyArray = _.map('tag', snapshotReleasePolicies)
 
   return [{
-    name: 'Access Type',
+    name: 'Access type',
     labels: accessArray,
     labelDisplays: _.zipObject(accessArray, _.map(accessKey => {
       const lowerKey = _.toLower(accessKey)
@@ -56,16 +57,25 @@ const extractCatalogFilters = dataCatalog => {
       ])]
     }, _.keys(snapshotAccessTypes)))
   }, {
+    name: 'Data use policy',
+    labels: releasePolicyArray,
+    labelDisplays: _.zipObject(releasePolicyArray, _.map(releasePolicy => {
+      return [div({ key: `releasePolicy-filter-${releasePolicy.tag.toLowerCase()}`, style: { display: 'flex', flexDirection: 'column' } }, [
+        releasePolicy.label,
+        releasePolicy.desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [releasePolicy.desc])
+      ])]
+    }, snapshotReleasePolicies))
+  }, {
     name: 'Consortium',
     labels: getUnique('project', dataCatalog)
   }, {
-    name: 'Data Modality',
+    name: 'Data modality',
     labels: getUnique('dataModality', dataCatalog)
   }, {
-    name: 'Data Type',
+    name: 'Data type',
     labels: getUnique('dataType', dataCatalog)
   }, {
-    name: 'File Type',
+    name: 'File type',
     labels: getUnique('dcat:mediaType', _.flatMap('files', dataCatalog))
   }, {
     name: 'Disease',
