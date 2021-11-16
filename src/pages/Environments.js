@@ -17,7 +17,7 @@ import colors from 'src/libs/colors'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import {
   defaultComputeRegion,
-  defaultComputeZone, getComputeStatusForDisplay, getCurrentApp, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, getPersistentDiskCostMonthly,
+  defaultComputeZone, getComputeStatusForDisplay, getCurrentAppForType, getCurrentRuntime, getGalaxyComputeCost, getGalaxyCost, getPersistentDiskCostMonthly,
   isApp, isComputePausable, isResourceDeletable, runtimeCost
 } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -207,7 +207,7 @@ const Environments = () => {
 
   const renderBillingProjectApp = app => {
     const inactive = !_.includes(app.status, ['DELETING', 'ERROR', 'PREDELETING']) &&
-      getCurrentApp(appsByProject[app.googleProject]) !== app
+      getCurrentAppForType(app.appType)(appsByProject[app.googleProject]) !== app
     return h(Fragment, [
       app.googleProject,
       inactive && h(TooltipTrigger, {
