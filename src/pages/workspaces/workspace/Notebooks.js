@@ -11,7 +11,14 @@ import Dropzone from 'src/components/Dropzone'
 import { GalaxyModal } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import { DelayedSearchInput } from 'src/components/input'
-import { findPotentialNotebookLockers, NotebookCreator, NotebookDeleter, NotebookDuplicator, notebookLockHash } from 'src/components/notebook-utils'
+import {
+  findPotentialNotebookLockers,
+  NotebookCreator,
+  NotebookDeleter,
+  NotebookDuplicator,
+  notebookLockHash,
+  tools
+} from 'src/components/notebook-utils'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
 import TooltipTrigger from 'src/components/TooltipTrigger'
 import { Ajax } from 'src/libs/ajax'
@@ -22,7 +29,7 @@ import * as Nav from 'src/libs/nav'
 import { notify } from 'src/libs/notifications'
 import {
   appIsSettingUp,
-  getCurrentApp,
+  getCurrentAppForType,
   getGalaxyCostTextChildren,
   isCurrentGalaxyDiskDetaching
 } from 'src/libs/runtime-utils'
@@ -300,7 +307,7 @@ const Notebooks = _.flow(
   // Render helpers
   const renderNotebooks = openUploader => {
     const { field, direction } = sortOrder
-    const app = getCurrentApp(apps)
+    const galaxyApp = getCurrentAppForType(tools.galaxy.appType)(apps)
     const canWrite = Utils.canWrite(accessLevel)
     const renderedNotebooks = _.flow(
       _.filter(({ name }) => Utils.textMatch(filter, printName(name))),
@@ -361,12 +368,12 @@ const Notebooks = _.flow(
             style: {
               ...Style.elements.card.container, height: 125, marginTop: 15
             },
-            disabled: appIsSettingUp(app) || isCurrentGalaxyDiskDetaching(apps),
-            tooltip: (appIsSettingUp(app) && 'Galaxy app is being created') || (isCurrentGalaxyDiskDetaching(apps) &&
+            disabled: appIsSettingUp(galaxyApp) || isCurrentGalaxyDiskDetaching(apps),
+            tooltip: (appIsSettingUp(galaxyApp) && 'Galaxy app is being created') || (isCurrentGalaxyDiskDetaching(apps) &&
               'Your persistent disk is still attached to your previous app; you can create a new app once your previous app finishes deleting, which will take a few minutes.'),
             onClick: () => setOpenGalaxyConfigDrawer(true)
           }, [
-            getGalaxyText(app, galaxyDataDisks)
+            getGalaxyText(galaxyApp, galaxyDataDisks)
           ])
         ]),
         h(Clickable, {
@@ -469,7 +476,7 @@ const Notebooks = _.flow(
           isOpen: openGalaxyConfigDrawer,
           workspace,
           apps,
-          galaxyDataDisks,
+          appDataDisks: galaxyDataDisks,
           onDismiss: () => setOpenGalaxyConfigDrawer(false),
           onSuccess: () => {
             setOpenGalaxyConfigDrawer(false)

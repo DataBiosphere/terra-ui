@@ -430,7 +430,7 @@ export default class RuntimeManager extends PureComponent {
         h(GalaxyModal, {
           workspace,
           apps,
-          galaxyDataDisks,
+          appDataDisks: galaxyDataDisks,
           isOpen: galaxyDrawerOpen,
           onDismiss: () => this.setState({ galaxyDrawerOpen: false }),
           onSuccess: () => {
