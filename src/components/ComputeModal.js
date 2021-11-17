@@ -594,6 +594,16 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       return computeConfig.computeRegion !== bucketLocation
     }
   }
+
+  const getLocationTooltip = (computeExists, bucketLocation) => {
+    if (computeExists) {
+      return 'Cannot update the location of an existing cloud environment. Delete your cloud environment to create a new one in a different region.'
+    } else if (isUSLocation(bucketLocation)) {
+      return 'Currently US workspaces can only have US cloud environments.'
+    } else {
+      return 'Cloud environments run in the same region as the workspace bucket and can be changed as a beta feature.'
+    }
+  }
   // Helper functions -- end
 
   // Lifecycle
@@ -1012,7 +1022,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             label({ htmlFor: id, style: computeStyles.label }, ['Location ']),
             betaVersionTag,
             h(InfoBox, { style: { marginLeft: '0.5rem' } }, [
-              'Cloud environments run in the same region as the workspace bucket and can be changed as a beta feature.'
+              getLocationTooltip(computeExists, bucketLocation)
             ]),
             div({ style: { marginTop: '0.5rem' } }, [
               h(Select, {
@@ -1105,7 +1115,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           strong(`${computeConfig.computeRegion.toLowerCase()}.`),
           ' Copying data from your workspace bucket in ',
           strong(`${bucketLocation.toLowerCase()}`),
-          ' may incur network egress charges.'
+          ' may incur network egress charges. Note that network egress charges are not accounted for in cost estimates.'
         ]),
         h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
           'For more information please read the documentation.',
@@ -1113,7 +1123,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         ]),
         p(['If you want your VM in ',
           strong(`${computeConfig.computeRegion.toLowerCase()}`),
-          ' continue. Otherwise, go back to select another location.'])
+          ', continue. Otherwise, go back to select another location.'])
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
         renderActionButton()
@@ -1139,7 +1149,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         ]),
         p(['If you want your VM in ',
           strong(`${computeConfig.computeRegion.toLowerCase()}`),
-          ' continue. Otherwise, go back to select a US location.'])
+          ', continue. Otherwise, go back to select a US location.'])
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
         renderActionButton()
@@ -1450,6 +1460,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     'This cloud environment will be created in the region ',
                     strong(computeConfig.computeRegion.toLowerCase()), '. ',
                     'Copying data from a bucket in a different region may incur network egress charges. ',
+                    'Note that network egress charges are not accounted for in cost estimates. ',
                     'For more information, particularly if you work with data stored in multiple cloud regions, please read the ',
                     h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
                       'documentation.',
