@@ -87,7 +87,7 @@ export const getAppType = label => {
 }
 
 // Does the tool label correspond to an app?
-export const isToolAnApp = label => getAppType(label)
+export const isToolAnApp = label => getAppType(label) !== undefined
 
 export const getTool = fileName => _.invert(toolToExtensionMap)[getExtension(fileName)]
 export const getToolFromRuntime = _.get(['labels', 'tool'])
