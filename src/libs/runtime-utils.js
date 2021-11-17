@@ -82,16 +82,13 @@ const dataprocCost = (machineType, numInstances) => {
   return cpuPrice * numInstances * dataprocCpuPrice
 }
 
-const getHourlyCostForMachineType = (machineTypeName, region) => {
-  const machineType = _.find({ name: machineTypeName }, machineTypes)
-  const regionalPrices = _.find({ name: region }, regionToPrices)
-  return (machineType.cpu * regionalPrices.n1HourlyCpuPrice) + (machineType.memory * regionalPrices.n1HourlyGBRamPrice)
-}
-
-const getHourlyPreemptibleCostForMachineType = (machineTypeName, region) => {
-  const machineType = _.find({ name: machineTypeName }, machineTypes)
-  const regionalPrices = _.find({ name: region }, regionToPrices)
-  return (machineType.cpu * regionalPrices.preemptibleN1HourlyCpuPrice) + (machineType.memory * regionalPrices.preemptibleN1HourlyGBRamPrice)
+const getHourlyCostForMachineType = (machineTypeName, region, isPreemptible) => {
+  const { cpu, memory } = _.find({ name: machineTypeName }, machineTypes)
+  const { n1HourlyCpuPrice, preemptibleN1HourlyCpuPrice, n1HourlyGBRamPrice, preemptibleN1HourlyGBRamPrice } = _.find({ name: _.toUpper(region) },
+    regionToPrices)
+  return !isPreemptible ?
+    (cpu * n1HourlyCpuPrice) + (memory * n1HourlyGBRamPrice) :
+    (cpu * preemptibleN1HourlyCpuPrice) + (memory * preemptibleN1HourlyGBRamPrice)
 }
 
 const getGpuCost = (gpuType, numGpus, region) => {
@@ -124,9 +121,9 @@ export const runtimeConfigBaseCost = config => {
 export const runtimeConfigCost = config => {
   const { cloudService, masterMachineType, numberOfWorkers, numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, computeRegion } = normalizeRuntimeConfig(
     config)
-  const masterPrice = getHourlyCostForMachineType(masterMachineType, computeRegion)
-  const workerPrice = getHourlyCostForMachineType(workerMachineType, computeRegion)
-  const preemptiblePrice = getHourlyPreemptibleCostForMachineType(workerMachineType, computeRegion)
+  const masterPrice = getHourlyCostForMachineType(masterMachineType, computeRegion, false)
+  const workerPrice = getHourlyCostForMachineType(workerMachineType, computeRegion, false)
+  const preemptiblePrice = getHourlyCostForMachineType(workerMachineType, computeRegion, true)
   const numberOfStandardVms = 1 + numberOfWorkers // 1 is for the master VM
   const gpuConfig = config?.gpuConfig
   const gpuEnabled = cloudService === cloudServices.GCE && !!gpuConfig

@@ -1101,8 +1101,11 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       }),
       div({ style: { lineHeight: 1.5 } }, [
         p([
-          `This cloud environment will be created in the region ${computeConfig.computeRegion.toLowerCase()}. `,
-          `Copying data from your workspace bucket in ${bucketLocation.toLowerCase()} may incur network egress charges.`
+          'This cloud environment will be created in the region ',
+          strong(`${computeConfig.computeRegion.toLowerCase()}.`),
+          ' Copying data from your workspace bucket in ',
+          strong(`${bucketLocation.toLowerCase()}`),
+          ' may incur network egress charges.'
         ]),
         h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
           'For more information please read the documentation.',
@@ -1445,7 +1448,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 li({ style: { marginTop: '1rem' } }, [
                   p([
                     'This cloud environment will be created in the region ',
-                    span({ style: { fontWeight: 600 } }, [computeConfig.computeRegion.toLowerCase()]), '. ',
+                    strong(computeConfig.computeRegion.toLowerCase()), '. ',
                     'Copying data from a bucket in a different region may incur network egress charges. ',
                     'For more information, particularly if you work with data stored in multiple cloud regions, please read the ',
                     h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
