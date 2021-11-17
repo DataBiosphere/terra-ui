@@ -6,8 +6,8 @@ import { icon } from 'src/components/icons'
 import { tools } from 'src/components/notebook-utils'
 import { appLauncherTabName } from 'src/components/runtime-common'
 import cloudIcon from 'src/icons/cloud-compute.svg'
+import cromwellImg from 'src/images/cromwell-logo.png' // To be replaced by something square
 import galaxyLogo from 'src/images/galaxy-logo.png'
-import cromwellImg from 'src/images/cromwell-logo.png'  // To be replaced by something square
 import jupyterLogo from 'src/images/jupyter-logo.svg'
 import rstudioSquareLogo from 'src/images/rstudio-logo-square.png'
 import { Ajax } from 'src/libs/ajax'

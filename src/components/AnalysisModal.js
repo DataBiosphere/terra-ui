@@ -19,8 +19,8 @@ import {
   tools
 } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
-import galaxyLogo from 'src/images/galaxy-logo.png'
 import cromwellImg from 'src/images/cromwell-logo.png'
+import galaxyLogo from 'src/images/galaxy-logo.png'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
