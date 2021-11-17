@@ -20,7 +20,7 @@ import {
 } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
 import galaxyLogo from 'src/images/galaxy-logo.png'
-import cromwellImg from 'src/images/jamie_the_cromwell_pig.png' // To be replaced by something better
+import cromwellImg from 'src/images/cromwell-logo.png'
 import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
 import { Ajax } from 'src/libs/ajax'

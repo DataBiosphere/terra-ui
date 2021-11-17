@@ -14,7 +14,7 @@ import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
 import TitleBar from 'src/components/TitleBar'
 import cloudIcon from 'src/icons/cloud-compute.svg'
 import galaxyLogo from 'src/images/galaxy-logo.png'
-import cromwellImg from 'src/images/jamie_the_cromwell_pig.png' // To be replaced by something better
+import cromwellImg from 'src/images/cromwell-logo.png'
 import jupyterLogo from 'src/images/jupyter-logo-long.png'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
