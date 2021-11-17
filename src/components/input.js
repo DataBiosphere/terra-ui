@@ -322,11 +322,14 @@ export const DelayedAutoCompleteInput = withDebouncedChange(AutocompleteTextInpu
 export const TextArea = Utils.forwardRefWithName('TextArea', ({ onChange, autosize = false, nativeOnChange = false, ...props }, ref) => {
   Utils.useLabelAssert('TextArea', { ...props, allowId: true })
 
-  return h(autosize ? TextAreaAutosize : 'textarea', _.merge({
-    className: 'focus-style',
-    style: styles.textarea,
-    onChange: onChange ? (e => onChange(nativeOnChange ? e : e.target.value)) : undefined
-  }, props), ref)
+  return h(autosize ? TextAreaAutosize : 'textarea', {
+    ..._.merge({
+      className: 'focus-style',
+      style: styles.textarea,
+      onChange: onChange ? (e => onChange(nativeOnChange ? e : e.target.value)) : undefined
+    }, props),
+    ref
+  })
 })
 
 /**
