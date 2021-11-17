@@ -185,7 +185,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
           enterNextViewMode(tools.galaxy.label)
         }, disabled: !galaxyApp, title: galaxyApp ? 'You already have a galaxy environment' : ''
       }, [img({ src: galaxyLogo, style: _.merge(styles.image, { width: '30%' }) })]),
-      div({
+      !tools.cromwell.isAppHidden && div({
         style: { opacity: cromwellApp ? '0.5' : '1', ...styles.toolCard }, onClick: () => {
           setCurrentTool(tools.cromwell.label)
           enterNextViewMode(tools.cromwell.label)

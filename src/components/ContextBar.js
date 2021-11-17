@@ -76,7 +76,7 @@ export const ContextBar = ({ setDeletingWorkspace, setCloningWorkspace, setShari
 
   const getEnvironmentStatusIcons = () => {
     const galaxyApp = getCurrentAppForType(tools.galaxy.appType)(apps)
-    const cromwellApp = getCurrentAppForType(tools.cromwell.appType)(apps)
+    const cromwellApp = !tools.cromwell.isAppHidden && getCurrentAppForType(tools.cromwell.appType)(apps)
     return h(Fragment, [
       ...(currentRuntime ? [getIconForTool(currentRuntimeTool, currentRuntime.status)] : []),
       ...(galaxyApp ? [getIconForTool(tools.galaxy.label, galaxyApp.status)] : []),

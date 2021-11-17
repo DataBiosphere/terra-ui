@@ -7,6 +7,7 @@ import { ValidatedInput } from 'src/components/input'
 import Modal from 'src/components/Modal'
 import { analysisLauncherTabName } from 'src/components/runtime-common'
 import { Ajax } from 'src/libs/ajax'
+import { isCromwellAppVisible } from 'src/libs/config'
 import { reportError } from 'src/libs/error'
 import Events from 'src/libs/events'
 import { FormLabel } from 'src/libs/forms'
@@ -75,8 +76,11 @@ export const tools = {
   jupyterTerminal: { label: 'terminal' },
   spark: { label: 'spark' },
   galaxy: { label: 'galaxy', appType: 'GALAXY' },
-  cromwell: { label: 'cromwell', appType: 'CROMWELL' }
+  cromwell: { label: 'cromwell', appType: 'CROMWELL', isAppHidden: !isCromwellAppVisible() }
 }
+
+// Returns the tools in the order that they should be displayed for Cloud Environment tools
+export const getToolsToDisplay = _.remove(tool => tool.isAppHidden)([tools.Jupyter, tools.RStudio, tools.galaxy, tools.cromwell])
 
 const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }
 

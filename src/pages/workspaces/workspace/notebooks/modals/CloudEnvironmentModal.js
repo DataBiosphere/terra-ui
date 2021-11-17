@@ -7,7 +7,7 @@ import { CromwellModalBase } from 'src/components/CromwellModal'
 import { GalaxyModalBase } from 'src/components/GalaxyModal'
 import { icon } from 'src/components/icons'
 import ModalDrawer from 'src/components/ModalDrawer'
-import { getAppType, isToolAnApp, tools } from 'src/components/notebook-utils'
+import { getAppType, getToolsToDisplay, isToolAnApp, tools } from 'src/components/notebook-utils'
 import { getRegionInfo } from 'src/components/region-common'
 import { appLauncherTabName } from 'src/components/runtime-common'
 import { AppErrorModal, RuntimeErrorModal } from 'src/components/RuntimeManager'
@@ -90,12 +90,9 @@ export const CloudEnvironmentModal = ({
   const renderGalaxyModal = () => renderAppModal(GalaxyModalBase, NEW_GALAXY_MODE)
   const renderCromwellModal = () => renderAppModal(CromwellModalBase, NEW_CROMWELL_MODE)
 
-  const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } }, [
-    renderToolButtons(tools.Jupyter.label),
-    renderToolButtons(tools.RStudio.label),
-    renderToolButtons(tools.galaxy.label),
-    renderToolButtons(tools.cromwell.label)
-  ])
+  const renderDefaultPage = () => div({ style: { display: 'flex', flexDirection: 'column', flex: 1 } },
+    _.map(tool => renderToolButtons(tool.label))(getToolsToDisplay)
+  )
 
   const toolPanelStyles = {
     backgroundColor: 'white',
