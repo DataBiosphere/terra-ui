@@ -114,9 +114,6 @@ export const useDataCatalog = () => {
     Utils.withBusyState(setLoading)
   )(async () => {
     const metadata = await Ajax(signal).DataRepo.getMetadata()
-    metadata.result[0]['TerraDCAT_ap:hasDataUsePermission'] = 'TestingThis'
-    metadata.result[1]['TerraDCAT_ap:hasDataUsePermission'] = 'UnknownReleasePolicyListed'
-    metadata.result[2]['TerraDCAT_ap:hasDataUsePermission'] = 'TerraCore:PUB'
     const normList = _.map(snapshot => {
       const normalizedSnapshot = normalizeSnapshot(snapshot)
       return _.set(['tags'], extractTags(normalizedSnapshot), normalizedSnapshot)
