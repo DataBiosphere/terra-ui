@@ -93,10 +93,9 @@ export const availableBucketRegions = allRegions.slice(0, 2)
 
 // For current phased release of regionality only supporting compute region in US-CENTRAL1
 // and the same region as your workspace bucket.
-// Currently only supporting US for spark clusters.
-export const getAvailableComputeRegions = (location, sparkMode) => {
+export const getAvailableComputeRegions = location => {
   const usCentralRegion = _.find({ value: defaultComputeRegion }, allRegions)
-  return isUSLocation(location) || sparkMode === 'cluster' ? [usCentralRegion] : [usCentralRegion, _.find({ value: location }, allRegions)]
+  return isUSLocation(location) ? [usCentralRegion] : [usCentralRegion, _.find({ value: location }, allRegions)]
 }
 
 export const isUSLocation = location => {

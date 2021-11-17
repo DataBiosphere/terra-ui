@@ -945,8 +945,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                     onChange: ({ value }) => {
                       setSparkMode(value)
                       updateComputeConfig('componentGatewayEnabled', !!value)
-                      // Currently only supporting US for spark clusters.
-                      value === 'cluster' && updateComputeLocation(defaultComputeRegion, locationTypes.region)
                     },
                     options: [
                       { value: false, label: 'Standard VM', isDisabled: requiresSpark },
@@ -1021,13 +1019,12 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 id,
                 // Location dropdown is disabled for:
                 // 1) If editing an existing environment (can't update location of existing environments)
-                // 2) Workspace buckets that either us-central1 or us multi-regional
-                // 3) Spark clusters
-                isDisabled: computeExists || isUSLocation(bucketLocation) || sparkMode === 'cluster',
+                // 2) Workspace buckets that are either us-central1 or us multi-regional
+                isDisabled: computeExists || isUSLocation(bucketLocation),
                 isSearchable: false,
                 value: computeConfig.computeRegion,
                 onChange: ({ value, locationType }) => updateComputeLocation(value, locationType),
-                options: _.flow(_.filter(l => l.value !== defaultLocation), _.sortBy('label'))(getAvailableComputeRegions(bucketLocation, sparkMode))
+                options: _.flow(_.filter(l => l.value !== defaultLocation), _.sortBy('label'))(getAvailableComputeRegions(bucketLocation))
               })
             ])
           ])
