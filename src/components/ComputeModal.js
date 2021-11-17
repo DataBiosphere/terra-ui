@@ -1112,9 +1112,9 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       div({ style: { lineHeight: 1.5 } }, [
         p([
           'This cloud environment will be created in the region ',
-          strong(`${computeConfig.computeRegion.toLowerCase()}.`),
+          strong([`${computeConfig.computeRegion.toLowerCase()}.`]),
           ' Copying data from your workspace bucket in ',
-          strong(`${bucketLocation.toLowerCase()}`),
+          strong([`${bucketLocation.toLowerCase()}`]),
           ' may incur network egress charges. Note that network egress charges are not accounted for in cost estimates.'
         ]),
         h(Link, { href: 'https://support.terra.bio/hc/en-us/articles/360058964552', ...Utils.newTabLinkProps }, [
@@ -1122,7 +1122,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ]),
         p(['If you want your VM in ',
-          strong(`${computeConfig.computeRegion.toLowerCase()}`),
+          strong([`${computeConfig.computeRegion.toLowerCase()}`]),
           ', continue. Otherwise, go back to select another location.'])
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
@@ -1148,7 +1148,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
           icon('pop-out', { size: 12, style: { marginLeft: '0.25rem' } })
         ]),
         p(['If you want your VM in ',
-          strong(`${computeConfig.computeRegion.toLowerCase()}`),
+          strong([`${computeConfig.computeRegion.toLowerCase()}`]),
           ', continue. Otherwise, go back to select a US location.'])
       ]),
       div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' } }, [
@@ -1458,7 +1458,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
                 li({ style: { marginTop: '1rem' } }, [
                   p([
                     'This cloud environment will be created in the region ',
-                    strong(computeConfig.computeRegion.toLowerCase()), '. ',
+                    strong([computeConfig.computeRegion.toLowerCase()]), '. ',
                     'Copying data from a bucket in a different region may incur network egress charges. ',
                     'Note that network egress charges are not accounted for in cost estimates. ',
                     'For more information, particularly if you work with data stored in multiple cloud regions, please read the ',
