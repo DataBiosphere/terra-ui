@@ -9,6 +9,7 @@ import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
 import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import * as StateHistory from 'src/libs/state-history'
 
 
 export const commonStyles = {
@@ -117,7 +118,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
   const { query } = Nav.useRoute()
   const searchFilter = query.filter || ''
   const [selectedSections, setSelectedSections] = useState([])
-  const [selectedTags, setSelectedTags] = useState(query.tags || [])
+  const [selectedTags, setSelectedTags] = useState(StateHistory.get().selectedTags || [])
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const filterRegex = new RegExp(`(${searchFilter})`, 'i')
 
@@ -191,15 +192,8 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
   }
 
   useEffect(() => {
-    const newTags = qs.stringify({
-      ...query,
-      tags: selectedTags || undefined
-    }, { addQueryPrefix: true })
-
-    if (newTags !== Nav.history.location.search) {
-      Nav.history.replace({ search: newTags })
-    }
-  }, [query, selectedTags])
+    StateHistory.update({ selectedTags })
+  }, [selectedTags])
 
   return h(Fragment, [
     div({
