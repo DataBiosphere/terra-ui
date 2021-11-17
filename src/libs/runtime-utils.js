@@ -41,9 +41,24 @@ export const usableStatuses = ['Updating', 'Running']
 
 export const getDefaultMachineType = isDataproc => isDataproc ? defaultDataprocMachineType : defaultGceMachineType
 
+// GCP zones look like 'US-CENTRAL1-A'. To get the region, remove the last two characters.
+export const getRegionFromZone = zone => zone.slice(0, -2)
+
+export const normalizeComputeRegion = (region, zone) => {
+  // The config that is returned by Leonardo is in lowercase, but GCP returns regions in uppercase.
+  // PF-692 will have Leonardo return locations in uppercase.
+  if (region) {
+    return region.toUpperCase()
+  } else if (zone) {
+    return getRegionFromZone(zone).toUpperCase()
+  } else {
+    return defaultComputeRegion
+  }
+}
+
 export const normalizeRuntimeConfig = ({
   cloudService, machineType, diskSize, masterMachineType, masterDiskSize, numberOfWorkers,
-  numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, bootDiskSize, region
+  numberOfPreemptibleWorkers, workerMachineType, workerDiskSize, bootDiskSize, region, zone
 }) => {
   const isDataproc = cloudService === cloudServices.DATAPROC
   return {
@@ -58,7 +73,7 @@ export const normalizeRuntimeConfig = ({
     // because those runtimes do not have a separate boot disk. But those old GCE runtimes are more than 1 year old if they exist.
     // Hence, we're okay with this caveat.
     bootDiskSize: bootDiskSize || defaultGceBootDiskSize,
-    computeRegion: region || defaultComputeRegion
+    computeRegion: normalizeComputeRegion(region, zone)
   }
 }
 
