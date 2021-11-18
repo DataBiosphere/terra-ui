@@ -1,12 +1,14 @@
 import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h } from 'react-hyperscript-helpers'
-import { ButtonPrimary, ButtonSecondary, Checkbox, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
+import { ButtonOutline, ButtonPrimary, ButtonSecondary, Checkbox, LabeledCheckbox, Link, spinnerOverlay } from 'src/components/common'
 import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import { libraryTopMatter } from 'src/components/library-common'
 import { MiniSortable, SimpleTable } from 'src/components/table'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
 import * as Utils from 'src/libs/utils'
 import { commonStyles, SearchAndFilterComponent } from 'src/pages/library/common'
@@ -97,6 +99,10 @@ const SelectedItemsDisplay = ({ selectedData, setSelectedData }) => {
       h(ButtonPrimary, {
         style: { textTransform: 'none', fontSize: 14 },
         onClick: () => {
+          Ajax().Metrics.captureEvent(`${Events.catalogWorkspaceLink}:tableView`, {
+            snapshotIds: _.map('dct:identifier', selectedData),
+            snapshotName: _.map('dct:title', selectedData)
+          })
           importDataToWorkspace(selectedData)
         }
       }, ['Link to a workspace'])
@@ -135,7 +141,10 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
                   style: { marginRight: 10 },
                   'aria-label': tag,
                   checked: _.includes(tag.toLowerCase(), selectedTags),
-                  onChange: () => setSelectedTags(_.xor([tag.toLowerCase()]))
+                  onChange: () => {
+                    Ajax().Metrics.captureEvent(`${Events.catalogFilter}:tableHeader`, { tag })
+                    setSelectedTags(_.xor([tag.toLowerCase()]))
+                  }
                 }, [tag])
               ])
             }, sections[1].labels))
@@ -166,7 +175,15 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
             onChange: () => toggleSelectedData(datum)
           }),
           name: h(Link,
-            { onClick: () => Nav.goToPath('library-details', { id: datum['dct:identifier'] }) },
+            {
+              onClick: () => {
+                Ajax().Metrics.captureEvent(`${Events.catalogView}:details`, {
+                  id: datum['dct:identifier'],
+                  title: datum['dct:title']
+                })
+                Nav.goToPath('library-details', { id: datum['dct:identifier'] })
+              }
+            },
             [datum['dct:title']]
           ),
           project,
@@ -176,10 +193,10 @@ const makeDataBrowserTableComponent = ({ sort, setSort, selectedData, toggleSele
           underRow: div({ style: { display: 'flex', alignItems: 'flex-start', paddingTop: '1rem' } }, [
             div({ style: { display: 'flex', alignItems: 'center' } }, [
               Utils.switchCase(access,
-                [snapshotAccessTypes.CONTROLLED, () => h(ButtonSecondary, {
-                  style: { height: 'unset', textTransform: 'none' },
+                [snapshotAccessTypes.CONTROLLED, () => h(ButtonOutline, {
+                  style: { height: 'unset', textTransform: 'none', padding: '.5rem' },
                   onClick: () => setRequestDatasetAccessList([datum])
-                }, [icon('lock'), div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Request Access'])])],
+                }, [icon('lock'), div({ style: { paddingLeft: 10, fontSize: 12 } }, ['Request Access'])])],
                 [snapshotAccessTypes.PENDING, () => div({ style: { color: styles.access.pending, display: 'flex' } }, [
                   icon('lock'),
                   div({ style: { paddingLeft: 10, paddingTop: 4, fontSize: 12 } }, ['Pending Access'])

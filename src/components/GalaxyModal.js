@@ -11,7 +11,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
   computeStyles,
@@ -49,7 +49,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
 
     const createGalaxy = _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReporting('Error creating app')
+      withErrorReportingInModal('Error creating app', onDismiss)
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateGalaxyAppName()).create({
         kubernetesRuntimeConfig, diskName: currentDataDisk ? currentDataDisk.name : Utils.generatePersistentDiskName(), diskSize: dataDiskSize,
@@ -61,7 +61,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
 
     const deleteGalaxy = _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReporting('Error deleting galaxy instance')
+      withErrorReportingInModal('Error deleting galaxy instance', onDismiss)
     )(async () => {
       await Ajax().Apps.app(app.googleProject, app.appName).delete(attachedDataDisk ? shouldDeleteDisk : false)
       Ajax().Metrics.captureEvent(Events.applicationDelete, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
@@ -70,7 +70,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
 
     const pauseGalaxy = _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReporting('Error stopping galaxy instance')
+      withErrorReportingInModal('Error stopping galaxy instance', onDismiss)
     )(async () => {
       await Ajax().Apps.app(app.googleProject, app.appName).pause()
       Ajax().Metrics.captureEvent(Events.applicationPause, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
@@ -79,7 +79,7 @@ export const GalaxyModalBase = Utils.withDisplayName('GalaxyModal')(
 
     const resumeGalaxy = _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReporting('Error starting galaxy instance')
+      withErrorReportingInModal('Error starting galaxy instance', onDismiss)
     )(async () => {
       await Ajax().Apps.app(app.googleProject, app.appName).resume()
       Ajax().Metrics.captureEvent(Events.applicationResume, { app: 'Galaxy', ...extractWorkspaceDetails(workspace) })
