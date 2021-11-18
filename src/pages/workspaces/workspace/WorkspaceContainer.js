@@ -8,7 +8,7 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
-import { appLauncherTabName } from 'src/components/runtime-common'
+import { analysisTabName, contextBarTabs } from 'src/components/runtime-common'
 import RuntimeManager from 'src/components/RuntimeManager'
 import { TabBar } from 'src/components/tabBars'
 import TopBar from 'src/components/TopBar'
@@ -46,7 +46,7 @@ const WorkspaceTabs = ({
     { name: 'notebooks', link: 'workspace-notebooks' },
     // the spread operator results in no array entry if the config value is false
     // we want this feature gated until it is ready for release
-    ...(isAnalysisTabVisible() ? [{ name: 'analyses', link: 'workspace-analyses' }] : []),
+    ...(isAnalysisTabVisible() ? [{ name: 'analyses', link: analysisTabName }] : []),
     { name: 'workflows', link: 'workspace-workflows' },
     { name: 'job history', link: 'workspace-job-history' }
   ]
@@ -109,7 +109,7 @@ const WorkspaceContainer = ({
     div({ role: 'main', style: Style.elements.pageContentContainer },
 
       // TODO: When we switch this over to all tabs, ensure other workspace tabs look the same when inside these divs
-      (isAnalysisTabVisible() && (activeTab === 'analyses' || activeTab === appLauncherTabName) ?
+      (isAnalysisTabVisible() && _.includes(activeTab, contextBarTabs) ?
         [div({ style: { flex: 1, display: 'flex' } }, [
           div({ style: { flex: 1, display: 'flex', flexDirection: 'column' } }, [
             children
@@ -328,7 +328,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       }, [
         workspace && h(WrappedComponent, {
           ref: child,
-          workspace, refreshWorkspace, refreshRuntimes, refreshApps, runtimes, persistentDisks, galaxyDataDisks,
+          workspace, refreshWorkspace, refreshRuntimes, refreshApps, runtimes, persistentDisks, galaxyDataDisks, apps,
           ...props
         }),
         loadingWorkspace && spinnerOverlay

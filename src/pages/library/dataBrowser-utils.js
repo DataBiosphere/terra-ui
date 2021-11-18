@@ -1,7 +1,10 @@
 import _ from 'lodash/fp'
+import qs from 'qs'
 import { useState } from 'react'
 import { Ajax } from 'src/libs/ajax'
+import { getConfig } from 'src/libs/config'
 import { withErrorReporting } from 'src/libs/error'
+import * as Nav from 'src/libs/nav'
 import { dataCatalogStore } from 'src/libs/state'
 import * as Utils from 'src/libs/utils'
 
@@ -88,4 +91,14 @@ export const useDataCatalog = () => {
     _.isEmpty(dataCatalog) && refresh()
   })
   return { dataCatalog, refresh, loading }
+}
+
+export const importDataToWorkspace = snapshots => {
+  Nav.history.push({
+    pathname: Nav.getPath('import-data'),
+    search: qs.stringify({
+      url: getConfig().dataRepoUrlRoot, format: 'snapshot', referrer: 'data-catalog',
+      snapshotIds: _.map('dct:identifier', snapshots)
+    })
+  })
 }

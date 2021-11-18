@@ -17,7 +17,7 @@ import TooltipTrigger from 'src/components/TooltipTrigger'
 import { cloudServices, machineTypes } from 'src/data/machines'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { withErrorReporting } from 'src/libs/error'
+import { withErrorReporting, withErrorReportingInModal } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import { betaVersionTag } from 'src/libs/logos'
 import * as Nav from 'src/libs/nav'
@@ -221,7 +221,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
   // Helper functions -- begin
   const applyChanges = _.flow(
     Utils.withBusyState(setLoading),
-    withErrorReporting('Error creating cloud environment')
+    withErrorReportingInModal('Error modifying cloud environment', onDismiss)
   )(async () => {
     const { runtime: existingRuntime, persistentDisk: existingPersistentDisk } = getExistingEnvironmentConfig()
     const { runtime: desiredRuntime, persistentDisk: desiredPersistentDisk } = getDesiredEnvironmentConfig()
@@ -239,7 +239,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
         machineType: desiredRuntime.machineType || defaultGceMachineType,
         ...(desiredRuntime.diskSize ? {
           diskSize: desiredRuntime.diskSize
-        } : {
+        } : (shouldUpdatePersistentDisk ? { diskSize: desiredPersistentDisk.size } : {
           persistentDisk: existingPersistentDisk && !shouldDeletePersistentDisk ? {
             name: currentPersistentDiskDetails.name
           } : {
@@ -247,7 +247,7 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
             size: desiredPersistentDisk.size,
             labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name }
           }
-        }),
+        })),
         ...(computeConfig.gpuEnabled && { gpuConfig: { gpuType: computeConfig.gpuType, numOfGpus: computeConfig.numGpus } })
       } : {
         region: desiredRuntime.region.toLowerCase(),
@@ -278,9 +278,6 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
     if (shouldDeletePersistentDisk && !hasAttachedDisk()) {
       await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).delete()
     }
-    if (shouldUpdatePersistentDisk) {
-      await Ajax().Disks.disk(googleProject, currentPersistentDiskDetails.name).update(desiredPersistentDisk.size)
-    }
     if (shouldUpdateRuntime) {
       await Ajax().Runtimes.runtime(googleProject, currentRuntimeDetails.runtimeName).update({ runtimeConfig })
     }
@@ -288,7 +285,10 @@ export const ComputeModalBase = ({ onDismiss, onSuccess, runtimes, persistentDis
       await Ajax().Runtimes.runtime(googleProject, Utils.generateRuntimeName()).create({
         runtimeConfig,
         toolDockerImage: desiredRuntime.toolDockerImage,
-        labels: { saturnWorkspaceNamespace: namespace, saturnWorkspaceName: name },
+        labels: {
+          saturnWorkspaceNamespace: namespace,
+          saturnWorkspaceName: name
+        },
         customEnvironmentVariables: customEnvVars,
         ...(desiredRuntime.jupyterUserScriptUri ? { jupyterUserScriptUri: desiredRuntime.jupyterUserScriptUri } : {})
       })

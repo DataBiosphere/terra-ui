@@ -19,7 +19,7 @@ export const getRegionInfo = (location, locationType) => {
   return Utils.switchCase(locationType,
     ['multi-region', () => Utils.switchCase(location,
       ['US', () => ({ flag: '🇺🇸', regionDescription, computeZone: 'US-CENTRAL1-A', computeRegion: 'US-CENTRAL1' })],
-      ['EU', () => ({ flag: '🇪🇺', regionDescription, computeZone: 'EUROPE-CENTRAL2-A', computeRegion: 'EUROPE-CENTRAL2' })],
+      ['EU', () => ({ flag: '🇪🇺', regionDescription, computeZone: 'EUROPE-NORTH1-A', computeRegion: 'EUROPE-NORTH1' })],
       ['ASIA', () => ({ flag: '🌏', regionDescription, computeZone: 'ASIA-EAST1-A', computeRegion: 'ASIA-EAST1' })],
       [Utils.DEFAULT, () => ({ flag: unknownRegionFlag, regionDescription, computeZone: 'UNKNOWN', computeRegion: 'UNKNOWN' })]
     )],

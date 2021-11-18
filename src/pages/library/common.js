@@ -1,12 +1,15 @@
 import _ from 'lodash/fp'
 import * as qs from 'qs'
-import { Fragment, useMemo, useState } from 'react'
+import { Fragment, useEffect, useMemo, useState } from 'react'
 import { div, em, h, label, span, strong } from 'react-hyperscript-helpers'
 import Collapse from 'src/components/Collapse'
 import { Clickable, IdContainer, Link, Select } from 'src/components/common'
 import { DelayedAutoCompleteInput } from 'src/components/input'
+import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
+import Events from 'src/libs/events'
 import * as Nav from 'src/libs/nav'
+import * as StateHistory from 'src/libs/state-history'
 
 
 export const commonStyles = {
@@ -115,7 +118,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
   const { query } = Nav.useRoute()
   const searchFilter = query.filter || ''
   const [selectedSections, setSelectedSections] = useState([])
-  const [selectedTags, setSelectedTags] = useState([])
+  const [selectedTags, setSelectedTags] = useState(StateHistory.get().selectedTags || [])
   const [sort, setSort] = useState({ field: 'created', direction: 'desc' })
   const filterRegex = new RegExp(`(${searchFilter})`, 'i')
 
@@ -179,10 +182,18 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
       filter: filter || undefined
     }, { addQueryPrefix: true })
 
+    if (filter) {
+      Ajax().Metrics.captureEvent(`${Events.catalogFilter}:search`, { filter })
+    }
+
     if (newSearch !== Nav.history.location.search) {
       Nav.history.replace({ search: newSearch })
     }
   }
+
+  useEffect(() => {
+    StateHistory.update({ selectedTags })
+  }, [selectedTags])
 
   return h(Fragment, [
     div({
@@ -212,6 +223,7 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
       h(DelayedAutoCompleteInput, {
         style: { borderRadius: 25, width: 800, flex: 1 },
         inputIcon: 'search',
+        debounceMs: 25,
         openOnFocus: true,
         value: searchFilter,
         'aria-label': `Search ${searchType}`,
@@ -258,7 +270,10 @@ export const SearchAndFilterComponent = ({ fullList, sidebarSections, customSort
       div({ style: { width: '19rem', flex: 'none' } }, [
         h(Sidebar, {
           onSectionFilter: section => setSelectedSections(_.xor([section])),
-          onTagFilter: tag => setSelectedTags(_.xor([tag])),
+          onTagFilter: tag => {
+            Ajax().Metrics.captureEvent(`${Events.catalogFilter}:sidebar`, { tag })
+            setSelectedTags(_.xor([tag]))
+          },
           sections,
           selectedSections,
           selectedTags,
