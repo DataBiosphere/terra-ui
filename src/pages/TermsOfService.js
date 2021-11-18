@@ -8,29 +8,21 @@ import colors from 'src/libs/colors'
 import { reportError } from 'src/libs/error'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
-
-
-/*
- * When updating the TOS, make sure you:
- *   1. update the TOS version number in the Ajax call
- *   2. update the dev and prod datastores to have a TOS of that version number
- *
- * Updating the text here:
- *   1. If in a google doc, save as .docx
- *   2. `brew install pandoc`
- *   3. `pandoc -w markdown -o <out file>.md <in file>.docx`
- *   4. A bit of replace-all-ing to fix formatting and unescape things will probably be needed
- *   5. Look out for links that need to be added, emails will become clickable on their own
- */
-let termsOfService = ''
-
-Ajax().User.getTos().then(text => termsOfService = text)
+import * as Utils from 'src/libs/utils'
 
 
 const TermsOfServicePage = () => {
   const [busy, setBusy] = useState()
   const { isSignedIn, acceptedTos } = authStore.get() // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
   const needToAccept = isSignedIn && !acceptedTos
+  const [termsOfService, setTermsOfService] = useState('')
+  const tosErrorText = 'There was an error retrieving our terms of service.'
+
+  Utils.useOnMount(() => {
+    Ajax().User.getTos().then(text => setTermsOfService(text), () => {
+      setTermsOfService(tosErrorText)
+    })
+  })
 
   const accept = async () => {
     try {
@@ -56,7 +48,7 @@ const TermsOfServicePage = () => {
           }
         }, [termsOfService])
       ]),
-      needToAccept && div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
+      needToAccept && termsOfService !== tosErrorText && div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
         h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
         h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept'])
       ])
