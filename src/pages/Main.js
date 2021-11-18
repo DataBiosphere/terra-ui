@@ -16,11 +16,12 @@ import { AuthenticatedCookieSetter } from 'src/components/runtime-common'
 import ServiceAlerts from 'src/components/ServiceAlerts'
 import SupportRequest from 'src/components/SupportRequest'
 import { PageViewReporter } from 'src/libs/events'
-import { LocationProvider, Router, TitleManager } from 'src/libs/nav'
+import { LocationProvider, PathHashInserter, Router, TitleManager } from 'src/libs/nav'
 
 
 const Main = () => {
   return h(LocationProvider, [
+    h(PathHashInserter),
     h(CookieWarning),
     h(ReactNotification),
     h(ImportStatus),
