@@ -123,6 +123,8 @@ const ImportData = () => {
         snapshots && snapshots.length > 0 ?
           await Promise.allSettled(
             _.map(({ title, id, description }) => {
+              // Normalize the title:
+              // Importing snapshot will throw an "enum" error if the title has any spaces or special characters
               // Replace all whitespace characters with _
               // Then replace all non alphanumeric characters with nothing
               const normalizedTitle = title.replace(/\s/g, '_').replace(/[^A-Za-z0-9\s-_]/g, '')
