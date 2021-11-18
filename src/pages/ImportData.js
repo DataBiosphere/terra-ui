@@ -58,6 +58,21 @@ const ChoiceButton = ({ iconName, title, detail, style, ...props }) => {
   ])
 }
 
+const ResponseFragment = ({ title, snapshotResponses, responseIndex }) => {
+  const { status, message } = snapshotResponses ? snapshotResponses[responseIndex] : {}
+  const [color, iconKey, children] = Utils.switchCase(status,
+    ['fulfilled', () => [colors.primary(), 'success-standard', [strong(['Success: ']), 'Snapshot successfully imported']]],
+    ['rejected', () => [colors.danger(), 'warning-standard', [strong(['Error: ']), message]]],
+    [Utils.DEFAULT, () => [colors.primary(), `success-standard`]]
+  )
+
+  return h(Fragment, [
+    icon(iconKey, { size: 18, style: { position: 'absolute', left: 0, color } }),
+    title,
+    children && children.length && div({ style: { color, fontWeight: 'normal', fontSize: '0.625rem', marginTop: 5, wordBreak: 'break-word' } }, children)
+  ])
+}
+
 const ImportData = () => {
   const { workspaces, refresh: refreshWorkspaces, loading: loadingWorkspaces } = useWorkspaces()
   const [isImporting, setIsImporting] = useState(false)
@@ -182,31 +197,7 @@ const ImportData = () => {
                     borderTop: `${mapindex ? 1 : 0}px solid #AAA`
                   }
                 }, [
-                  !snapshotResponses ?
-                    div([
-                      icon('success-standard', { size: 18, style: { position: 'absolute', left: 0, color: colors.primary() } }),
-                      title
-                    ]) :
-                    Utils.switchCase(snapshotResponses[mapindex].status,
-                      ['fulfilled', () => {
-                        return h(Fragment, [
-                          icon('success-standard', { size: 18, style: { position: 'absolute', left: 0, color: colors.primary() } }),
-                          title,
-                          div({ style: { color: colors.primary(), fontWeight: 'normal', fontSize: '0.625rem', marginTop: 5 } }, [
-                            strong(['Success: ']), 'Snapshot successfully imported'
-                          ])
-                        ])
-                      }],
-                      ['rejected', () => {
-                        return h(Fragment, [
-                          icon('warning-standard', { size: 18, style: { position: 'absolute', left: 0, color: colors.danger() } }),
-                          title,
-                          div({ style: { color: colors.danger(), fontWeight: 'normal', fontSize: '0.625rem', marginTop: 5, wordBreak: 'break-word' } }, [
-                            strong(['Error: ']),
-                            snapshotResponses[mapindex].message
-                          ])
-                        ])
-                      }])
+                  h(ResponseFragment, { snapshotResponses, responseIndex: mapindex, title })
                 ])))(snapshots)
             ])
           ]) :
