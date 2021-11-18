@@ -1,3 +1,4 @@
+import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h, h1 } from 'react-hyperscript-helpers'
 import { backgroundLogo, ButtonPrimary, ButtonSecondary } from 'src/components/common'
@@ -5,7 +6,7 @@ import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
 import colors from 'src/libs/colors'
-import { reportError } from 'src/libs/error'
+import { reportError, withErrorReporting } from 'src/libs/error'
 import { authStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
@@ -17,17 +18,16 @@ const TermsOfServicePage = () => {
   const needToAccept = isSignedIn && !acceptedTos
   const [termsOfService, setTermsOfService] = useState('')
   const [tosLoaded, setTosLoaded] = useState(false)
-  const tosErrorText = 'There was an error retrieving our terms of service.'
 
   Utils.useOnMount(() => {
-    setBusy(true)
-    Ajax().User.getTos().then(text => {
-      setTermsOfService(text)
+    const renderTos = _.flow(
+      Utils.withBusyState(setBusy),
+      withErrorReporting('There was an error retrieving our terms of service.')
+    )(async () => {
+      setTermsOfService(await Ajax().User.getTos())
       setTosLoaded(true)
-    }, () => {
-      setTermsOfService(tosErrorText)
-      setTosLoaded(false)
-    }).then(() => setBusy(false))
+    })
+    renderTos()
   })
 
   const accept = async () => {
