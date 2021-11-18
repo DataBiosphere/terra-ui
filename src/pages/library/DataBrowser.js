@@ -47,24 +47,30 @@ const extractCatalogFilters = dataCatalog => {
   return [{
     name: 'Access type',
     labels: accessArray,
-    labelDisplays: _.zipObject(accessArray, _.map(accessKey => {
-      const lowerKey = _.toLower(accessKey)
-      return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
-        icon(snapshotAccessTypes[accessKey] === snapshotAccessTypes.OPEN ? 'unlock' : 'lock', {
-          style: { color: styles.access[lowerKey], marginRight: 5 }
-        }),
-        div([snapshotAccessTypes[accessKey]])
-      ])]
-    }, _.keys(snapshotAccessTypes)))
+    labelDisplays: _.flow(
+      _.map(accessKey => {
+        const lowerKey = _.toLower(accessKey)
+        return [div({ key: `access-filter-${lowerKey}`, style: { display: 'flex' } }, [
+          icon(snapshotAccessTypes[accessKey] === snapshotAccessTypes.OPEN ? 'unlock' : 'lock', {
+            style: { color: styles.access[lowerKey], marginRight: 5 }
+          }),
+          div([snapshotAccessTypes[accessKey]])
+        ])]
+      }),
+      _.zipObject(accessArray)
+    )(_.keys(snapshotAccessTypes))
   }, {
     name: 'Data use policy',
     labels: releasePolicyArray,
-    labelDisplays: _.zipObject(releasePolicyArray, _.map(({ label, tag, desc }) => {
-      return [div({ key: `releasePolicy-filter-${tag.toLowerCase()}`, style: { display: 'flex', flexDirection: 'column' } }, [
-        label,
-        desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [desc])
-      ])]
-    }, snapshotReleasePolicies))
+    labelDisplays: _.flow(
+      _.map(({ label, tag, desc }) => {
+        return [div({ key: `releasePolicy-filter-${tag.toLowerCase()}`, style: { display: 'flex', flexDirection: 'column' } }, [
+          label,
+          desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [desc])
+        ])]
+      }),
+      _.zipObject(releasePolicyArray)
+    )(snapshotReleasePolicies)
   }, {
     name: 'Consortium',
     labels: getUnique('project', dataCatalog)
