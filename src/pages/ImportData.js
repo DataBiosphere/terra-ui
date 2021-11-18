@@ -108,7 +108,7 @@ const ImportData = () => {
   )(async workspace => {
     const namespace = workspace.namespace
     const name = workspace.name
-    let success = true
+
     await Utils.switchCase(format,
       ['PFB', async () => {
         const { jobId } = await Ajax().Workspaces.workspace(namespace, name).importPFB(url)
@@ -129,16 +129,20 @@ const ImportData = () => {
               return Ajax().Workspaces.workspace(namespace, name).importSnapshot(id, normalizedTitle, description)
             }, snapshots)
           ).then(async responses => {
-            success = !_.some(({ status }) => status === 'rejected', responses)
-
-            if (!success) {
+            if (_.some(({ status }) => status === 'rejected', responses)) {
               const normalizedResponses = await Promise.all(_.map(async ({ status, reason }) => {
                 const reasonJson = reason ? await reason.json() : '{}'
                 const message = JSON.parse(reasonJson.message || '{}').message
                 return { status, message }
               }, responses))
               setSnapshotResponses(normalizedResponses)
-              notify('error', `There was a problem importing ${snapshots.length > 1 ? 'some of these snapshots' : 'this snapshot'}`, { timeout: 3000 })
+
+              // Consolidate the multiple errors into a single error message
+              throw new Error(_.flow(
+                _.filter(({ status }) => status === 'rejected'),
+                _.map('message'),
+                _.join(', ')
+              )(normalizedResponses))
             }
           }) :
           await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName).then(() => {
@@ -151,10 +155,7 @@ const ImportData = () => {
       }]
     )
     Ajax().Metrics.captureEvent(Events.workspaceDataImport, { format, ...extractWorkspaceDetails(workspace) })
-
-    if (success) {
-      Nav.goToPath('workspace-data', { namespace, name })
-    }
+    Nav.goToPath('workspace-data', { namespace, name })
   })
 
   return h(FooterWrapper, [
