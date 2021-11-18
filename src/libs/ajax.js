@@ -236,7 +236,7 @@ const User = signal => ({
   },
 
   getTos: async () => {
-    const response = await fetchSam('tos/text', _.merge(authOpts(), { signal, method: 'GET' }))
+    const response = await fetchSam('tos/text', _.merge(authOpts(), { signal }))
     return await response.text()
   },
 
