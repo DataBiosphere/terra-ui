@@ -16,12 +16,18 @@ const TermsOfServicePage = () => {
   const { isSignedIn, acceptedTos } = authStore.get() // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
   const needToAccept = isSignedIn && !acceptedTos
   const [termsOfService, setTermsOfService] = useState('')
+  const [tosLoaded, setTosLoaded] = useState(false)
   const tosErrorText = 'There was an error retrieving our terms of service.'
 
   Utils.useOnMount(() => {
-    Ajax().User.getTos().then(text => setTermsOfService(text), () => {
+    setBusy(true)
+    Ajax().User.getTos().then(text => {
+      setTermsOfService(text)
+      setTosLoaded(true)
+    }, () => {
       setTermsOfService(tosErrorText)
-    })
+      setTosLoaded(false)
+    }).then(() => setBusy(false))
   })
 
   const accept = async () => {
@@ -48,7 +54,7 @@ const TermsOfServicePage = () => {
           }
         }, [termsOfService])
       ]),
-      needToAccept && termsOfService !== tosErrorText && div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
+      needToAccept && tosLoaded && div({ style: { display: 'flex', justifyContent: 'flex-end', marginTop: '2rem' } }, [
         h(ButtonSecondary, { style: { marginRight: '1rem' }, onClick: signOut }, 'Decline and Sign Out'),
         h(ButtonPrimary, { onClick: accept, disabled: busy }, ['Accept'])
       ])
