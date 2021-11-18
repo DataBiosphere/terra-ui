@@ -59,10 +59,10 @@ const extractCatalogFilters = dataCatalog => {
   }, {
     name: 'Data use policy',
     labels: releasePolicyArray,
-    labelDisplays: _.zipObject(releasePolicyArray, _.map(releasePolicy => {
-      return [div({ key: `releasePolicy-filter-${releasePolicy.tag.toLowerCase()}`, style: { display: 'flex', flexDirection: 'column' } }, [
-        releasePolicy.label,
-        releasePolicy.desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [releasePolicy.desc])
+    labelDisplays: _.zipObject(releasePolicyArray, _.map(({ label, tag, desc }) => {
+      return [div({ key: `releasePolicy-filter-${tag.toLowerCase()}`, style: { display: 'flex', flexDirection: 'column' } }, [
+        label,
+        desc && div({ style: { fontSize: '0.625rem', lineHeight: '0.625rem' } }, [desc])
       ])]
     }, snapshotReleasePolicies))
   }, {
