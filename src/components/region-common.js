@@ -89,7 +89,7 @@ export const allRegions = [
 ]
 
 // For current phased release of regionality only supporting US and US-CENTRAL1 buckets.
-export const availableBucketRegions = allRegions.slice(0, 2)
+export const availableBucketRegions = _.slice(0, 2, allRegions)
 
 // For current phased release of regionality only supporting compute region in US-CENTRAL1
 // and the same region as your workspace bucket.

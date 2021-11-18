@@ -8,7 +8,6 @@ import FooterWrapper from 'src/components/FooterWrapper'
 import { icon } from 'src/components/icons'
 import NewWorkspaceModal from 'src/components/NewWorkspaceModal'
 import { makeMenuIcon, MenuButton, MenuTrigger } from 'src/components/PopupTrigger'
-import { locationTypes } from 'src/components/region-common'
 import { appLauncherTabName } from 'src/components/runtime-common'
 import RuntimeManager from 'src/components/RuntimeManager'
 import { TabBar } from 'src/components/tabBars'
@@ -20,8 +19,8 @@ import { isAnalysisTabVisible, isTerra } from 'src/libs/config'
 import { withErrorIgnoring, withErrorReporting } from 'src/libs/error'
 import * as Nav from 'src/libs/nav'
 import { clearNotification, notify } from 'src/libs/notifications'
-import { defaultLocation, getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
-import { workspaceStore } from 'src/libs/state'
+import { getConvertedRuntimeStatus, getCurrentApp, getCurrentRuntime } from 'src/libs/runtime-utils'
+import { workspaceBucketLocationStore, workspaceStore } from 'src/libs/state'
 import * as Style from 'src/libs/style'
 import * as Utils from 'src/libs/utils'
 import DeleteWorkspaceModal from 'src/pages/workspaces/workspace/DeleteWorkspaceModal'
@@ -247,8 +246,10 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
       cachedWorkspace :
       undefined
     const [googleProject, setGoogleProject] = useState(workspace?.workspace.googleProject)
-    const [location, setLocation] = useState(defaultLocation)
-    const [locationType, setLocationType] = useState(locationTypes.default)
+
+    const cachedLocation = Utils.useStore(workspaceBucketLocationStore)
+    const location = cachedLocation?.location
+    const locationType = cachedLocation?.locationType
     const prevGoogleProject = Utils.usePrevious(googleProject)
     const { runtimes, refreshRuntimes, persistentDisks, galaxyDataDisks } = useCloudEnvironmentPolling(googleProject)
     const { apps, refreshApps } = useAppPolling(googleProject, name)
@@ -271,8 +272,7 @@ export const wrapWorkspace = ({ breadcrumbs, activeTab, title, topBarContent, sh
         setGoogleProject(workspace.workspace.googleProject)
 
         const { location, locationType } = await Ajax().Workspaces.workspace(namespace, name).checkBucketLocation(workspace.workspace.googleProject, workspace.workspace.bucketName)
-        setLocation(location)
-        setLocationType(locationType)
+        workspaceBucketLocationStore.set({ location, locationType })
 
         const { accessLevel, workspace: { createdBy, createdDate, googleProject } } = workspace
 
