@@ -20,6 +20,8 @@ const defaultKubernetesRuntimeConfig = { machineType: 'n1-highmem-8', numNodes: 
 
 const titleId = 'cromwell-modal-title'
 
+// TODO: As this code continues to evolve, create a shared base class with GalaxyModalBase if possible
+// (or find another way to reduce code duplication).
 export const CromwellModalBase = Utils.withDisplayName('CromwellModal')(
   ({
     onDismiss, onSuccess, apps, appDataDisks, workspace, workspace: { workspace: { namespace, bucketName, name: workspaceName, googleProject } },
