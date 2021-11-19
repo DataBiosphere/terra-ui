@@ -43,7 +43,6 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
     analyses, workspace, persistentDisks, location, workspace: { workspace: { googleProject, bucketName } }
   }) => {
     const [viewMode, setViewMode] = useState(undefined)
-    const [busy, setBusy] = useState()
     const [notebookKernel, setNotebookKernel] = useState('python3')
     const [analysisName, setAnalysisName] = useState('')
     const prevAnalysisName = Utils.usePrevious(analysisName)
