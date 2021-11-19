@@ -25,7 +25,7 @@ import jupyterLogoLong from 'src/images/jupyter-logo-long.png'
 import rstudioLogo from 'src/images/rstudio-logo.svg'
 import { Ajax } from 'src/libs/ajax'
 import colors from 'src/libs/colors'
-import { reportError, withErrorReporting } from 'src/libs/error'
+import { reportError } from 'src/libs/error'
 import { FormLabel } from 'src/libs/forms'
 import { getCurrentAppForType, getCurrentRuntime, isResourceDeletable } from 'src/libs/runtime-utils'
 import * as Style from 'src/libs/style'
@@ -118,17 +118,13 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
       persistentDisks,
       location,
       onDismiss: () => {
-        resetView()
+        setViewMode(undefined)
         onDismiss()
       },
-      onSuccess: _.flow(
-        withErrorReporting('Error creating compute'),
-        Utils.withBusyState(setBusy)
-      )(async () => {
+      onSuccess: () => {
         setViewMode(undefined)
-        onSuccess()
-        await refreshRuntimes(true)
-      })
+        onDismiss()
+      }
     })
 
     const renderAppModal = (appModalBase, toolLabel) => h(appModalBase, {
@@ -141,14 +137,10 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
         setViewMode(undefined)
         onDismiss()
       },
-      onSuccess: _.flow(
-        withErrorReporting('Error creating app'),
-        Utils.withBusyState(setBusy)
-      )(async () => {
+      onSuccess: () => {
         setViewMode(undefined)
-        onSuccess()
-        await refreshApps(true)
-      })
+        onDismiss()
+      }
     })
     const renderGalaxyModal = () => renderAppModal(GalaxyModalBase, tools.galaxy.label)
     const renderCromwellModal = () => renderAppModal(CromwellModalBase, tools.cromwell.label)
