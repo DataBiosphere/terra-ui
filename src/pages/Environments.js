@@ -272,8 +272,9 @@ const Environments = () => {
   const renderPauseButton = (computeType, compute) => {
     const { status } = compute
     const isPausable = isComputePausable(computeType, compute)
+    const app = _.find(tool => tool.appType && tool.appType === compute.appType)(tools)
 
-    return h(Link, {
+    return !app?.isPauseUnsupported && h(Link, {
       disabled: !isPausable,
       tooltip: isPausable ?
         'Pause cloud environment' :

@@ -205,7 +205,7 @@ export const CloudEnvironmentModal = ({
           tooltip: canCompute ? 'Resume Environment' : noCompute
         })
       case 'Running':
-        return h(RuntimeIcon, {
+        return !_.find(tool => tool.label === toolLabel)(tools).isPauseUnsupported && h(RuntimeIcon, {
           shape: 'pause',
           toolLabel,
           onClick: () => stopApp(toolLabel),
