@@ -2,6 +2,7 @@ import _ from 'lodash/fp'
 import { useState } from 'react'
 import { div, h, h1 } from 'react-hyperscript-helpers'
 import { backgroundLogo, ButtonPrimary, ButtonSecondary } from 'src/components/common'
+import { centeredSpinner } from 'src/components/icons'
 import { MarkdownViewer, newWindowLinkRenderer } from 'src/components/markdown'
 import { Ajax } from 'src/libs/ajax'
 import { signOut } from 'src/libs/auth'
@@ -16,16 +17,16 @@ const TermsOfServicePage = () => {
   const [busy, setBusy] = useState()
   const { isSignedIn, acceptedTos } = authStore.get() // can't change while viewing this without causing it to unmount, so doesn't need to subscribe
   const needToAccept = isSignedIn && !acceptedTos
-  const [termsOfService, setTermsOfService] = useState('')
+  const [termsOfService, setTermsOfService] = useState()
 
   Utils.useOnMount(() => {
-    const renderTos = _.flow(
+    const loadTosAndUpdateState = _.flow(
       Utils.withBusyState(setBusy),
       withErrorReporting('There was an error retrieving our terms of service.')
     )(async () => {
       setTermsOfService(await Ajax().User.getTos())
     })
-    renderTos()
+    loadTosAndUpdateState()
   })
 
   const accept = async () => {
@@ -45,7 +46,7 @@ const TermsOfServicePage = () => {
       h1({ style: { color: colors.dark(), fontSize: 38, fontWeight: 400 } }, ['Terra Terms of Service']),
       needToAccept && div({ style: { fontSize: 18, fontWeight: 600 } }, ['Please accept the Terms of Service to continue.']),
       div({ style: { height: '50vh', overflowY: 'auto', lineHeight: 1.5, marginTop: '1rem', paddingRight: '1rem' } }, [
-        h(MarkdownViewer, {
+        !termsOfService ? centeredSpinner() : h(MarkdownViewer, {
           renderers: {
             link: newWindowLinkRenderer,
             heading: (text, level) => `<h${level} style="margin-bottom: 0">${text}</h${level}>`
