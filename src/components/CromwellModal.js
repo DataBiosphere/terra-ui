@@ -6,7 +6,7 @@ import { withModalDrawer } from 'src/components/ModalDrawer'
 import { tools } from 'src/components/notebook-utils'
 import TitleBar from 'src/components/TitleBar'
 import { Ajax } from 'src/libs/ajax'
-import { withErrorReportingInModal } from 'src/libs/error'
+import { withErrorReporting } from 'src/libs/error'
 import Events, { extractWorkspaceDetails } from 'src/libs/events'
 import {
   computeStyles,
@@ -30,7 +30,7 @@ export const CromwellModalBase = Utils.withDisplayName('CromwellModal')(
 
     const createCromwell = _.flow(
       Utils.withBusyState(setLoading),
-      withErrorReportingInModal('Error creating Cromwell')
+      withErrorReporting('Error creating Cromwell')
     )(async () => {
       await Ajax().Apps.app(googleProject, Utils.generateAppName()).create({
         defaultKubernetesRuntimeConfig, diskName: Utils.generatePersistentDiskName(), diskSize: defaultDataDiskSize,

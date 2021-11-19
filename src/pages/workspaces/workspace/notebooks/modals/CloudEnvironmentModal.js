@@ -128,6 +128,7 @@ export const CloudEnvironmentModal = ({
   const currentRuntimeTool = currentRuntime?.labels?.tool
 
   const currentApp = toolLabel => getCurrentAppForType(getAppType(toolLabel))(apps)
+  const showPause = toolLabel => !_.find(tool => tool.label === toolLabel)(tools).isPauseUnsupported
 
   const RuntimeIcon = ({ shape, onClick, disabled, messageChildren, toolLabel, style, ...props }) => {
     return h(Clickable, {
@@ -173,7 +174,7 @@ export const CloudEnvironmentModal = ({
     executeAndRefresh(toolLabel, Ajax().Runtimes.runtime(googleProject, runtimeName).stop())
   }])
 
-  const defaultIcon = toolLabel => h(RuntimeIcon, {
+  const defaultIcon = toolLabel => showPause(toolLabel) && h(RuntimeIcon, {
     shape: 'pause',
     toolLabel,
     disabled: true,
@@ -205,7 +206,7 @@ export const CloudEnvironmentModal = ({
           tooltip: canCompute ? 'Resume Environment' : noCompute
         })
       case 'Running':
-        return !_.find(tool => tool.label === toolLabel)(tools).isPauseUnsupported && h(RuntimeIcon, {
+        return showPause(toolLabel) && h(RuntimeIcon, {
           shape: 'pause',
           toolLabel,
           onClick: () => stopApp(toolLabel),
