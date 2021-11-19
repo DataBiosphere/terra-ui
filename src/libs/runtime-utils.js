@@ -223,9 +223,9 @@ export const machineCost = machineType => {
   return _.find(knownMachineType => knownMachineType.name === machineType, machineTypes).price
 }
 
-export const getCurrentAppForType = appType => _.flow(trimAppsOldestFirst, _.filter(_ => _.appType === appType), _.last)
+export const getCurrentAppForType = appType => _.flow(trimAppsOldestFirst, _.filter(app => app.appType === appType), _.last)
 
-export const currentAppIncludingDeleting = appType => _.flow(_.remove(_ => _.appType !== appType), _.sortBy('auditInfo.createdDate'), _.last)
+export const currentAppIncludingDeleting = appType => _.flow(_.filter(app => app.appType === appType), _.sortBy('auditInfo.createdDate'), _.last)
 
 export const currentAttachedDataDisk = (app, appDataDisks) => {
   return _.find({ name: app?.diskName }, appDataDisks)

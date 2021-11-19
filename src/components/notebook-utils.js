@@ -85,10 +85,7 @@ export const getToolsToDisplay = _.remove(tool => tool.isAppHidden)([tools.Jupyt
 const toolToExtensionMap = { [tools.RStudio.label]: tools.RStudio.ext, [tools.Jupyter.label]: tools.Jupyter.ext }
 
 // Returns appType for app with given label, or undefined if tool is not an app.
-export const getAppType = label => {
-  const app = _.find(_ => _.label === label)(tools)
-  return app?.appType
-}
+export const getAppType = label => _.find(tool => tool.label === label)(tools)?.appType
 
 // Does the tool label correspond to an app?
 export const isToolAnApp = label => getAppType(label) !== undefined
