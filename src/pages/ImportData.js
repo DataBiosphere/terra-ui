@@ -163,9 +163,8 @@ const ImportData = () => {
             throw new Error(`${numFailures} snapshot${numFailures > 1 ? 's' : ''} failed to import. See details in the "Linking to Workspace" section`)
           }
         } else {
-          await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName).then(() => {
-            notify('success', 'Snapshot imported successfully.', { timeout: 3000 })
-          })
+          await Ajax().Workspaces.workspace(namespace, name).importSnapshot(snapshotId, snapshotName)
+          notify('success', 'Snapshot imported successfully.', { timeout: 3000 })
         }
       }],
       [Utils.DEFAULT, async () => {
