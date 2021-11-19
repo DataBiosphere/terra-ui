@@ -180,8 +180,8 @@ const useCloudEnvironmentPolling = googleProject => {
       const [newDisks, newRuntimes, galaxyDisks, cromwellDisks] = googleProject ? await Promise.all([
         Ajax(signal).Disks.list({ googleProject, creator: getUser().email }),
         Ajax(signal).Runtimes.list({ googleProject, creator: getUser().email }),
-        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: tools.galaxy.label }),
-        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: tools.cromwell.label })
+        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: tools.galaxy.appType }),
+        Ajax(signal).Disks.list({ googleProject, creator: getUser().email, saturnApplication: tools.cromwell.appType })
       ]) : [[], [], [], []]
       const appDisks = _.concat(galaxyDisks, cromwellDisks)
       const appDiskNames = _.map(disk => disk.name, appDisks)
