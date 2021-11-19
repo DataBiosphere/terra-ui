@@ -1,7 +1,7 @@
 import _ from 'lodash/fp'
 import { Fragment, useState } from 'react'
 import { div, h, h2, hr, img, span } from 'react-hyperscript-helpers'
-import { ButtonPrimary, IdContainer, Select, spinnerOverlay, WarningTitle } from 'src/components/common'
+import { ButtonPrimary, IdContainer, Select, WarningTitle } from 'src/components/common'
 import { ComputeModalBase } from 'src/components/ComputeModal'
 import { CromwellModalBase } from 'src/components/CromwellModal'
 import Dropzone from 'src/components/Dropzone'
@@ -314,8 +314,7 @@ export const AnalysisModal = Utils.withDisplayName('AnalysisModal')(
         onPrevious: () => !!viewMode && resetView()
       }),
       viewMode !== undefined && hr({ style: { borderTop: '1px solid', width: '100%', color: colors.accent() } }),
-      getView(),
-      busy && spinnerOverlay
+      getView()
     ])
 
     const modalProps = {
