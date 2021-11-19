@@ -221,11 +221,10 @@ const User = signal => ({
   },
 
   getTosAccepted: async () => {
-    const url = `${getConfig().tosUrlRoot}/user/response?${qs.stringify(tosData)}`
     try {
-      const res = await fetchOk(url, _.merge(authOpts(), { signal }))
-      const { accepted } = await res.json()
-      return accepted
+      const res = await fetchSam('register/user/v2/self/info', _.merge(authOpts(), { signal }))
+      const { tosAccepted } = await res.json()
+      return tosAccepted
     } catch (error) {
       if (error.status === 403 || error.status === 404) {
         return false
